@@ -1294,6 +1294,10 @@ function EnquiryFollowUp({ s }) {
         <Button label="Return to original enquiry" onPress={s.enquiryReplyActions.returnToSource}/>
       </Card>:null}
       {privateReply?<>{[['acknowledge','Acknowledge the enquiry'],['date','Ask to confirm dates'],['group','Ask to confirm group size'],['requirements','Ask about location and access']].map(([purpose,label])=><Button key={purpose} label={(privateReply.purpose===purpose?'✓ ':'')+label} disabled={!privateReply.current} onPress={()=>s.enquiryReplyActions.prepareQuestion(purpose)}/>)}</>:null}
+      {privateReply?<><Text style={styles.cardBody}>{({unsaved:'Changes not saved yet.',saving:'Saving a private device copy…',confirmed:'Saved on this device. Account saving is separate.',failed:'The private save did not start. Your words are kept.',unknown:'Couldn’t confirm the device save. Keep your words and check the copy before retrying.',newer:'Newer wording has not been confirmed saved.',reopened:'Reopened a private saved record. Current device/account persistence has not been checked.'})[privateReply.saveStatus]}</Text>
+        <Button label="Save reply on this device" disabled={!privateReply.current||!s.enquiryFollowUpDraft.trim()||['saving','unknown'].includes(privateReply.saveStatus)} onPress={s.enquiryReplyActions.save}/>
+        {privateReply.saveStatus==='unknown'?<Button label="Check private device copy" onPress={s.enquiryReplyActions.checkSave}/>:null}
+      </>:null}
       <Text style={styles.fieldLabel}>{privateReply?'Your private reply':'Prepared follow-up'}</Text>
       <TextInput
         multiline
@@ -1314,7 +1318,7 @@ function EnquiryFollowUp({ s }) {
         primary
         disabled={!s.enquiryFollowUpDraft.trim()}
         onPress={s.simulateEnquiryFollowUpSend}
-      />:<Text style={styles.cardBody}>Private preparation only. No customer message has been sent; this wording is held in this workspace.</Text>}
+      />:<Text style={styles.cardBody}>Private preparation only. No customer message has been sent; device saving is separate from sending or account persistence.</Text>}
       <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
       <Button label="Not now" onPress={s.back} />
     </Shell>

@@ -1771,6 +1771,12 @@
       "args": [
         "scripts/check-mission15-phase41-reply-source-removal.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase42-reply-save",
+      "args": [
+        "scripts/check-mission15-phase42-reply-save.mjs"
+      ]
     }
   ]
 }

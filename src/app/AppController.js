@@ -1,3 +1,4 @@
+import {writePrivateEnquiryReplyCopy,readPrivateEnquiryReplyCopy} from '../core/privateEnquiryReply.mjs';
 import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
 import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
 import {privateContentChannels} from '../core/contentDraftChanges.mjs';
@@ -8482,7 +8483,22 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
-  const enquiryReplyActions=useEnquiryReplyPreparation({scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision,customers,inboxItems,profile:businessCreationIntelligence.sharedProfile,selectedInboxItemId,contextKind:["replyActionDetail","quoteFollowUp","customerDetail","communicationThread","enquiryFollowUp"].includes(screen)?"customer":"inbox",contextCustomerId:["replyActionDetail","quoteFollowUp"].includes(screen)?selectedReplyActionId:selectedCustomerId,origin:replyActionOrigin.current,getOrigin:()=>replyActionOrigin.current,selectedCustomerId,text:enquiryFollowUpDraft,setText:setEnquiryFollowUpDraft,setSelectedCustomerId,go,requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),confirm:Alert.alert,setOrigin:(customerId,item)=>{replyActionOrigin.current={workspace:businessWorkspaceScopeRef.current,customerId,item,stamp:JSON.stringify(item)};},returnToSource:returnToQuoteEnquiry});
+  const persistPrivateEnquiryReply=async({customer,record,isCurrent,reconcile})=>{
+    const scope=businessWorkspaceScopeRef.current,context=snapshotContextRef.current;
+    const key=businessCacheKey(storageKeyForUser(ownerSession?.userId),cloudWorkspace?.businessId);
+    const payload=context?.getPayload(),stamp=JSON.stringify(payload);
+    const current=()=>businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&snapshotContextRef.current?.ownerId===context.ownerId&&snapshotContextRef.current?.businessId===context.businessId&&snapshotContextRef.current?.revision===context.revision&&snapshotContextRef.current?.ready&&['owner','admin'].includes(replyActionSources.current.role)&&isCurrent()&&JSON.stringify(snapshotContextRef.current.getPayload())===stamp;
+    if(!key||!context?.ready||!current())return {status:'failed'};
+    const result=await enqueuePrivateCheckpoint(key,async()=>{
+      if(!current())return {status:'failed'};
+      if(reconcile)return {...await readPrivateEnquiryReplyCopy({ownerId:context.ownerId,businessId:context.businessId,encoded:reconcile.encoded,read:()=>AsyncStorage.getItem(key)}),customer:reconcile.customer,encoded:reconcile.encoded};
+      return writePrivateEnquiryReplyCopy({ownerId:context.ownerId,businessId:context.businessId,revision:context.revision,customer,record,payload,isCurrent:current,write:value=>{if(!current())throw Error('Workspace changed before write');return AsyncStorage.setItem(key,value);},read:()=>AsyncStorage.getItem(key)});
+    });
+    if(!current())return {status:'unknown'};
+    if(result.status==='confirmed')setCustomers(rows=>rows.includes(customer)?rows.map(row=>row===customer?result.customer:row):rows);
+    return result;
+  };
+  const enquiryReplyActions=useEnquiryReplyPreparation({persistPrivateReply:persistPrivateEnquiryReply,scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision,customers,inboxItems,profile:businessCreationIntelligence.sharedProfile,selectedInboxItemId,contextKind:["replyActionDetail","quoteFollowUp","customerDetail","communicationThread","enquiryFollowUp"].includes(screen)?"customer":"inbox",contextCustomerId:["replyActionDetail","quoteFollowUp"].includes(screen)?selectedReplyActionId:selectedCustomerId,origin:replyActionOrigin.current,getOrigin:()=>replyActionOrigin.current,selectedCustomerId,text:enquiryFollowUpDraft,setText:setEnquiryFollowUpDraft,setSelectedCustomerId,go,requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),confirm:Alert.alert,setOrigin:(customerId,item)=>{replyActionOrigin.current={workspace:businessWorkspaceScopeRef.current,customerId,item,stamp:JSON.stringify(item)};},returnToSource:returnToQuoteEnquiry});
   const socialContentActions=useSocialContentHandoff({customers,loadSocialStatus:()=>socialPublishRequest('status'),loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording, photos and destination choices. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
