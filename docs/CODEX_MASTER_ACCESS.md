@@ -109,3 +109,7 @@ V22.35 remains the owner-approved version and the Phase 22 checksum remains prov
 ## Mission 15 Phase 46 — V22.41 attachment access verified
 
 The owner attached the complete current Word source. Its original bytes match SHA-256 `9d3a981e4c6cafe316781e34b58bace2b49a32587bb668a0568e3c660db47029`; internal version/date identify V22.41, updated 21 October 2026. All 1,928 body/table paragraphs and 19 tables were opened and compared against the genuinely available, fully reviewed V22.40 document. Unchanged material reuses that complete review; all changes, including Section 56, were reviewed. This resolves Phase 45's then-current access limitation for this task. Original and complete extraction remain privately outside Git, with no private text published. Future tasks must independently verify access. This is reference provenance, not hosted/provider/release approval.
+
+## Mission 15 Phase 47 — unchanged V22.41 source reverified
+
+Reopened the accessible complete original V22.41 Word supplied in this conversation. Original bytes again match `9d3a981e4c6cafe316781e34b58bace2b49a32587bb668a0568e3c660db47029`; all 1,928 body/table paragraphs and 19 tables match the complete Phase46 review, including Section56. That genuine full review is reused. The Word and complete extraction remain private outside Git; no private contents are published. This is current-task access evidence, not a guarantee of access in another environment or approval of live actions.
