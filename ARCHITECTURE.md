@@ -1,3 +1,9 @@
+## Phase50 — older-listing review and protected source-only drafts
+
+Original Work quote preparation can deliberately review current approved information for an earlier listing reference, preserving the original enquiry and independent owner fields. Historical price/description is not invented. Source-only newsletter changes now participate in original dirty-editor, status, account readback and Home continuation; original private save/restoration retains source evidence.
+
+Pure quote-form fields moved into existing privateQuoteCopy; controller setters, state/navigation and authority remain. Offline fixtures prepare static dependencies before bounded VM execution and reuse only source-checked compilation with isolated runtime state; assertions and 10-second limit remain. See Phase50 delivery/CHECKS/architecture evidence and Phase49 integration-risk prerequisites. No new store, provider, schema or live action.
+
 ## Phase49 — exact enquiry catalogue and newsletter correction continuity
 
 Existing Work quote preparation can deliberately resolve the original customer listing ID/published revision/option through authenticated approved records, then recheck before using editable private wording. Original amount/date stay unchanged. Existing Creator source review can deliberately review current starting facts after an approved correction/revision while retaining exact owner wording, target, media references and channels; it does not confirm current edits saved or sent.
