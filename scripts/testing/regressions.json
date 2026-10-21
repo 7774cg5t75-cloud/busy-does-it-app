@@ -1807,6 +1807,12 @@
       "args": [
         "scripts/check-mission15-phase43-growth-announcement.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase43-reply-canonical",
+      "args": [
+        "scripts/check-mission15-phase43-reply-canonical.mjs"
+      ]
     }
   ]
 }

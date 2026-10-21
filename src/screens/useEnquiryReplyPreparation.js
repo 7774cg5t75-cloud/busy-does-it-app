@@ -1,3 +1,4 @@
+import {stableJson} from '../core/stableJson.mjs';
 import {enquiryReplyCustomerSource,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply} from '../core/privateEnquiryReply.mjs';
 import React from 'react';import {prepareEnquiryReplyText} from '../core/enquiryReplyText.mjs';import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 // Volatile source/typing metadata. Original parent enquiry fields remain the only wording state.
@@ -6,7 +7,7 @@ export function useEnquiryReplyPreparation(input){
  const scope=input.scope,owner=input.ownerId,business=input.businessId,renderEpoch=epoch.current;
  const valid=()=>live.current.scope===scope&&input.scopeRef.current===scope&&!!owner&&!!business&&live.current.ownerId===owner&&live.current.businessId===business&&['owner','admin'].includes(live.current.role);
  const bound=value=>value&&value.scope===scope&&value.owner===owner&&value.business===business;
- const sourceStamp=(customer,item)=>JSON.stringify([enquiryReplyCustomerSource(customer),item,live.current.profile]);
+ const sourceStamp=(customer,item)=>stableJson([enquiryReplyCustomerSource(customer),item,live.current.profile]);
  const sourceCurrent=value=>valid()&&bound(value)&&live.current.revision===value.revision&&live.current.customers.includes(value.customer)&&live.current.inboxItems.includes(value.item)&&value.item.status==='Filed'&&value.item.filedCustomerId===value.customer.id&&value.customer.contactOk!==false&&![value.customer.businessId,value.customer.business_id].some(id=>id&&id!==business)&&sourceStamp(value.customer,value.item)===value.stamp;
  const protect=(apply,sourceIsCurrent=()=>true)=>{
   if(!valid())return false;
