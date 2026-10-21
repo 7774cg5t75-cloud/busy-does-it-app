@@ -1849,6 +1849,12 @@
       "args": [
         "scripts/check-mission15-phase44-removal-account.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase44-own-revision",
+      "args": [
+        "scripts/check-mission15-phase44-own-revision.mjs"
+      ]
     }
   ]
 }

@@ -5,7 +5,7 @@ const uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const stamp=stableJson;
 const rowOf=rows=>Array.isArray(rows)?rows.length===1?rows[0]:null:rows;
 function createBusinessSnapshotSession(){
- let pending=null,observed=null;
+ let pending=null,observed=null,lastOwnSave=null;
  const tickets=new WeakMap();
  function prepareRestore(getCurrent){
   const source=getCurrent();
@@ -15,6 +15,7 @@ function createBusinessSnapshotSession(){
  async function restore({ticket,getCurrent,ownerAccessToken,request,schemaVersion}){
   const source=ticket&&tickets.get(ticket),fail=reason=>({ok:false,reason});
   if(!source)return fail('Review and confirm the current local copy before restoring.');
+  lastOwnSave=null;
   tickets.delete(ticket); // A confirmation authorises one read/restore attempt only.
   const current=()=>{const live=getCurrent();try{return live?.identity===source.identity&&live.ownerId===source.ownerId&&live.businessId===source.businessId&&live.revision===source.revision&&live.ready&&stamp(live.getPayload())===source.payloadStamp;}catch{return false;}};
   if(!current())return fail('Your local work or workspace changed. Review it before restoring.');
@@ -59,6 +60,7 @@ function createBusinessSnapshotSession(){
    if(!current())return fail('The owner or business changed before saving.');
    if(!token)return fail('Sign in again before saving.');
    if(stamp(getCurrent().getPayload())!==payloadStamp)return {...fail('Your work changed while preparing the save. The latest copy is waiting.'),prepareAgain:true,notSent:true};
+   lastOwnSave=null;
    const updatedAt=now(),revision=start.revision+1;
    sent=true;
    const result=await request(`busy_business_snapshots?business_id=eq.${encodeURIComponent(start.businessId)}&revision=eq.${start.revision}`,{
@@ -69,6 +71,7 @@ function createBusinessSnapshotSession(){
    if(!row){const remote=await read();return current()?{ok:false,conflict:true,remoteRevision:remote?.revision||0,remoteUpdatedAt:remote?.updated_at||'',reason:'Another cloud revision is present. Review it before replacing local work.'}:fail('The workspace changed.');}
    if(row.business_id!==start.businessId||row.revision!==revision||row.schema_version!==schemaVersion||stamp(row.payload)!==payloadStamp)throw Error('The save receipt did not match the submitted business revision.');
    observed={identity:start.identity,revision,stamp:payloadStamp};
+   lastOwnSave={identity:start.identity,ownerId:start.ownerId,businessId:start.businessId,from:start.revision,to:revision};
    return {ok:true,revision,updatedAt:row.updated_at||updatedAt,localChangesRemain:stamp(getCurrent().getPayload())!==payloadStamp};
   }catch(error){
    if(!current())return fail('The workspace changed. No result was applied.');
@@ -100,6 +103,12 @@ function createBusinessSnapshotSession(){
   }catch{return fail('The account copy could not be checked. No save was retried.');}
   finally{if(pending===task)pending=null;}
  }
- return {read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ // Local editor continuity only, minted solely from an exact original PATCH receipt.
+ // A matching observation after a lost response is deliberately insufficient.
+ const canContinueRevision=({getCurrent,fromRevision,toRevision})=>{
+  const current=getCurrent(),receipt=lastOwnSave;
+  return !!receipt&&current?.ready===true&&current.identity===receipt.identity&&current.ownerId===receipt.ownerId&&current.businessId===receipt.businessId&&current.revision===receipt.to&&fromRevision===receipt.from&&toRevision===receipt.to;
+ };
+ return {canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};

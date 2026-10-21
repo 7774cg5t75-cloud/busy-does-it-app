@@ -11,9 +11,13 @@ export function useEnquiryReplyPreparation(input){
  // Rebind equivalent original records after unrelated immutable customer updates.
  // A changed source, saved target, permission or snapshot revision still requires review.
  const prior=session.current;
- if(valid()&&bound(prior)&&prior.revision===live.current.revision){
+ let ownRevision=false;
+ if(valid()&&bound(prior)&&prior.revision!==live.current.revision&&!['saving','unknown'].includes(pendingSave.current?.status)){
+  try{ownRevision=input.canContinueRevision?.(prior.revision,live.current.revision)===true;}catch{/* No original receipt: keep the source review boundary. */}
+ }
+ if(valid()&&bound(prior)&&(prior.revision===live.current.revision||ownRevision)){
   const customers=live.current.customers.filter(row=>row.id===prior.customer.id),items=live.current.inboxItems.filter(row=>row.id===prior.item.id);
-  if(customers.length===1&&items.length===1&&(customers[0]!==prior.customer||items[0]!==prior.item)&&sourceStamp(customers[0],items[0])===prior.stamp&&stableJson(customers[0].privateEnquiryReply||null)===stableJson(prior.customer.privateEnquiryReply||null))session.current={...prior,customer:customers[0],item:items[0]};
+  if(customers.length===1&&items.length===1&&(ownRevision||customers[0]!==prior.customer||items[0]!==prior.item)&&sourceStamp(customers[0],items[0])===prior.stamp&&stableJson(customers[0].privateEnquiryReply||null)===stableJson(prior.customer.privateEnquiryReply||null))session.current={...prior,revision:live.current.revision,customer:customers[0],item:items[0]};
  }
  const sourceCurrent=value=>valid()&&bound(value)&&live.current.revision===value.revision&&live.current.customers.filter(row=>row.id===value.customer.id).length===1&&live.current.inboxItems.filter(row=>row.id===value.item.id).length===1&&live.current.customers.includes(value.customer)&&live.current.inboxItems.includes(value.item)&&value.item.status==='Filed'&&value.item.filedCustomerId===value.customer.id&&value.customer.contactOk!==false&&![value.customer.businessId,value.customer.business_id].some(id=>id&&id!==business)&&sourceStamp(value.customer,value.item)===value.stamp;
  const protect=(apply,sourceIsCurrent=()=>true)=>{
