@@ -48,14 +48,17 @@ function prepareSocialRecordHandoff({website,app,businessId,approvedProfile,sour
 
  return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:row.kind,channel,treatment,appliedTreatment,ownerChosenTone:snapshot.voice?.ownerChosenTone||null,businessId,copy,source:{...snapshot.source},sourceMode:snapshot.source.approvedProfileSource?'approved-profile':'builders',selection:{...interest.selection},recordStamp:JSON.stringify(row),brandColour:snapshot.design?.primaryColour||null,serviceId:null,serviceName:'',privateOnly:true,requiresOwnerApproval:true,noMediaAttached:true,notAutomaticallySaved:true,ownerMustReviewBeforeDraftSave:true,providerCallsMade:false};
 }
-function prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode='',ownerFacts='',treatment='standard'}={}){
+function prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode='',ownerFacts='',treatment='standard',channel='social'}={}){
+ if(!SUPPORTED.includes(channel))return {ok:false,reason:'Choose supported social, poster or advert wording.'};
  if(!businessId||typeof ownerFacts!=='string'||!ownerFacts.trim()||ownerFacts.length>3000||/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(ownerFacts))return {ok:false,reason:'Add the exact announcement or offer details. Busy will not invent missing terms, dates or prices.'};
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourceMode});
  const appliedTreatment=resolveWordingTreatment(treatment,snapshot.voice?.ownerChosenTone);
  if(!appliedTreatment)return {ok:false,reason:'Choose a supported announcement treatment.'};
- const facts=ownerFacts.trim(),copy=appliedTreatment==='welcoming'?'Hello everyone,\n\n'+facts:appliedTreatment==='detailed'?'Business update\n\n'+facts+'\n\nPlease contact us if you have questions.':facts;
+ const facts=ownerFacts.trim();let copy=appliedTreatment==='welcoming'?'Hello everyone,\n\n'+facts:appliedTreatment==='detailed'?'Business update\n\n'+facts+'\n\nPlease contact us if you have questions.':facts;
+ if(channel==='poster')copy=[snapshot.ok?snapshot.identity?.name:'','BUSINESS UPDATE',facts,appliedTreatment==='detailed'?'Please contact us to check the full details.':''].filter(Boolean).join(appliedTreatment==='concise'?'\n':'\n\n');
+ if(channel==='advert')copy=[appliedTreatment==='welcoming'?'An update for our customers':snapshot.ok?snapshot.identity?.name:'Business update',facts,appliedTreatment==='detailed'?'Please ask us about the full terms and details before making plans.':''].filter(Boolean).join('\n\n');
  // Owner-supplied words remain useful without a complete business profile.
- return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:'owner-announcement',treatment,appliedTreatment,businessId,source:snapshot.ok?{...snapshot.source}:{businessId,ownerSuppliedOnly:true},sourceMode:snapshot.source?.approvedProfileSource?'approved-profile':sourceMode,ownerFacts,copy,serviceName:'',serviceId:null,privateOnly:true,requiresOwnerApproval:true,ownerSuppliedNotIndependentlyVerified:true,noMediaAttached:true,providerCallsMade:false};
+ return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:'owner-announcement',channel,treatment,appliedTreatment,businessId,source:snapshot.ok?{...snapshot.source}:{businessId,ownerSuppliedOnly:true},sourceMode:snapshot.source?.approvedProfileSource?'approved-profile':sourceMode,ownerFacts,copy,serviceName:'',serviceId:null,privateOnly:true,requiresOwnerApproval:true,ownerSuppliedNotIndependentlyVerified:true,noMediaAttached:true,providerCallsMade:false};
 }
 function confirmSocialBrandHandoff({website,app,businessId,evidence,approvedProfile,feed}={}){
  if(!evidence||evidence.ok!==true||
@@ -63,7 +66,7 @@ function confirmSocialBrandHandoff({website,app,businessId,evidence,approvedProf
     evidence.businessId!==businessId)
   return {ok:false,reason:"Prepare a current private branded caption first."};
  if(evidence.purpose==='owner-announcement'){
-  const fresh=prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode:evidence.sourceMode,ownerFacts:evidence.ownerFacts,treatment:evidence.treatment||"standard"});
+  const fresh=prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode:evidence.sourceMode,ownerFacts:evidence.ownerFacts,treatment:evidence.treatment||"standard",channel:evidence.channel||"social"});
   return fresh.ok&&JSON.stringify(fresh.source)===JSON.stringify(evidence.source)&&fresh.copy===evidence.copy?fresh:{ok:false,reason:'Review this owner-supplied announcement again.'};
  }
  if(['product','event'].includes(evidence.purpose)){
@@ -101,7 +104,6 @@ function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile
  const escaped=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const matches=names.filter(name=>new RegExp('(?:^|[^\\p{L}\\p{N}])'+escaped(name)+'(?:$|[^\\p{L}\\p{N}])','iu').test(request));
  const purpose=introduction?'business-introduction':ownerAnnouncement&&(!recordKind||request.includes(':'))?'owner-announcement':matches.length===1?'service':recordKind||'service';
- if(channel!=='social'&&purpose==='owner-announcement')return {handled:true,unsupportedFormat:true,channel,purpose,reason:'Poster and advert wording currently use approved business, service, product or event facts. Owner-written announcements can be prepared as a social draft; no graphic or campaign has been created.'};
  const ownerFacts=purpose==='owner-announcement'&&request.includes(':')?request.slice(request.indexOf(':')+1).trim():'';
  const serviceName=purpose==='service'&&matches.length===1?matches[0]:'';
  return {handled:true,ownerFacts,purpose,serviceName,treatment,channel,needsTreatmentSelection,needsSelection:['product','event'].includes(purpose)||purpose==='service'&&!serviceName,

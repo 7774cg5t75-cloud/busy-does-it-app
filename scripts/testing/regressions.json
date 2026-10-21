@@ -1777,6 +1777,12 @@
       "args": [
         "scripts/check-mission15-phase42-reply-save.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase42-owner-formats",
+      "args": [
+        "scripts/check-mission15-phase42-owner-formats.mjs"
+      ]
     }
   ]
 }

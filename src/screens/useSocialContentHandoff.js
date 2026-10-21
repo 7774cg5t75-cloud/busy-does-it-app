@@ -13,7 +13,7 @@ export function useSocialContentHandoff(input){
  const valid=()=>current()&&!!live.current.ownerId&&!!live.current.businessId&&['owner','admin'].includes(live.current.role);
  const prepare=(serviceName='',platform='',sourceMode='',purpose='service',ownerFacts='',treatment='standard',requiresTreatmentSelection=false,channel='social')=>{
   if(!valid())return false;
-  const evidence=purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...context(),sourceMode,ownerFacts,treatment}):serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose,treatment,channel}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
+  const evidence=purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...context(),sourceMode,ownerFacts,treatment,channel}):serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose,treatment,channel}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
   const pending={evidence,serviceName,sourceMode,purpose,ownerFacts,treatment,channel,requiresTreatmentSelection,session:{},platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
@@ -68,7 +68,7 @@ export function useSocialContentHandoff(input){
   // A treatment is reusable preference, never approval of the previous facts.
   const sourceMode=pendingCurrent(pending)?pending.sourceMode:evidence?.businessId===live.current.businessId?evidence.sourceMode||'':'';
   const requiresTreatmentSelection=pendingCurrent(pending)&&!!pending.requiresTreatmentSelection;
-  const channel=['service','business-introduction','product','event'].includes(purpose)?(pendingCurrent(pending)?pending.channel||pending.evidence?.channel:evidence?.businessId===live.current.businessId?evidence.channel:null)||'social':'social';
+  const channel=['service','business-introduction','product','event','owner-announcement'].includes(purpose)?(pendingCurrent(pending)?pending.channel||pending.evidence?.channel:evidence?.businessId===live.current.businessId?evidence.channel:null)||'social':'social';
   return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment,requiresTreatmentSelection,channel):prepare('','',sourceMode,purpose,'',treatment,requiresTreatmentSelection,channel);
  };
  const reprepareSource=expected=>{
@@ -100,14 +100,14 @@ export function useSocialContentHandoff(input){
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,treatment,requiresTreatmentSelection:false}});return true;
  };
  const chooseFormat=(expected,channel)=>{
-  if(!pendingCurrent(expected)||!['service','business-introduction','product','event'].includes(expected.purpose)||!['social','poster','advert'].includes(channel)||!confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed:expected.feed}).ok)return false;
+  if(!pendingCurrent(expected)||!['service','business-introduction','product','event','owner-announcement'].includes(expected.purpose)||!['social','poster','advert'].includes(channel)||!confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed:expected.feed}).ok)return false;
   if(['product','event'].includes(expected.purpose))return loadRecords(expected.purpose,expected.platform,expected.sourceMode,recordHint(expected),pendingTreatment(expected),expected.requiresTreatmentSelection,channel);
-  return prepare(expected.serviceName,expected.platform,expected.sourceMode,expected.purpose,'',pendingTreatment(expected),expected.requiresTreatmentSelection,channel);
+  return prepare(expected.serviceName,expected.platform,expected.sourceMode,expected.purpose,expected.ownerFacts||'',pendingTreatment(expected),expected.requiresTreatmentSelection,channel);
  };
  const editOwnerFacts=(expected,value)=>{
   const pending=live.current.sourceContext?.pendingContentIdea;
   if(!valid()||expected?.scope!==scope||!expected.session||pending?.session!==expected.session||pending.purpose!=='owner-announcement')return false;
-  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,ownerFacts:value,evidence:prepareOwnerAnnouncementHandoff({...context(),sourceMode:pending.sourceMode,ownerFacts:value,treatment:pending.treatment||pending.evidence?.treatment||"standard"})}});return true;
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,ownerFacts:value,evidence:prepareOwnerAnnouncementHandoff({...context(),sourceMode:pending.sourceMode,ownerFacts:value,treatment:pending.treatment||pending.evidence?.treatment||"standard",channel:pending.channel||pending.evidence?.channel||"social"})}});return true;
  };
  const commitAccepted=(expected,checked)=>{
   // Explicit acceptance creates a new private draft target, preserving deliberately selected media.
@@ -116,7 +116,7 @@ export function useSocialContentHandoff(input){
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy,selectedDraftId:null,aiResult:analysis};
   input.setSelectedDraftId(null);input.setAiResult(analysis);input.setAiStatus('idle');input.setCaptionId('');
   const record=['product','event'].includes(checked.purpose);
-  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:['poster','advert'].includes(checked.channel)?'Approved '+checked.channel+' wording · text only':checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
+  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:['poster','advert'].includes(checked.channel)?(checked.purpose==='owner-announcement'?'Owner-supplied ':'Approved ')+checked.channel+' wording · text only':checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
  };
  const acceptRecord=async(expected,ticket)=>{
