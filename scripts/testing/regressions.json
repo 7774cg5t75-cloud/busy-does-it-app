@@ -1801,6 +1801,12 @@
       "args": [
         "scripts/check-mission15-phase42-reply-recovery.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase43-growth-announcement",
+      "args": [
+        "scripts/check-mission15-phase43-growth-announcement.mjs"
+      ]
     }
   ]
 }

@@ -707,7 +707,7 @@ function SocialCreator({ s }) {
     }else apply();
   };
   const pendingIdea=s.socialSourceContext?.pendingContentIdea;
-  const pendingCheck=pendingIdea?.evidence?.ok?confirmSocialBrandHandoff({...currentBrandInput(),evidence:pendingIdea.evidence,feed:pendingIdea.feed}):null;
+  const pendingCheck=pendingIdea?.reuse&&s.socialContentActions?.pendingSourceCurrent?.(pendingIdea)===false?{ok:false,reason:'The saved announcement changed or is unavailable. Keep your current draft and choose its current saved record again.'}:pendingIdea?.evidence?.ok?confirmSocialBrandHandoff({...currentBrandInput(),evidence:pendingIdea.evidence,feed:pendingIdea.feed}):null;
   const ownerIdea=pendingIdea?.purpose==='owner-announcement';
   const recordIdea=['product','event'].includes(pendingIdea?.purpose);
   const incomingSnapshot=buildContentBrandSnapshot({...currentBrandInput(),sourceMode:pendingIdea?.sourceMode||""});
