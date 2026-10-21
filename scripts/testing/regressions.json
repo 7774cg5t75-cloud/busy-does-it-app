@@ -2053,6 +2053,12 @@
       "args": [
         "scripts/check-mission15-phase52-retention-contract.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase52-newsletter-boundary",
+      "args": [
+        "scripts/check-mission15-phase52-newsletter-boundary.mjs"
+      ]
     }
   ]
 }

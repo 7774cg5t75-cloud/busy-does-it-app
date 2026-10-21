@@ -1,4 +1,4 @@
-import {readNewsletterWording} from './brandedContentDraftV3198.mjs';
+import {readNewsletterWording} from './newsletterWording.mjs';
 
 // Presentation only. Original Creator text remains the sole editable source.
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

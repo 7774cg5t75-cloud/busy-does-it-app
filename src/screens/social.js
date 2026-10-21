@@ -1,4 +1,4 @@
-import {readNewsletterWording} from '../core/brandedContentDraftV3198.mjs';
+import {readNewsletterWording} from '../core/newsletterWording.mjs';
 import {NewsletterPreview} from '../components/NewsletterPreview';
 import {NewsletterAccountReadback} from '../components/NewsletterAccountReadback';
 import {ContentFormatChoices} from '../components/ContentFormatChoices';

@@ -1,5 +1,5 @@
 import {stableJson} from '../core/stableJson.mjs';
-import {editNewsletterWording} from '../core/brandedContentDraftV3198.mjs';
+import {editNewsletterWording} from '../core/newsletterWording.mjs';
 import {supportsContentTextFormat} from '../core/contentTextFormats.mjs';
 import {savedAnnouncementEligible,savedAnnouncementStamp,savedAnnouncementOwnerFacts,requestsSavedAnnouncement} from '../core/savedAnnouncementSource.mjs';
 import {contentDraftChanges} from '../core/contentDraftChanges.mjs';

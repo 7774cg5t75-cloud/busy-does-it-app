@@ -1,4 +1,4 @@
-import {readNewsletterWording} from './brandedContentDraftV3198.mjs';
+import {readNewsletterWording} from './newsletterWording.mjs';
 import {restoreContentDraft,contentDraftChanges} from './contentDraftChanges.mjs';
 import {stableJson} from './stableJson.mjs';
 

@@ -76,5 +76,5 @@ export function privateReplySourceReview({businessId,item,provenance}={}){
  const checked=privateReplyCatalogueProvenance({businessId,item,prepared:provenance});
  if(!checked)return provenance?'Saved source evidence could not be matched. Keep your wording and review the original enquiry and current item.':'This is private owner wording. No retained catalogue preparation evidence is available; check current item information before reusing facts.';
  const row=JSON.parse(checked.recordStamp),variant=checked.selection.variantId?row.data.variants?.find(x=>x.id===checked.selection.variantId)?.label:'';
- return [row.data.name,variant,'This reply retains an earlier owner-reviewed preparation. Customer requirements remain customer-supplied; saved wording remains owner wording. Current item facts have not been rechecked.'].filter(Boolean).join(' · ');
+ return [row.data.name,variant,'This reply retains an earlier owner-reviewed preparation. Customer requirements remain customer-supplied; saved wording remains owner wording. Retained evidence is not approval of current item facts. Recheck before reusing this wording.'].filter(Boolean).join(' · ');
 }
