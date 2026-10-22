@@ -46,8 +46,8 @@ function createBusinessSnapshotSession(){
   if(!Number.isSafeInteger(schemaVersion)||schemaVersion<1)return fail('The snapshot format must be verified before saving.');
   if(!uuid.test(start?.ownerId||'')||!uuid.test(start?.businessId||'')||!Number.isSafeInteger(start.revision)||start.revision<1||!start.ready)return fail('Open the current signed-in business before saving.');
   if(pending?.identity===start.identity)return {...fail('This business save is already being checked.'),busy:true};
-  if(writeBlockedIdentity===start.identity)return {...fail('Account saving is paused. Keep your current work; a compatible trusted writer is required.'),readOnly:true};
   if(uncertainMutationIdentity===start.identity)return {...fail('An earlier private operation is uncertain. Check the account before any further save.'),uncertain:true};
+  if(writeBlockedIdentity===start.identity)return {...fail('Account saving is paused. Keep your current work; a compatible trusted writer is required.'),readOnly:true};
   let payload,payloadStamp;
   try{payload=JSON.parse(stamp(start.getPayload()));payloadStamp=stamp(payload);}catch{return fail('The local copy could not be prepared safely. Nothing was sent.');}
   if(observed?.identity===start.identity&&observed.revision===start.revision&&observed.stamp===payloadStamp)return {ok:true,unchanged:true,revision:start.revision};
@@ -129,7 +129,7 @@ function createBusinessSnapshotSession(){
   const task={identity:source.identity};pending=task;let sent=false;
   try{
    const token=await ownerAccessToken();if(!token||!current())return fail('The signed-in workspace or current words changed. Nothing was sent.');
-   sent=true;lastOwnSave=null;
+   sent=true;lastOwnSave=null;observed=null;writeBlockedIdentity=source.identity;
    const receipt=await request('rpc/busy_snapshot_private_mutation_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_expected_revision:source.revision,p_expected_schema:1,p_operation:source.operation,p_target_id:source.targetId,p_expected_record:source.expectedRecord,p_new_text:source.newText,p_expected_source:source.expectedSource}});
    const expectedTarget=source.operation==='private_reply_edit_text'?{...source.expectedRecord,text:source.newText}:null;
    if(!receipt||receipt.businessId!==source.businessId||receipt.actorId!==source.ownerId||receipt.operation!==source.operation||receipt.targetId!==source.targetId||receipt.previousRevision!==source.revision||receipt.revision!==source.revision+1||receipt.schemaVersion!==1||stamp(receipt.target)!==stamp(expectedTarget))throw Error('The private mutation receipt did not match.');
