@@ -42,7 +42,7 @@ export function NewsletterAccountReadback({s}){
   {s.openSocialDraft&&!s.socialSourceContext?.pendingContentIdea?<Button label="Review and reopen saved newsletter" disabled={exact&&review.status==='checking'} onPress={()=>check(true)}/>:null}
   {exact&&review.status==='different'&&review.preview?<Card title="Account newsletter — read only" body={'Subject: '+review.preview.subject+'\n\n'+review.preview.body} footer="Your open draft stays unchanged. This version has not been opened, saved or sent.">
    <Text style={styles.cardBody}>{'Differences from the saved device record: '+(review.preview.differences.join('; ')||'saved record details')+'.'}</Text>
-   <Text style={styles.cardBody}>{'Differences from your current editor: '+(review.preview.editorDifferences?.join('; ')||'none in the checked editable fields')+'. Account snapshot revision: '+review.revision+'.'}</Text>
+   <Text style={styles.cardBody}>{'Differences from your current editor: '+(review.preview.editorDifferences===null?'could not compare safely':review.preview.editorDifferences?.join('; ')||'none in the checked editable fields')+'. Account snapshot revision: '+review.revision+'.'}</Text>
    <Text style={styles.cardBody}>This account version is read only. Opening a different account record needs the original protected account-restore process; this check cannot replace your current draft.</Text>
    <Button label="Recheck account differences" onPress={()=>check(false)}/>
    <Text style={styles.cardBody}>{'Account writing treatment: '+review.preview.treatment+'.'}</Text>

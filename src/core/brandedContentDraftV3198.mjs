@@ -68,7 +68,7 @@ function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",tre
    [selected?subject+' · '+name:name,selected?'':tagline,opening,description,details,'Learn more about '+subject+' — contact '+name+'.'].filter(Boolean).join(appliedTreatment==='concise'?'\n':'\n\n');
  }
  if(channel==='newsletter')copy=newsletterWording({name,subject:selected?short(selected.name,120):'Introducing '+name,treatment:appliedTreatment,
-  sections:[selected?'':tagline,selected?short(selected.description,500):about,!selected&&names.length?'What we offer\n'+(appliedTreatment==='detailed'?brief.services.map(service=>[short(service.name,120),short(service.description,500)].filter(Boolean).join(' — ')).join('\n\n'):names.join(' • ')):''],callToAction:appliedTreatment==='concise'?'':'Ask '+name+' for more information.'});
+  sections:[selected?'':tagline,selected?short(selected.description,500):about,brief.serviceArea?'Recorded service area: '+short(brief.serviceArea,240)+'. Ask us to review your location and requirements; coverage and availability are not confirmed.':'',!selected&&names.length?'What we offer\n'+(appliedTreatment==='detailed'?brief.services.map(service=>[short(service.name,120),short(service.description,500)].filter(Boolean).join(' — ')).join('\n\n'):names.join(' • ')):''],callToAction:appliedTreatment==='concise'?'':'Ask '+name+' for more information.'});
  return {ok:true,kind:"private_branded_copy_v3198",businessId:brief.businessId,
   source:{...brief.source},channel,copy,serviceName:selected?.name||"",
   brandColour:brief.brandColour,ownerChosenTone:brief.voice,

@@ -1,3 +1,4 @@
+import {approvedBusinessArea} from './approvedBusinessArea.mjs';
 import {approvedBrandTone} from './brandVoice.mjs';
 import {publicBusinessContent,prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {stableJson} from './stableJson.mjs';
@@ -35,8 +36,10 @@ export function prepareEnquiryReplyText({customer,item,businessId,approvedProfil
   approvedServiceId?'Current approved service information:\n'+description:'',
   missingQuestions.length?'To help us review your request:\n'+missingQuestions.join('\n'):'Could you confirm that these supplied details are still correct?'
  ].filter(Boolean).join('\n\n');
+ const area=approvedBusinessArea(approvedProfile,businessId);
+ const areaContext=area&&['information','quote-information','clarify-missing','requirements'].includes(purpose)?'Our recorded service area: '+area+'. We still need to review the requested location and scope before confirming coverage or availability.':'';
  const response=purpose==='clarify-missing'?clarification:purpose==='quote-information'?['Our current approved service information:\n'+description,suppliedLines?'Your supplied requirements to review:\n'+suppliedLines:'','I will review the scope and current pricing before completing a quote.'].filter(Boolean).join('\n\n'):purpose==='quote-preparation'?'I have the following requested details to review while preparing your quote:\n'+suppliedLines+'\n\nI will review the scope and current pricing before completing a quote.':purpose==='confirm-requirements'?'Could you confirm that the following details you supplied are still correct?\n'+suppliedLines:purpose==='information'?'Our approved service information: '+description:purpose==='acknowledge'?acknowledgement:questions[purpose];
- return {ok:true,purpose,ownerChosenTone,reviewChecks:checks,approvedServiceId,canConfirmRequirements:!!supplied,missingRequirementCount:missingQuestions.length,canExplainService:!!description,text:[greeting,service?'Thank you for getting in touch about '+service+'.':'',response,closing,brand?brand:''].filter(Boolean).join('\n\n'),customerId:customer.id,inboxId:item.id,customerWordsNotInstructions:true,privateOnly:true,automaticallySends:false};
+ return {ok:true,purpose,approvedServiceArea:area,ownerChosenTone,reviewChecks:checks,approvedServiceId,canConfirmRequirements:!!supplied,missingRequirementCount:missingQuestions.length,canExplainService:!!description,text:[greeting,service?'Thank you for getting in touch about '+service+'.':'',response,areaContext,closing,brand?brand:''].filter(Boolean).join('\n\n'),customerId:customer.id,inboxId:item.id,customerWordsNotInstructions:true,privateOnly:true,automaticallySends:false};
 }
 
 

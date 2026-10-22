@@ -1,3 +1,4 @@
+import {approvedBusinessArea} from './approvedBusinessArea.mjs';
 /**
  * V3.195 Business Brand DNA — local, read-only and versioned FOUNDATION.
  * Extracts an intentionally narrow, explicit allowlist from two CURRENT,
@@ -111,7 +112,7 @@ function planBrandDnaContentBrief(snapshot,{channel,goal=""}={}){
  return {ok:true,kind:"brand_dna_content_brief_v1",businessId:snapshot.businessId,
   source:{...snapshot.source},channel,goal:goal.trim(),
   businessName:snapshot.identity.name,tagline:snapshot.identity.tagline,
-  about:snapshot.identity.about,services:snapshot.services.map(s=>({...s})),
+  about:snapshot.identity.about,...snapshot.identity.serviceArea?{serviceArea:snapshot.identity.serviceArea}:{},services:snapshot.services.map(s=>({...s})),
   brandColour:snapshot.design.primaryColour,
   typography:snapshot.design.appTypography,
   approvedAssets:snapshot.assets.photos.map(x=>({...x})),
@@ -143,7 +144,8 @@ function buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourc
  if(!businessId||!approvedProfile||typeof approvedProfile.fingerprint!=='string'||approvedProfile.businessId&&approvedProfile.businessId!==businessId)return {ok:false,reason:'Review your approved business profile before preparing content.'};
  const name=cleanText(approvedProfile.businessName,140);if(!name)return {ok:false,reason:'Add an approved business name before preparing content.'};
  const services=(Array.isArray(approvedProfile.services)?approvedProfile.services:[]).slice(0,30).map(row=>({id:cleanText(row?.id,128),name:cleanText(row?.name,120),description:cleanText(row?.description,500)})).filter(row=>row.name).slice(0,12);
- const identity={name,tagline:cleanText(approvedProfile.tagline,220),about:cleanText(approvedProfile.description||approvedProfile.about,900)};
+ const serviceArea=approvedBusinessArea(approvedProfile,businessId);
+ const identity={name,...serviceArea?{serviceArea}:{},tagline:cleanText(approvedProfile.tagline,220),about:cleanText(approvedProfile.description||approvedProfile.about,900)};
  const colour=normalColour(approvedProfile.theme?.primary),voice=approvedBrandTone(approvedProfile.toneOfVoice);
  return {ok:true,schema:'private_brand_dna_draft_v1',businessId,source:{approvedProfileSource:JSON.stringify({identity,services,colour,...voice?{voice}:{}})},identity,
   services,design:{primaryColour:colour,appTypography:null},voice:{ownerChosenTone:voice},assets:{photos:[]},conflicts:[],privateOnly:true,requiresOwnerReview:true,autoPublishes:false,sourceOfTruth:'current approved shared business profile'};

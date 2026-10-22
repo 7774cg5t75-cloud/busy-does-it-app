@@ -2077,6 +2077,12 @@
       "args": [
         "scripts/check-mission15-phase53-snapshot-compatibility.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase53-approved-area",
+      "args": [
+        "scripts/check-mission15-phase53-approved-area.mjs"
+      ]
     }
   ]
 }

@@ -177,7 +177,8 @@ export function useEnquiryReplyPreparation(input){
  const reviewCurrentSource=()=>{
   const next=sourceReviewCandidate(),value=session.current,typing=epoch.current,text=live.current.text;
   if(!next||typing!==renderEpoch)return false;
-  const fresh=()=>session.current===value&&epoch.current===typing&&live.current.text===text&&sourceReviewCandidate()?.customer===next.customer&&sourceReviewCandidate()?.item===next.item&&live.current.revision===next.revision;
+  const savedStamp=stableJson(next.customer.privateEnquiryReply||null),viewToken=catalogueRequest.current;
+  const fresh=()=>catalogueRequest.current===viewToken&&stableJson(next.customer.privateEnquiryReply||null)===savedStamp&&session.current===value&&epoch.current===typing&&live.current.text===text&&sourceReviewCandidate()?.customer===next.customer&&sourceReviewCandidate()?.item===next.item&&live.current.revision===next.revision;
   let resolved=false;
   input.confirm('Review this reply source?','This is the same filed enquiry, but its source or account version needs review. Your saved words are kept separately from the current customer message. Earlier listing facts cannot be verified here.\n\nCurrent customer-supplied message:\n'+(next.item.rawText||'No retained message.')+'\n\nUse this enquiry for further private preparation while keeping your wording. Recheck current approved item details separately. Nothing is saved or sent.',[{text:'Keep editing',style:'cancel',onPress:()=>{resolved=true;return false;}},{text:'Use current enquiry',onPress:()=>{if(resolved||!fresh())return false;resolved=true;epoch.current++;session.current={...next,words:live.current.text};pendingSave.current=null;setSaveState(null);setAccountState(null);return true;}}]);return false;
  };

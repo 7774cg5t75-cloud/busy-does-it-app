@@ -18,8 +18,9 @@ export function newsletterVersionPreview({record,baseline,businessId,ownerId}={}
  if(!record||record.id!==baseline?.id||record.status!=='Draft'||record.publishedAt||record.contentEvidence?.businessId!==businessId||record.contentEvidence.channel!=='newsletter'||[record.businessId,record.business_id].some(id=>id&&id!==businessId)||ownerId&&[record.ownerId,record.owner_id].some(id=>id&&id!==ownerId)||typeof record.text!=='string'||record.text.length>15000||typeof record.brief!=='string'||record.brief.length>3000)return null;
  const wording=readNewsletterWording(record.text);if(!wording)return null;
  try{
-  const restored=restoreContentDraft(record);
-  return {subject:wording.subject,body:wording.body,brief:record.brief,treatment:['standard','welcoming','concise','detailed','brand'].includes(record.contentEvidence.treatment)?record.contentEvidence.treatment:'not specified',differences:newsletterEditorDifferences({...restored,sourceContext:restored.source},baseline)};
+  const restored=restoreContentDraft(record),differences=newsletterEditorDifferences({...restored,sourceContext:restored.source},baseline);
+  if(!differences)return null;
+  return {subject:wording.subject,body:wording.body,brief:record.brief,treatment:['standard','welcoming','concise','detailed','brand'].includes(record.contentEvidence.treatment)?record.contentEvidence.treatment:'not specified',differences};
  }catch{return null;}
 }
 
