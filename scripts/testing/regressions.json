@@ -2125,6 +2125,12 @@
       "args": [
         "scripts/check-mission15-phase56-newsletter-inspection.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase57-fresh-clarification",
+      "args": [
+        "scripts/check-mission15-phase57-fresh-clarification.mjs"
+      ]
     }
   ]
 }
