@@ -32,6 +32,7 @@ export function privateReplyAccountBindings({enabled,sessionRef,contextRef,owner
  const current=getEditorEpoch=>()=>({...contextRef.current,inputEpoch:getEditorEpoch()});
  return {
   trustedAccountEnabled:true,
+  reconcilePrivateAccountReply:({getEditorEpoch})=>sessionRef.current.reconcilePrivateReply({getCurrent:current(getEditorEpoch),ownerAccessToken,request}),
   readPrivateAccountReply:({customerId,enquiryId,getEditorEpoch})=>sessionRef.current.readPrivateReply({getCurrent:current(getEditorEpoch),ownerAccessToken,request,customerId,enquiryId}),
   preparePrivateAccountEdit:({review,newText,getEditorEpoch})=>sessionRef.current.preparePrivateReplyEdit({getCurrent:current(getEditorEpoch),review,newText}),
   commitPrivateAccountEdit:({ticket,getEditorEpoch})=>sessionRef.current.mutatePrivate({getCurrent:current(getEditorEpoch),ownerAccessToken,request,ticket}),

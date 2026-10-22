@@ -2149,6 +2149,12 @@
       "args": [
         "scripts/check-mission15-phase60-account-reply.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase61-reconciliation",
+      "args": [
+        "scripts/check-mission15-phase61-reconciliation.mjs"
+      ]
     }
   ]
 }
