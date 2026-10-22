@@ -18,8 +18,17 @@ export function newsletterVersionPreview({record,baseline,businessId,ownerId}={}
  if(!record||record.id!==baseline?.id||record.status!=='Draft'||record.publishedAt||record.contentEvidence?.businessId!==businessId||record.contentEvidence.channel!=='newsletter'||[record.businessId,record.business_id].some(id=>id&&id!==businessId)||ownerId&&[record.ownerId,record.owner_id].some(id=>id&&id!==ownerId)||typeof record.text!=='string'||record.text.length>15000||typeof record.brief!=='string'||record.brief.length>3000)return null;
  const wording=readNewsletterWording(record.text);if(!wording)return null;
  try{
-  const restored=restoreContentDraft(record),changes=contentDraftChanges({...restored,sourceContext:restored.source},baseline);
+  const restored=restoreContentDraft(record);
+  return {subject:wording.subject,body:wording.body,brief:record.brief,treatment:['standard','welcoming','concise','detailed','brand'].includes(record.contentEvidence.treatment)?record.contentEvidence.treatment:'not specified',differences:newsletterEditorDifferences({...restored,sourceContext:restored.source},baseline)};
+ }catch{return null;}
+}
+
+// Compare the inspected account version with current editable fields separately
+// from the saved device record. Presentation only; never a restoration permit.
+export function newsletterEditorDifferences(current,record){
+ try{
+  const changes=contentDraftChanges(current,record);
   const names={wording:'subject or body',brief:'audience intention or brief',media:'media references',channels:'destination choices',source:'starting facts, format or writing treatment'};
-  return {subject:wording.subject,body:wording.body,brief:record.brief,treatment:['standard','welcoming','concise','detailed','brand'].includes(record.contentEvidence.treatment)?record.contentEvidence.treatment:'not specified',differences:Object.entries(names).filter(([key])=>changes[key]).map(([,label])=>label)};
+  return Object.entries(names).filter(([key])=>changes[key]).map(([,label])=>label);
  }catch{return null;}
 }

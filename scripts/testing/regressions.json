@@ -2065,6 +2065,12 @@
       "args": [
         "scripts/check-mission15-phase53-reply-recovery.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase53-newsletter-comparison",
+      "args": [
+        "scripts/check-mission15-phase53-newsletter-comparison.mjs"
+      ]
     }
   ]
 }

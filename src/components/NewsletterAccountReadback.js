@@ -4,7 +4,7 @@ import {Button,Card} from './ui';
 import {styles} from '../theme/styles';
 import {stableJson} from '../core/stableJson.mjs';
 import {contentDraftChanges} from '../core/contentDraftChanges.mjs';
-import {inspectNewsletterAccount} from '../core/newsletterAccountReadback.mjs';
+import {inspectNewsletterAccount,newsletterEditorDifferences} from '../core/newsletterAccountReadback.mjs';
 
 export function NewsletterAccountReadback({s}){
  const [review,setReview]=React.useState(null),live=React.useRef(s),request=React.useRef(0);live.current=s;
@@ -20,7 +20,9 @@ export function NewsletterAccountReadback({s}){
   setReview({status:'checking',record,stamp,ticket,scope,owner,business,localRevision});
   let result;try{result=await s.readPrivateContentAccount();}catch{result={ok:false};}
   if(!current())return false;
-  const inspected=inspectNewsletterAccount({result,businessId:business,record,minimumRevision:localRevision,ownerId:owner});setReview({...inspected,record,stamp,ticket,scope,owner,business,localRevision});
+  const inspected=inspectNewsletterAccount({result,businessId:business,record,minimumRevision:localRevision,ownerId:owner});
+  if(inspected.preview){const rows=result.payload.socialDrafts.filter(row=>row?.id===record.id);inspected.preview={...inspected.preview,editorDifferences:newsletterEditorDifferences({text:live.current.socialDraftText,photos:live.current.socialCreatePhotos,brief:live.current.socialBrief,channels:live.current.socialDraftChannels,sourceContext:live.current.socialSourceContext},rows[0])};}
+  setReview({...inspected,record,stamp,ticket,scope,owner,business,localRevision});
   if(!reopen||inspected.status!=='confirmed')return inspected.status==='confirmed';
   // Reuse the original source checker and original dirty-editor Keep/Open path.
   // A compatible account revision is not itself approval of the content facts.
@@ -39,7 +41,10 @@ export function NewsletterAccountReadback({s}){
   <Button label="Check newsletter account copy" disabled={exact&&review.status==='checking'} onPress={()=>check(false)}/>
   {s.openSocialDraft&&!s.socialSourceContext?.pendingContentIdea?<Button label="Review and reopen saved newsletter" disabled={exact&&review.status==='checking'} onPress={()=>check(true)}/>:null}
   {exact&&review.status==='different'&&review.preview?<Card title="Account newsletter — read only" body={'Subject: '+review.preview.subject+'\n\n'+review.preview.body} footer="Your open draft stays unchanged. This version has not been opened, saved or sent.">
-   <Text style={styles.cardBody}>{'Differences: '+(review.preview.differences.join('; ')||'saved record details')+'.'}</Text>
+   <Text style={styles.cardBody}>{'Differences from the saved device record: '+(review.preview.differences.join('; ')||'saved record details')+'.'}</Text>
+   <Text style={styles.cardBody}>{'Differences from your current editor: '+(review.preview.editorDifferences?.join('; ')||'none in the checked editable fields')+'. Account snapshot revision: '+review.revision+'.'}</Text>
+   <Text style={styles.cardBody}>This account version is read only. Opening a different account record needs the original protected account-restore process; this check cannot replace your current draft.</Text>
+   <Button label="Recheck account differences" onPress={()=>check(false)}/>
    <Text style={styles.cardBody}>{'Account writing treatment: '+review.preview.treatment+'.'}</Text>
    {review.preview.brief?<Text style={styles.cardBody}>{'Account audience intention: '+review.preview.brief+' — this does not select recipients or establish marketing permission.'}</Text>:null}
   </Card>:null}
