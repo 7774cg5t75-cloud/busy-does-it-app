@@ -22,7 +22,15 @@ export function inspectPrivateEnquiryReply({ownerId,businessId,customer,inboxIte
 export function resolvePrivateEnquiryReply(input){const saved=inspectPrivateEnquiryReply(input);return saved?.current?{record:saved.record,item:saved.item}:null;}
 // Original snapshot queue and cache envelope; no cloud write or mutation replay.
 export async function writePrivateEnquiryReplyCopy({ownerId,businessId,revision,customer,record,payload,isCurrent,write,read}){
- let encoded;const updated={...customer};if(record===null)delete updated.privateEnquiryReply;else updated.privateEnquiryReply=record;
+ let encoded;
+ // Only explicit null removes a private reply. Omission or an incompatible
+ // record cannot silently erase it through JSON serialization.
+ try{
+  if(!Array.isArray(payload?.customers)||payload.customers.filter(row=>row?.id===customer?.id).length!==1||!payload.customers.includes(customer)||[customer?.businessId,customer?.business_id].some(id=>id&&id!==businessId))return {status:'failed'};
+  if(record===null){const old=customer.privateEnquiryReply;if(old&&(old.ownerId!==ownerId||old.businessId!==businessId||old.customerId!==customer.id))return {status:'failed'};}
+  else if(!record||typeof record!=='object'||!resolvePrivateEnquiryReply({ownerId,businessId,customer:{...customer,privateEnquiryReply:record},inboxItems:payload.inboxItems,revision}))return {status:'failed'};
+ }catch{return {status:'failed'};}
+ const updated={...customer};if(record===null)delete updated.privateEnquiryReply;else updated.privateEnquiryReply=record;
  try{if(!isCurrent()||!payload.customers?.includes(customer))return {status:'failed'};encoded=encodeBusinessCache({ownerId,businessId,revision,payload:{...payload,customers:payload.customers.map(row=>row===customer?updated:row)}});}catch{return {status:'failed'};}
  if(!isCurrent())return {status:'failed'};
  const result=await confirmBusinessCacheWrite({ownerId,businessId,encoded,write,read});

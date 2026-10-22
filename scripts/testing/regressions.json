@@ -2083,6 +2083,12 @@
       "args": [
         "scripts/check-mission15-phase53-approved-area.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase54-private-write-boundary",
+      "args": [
+        "scripts/check-mission15-phase54-private-write-boundary.mjs"
+      ]
     }
   ]
 }
