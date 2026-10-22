@@ -30,6 +30,11 @@ export function newsletterEditorDifferences(current,record){
  try{
   const changes=contentDraftChanges(current,record);
   const names={wording:'subject or body',brief:'audience intention or brief',media:'media references',channels:'destination choices',source:'starting facts, format or writing treatment'};
-  return Object.entries(names).filter(([key])=>changes[key]).map(([,label])=>label);
+  const differences=Object.entries(names).filter(([key])=>changes[key]).map(([,label])=>label);
+  if(changes.wording){
+   const editor=readNewsletterWording(current.text),saved=readNewsletterWording(record.text);
+   if(editor&&saved){differences.splice(differences.indexOf(names.wording),1,...[editor.subject!==saved.subject?'subject':null,editor.body!==saved.body?'body':null,editor.separator!==saved.separator?'subject/body spacing':null].filter(Boolean));}
+  }
+  return differences;
  }catch{return null;}
 }

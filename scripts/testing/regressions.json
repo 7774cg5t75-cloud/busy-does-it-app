@@ -2107,6 +2107,12 @@
       "args": [
         "scripts/check-mission15-phase54-approved-contact.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase55-recovery-explanations",
+      "args": [
+        "scripts/check-mission15-phase55-recovery-explanations.mjs"
+      ]
     }
   ]
 }

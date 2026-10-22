@@ -30,7 +30,7 @@ export function privateReplySavedSourceSummary({ownerId,businessId,customer,reco
 export function privateReplyCatalogueChanges({businessId,item,provenance,current}={}){
  const prior=privateReplyCatalogueProvenance({businessId,item,prepared:provenance}),next=privateReplyCatalogueProvenance({businessId,item,prepared:current});
  if(!prior||!next)return 'No comparable retained preparation evidence. Review current approved information; earlier listing facts cannot be verified here.';
- const a=JSON.parse(prior.recordStamp),b=JSON.parse(next.recordStamp),fields={name:'name',description:'description',amountMinor:'informational price',startsAt:'event date',endsAt:'event end',location:'venue',variants:'options'};
+ const a=JSON.parse(prior.recordStamp),b=JSON.parse(next.recordStamp),fields={name:'name',description:'description',amountMinor:'informational price',currency:'price currency',startsAt:'event date',endsAt:'event end',location:'venue',variants:'options'};
  const differences=Object.entries(fields).filter(([key])=>stableJson(a.data[key]??null)!==stableJson(b.data[key]??null)).map(([,label])=>label);
  return (differences.length?'Current approved information differs from retained private preparation: '+differences.join(', ')+'.':'The compared fields match the retained private preparation.')+' This comparison is not authenticated historical evidence or approval of your saved wording.';
 }
