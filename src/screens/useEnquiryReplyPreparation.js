@@ -199,7 +199,7 @@ export function useEnquiryReplyPreparation(input){
   const value=session.current,text=live.current.text,typing=epoch.current,view=catalogueRequest.current;
   if(input.trustedAccountEnabled!==true||live.current.role!=='owner'||!sourceCurrent(value)||typing!==renderEpoch||preparationBlocked()||!text?.trim()||!input.readPrivateAccountReply||!input.preparePrivateAccountEdit||!input.commitPrivateAccountEdit)return false;
   const task={scope,owner,business,status:'checking',value};trustedSave.current=task;setTrustedState(task);
-  const fresh=()=>valid()&&live.current.role==='owner'&&trustedSave.current===task&&session.current?.draftToken===value.draftToken&&sourceCurrent(value)&&epoch.current===typing&&live.current.text===text&&live.current.selectedCustomerId===value.customer.id&&catalogueRequest.current===view&&!['saving','unknown'].includes(pendingSave.current?.status);
+  const fresh=()=>valid()&&live.current.trustedAccountEnabled===true&&live.current.role==='owner'&&trustedSave.current===task&&session.current?.draftToken===value.draftToken&&sourceCurrent(value)&&epoch.current===typing&&live.current.text===text&&live.current.selectedCustomerId===value.customer.id&&catalogueRequest.current===view&&!['saving','unknown'].includes(pendingSave.current?.status);
   let checked;try{checked=await input.readPrivateAccountReply({customerId:value.customer.id,enquiryId:value.item.id,getEditorEpoch:()=>epoch.current});}catch{checked={ok:false};}
   if(!fresh()||!checked.ok||checked.review?.eligible!==true||checked.review.enquiry?.rawText!==(value.item.rawText||'')){if(trustedSave.current===task){task.status='failed';setTrustedState({...task});}return false;}
   task.status='review';setTrustedState({...task});let consumed=false;
