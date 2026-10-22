@@ -29,6 +29,10 @@ export async function writePrivateEnquiryReplyCopy({ownerId,businessId,revision,
   if(!Array.isArray(payload?.customers)||payload.customers.filter(row=>row?.id===customer?.id).length!==1||!payload.customers.includes(customer)||[customer?.businessId,customer?.business_id].some(id=>id&&id!==businessId))return {status:'failed'};
   if(record===null){const old=customer.privateEnquiryReply;if(old&&(old.ownerId!==ownerId||old.businessId!==businessId||old.customerId!==customer.id))return {status:'failed'};}
   else if(!record||typeof record!=='object'||!resolvePrivateEnquiryReply({ownerId,businessId,customer:{...customer,privateEnquiryReply:record},inboxItems:payload.inboxItems,revision}))return {status:'failed'};
+  if(record!==null&&customer.privateEnquiryReply){
+   const known=['version','ownerId','businessId','customerId','reference','sourceStamp','text','purpose','provenance','privateOnly'];
+   if(Object.keys(customer.privateEnquiryReply).some(key=>!known.includes(key)&&(!Object.hasOwn(record,key)||stableJson(record[key])!==stableJson(customer.privateEnquiryReply[key]))))return {status:'failed',reason:'This saved reply contains information this version cannot replace safely. Your wording and saved copy are kept. Use a compatible version, or deliberately discard the whole saved reply.'};
+  }
  }catch{return {status:'failed'};}
  const updated={...customer};if(record===null)delete updated.privateEnquiryReply;else updated.privateEnquiryReply=record;
  try{if(!isCurrent()||!payload.customers?.includes(customer))return {status:'failed'};encoded=encodeBusinessCache({ownerId,businessId,revision,payload:{...payload,customers:payload.customers.map(row=>row===customer?updated:row)}});}catch{return {status:'failed'};}
