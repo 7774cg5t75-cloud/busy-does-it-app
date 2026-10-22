@@ -1,3 +1,5 @@
+> Historical Phase58 candidate and blocked-runtime evidence. Subsequent exact provisioning evidence, real local PostgreSQL execution and prepared client cutover are in [Phase59](MISSION15_PHASE59_2026_10_22.md). Original evidence below is preserved.
+
 # Mission 15 Phase 58 — schema handoff, preservation candidate and architecture review
 
 ## Verified authority and checkpoints
