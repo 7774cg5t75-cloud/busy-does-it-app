@@ -115,7 +115,7 @@ function createBusinessSnapshotSession(){
  // client capability flag. A specialist must deliberately prepare ONE exact operation.
  function preparePrivateMutation({getCurrent,operation,targetId,expectedRecord,newText=null,expectedSource=null}){
   const source=getCurrent();
-  if(!source?.ready||!uuid.test(source.ownerId||'')||!uuid.test(source.businessId||'')||!Number.isSafeInteger(source.revision)||source.revision<1||!['owner','admin'].includes(source.role)||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return null;
+  if(!source?.ready||!Number.isSafeInteger(source.inputEpoch)||source.inputEpoch<0||!uuid.test(source.ownerId||'')||!uuid.test(source.businessId||'')||!Number.isSafeInteger(source.revision)||source.revision<1||!['owner','admin'].includes(source.role)||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return null;
   if(!['private_reply_edit_text','private_reply_remove','newsletter_remove'].includes(operation)||typeof targetId!=='string'||!targetId||targetId.length>240||!expectedRecord||typeof expectedRecord!=='object'||Array.isArray(expectedRecord))return null;
   if(operation==='private_reply_edit_text'?(typeof newText!=='string'||!newText.trim()||!Array.isArray(expectedSource)):(newText!==null||expectedSource!==null))return null;
   try{const ticket={};mutationTickets.set(ticket,{...source,payloadStamp:stamp(source.getPayload()),operation,targetId,expectedRecord:JSON.parse(stamp(expectedRecord)),newText,expectedSource:expectedSource===null?null:JSON.parse(stamp(expectedSource))});return ticket;}catch{return null;}
@@ -124,7 +124,7 @@ function createBusinessSnapshotSession(){
   const source=ticket&&mutationTickets.get(ticket),fail=reason=>({ok:false,reason});
   if(!source)return fail('Review this exact private operation before using it.');
   mutationTickets.delete(ticket);
-  const current=()=>{try{const live=getCurrent();return live?.ready&&live.identity===source.identity&&live.ownerId===source.ownerId&&live.businessId===source.businessId&&live.revision===source.revision&&live.role===source.role&&stamp(live.getPayload())===source.payloadStamp;}catch{return false;}};
+  const current=()=>{try{const live=getCurrent();return live?.ready&&live.identity===source.identity&&live.ownerId===source.ownerId&&live.businessId===source.businessId&&live.revision===source.revision&&live.role===source.role&&live.inputEpoch===source.inputEpoch&&stamp(live.getPayload())===source.payloadStamp;}catch{return false;}};
   if(!current()||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return fail('The workspace, current words or save state changed. Nothing was sent.');
   const task={identity:source.identity};pending=task;let sent=false;
   try{
