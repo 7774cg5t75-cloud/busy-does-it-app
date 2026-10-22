@@ -1,3 +1,7 @@
+## Current private product master — V22.44 (22 October 2026)
+
+Owner-requested **status clarification only**: private V22.44 corrects the existing V22.43 Section 61 wording to state explicitly that the Midnight Intelligence visual identity rules were **already defined and approved**. There is no new design concept or authorisation to implement it. Original V22.44 SHA-256 `33c7e30a32a6844e8dc78427e3abc775e96d78fdde8c4cb71d08b23ba2a945c1`, from the actual verified V22.43 source `c0cd8558d704123773f1eb042c6847cb2e91f0e3c0406b0b3ec2e043ca4924ff` (different historical V22.43 variant retained). File saved privately in ChatGPT Library as `/Busy_Master_V22_44_Visual_Identity_Status_Clarification.docx`; 2,069 body/table paragraphs, 19 tables. Future tasks must actually read/verify this master, not substitute public provenance. Keep original corporate branding, six Home areas, tested accessibility, truthful voice states and all separate implementation/release gates.
+
 ## Phase51 — current task attachment verified (V22.43, 21 October 2026)
 
 The complete owner-attached Word was opened: internal version22.43, original SHA-256 `c0cd8558d704123773f1eb042c6847cb2e91f0e3c0406b0b3ec2e043ca4924ff`, 2,069 body/table paragraphs and19 tables. Unchanged ordered body/table text matches the accessible fully reviewed V22.42; cover version and all new Section61 paragraphs were reviewed. Sections57–60 remain unchanged and their genuine full review is reused. Private original and complete extraction remain outside public Git.
@@ -6,7 +10,7 @@ The newer GitHub documentation-only commit57c9824a9bed568e1b44721253b195d9836f10
 
 # Busy Does It — Standing Codex Repository Instructions
 
-## Current owner-approved private master — V22.43 (21 October 2026)
+## Historical owner-approved private master — V22.43 (21 October 2026)
 
 The owner approved the premium **Midnight Intelligence** app design direction (Section 61) after reviewing restrained Home, specialist-screen and Busy-presence concepts. Original approved V22.42 Word (SHA-256 `23acac54572cab244baac73ed9515e014554914b5f9fa45687fd37fd026ba105`) was opened. V22.43 preserves all 19 original tables and the existing body in order (cover/footer version updated; one brand-system cross-reference; new Section 61). Final original DOCX SHA-256: `42f10a98bbb081f4a577b98a3734347750b104d5df94dd07aa7142d7dcdef68a`; 2,073 body/table paragraphs, 19 tables. It was rendered and checked before being saved as a separate private version at `/Busy_Master_V22_43_Midnight_Intelligence_Design_Direction.docx` in the owner's ChatGPT Library. V22.42 remains preserved. Original private Word and full extracted text are **not stored in public GitHub**. This is a new approved *future visual direction*, not evidence of UI implementation, visual assets in source, release readiness, or authorisation to redesign/deploy immediately. Future missions must actually access the current full private master; the public manifest alone is insufficient.
 
