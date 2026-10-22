@@ -6,6 +6,7 @@ const stamp=stableJson;
 const rowOf=rows=>Array.isArray(rows)?rows.length===1?rows[0]:null:rows;
 function createBusinessSnapshotSession(){
  let pending=null,observed=null,lastOwnSave=null,writeBlockedIdentity=null,uncertainMutationIdentity=null;
+ let legacyWorkspacePaused=false;
  let privateBasis=null; // Exact own target receipt; never a full local snapshot revision.
  const mutationTickets=new WeakMap(),privateReviews=new WeakMap();
  const tickets=new WeakMap();
@@ -16,6 +17,7 @@ function createBusinessSnapshotSession(){
  }
  async function restore({ticket,getCurrent,ownerAccessToken,request,schemaVersion}){
   const source=ticket&&tickets.get(ticket),fail=reason=>({ok:false,reason});
+  if(legacyWorkspacePaused)return {...fail('Secure workspace recovery is read-only. Current device work was kept.'),readOnly:true};
   if(!source)return fail('Review and confirm the current local copy before restoring.');
   lastOwnSave=null;
   tickets.delete(ticket); // A confirmation authorises one read/restore attempt only.
@@ -43,6 +45,7 @@ function createBusinessSnapshotSession(){
  }
  async function save({getCurrent,ownerAccessToken,request,schemaVersion,now=()=>new Date().toISOString()}){
   const start=getCurrent(),fail=reason=>({ok:false,reason});
+  if(legacyWorkspacePaused)return {...fail('Secure workspace saving requires reviewed domain operations. Current device work was kept.'),readOnly:true};
   const current=()=>{const live=getCurrent();return live?.identity===start?.identity&&live.ownerId===start.ownerId&&live.businessId===start.businessId&&live.revision===start.revision&&live.ready===true;};
   if(!Number.isSafeInteger(schemaVersion)||schemaVersion<1)return fail('The snapshot format must be verified before saving.');
   if(!uuid.test(start?.ownerId||'')||!uuid.test(start?.businessId||'')||!Number.isSafeInteger(start.revision)||start.revision<1||!start.ready)return fail('Open the current signed-in business before saving.');
@@ -98,6 +101,7 @@ function createBusinessSnapshotSession(){
  }
  async function read({getCurrent,ownerAccessToken,request,schemaVersion}){
   const source=getCurrent(),fail=reason=>({ok:false,reason});
+  if(legacyWorkspacePaused)return {...fail('Secure account recovery requires a narrow domain projection. Current device work was kept.'),readOnly:true};
   if(!uuid.test(source?.ownerId||'')||!uuid.test(source?.businessId||'')||!source.ready||!Number.isSafeInteger(source.revision)||source.revision<1)return fail('Open the current signed-in business before checking its account copy.');
   if(pending?.identity===source.identity)return {...fail('A business save or read is still being checked.'),busy:true};
   const current=()=>{const live=getCurrent();return live?.identity===source.identity&&live.ownerId===source.ownerId&&live.businessId===source.businessId&&live.revision===source.revision&&live.ready===true;};
@@ -111,6 +115,24 @@ function createBusinessSnapshotSession(){
    return {ok:true,businessId:source.businessId,revision:row.revision,payload:JSON.parse(stamp(row.payload))};
   }catch{return fail('The account copy could not be checked. No save was retried.');}
   finally{if(pending===task)pending=null;}
+ }
+ // Bootstrap identification only. No payload apply, cache replacement or save.
+ async function inspectWorkspace({businessId,ownerId,localRevision,isCurrent,ownerAccessToken,request}){
+  legacyWorkspacePaused=true; // Explicit protocol entry; never raw-read/write fallback.
+  const fail=()=>({ok:false,readOnly:true,reason:'Account identity could not be verified. Current device work was kept.'});
+  if(!uuid.test(businessId||'')||!uuid.test(ownerId||'')||!isCurrent())return fail();
+  try{
+   const token=await ownerAccessToken();if(!token||!isCurrent())return fail();
+   const value=await request('rpc/busy_workspace_status_v1',{method:'POST',token,body:{p_business_id:businessId}});
+   if(!isCurrent()||!value||Object.keys(value).sort().join(',')!=='actorId,businessId,businessName,memberRole,revision,schemaVersion,snapshotStatus'||value.businessId!==businessId||value.actorId!==ownerId||typeof value.businessName!=='string'||!['owner','admin','member'].includes(value.memberRole))return fail();
+   const state=value.snapshotStatus;
+   if(value.memberRole==='owner'){
+    if(!['missing','empty','present','incompatible'].includes(state))return fail();
+    if(state==='missing'?(value.revision!==null||value.schemaVersion!==null):(!Number.isSafeInteger(value.revision)||value.revision<1||!Number.isInteger(value.schemaVersion)))return fail();
+    if(state!=='missing'&&state!=='incompatible'&&value.schemaVersion!==1)return fail();
+   }else if(state!=='restricted'||value.revision!==null||value.schemaVersion!==null)return fail();
+   return {ok:true,readOnly:true,workspace:JSON.parse(stamp(value)),revisionDiffers:value.memberRole==='owner'&&Number.isSafeInteger(localRevision)&&Number.isSafeInteger(value.revision)&&localRevision!==value.revision,reason:(value.memberRole==='owner'&&Number.isSafeInteger(localRevision)&&Number.isSafeInteger(value.revision)&&localRevision!==value.revision?'The account revision differs from this device. Review recovery; device work is kept. ':'')+({missing:'The original account snapshot is missing. Current work is kept; automatic repair is unavailable.',empty:'Your account workspace is identified but has no supported saved domain data. Device work has not been uploaded.',present:'Your account is identified. Domain recovery is not yet available here; current device work is kept.',incompatible:'This account uses an incompatible format. Current work is kept; use a compatible client.',restricted:'Shared workspace identified. Owner-private account recovery is unavailable for this role.'})[state]};
+  }catch{return fail();}
  }
  // Metadata-only observation. It never clears an uncertain mutation, changes
  // local state/revision, or acknowledges unrelated dirty fields.
@@ -203,6 +225,6 @@ function createBusinessSnapshotSession(){
   if(typeof customerId!=='string'||typeof inboxId!=='string'||!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
   try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(stamp({customers:receipt.payload.customers?.filter(row=>row?.id===customerId)||[],inboxItems:receipt.payload.inboxItems?.filter(row=>row?.id===inboxId)||[]}))};}catch{return {ok:false};}
  };
- return {reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ return {inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};

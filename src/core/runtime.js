@@ -1,3 +1,4 @@
+export const TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED = false; // Separate read/write cutover approval required.
 export const TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED = false; // Separate reviewed server/client cutover required.
 import {busyRuntimeCloudConfig} from "./stagingRuntimeIsolation.mjs";
 const APP_VERSION = "3.105";

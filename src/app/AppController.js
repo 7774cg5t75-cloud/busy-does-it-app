@@ -105,6 +105,7 @@ import {planWebsiteAppRequestHandoff} from "../core/websiteAppHandoffV3214.mjs";
 import * as Core from "../core/runtime";
 const {
   TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED,
+  TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED,
   APP_VERSION,
   PROTOTYPE_BADGE,
   BUSY_AI_URL,
@@ -2749,6 +2750,16 @@ function App() {
         name: row?.business_name || businessName || "My Business",
         role: row?.member_role || "owner",
       };
+      if(typeof TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED!=="undefined"&&TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED===true){
+        const checked=await snapshotSessionRef.current.inspectWorkspace({businessId,ownerId:userId,localRevision:cloudRevision,isCurrent:currentOwner,ownerAccessToken:async()=>token,request:busyDataRequest});
+        if(!currentOwner())return false;
+        // Identification is not domain recovery. Do not bind another business's
+        // current local records, advance revision, apply payload or start autosave.
+        setCloudInitialised(false);
+        setCloudSyncStatus(checked.ok?"Account identified; device work kept":"Account check unavailable; device work kept");
+        setCloudSyncError(checked.reason);
+        return false;
+      }
       setCloudWorkspace(workspace);
 
       const cacheKey=businessCacheKey(storageKeyForUser(userId),businessId);
@@ -2831,6 +2842,7 @@ function App() {
   };
 
   const fetchCloudSnapshot = async (tokenOverride = "") => {
+    if(typeof TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED!=="undefined"&&TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED===true)throw Error("Secure domain recovery is unavailable here. Current work was kept.");
     if (!cloudWorkspace?.businessId) return null;
     const task=websiteBeginTask("snapshot");if(!task)throw Error("The business workspace changed or another snapshot read is in progress.");
     try{

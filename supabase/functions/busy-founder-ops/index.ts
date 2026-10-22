@@ -13,6 +13,7 @@ import {readConfiguredProviders,readGitHubUsage,readCloudflareTraffic} from "./p
  * NO client request parameter can grant privilege or choose another identity.
  * The service key remains on this server; only aggregate counters are returned.
  */
+const TRUSTED_SNAPSHOT_PROJECTIONS_ENABLED = false; // Separate staged service cutover.
 const ROOT=Deno.env.get("SUPABASE_URL")||"";
 function injectedKey(name:string){
   try{
@@ -77,11 +78,19 @@ async function queryUsageSum(table:string,field:string,dateColumn:string){
 async function safely<T>(query:()=>Promise<T>):Promise<T|null>{
   try{return await query();}catch{return null;}
 }
+async function snapshotActivityCount(){
+  if(!TRUSTED_SNAPSHOT_PROJECTIONS_ENABLED)return queryCount("busy_business_snapshots","business_id",{"updated_at":"gte."+new Date(Date.now()-7*86400000).toISOString()});
+  const reply=await fetch(ROOT+"/rest/v1/rpc/busy_service_snapshot_count_v1",{method:"POST",headers:{...serviceHeaders(),"Content-Type":"application/json"},body:"{}",signal:AbortSignal.timeout(8500)});
+  if(!reply.ok)throw Error("Snapshot aggregate unavailable");
+  const value=await reply.json();
+  if(!value||Object.keys(value).join(',')!=="activeWorkspaces7d"||!Number.isSafeInteger(value.activeWorkspaces7d)||value.activeWorkspaces7d<0)throw Error("Invalid snapshot aggregate");
+  return value.activeWorkspaces7d;
+}
 async function aggregates(){
   const entries=await Promise.all([
     safely(()=>queryCount("busy_businesses","id")),
     safely(()=>queryCount("busy_business_memberships","business_id")),
-    safely(()=>queryCount("busy_business_snapshots","business_id",{"updated_at":"gte."+new Date(Date.now()-7*86400000).toISOString()})),
+    safely(()=>snapshotActivityCount()),
     safely(()=>queryCount("busy_website_publish_jobs","id",{"status":"in.(queued,processing,retry_wait)"})),
     safely(()=>queryCount("busy_website_publish_jobs","id",{"status":"eq.failed"})),
     safely(()=>queryCount("busy_social_posts","id",{"status":"eq.Failed"})),

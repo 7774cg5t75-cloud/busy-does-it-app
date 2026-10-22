@@ -2155,6 +2155,18 @@
       "args": [
         "scripts/check-mission15-phase61-reconciliation.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase62-bootstrap",
+      "args": [
+        "scripts/check-mission15-phase62-bootstrap.mjs"
+      ]
+    },
+    {
+      "id": "mission15-phase62-services",
+      "args": [
+        "scripts/check-mission15-phase62-services.mjs"
+      ]
     }
   ]
 }
