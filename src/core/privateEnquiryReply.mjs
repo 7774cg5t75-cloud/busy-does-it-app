@@ -78,3 +78,20 @@ export function privateReplySourceReview({businessId,item,provenance}={}){
  const row=JSON.parse(checked.recordStamp),variant=checked.selection.variantId?row.data.variants?.find(x=>x.id===checked.selection.variantId)?.label:'';
  return [row.data.name,variant,'This reply retains an earlier owner-reviewed preparation. Customer requirements remain customer-supplied; saved wording remains owner wording. Retained evidence is not approval of current item facts. Recheck before reusing this wording.'].filter(Boolean).join(' · ');
 }
+
+// Exact filing continuity only. A changed message is data to review, never a
+// verified reconstruction of the earlier listing or permission to send/save.
+export function privateReplyRecoveryCandidate({businessId,ownerId,customers,inboxItems,revision,value}){
+ try{
+  if(!value||!Array.isArray(customers)||!Array.isArray(inboxItems)||!Number.isSafeInteger(revision)||revision<value.revision)return null;
+  const rows=customers.filter(row=>row?.id===value.customer?.id);
+  if(rows.length!==1)return null;
+  const customer=rows[0],record=customer.privateEnquiryReply;
+  if(customer.contactOk===false||[customer.businessId,customer.business_id].some(id=>id&&id!==businessId)||stableJson(record||null)!==stableJson(value.customer.privateEnquiryReply||null))return null;
+  if(record&&(record.ownerId!==ownerId||record.businessId!==businessId||record.customerId!==customer.id))return null;
+  const reference=value.savedReference||quoteEnquiryReference({businessId,customerId:customer.id,item:value.item,revision:value.revision});
+  const item=resolveQuoteEnquiryReference(reference,{businessId,customerId:customer.id,inboxItems,revision});
+  if(!item||[item.businessId,item.business_id].some(id=>id&&id!==businessId))return null;
+  return {customer,item,revision};
+ }catch{return null;}
+}

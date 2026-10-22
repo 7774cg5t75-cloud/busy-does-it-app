@@ -1,5 +1,5 @@
 import {stableJson} from '../core/stableJson.mjs';
-import {enquiryReplyCustomerSource,privateReplyCatalogueProvenance,privateReplySourceReview,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply,inspectPrivateReplyAccount,inspectPrivateReplyAccountRemoval,privateReplyAccountStatus} from '../core/privateEnquiryReply.mjs';
+import {enquiryReplyCustomerSource,privateReplyRecoveryCandidate,privateReplyCatalogueProvenance,privateReplySourceReview,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply,inspectPrivateReplyAccount,inspectPrivateReplyAccountRemoval,privateReplyAccountStatus} from '../core/privateEnquiryReply.mjs';
 import {parseEnquiryListingReference} from '../core/ownerConversationPreparation.mjs';
 import React from 'react';import {prepareEnquiryReplyText,prepareEnquiryCatalogueReply} from '../core/enquiryReplyText.mjs';import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 // Volatile source/typing metadata. Original parent enquiry fields remain the only wording state.
@@ -132,7 +132,7 @@ export function useEnquiryReplyPreparation(input){
   if(!saved)return false;
   const typing=epoch.current,text=live.current.text,stamp=stableJson(saved);
   const fresh=()=>sourceCurrent(value)&&session.current?.draftToken===value.draftToken&&epoch.current===typing&&live.current.text===text&&live.current.selectedCustomerId===value.customer.id&&value.customer.privateEnquiryReply===saved&&stableJson(saved)===stamp;
-  input.confirm(operation==='remove'?'Discard the saved private reply?':'Replace the saved private reply?',operation==='remove'?'Your current wording stays. The saved reply is removed from this business copy; account removal is not confirmed. Nothing is sent.':'This customer already has a saved reply for another enquiry. There is one saved private reply per customer. Replacing it keeps your current words and sends nothing.',[{text:'Continue editing',style:'cancel',onPress:()=>false},{text:operation==='remove'?'Discard saved reply':'Replace saved reply',style:'destructive',onPress:()=>fresh()?save(false,operation):false}]);return false;
+  input.confirm(operation==='remove'?'Discard the saved private reply?':'Replace the saved private reply?',operation==='remove'?'Your current wording stays. The saved reply is removed from this business copy; account removal is not confirmed. Nothing is sent.':'This customer already has a saved reply whose enquiry or source needs review. There is one saved private reply per customer. Replacing it uses your current reviewed source and words; it sends nothing.',[{text:'Continue editing',style:'cancel',onPress:()=>false},{text:operation==='remove'?'Discard saved reply':'Replace saved reply',style:'destructive',onPress:()=>fresh()?save(false,operation):false}]);return false;
  };
  const reopen=(customerId,inboxId)=>{
   if(!valid()||epoch.current!==renderEpoch)return false;
@@ -163,22 +163,23 @@ export function useEnquiryReplyPreparation(input){
   if(!saved)return false;if(saved.current)return reopen(customerId,saved.item.id);
   const revision=live.current.revision,recordStamp=JSON.stringify(saved.record),item={id:saved.record.reference.inboxId,status:'Unavailable',filedCustomerId:customerId};
   const fresh=()=>valid()&&live.current.revision===revision&&live.current.customers.includes(customer)&&customer.privateEnquiryReply===saved.record&&JSON.stringify(saved.record)===recordStamp;
-  return protect(()=>{epoch.current++;session.current={draftToken:{},scope,workspace:scope,owner,business,customer,item,revision,stamp:'source-unavailable',purpose:saved.record.purpose,provenance:saved.record.provenance,words:saved.record.text};pendingSave.current=null;setSaveState({status:'reopened',savedText:saved.record.text});live.current={...live.current,text:saved.record.text,selectedCustomerId:customerId};input.setText(saved.record.text);input.setSelectedCustomerId(customerId);input.clearOrigin?.();input.go('enquiryFollowUp');},fresh);
+  return protect(()=>{epoch.current++;session.current={draftToken:{},scope,workspace:scope,owner,business,customer,item,revision,stamp:'source-unavailable',purpose:saved.record.purpose,provenance:saved.record.provenance,savedReference:saved.record.reference,words:saved.record.text};pendingSave.current=null;setSaveState({status:'reopened',savedText:saved.record.text});live.current={...live.current,text:saved.record.text,selectedCustomerId:customerId};input.setText(saved.record.text);input.setSelectedCustomerId(customerId);input.clearOrigin?.();input.go('enquiryFollowUp');},fresh);
  };
  // Deliberate source review after a compatible account revision. This never
  // acknowledges persistence or substitutes another enquiry for the original.
  const sourceReviewCandidate=()=>{
   const value=session.current;
-  if(!valid()||!bound(value)||value.revision===live.current.revision||!Number.isSafeInteger(live.current.revision)||live.current.revision<value.revision||live.current.selectedCustomerId!==value.customer.id||['saving','unknown'].includes(pendingSave.current?.status)||accountRequest.current?.checking)return null;
-  const rows=live.current.customers.filter(row=>row.id===value.customer.id),items=live.current.inboxItems.filter(row=>row.id===value.item.id);
-  if(rows.length!==1||items.length!==1||sourceStamp(rows[0],items[0])!==value.stamp||stableJson(rows[0].privateEnquiryReply||null)!==stableJson(value.customer.privateEnquiryReply||null))return null;
-  const next={...value,customer:rows[0],item:items[0],revision:live.current.revision};return sourceCurrent(next)?next:null;
+  if(!valid()||!bound(value)||sourceCurrent(value)||live.current.selectedCustomerId!==value.customer.id||preparationBlocked()||accountRequest.current?.checking)return null;
+  const checked=privateReplyRecoveryCandidate({businessId:business,ownerId:owner,customers:live.current.customers,inboxItems:live.current.inboxItems,revision:live.current.revision,value});
+  if(!checked)return null;
+  const next={...value,...checked,stamp:sourceStamp(checked.customer,checked.item)};return sourceCurrent(next)?next:null;
  };
  const reviewCurrentSource=()=>{
   const next=sourceReviewCandidate(),value=session.current,typing=epoch.current,text=live.current.text;
   if(!next||typing!==renderEpoch)return false;
   const fresh=()=>session.current===value&&epoch.current===typing&&live.current.text===text&&sourceReviewCandidate()?.customer===next.customer&&sourceReviewCandidate()?.item===next.item&&live.current.revision===next.revision;
-  input.confirm('Review this reply source?','The account version changed, but the current customer and original filed enquiry still match. Keep your words and use this current source for further private preparation. This does not confirm any save or send.',[{text:'Keep editing',style:'cancel',onPress:()=>false},{text:'Use current enquiry',onPress:()=>{if(!fresh())return false;epoch.current++;session.current={...next,words:live.current.text};pendingSave.current=null;setSaveState(null);setAccountState(null);return true;}}]);return false;
+  let resolved=false;
+  input.confirm('Review this reply source?','This is the same filed enquiry, but its source or account version needs review. Your saved words are kept separately from the current customer message. Earlier listing facts cannot be verified here.\n\nCurrent customer-supplied message:\n'+(next.item.rawText||'No retained message.')+'\n\nUse this enquiry for further private preparation while keeping your wording. Recheck current approved item details separately. Nothing is saved or sent.',[{text:'Keep editing',style:'cancel',onPress:()=>{resolved=true;return false;}},{text:'Use current enquiry',onPress:()=>{if(resolved||!fresh())return false;resolved=true;epoch.current++;session.current={...next,words:live.current.text};pendingSave.current=null;setSaveState(null);setAccountState(null);return true;}}]);return false;
  };
  const savedReplies=()=>valid()?live.current.customers.flatMap(customer=>{const saved=resolvePrivateEnquiryReply({ownerId:owner,businessId:business,customer,inboxItems:live.current.inboxItems,revision:live.current.revision});return saved?[{customer,...saved}]:[];}):[];
  const value=session.current;
