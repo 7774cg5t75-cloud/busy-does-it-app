@@ -1,3 +1,9 @@
+## Phase53 — exact-filing reply recovery, account comparison and conditional snapshot formats
+
+Original saved replies can review a changed message for the same exact filing without replacing owner words; current catalogue review remains separate. Newsletter account inspection distinguishes device and current-editor differences but does not import a differing record. Current snapshot PATCH additionally matches existing schema version; same-schema older-client retention remains unresolved. Original service-area wording now informs reviewed private replies and newsletters through a small pure fact allowlist.
+
+AppController and fixture runtime remain unchanged; pure recovery eligibility and finite comparison stay specialist-owned. See the single combined `docs/MISSION15_PHASE53_2026_10_22.md` for delivery, architecture, retention/rollout plan, actual verification and remaining gates. Six Home areas/builders preserved; no new store/schema/provider or live action.
+
 ## Phase52 — retained reply evidence, newsletter inspection and shared owner voice
 
 Original saved private replies can retain bounded owner-reviewed catalogue provenance without treating it as current approval. Pending/unknown device-save tickets survive replacement attempts until original reconciliation. Exact differing newsletter account versions can be inspected read-only while current words/targets stay unchanged. Original Brand Identity tone choices now reach the shared profile, new replies and brand-treated newsletters through one finite read-only policy.
