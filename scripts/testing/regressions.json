@@ -2071,6 +2071,12 @@
       "args": [
         "scripts/check-mission15-phase53-newsletter-comparison.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase53-snapshot-compatibility",
+      "args": [
+        "scripts/check-mission15-phase53-snapshot-compatibility.mjs"
+      ]
     }
   ]
 }

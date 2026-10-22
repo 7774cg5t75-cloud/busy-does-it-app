@@ -42,6 +42,7 @@ function createBusinessSnapshotSession(){
  async function save({getCurrent,ownerAccessToken,request,schemaVersion,now=()=>new Date().toISOString()}){
   const start=getCurrent(),fail=reason=>({ok:false,reason});
   const current=()=>{const live=getCurrent();return live?.identity===start?.identity&&live.ownerId===start.ownerId&&live.businessId===start.businessId&&live.revision===start.revision&&live.ready===true;};
+  if(!Number.isSafeInteger(schemaVersion)||schemaVersion<1)return fail('The snapshot format must be verified before saving.');
   if(!uuid.test(start?.ownerId||'')||!uuid.test(start?.businessId||'')||!Number.isSafeInteger(start.revision)||start.revision<1||!start.ready)return fail('Open the current signed-in business before saving.');
   if(pending?.identity===start.identity)return {...fail('This business save is already being checked.'),busy:true};
   let payload,payloadStamp;
@@ -63,12 +64,12 @@ function createBusinessSnapshotSession(){
    lastOwnSave=null;
    const updatedAt=now(),revision=start.revision+1;
    sent=true;
-   const result=await request(`busy_business_snapshots?business_id=eq.${encodeURIComponent(start.businessId)}&revision=eq.${start.revision}`,{
+   const result=await request(`busy_business_snapshots?business_id=eq.${encodeURIComponent(start.businessId)}&revision=eq.${start.revision}&schema_version=eq.${schemaVersion}`,{
     method:'PATCH',token,prefer:'return=representation',body:{payload,schema_version:schemaVersion,revision,updated_at:updatedAt}
    });
    if(!current())return fail('The owner or business changed while saving. No result was applied.');
    const row=rowOf(result);
-   if(!row){const remote=await read();return current()?{ok:false,conflict:true,remoteRevision:remote?.revision||0,remoteUpdatedAt:remote?.updated_at||'',reason:'Another cloud revision is present. Review it before replacing local work.'}:fail('The workspace changed.');}
+   if(!row){const remote=await read();return current()?{ok:false,conflict:true,remoteRevision:remote?.revision||0,remoteUpdatedAt:remote?.updated_at||'',incompatibleSchema:!!remote&&remote.schema_version!==schemaVersion,reason:remote&&remote.schema_version!==schemaVersion?'The account snapshot format differs. Keep your local work and use a compatible client before saving.':'Another cloud revision is present. Review it before replacing local work.'}:fail('The workspace changed.');}
    if(row.business_id!==start.businessId||row.revision!==revision||row.schema_version!==schemaVersion||stamp(row.payload)!==payloadStamp)throw Error('The save receipt did not match the submitted business revision.');
    observed={identity:start.identity,revision,stamp:payloadStamp};
    lastOwnSave={identity:start.identity,ownerId:start.ownerId,businessId:start.businessId,from:start.revision,to:revision,payload};
