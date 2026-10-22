@@ -1,3 +1,9 @@
+## Phase55 — historical snapshot-authority audit and precise recovery explanations
+
+Read-only local Git audit covers293 refs/128 unique historical SQL blobs and finds no original snapshot/ensure-business definition. Original V3.11 client upsert and synthetic staging baseline are distinguished from trusted provisioning. Exact missing schema/RPC/grants/RLS/writer artifacts, finite-operation semantics and ordered acceptance appear in `docs/MISSION15_PHASE55_SNAPSHOT_CONTRACT_2026_10_22.md`; no server fix is claimed. Same-schema older-client loss probe remains unchanged.
+
+Original newsletter comparison distinguishes subject/body/spacing and avoids implying account confirmation after device-source rejection; private reply comparison includes currency-only changes. Root state, persistence, approvals, runtime limits and AppController remain unchanged. Combined delivery/architecture/limitations: `docs/MISSION15_PHASE55_2026_10_22.md`, with actual CHECKS evidence. No schema, provider, new store or visual redesign; six Home areas and builder foundations preserved.
+
 ## Phase54 — explicit private writes, attributed reply evidence and deliberate device continuation
 
 Original private device writes reject omitted/foreign/ambiguous replacement records and unknown stored reply-field loss or modification; explicit whole removal stays separate. Reply source evidence/presentation moves to a pure bounded specialist with compatible exports. Newsletter account conflicts can deliberately continue the original saved device record through fresh source review and Keep/Open; differing account records remain read-only. Keep consumes the original replacement proposal. Existing public contact email now informs reviewed replies/newsletters through a finite fact allowlist.
