@@ -2089,6 +2089,24 @@
       "args": [
         "scripts/check-mission15-phase54-private-write-boundary.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase54-reply-evidence",
+      "args": [
+        "scripts/check-mission15-phase54-reply-evidence.mjs"
+      ]
+    },
+    {
+      "id": "mission15-phase54-newsletter-device",
+      "args": [
+        "scripts/check-mission15-phase54-newsletter-device.mjs"
+      ]
+    },
+    {
+      "id": "mission15-phase54-approved-contact",
+      "args": [
+        "scripts/check-mission15-phase54-approved-contact.mjs"
+      ]
     }
   ]
 }

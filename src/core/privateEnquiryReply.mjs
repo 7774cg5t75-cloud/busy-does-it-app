@@ -1,4 +1,4 @@
-import {parseEnquiryListingReference} from './ownerConversationPreparation.mjs';
+import {privateReplyCatalogueProvenance} from './privateReplySourceEvidence.mjs';
 import {stableJson} from './stableJson.mjs';
 import {quoteEnquiryReference,resolveQuoteEnquiryReference} from './quoteEnquiryReference.mjs';
 import {encodeBusinessCache,confirmBusinessCacheWrite,confirmBusinessCacheRead} from './businessCache.mjs';
@@ -70,22 +70,7 @@ export function privateReplyAccountStatus({state,customer,text,saveState,ownSave
  return null;
 }
 
-// Private preparation evidence in the original reply record, not current-source authority.
-export function privateReplyCatalogueProvenance({businessId,item,prepared}={}){
- try{
-  const original=parseEnquiryListingReference(item?.rawText),selected=prepared?.selection;
-  if(!businessId||prepared?.businessId&&prepared.businessId!==businessId||!original||!selected||selected.recordId!==original.recordId||(selected.variantId||'')!==(original.variantId||'')||!Number.isSafeInteger(selected.revision)||selected.revision<original.revision||typeof prepared.recordStamp!=='string'||prepared.recordStamp.length>20000)return null;
-  const row=JSON.parse(prepared.recordStamp);
-  if(row.id!==selected.recordId||row.revision!==selected.revision||!['product','event'].includes(row.kind)||typeof row.data?.name!=='string'||!row.data.name.trim()||selected.variantId&&row.data.variants?.filter(x=>x.id===selected.variantId).length!==1)return null;
-  return {version:1,kind:'owner-reviewed-catalogue-preparation',businessId,originalSelection:original,selection:{recordId:selected.recordId,revision:selected.revision,...selected.variantId?{variantId:selected.variantId}:{}},recordStamp:stableJson(row),currentApproval:false,wordingIndependentlyVerified:false};
- }catch{return null;}
-}
-export function privateReplySourceReview({businessId,item,provenance}={}){
- const checked=privateReplyCatalogueProvenance({businessId,item,prepared:provenance});
- if(!checked)return provenance?'Saved source evidence could not be matched. Keep your wording and review the original enquiry and current item.':'This is private owner wording. No retained catalogue preparation evidence is available; check current item information before reusing facts.';
- const row=JSON.parse(checked.recordStamp),variant=checked.selection.variantId?row.data.variants?.find(x=>x.id===checked.selection.variantId)?.label:'';
- return [row.data.name,variant,'This reply retains an earlier owner-reviewed preparation. Customer requirements remain customer-supplied; saved wording remains owner wording. Retained evidence is not approval of current item facts. Recheck before reusing this wording.'].filter(Boolean).join(' · ');
-}
+export {privateReplyCatalogueProvenance,privateReplySourceReview,privateReplySavedSourceSummary,privateReplyCatalogueChanges} from './privateReplySourceEvidence.mjs';
 
 // Exact filing continuity only. A changed message is data to review, never a
 // verified reconstruction of the earlier listing or permission to send/save.

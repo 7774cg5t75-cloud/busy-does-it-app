@@ -256,8 +256,9 @@ export function useSocialContentHandoff(input){
   if(!valid()||!targetCurrent())return false;
   const ticket=capture(),now=live.current,saved=now.records?.find(row=>row.id===now.selectedDraftId);
   const dirty=contentDraftChanges(now,saved).dirty;
-  const open=()=>{if(!fresh(ticket)||!targetCurrent())return false;epoch.current++;return load()!==false;};
-  if(dirty){input.confirm?.({keep:()=>{},discard:open,...!record?{message:'Starting a new post replaces the current unsaved wording, photos and destination choices. Saved drafts remain unchanged.',actionLabel:'Start a new post'}:{}});return false;}return open();
+  let resolved=false;
+  const open=()=>{if(resolved||!fresh(ticket)||!targetCurrent())return false;resolved=true;epoch.current++;return load()!==false;};
+  if(dirty){input.confirm?.({keep:()=>{resolved=true;},discard:open,...!record?{message:'Starting a new post replaces the current unsaved wording, photos and destination choices. Saved drafts remain unchanged.',actionLabel:'Start a new post'}:{}});return false;}return open();
  };
  const reopen=(record,load)=>protectDraftTransition(load,record);
  const replaceDraft=load=>protectDraftTransition(load);
