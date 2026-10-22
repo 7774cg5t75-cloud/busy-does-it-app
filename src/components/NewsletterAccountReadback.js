@@ -4,10 +4,10 @@ import {Button,Card} from './ui';
 import {styles} from '../theme/styles';
 import {stableJson} from '../core/stableJson.mjs';
 import {contentDraftChanges} from '../core/contentDraftChanges.mjs';
-import {inspectNewsletterAccount,newsletterEditorDifferences} from '../core/newsletterAccountReadback.mjs';
+import {inspectNewsletterAccount,newsletterEditorDifferences,newsletterVersionPreview} from '../core/newsletterAccountReadback.mjs';
 
 export function NewsletterAccountReadback({s}){
- const [review,setReview]=React.useState(null),live=React.useRef(s),request=React.useRef(0);live.current=s;
+ const [review,setReview]=React.useState(null),[deviceInspection,setDeviceInspection]=React.useState(null),live=React.useRef(s),request=React.useRef(0);live.current=s;
  React.useEffect(()=>()=>{request.current++;},[]);
  const records=Array.isArray(s.socialDrafts)?s.socialDrafts:[],matches=records.filter(row=>row?.id===s.selectedSocialDraftId),record=matches.length===1?matches[0]:null;
  const stamp=record?stableJson(record):'',scope=s.ownerWorkspaceScope,owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;
@@ -35,9 +35,19 @@ export function NewsletterAccountReadback({s}){
  };
  if(!eligible)return null;
  const exact=review?.record===record&&review.stamp===stamp&&review.scope===scope&&review.owner===owner&&review.business===business&&review.localRevision===s.cloudRevision&&s.socialContentActions?.fresh(review.ticket);
+ const deviceInspectionCurrent=deviceInspection?.record===record&&deviceInspection.stamp===stamp&&deviceInspection.scope===scope&&deviceInspection.owner===owner&&deviceInspection.business===business;
+ const devicePreview=deviceInspectionCurrent?newsletterVersionPreview({record,baseline:record,businessId:business,ownerId:owner}):null;
+ const deviceDifferences=devicePreview?newsletterEditorDifferences({text:s.socialDraftText,photos:s.socialCreatePhotos,brief:s.socialBrief,channels:s.socialDraftChannels,sourceContext:s.socialSourceContext},record):null;
  const dirty=contentDraftChanges({text:s.socialDraftText,photos:s.socialCreatePhotos,brief:s.socialBrief,channels:s.socialDraftChannels,...Object.hasOwn(s,'socialSourceContext')?{sourceContext:s.socialSourceContext}:{}},record).dirty||s.socialDraftText!==record.text;
  const messages={deviceReviewed:'The saved device version passed source review. The original Keep/Open choice still protects current edits. This does not confirm this version in the account or save anything.',checking:'Checking the account copy. No save or send is being attempted.',confirmed:dirty?'The saved newsletter record was confirmed in the account. Your current edits are not confirmed saved.':'The saved newsletter record was confirmed in the account at the checked revision. This is not delivery or current-source approval.',absent:'This draft was not found in the checked account snapshot. Your device copy and current edits are kept.',different:'The account record differs. Your current wording and media are kept; nothing was restored or overwritten.',stale:'The account response is older than this workspace. Keep your current work and check again; nothing was restored or retried.',unknown:'Could not confirm the account copy. Keep your work; no save was retried.',sourceChanged:'The saved device version’s starting source needs fresh review. Your current wording was kept. Account confirmation is separate from source approval.'};
  return <Card title="Newsletter account copy" body="Read the original business snapshot to check this saved newsletter. Device evidence and source review are separate.">
+  <Button label={deviceInspectionCurrent?'Hide saved newsletter wording':'Inspect saved newsletter wording'} onPress={()=>setDeviceInspection(deviceInspectionCurrent?null:{record,stamp,scope,owner,business})}/>
+  {devicePreview?<Card title="Saved newsletter in this workspace — read only" body={'Subject: '+devicePreview.subject+'\n\n'+devicePreview.body} footer="This is the saved record currently loaded in this workspace, not your current editor. This view does not confirm device or account persistence. Nothing was opened, saved or sent.">
+   <Text style={styles.cardBody}>{'Your current editor differs in: '+(deviceDifferences===null?'could not compare safely':deviceDifferences.join('; ')||'none of the checked editable fields')+'.'}</Text>
+   <Text style={styles.cardBody}>{'Saved writing treatment: '+devicePreview.treatment+'.'}</Text>
+   {devicePreview.brief?<Text style={styles.cardBody}>{'Saved audience intention: '+devicePreview.brief+' — not recipient selection or marketing permission.'}</Text>:null}
+  </Card>:null}
+  {deviceInspectionCurrent&&!devicePreview?<Text style={styles.cardBody}>Saved wording cannot be inspected safely in this version. Your editor is kept.</Text>:null}
   <Button label="Check newsletter account copy" disabled={exact&&review.status==='checking'} onPress={()=>check(false)}/>
   {s.openSocialDraft&&!s.socialSourceContext?.pendingContentIdea?<Button label="Review and reopen saved newsletter" disabled={exact&&review.status==='checking'} onPress={()=>check(true)}/>:null}
   {exact&&review.status==='different'&&review.preview?<Card title="Account newsletter — read only" body={'Subject: '+review.preview.subject+'\n\n'+review.preview.body} footer="Your open draft stays unchanged. This version has not been opened, saved or sent.">

@@ -1301,7 +1301,10 @@ function EnquiryFollowUp({ s }) {
       </Card>:null}
       {privateReply?.requirements?.reviewChecks?.length?<Card eyebrow="Questions to review" title="Before you make commitments" body={privateReply.requirements.reviewChecks.map(row=>row.check).join('\n')}/>:null}
       {privateReply?.requirements?.ownerChosenTone?<Text style={styles.cardBody}>{'New preparations use your approved '+privateReply.requirements.ownerChosenTone+' brand tone. Your current words stay until you choose another preparation.'}</Text>:null}
-      {privateReply?.savedSourceSummary?<Card title="Earlier saved enquiry copy" body={privateReply.savedSourceSummary.text} footer={privateReply.savedSourceSummary.notice}/>:null}
+      {privateReply?.savedSourceSummary?<Card title="Earlier saved enquiry copy" body={privateReply.savedSourceSummary.text} footer={privateReply.savedSourceSummary.notice}>
+        {privateReply.savedSourceSummary.requirementChanges?.length?<Text style={styles.cardBody}>{'Customer requirement changes to review:\n'+privateReply.savedSourceSummary.requirementChanges.map(row=>row.label+'\nEarlier private copy: '+(row.previous||'Not supplied')+'\nCurrently recorded: '+(row.current||'Not supplied')).join('\n\n')}</Text>:null}
+        {privateReply.savedSourceSummary.requirementsNotice?<Text style={styles.cardBody}>{privateReply.savedSourceSummary.requirementsNotice}</Text>:null}
+      </Card>:null}
       {privateReply?.sourceAttribution?<Card title="Where this reply started" body={privateReply.sourceAttribution} footer="Recheck current item details before reusing earlier preparation. Nothing has been sent."/>:null}
       {privateReply?.canReviewCatalogue?<Button label="Review current item details for this reply" disabled={privateReply.preparationBlocked} onPress={s.enquiryReplyActions.prepareCatalogue}/>:null}
       {privateReply?.catalogueWarning?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateReply.catalogueWarning} Nothing has been sent.</Text>:null}

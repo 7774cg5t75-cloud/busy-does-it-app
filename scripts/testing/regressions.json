@@ -2113,6 +2113,18 @@
       "args": [
         "scripts/check-mission15-phase55-recovery-explanations.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase56-reply-requirements",
+      "args": [
+        "scripts/check-mission15-phase56-reply-requirements.mjs"
+      ]
+    },
+    {
+      "id": "mission15-phase56-newsletter-inspection",
+      "args": [
+        "scripts/check-mission15-phase56-newsletter-inspection.mjs"
+      ]
     }
   ]
 }

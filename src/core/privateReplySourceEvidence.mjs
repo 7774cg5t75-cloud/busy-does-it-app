@@ -1,5 +1,7 @@
 import {parseEnquiryListingReference} from './ownerConversationPreparation.mjs';
 import {stableJson} from './stableJson.mjs';
+import {resolveQuoteEnquiryReference} from './quoteEnquiryReference.mjs';
+import {readCustomerEnquiryRequirements,ENQUIRY_REQUIREMENTS} from './customerEnquiryRequirements.mjs';
 // Private preparation evidence in the original reply record, not current-source authority.
 export function privateReplyCatalogueProvenance({businessId,item,prepared}={}){
  try{
@@ -19,12 +21,21 @@ export function privateReplySourceReview({businessId,item,provenance}={}){
 
 
 // A retained private copy is attribution, not immutable historical evidence.
-export function privateReplySavedSourceSummary({ownerId,businessId,customer,record}={}){
+export function privateReplySavedSourceSummary({ownerId,businessId,customer,record,inboxItems,revision}={}){
  try{
   if(!record||record.ownerId!==ownerId||record.businessId!==businessId||record.customerId!==customer?.id||record.reference?.customerId!==customer.id||record.reference.businessId!==businessId)return null;
   const source=JSON.parse(record.sourceStamp),saved=source?.[1];
   if(!Array.isArray(source)||source.length!==2||source[0]?.id!==customer.id||saved?.id!==record.reference.inboxId||saved.filedCustomerId!==customer.id||saved.status!=='Filed'||[saved.businessId,saved.business_id].some(id=>id&&id!==businessId)||typeof saved.rawText!=='string'||saved.rawText.length>15000)return null;
-  return {text:saved.rawText,notice:'Earlier private customer-message copy; not independently authenticated history. Your saved reply is owner wording. Review the currently recorded enquiry and approved facts separately.'};
+  if([source[0].businessId,source[0].business_id].some(id=>id&&id!==businessId)||!resolveQuoteEnquiryReference(record.reference,{businessId,customerId:customer.id,inboxItems:[saved],revision:record.reference.snapshotRevision}))return null;
+  const summary={text:saved.rawText,notice:'Earlier private customer-message copy; not independently authenticated history. Your saved reply is owner wording. Review the currently recorded enquiry and approved facts separately.'};
+  if(inboxItems){
+   const current=resolveQuoteEnquiryReference(record.reference,{businessId,customerId:customer.id,inboxItems,revision});
+   if(!current||customer.contactOk===false||[customer.businessId,customer.business_id,current.businessId,current.business_id].some(id=>id&&id!==businessId))return {...summary,requirementsNotice:'The exact current filing is unavailable for comparison. Keep your wording and review the original enquiry.'};
+   const previous=readCustomerEnquiryRequirements(saved.rawText),now=readCustomerEnquiryRequirements(current.rawText);
+   if(previous&&now)return {...summary,requirementChanges:ENQUIRY_REQUIREMENTS.filter(field=>previous[field.key]!==now[field.key]).map(field=>({label:field.label,previous:previous[field.key],current:now[field.key]})),requirementsNotice:'Compared with an earlier private copy, not authenticated history. These are customer requests, not confirmed business facts. Review before using them.'};
+   if(saved.rawText!==current.rawText)return {...summary,requirementsNotice:'The recorded enquiry differs, but its structured requirements cannot be compared safely. Review the full current enquiry; no missing facts were inferred.'};
+  }
+  return summary;
  }catch{return null;}
 }
 export function privateReplyCatalogueChanges({businessId,item,provenance,current}={}){
