@@ -1,6 +1,6 @@
 # Phase58 original-row trusted writer — review candidate
 
-**Not deployed, not executed in PostgreSQL, not ready to apply as a production migration.** The owner supplied a private targeted catalogue handoff, SHA256 `557d9fd2bc4dcdcbac02e3ef675936e18c4e71341500c3bd7801277857461cac`. It establishes observed original table/role/grant/RLS/trigger facts, but contains policy paraphrases and provisioning-function summaries rather than exact captured definitions. Do not publish that handoff verbatim. This candidate is newly authored public review code, not purported original DDL.
+**Not deployed; not ready to apply as a production migration.** Phase59 executes this candidate against a disposable local PostgreSQL fixture; see the Phase59 report for exact scope and remaining hosted gates. The owner supplied a private targeted catalogue handoff, SHA256 `557d9fd2bc4dcdcbac02e3ef675936e18c4e71341500c3bd7801277857461cac`. It establishes observed original table/role/grant/RLS/trigger facts, but contains policy paraphrases and provisioning-function summaries rather than exact captured definitions. Do not publish that handoff verbatim. This candidate is newly authored public review code, not purported original DDL.
 
 ## Actual advance and limits
 
@@ -18,7 +18,7 @@ There is no arbitrary path, caller-defined merge, create/upsert, finance operati
 
 ## Critical cutover prerequisites — currently incomplete
 
-1. Obtain exact busy_ensure_business and creator-trigger definitions plus effective role/column grant inheritance. The handoff says the invoker inserts a default snapshot but does not supply its exact INSERT target list. The business_id-only grant is compatible **only if** that original statement inserts business_id alone. Any explicit payload/schema/revision/timestamp columns will fail. Do not relax the fence to hide this: review the exact body and prepare a narrow provisioning change if needed.
+1. The private Phase59 exact-function addendum resolves the INSERT target list: original SECURITY INVOKER provisioning inserts business_id alone, after the creator-membership trigger. Keep both original security modes. Existing-business cases do not recreate a missing snapshot. Effective role/column inheritance and every privileged writer still require cutover review; do not relax the narrow grant.
 2. Inventory all privileged/service/import/restore writers. They lose direct snapshot writes, including service_role. Existing source readers can retain SELECT, but unknown privileged writers must be migrated or explicitly disabled. No claim that function-name inventory found every writer.
 3. Prepare a compatible client adapter. Current initialization POST sends full payload and current save PATCH replaces full payload; both deliberately fail under the fence. Keep unsupported clients read-only, retain unsaved device work and show upgrade/review status. Do not activate this SQL against the current application and call it seamless compatibility. Only three operations exist here; customer creation, quote/profile changes, general content saving and account restore need their own reviewed finite contracts. The existing app is **not switched** to this proposal.
 4. Revoke original direct legacy writes **before** protected-field exposure. Table ACL alone is not enough if column or inherited grants remain. Existing member SELECT policies remain; this candidate does not solve owner-private-field read visibility within a business. Review that privacy boundary separately.
@@ -37,7 +37,7 @@ The response binds actor/business/operation/target and old/new row revision to t
 
 Fixture order for a separately authorised disposable rehearsal:fixture → writer → reviewed copy of fence with its deliberate fuse removed → assertions. Keep the fuse in the repository proposal. The fixture first demonstrates a direct authenticated whole-payload loss under reconstructed original RLS, rolls it back, then tests candidate ACL denial, bounded text mutation/unknown-field preservation, explicit removal, stale replay, wrong tenant and member denial. Source checks only lint the proposal's intended boundaries; they are not PostgreSQL parse/execution or security tests.
 
-Local execution was not available:psql/Postgres binaries were absent, Docker socket access denied, and a sandboxed socket-permission attempt failed with a mount error. No container, SQL database or hosted project was modified. Do not count prepared assertions as passes. Original Phase52 retention regression remains byte-unchanged and must remain until actual trusted enforcement defeats it.
+Historical Phase58 local execution was not available:psql/Postgres binaries were absent, Docker socket access denied, and a sandboxed socket-permission attempt failed with a mount error. No container, SQL database or hosted project was modified. Do not count prepared assertions as passes. Original Phase52 retention regression remains byte-unchanged and must remain until actual trusted enforcement defeats it.
 
 ## Mandatory isolated acceptance before any rollout
 

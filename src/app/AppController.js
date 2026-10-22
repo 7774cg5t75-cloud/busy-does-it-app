@@ -2206,7 +2206,7 @@ function App() {
   });
 
   snapshotContextRef.current={identity:snapshotIdentityRef.current,ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||"",
-    revision:cloudRevision,ready:cloudInitialised,getPayload:buildPersistentSnapshot};
+    revision:cloudRevision,role:cloudWorkspace?.role||"",ready:cloudInitialised,getPayload:buildPersistentSnapshot};
 
   const applyCloudSnapshot = (saved,websiteBusinessId="") => {
     if (!saved || typeof saved !== "object") return;
@@ -2819,8 +2819,9 @@ function App() {
       setCloudInitialised(true);
       return true;
     } catch (error) {if(!currentOwner())return false;
-      setCloudSyncError(error?.message || "Cloud workspace could not be loaded.");
-      setCloudSyncStatus("Cloud unavailable");
+      const writeDenied=error?.status===403&&error?.payload?.code==="42501";
+      setCloudSyncError(writeDenied?"Account initialisation needs a compatible trusted writer. Current work was kept; no replacement was attempted.":error?.message || "Cloud workspace could not be loaded.");
+      setCloudSyncStatus(writeDenied?"Account saving paused; current work kept":"Cloud unavailable");
       return false;
     } finally {if(currentOwner()){
       setCloudAttempted(true);
@@ -2861,7 +2862,7 @@ function App() {
     }
     if(result.conflict||result.uncertain&&!result.observedMatch)setCloudConflict({remoteRevision:result.remoteRevision||0,remoteUpdatedAt:result.remoteUpdatedAt||"",uncertain:result.uncertain===true});
     setCloudSyncError(result.reason||"Save could not be confirmed.");
-    setCloudSyncStatus(result.observedMatch?"Cloud copy observed; confirmation lost":result.conflict?"Newer cloud copy found":"Sync needs attention");
+    setCloudSyncStatus(result.readOnly?"Account saving paused; current work kept":result.observedMatch?"Cloud copy observed; confirmation lost":result.conflict?"Newer cloud copy found":"Sync needs attention");
     return false;
   };
 

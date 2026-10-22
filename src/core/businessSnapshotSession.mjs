@@ -5,7 +5,8 @@ const uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const stamp=stableJson;
 const rowOf=rows=>Array.isArray(rows)?rows.length===1?rows[0]:null:rows;
 function createBusinessSnapshotSession(){
- let pending=null,observed=null,lastOwnSave=null;
+ let pending=null,observed=null,lastOwnSave=null,writeBlockedIdentity=null,uncertainMutationIdentity=null;
+ const mutationTickets=new WeakMap();
  const tickets=new WeakMap();
  function prepareRestore(getCurrent){
   const source=getCurrent();
@@ -45,6 +46,8 @@ function createBusinessSnapshotSession(){
   if(!Number.isSafeInteger(schemaVersion)||schemaVersion<1)return fail('The snapshot format must be verified before saving.');
   if(!uuid.test(start?.ownerId||'')||!uuid.test(start?.businessId||'')||!Number.isSafeInteger(start.revision)||start.revision<1||!start.ready)return fail('Open the current signed-in business before saving.');
   if(pending?.identity===start.identity)return {...fail('This business save is already being checked.'),busy:true};
+  if(writeBlockedIdentity===start.identity)return {...fail('Account saving is paused. Keep your current work; a compatible trusted writer is required.'),readOnly:true};
+  if(uncertainMutationIdentity===start.identity)return {...fail('An earlier private operation is uncertain. Check the account before any further save.'),uncertain:true};
   let payload,payloadStamp;
   try{payload=JSON.parse(stamp(start.getPayload()));payloadStamp=stamp(payload);}catch{return fail('The local copy could not be prepared safely. Nothing was sent.');}
   if(observed?.identity===start.identity&&observed.revision===start.revision&&observed.stamp===payloadStamp)return {ok:true,unchanged:true,revision:start.revision};
@@ -76,6 +79,10 @@ function createBusinessSnapshotSession(){
    return {ok:true,revision,updatedAt:row.updated_at||updatedAt,localChangesRemain:stamp(getCurrent().getPayload())!==payloadStamp};
   }catch(error){
    if(!current())return fail('The workspace changed. No result was applied.');
+   if(sent&&error?.status===403&&error?.payload?.code==='42501'){
+    writeBlockedIdentity=start.identity;
+    return {...fail('The account rejected direct snapshot writing. Current work was kept. A compatible trusted writer is required before saving.'),readOnly:true};
+   }
    if(sent){
     // Read once to observe state, never replay PATCH or infer who saved it.
     try{const row=await read();if(!current())return fail('The workspace changed.');
@@ -104,6 +111,36 @@ function createBusinessSnapshotSession(){
   }catch{return fail('The account copy could not be checked. No save was retried.');}
   finally{if(pending===task)pending=null;}
  }
+ // Source-level cutover adapter. Never inferred from omitted fields or enabled by a
+ // client capability flag. A specialist must deliberately prepare ONE exact operation.
+ function preparePrivateMutation({getCurrent,operation,targetId,expectedRecord,newText=null,expectedSource=null}){
+  const source=getCurrent();
+  if(!source?.ready||!uuid.test(source.ownerId||'')||!uuid.test(source.businessId||'')||!Number.isSafeInteger(source.revision)||source.revision<1||!['owner','admin'].includes(source.role)||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return null;
+  if(!['private_reply_edit_text','private_reply_remove','newsletter_remove'].includes(operation)||typeof targetId!=='string'||!targetId||targetId.length>240||!expectedRecord||typeof expectedRecord!=='object'||Array.isArray(expectedRecord))return null;
+  if(operation==='private_reply_edit_text'?(typeof newText!=='string'||!newText.trim()||!Array.isArray(expectedSource)):(newText!==null||expectedSource!==null))return null;
+  try{const ticket={};mutationTickets.set(ticket,{...source,payloadStamp:stamp(source.getPayload()),operation,targetId,expectedRecord:JSON.parse(stamp(expectedRecord)),newText,expectedSource:expectedSource===null?null:JSON.parse(stamp(expectedSource))});return ticket;}catch{return null;}
+ }
+ async function mutatePrivate({ticket,getCurrent,ownerAccessToken,request}){
+  const source=ticket&&mutationTickets.get(ticket),fail=reason=>({ok:false,reason});
+  if(!source)return fail('Review this exact private operation before using it.');
+  mutationTickets.delete(ticket);
+  const current=()=>{try{const live=getCurrent();return live?.ready&&live.identity===source.identity&&live.ownerId===source.ownerId&&live.businessId===source.businessId&&live.revision===source.revision&&live.role===source.role&&stamp(live.getPayload())===source.payloadStamp;}catch{return false;}};
+  if(!current()||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return fail('The workspace, current words or save state changed. Nothing was sent.');
+  const task={identity:source.identity};pending=task;let sent=false;
+  try{
+   const token=await ownerAccessToken();if(!token||!current())return fail('The signed-in workspace or current words changed. Nothing was sent.');
+   sent=true;lastOwnSave=null;
+   const receipt=await request('rpc/busy_snapshot_private_mutation_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_expected_revision:source.revision,p_expected_schema:1,p_operation:source.operation,p_target_id:source.targetId,p_expected_record:source.expectedRecord,p_new_text:source.newText,p_expected_source:source.expectedSource}});
+   const expectedTarget=source.operation==='private_reply_edit_text'?{...source.expectedRecord,text:source.newText}:null;
+   if(!receipt||receipt.businessId!==source.businessId||receipt.actorId!==source.ownerId||receipt.operation!==source.operation||receipt.targetId!==source.targetId||receipt.previousRevision!==source.revision||receipt.revision!==source.revision+1||receipt.schemaVersion!==1||stamp(receipt.target)!==stamp(expectedTarget))throw Error('The private mutation receipt did not match.');
+   if(!current()){uncertainMutationIdentity=source.identity;return {...fail('The operation returned after the editor changed. Check the account; nothing was restored.'),uncertain:true};}
+   // This is a target receipt, never a full-snapshot save or permission to restore.
+   return {ok:true,receipt:JSON.parse(stamp(receipt)),localChangesRemain:true};
+  }catch(error){
+   if(sent&&![400,401,403,404,409].includes(error?.status))uncertainMutationIdentity=source.identity;
+   return {...fail('Private account operation was not confirmed. Keep current work and check the account; no write was repeated.'),uncertain:uncertainMutationIdentity===source.identity};
+  }finally{if(pending===task)pending=null;}
+ }
  // Local editor continuity only, minted solely from an exact original PATCH receipt.
  // A matching observation after a lost response is deliberately insufficient.
  const canContinueRevision=({getCurrent,fromRevision,toRevision})=>{
@@ -117,6 +154,6 @@ function createBusinessSnapshotSession(){
   if(typeof customerId!=='string'||typeof inboxId!=='string'||!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
   try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(stamp({customers:receipt.payload.customers?.filter(row=>row?.id===customerId)||[],inboxItems:receipt.payload.inboxItems?.filter(row=>row?.id===inboxId)||[]}))};}catch{return {ok:false};}
  };
- return {readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ return {preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};

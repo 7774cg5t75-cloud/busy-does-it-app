@@ -2137,6 +2137,12 @@
       "args": [
         "scripts/check-mission15-phase58-writer-proposal.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase59-cutover",
+      "args": [
+        "scripts/check-mission15-phase59-cutover.mjs"
+      ]
     }
   ]
 }

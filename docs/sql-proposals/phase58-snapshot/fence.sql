@@ -1,7 +1,7 @@
 -- REVIEW ONLY. FUSE INTENTIONALLY ABORTS: NOT deployable without reviewed cutover.
 -- Do not remove the fuse until all README prerequisites and real staging tests pass.
 BEGIN;
-DO $$ BEGIN RAISE EXCEPTION 'PHASE58 REVIEW FUSE: exact provisioning body, writer inventory and client cutover require approval'; END $$;
+DO $$ BEGIN RAISE EXCEPTION 'PHASE58 REVIEW FUSE: writer inventory, executed security tests and client cutover require approval'; END $$;
 -- Stage/review copy only: remove the fuse in a separately approved disposable rehearsal.
 -- Retain it in this public proposal, which is not in supabase/migrations.
 
@@ -15,7 +15,8 @@ DO $$ DECLARE col record; BEGIN
 END $$;
 GRANT SELECT ON TABLE public.busy_business_snapshots TO authenticated,service_role;
 -- Only a blank default row may be inserted by the original invoker provisioning.
--- MUST verify its exact INSERT target columns before cutover; handoff gives a summary only.
+-- Phase59 private exact-function addendum verifies INSERT(business_id) only.
+-- Preserve invoker/RLS/trigger semantics; no full-row INSERT compatibility escape.
 GRANT INSERT (business_id) ON TABLE public.busy_business_snapshots TO authenticated;
 
 CREATE FUNCTION busy_snapshot_private.guard_initial_snapshot()
