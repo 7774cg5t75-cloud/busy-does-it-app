@@ -24,3 +24,16 @@ export async function persistPrivateReply({customer,record,isCurrent,reconcile},
  if(result.status==='confirmed')setCustomers(rows=>rows.includes(customer)?rows.map(row=>row===customer?result.customer:row):rows);
  return result;
 }
+
+// Original account-session bindings: feature gate is rollout only, never authority.
+// The editor supplies its genuine live typing epoch. No copied state or payload apply.
+export function privateReplyAccountBindings({enabled,sessionRef,contextRef,ownerAccessToken,request}){
+ if(enabled!==true)return {trustedAccountEnabled:false};
+ const current=getEditorEpoch=>()=>({...contextRef.current,inputEpoch:getEditorEpoch()});
+ return {
+  trustedAccountEnabled:true,
+  readPrivateAccountReply:({customerId,enquiryId,getEditorEpoch})=>sessionRef.current.readPrivateReply({getCurrent:current(getEditorEpoch),ownerAccessToken,request,customerId,enquiryId}),
+  preparePrivateAccountEdit:({review,newText,getEditorEpoch})=>sessionRef.current.preparePrivateReplyEdit({getCurrent:current(getEditorEpoch),review,newText}),
+  commitPrivateAccountEdit:({ticket,getEditorEpoch})=>sessionRef.current.mutatePrivate({getCurrent:current(getEditorEpoch),ownerAccessToken,request,ticket}),
+ };
+}

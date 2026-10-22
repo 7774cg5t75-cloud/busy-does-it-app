@@ -1,3 +1,4 @@
+export const TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED = false; // Separate reviewed server/client cutover required.
 import {busyRuntimeCloudConfig} from "./stagingRuntimeIsolation.mjs";
 const APP_VERSION = "3.105";
 const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Hosted Website Visual Review Connection`;

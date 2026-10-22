@@ -2143,6 +2143,12 @@
       "args": [
         "scripts/check-mission15-phase59-cutover.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase60-account-reply",
+      "args": [
+        "scripts/check-mission15-phase60-account-reply.mjs"
+      ]
     }
   ]
 }
