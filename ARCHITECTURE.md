@@ -1,3 +1,7 @@
+## Phase58 owner schema handoff — review-only trusted preservation candidate
+
+The private owner-supplied original-project catalogue report now supplies observed core snapshot, membership, permission and provisioning authority; prior missing-evidence findings remain historical. Newly authored finite mutation SQL, legacy fence and read-only rollback are isolated under `docs/sql-proposals/phase58-snapshot`; reconstructed disposable assertions are under `staging/phase58-snapshot`. No production application state, hooks or dependencies changed. The candidate is abort-fused, not client-wired, not executed in PostgreSQL and not deployed. Exact provisioning body/columns, full privileged-writer inventory, executable SQL security tests and compatible cutover remain mandatory gates. Combined delivery/architecture/limitations: `docs/MISSION15_PHASE58_HANDOFF_2026_10_22.md`.
+
 ## Phase57 — reviewed fresh clarification through the original saved-reply journey
 
 Original customer reply preparation can preview a fresh clarification after current-source review, retaining same-purpose navigation's existing wording protection. Current structured requirements and approved service corrections inform a deliberate Keep/Use proposal; exact session/source/typing/target/revision/save/view checks and one-use deferred-navigation approval protect current words. Save/replacement and reopening stay with original specialists; no automatic save/send or new record/store/module.
