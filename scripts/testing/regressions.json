@@ -2131,6 +2131,12 @@
       "args": [
         "scripts/check-mission15-phase57-fresh-clarification.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase58-writer-proposal",
+      "args": [
+        "scripts/check-mission15-phase58-writer-proposal.mjs"
+      ]
     }
   ]
 }
