@@ -1,0 +1,3934 @@
+{
+  "startingGitHub": "9043216c0d1ec287e6100e0ea30a95d20c2fda6b",
+  "startingLocal": "21acaa4c5060b13f2ea6d7584dd96cc7956b6745",
+  "startingTree": "39dd7ff6eee43736e1803f6d3c1731feb3db0d0d",
+  "functionalLocal": "024abe867f52ad3a04d5b0bbf684dbba44138444",
+  "functionalGitHub": "b6301812e0d0cd88fb63c65a64c9f93dd3cf6f1c",
+  "functionalTree": "2d9e306b936615d774c334870867209afd4d0850",
+  "localCheckpoints": [
+    "a046ed1316a64efde42c8c3b78db88ebbd6541a8",
+    "fb607e3974012f0ca926e857f1d8f47381345714",
+    "863003498d4abc365b6fc156611e6c8fa3a15e38",
+    "43c3a80548b3edffa9d7ce6b33bfed35a3b0dd47",
+    "024abe867f52ad3a04d5b0bbf684dbba44138444"
+  ],
+  "masterSha256": "6107043b5470741cbc0bdb67ee52cf99917d1f9886f39a14d22fa290f2dfef11",
+  "master": "Actual original V22.49 reopened;2132 paragraphs/19 tables; full ordered extraction matched previous private review; original and contents outside Git.",
+  "command": "python3 scripts/testing/regressions.py --fail-fast --output .test-artifacts/connected-booking-status-complete.json",
+  "runnerExit": 0,
+  "summary": {
+    "passed": 353,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "sourceCleanAtStart": true,
+  "startedAt": "2026-10-23T21:51:02.213825+00:00",
+  "finishedAt": "2026-10-23T21:59:01.863612+00:00",
+  "selectionSha256": "e0a02048c0a65e1133b95a5a606fde712d6a1796bbb8af9b2ff988efeffddbe5",
+  "rawReportSha256": "fc96f83aa1a476a2801095f967b844c1f9168d948a8ca23a6234a0b90c48d622",
+  "children": [
+    {
+      "id": "check-mission13-conversations",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission13-private-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "check-mission13-customer-surfaces",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.45
+    },
+    {
+      "id": "check-mission13-communication-truth",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "check-mission12-content-enquiry",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "check-mission12-builder-reuse",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission12-intent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission12-live-form-logic",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission12-public-handoff",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.14
+    },
+    {
+      "id": "check-mission12-record-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission12-standalone-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission11-records",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission11-intelligence",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission11-public-views",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-app-goal-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-app-goal-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-app-goal-decisions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-app-builder-dual-track-v3153",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission10-information-reuse",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission9-builder-language",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission10-public-information",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.14
+    },
+    {
+      "id": "check-mission10-service-details",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-owner-outcome-v3235",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-communications-v3205",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "check-customer-journey-v3204",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "check-mission9-reply-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.74
+    },
+    {
+      "id": "check-mission9-request-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "check-message-integrity-v3185",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "check-builder-intelligence-v3240",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission14-contextual-replies",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission14-content-intelligence",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.5
+    },
+    {
+      "id": "check-mission14-experience-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.05
+    },
+    {
+      "id": "check-standalone-native-v3154",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission15-editing-preview",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "check-mission15-app-services",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission15-design-candidates",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-coherence",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-website-page-instructions-v3149",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-website-context-plan-v3147",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.53
+    },
+    {
+      "id": "check-website-context-v3140",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-website-measured-coach-v3144",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-website-coordinated-alternatives",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission7-website-decisions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-major-builders-v3195",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.47
+    },
+    {
+      "id": "check-mission15-phase2-copy",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.5
+    },
+    {
+      "id": "check-mission15-phase2-responsive",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase2-services",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.77
+    },
+    {
+      "id": "check-mission15-phase2-measured-reading",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase2-request-intent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.55
+    },
+    {
+      "id": "check-mission15-phase2-transfer-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.07
+    },
+    {
+      "id": "check-app-studio-session",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-app-studio-checkpoint",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "build-website-design-gallery-v3100",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-builder-visual-receipt-v3238",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission15-phase3-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.96
+    },
+    {
+      "id": "check-mission15-phase3-content-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.38
+    },
+    {
+      "id": "check-mission15-phase3-gallery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase3-language",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission15-phase3-studio-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.64
+    },
+    {
+      "id": "check-mission15-phase4-app-capabilities",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.48
+    },
+    {
+      "id": "check-mission15-phase4-requirements",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.47
+    },
+    {
+      "id": "check-mission15-phase4-website-spacing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase5-approved-records",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.95
+    },
+    {
+      "id": "check-mission15-phase5-catalogue-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission15-phase5-enquiry-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.85
+    },
+    {
+      "id": "check-mission11-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.74
+    },
+    {
+      "id": "prepare-standalone-prototype-v3154",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase6-booking-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.96
+    },
+    {
+      "id": "check-mission15-phase6-hero-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.14
+    },
+    {
+      "id": "check-distinct-website-designs-v3101",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-website-layout-v3134",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission8-shared-request-entry",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.2
+    },
+    {
+      "id": "check-mission15-phase7-visual-movement",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission15-phase7-typography",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.97
+    },
+    {
+      "id": "check-mission15-phase7-app-selection",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.45
+    },
+    {
+      "id": "check-website-section-styling-v3139",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "check-mission15-phase7-reviewed-request",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.63
+    },
+    {
+      "id": "check-mission15-phase7-card-colours",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.23
+    },
+    {
+      "id": "check-mission15-phase7-page-movement",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-website-pages-v3135",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-website-tap-editor-v3138",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase8-quality",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission15-phase8-sizing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase8-service-questions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "check-mission15-phase8-website-suggestions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.5
+    },
+    {
+      "id": "check-mission15-phase9-studio-selection",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.13
+    },
+    {
+      "id": "check-mission15-phase9-service-details",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.83
+    },
+    {
+      "id": "check-mission15-phase9-browser-policy",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "check-mission15-phase10-selected-images",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.86
+    },
+    {
+      "id": "check-mission15-phase10-website-toolbar",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.38
+    },
+    {
+      "id": "check-mission15-phase10-selected-instructions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.06
+    },
+    {
+      "id": "check-mission15-phase10-gallery-parity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.6
+    },
+    {
+      "id": "check-app-context-editor-v3155",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission7-app-intent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-app-voice-layout-v3156",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.06
+    },
+    {
+      "id": "check-mission15-phase11-selected-services",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.91
+    },
+    {
+      "id": "check-mission15-phase11-website-pictures",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.33
+    },
+    {
+      "id": "check-mission15-phase11-brand-controls",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.49
+    },
+    {
+      "id": "check-app-visual-comparison-v3161",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-major-builders-v3193",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.31
+    },
+    {
+      "id": "check-mission15-phase11-selected-faq",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.69
+    },
+    {
+      "id": "check-mission15-phase12-component-styles",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.84
+    },
+    {
+      "id": "check-mission15-phase12-explore",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.44
+    },
+    {
+      "id": "check-mission15-phase12-explore-handoff",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.83
+    },
+    {
+      "id": "check-mission15-phase13-explore-experience",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.72
+    },
+    {
+      "id": "check-mission15-phase13-faq-styles",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.82
+    },
+    {
+      "id": "check-mission15-phase13-trusted-explore",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "check-mission15-phase13-website-reading",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.55
+    },
+    {
+      "id": "check-mission15-phase14-image-styles",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.82
+    },
+    {
+      "id": "check-mission15-phase14-explore-context",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.14
+    },
+    {
+      "id": "check-mission15-phase14-picture-presets",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.65
+    },
+    {
+      "id": "check-mission15-phase14-navigation-labels",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.7
+    },
+    {
+      "id": "check-mission15-phase15-service-buttons",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.25
+    },
+    {
+      "id": "check-mission15-phase15-neutral-planning",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission15-phase15-brand-typography",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.67
+    },
+    {
+      "id": "check-mission15-phase18-customer-browsing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.43
+    },
+    {
+      "id": "check-mission15-phase19-journeys",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.81
+    },
+    {
+      "id": "check-mission15-phase19-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.83
+    },
+    {
+      "id": "check-mission15-phase20-catalogue",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.77
+    },
+    {
+      "id": "check-mission15-phase20-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.85
+    },
+    {
+      "id": "check-mission15-phase21-context",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.61
+    },
+    {
+      "id": "check-mission15-phase21-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.05
+    },
+    {
+      "id": "check-mission15-phase21-draft-choices",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission15-phase22-removal",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.92
+    },
+    {
+      "id": "check-mission15-phase22-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission15-phase22-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.84
+    },
+    {
+      "id": "check-mission15-phase23-field-contract",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.66
+    },
+    {
+      "id": "check-mission15-phase23-focus",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.64
+    },
+    {
+      "id": "check-mission15-phase23-editorial",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "check-mission15-phase23-photo-controls",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.93
+    },
+    {
+      "id": "check-mission15-phase23-catalogue-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.41
+    },
+    {
+      "id": "check-mission15-phase23-explore",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission15-phase24-comparisons",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.62
+    },
+    {
+      "id": "check-mission15-phase24-wording",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.51
+    },
+    {
+      "id": "check-mission15-phase24-service-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "check-mission15-phase24-catalogue-freshness",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "id": "check-mission15-phase24-editor-scope",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.9
+    },
+    {
+      "id": "check-mission15-phase24-explore",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "check-mission15-phase25-pictures",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.15
+    },
+    {
+      "id": "check-mission15-phase25-wording",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.46
+    },
+    {
+      "id": "check-mission15-phase25-attachment-summary",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.77
+    },
+    {
+      "id": "check-mission15-phase25-reading",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission15-phase25-coordinated-controls",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.22
+    },
+    {
+      "id": "check-mission15-phase25-explore",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission15-phase26-selected-explore",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.26
+    },
+    {
+      "id": "check-mission15-phase26-draft-switch",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.05
+    },
+    {
+      "id": "check-mission15-phase26-request-returns",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.85
+    },
+    {
+      "id": "check-mission15-phase26-faq-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "check-mission15-phase26-editing-controls",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.57
+    },
+    {
+      "id": "check-mission15-phase26-selected-advice",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "mission15-phase27-button-drafts",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.64
+    },
+    {
+      "id": "mission15-phase27-design-feedback",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "mission15-phase27-request-return",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.03
+    },
+    {
+      "id": "mission15-phase27-service-index",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "mission15-phase27-simple-controls",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.26
+    },
+    {
+      "id": "mission15-phase27-service-advice",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "mission15-phase27-selected-feedback",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.39
+    },
+    {
+      "id": "mission15-phase28-navigation",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 4.11
+    },
+    {
+      "id": "mission15-phase28-reconsider",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.36
+    },
+    {
+      "id": "mission15-phase28-returns",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.64
+    },
+    {
+      "id": "mission15-phase28-page-guide",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "mission15-phase28-customer-controls",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.83
+    },
+    {
+      "id": "mission15-phase28-explore",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "mission15-phase28-legacy-copy",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.67
+    },
+    {
+      "id": "mission15-phase29-legacy-drafts",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.93
+    },
+    {
+      "id": "mission15-phase29-approval-conflicts",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "mission15-phase29-page-reconsider",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.32
+    },
+    {
+      "id": "mission15-phase29-article-layout",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "mission15-phase29-option-readback",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "id": "mission15-phase29-source-transitions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.67
+    },
+    {
+      "id": "mission15-phase29-explore-reading",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "mission15-phase29-dispatch-epoch",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "mission15-phase29-website-drafts",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.27
+    },
+    {
+      "id": "mission15-phase30-website-mutation",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.05
+    },
+    {
+      "id": "mission15-phase30-history",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "mission15-phase30-save-ack",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 4.0
+    },
+    {
+      "id": "mission15-phase30-testimonials",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "mission15-phase30-service-return",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.07
+    },
+    {
+      "id": "mission15-phase30-photo-backup",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "mission15-phase30-explore",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.19
+    },
+    {
+      "id": "mission15-phase31-pages",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.02
+    },
+    {
+      "id": "mission15-phase31-service-resume",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.3
+    },
+    {
+      "id": "mission15-phase31-cloud-drafts",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.37
+    },
+    {
+      "id": "mission15-phase31-independent-editors",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "mission15-phase31-home",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 7.07
+    },
+    {
+      "id": "mission15-phase31-service-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.98
+    },
+    {
+      "id": "mission15-phase31-growth-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.82
+    },
+    {
+      "id": "mission15-phase31-text-drafts",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.22
+    },
+    {
+      "id": "mission15-phase32-service-intent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 7.37
+    },
+    {
+      "id": "mission15-phase32-growth-handoff",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.91
+    },
+    {
+      "id": "mission15-phase32-content-save",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.78
+    },
+    {
+      "id": "mission15-phase32-approved-profile",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.94
+    },
+    {
+      "id": "mission15-phase32-home-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.97
+    },
+    {
+      "id": "mission15-phase32-marketing-goals",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.07
+    },
+    {
+      "id": "mission15-phase32-manual-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.94
+    },
+    {
+      "id": "mission15-phase32-caption-races",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.87
+    },
+    {
+      "id": "mission15-phase32-source-choice",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.17
+    },
+    {
+      "id": "mission15-phase32-transcript-parity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.76
+    },
+    {
+      "id": "mission15-phase32-save-freshness",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.56
+    },
+    {
+      "id": "mission15-phase33-introduction",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 7.4
+    },
+    {
+      "id": "mission15-phase33-approved-records",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.23
+    },
+    {
+      "id": "mission15-phase33-device-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.79
+    },
+    {
+      "id": "mission15-phase33-announcements",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.02
+    },
+    {
+      "id": "mission15-phase33-growth-home",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.07
+    },
+    {
+      "id": "mission15-phase33-creator-starts",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.0
+    },
+    {
+      "id": "mission15-phase33-new-post-safety",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.21
+    },
+    {
+      "id": "mission15-phase33-cloud-freshness",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.76
+    },
+    {
+      "id": "mission15-phase33-growth-records",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.88
+    },
+    {
+      "id": "mission15-phase33-source-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.63
+    },
+    {
+      "id": "mission15-phase33-talk-parity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.89
+    },
+    {
+      "id": "mission15-phase34-natural-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.35
+    },
+    {
+      "id": "mission15-phase34-wording",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.97
+    },
+    {
+      "id": "mission15-phase34-publication-freshness",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.24
+    },
+    {
+      "id": "mission15-phase34-management-actions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.77
+    },
+    {
+      "id": "mission15-phase34-job-start",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.72
+    },
+    {
+      "id": "mission15-phase34-account-readback",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.95
+    },
+    {
+      "id": "mission15-phase34-queue-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.13
+    },
+    {
+      "id": "mission15-phase34-inbox-quote",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.02
+    },
+    {
+      "id": "mission15-phase34-record-wording",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.86
+    },
+    {
+      "id": "mission15-phase34-home-quote",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 8.18
+    },
+    {
+      "id": "mission15-phase34-receipt-identity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.78
+    },
+    {
+      "id": "mission15-phase34-quote-scope",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.34
+    },
+    {
+      "id": "mission15-phase35-growth-treatment",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.01
+    },
+    {
+      "id": "mission15-phase35-catalogue-treatment",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.15
+    },
+    {
+      "id": "mission15-phase35-publish-claims",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "id": "mission15-phase35-quote-transition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.37
+    },
+    {
+      "id": "mission15-phase35-quote-outcome",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.64
+    },
+    {
+      "id": "mission15-phase35-catalogue-option",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.11
+    },
+    {
+      "id": "mission15-phase36-source-treatment",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.23
+    },
+    {
+      "id": "mission15-phase36-talk-treatment",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.48
+    },
+    {
+      "id": "mission15-phase36-quote-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.61
+    },
+    {
+      "id": "mission15-phase36-record-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.06
+    },
+    {
+      "id": "mission15-phase36-quote-navigation",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.02
+    },
+    {
+      "id": "mission15-phase36-quote-device-copy",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.04
+    },
+    {
+      "id": "mission15-phase36-cancel-revision",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.07
+    },
+    {
+      "id": "check-mission15-phase36-home-prepared-quote",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 7.16
+    },
+    {
+      "id": "check-mission15-phase36-core-routing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.35
+    },
+    {
+      "id": "mission15-phase37-enquiry-quote-return",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.49
+    },
+    {
+      "id": "mission15-phase37-customer-enquiry",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 7.19
+    },
+    {
+      "id": "mission15-phase37-talk-quote",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.58
+    },
+    {
+      "id": "mission15-phase37-content-reprepare",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.89
+    },
+    {
+      "id": "mission15-phase37-home-inbox",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.04
+    },
+    {
+      "id": "mission15-phase37-reopened-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.99
+    },
+    {
+      "id": "mission15-phase37-recorded-quote-status",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.71
+    },
+    {
+      "id": "mission15-phase38-quote-reference",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.19
+    },
+    {
+      "id": "mission15-phase38-quote-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.8
+    },
+    {
+      "id": "mission15-phase38-current-enquiry",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 5.99
+    },
+    {
+      "id": "mission15-phase38-content-draft-fields",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.1
+    },
+    {
+      "id": "mission15-phase38-followup-enquiry",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.47
+    },
+    {
+      "id": "mission15-phase39-followup-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.79
+    },
+    {
+      "id": "mission15-phase39-home-quote-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.94
+    },
+    {
+      "id": "mission15-phase39-review-to-followup",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.79
+    },
+    {
+      "id": "mission15-phase39-unsaved-content-home",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.08
+    },
+    {
+      "id": "mission15-phase39-talk-current-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.95
+    },
+    {
+      "id": "mission15-phase40-quote-selection",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 7.38
+    },
+    {
+      "id": "mission15-phase40-creator-formats",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.28
+    },
+    {
+      "id": "mission15-phase40-growth-formats",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.08
+    },
+    {
+      "id": "mission15-phase40-talk-formats",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.27
+    },
+    {
+      "id": "mission15-phase40-followup-context",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.57
+    },
+    {
+      "id": "mission15-phase40-growth-source-choice",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.71
+    },
+    {
+      "id": "mission15-phase40-home-quote-selection",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 7.12
+    },
+    {
+      "id": "mission15-phase40-followup-authority",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.47
+    },
+    {
+      "id": "mission15-phase41-item-formats",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.42
+    },
+    {
+      "id": "mission15-phase41-growth-item-formats",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.9
+    },
+    {
+      "id": "mission15-phase41-talk-item-formats",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.16
+    },
+    {
+      "id": "mission15-phase41-enquiry-replies",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.2
+    },
+    {
+      "id": "mission15-phase41-reply-questions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.21
+    },
+    {
+      "id": "mission15-phase41-talk-replies",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.21
+    },
+    {
+      "id": "mission15-phase41-home-replies",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.71
+    },
+    {
+      "id": "mission15-phase41-reply-source-removal",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.21
+    },
+    {
+      "id": "mission15-phase42-reply-save",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.21
+    },
+    {
+      "id": "mission15-phase42-owner-formats",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.13
+    },
+    {
+      "id": "mission15-phase42-reply-information",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.27
+    },
+    {
+      "id": "mission15-phase42-saved-reply-home",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.13
+    },
+    {
+      "id": "mission15-phase42-reply-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.38
+    },
+    {
+      "id": "mission15-phase43-growth-announcement",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.25
+    },
+    {
+      "id": "mission15-phase43-reply-canonical",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.68
+    },
+    {
+      "id": "mission15-phase43-reply-account",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.1
+    },
+    {
+      "id": "mission15-phase43-reply-management",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.27
+    },
+    {
+      "id": "mission15-phase43-connected-routing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.6
+    },
+    {
+      "id": "mission15-phase43-date-flexibility",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.58
+    },
+    {
+      "id": "mission15-phase44-announcement-reuse",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "mission15-phase44-removal-account",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "mission15-phase44-own-revision",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.33
+    },
+    {
+      "id": "mission15-phase44-newsletter",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.98
+    },
+    {
+      "id": "mission15-phase44-newsletter-talk",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.59
+    },
+    {
+      "id": "mission15-phase44-removal-parent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.73
+    },
+    {
+      "id": "mission15-phase44-home-newsletter",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.56
+    },
+    {
+      "id": "mission15-phase45-approved-newsletters",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.12
+    },
+    {
+      "id": "mission15-phase45-newsletter-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.01
+    },
+    {
+      "id": "mission15-phase45-reply-receipt",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.24
+    },
+    {
+      "id": "mission15-phase45-newsletter-parent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.66
+    },
+    {
+      "id": "mission15-phase46-newsletter-preview",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.84
+    },
+    {
+      "id": "mission15-phase46-newsletter-account",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.06
+    },
+    {
+      "id": "mission15-phase46-reply-adapter",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.38
+    },
+    {
+      "id": "mission15-phase46-newsletter-exact",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.74
+    },
+    {
+      "id": "mission15-phase47-newsletter-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.99
+    },
+    {
+      "id": "mission15-phase47-content-restoration",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.5
+    },
+    {
+      "id": "mission15-phase47-enquiry-requirements",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.92
+    },
+    {
+      "id": "mission15-phase48-enquiry-quote",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.57
+    },
+    {
+      "id": "mission15-phase48-approved-knowledge",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.29
+    },
+    {
+      "id": "mission15-phase48-newsletter-copy",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.99
+    },
+    {
+      "id": "mission15-phase48-quote-boundary",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "mission15-phase49-catalogue-quote",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.69
+    },
+    {
+      "id": "mission15-phase49-newsletter-source",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.81
+    },
+    {
+      "id": "mission15-phase49-enquiry-projection",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.29
+    },
+    {
+      "id": "mission15-phase50-older-enquiry",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.13
+    },
+    {
+      "id": "mission15-phase50-newsletter-dirty",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.9
+    },
+    {
+      "id": "mission15-phase50-quote-fields",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.77
+    },
+    {
+      "id": "mission15-phase50-runtime-loading",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.35
+    },
+    {
+      "id": "mission15-phase51-catalogue-reply",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.21
+    },
+    {
+      "id": "mission15-phase51-newsletter-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.07
+    },
+    {
+      "id": "mission15-phase51-known-requirements",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.07
+    },
+    {
+      "id": "mission15-phase52-reply-provenance",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.26
+    },
+    {
+      "id": "mission15-phase52-newsletter-versions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.85
+    },
+    {
+      "id": "mission15-phase52-owner-tone",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.52
+    },
+    {
+      "id": "mission15-phase52-retention-contract",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "mission15-phase52-newsletter-boundary",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.72
+    },
+    {
+      "id": "mission15-phase53-reply-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.06
+    },
+    {
+      "id": "mission15-phase53-newsletter-comparison",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.8
+    },
+    {
+      "id": "mission15-phase53-snapshot-compatibility",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.39
+    },
+    {
+      "id": "mission15-phase53-approved-area",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.37
+    },
+    {
+      "id": "mission15-phase54-private-write-boundary",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "id": "mission15-phase54-reply-evidence",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.32
+    },
+    {
+      "id": "mission15-phase54-newsletter-device",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.15
+    },
+    {
+      "id": "mission15-phase54-approved-contact",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.47
+    },
+    {
+      "id": "mission15-phase55-recovery-explanations",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.91
+    },
+    {
+      "id": "mission15-phase56-reply-requirements",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.26
+    },
+    {
+      "id": "mission15-phase56-newsletter-inspection",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.79
+    },
+    {
+      "id": "mission15-phase57-fresh-clarification",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.16
+    },
+    {
+      "id": "mission15-phase58-writer-proposal",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "mission15-phase59-cutover",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.37
+    },
+    {
+      "id": "mission15-phase60-account-reply",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.18
+    },
+    {
+      "id": "mission15-phase61-reconciliation",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.47
+    },
+    {
+      "id": "mission15-phase62-bootstrap",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.41
+    },
+    {
+      "id": "mission15-phase62-services",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.41
+    },
+    {
+      "id": "mission15-phase63-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.37
+    },
+    {
+      "id": "mission15-phase64-recovered-save",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.38
+    },
+    {
+      "id": "mission15-phase64-filing-parent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.65
+    },
+    {
+      "id": "mission15-phase65-first-journey",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.01
+    },
+    {
+      "id": "check-mission15-phase66-interrupted-enquiries",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.62
+    },
+    {
+      "id": "mission15-phase67-appearance",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.55
+    },
+    {
+      "id": "mission15-phase67-parent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 6.43
+    },
+    {
+      "id": "mission15-phase68-working-surfaces",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.61
+    },
+    {
+      "id": "mission15-phase69-workspaces",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.05
+    },
+    {
+      "id": "native-screenshot-pipeline",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "mission15-working-surface-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.6
+    },
+    {
+      "id": "mission15-contact-editor-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.62
+    },
+    {
+      "id": "mission15-navigation-workspaces",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.88
+    },
+    {
+      "id": "mission15-conversation-workspaces",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.31
+    },
+    {
+      "id": "mission15-gallery-recovery-ui",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.89
+    },
+    {
+      "id": "mission15-booking-edit-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.91
+    },
+    {
+      "id": "mission15-connected-booking-status",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.38
+    }
+  ],
+  "separateChecks": {
+    "health": {
+      "exit": 0,
+      "node": "24.19.0",
+      "npm": "11.9.0",
+      "pinnedPackages": 51,
+      "lockSha256": "27d64370fa5d0efba6d5d7426b09e5cf92093ce14593848bb4bc92615e0f503d"
+    },
+    "syntax": {
+      "passed": 4,
+      "exit": 0
+    },
+    "BabelTransforms": {
+      "passed": 4,
+      "exit": 0
+    },
+    "productionFoundations": {
+      "passed": 105,
+      "exit": 0
+    },
+    "appearanceAndContrast": {
+      "command": "node scripts/check-mission15-phase67-appearance.mjs",
+      "exit": 0
+    },
+    "architecture": {
+      "exit": 0
+    },
+    "diffCheck": {
+      "exit": 0
+    }
+  },
+  "focusedFailures": [
+    {
+      "command": "node scripts/check-mission15-booking-edit-continuity.mjs",
+      "childExit": 1,
+      "bundleExit": 1,
+      "observed": "statusWrites0 !==1 after Discard",
+      "stage": "Before first local checkpoint; uncommitted fixture candidate",
+      "correction": "Preserved expected one-operation assertion and added zero after Discard; execute distinct owner approval first."
+    },
+    {
+      "command": "node scripts/check-mission15-booking-edit-continuity.mjs",
+      "childExit": 1,
+      "bundleExit": 0,
+      "observed": "assert.ok(f.data.statusReview) failed after one outer Promise microtask; subsequent quote check made shell bundle exit0",
+      "stage": "Before first local checkpoint; uncommitted fixture candidate",
+      "correction": "Wait a real event-loop turn for the VM Promise review, then execute actual approval. No assertion or timeout weakened."
+    }
+  ],
+  "unsuccessfulFullCandidates": [
+    {
+      "report": ".test-artifacts/connected-booking-status-superseded.json",
+      "sourceSha": "a046ed1316a64efde42c8c3b78db88ebbd6541a8",
+      "summary": {
+        "passed": 116,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 237
+      },
+      "runnerExit": 2,
+      "reason": "Interrupted to close direct command/save bypasses",
+      "rawSha256": "8fad6b9c29c1c55a671141ee5c744708d34692a5de7ca3b2d3ac8746bc14d80a",
+      "startedAt": "2026-10-23T21:31:15.856683+00:00",
+      "finishedAt": "2026-10-23T21:32:47.149714+00:00",
+      "completedChildExits": {
+        "check-mission13-conversations": 0,
+        "check-mission13-private-recovery": 0,
+        "check-mission13-customer-surfaces": 0,
+        "check-mission13-communication-truth": 0,
+        "check-mission12-content-enquiry": 0,
+        "check-mission12-builder-reuse": 0,
+        "check-mission12-intent": 0,
+        "check-mission12-live-form-logic": 0,
+        "check-mission12-public-handoff": 0,
+        "check-mission12-record-review": 0,
+        "check-mission12-standalone-continuity": 0,
+        "check-mission11-records": 0,
+        "check-mission11-intelligence": 0,
+        "check-mission11-public-views": 0,
+        "check-app-goal-content": 0,
+        "check-app-goal-editing": 0,
+        "check-app-goal-decisions": 0,
+        "check-app-builder-dual-track-v3153": 0,
+        "check-mission10-information-reuse": 0,
+        "check-mission9-builder-language": 0,
+        "check-mission10-public-information": 0,
+        "check-mission10-service-details": 0,
+        "check-owner-outcome-v3235": 0,
+        "check-communications-v3205": 0,
+        "check-customer-journey-v3204": 0,
+        "check-mission9-reply-continuity": 0,
+        "check-mission9-request-recovery": 0,
+        "check-message-integrity-v3185": 0,
+        "check-builder-intelligence-v3240": 0,
+        "check-mission14-contextual-replies": 0,
+        "check-mission14-content-intelligence": 0,
+        "check-mission14-experience-recovery": 0,
+        "check-standalone-native-v3154": 0,
+        "check-mission15-editing-preview": 0,
+        "check-mission15-app-services": 0,
+        "check-mission15-design-candidates": 0,
+        "check-mission15-coherence": 0,
+        "check-website-page-instructions-v3149": 0,
+        "check-website-context-plan-v3147": 0,
+        "check-website-context-v3140": 0,
+        "check-website-measured-coach-v3144": 0,
+        "check-website-coordinated-alternatives": 0,
+        "check-mission7-website-decisions": 0,
+        "check-major-builders-v3195": 0,
+        "check-mission15-phase2-copy": 0,
+        "check-mission15-phase2-responsive": 0,
+        "check-mission15-phase2-services": 0,
+        "check-mission15-phase2-measured-reading": 0,
+        "check-mission15-phase2-request-intent": 0,
+        "check-mission15-phase2-transfer-review": 0,
+        "check-app-studio-session": 0,
+        "check-app-studio-checkpoint": 0,
+        "build-website-design-gallery-v3100": 0,
+        "check-builder-visual-receipt-v3238": 0,
+        "check-mission15-phase3-composition": 0,
+        "check-mission15-phase3-content-review": 0,
+        "check-mission15-phase3-gallery": 0,
+        "check-mission15-phase3-language": 0,
+        "check-mission15-phase3-studio-recovery": 0,
+        "check-mission15-phase4-app-capabilities": 0,
+        "check-mission15-phase4-requirements": 0,
+        "check-mission15-phase4-website-spacing": 0,
+        "check-mission15-phase5-approved-records": 0,
+        "check-mission15-phase5-catalogue-editing": 0,
+        "check-mission15-phase5-enquiry-review": 0,
+        "check-mission11-composition": 0,
+        "prepare-standalone-prototype-v3154": 0,
+        "check-mission15-phase6-booking-review": 0,
+        "check-mission15-phase6-hero-composition": 0,
+        "check-distinct-website-designs-v3101": 0,
+        "check-website-layout-v3134": 0,
+        "check-mission8-shared-request-entry": 0,
+        "check-mission15-phase7-visual-movement": 0,
+        "check-mission15-phase7-typography": 0,
+        "check-mission15-phase7-app-selection": 0,
+        "check-website-section-styling-v3139": 0,
+        "check-mission15-phase7-reviewed-request": 0,
+        "check-mission15-phase7-card-colours": 0,
+        "check-mission15-phase7-page-movement": 0,
+        "check-website-pages-v3135": 0,
+        "check-website-tap-editor-v3138": 0,
+        "check-mission15-phase8-quality": 0,
+        "check-mission15-phase8-sizing": 0,
+        "check-mission15-phase8-service-questions": 0,
+        "check-mission15-phase8-website-suggestions": 0,
+        "check-mission15-phase9-studio-selection": 0,
+        "check-mission15-phase9-service-details": 0,
+        "check-mission15-phase9-browser-policy": 0,
+        "check-mission15-phase10-selected-images": 0,
+        "check-mission15-phase10-website-toolbar": 0,
+        "check-mission15-phase10-selected-instructions": 0,
+        "check-mission15-phase10-gallery-parity": 0,
+        "check-app-context-editor-v3155": 0,
+        "check-mission7-app-intent": 0,
+        "check-app-voice-layout-v3156": 0,
+        "check-mission15-phase11-selected-services": 0,
+        "check-mission15-phase11-website-pictures": 0,
+        "check-mission15-phase11-brand-controls": 0,
+        "check-app-visual-comparison-v3161": 0,
+        "check-major-builders-v3193": 0,
+        "check-mission15-phase11-selected-faq": 0,
+        "check-mission15-phase12-component-styles": 0,
+        "check-mission15-phase12-explore": 0,
+        "check-mission15-phase12-explore-handoff": 0,
+        "check-mission15-phase13-explore-experience": 0,
+        "check-mission15-phase13-faq-styles": 0,
+        "check-mission15-phase13-trusted-explore": 0,
+        "check-mission15-phase13-website-reading": 0,
+        "check-mission15-phase14-image-styles": 0,
+        "check-mission15-phase14-explore-context": 0,
+        "check-mission15-phase14-picture-presets": 0,
+        "check-mission15-phase14-navigation-labels": 0,
+        "check-mission15-phase15-service-buttons": 0,
+        "check-mission15-phase15-neutral-planning": 0,
+        "check-mission15-phase15-brand-typography": 0,
+        "check-mission15-phase18-customer-browsing": 0
+      },
+      "unexecuted": [
+        "check-mission15-phase19-journeys",
+        "check-mission15-phase19-editing",
+        "check-mission15-phase20-catalogue",
+        "check-mission15-phase20-editing",
+        "check-mission15-phase21-context",
+        "check-mission15-phase21-editing",
+        "check-mission15-phase21-draft-choices",
+        "check-mission15-phase22-removal",
+        "check-mission15-phase22-composition",
+        "check-mission15-phase22-editing",
+        "check-mission15-phase23-field-contract",
+        "check-mission15-phase23-focus",
+        "check-mission15-phase23-editorial",
+        "check-mission15-phase23-photo-controls",
+        "check-mission15-phase23-catalogue-recovery",
+        "check-mission15-phase23-explore",
+        "check-mission15-phase24-comparisons",
+        "check-mission15-phase24-wording",
+        "check-mission15-phase24-service-composition",
+        "check-mission15-phase24-catalogue-freshness",
+        "check-mission15-phase24-editor-scope",
+        "check-mission15-phase24-explore",
+        "check-mission15-phase25-pictures",
+        "check-mission15-phase25-wording",
+        "check-mission15-phase25-attachment-summary",
+        "check-mission15-phase25-reading",
+        "check-mission15-phase25-coordinated-controls",
+        "check-mission15-phase25-explore",
+        "check-mission15-phase26-selected-explore",
+        "check-mission15-phase26-draft-switch",
+        "check-mission15-phase26-request-returns",
+        "check-mission15-phase26-faq-composition",
+        "check-mission15-phase26-editing-controls",
+        "check-mission15-phase26-selected-advice",
+        "mission15-phase27-button-drafts",
+        "mission15-phase27-design-feedback",
+        "mission15-phase27-request-return",
+        "mission15-phase27-service-index",
+        "mission15-phase27-simple-controls",
+        "mission15-phase27-service-advice",
+        "mission15-phase27-selected-feedback",
+        "mission15-phase28-navigation",
+        "mission15-phase28-reconsider",
+        "mission15-phase28-returns",
+        "mission15-phase28-page-guide",
+        "mission15-phase28-customer-controls",
+        "mission15-phase28-explore",
+        "mission15-phase28-legacy-copy",
+        "mission15-phase29-legacy-drafts",
+        "mission15-phase29-approval-conflicts",
+        "mission15-phase29-page-reconsider",
+        "mission15-phase29-article-layout",
+        "mission15-phase29-option-readback",
+        "mission15-phase29-source-transitions",
+        "mission15-phase29-explore-reading",
+        "mission15-phase29-dispatch-epoch",
+        "mission15-phase29-website-drafts",
+        "mission15-phase30-website-mutation",
+        "mission15-phase30-history",
+        "mission15-phase30-save-ack",
+        "mission15-phase30-testimonials",
+        "mission15-phase30-service-return",
+        "mission15-phase30-photo-backup",
+        "mission15-phase30-explore",
+        "mission15-phase31-pages",
+        "mission15-phase31-service-resume",
+        "mission15-phase31-cloud-drafts",
+        "mission15-phase31-independent-editors",
+        "mission15-phase31-home",
+        "mission15-phase31-service-content",
+        "mission15-phase31-growth-content",
+        "mission15-phase31-text-drafts",
+        "mission15-phase32-service-intent",
+        "mission15-phase32-growth-handoff",
+        "mission15-phase32-content-save",
+        "mission15-phase32-approved-profile",
+        "mission15-phase32-home-content",
+        "mission15-phase32-marketing-goals",
+        "mission15-phase32-manual-content",
+        "mission15-phase32-caption-races",
+        "mission15-phase32-source-choice",
+        "mission15-phase32-transcript-parity",
+        "mission15-phase32-save-freshness",
+        "mission15-phase33-introduction",
+        "mission15-phase33-approved-records",
+        "mission15-phase33-device-recovery",
+        "mission15-phase33-announcements",
+        "mission15-phase33-growth-home",
+        "mission15-phase33-creator-starts",
+        "mission15-phase33-new-post-safety",
+        "mission15-phase33-cloud-freshness",
+        "mission15-phase33-growth-records",
+        "mission15-phase33-source-continuity",
+        "mission15-phase33-talk-parity",
+        "mission15-phase34-natural-content",
+        "mission15-phase34-wording",
+        "mission15-phase34-publication-freshness",
+        "mission15-phase34-management-actions",
+        "mission15-phase34-job-start",
+        "mission15-phase34-account-readback",
+        "mission15-phase34-queue-continuity",
+        "mission15-phase34-inbox-quote",
+        "mission15-phase34-record-wording",
+        "mission15-phase34-home-quote",
+        "mission15-phase34-receipt-identity",
+        "mission15-phase34-quote-scope",
+        "mission15-phase35-growth-treatment",
+        "mission15-phase35-catalogue-treatment",
+        "mission15-phase35-publish-claims",
+        "mission15-phase35-quote-transition",
+        "mission15-phase35-quote-outcome",
+        "mission15-phase35-catalogue-option",
+        "mission15-phase36-source-treatment",
+        "mission15-phase36-talk-treatment",
+        "mission15-phase36-quote-review",
+        "mission15-phase36-record-continuity",
+        "mission15-phase36-quote-navigation",
+        "mission15-phase36-quote-device-copy",
+        "mission15-phase36-cancel-revision",
+        "check-mission15-phase36-home-prepared-quote",
+        "check-mission15-phase36-core-routing",
+        "mission15-phase37-enquiry-quote-return",
+        "mission15-phase37-customer-enquiry",
+        "mission15-phase37-talk-quote",
+        "mission15-phase37-content-reprepare",
+        "mission15-phase37-home-inbox",
+        "mission15-phase37-reopened-content",
+        "mission15-phase37-recorded-quote-status",
+        "mission15-phase38-quote-reference",
+        "mission15-phase38-quote-recovery",
+        "mission15-phase38-current-enquiry",
+        "mission15-phase38-content-draft-fields",
+        "mission15-phase38-followup-enquiry",
+        "mission15-phase39-followup-review",
+        "mission15-phase39-home-quote-review",
+        "mission15-phase39-review-to-followup",
+        "mission15-phase39-unsaved-content-home",
+        "mission15-phase39-talk-current-content",
+        "mission15-phase40-quote-selection",
+        "mission15-phase40-creator-formats",
+        "mission15-phase40-growth-formats",
+        "mission15-phase40-talk-formats",
+        "mission15-phase40-followup-context",
+        "mission15-phase40-growth-source-choice",
+        "mission15-phase40-home-quote-selection",
+        "mission15-phase40-followup-authority",
+        "mission15-phase41-item-formats",
+        "mission15-phase41-growth-item-formats",
+        "mission15-phase41-talk-item-formats",
+        "mission15-phase41-enquiry-replies",
+        "mission15-phase41-reply-questions",
+        "mission15-phase41-talk-replies",
+        "mission15-phase41-home-replies",
+        "mission15-phase41-reply-source-removal",
+        "mission15-phase42-reply-save",
+        "mission15-phase42-owner-formats",
+        "mission15-phase42-reply-information",
+        "mission15-phase42-saved-reply-home",
+        "mission15-phase42-reply-recovery",
+        "mission15-phase43-growth-announcement",
+        "mission15-phase43-reply-canonical",
+        "mission15-phase43-reply-account",
+        "mission15-phase43-reply-management",
+        "mission15-phase43-connected-routing",
+        "mission15-phase43-date-flexibility",
+        "mission15-phase44-announcement-reuse",
+        "mission15-phase44-removal-account",
+        "mission15-phase44-own-revision",
+        "mission15-phase44-newsletter",
+        "mission15-phase44-newsletter-talk",
+        "mission15-phase44-removal-parent",
+        "mission15-phase44-home-newsletter",
+        "mission15-phase45-approved-newsletters",
+        "mission15-phase45-newsletter-editing",
+        "mission15-phase45-reply-receipt",
+        "mission15-phase45-newsletter-parent",
+        "mission15-phase46-newsletter-preview",
+        "mission15-phase46-newsletter-account",
+        "mission15-phase46-reply-adapter",
+        "mission15-phase46-newsletter-exact",
+        "mission15-phase47-newsletter-recovery",
+        "mission15-phase47-content-restoration",
+        "mission15-phase47-enquiry-requirements",
+        "mission15-phase48-enquiry-quote",
+        "mission15-phase48-approved-knowledge",
+        "mission15-phase48-newsletter-copy",
+        "mission15-phase48-quote-boundary",
+        "mission15-phase49-catalogue-quote",
+        "mission15-phase49-newsletter-source",
+        "mission15-phase49-enquiry-projection",
+        "mission15-phase50-older-enquiry",
+        "mission15-phase50-newsletter-dirty",
+        "mission15-phase50-quote-fields",
+        "mission15-phase50-runtime-loading",
+        "mission15-phase51-catalogue-reply",
+        "mission15-phase51-newsletter-recovery",
+        "mission15-phase51-known-requirements",
+        "mission15-phase52-reply-provenance",
+        "mission15-phase52-newsletter-versions",
+        "mission15-phase52-owner-tone",
+        "mission15-phase52-retention-contract",
+        "mission15-phase52-newsletter-boundary",
+        "mission15-phase53-reply-recovery",
+        "mission15-phase53-newsletter-comparison",
+        "mission15-phase53-snapshot-compatibility",
+        "mission15-phase53-approved-area",
+        "mission15-phase54-private-write-boundary",
+        "mission15-phase54-reply-evidence",
+        "mission15-phase54-newsletter-device",
+        "mission15-phase54-approved-contact",
+        "mission15-phase55-recovery-explanations",
+        "mission15-phase56-reply-requirements",
+        "mission15-phase56-newsletter-inspection",
+        "mission15-phase57-fresh-clarification",
+        "mission15-phase58-writer-proposal",
+        "mission15-phase59-cutover",
+        "mission15-phase60-account-reply",
+        "mission15-phase61-reconciliation",
+        "mission15-phase62-bootstrap",
+        "mission15-phase62-services",
+        "mission15-phase63-recovery",
+        "mission15-phase64-recovered-save",
+        "mission15-phase64-filing-parent",
+        "mission15-phase65-first-journey",
+        "check-mission15-phase66-interrupted-enquiries",
+        "mission15-phase67-appearance",
+        "mission15-phase67-parent",
+        "mission15-phase68-working-surfaces",
+        "mission15-phase69-workspaces",
+        "native-screenshot-pipeline",
+        "mission15-working-surface-continuity",
+        "mission15-contact-editor-continuity",
+        "mission15-navigation-workspaces",
+        "mission15-conversation-workspaces",
+        "mission15-gallery-recovery-ui",
+        "mission15-booking-edit-continuity",
+        "mission15-connected-booking-status"
+      ],
+      "failedResults": []
+    },
+    {
+      "report": ".test-artifacts/connected-booking-status-unmount-superseded.json",
+      "sourceSha": "fb607e3974012f0ca926e857f1d8f47381345714",
+      "summary": {
+        "passed": 192,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 161
+      },
+      "runnerExit": 2,
+      "reason": "Interrupted for explicit unmount approval invalidation",
+      "rawSha256": "1bb7fc1fa8e485f14a267ca5416f3ab06647d8b8dfbe14ceb982b8fe87b69055",
+      "startedAt": "2026-10-23T21:33:37.324530+00:00",
+      "finishedAt": "2026-10-23T21:37:12.700261+00:00",
+      "completedChildExits": {
+        "check-mission13-conversations": 0,
+        "check-mission13-private-recovery": 0,
+        "check-mission13-customer-surfaces": 0,
+        "check-mission13-communication-truth": 0,
+        "check-mission12-content-enquiry": 0,
+        "check-mission12-builder-reuse": 0,
+        "check-mission12-intent": 0,
+        "check-mission12-live-form-logic": 0,
+        "check-mission12-public-handoff": 0,
+        "check-mission12-record-review": 0,
+        "check-mission12-standalone-continuity": 0,
+        "check-mission11-records": 0,
+        "check-mission11-intelligence": 0,
+        "check-mission11-public-views": 0,
+        "check-app-goal-content": 0,
+        "check-app-goal-editing": 0,
+        "check-app-goal-decisions": 0,
+        "check-app-builder-dual-track-v3153": 0,
+        "check-mission10-information-reuse": 0,
+        "check-mission9-builder-language": 0,
+        "check-mission10-public-information": 0,
+        "check-mission10-service-details": 0,
+        "check-owner-outcome-v3235": 0,
+        "check-communications-v3205": 0,
+        "check-customer-journey-v3204": 0,
+        "check-mission9-reply-continuity": 0,
+        "check-mission9-request-recovery": 0,
+        "check-message-integrity-v3185": 0,
+        "check-builder-intelligence-v3240": 0,
+        "check-mission14-contextual-replies": 0,
+        "check-mission14-content-intelligence": 0,
+        "check-mission14-experience-recovery": 0,
+        "check-standalone-native-v3154": 0,
+        "check-mission15-editing-preview": 0,
+        "check-mission15-app-services": 0,
+        "check-mission15-design-candidates": 0,
+        "check-mission15-coherence": 0,
+        "check-website-page-instructions-v3149": 0,
+        "check-website-context-plan-v3147": 0,
+        "check-website-context-v3140": 0,
+        "check-website-measured-coach-v3144": 0,
+        "check-website-coordinated-alternatives": 0,
+        "check-mission7-website-decisions": 0,
+        "check-major-builders-v3195": 0,
+        "check-mission15-phase2-copy": 0,
+        "check-mission15-phase2-responsive": 0,
+        "check-mission15-phase2-services": 0,
+        "check-mission15-phase2-measured-reading": 0,
+        "check-mission15-phase2-request-intent": 0,
+        "check-mission15-phase2-transfer-review": 0,
+        "check-app-studio-session": 0,
+        "check-app-studio-checkpoint": 0,
+        "build-website-design-gallery-v3100": 0,
+        "check-builder-visual-receipt-v3238": 0,
+        "check-mission15-phase3-composition": 0,
+        "check-mission15-phase3-content-review": 0,
+        "check-mission15-phase3-gallery": 0,
+        "check-mission15-phase3-language": 0,
+        "check-mission15-phase3-studio-recovery": 0,
+        "check-mission15-phase4-app-capabilities": 0,
+        "check-mission15-phase4-requirements": 0,
+        "check-mission15-phase4-website-spacing": 0,
+        "check-mission15-phase5-approved-records": 0,
+        "check-mission15-phase5-catalogue-editing": 0,
+        "check-mission15-phase5-enquiry-review": 0,
+        "check-mission11-composition": 0,
+        "prepare-standalone-prototype-v3154": 0,
+        "check-mission15-phase6-booking-review": 0,
+        "check-mission15-phase6-hero-composition": 0,
+        "check-distinct-website-designs-v3101": 0,
+        "check-website-layout-v3134": 0,
+        "check-mission8-shared-request-entry": 0,
+        "check-mission15-phase7-visual-movement": 0,
+        "check-mission15-phase7-typography": 0,
+        "check-mission15-phase7-app-selection": 0,
+        "check-website-section-styling-v3139": 0,
+        "check-mission15-phase7-reviewed-request": 0,
+        "check-mission15-phase7-card-colours": 0,
+        "check-mission15-phase7-page-movement": 0,
+        "check-website-pages-v3135": 0,
+        "check-website-tap-editor-v3138": 0,
+        "check-mission15-phase8-quality": 0,
+        "check-mission15-phase8-sizing": 0,
+        "check-mission15-phase8-service-questions": 0,
+        "check-mission15-phase8-website-suggestions": 0,
+        "check-mission15-phase9-studio-selection": 0,
+        "check-mission15-phase9-service-details": 0,
+        "check-mission15-phase9-browser-policy": 0,
+        "check-mission15-phase10-selected-images": 0,
+        "check-mission15-phase10-website-toolbar": 0,
+        "check-mission15-phase10-selected-instructions": 0,
+        "check-mission15-phase10-gallery-parity": 0,
+        "check-app-context-editor-v3155": 0,
+        "check-mission7-app-intent": 0,
+        "check-app-voice-layout-v3156": 0,
+        "check-mission15-phase11-selected-services": 0,
+        "check-mission15-phase11-website-pictures": 0,
+        "check-mission15-phase11-brand-controls": 0,
+        "check-app-visual-comparison-v3161": 0,
+        "check-major-builders-v3193": 0,
+        "check-mission15-phase11-selected-faq": 0,
+        "check-mission15-phase12-component-styles": 0,
+        "check-mission15-phase12-explore": 0,
+        "check-mission15-phase12-explore-handoff": 0,
+        "check-mission15-phase13-explore-experience": 0,
+        "check-mission15-phase13-faq-styles": 0,
+        "check-mission15-phase13-trusted-explore": 0,
+        "check-mission15-phase13-website-reading": 0,
+        "check-mission15-phase14-image-styles": 0,
+        "check-mission15-phase14-explore-context": 0,
+        "check-mission15-phase14-picture-presets": 0,
+        "check-mission15-phase14-navigation-labels": 0,
+        "check-mission15-phase15-service-buttons": 0,
+        "check-mission15-phase15-neutral-planning": 0,
+        "check-mission15-phase15-brand-typography": 0,
+        "check-mission15-phase18-customer-browsing": 0,
+        "check-mission15-phase19-journeys": 0,
+        "check-mission15-phase19-editing": 0,
+        "check-mission15-phase20-catalogue": 0,
+        "check-mission15-phase20-editing": 0,
+        "check-mission15-phase21-context": 0,
+        "check-mission15-phase21-editing": 0,
+        "check-mission15-phase21-draft-choices": 0,
+        "check-mission15-phase22-removal": 0,
+        "check-mission15-phase22-composition": 0,
+        "check-mission15-phase22-editing": 0,
+        "check-mission15-phase23-field-contract": 0,
+        "check-mission15-phase23-focus": 0,
+        "check-mission15-phase23-editorial": 0,
+        "check-mission15-phase23-photo-controls": 0,
+        "check-mission15-phase23-catalogue-recovery": 0,
+        "check-mission15-phase23-explore": 0,
+        "check-mission15-phase24-comparisons": 0,
+        "check-mission15-phase24-wording": 0,
+        "check-mission15-phase24-service-composition": 0,
+        "check-mission15-phase24-catalogue-freshness": 0,
+        "check-mission15-phase24-editor-scope": 0,
+        "check-mission15-phase24-explore": 0,
+        "check-mission15-phase25-pictures": 0,
+        "check-mission15-phase25-wording": 0,
+        "check-mission15-phase25-attachment-summary": 0,
+        "check-mission15-phase25-reading": 0,
+        "check-mission15-phase25-coordinated-controls": 0,
+        "check-mission15-phase25-explore": 0,
+        "check-mission15-phase26-selected-explore": 0,
+        "check-mission15-phase26-draft-switch": 0,
+        "check-mission15-phase26-request-returns": 0,
+        "check-mission15-phase26-faq-composition": 0,
+        "check-mission15-phase26-editing-controls": 0,
+        "check-mission15-phase26-selected-advice": 0,
+        "mission15-phase27-button-drafts": 0,
+        "mission15-phase27-design-feedback": 0,
+        "mission15-phase27-request-return": 0,
+        "mission15-phase27-service-index": 0,
+        "mission15-phase27-simple-controls": 0,
+        "mission15-phase27-service-advice": 0,
+        "mission15-phase27-selected-feedback": 0,
+        "mission15-phase28-navigation": 0,
+        "mission15-phase28-reconsider": 0,
+        "mission15-phase28-returns": 0,
+        "mission15-phase28-page-guide": 0,
+        "mission15-phase28-customer-controls": 0,
+        "mission15-phase28-explore": 0,
+        "mission15-phase28-legacy-copy": 0,
+        "mission15-phase29-legacy-drafts": 0,
+        "mission15-phase29-approval-conflicts": 0,
+        "mission15-phase29-page-reconsider": 0,
+        "mission15-phase29-article-layout": 0,
+        "mission15-phase29-option-readback": 0,
+        "mission15-phase29-source-transitions": 0,
+        "mission15-phase29-explore-reading": 0,
+        "mission15-phase29-dispatch-epoch": 0,
+        "mission15-phase29-website-drafts": 0,
+        "mission15-phase30-website-mutation": 0,
+        "mission15-phase30-history": 0,
+        "mission15-phase30-save-ack": 0,
+        "mission15-phase30-testimonials": 0,
+        "mission15-phase30-service-return": 0,
+        "mission15-phase30-photo-backup": 0,
+        "mission15-phase30-explore": 0,
+        "mission15-phase31-pages": 0,
+        "mission15-phase31-service-resume": 0,
+        "mission15-phase31-cloud-drafts": 0,
+        "mission15-phase31-independent-editors": 0,
+        "mission15-phase31-home": 0,
+        "mission15-phase31-service-content": 0,
+        "mission15-phase31-growth-content": 0,
+        "mission15-phase31-text-drafts": 0,
+        "mission15-phase32-service-intent": 0,
+        "mission15-phase32-growth-handoff": 0,
+        "mission15-phase32-content-save": 0,
+        "mission15-phase32-approved-profile": 0
+      },
+      "unexecuted": [
+        "mission15-phase32-home-content",
+        "mission15-phase32-marketing-goals",
+        "mission15-phase32-manual-content",
+        "mission15-phase32-caption-races",
+        "mission15-phase32-source-choice",
+        "mission15-phase32-transcript-parity",
+        "mission15-phase32-save-freshness",
+        "mission15-phase33-introduction",
+        "mission15-phase33-approved-records",
+        "mission15-phase33-device-recovery",
+        "mission15-phase33-announcements",
+        "mission15-phase33-growth-home",
+        "mission15-phase33-creator-starts",
+        "mission15-phase33-new-post-safety",
+        "mission15-phase33-cloud-freshness",
+        "mission15-phase33-growth-records",
+        "mission15-phase33-source-continuity",
+        "mission15-phase33-talk-parity",
+        "mission15-phase34-natural-content",
+        "mission15-phase34-wording",
+        "mission15-phase34-publication-freshness",
+        "mission15-phase34-management-actions",
+        "mission15-phase34-job-start",
+        "mission15-phase34-account-readback",
+        "mission15-phase34-queue-continuity",
+        "mission15-phase34-inbox-quote",
+        "mission15-phase34-record-wording",
+        "mission15-phase34-home-quote",
+        "mission15-phase34-receipt-identity",
+        "mission15-phase34-quote-scope",
+        "mission15-phase35-growth-treatment",
+        "mission15-phase35-catalogue-treatment",
+        "mission15-phase35-publish-claims",
+        "mission15-phase35-quote-transition",
+        "mission15-phase35-quote-outcome",
+        "mission15-phase35-catalogue-option",
+        "mission15-phase36-source-treatment",
+        "mission15-phase36-talk-treatment",
+        "mission15-phase36-quote-review",
+        "mission15-phase36-record-continuity",
+        "mission15-phase36-quote-navigation",
+        "mission15-phase36-quote-device-copy",
+        "mission15-phase36-cancel-revision",
+        "check-mission15-phase36-home-prepared-quote",
+        "check-mission15-phase36-core-routing",
+        "mission15-phase37-enquiry-quote-return",
+        "mission15-phase37-customer-enquiry",
+        "mission15-phase37-talk-quote",
+        "mission15-phase37-content-reprepare",
+        "mission15-phase37-home-inbox",
+        "mission15-phase37-reopened-content",
+        "mission15-phase37-recorded-quote-status",
+        "mission15-phase38-quote-reference",
+        "mission15-phase38-quote-recovery",
+        "mission15-phase38-current-enquiry",
+        "mission15-phase38-content-draft-fields",
+        "mission15-phase38-followup-enquiry",
+        "mission15-phase39-followup-review",
+        "mission15-phase39-home-quote-review",
+        "mission15-phase39-review-to-followup",
+        "mission15-phase39-unsaved-content-home",
+        "mission15-phase39-talk-current-content",
+        "mission15-phase40-quote-selection",
+        "mission15-phase40-creator-formats",
+        "mission15-phase40-growth-formats",
+        "mission15-phase40-talk-formats",
+        "mission15-phase40-followup-context",
+        "mission15-phase40-growth-source-choice",
+        "mission15-phase40-home-quote-selection",
+        "mission15-phase40-followup-authority",
+        "mission15-phase41-item-formats",
+        "mission15-phase41-growth-item-formats",
+        "mission15-phase41-talk-item-formats",
+        "mission15-phase41-enquiry-replies",
+        "mission15-phase41-reply-questions",
+        "mission15-phase41-talk-replies",
+        "mission15-phase41-home-replies",
+        "mission15-phase41-reply-source-removal",
+        "mission15-phase42-reply-save",
+        "mission15-phase42-owner-formats",
+        "mission15-phase42-reply-information",
+        "mission15-phase42-saved-reply-home",
+        "mission15-phase42-reply-recovery",
+        "mission15-phase43-growth-announcement",
+        "mission15-phase43-reply-canonical",
+        "mission15-phase43-reply-account",
+        "mission15-phase43-reply-management",
+        "mission15-phase43-connected-routing",
+        "mission15-phase43-date-flexibility",
+        "mission15-phase44-announcement-reuse",
+        "mission15-phase44-removal-account",
+        "mission15-phase44-own-revision",
+        "mission15-phase44-newsletter",
+        "mission15-phase44-newsletter-talk",
+        "mission15-phase44-removal-parent",
+        "mission15-phase44-home-newsletter",
+        "mission15-phase45-approved-newsletters",
+        "mission15-phase45-newsletter-editing",
+        "mission15-phase45-reply-receipt",
+        "mission15-phase45-newsletter-parent",
+        "mission15-phase46-newsletter-preview",
+        "mission15-phase46-newsletter-account",
+        "mission15-phase46-reply-adapter",
+        "mission15-phase46-newsletter-exact",
+        "mission15-phase47-newsletter-recovery",
+        "mission15-phase47-content-restoration",
+        "mission15-phase47-enquiry-requirements",
+        "mission15-phase48-enquiry-quote",
+        "mission15-phase48-approved-knowledge",
+        "mission15-phase48-newsletter-copy",
+        "mission15-phase48-quote-boundary",
+        "mission15-phase49-catalogue-quote",
+        "mission15-phase49-newsletter-source",
+        "mission15-phase49-enquiry-projection",
+        "mission15-phase50-older-enquiry",
+        "mission15-phase50-newsletter-dirty",
+        "mission15-phase50-quote-fields",
+        "mission15-phase50-runtime-loading",
+        "mission15-phase51-catalogue-reply",
+        "mission15-phase51-newsletter-recovery",
+        "mission15-phase51-known-requirements",
+        "mission15-phase52-reply-provenance",
+        "mission15-phase52-newsletter-versions",
+        "mission15-phase52-owner-tone",
+        "mission15-phase52-retention-contract",
+        "mission15-phase52-newsletter-boundary",
+        "mission15-phase53-reply-recovery",
+        "mission15-phase53-newsletter-comparison",
+        "mission15-phase53-snapshot-compatibility",
+        "mission15-phase53-approved-area",
+        "mission15-phase54-private-write-boundary",
+        "mission15-phase54-reply-evidence",
+        "mission15-phase54-newsletter-device",
+        "mission15-phase54-approved-contact",
+        "mission15-phase55-recovery-explanations",
+        "mission15-phase56-reply-requirements",
+        "mission15-phase56-newsletter-inspection",
+        "mission15-phase57-fresh-clarification",
+        "mission15-phase58-writer-proposal",
+        "mission15-phase59-cutover",
+        "mission15-phase60-account-reply",
+        "mission15-phase61-reconciliation",
+        "mission15-phase62-bootstrap",
+        "mission15-phase62-services",
+        "mission15-phase63-recovery",
+        "mission15-phase64-recovered-save",
+        "mission15-phase64-filing-parent",
+        "mission15-phase65-first-journey",
+        "check-mission15-phase66-interrupted-enquiries",
+        "mission15-phase67-appearance",
+        "mission15-phase67-parent",
+        "mission15-phase68-working-surfaces",
+        "mission15-phase69-workspaces",
+        "native-screenshot-pipeline",
+        "mission15-working-surface-continuity",
+        "mission15-contact-editor-continuity",
+        "mission15-navigation-workspaces",
+        "mission15-conversation-workspaces",
+        "mission15-gallery-recovery-ui",
+        "mission15-booking-edit-continuity",
+        "mission15-connected-booking-status"
+      ],
+      "failedResults": []
+    },
+    {
+      "report": ".test-artifacts/connected-booking-status-null-failed.json",
+      "sourceSha": "863003498d4abc365b6fc156611e6c8fa3a15e38",
+      "summary": {
+        "passed": 303,
+        "failed": 1,
+        "blocked": 0,
+        "unexecuted": 49
+      },
+      "runnerExit": 1,
+      "reason": "Unchanged Phase49 catalogue-quote case exposed null operation access",
+      "rawSha256": "60c5374a36e1455571629e2cb1dac067a7721a74bc5b0f726f338559d4e53d22",
+      "startedAt": "2026-10-23T21:37:47.060388+00:00",
+      "finishedAt": "2026-10-23T21:44:35.276784+00:00",
+      "completedChildExits": {
+        "check-mission13-conversations": 0,
+        "check-mission13-private-recovery": 0,
+        "check-mission13-customer-surfaces": 0,
+        "check-mission13-communication-truth": 0,
+        "check-mission12-content-enquiry": 0,
+        "check-mission12-builder-reuse": 0,
+        "check-mission12-intent": 0,
+        "check-mission12-live-form-logic": 0,
+        "check-mission12-public-handoff": 0,
+        "check-mission12-record-review": 0,
+        "check-mission12-standalone-continuity": 0,
+        "check-mission11-records": 0,
+        "check-mission11-intelligence": 0,
+        "check-mission11-public-views": 0,
+        "check-app-goal-content": 0,
+        "check-app-goal-editing": 0,
+        "check-app-goal-decisions": 0,
+        "check-app-builder-dual-track-v3153": 0,
+        "check-mission10-information-reuse": 0,
+        "check-mission9-builder-language": 0,
+        "check-mission10-public-information": 0,
+        "check-mission10-service-details": 0,
+        "check-owner-outcome-v3235": 0,
+        "check-communications-v3205": 0,
+        "check-customer-journey-v3204": 0,
+        "check-mission9-reply-continuity": 0,
+        "check-mission9-request-recovery": 0,
+        "check-message-integrity-v3185": 0,
+        "check-builder-intelligence-v3240": 0,
+        "check-mission14-contextual-replies": 0,
+        "check-mission14-content-intelligence": 0,
+        "check-mission14-experience-recovery": 0,
+        "check-standalone-native-v3154": 0,
+        "check-mission15-editing-preview": 0,
+        "check-mission15-app-services": 0,
+        "check-mission15-design-candidates": 0,
+        "check-mission15-coherence": 0,
+        "check-website-page-instructions-v3149": 0,
+        "check-website-context-plan-v3147": 0,
+        "check-website-context-v3140": 0,
+        "check-website-measured-coach-v3144": 0,
+        "check-website-coordinated-alternatives": 0,
+        "check-mission7-website-decisions": 0,
+        "check-major-builders-v3195": 0,
+        "check-mission15-phase2-copy": 0,
+        "check-mission15-phase2-responsive": 0,
+        "check-mission15-phase2-services": 0,
+        "check-mission15-phase2-measured-reading": 0,
+        "check-mission15-phase2-request-intent": 0,
+        "check-mission15-phase2-transfer-review": 0,
+        "check-app-studio-session": 0,
+        "check-app-studio-checkpoint": 0,
+        "build-website-design-gallery-v3100": 0,
+        "check-builder-visual-receipt-v3238": 0,
+        "check-mission15-phase3-composition": 0,
+        "check-mission15-phase3-content-review": 0,
+        "check-mission15-phase3-gallery": 0,
+        "check-mission15-phase3-language": 0,
+        "check-mission15-phase3-studio-recovery": 0,
+        "check-mission15-phase4-app-capabilities": 0,
+        "check-mission15-phase4-requirements": 0,
+        "check-mission15-phase4-website-spacing": 0,
+        "check-mission15-phase5-approved-records": 0,
+        "check-mission15-phase5-catalogue-editing": 0,
+        "check-mission15-phase5-enquiry-review": 0,
+        "check-mission11-composition": 0,
+        "prepare-standalone-prototype-v3154": 0,
+        "check-mission15-phase6-booking-review": 0,
+        "check-mission15-phase6-hero-composition": 0,
+        "check-distinct-website-designs-v3101": 0,
+        "check-website-layout-v3134": 0,
+        "check-mission8-shared-request-entry": 0,
+        "check-mission15-phase7-visual-movement": 0,
+        "check-mission15-phase7-typography": 0,
+        "check-mission15-phase7-app-selection": 0,
+        "check-website-section-styling-v3139": 0,
+        "check-mission15-phase7-reviewed-request": 0,
+        "check-mission15-phase7-card-colours": 0,
+        "check-mission15-phase7-page-movement": 0,
+        "check-website-pages-v3135": 0,
+        "check-website-tap-editor-v3138": 0,
+        "check-mission15-phase8-quality": 0,
+        "check-mission15-phase8-sizing": 0,
+        "check-mission15-phase8-service-questions": 0,
+        "check-mission15-phase8-website-suggestions": 0,
+        "check-mission15-phase9-studio-selection": 0,
+        "check-mission15-phase9-service-details": 0,
+        "check-mission15-phase9-browser-policy": 0,
+        "check-mission15-phase10-selected-images": 0,
+        "check-mission15-phase10-website-toolbar": 0,
+        "check-mission15-phase10-selected-instructions": 0,
+        "check-mission15-phase10-gallery-parity": 0,
+        "check-app-context-editor-v3155": 0,
+        "check-mission7-app-intent": 0,
+        "check-app-voice-layout-v3156": 0,
+        "check-mission15-phase11-selected-services": 0,
+        "check-mission15-phase11-website-pictures": 0,
+        "check-mission15-phase11-brand-controls": 0,
+        "check-app-visual-comparison-v3161": 0,
+        "check-major-builders-v3193": 0,
+        "check-mission15-phase11-selected-faq": 0,
+        "check-mission15-phase12-component-styles": 0,
+        "check-mission15-phase12-explore": 0,
+        "check-mission15-phase12-explore-handoff": 0,
+        "check-mission15-phase13-explore-experience": 0,
+        "check-mission15-phase13-faq-styles": 0,
+        "check-mission15-phase13-trusted-explore": 0,
+        "check-mission15-phase13-website-reading": 0,
+        "check-mission15-phase14-image-styles": 0,
+        "check-mission15-phase14-explore-context": 0,
+        "check-mission15-phase14-picture-presets": 0,
+        "check-mission15-phase14-navigation-labels": 0,
+        "check-mission15-phase15-service-buttons": 0,
+        "check-mission15-phase15-neutral-planning": 0,
+        "check-mission15-phase15-brand-typography": 0,
+        "check-mission15-phase18-customer-browsing": 0,
+        "check-mission15-phase19-journeys": 0,
+        "check-mission15-phase19-editing": 0,
+        "check-mission15-phase20-catalogue": 0,
+        "check-mission15-phase20-editing": 0,
+        "check-mission15-phase21-context": 0,
+        "check-mission15-phase21-editing": 0,
+        "check-mission15-phase21-draft-choices": 0,
+        "check-mission15-phase22-removal": 0,
+        "check-mission15-phase22-composition": 0,
+        "check-mission15-phase22-editing": 0,
+        "check-mission15-phase23-field-contract": 0,
+        "check-mission15-phase23-focus": 0,
+        "check-mission15-phase23-editorial": 0,
+        "check-mission15-phase23-photo-controls": 0,
+        "check-mission15-phase23-catalogue-recovery": 0,
+        "check-mission15-phase23-explore": 0,
+        "check-mission15-phase24-comparisons": 0,
+        "check-mission15-phase24-wording": 0,
+        "check-mission15-phase24-service-composition": 0,
+        "check-mission15-phase24-catalogue-freshness": 0,
+        "check-mission15-phase24-editor-scope": 0,
+        "check-mission15-phase24-explore": 0,
+        "check-mission15-phase25-pictures": 0,
+        "check-mission15-phase25-wording": 0,
+        "check-mission15-phase25-attachment-summary": 0,
+        "check-mission15-phase25-reading": 0,
+        "check-mission15-phase25-coordinated-controls": 0,
+        "check-mission15-phase25-explore": 0,
+        "check-mission15-phase26-selected-explore": 0,
+        "check-mission15-phase26-draft-switch": 0,
+        "check-mission15-phase26-request-returns": 0,
+        "check-mission15-phase26-faq-composition": 0,
+        "check-mission15-phase26-editing-controls": 0,
+        "check-mission15-phase26-selected-advice": 0,
+        "mission15-phase27-button-drafts": 0,
+        "mission15-phase27-design-feedback": 0,
+        "mission15-phase27-request-return": 0,
+        "mission15-phase27-service-index": 0,
+        "mission15-phase27-simple-controls": 0,
+        "mission15-phase27-service-advice": 0,
+        "mission15-phase27-selected-feedback": 0,
+        "mission15-phase28-navigation": 0,
+        "mission15-phase28-reconsider": 0,
+        "mission15-phase28-returns": 0,
+        "mission15-phase28-page-guide": 0,
+        "mission15-phase28-customer-controls": 0,
+        "mission15-phase28-explore": 0,
+        "mission15-phase28-legacy-copy": 0,
+        "mission15-phase29-legacy-drafts": 0,
+        "mission15-phase29-approval-conflicts": 0,
+        "mission15-phase29-page-reconsider": 0,
+        "mission15-phase29-article-layout": 0,
+        "mission15-phase29-option-readback": 0,
+        "mission15-phase29-source-transitions": 0,
+        "mission15-phase29-explore-reading": 0,
+        "mission15-phase29-dispatch-epoch": 0,
+        "mission15-phase29-website-drafts": 0,
+        "mission15-phase30-website-mutation": 0,
+        "mission15-phase30-history": 0,
+        "mission15-phase30-save-ack": 0,
+        "mission15-phase30-testimonials": 0,
+        "mission15-phase30-service-return": 0,
+        "mission15-phase30-photo-backup": 0,
+        "mission15-phase30-explore": 0,
+        "mission15-phase31-pages": 0,
+        "mission15-phase31-service-resume": 0,
+        "mission15-phase31-cloud-drafts": 0,
+        "mission15-phase31-independent-editors": 0,
+        "mission15-phase31-home": 0,
+        "mission15-phase31-service-content": 0,
+        "mission15-phase31-growth-content": 0,
+        "mission15-phase31-text-drafts": 0,
+        "mission15-phase32-service-intent": 0,
+        "mission15-phase32-growth-handoff": 0,
+        "mission15-phase32-content-save": 0,
+        "mission15-phase32-approved-profile": 0,
+        "mission15-phase32-home-content": 0,
+        "mission15-phase32-marketing-goals": 0,
+        "mission15-phase32-manual-content": 0,
+        "mission15-phase32-caption-races": 0,
+        "mission15-phase32-source-choice": 0,
+        "mission15-phase32-transcript-parity": 0,
+        "mission15-phase32-save-freshness": 0,
+        "mission15-phase33-introduction": 0,
+        "mission15-phase33-approved-records": 0,
+        "mission15-phase33-device-recovery": 0,
+        "mission15-phase33-announcements": 0,
+        "mission15-phase33-growth-home": 0,
+        "mission15-phase33-creator-starts": 0,
+        "mission15-phase33-new-post-safety": 0,
+        "mission15-phase33-cloud-freshness": 0,
+        "mission15-phase33-growth-records": 0,
+        "mission15-phase33-source-continuity": 0,
+        "mission15-phase33-talk-parity": 0,
+        "mission15-phase34-natural-content": 0,
+        "mission15-phase34-wording": 0,
+        "mission15-phase34-publication-freshness": 0,
+        "mission15-phase34-management-actions": 0,
+        "mission15-phase34-job-start": 0,
+        "mission15-phase34-account-readback": 0,
+        "mission15-phase34-queue-continuity": 0,
+        "mission15-phase34-inbox-quote": 0,
+        "mission15-phase34-record-wording": 0,
+        "mission15-phase34-home-quote": 0,
+        "mission15-phase34-receipt-identity": 0,
+        "mission15-phase34-quote-scope": 0,
+        "mission15-phase35-growth-treatment": 0,
+        "mission15-phase35-catalogue-treatment": 0,
+        "mission15-phase35-publish-claims": 0,
+        "mission15-phase35-quote-transition": 0,
+        "mission15-phase35-quote-outcome": 0,
+        "mission15-phase35-catalogue-option": 0,
+        "mission15-phase36-source-treatment": 0,
+        "mission15-phase36-talk-treatment": 0,
+        "mission15-phase36-quote-review": 0,
+        "mission15-phase36-record-continuity": 0,
+        "mission15-phase36-quote-navigation": 0,
+        "mission15-phase36-quote-device-copy": 0,
+        "mission15-phase36-cancel-revision": 0,
+        "check-mission15-phase36-home-prepared-quote": 0,
+        "check-mission15-phase36-core-routing": 0,
+        "mission15-phase37-enquiry-quote-return": 0,
+        "mission15-phase37-customer-enquiry": 0,
+        "mission15-phase37-talk-quote": 0,
+        "mission15-phase37-content-reprepare": 0,
+        "mission15-phase37-home-inbox": 0,
+        "mission15-phase37-reopened-content": 0,
+        "mission15-phase37-recorded-quote-status": 0,
+        "mission15-phase38-quote-reference": 0,
+        "mission15-phase38-quote-recovery": 0,
+        "mission15-phase38-current-enquiry": 0,
+        "mission15-phase38-content-draft-fields": 0,
+        "mission15-phase38-followup-enquiry": 0,
+        "mission15-phase39-followup-review": 0,
+        "mission15-phase39-home-quote-review": 0,
+        "mission15-phase39-review-to-followup": 0,
+        "mission15-phase39-unsaved-content-home": 0,
+        "mission15-phase39-talk-current-content": 0,
+        "mission15-phase40-quote-selection": 0,
+        "mission15-phase40-creator-formats": 0,
+        "mission15-phase40-growth-formats": 0,
+        "mission15-phase40-talk-formats": 0,
+        "mission15-phase40-followup-context": 0,
+        "mission15-phase40-growth-source-choice": 0,
+        "mission15-phase40-home-quote-selection": 0,
+        "mission15-phase40-followup-authority": 0,
+        "mission15-phase41-item-formats": 0,
+        "mission15-phase41-growth-item-formats": 0,
+        "mission15-phase41-talk-item-formats": 0,
+        "mission15-phase41-enquiry-replies": 0,
+        "mission15-phase41-reply-questions": 0,
+        "mission15-phase41-talk-replies": 0,
+        "mission15-phase41-home-replies": 0,
+        "mission15-phase41-reply-source-removal": 0,
+        "mission15-phase42-reply-save": 0,
+        "mission15-phase42-owner-formats": 0,
+        "mission15-phase42-reply-information": 0,
+        "mission15-phase42-saved-reply-home": 0,
+        "mission15-phase42-reply-recovery": 0,
+        "mission15-phase43-growth-announcement": 0,
+        "mission15-phase43-reply-canonical": 0,
+        "mission15-phase43-reply-account": 0,
+        "mission15-phase43-reply-management": 0,
+        "mission15-phase43-connected-routing": 0,
+        "mission15-phase43-date-flexibility": 0,
+        "mission15-phase44-announcement-reuse": 0,
+        "mission15-phase44-removal-account": 0,
+        "mission15-phase44-own-revision": 0,
+        "mission15-phase44-newsletter": 0,
+        "mission15-phase44-newsletter-talk": 0,
+        "mission15-phase44-removal-parent": 0,
+        "mission15-phase44-home-newsletter": 0,
+        "mission15-phase45-approved-newsletters": 0,
+        "mission15-phase45-newsletter-editing": 0,
+        "mission15-phase45-reply-receipt": 0,
+        "mission15-phase45-newsletter-parent": 0,
+        "mission15-phase46-newsletter-preview": 0,
+        "mission15-phase46-newsletter-account": 0,
+        "mission15-phase46-reply-adapter": 0,
+        "mission15-phase46-newsletter-exact": 0,
+        "mission15-phase47-newsletter-recovery": 0,
+        "mission15-phase47-content-restoration": 0,
+        "mission15-phase47-enquiry-requirements": 0,
+        "mission15-phase48-enquiry-quote": 0,
+        "mission15-phase48-approved-knowledge": 0,
+        "mission15-phase48-newsletter-copy": 0,
+        "mission15-phase48-quote-boundary": 0,
+        "mission15-phase49-catalogue-quote": 1
+      },
+      "unexecuted": [
+        "mission15-phase49-newsletter-source",
+        "mission15-phase49-enquiry-projection",
+        "mission15-phase50-older-enquiry",
+        "mission15-phase50-newsletter-dirty",
+        "mission15-phase50-quote-fields",
+        "mission15-phase50-runtime-loading",
+        "mission15-phase51-catalogue-reply",
+        "mission15-phase51-newsletter-recovery",
+        "mission15-phase51-known-requirements",
+        "mission15-phase52-reply-provenance",
+        "mission15-phase52-newsletter-versions",
+        "mission15-phase52-owner-tone",
+        "mission15-phase52-retention-contract",
+        "mission15-phase52-newsletter-boundary",
+        "mission15-phase53-reply-recovery",
+        "mission15-phase53-newsletter-comparison",
+        "mission15-phase53-snapshot-compatibility",
+        "mission15-phase53-approved-area",
+        "mission15-phase54-private-write-boundary",
+        "mission15-phase54-reply-evidence",
+        "mission15-phase54-newsletter-device",
+        "mission15-phase54-approved-contact",
+        "mission15-phase55-recovery-explanations",
+        "mission15-phase56-reply-requirements",
+        "mission15-phase56-newsletter-inspection",
+        "mission15-phase57-fresh-clarification",
+        "mission15-phase58-writer-proposal",
+        "mission15-phase59-cutover",
+        "mission15-phase60-account-reply",
+        "mission15-phase61-reconciliation",
+        "mission15-phase62-bootstrap",
+        "mission15-phase62-services",
+        "mission15-phase63-recovery",
+        "mission15-phase64-recovered-save",
+        "mission15-phase64-filing-parent",
+        "mission15-phase65-first-journey",
+        "check-mission15-phase66-interrupted-enquiries",
+        "mission15-phase67-appearance",
+        "mission15-phase67-parent",
+        "mission15-phase68-working-surfaces",
+        "mission15-phase69-workspaces",
+        "native-screenshot-pipeline",
+        "mission15-working-surface-continuity",
+        "mission15-contact-editor-continuity",
+        "mission15-navigation-workspaces",
+        "mission15-conversation-workspaces",
+        "mission15-gallery-recovery-ui",
+        "mission15-booking-edit-continuity",
+        "mission15-connected-booking-status"
+      ],
+      "failedResults": [
+        {
+          "id": "mission15-phase49-catalogue-quote",
+          "args": [
+            "scripts/check-mission15-phase49-catalogue-quote.mjs"
+          ],
+          "status": "failed",
+          "reason": "",
+          "exitCode": 1,
+          "seconds": 1.38,
+          "output": "/workspace/mission13-git/src/screens/useBookingActionReview.js:3\nconst conflict=(baseline.current.action!==action||baseline.current.stamp!==stamp)&&!acknowledged;const report=(0,_useOwnerEditNavigation.useOwnerEditNavigation)(s,{source:action,projectId:'booking:'+customer?.id,revision:stamp},()=>{if(!current())return false;const details=action?.details||{},restored=[String(details.bookingDate??baseline.current.values[0]),String(details.bookingTime??baseline.current.values[1]),String(details.jobValue??baseline.current.values[2]),String(details.completionNote??baseline.current.values[3])];restored.forEach((value,index)=>{live.current={...live.current,[fields[index]]:value};s['set'+fields[index][0].toUpperCase()+fields[index].slice(1)]?.(value);});epoch.current++;dirty.current=false;pending.current=null;baseline.current={scope,actor,business,id:customer.id,action,stamp,values:restored};return true;});const edit=(field,value)=>{if(!current()||conflict||!fields.includes(field)||typeof value!=='string')return false;epoch.current++;live.current={...live.current,[field]:value};dirty.current=!same(values(live.current),baseline.current.values);report(dirty.current);s['set'+field[0].toUpperCase()+field.slice(1)]?.(value);return true;};const statusBlocked=()=>live.current.bookingStatusOperation?.customerId===customer?.id&&['pending','unknown','confirmed-review'].includes(live.current.bookingStatusOperation.phase);const commit=(operation,matches,{leave=true,savedFields=fields,onAccepted}={})=>{if(!current()||conflict||pending.current||statusBlocked()||typing!==epoch.current||!same(values(live.current),renderValues))return false;const ticket={scope,actor,business,role,view,onAccepted,id:customer.id,action,matches,values:renderValues,typing:++epoch.current,leave,savedFields};pending.current=ticket;try{const result=report.commit(operation);if(result===false||result===null){pending.current=null;return false;}return result;}catch(error){pending.current=null;throw error;}};_react.default.useEffect(()=>{const ticket=pending.current;if(!ticket||!acknowledged||!current())return;pending.current=null;const accepted=baseline.current.values.map((value,index)=>ticket.savedFields.includes(fields[index])?ticket.values[index]:value);baseline.current={scope,actor,business,id:customer.id,action,stamp,values:accepted};dirty.current=!same(values(live.current),accepted);report(dirty.current);if(!dirty.current){if(ticket.onAccepted)ticket.onAccepted();else if(ticket.leave)s.back?.();}},[action,stamp,scope,actor,business,...renderValues]);const transition=operation=>{let used=false;const isCurrent=()=>!used&&current()&&!conflict&&!pending.current&&typing===epoch.current&&same(values(live.current),renderValues);if(!isCurrent()||typeof s.requestOwnerEditTransition!=='function')return false;return s.requestOwnerEditTransition(()=>{if(used||!current()||pending.current)return false;used=true;return operation();},{isCurrent});};const inspectStatus=async()=>{const captured=epoch.current;const valid=()=>current()&&epoch.current===captured;if(!valid()||typeof s.prepareBookingStatus!=='function')return false;try{const observed=await s.prepareBookingStatus(customer.id,'Cancelled',{isCurrent:valid,readOnly:true});if(!valid()||!observed?.readOnly||!observed.notOwnReceipt)return false;setStatusReview({scope,id:customer.id,phase:'observation',message:observed.kind==='local-booking-observation'?'This is the current local booking only. No account outcome or durable draft was verified.':observed.alreadyClosed?'The original account request now shows closed. This is an observation, not proof that your interrupted action committed. Do not replay cancellation.':'The original account request is not recorded as closed. This does not settle a pending or lost acknowledgement; do not retry it automatically.'});return true;}catch{if(valid())setStatusReview({scope,id:customer.id,phase:'observation',message:'The original request could not be checked. Keep your wording; no operation was retried.'});return false;}};const reviewStatus=status=>statusBlocked()?false:transition(async()=>{const captured=epoch.current,wording=values(live.current),token={};statusTicket.current=token;const valid=()=>statusTicket.current===token&&current()&&!conflict&&!pending.current&&epoch.current===captured&&same(values(live.current),wording);setStatusReview({scope,id:customer.id,phase:'checking',message:'Checking the original booking before review. Nothing has been changed.'});try{if(typeof s.prepareBookingStatus!=='function')throw Error('Account-backed booking review is unavailable. Keep your current details.');const review=await s.prepareBookingStatus(customer.id,status,{isCurrent:valid});if(!valid()||!review){if(current())setStatusReview({scope,id:customer.id,phase:'conflict',message:'The booking or editor changed. Your wording is kept; start a fresh review.'});return false;}setStatusReview({scope,id:customer.id,phase:'approval',message:'Review the recorded date, time and value before choosing. Nothing has been changed.'});let approvedOnce=false;_reactNative.Alert.alert(status==='Cancelled'?'Review booking cancellation':'Review booking reopening',customer.name+' \u00b7 '+customer.id+'\\nRecorded: '+String(action.details?.bookingDate||'No date')+' at '+String(action.details?.bookingTime||'No time')+'\\nRecorded value: '+String(action.details?.jobValue??action.details?.sourceQuoteAmount??'Not recorded')+'\\n'+(action.details?.sourceMiniAppRequestId?'The original request and Work transaction must confirm this change. Calendar/customer delivery is separate.':'This changes the local booking record only. Account saving and customer agreement are not confirmed.')+'\\n'+(status==='Cancelled'?'Cancellation removes this booking from active work.':'Review diary clashes before reopening.'),[{text:'Keep current booking',style:'cancel',onPress:()=>{if(!approvedOnce&&statusTicket.current===token){statusTicket.current=null;setStatusReview(null);}}},{text:status==='Cancelled'?'Approve reviewed cancellation':'Approve reviewed reopening',style:status==='Cancelled'?'destructive':'default',onPress:async()=>{if(approvedOnce||!valid())return false;approvedOnce=true;// UI choice and parent review are distinct one-use checks. Keep the original source predicate intact.\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            \n\nTypeError: Cannot read properties of undefined (reading 'phase')\n    at statusBlocked (/workspace/mission13-git/src/screens/useBookingActionReview.js:3:1354)\n    at useBookingActionReview (/workspace/mission13-git/src/screens/useBookingActionReview.js:4:1403)\n    at ReplyActionDetail (/workspace/mission13-git/src/screens/work.js:4:134797)\n    at Object.render (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:35:219)\n    at Object.render (/workspace/mission13-git/scripts/lib/quote-preparation-fixture.cjs:13:11)\n    at file:///workspace/mission13-git/scripts/check-mission15-phase49-catalogue-quote.mjs:18:434\n\nNode.js v24.19.0\n"
+        }
+      ]
+    },
+    {
+      "report": ".test-artifacts/connected-booking-status-confirmation-superseded.json",
+      "sourceSha": "43c3a80548b3edffa9d7ce6b33bfed35a3b0dd47",
+      "summary": {
+        "passed": 219,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 134
+      },
+      "runnerExit": 2,
+      "reason": "Interrupted to route first linked Draft confirmation through finite writer",
+      "rawSha256": "00f925933046d0006efe8cd1d5089e7a729c9962928a824b3cf18d708693340f",
+      "startedAt": "2026-10-23T21:46:02.950846+00:00",
+      "finishedAt": "2026-10-23T21:50:41.474334+00:00",
+      "completedChildExits": {
+        "check-mission13-conversations": 0,
+        "check-mission13-private-recovery": 0,
+        "check-mission13-customer-surfaces": 0,
+        "check-mission13-communication-truth": 0,
+        "check-mission12-content-enquiry": 0,
+        "check-mission12-builder-reuse": 0,
+        "check-mission12-intent": 0,
+        "check-mission12-live-form-logic": 0,
+        "check-mission12-public-handoff": 0,
+        "check-mission12-record-review": 0,
+        "check-mission12-standalone-continuity": 0,
+        "check-mission11-records": 0,
+        "check-mission11-intelligence": 0,
+        "check-mission11-public-views": 0,
+        "check-app-goal-content": 0,
+        "check-app-goal-editing": 0,
+        "check-app-goal-decisions": 0,
+        "check-app-builder-dual-track-v3153": 0,
+        "check-mission10-information-reuse": 0,
+        "check-mission9-builder-language": 0,
+        "check-mission10-public-information": 0,
+        "check-mission10-service-details": 0,
+        "check-owner-outcome-v3235": 0,
+        "check-communications-v3205": 0,
+        "check-customer-journey-v3204": 0,
+        "check-mission9-reply-continuity": 0,
+        "check-mission9-request-recovery": 0,
+        "check-message-integrity-v3185": 0,
+        "check-builder-intelligence-v3240": 0,
+        "check-mission14-contextual-replies": 0,
+        "check-mission14-content-intelligence": 0,
+        "check-mission14-experience-recovery": 0,
+        "check-standalone-native-v3154": 0,
+        "check-mission15-editing-preview": 0,
+        "check-mission15-app-services": 0,
+        "check-mission15-design-candidates": 0,
+        "check-mission15-coherence": 0,
+        "check-website-page-instructions-v3149": 0,
+        "check-website-context-plan-v3147": 0,
+        "check-website-context-v3140": 0,
+        "check-website-measured-coach-v3144": 0,
+        "check-website-coordinated-alternatives": 0,
+        "check-mission7-website-decisions": 0,
+        "check-major-builders-v3195": 0,
+        "check-mission15-phase2-copy": 0,
+        "check-mission15-phase2-responsive": 0,
+        "check-mission15-phase2-services": 0,
+        "check-mission15-phase2-measured-reading": 0,
+        "check-mission15-phase2-request-intent": 0,
+        "check-mission15-phase2-transfer-review": 0,
+        "check-app-studio-session": 0,
+        "check-app-studio-checkpoint": 0,
+        "build-website-design-gallery-v3100": 0,
+        "check-builder-visual-receipt-v3238": 0,
+        "check-mission15-phase3-composition": 0,
+        "check-mission15-phase3-content-review": 0,
+        "check-mission15-phase3-gallery": 0,
+        "check-mission15-phase3-language": 0,
+        "check-mission15-phase3-studio-recovery": 0,
+        "check-mission15-phase4-app-capabilities": 0,
+        "check-mission15-phase4-requirements": 0,
+        "check-mission15-phase4-website-spacing": 0,
+        "check-mission15-phase5-approved-records": 0,
+        "check-mission15-phase5-catalogue-editing": 0,
+        "check-mission15-phase5-enquiry-review": 0,
+        "check-mission11-composition": 0,
+        "prepare-standalone-prototype-v3154": 0,
+        "check-mission15-phase6-booking-review": 0,
+        "check-mission15-phase6-hero-composition": 0,
+        "check-distinct-website-designs-v3101": 0,
+        "check-website-layout-v3134": 0,
+        "check-mission8-shared-request-entry": 0,
+        "check-mission15-phase7-visual-movement": 0,
+        "check-mission15-phase7-typography": 0,
+        "check-mission15-phase7-app-selection": 0,
+        "check-website-section-styling-v3139": 0,
+        "check-mission15-phase7-reviewed-request": 0,
+        "check-mission15-phase7-card-colours": 0,
+        "check-mission15-phase7-page-movement": 0,
+        "check-website-pages-v3135": 0,
+        "check-website-tap-editor-v3138": 0,
+        "check-mission15-phase8-quality": 0,
+        "check-mission15-phase8-sizing": 0,
+        "check-mission15-phase8-service-questions": 0,
+        "check-mission15-phase8-website-suggestions": 0,
+        "check-mission15-phase9-studio-selection": 0,
+        "check-mission15-phase9-service-details": 0,
+        "check-mission15-phase9-browser-policy": 0,
+        "check-mission15-phase10-selected-images": 0,
+        "check-mission15-phase10-website-toolbar": 0,
+        "check-mission15-phase10-selected-instructions": 0,
+        "check-mission15-phase10-gallery-parity": 0,
+        "check-app-context-editor-v3155": 0,
+        "check-mission7-app-intent": 0,
+        "check-app-voice-layout-v3156": 0,
+        "check-mission15-phase11-selected-services": 0,
+        "check-mission15-phase11-website-pictures": 0,
+        "check-mission15-phase11-brand-controls": 0,
+        "check-app-visual-comparison-v3161": 0,
+        "check-major-builders-v3193": 0,
+        "check-mission15-phase11-selected-faq": 0,
+        "check-mission15-phase12-component-styles": 0,
+        "check-mission15-phase12-explore": 0,
+        "check-mission15-phase12-explore-handoff": 0,
+        "check-mission15-phase13-explore-experience": 0,
+        "check-mission15-phase13-faq-styles": 0,
+        "check-mission15-phase13-trusted-explore": 0,
+        "check-mission15-phase13-website-reading": 0,
+        "check-mission15-phase14-image-styles": 0,
+        "check-mission15-phase14-explore-context": 0,
+        "check-mission15-phase14-picture-presets": 0,
+        "check-mission15-phase14-navigation-labels": 0,
+        "check-mission15-phase15-service-buttons": 0,
+        "check-mission15-phase15-neutral-planning": 0,
+        "check-mission15-phase15-brand-typography": 0,
+        "check-mission15-phase18-customer-browsing": 0,
+        "check-mission15-phase19-journeys": 0,
+        "check-mission15-phase19-editing": 0,
+        "check-mission15-phase20-catalogue": 0,
+        "check-mission15-phase20-editing": 0,
+        "check-mission15-phase21-context": 0,
+        "check-mission15-phase21-editing": 0,
+        "check-mission15-phase21-draft-choices": 0,
+        "check-mission15-phase22-removal": 0,
+        "check-mission15-phase22-composition": 0,
+        "check-mission15-phase22-editing": 0,
+        "check-mission15-phase23-field-contract": 0,
+        "check-mission15-phase23-focus": 0,
+        "check-mission15-phase23-editorial": 0,
+        "check-mission15-phase23-photo-controls": 0,
+        "check-mission15-phase23-catalogue-recovery": 0,
+        "check-mission15-phase23-explore": 0,
+        "check-mission15-phase24-comparisons": 0,
+        "check-mission15-phase24-wording": 0,
+        "check-mission15-phase24-service-composition": 0,
+        "check-mission15-phase24-catalogue-freshness": 0,
+        "check-mission15-phase24-editor-scope": 0,
+        "check-mission15-phase24-explore": 0,
+        "check-mission15-phase25-pictures": 0,
+        "check-mission15-phase25-wording": 0,
+        "check-mission15-phase25-attachment-summary": 0,
+        "check-mission15-phase25-reading": 0,
+        "check-mission15-phase25-coordinated-controls": 0,
+        "check-mission15-phase25-explore": 0,
+        "check-mission15-phase26-selected-explore": 0,
+        "check-mission15-phase26-draft-switch": 0,
+        "check-mission15-phase26-request-returns": 0,
+        "check-mission15-phase26-faq-composition": 0,
+        "check-mission15-phase26-editing-controls": 0,
+        "check-mission15-phase26-selected-advice": 0,
+        "mission15-phase27-button-drafts": 0,
+        "mission15-phase27-design-feedback": 0,
+        "mission15-phase27-request-return": 0,
+        "mission15-phase27-service-index": 0,
+        "mission15-phase27-simple-controls": 0,
+        "mission15-phase27-service-advice": 0,
+        "mission15-phase27-selected-feedback": 0,
+        "mission15-phase28-navigation": 0,
+        "mission15-phase28-reconsider": 0,
+        "mission15-phase28-returns": 0,
+        "mission15-phase28-page-guide": 0,
+        "mission15-phase28-customer-controls": 0,
+        "mission15-phase28-explore": 0,
+        "mission15-phase28-legacy-copy": 0,
+        "mission15-phase29-legacy-drafts": 0,
+        "mission15-phase29-approval-conflicts": 0,
+        "mission15-phase29-page-reconsider": 0,
+        "mission15-phase29-article-layout": 0,
+        "mission15-phase29-option-readback": 0,
+        "mission15-phase29-source-transitions": 0,
+        "mission15-phase29-explore-reading": 0,
+        "mission15-phase29-dispatch-epoch": 0,
+        "mission15-phase29-website-drafts": 0,
+        "mission15-phase30-website-mutation": 0,
+        "mission15-phase30-history": 0,
+        "mission15-phase30-save-ack": 0,
+        "mission15-phase30-testimonials": 0,
+        "mission15-phase30-service-return": 0,
+        "mission15-phase30-photo-backup": 0,
+        "mission15-phase30-explore": 0,
+        "mission15-phase31-pages": 0,
+        "mission15-phase31-service-resume": 0,
+        "mission15-phase31-cloud-drafts": 0,
+        "mission15-phase31-independent-editors": 0,
+        "mission15-phase31-home": 0,
+        "mission15-phase31-service-content": 0,
+        "mission15-phase31-growth-content": 0,
+        "mission15-phase31-text-drafts": 0,
+        "mission15-phase32-service-intent": 0,
+        "mission15-phase32-growth-handoff": 0,
+        "mission15-phase32-content-save": 0,
+        "mission15-phase32-approved-profile": 0,
+        "mission15-phase32-home-content": 0,
+        "mission15-phase32-marketing-goals": 0,
+        "mission15-phase32-manual-content": 0,
+        "mission15-phase32-caption-races": 0,
+        "mission15-phase32-source-choice": 0,
+        "mission15-phase32-transcript-parity": 0,
+        "mission15-phase32-save-freshness": 0,
+        "mission15-phase33-introduction": 0,
+        "mission15-phase33-approved-records": 0,
+        "mission15-phase33-device-recovery": 0,
+        "mission15-phase33-announcements": 0,
+        "mission15-phase33-growth-home": 0,
+        "mission15-phase33-creator-starts": 0,
+        "mission15-phase33-new-post-safety": 0,
+        "mission15-phase33-cloud-freshness": 0,
+        "mission15-phase33-growth-records": 0,
+        "mission15-phase33-source-continuity": 0,
+        "mission15-phase33-talk-parity": 0,
+        "mission15-phase34-natural-content": 0,
+        "mission15-phase34-wording": 0,
+        "mission15-phase34-publication-freshness": 0,
+        "mission15-phase34-management-actions": 0,
+        "mission15-phase34-job-start": 0,
+        "mission15-phase34-account-readback": 0,
+        "mission15-phase34-queue-continuity": 0,
+        "mission15-phase34-inbox-quote": 0,
+        "mission15-phase34-record-wording": 0
+      },
+      "unexecuted": [
+        "mission15-phase34-home-quote",
+        "mission15-phase34-receipt-identity",
+        "mission15-phase34-quote-scope",
+        "mission15-phase35-growth-treatment",
+        "mission15-phase35-catalogue-treatment",
+        "mission15-phase35-publish-claims",
+        "mission15-phase35-quote-transition",
+        "mission15-phase35-quote-outcome",
+        "mission15-phase35-catalogue-option",
+        "mission15-phase36-source-treatment",
+        "mission15-phase36-talk-treatment",
+        "mission15-phase36-quote-review",
+        "mission15-phase36-record-continuity",
+        "mission15-phase36-quote-navigation",
+        "mission15-phase36-quote-device-copy",
+        "mission15-phase36-cancel-revision",
+        "check-mission15-phase36-home-prepared-quote",
+        "check-mission15-phase36-core-routing",
+        "mission15-phase37-enquiry-quote-return",
+        "mission15-phase37-customer-enquiry",
+        "mission15-phase37-talk-quote",
+        "mission15-phase37-content-reprepare",
+        "mission15-phase37-home-inbox",
+        "mission15-phase37-reopened-content",
+        "mission15-phase37-recorded-quote-status",
+        "mission15-phase38-quote-reference",
+        "mission15-phase38-quote-recovery",
+        "mission15-phase38-current-enquiry",
+        "mission15-phase38-content-draft-fields",
+        "mission15-phase38-followup-enquiry",
+        "mission15-phase39-followup-review",
+        "mission15-phase39-home-quote-review",
+        "mission15-phase39-review-to-followup",
+        "mission15-phase39-unsaved-content-home",
+        "mission15-phase39-talk-current-content",
+        "mission15-phase40-quote-selection",
+        "mission15-phase40-creator-formats",
+        "mission15-phase40-growth-formats",
+        "mission15-phase40-talk-formats",
+        "mission15-phase40-followup-context",
+        "mission15-phase40-growth-source-choice",
+        "mission15-phase40-home-quote-selection",
+        "mission15-phase40-followup-authority",
+        "mission15-phase41-item-formats",
+        "mission15-phase41-growth-item-formats",
+        "mission15-phase41-talk-item-formats",
+        "mission15-phase41-enquiry-replies",
+        "mission15-phase41-reply-questions",
+        "mission15-phase41-talk-replies",
+        "mission15-phase41-home-replies",
+        "mission15-phase41-reply-source-removal",
+        "mission15-phase42-reply-save",
+        "mission15-phase42-owner-formats",
+        "mission15-phase42-reply-information",
+        "mission15-phase42-saved-reply-home",
+        "mission15-phase42-reply-recovery",
+        "mission15-phase43-growth-announcement",
+        "mission15-phase43-reply-canonical",
+        "mission15-phase43-reply-account",
+        "mission15-phase43-reply-management",
+        "mission15-phase43-connected-routing",
+        "mission15-phase43-date-flexibility",
+        "mission15-phase44-announcement-reuse",
+        "mission15-phase44-removal-account",
+        "mission15-phase44-own-revision",
+        "mission15-phase44-newsletter",
+        "mission15-phase44-newsletter-talk",
+        "mission15-phase44-removal-parent",
+        "mission15-phase44-home-newsletter",
+        "mission15-phase45-approved-newsletters",
+        "mission15-phase45-newsletter-editing",
+        "mission15-phase45-reply-receipt",
+        "mission15-phase45-newsletter-parent",
+        "mission15-phase46-newsletter-preview",
+        "mission15-phase46-newsletter-account",
+        "mission15-phase46-reply-adapter",
+        "mission15-phase46-newsletter-exact",
+        "mission15-phase47-newsletter-recovery",
+        "mission15-phase47-content-restoration",
+        "mission15-phase47-enquiry-requirements",
+        "mission15-phase48-enquiry-quote",
+        "mission15-phase48-approved-knowledge",
+        "mission15-phase48-newsletter-copy",
+        "mission15-phase48-quote-boundary",
+        "mission15-phase49-catalogue-quote",
+        "mission15-phase49-newsletter-source",
+        "mission15-phase49-enquiry-projection",
+        "mission15-phase50-older-enquiry",
+        "mission15-phase50-newsletter-dirty",
+        "mission15-phase50-quote-fields",
+        "mission15-phase50-runtime-loading",
+        "mission15-phase51-catalogue-reply",
+        "mission15-phase51-newsletter-recovery",
+        "mission15-phase51-known-requirements",
+        "mission15-phase52-reply-provenance",
+        "mission15-phase52-newsletter-versions",
+        "mission15-phase52-owner-tone",
+        "mission15-phase52-retention-contract",
+        "mission15-phase52-newsletter-boundary",
+        "mission15-phase53-reply-recovery",
+        "mission15-phase53-newsletter-comparison",
+        "mission15-phase53-snapshot-compatibility",
+        "mission15-phase53-approved-area",
+        "mission15-phase54-private-write-boundary",
+        "mission15-phase54-reply-evidence",
+        "mission15-phase54-newsletter-device",
+        "mission15-phase54-approved-contact",
+        "mission15-phase55-recovery-explanations",
+        "mission15-phase56-reply-requirements",
+        "mission15-phase56-newsletter-inspection",
+        "mission15-phase57-fresh-clarification",
+        "mission15-phase58-writer-proposal",
+        "mission15-phase59-cutover",
+        "mission15-phase60-account-reply",
+        "mission15-phase61-reconciliation",
+        "mission15-phase62-bootstrap",
+        "mission15-phase62-services",
+        "mission15-phase63-recovery",
+        "mission15-phase64-recovered-save",
+        "mission15-phase64-filing-parent",
+        "mission15-phase65-first-journey",
+        "check-mission15-phase66-interrupted-enquiries",
+        "mission15-phase67-appearance",
+        "mission15-phase67-parent",
+        "mission15-phase68-working-surfaces",
+        "mission15-phase69-workspaces",
+        "native-screenshot-pipeline",
+        "mission15-working-surface-continuity",
+        "mission15-contact-editor-continuity",
+        "mission15-navigation-workspaces",
+        "mission15-conversation-workspaces",
+        "mission15-gallery-recovery-ui",
+        "mission15-booking-edit-continuity",
+        "mission15-connected-booking-status"
+      ],
+      "failedResults": []
+    }
+  ],
+  "architecture": {
+    "version": "v3.195",
+    "type": "offline-source-architecture-audit",
+    "sourceFiles": 1485,
+    "physicalLines": 158518,
+    "staticRelativeEdges": 2941,
+    "distinctStaticCycles": 0,
+    "cycleExamples": [],
+    "largest": [
+      {
+        "file": "src/app/AppController.js",
+        "lines": 18255,
+        "bytes": 770373,
+        "incoming": 1,
+        "outbound": 96
+      },
+      {
+        "file": "src/screens/miniApps.js",
+        "lines": 5375,
+        "bytes": 291234,
+        "incoming": 2,
+        "outbound": 93
+      },
+      {
+        "file": "supabase/functions/busy-mini-apps/index.ts",
+        "lines": 4606,
+        "bytes": 183564,
+        "incoming": 0,
+        "outbound": 38
+      },
+      {
+        "file": "src/screens/work.js",
+        "lines": 4282,
+        "bytes": 194484,
+        "incoming": 2,
+        "outbound": 9
+      },
+      {
+        "file": "src/screens/customers.js",
+        "lines": 2079,
+        "bytes": 101173,
+        "incoming": 2,
+        "outbound": 7
+      },
+      {
+        "file": "src/screens/websiteBuilder.js",
+        "lines": 1715,
+        "bytes": 105776,
+        "incoming": 2,
+        "outbound": 55
+      },
+      {
+        "file": "src/screens/social.js",
+        "lines": 1692,
+        "bytes": 75438,
+        "incoming": 2,
+        "outbound": 14
+      },
+      {
+        "file": "src/core/runtime.js",
+        "lines": 1626,
+        "bytes": 62332,
+        "incoming": 15,
+        "outbound": 2
+      },
+      {
+        "file": "supabase/functions/busy-social-publish/index.ts",
+        "lines": 1554,
+        "bytes": 58713,
+        "incoming": 0,
+        "outbound": 0
+      },
+      {
+        "file": "supabase/functions/busy-website-publish/index.ts",
+        "lines": 1546,
+        "bytes": 52440,
+        "incoming": 0,
+        "outbound": 8
+      },
+      {
+        "file": "src/screens/settings.js",
+        "lines": 1392,
+        "bytes": 61190,
+        "incoming": 2,
+        "outbound": 4
+      },
+      {
+        "file": "src/screens/home.js",
+        "lines": 1357,
+        "bytes": 61482,
+        "incoming": 2,
+        "outbound": 9
+      },
+      {
+        "file": "supabase/functions/busy-website-worker/index.ts",
+        "lines": 1299,
+        "bytes": 46438,
+        "incoming": 0,
+        "outbound": 11
+      },
+      {
+        "file": "src/screens/websitePublishing.js",
+        "lines": 1277,
+        "bytes": 66832,
+        "incoming": 2,
+        "outbound": 13
+      },
+      {
+        "file": "supabase/functions/busy-website-provider/index.ts",
+        "lines": 1197,
+        "bytes": 40539,
+        "incoming": 0,
+        "outbound": 0
+      },
+      {
+        "file": "supabase/functions/busy-command/index.ts",
+        "lines": 1094,
+        "bytes": 69902,
+        "incoming": 0,
+        "outbound": 0
+      },
+      {
+        "file": "src/screens/intake.js",
+        "lines": 941,
+        "bytes": 42099,
+        "incoming": 2,
+        "outbound": 5
+      },
+      {
+        "file": "src/domain/websiteBuilder.js",
+        "lines": 814,
+        "bytes": 41766,
+        "incoming": 4,
+        "outbound": 14
+      },
+      {
+        "file": "src/domain/websitePublishing.js",
+        "lines": 813,
+        "bytes": 27329,
+        "incoming": 1,
+        "outbound": 3
+      },
+      {
+        "file": "src/components/ui.js",
+        "lines": 763,
+        "bytes": 25740,
+        "incoming": 92,
+        "outbound": 4
+      }
+    ],
+    "highestFanOut": [
+      {
+        "file": "src/app/AppController.js",
+        "imports": 96,
+        "lines": 18255
+      },
+      {
+        "file": "src/screens/miniApps.js",
+        "imports": 93,
+        "lines": 5375
+      },
+      {
+        "file": "src/screens/websiteBuilder.js",
+        "imports": 55,
+        "lines": 1715
+      },
+      {
+        "file": "supabase/functions/busy-mini-apps/index.ts",
+        "imports": 38,
+        "lines": 4606
+      },
+      {
+        "file": "src/screens/index.js",
+        "imports": 29,
+        "lines": 337
+      },
+      {
+        "file": "src/core/appCoordinatedStudio.mjs",
+        "imports": 15,
+        "lines": 360
+      },
+      {
+        "file": "src/screens/websiteTapEditor.js",
+        "imports": 15,
+        "lines": 475
+      },
+      {
+        "file": "supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs",
+        "imports": 15,
+        "lines": 360
+      },
+      {
+        "file": "src/domain/websiteBuilder.js",
+        "imports": 14,
+        "lines": 814
+      },
+      {
+        "file": "src/screens/appVisualSelection.js",
+        "imports": 14,
+        "lines": 91
+      }
+    ],
+    "limitations": [
+      "Static relative imports only; dynamic/aliased imports and runtime flows not included.",
+      "Physical code lines include comments and blanks but exclude ignored docs, assets and dependencies.",
+      "No claims about live data, auth, provider permissions, signed builds, device UX or real customer completion."
+    ]
+  },
+  "changedFileHashes": {
+    "scripts/check-mission15-booking-edit-continuity.mjs": "0d475f69b1a02320ce94aa643aef03ec02f3a2211fe252f33dba907c2c3272b2",
+    "scripts/check-mission15-connected-booking-status.mjs": "d3945c457081f5f93d4e35e800f1ee27a1acaba2d99552f3d9c0808bd1335d34",
+    "scripts/testing/regressions.json": "e0a02048c0a65e1133b95a5a606fde712d6a1796bbb8af9b2ff988efeffddbe5",
+    "src/app/AppController.js": "303630a25c1d26ba74cf3ecce013955cd8b5aca3234a30ba4e681e8ca53c4968",
+    "src/screens/useBookingActionReview.js": "2f740ac4f1c9a6d86578df6a58ea1dc260622ad6250d4ee4383b774e43b16adf",
+    "src/screens/useQuoteActionReview.js": "cd89572c88d3f26eb9adf4b8975e39b5ec2af5531e13befbb54b154ac268cf36",
+    "src/screens/work.js": "356e7b86cd12e31e2946b68c55a54085d5d278479819b95ef60dd4022f94b7a2"
+  },
+  "preservation": {
+    "protectedPaths": "Core/domain/Supabase/SQL/workflows/native-capture/packages/root entrypoints unchanged by git diff --exit-code",
+    "counterexampleSha256": "1480655ab323ce18b6fcfc99e635f4abc77692e18c3d419b7debf201598b95c7",
+    "hostedFlagsAndFuses": "unchanged, disabled/abort-fused"
+  },
+  "sqlExecution": "None new; SQL unchanged. Synthetic source/UID fixtures are not genuine hosted JWT/PostgREST or transactional tests.",
+  "nativeBuild": "Unavailable root Expo/RN install; source transforms and inert parent execution only.",
+  "renderedAcceptance": false,
+  "screenshotsTriggered": false,
+  "hostedActions": false,
+  "externalProviderActions": false,
+  "additionalExternalSpendingGBP": 0
+}
