@@ -23,3 +23,11 @@ assert.ok(!workflow.includes(' test -quiet'));assert.ok(workflow.includes('timeo
 for(const required of ['build-for-testing','test-without-building','ONLY_ACTIVE_ARCH=YES','ARCHS=x86_64','GCC_OPTIMIZATION_LEVEL=0','SWIFT_OPTIMIZATION_LEVEL=-Onone','testMidnightHome','signal.SIGKILL','nativeStages'])assert.ok(stage.includes(required));
 assert.ok(receiver.includes('timeout=20'));assert.ok(!stage.includes('shell=True'));
 console.log('PASS separated bounded native stages, single-architecture unoptimised embedded-JS build, no-build one-test execution, timeout process-group termination and exact stage receipts.');
+
+assert.ok(workflow.indexOf('native_stage.py receiver-check') < workflow.indexOf('native_stage.py build'));
+assert.ok(stage.includes('urllib.request.ProxyHandler({})'));assert.ok(stage.includes('receiver.poll()'));
+assert.ok(stage.includes('receiver.returncode'));assert.ok(stage.includes('response.read(128)'));
+assert.ok(!workflow.includes('capture-receiver.log'));assert.ok(receiver.includes('busy-native-capture-receiver-v1'));
+console.log('PASS early loopback preflight, no external proxy routing, owned receiver process, visible startup errors and bounded identity check.');
+
+assert.ok(stage.includes('secrets.token_hex(16)'));assert.ok(receiver.includes('BUSY_CAPTURE_RECEIVER_NONCE'));

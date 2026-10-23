@@ -38,6 +38,9 @@ jobs:
           node-version: 24.19.0
       - name: Prepare exact source with inert capture transport
         run: python3 scripts/native-capture/prepare.py
+      - name: Preflight fixed loopback screenshot receiver
+        timeout-minutes: 1
+        run: python3 scripts/native-capture/native_stage.py receiver-check
       - name: Select installed compatible Xcode
         run: python3 scripts/native-capture/xcode.py
       - name: Install integrity-locked declared app dependencies
@@ -65,11 +68,7 @@ jobs:
         run: python3 scripts/native-capture/simulator.py
       - name: Run only Midnight Home XCTest (no compilation)
         timeout-minutes: 5
-        run: |
-          python3 scripts/native-capture/receiver.py > "$RUNNER_TEMP/capture-receiver.log" 2>&1 &
-          receiver=$!
-          trap 'kill "$receiver" 2>/dev/null || true' EXIT
-          python3 scripts/native-capture/native_stage.py test
+        run: python3 scripts/native-capture/native_stage.py test
       - name: Validate genuine Home artifacts and bounded storage
         id: artifacts
         if: always()

@@ -5,7 +5,8 @@ art=Path('artifacts/native-screenshots');allowed={'home-midnight','home-daylight
 class Handler(BaseHTTPRequestHandler):
  def log_message(self,*args):pass
  def do_GET(self):
-  if self.path=='/health':self.send_response(200);self.end_headers();return
+  if self.path=='/health':
+   self.send_response(200);self.end_headers();self.wfile.write(('busy-native-capture-receiver-v1:'+os.environ.get('BUSY_CAPTURE_RECEIVER_NONCE','unowned')).encode());return
   name=self.path.removeprefix('/capture/')
   if not self.path.startswith('/capture/') or name not in allowed:self.send_error(404);return
   target=art/(name+'.png')
@@ -13,4 +14,6 @@ class Handler(BaseHTTPRequestHandler):
   if p.returncode:self.send_error(500,'simctl capture failed');return
   m=json.loads((art/'manifest.json').read_text());m.setdefault('captures',{})[name]={'sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'bytes':target.stat().st_size};(art/'manifest.json').write_text(json.dumps(m,indent=2))
   self.send_response(200);self.end_headers();self.wfile.write(b'captured')
-HTTPServer(('127.0.0.1',8765),Handler).serve_forever()
+server=HTTPServer(('127.0.0.1',8765),Handler)
+print('Apple screenshot receiver listening on127.0.0.1:8765',flush=True)
+server.serve_forever()

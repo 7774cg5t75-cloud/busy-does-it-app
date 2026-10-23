@@ -2,10 +2,12 @@
 
 Only disposable simulator products; no signing, hosted access or retries.
 """
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
 import signal
+import secrets
 import subprocess
 import sys
 import time
@@ -33,23 +35,65 @@ def command(stage, work, temp, udid=None):
                    '-resultBundlePath', str(temp / 'busy-home.xcresult'), 'test-without-building']
 
 
+@contextmanager
+def receiver_ready():
+    """Own the receiver, expose startup errors, and probe only literal loopback."""
+    import urllib.request
+    nonce = secrets.token_hex(16)
+    receiver_environment = dict(os.environ, BUSY_CAPTURE_RECEIVER_NONCE=nonce)
+    receiver = subprocess.Popen([sys.executable, str(Path(__file__).with_name('receiver.py'))],
+                                start_new_session=True, env=receiver_environment)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    deadline = time.monotonic() + 15
+    last_error = 'No response'
+    ready = False
+    try:
+        while time.monotonic() < deadline:
+            if receiver.poll() is not None:
+                raise RuntimeError(f'Apple screenshot receiver exited during startup: {receiver.returncode}')
+            try:
+                with opener.open('http://127.0.0.1:8765/health', timeout=1) as response:
+                    if response.status == 200 and response.read(128) == ('busy-native-capture-receiver-v1:' + nonce).encode():
+                        ready = True
+                    else:
+                        last_error = 'Unexpected local receiver identity'
+            except OSError as error:
+                last_error = type(error).__name__
+            if ready:
+                break
+            time.sleep(0.25)
+        if not ready:
+            raise RuntimeError('Apple screenshot receiver not ready within15s: ' + last_error)
+        print('NATIVE receiver ready: fixed loopback health verified', flush=True)
+        yield
+    finally:
+        if receiver.poll() is None:
+            try:
+                os.killpg(receiver.pid, signal.SIGTERM)
+                receiver.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                os.killpg(receiver.pid, signal.SIGKILL)
+                receiver.wait()
+            except ProcessLookupError:
+                receiver.wait()
+
+
 def main():
     stage = sys.argv[1]
+    if stage == 'receiver-check':
+        with receiver_ready():
+            print('PASS local receiver preflight; no simulator, screenshot or external request', flush=True)
+        return 0
+    if stage == 'test':
+        with receiver_ready():
+            return execute(stage)
+    return execute(stage)
+
+
+def execute(stage):
     work, temp = Path(os.environ['CAPTURE_WORK']), Path(os.environ['RUNNER_TEMP'])
     args = command(stage, work, temp, os.environ.get('CAPTURE_UDID'))
     limit = 24 * 60 if stage == 'build' else 4 * 60
-    if stage == 'test':
-        # Wait only for the fixed loopback screenshot receiver, never external I/O.
-        import urllib.request
-        for attempt in range(20):
-            try:
-                with urllib.request.urlopen('http://127.0.0.1:8765/health', timeout=1) as response:
-                    if response.status == 200:
-                        break
-            except OSError:
-                time.sleep(0.25)
-        else:
-            raise RuntimeError('Local Apple screenshot receiver did not start')
     print(f'NATIVE stage={stage} deadline={limit}s; simulator Release with embedded JS, '
           'single x86_64 architecture, optimisations disabled; no Metro server', flush=True)
     print('Command:', ' '.join(args), flush=True)
