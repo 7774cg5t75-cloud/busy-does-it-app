@@ -1,0 +1,87 @@
+name: Genuine native screenshots (free simulator)
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths:
+      - .github/workflows/native-screenshots.yml
+      - scripts/native-capture/request.json
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact Mission15 ancestor SHA for before/after; blank captures this request
+        required: false
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: busy-native-capture-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ios:
+    if: github.repository == '7774cg5t75-cloud/busy-does-it-app' && github.event.repository.private == false && github.ref == 'refs/heads/codex/builder-mission15-design-advancement'
+    runs-on: macos-15-intel
+    timeout-minutes: 50
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_NO_DOTENV: '1'
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      CAPTURE_SOURCE: ${{ inputs.source_sha || '' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.19.0
+      - name: Prepare exact source with inert capture transport
+        run: python3 scripts/native-capture/prepare.py
+      - name: Install integrity-locked declared app dependencies
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate actual native application
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: npx --no-install expo prebuild --platform ios --no-install
+      - name: Prepare CocoaPods and original application UI tests
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: |
+          pod install --project-directory=ios
+          if ! ruby -r xcodeproj -e 'puts Xcodeproj::VERSION'; then
+            gem install --user-install xcodeproj --version 1.27.0 --no-document
+          fi
+          ruby scripts/native-capture/project.rb "$PWD"
+      - name: Boot supported iPhone
+        run: python3 scripts/native-capture/simulator.py
+      - name: Capture through Apple tooling while XCTest drives the real app
+        run: |
+          python3 scripts/native-capture/receiver.py > "$RUNNER_TEMP/capture-receiver.log" 2>&1 &
+          receiver=$!
+          trap 'kill "$receiver" 2>/dev/null || true' EXIT
+          workspace=$(find "$CAPTURE_WORK/ios" -maxdepth 1 -name '*.xcworkspace' -print -quit)
+          xcodebuild -workspace "$workspace" -scheme BusyCapture -configuration Release -destination "platform=iOS Simulator,id=$CAPTURE_UDID" -derivedDataPath "$RUNNER_TEMP/busy-derived" CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO test -quiet
+      - name: Validate genuine Home artifacts and bounded storage
+        id: artifacts
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json,pathlib,os
+          root=pathlib.Path('artifacts/native-screenshots')
+          files=list(root.glob('*.png'))
+          assert files,'No actual screenshot produced'
+          assert sum(p.stat().st_size for p in files)<20*1024*1024,'Artifact exceeds 20MiB cap'
+          for p in files: assert p.read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('safe=true\n')
+          print('Genuine simulator PNGs:',len(files))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always() && steps.artifacts.outputs.safe == 'true'
+        with:
+          name: native-ios-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/native-screenshots/*.png
+            artifacts/native-screenshots/manifest.json
+          retention-days: 1
+          compression-level: 9
+          if-no-files-found: error
