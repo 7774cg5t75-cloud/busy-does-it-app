@@ -163,3 +163,8 @@ The owner attached the complete current Word source. Its original bytes match SH
 ## Mission 15 Phase 47 — unchanged V22.41 source reverified
 
 Reopened the accessible complete original V22.41 Word supplied in this conversation. Original bytes again match `9d3a981e4c6cafe316781e34b58bace2b49a32587bb668a0568e3c660db47029`; all 1,928 body/table paragraphs and 19 tables match the complete Phase46 review, including Section56. That genuine full review is reused. The Word and complete extraction remain private outside Git; no private contents are published. This is current-task access evidence, not a guarantee of access in another environment or approval of live actions.
+
+
+### Phase64 reattachment verification — 23 October 2026
+
+After the temporary prior attachment became unavailable, the owner reattached the genuine V22.48 Word. Actual original SHA-256481af7e3bbc2d4f555990b07ed93767ede53c45f737f7c75cff82434839d5df6;2,131 body/table paragraphs/19 tables. Complete ordered extraction matches the private Phase61 review. Filename/footer22.48 and stale cover22.46 remain unaltered. Original/extraction retained privately outside Git, not reconstructed or published. The earlier preflight blocker is resolved by genuine byte-verified access; no newer inaccessible version is invented.
