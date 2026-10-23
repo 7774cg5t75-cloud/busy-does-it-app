@@ -271,6 +271,16 @@ function CustomerRecords({ s }) {
           {s.enquiryReplyActions.accountRecovery.list.hasMore?<Button label="More account replies" onPress={()=>s.enquiryReplyActions.discoverAccountReplies(s.enquiryReplyActions.accountRecovery.list.nextAfter)}/>:null}
         </>:null}
       </Card>:null}
+      {s.firstEnquiryFilingActions?.canDiscover?<Card title="Continue account Enquiries" body="Find supported Pending sources, filed Enquiries and private replies. Account observations do not recover a lost save receipt. Nothing is retried automatically.">
+        <Button label="Find interrupted account Enquiries" onPress={()=>s.firstEnquiryFilingActions.discover()}/>
+        {s.firstEnquiryFilingActions.recovery?.status==='checking'?<Text style={styles.cardBody}>Checking current account records…</Text>:null}
+        {['unavailable','changed'].includes(s.firstEnquiryFilingActions.recovery?.status)?<Text style={styles.cardBody}>Access, source or account version needs rechecking. Your words were kept.</Text>:null}
+        {s.firstEnquiryFilingActions.recovery?.status==='ready'?<>
+          {!s.firstEnquiryFilingActions.recovery.list.items.length?<Text style={styles.cardBody}>No supported records found. Other unsupported records may exist.</Text>:null}
+          {s.firstEnquiryFilingActions.recovery.list.items.map(entry=><Button key={entry.enquiryId} label={'Inspect '+({Pending:'registered source',FiledWithoutReply:'filed Enquiry without saved reply',FiledWithReply:'saved private reply'}[entry.state])+': '+(entry.customerName||entry.enquiryId)} onPress={()=>s.firstEnquiryFilingActions.inspect(entry)}/>)}
+          {s.firstEnquiryFilingActions.recovery.list.hasMore?<Button label="More account Enquiries" onPress={()=>s.firstEnquiryFilingActions.discover(s.firstEnquiryFilingActions.recovery.list.nextAfter)}/>:null}
+        </>:null}
+      </Card>:null}
       <SavedEnquiryReplyChoices s={s}/>
       <Field
         label="Find a customer"

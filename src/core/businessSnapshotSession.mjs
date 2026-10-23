@@ -9,6 +9,14 @@ function validPrivateReplyProjection(value,{businessId,ownerId,customerId,enquir
  const only=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
  return !!(only(value,['businessId','ownerId','customerId','enquiryId','revision','schemaVersion','recordHash','sourceHash','eligible','reply','customer','enquiry'])&&value.businessId===businessId&&value.ownerId===ownerId&&value.customerId===customerId&&value.enquiryId===enquiryId&&value.revision===revision&&value.schemaVersion===1&&typeof value.eligible==='boolean'&&only(value.reply,['text'])&&typeof value.reply.text==='string'&&only(value.customer,['id','name'])&&value.customer.id===customerId&&typeof value.customer.name==='string'&&only(value.enquiry,['id','rawText'])&&value.enquiry.id===enquiryId&&typeof value.enquiry.rawText==='string'&&/^([a-f0-9]{64})$/.test(value.recordHash||'')&&/^([a-f0-9]{64})$/.test(value.sourceHash||''));
 }
+// Fixed initial Enquiry projections share validation across original review and
+// interrupted readback. This validates evidence only; ticket ownership stays here.
+function validInitialEnquiryProjection(packet,{businessId,ownerId,revision,customerId=null,enquiryId}){
+ const only=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
+ if(packet?.businessId!==businessId||packet.ownerId!==ownerId||packet.revision!==revision||packet.schemaVersion!==1||!/^([a-f0-9]{64})$/.test(packet.sourceHash||''))return false;
+ if(!customerId)return only(packet,['businessId','ownerId','revision','schemaVersion','sourceHash','pending'])&&only(packet.pending,['id','rawText','source'])&&packet.pending.id===enquiryId&&['id','rawText','source'].every(k=>typeof packet.pending[k]==='string');
+ return only(packet,['businessId','ownerId','revision','schemaVersion','sourceHash','customerHash','customer','enquiry'])&&/^([a-f0-9]{64})$/.test(packet.customerHash||'')&&only(packet.customer,['id','name','service','phone','email','address','contactOk'])&&packet.customer.id===customerId&&Object.entries(packet.customer).every(([k,v])=>k==='contactOk'?typeof v==='boolean':typeof v==='string')&&only(packet.enquiry,['id','status','filedCustomerId','filedStage','reviewedAt','queuedAt','rawText'])&&Object.values(packet.enquiry).every(v=>typeof v==='string')&&packet.enquiry.id===enquiryId&&packet.enquiry.status==='Filed'&&packet.enquiry.filedStage==='Enquiry'&&packet.enquiry.filedCustomerId===customerId;
+}
 function createBusinessSnapshotSession(){
  let pending=null,observed=null,lastOwnSave=null,writeBlockedIdentity=null,uncertainMutationIdentity=null;
  let legacyWorkspacePaused=false;
@@ -142,6 +150,39 @@ function createBusinessSnapshotSession(){
  }
  // Discovery/recovery is read evidence only. Never mint an own-save receipt,
  // restore local records, or trust a caller-created list entry as authority.
+ // Read-only interrupted-work discovery. Tickets are recognition evidence only;
+ // they cannot be consumed by any mutation preparer or clear an uncertain write.
+ const interruptedEntries=new WeakMap();
+ async function discoverInterruptedEnquiries({businessId,ownerId,isCurrent,ownerAccessToken,request,after=null}){
+  if(!uuid.test(businessId||'')||!uuid.test(ownerId||'')||!isCurrent())return {ok:false};
+  try{
+   const token=await ownerAccessToken();if(!token||!isCurrent())return {ok:false};
+   const list=await request('rpc/busy_owner_enquiry_discover_v1',{method:'POST',token,body:{p_business_id:businessId,p_after_enquiry_id:after}});
+   if(!isCurrent()||!list||Object.keys(list).sort().join(',')!=='businessId,hasMore,items,nextAfter,ownerId,revision,schemaVersion'||list.businessId!==businessId||list.ownerId!==ownerId||list.schemaVersion!==1||!Number.isSafeInteger(list.revision)||list.revision<1||!Array.isArray(list.items)||list.items.length>25||typeof list.hasMore!=='boolean'||(list.hasMore?list.nextAfter!==list.items.at(-1)?.enquiryId:list.nextAfter!==null))return {ok:false};
+   let previous=after||'';
+   for(const e of list.items){if(!e||Object.keys(e).sort().join(',')!=='customerId,customerName,enquiryId,state'||typeof e.enquiryId!=='string'||!/^[A-Za-z0-9_-]{1,240}$/.test(e.enquiryId)||e.enquiryId<=previous||typeof e.customerName!=='string'||e.customerName.length>240||!['Pending','FiledWithoutReply','FiledWithReply'].includes(e.state)||(e.state==='Pending'?e.customerId!==null:typeof e.customerId!=='string'||e.customerId.length<1||e.customerId.length>240))return {ok:false};previous=e.enquiryId;}
+   const copy=JSON.parse(stamp(list));for(const e of copy.items)interruptedEntries.set(e,{businessId,ownerId,revision:list.revision,cursor:after,entryStamp:stamp(e)});return {ok:true,list:copy};
+  }catch{return {ok:false};}
+ }
+ async function inspectInterruptedEnquiry({entry,isCurrent,ownerAccessToken,request}){
+  const source=interruptedEntries.get(entry);if(!source||stamp(entry)!==source.entryStamp||!isCurrent())return {ok:false};
+  try{
+   const token=await ownerAccessToken();if(!token||!isCurrent())return {ok:false};
+   // Refresh discovery at the SAME revision before selecting a narrow projection.
+   // A new revision or changed classification requires a new owner selection.
+   // Recheck only the original bounded page. No whole-account scan or
+   // unrelated-record expansion just to inspect one selected enquiry.
+   const page=await discoverInterruptedEnquiries({...source,isCurrent,ownerAccessToken:async()=>token,request,after:source.cursor});
+   if(!isCurrent()||!page.ok||page.list.revision!==source.revision||!page.list.items.some(e=>stamp(e)===source.entryStamp))return {ok:false};
+   const body={p_business_id:source.businessId,p_expected_revision:source.revision,p_enquiry_id:entry.enquiryId,...entry.customerId?{p_customer_id:entry.customerId}:{}};
+   const packet=await request(entry.state==='Pending'?'rpc/busy_owner_pending_review_v1':entry.state==='FiledWithoutReply'?'rpc/busy_owner_first_reply_review_v1':'rpc/busy_owner_reply_review_v1',{method:'POST',token,body});
+   if(!isCurrent()||packet?.businessId!==source.businessId||packet.ownerId!==source.ownerId||packet.revision!==source.revision||packet.schemaVersion!==1)return {ok:false};
+   if(entry.state==='FiledWithReply'){
+    if(!validPrivateReplyProjection(packet,{...source,customerId:entry.customerId,enquiryId:entry.enquiryId})||!packet.eligible)return {ok:false};
+   }else if(!validInitialEnquiryProjection(packet,{...source,customerId:entry.customerId,enquiryId:entry.enquiryId}))return {ok:false};
+   return {ok:true,observation:JSON.parse(stamp(packet)),state:entry.state,receipt:null};
+  }catch{return {ok:false};}
+ }
  async function discoverPrivateReplies({businessId,ownerId,isCurrent,ownerAccessToken,request,after=null}){
   if(!uuid.test(businessId||'')||!uuid.test(ownerId||'')||!isCurrent())return {ok:false};
   try{
@@ -274,11 +315,7 @@ function createBusinessSnapshotSession(){
    let packet=m;
    if(enquiryId){
     packet=await request(customerId?'rpc/busy_owner_first_reply_review_v1':'rpc/busy_owner_pending_review_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_expected_revision:m.revision,p_enquiry_id:enquiryId,...customerId?{p_customer_id:customerId}:{}}});
-    const only=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
-    if(!current()||packet?.businessId!==source.businessId||packet.ownerId!==source.ownerId||packet.revision!==m.revision||packet.schemaVersion!==1||!/^([a-f0-9]{64})$/.test(packet.sourceHash||''))return {ok:false};
-    if(customerId){
-     if(!only(packet,['businessId','ownerId','revision','schemaVersion','sourceHash','customerHash','customer','enquiry'])||!/^([a-f0-9]{64})$/.test(packet.customerHash||'')||!only(packet.customer,['id','name','service','phone','email','address','contactOk'])||packet.customer.id!==customerId||Object.entries(packet.customer).some(([k,v])=>k==='contactOk'?typeof v!=='boolean':typeof v!=='string')||!only(packet.enquiry,['id','status','filedCustomerId','filedStage','reviewedAt','queuedAt','rawText'])||Object.values(packet.enquiry).some(v=>typeof v!=='string')||packet.enquiry.id!==enquiryId||packet.enquiry.status!=='Filed'||packet.enquiry.filedCustomerId!==customerId)return {ok:false};
-    }else if(!only(packet,['businessId','ownerId','revision','schemaVersion','sourceHash','pending'])||!only(packet.pending,['id','rawText','source'])||packet.pending.id!==enquiryId||Object.values(packet.pending).some(v=>typeof v!=='string'))return {ok:false};
+    if(!current()||!validInitialEnquiryProjection(packet,{...source,revision:m.revision,customerId,enquiryId}))return {ok:false};
    }
    const review=JSON.parse(stamp(packet));enquiryReviews.set(review,{...source,accountRevision:m.revision,payloadStamp:captured,reviewStamp:stamp(review),customerId,enquiryId});return {ok:true,review};
   }catch{return {ok:false};}finally{if(pending===task)pending=null;}
@@ -323,6 +360,6 @@ function createBusinessSnapshotSession(){
   if(typeof customerId!=='string'||typeof inboxId!=='string'||!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
   try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(stamp({customers:receipt.payload.customers?.filter(row=>row?.id===customerId)||[],inboxItems:receipt.payload.inboxItems?.filter(row=>row?.id===inboxId)||[]}))};}catch{return {ok:false};}
  };
- return {reviewEnquiry,prepareEnquiryOperation,commitEnquiry,discoverPrivateReplies,inspectDiscoveredReply,inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ return {hasUncertainMutation:identity=>uncertainMutationIdentity===identity,discoverInterruptedEnquiries,inspectInterruptedEnquiry,reviewEnquiry,prepareEnquiryOperation,commitEnquiry,discoverPrivateReplies,inspectDiscoveredReply,inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};

@@ -2191,6 +2191,13 @@
       "args": [
         "scripts/check-mission15-phase65-first-journey.mjs"
       ]
+    },
+    {
+      "id": "check-mission15-phase66-interrupted-enquiries",
+      "args": [
+        "scripts/check-mission15-phase66-interrupted-enquiries.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
