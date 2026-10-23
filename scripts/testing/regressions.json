@@ -2233,6 +2233,12 @@
         "scripts/check-native-screenshot-pipeline.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-working-surface-continuity",
+      "args": [
+        "scripts/check-mission15-working-surface-continuity.mjs"
+      ]
     }
   ]
 }

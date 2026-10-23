@@ -56,7 +56,7 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraft
   setSource(live.current.stamp);clearPreview();onNotice?.('Current service list reviewed. Your typed wording is retained for a fresh preview.');
  };
  if(!valid.ok)return <Text accessibilityLiveRegion="polite" style={styles.cardBody}>{valid.reason}</Text>;
- return <View>
+ return <View style={styles.inspectorGroup}>
   <Text style={styles.sectionLabel}>Edit individual services</Text>
   <Text style={styles.cardBody}>Prepare changes to the private service list, then review and approve in Studio. Nothing is published here.</Text>
   {stale?<View>
@@ -72,15 +72,17 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraft
   </View>:null}
   <Button label="Cancel service wording" disabled={busy} onPress={()=>{if(captured===epoch.current&&live.current.config===config)pick(null,true);}}/>
   <Button label="Add a new service" disabled={busy} onPress={()=>pick()}/>
-  {rows.filter(row=>(row.name+' '+(row.category||'')).toLocaleLowerCase('en').includes(query.trim().toLocaleLowerCase('en'))).map((row,index)=><Button key={row.id||row.name||index}
-   label={'Edit '+row.name} disabled={busy} onPress={()=>pick(row)}/>)}
-  <Field label="Service name" value={name} onChangeText={change(setName)}/>
-  <Field label="Service description" value={description} onChangeText={change(setDescription)}/>
-  <Field label="Service category (optional)" value={category} onChangeText={change(setCategory)}/>
-  <Field label="Owner-approved price wording (optional)" value={price} onChangeText={change(setPrice)}/>
-  <Field label="Typical duration wording (optional)" value={duration} onChangeText={change(setDuration)}/>
+  <View style={styles.choiceGrid}>
+  {rows.filter(row=>(row.name+' '+(row.category||'')).toLocaleLowerCase('en').includes(query.trim().toLocaleLowerCase('en'))).map((row,index)=><View key={row.id||row.name||index} style={styles.choiceCell}><Button compact selected={!!selected&&(selected.id?selected.id===row.id:selected.name===row.name)}
+   label={'Edit '+row.name} disabled={busy} onPress={()=>pick(row)}/></View>)}
+  </View>
+  <Field editable={!busy} label="Service name" value={name} onChangeText={change(setName)}/>
+  <Field multiline editable={!busy} label="Service description" value={description} onChangeText={change(setDescription)}/>
+  <Field editable={!busy} label="Service category (optional)" value={category} onChangeText={change(setCategory)}/>
+  <Field editable={!busy} label="Owner-approved price wording (optional)" value={price} onChangeText={change(setPrice)}/>
+  <Field editable={!busy} label="Typical duration wording (optional)" value={duration} onChangeText={change(setDuration)}/>
   <Text style={styles.cardBody}>These are public information labels, not payment, reserved appointments or promised availability.</Text>
-  <Button label={selected?'Preview edited service':'Preview new service'} disabled={busy||stale||!name.trim()} onPress={()=>submit('save')}/>
+  <Button primary label={selected?'Preview edited service':'Preview new service'} disabled={busy||stale||!name.trim()} onPress={()=>submit('save')}/>
   {selected?<View>
    <Button label="Preview: Move this service earlier" disabled={busy||stale} onPress={()=>submit('up')}/>
    <Button label="Preview: Move this service later" disabled={busy||stale} onPress={()=>submit('down')}/>

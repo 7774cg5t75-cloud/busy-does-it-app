@@ -16,7 +16,7 @@ import { Text, TextInput, View, Alert } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { styles } from "../theme/styles";
-import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
+import { Details, Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
@@ -1353,7 +1353,9 @@ function WebsitePreview({ s }) {
         title="Tell BUSY which sections to adjust"
         body="Use the section names visible on this page. BUSY checks each instruction, shows the original beside the proposed result and asks you to approve before saving. Unsupported or unclear instructions change nothing."
         tone="blue">
+        <Details label="Examples of changes BUSY can preview">
         <Text style={styles.cardBody}>Try: Change the hero heading to "Welcome to our workshop"; move the about section above services. Or add question "Do you travel?" answer "Ask us about your location." For phone reading: make the whole page easier to read only on phones. For a calmer mobile layout: give the whole page less space on phones. For composition: make the hero centred; or move the hero photo left when an approved hero image exists. Shared theme changes affect all pages; always preview first.</Text>
+        </Details>
         <TextInput value={pageInstruction}
           onChangeText={value=>{setPageInstruction(value);setPagePlanPreview(null);setPagePlanNotice("");}}
           multiline maxLength={400}
@@ -1496,14 +1498,16 @@ function WebsitePreview({ s }) {
         tone="blue"
       >
         <Text style={styles.sectionLabel}>Preview screen size</Text>
-        <Button label={(previewSize==="full"?"✓ ":"")+"Use this device's screen width"}
-          onPress={()=>{setSelectedEdit(null);setPreviewSize("full");}}/>
-        <Button label={(previewSize==="phone"?"✓ ":"")+"Show phone-width layout"}
-          onPress={()=>{setSelectedEdit(null);setPreviewSize("phone");}}/>
-        <Button label={(previewSize==="tablet"?"✓ ":"")+"Show tablet-width layout"}
-          onPress={()=>{setSelectedEdit(null);setPreviewSize("tablet");}}/>
-        <Button label={(previewSize==="desktop"?"✓ ":"")+"Show desktop-width layout"}
-          onPress={()=>{setSelectedEdit(null);setPreviewSize("desktop");}}/>
+        <View style={styles.choiceGrid}>
+        <View style={styles.choiceCell}><Button compact selected={previewSize==="full"} label={(previewSize==="full"?"✓ ":"")+"Use this device's screen width"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("full");}}/></View>
+        <View style={styles.choiceCell}><Button compact selected={previewSize==="phone"} label={(previewSize==="phone"?"✓ ":"")+"Show phone-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("phone");}}/></View>
+        <View style={styles.choiceCell}><Button compact selected={previewSize==="tablet"} label={(previewSize==="tablet"?"✓ ":"")+"Show tablet-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("tablet");}}/></View>
+        <View style={styles.choiceCell}><Button compact selected={previewSize==="desktop"} label={(previewSize==="desktop"?"✓ ":"")+"Show desktop-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("desktop");}}/></View>
+        </View>
         <Text style={styles.cardBody}>One website adapts to all screens. Tablet and desktop layouts are scaled down on a phone. Use this device view for easier tapping and editing.</Text>
         <Button label={visualCheckOn?"Checking this rendered page…":designCandidate?
           "Check original at this width":"Check this page for layout problems"}

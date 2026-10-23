@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text} from 'react-native';
+import {Text,View} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
 import {buildSeoAudit} from '../domain/websiteManagement';
@@ -12,7 +12,7 @@ export function GrowthWebsiteOpportunities({s}){
  return <Card eyebrow="Get More Customers · your website source" title="Make it easier to find and contact you"
   body={gaps.length?'These checks use your current private website wording, not a public-site inspection. Review which suggestions fit your business.':'The existing source checks found no missing basics here. This does not verify ranking, indexing, accessibility or live enquiries.'}
   footer="No URL fetching, public inspection, external scan, publication or paid action." tone="blue">
-  {gaps.map(check=><Text key={check.id} style={styles.cardBody}>{check.label+': '+check.detail}</Text>)}
+  {gaps.map(check=><View key={check.id} style={styles.recordRow}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>{check.label}</Text><Text style={styles.cardBody}>{check.detail}</Text></View>)}
   <Button label="Review these details in Website Builder" onPress={()=>{if(current())live.current.openWebsiteBuilder();}}/>
  </Card>;
 }

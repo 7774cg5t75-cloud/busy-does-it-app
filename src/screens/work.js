@@ -2070,10 +2070,12 @@ function WorkPipeline({ s }) {
       <Pressable
         key={id}
         onPress={() => s.openSavedReplyAction(id)}
-        style={styles.customerTimelineCard}
+        accessibilityRole="button"
+        accessibilityLabel={`${customer.name} · ${kind} · ${status}`}
+        style={styles.workflowCard}
       >
-        <View style={styles.homePriorityTop}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
+        <View style={styles.workflowHeader}>
+          <View style={styles.workflowIdentity}>
             <Text style={styles.customerTimelineLabel}>{kind.toUpperCase()}</Text>
             <Text style={styles.activityName}>{customer.name}</Text>
           </View>
@@ -2120,6 +2122,7 @@ function WorkPipeline({ s }) {
       <View style={styles.timeChoiceWrap}>
         {["All", "Enquiries", "Quotes", "Bookings", "Follow-ups", "Completed"].map((stage) => (
           <Pressable
+            accessibilityRole="button" accessibilityState={{selected:stageFilter===stage}}
             key={stage}
             onPress={() => setStageFilter(stage)}
             style={[styles.timeChoice, stageFilter === stage && styles.timeChoiceSelected]}
@@ -2142,9 +2145,9 @@ function WorkPipeline({ s }) {
         const quiet = age !== null && age >= 7 && !customer.enquiryFollowUpSentAt;
         const followUpPending = !!customer.enquiryFollowUpSentAt && !customer.enquiryFollowUpOutcomeRecordedAt;
         return (
-          <View key={customer.id} style={styles.customerTimelineCard}>
-            <View style={styles.homePriorityTop}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+          <View key={customer.id} style={styles.workflowCard}>
+            <View style={styles.workflowHeader}>
+              <View style={styles.workflowIdentity}>
                 <Text style={styles.customerTimelineLabel}>
                   {followUpPending ? "ENQUIRY FOLLOW-UP SENT" : quiet ? "QUIET ENQUIRY" : "NEW ENQUIRY"}
                 </Text>

@@ -2467,13 +2467,17 @@ function MiniAppBuilder({ s }) {
           <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
             businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending}
             onPreview={setStudioPreview} onNotice={setStudioNotice}/>
-          <Text style={styles.sectionLabel}>Or change supported public wording directly</Text>
+          <View style={styles.inspectorGroup}>
+          <Text accessibilityRole="header" style={styles.inspectorHeading}>Edit public wording</Text>
+          <Text style={styles.workspaceMeta}>Choose one part, write your replacement, then preview it before approval.</Text>
+          <View style={styles.choiceGrid}>
           {[
             ["tagline","Tagline"],["about","About section"],["description","Description"]
           ].map(([key,label])=>(
-            <Button key={key} label={(studioCopyField===key?"✓ ":"")+"Edit "+label}
-              onPress={()=>{const change=()=>{setStudioCopyField(key);setStudioPreview(null);};if(ownerDirtyParts.current.copy&&s.requestOwnerEditTransition)s.requestOwnerEditTransition(change);else change();}}/>
+            <View key={key} style={styles.choiceCell}><Button compact selected={studioCopyField===key} label={(studioCopyField===key?"✓ ":"")+"Edit "+label}
+              onPress={()=>{const change=()=>{setStudioCopyField(key);setStudioPreview(null);};if(ownerDirtyParts.current.copy&&s.requestOwnerEditTransition)s.requestOwnerEditTransition(change);else change();}}/></View>
           ))}
+          </View>
           <Field label={"Replacement "+studioCopyField+" (owner-approved copy)"}
             value={copyScopeCurrent?studioCopy:''} editable={studio.canEdit()} onChangeText={value=>{if(liveControlContext.current!==controlContext||!studio.canEdit())return;legacyCopyLive.current.value=value;setStudioCopy(value);markOwnerDirty('copy',!!value);setStudioPreview(null);}}
             placeholder="Write the exact words you want customers to see"/>
@@ -2486,6 +2490,7 @@ function MiniAppBuilder({ s }) {
               setStudioPreview(p.ok?p:null,'copy');setStudioNotice(p.ok?
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
+          </View>
           {view.draftConfig.modules?.some(m=>m.key==='services'&&m.enabled===true)?(
             <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts.services||0].join(':')}
               onDraftChange={value=>markOwnerDirty('services',value)} requestTransition={s.requestOwnerEditTransition}
@@ -2977,8 +2982,8 @@ function MiniAppBuilder({ s }) {
           body="Your sections work in both the BUSY marketplace app and its standalone native counterpart. Preview a one-position move before keeping it in your PRIVATE draft."
           tone="blue">
           {orderedAppModules(view.draftConfig).map((module,index,items)=>(
-            <View key={module.key} style={{marginTop:8}}>
-              <Text style={styles.cardBody}>{(index+1)+". "+module.key.replaceAll("_"," ")}</Text>
+            <View key={module.key} style={styles.recordRow}>
+              <Text accessibilityRole="header" style={styles.workspacePanelTitle}>{(index+1)+". "+module.key.replaceAll("_"," ")}</Text>
               {index>0?<Button label={"Move "+module.key.replaceAll("_"," ")+" up"}
                 disabled={!!s.miniAppsAction}
                 onPress={()=>setPendingMove(bindAppControlReview({moduleKey:module.key,direction:"up"},controlContext))}/>:null}

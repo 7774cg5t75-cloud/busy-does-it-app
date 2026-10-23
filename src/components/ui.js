@@ -423,16 +423,16 @@ function SmallLink({ label, onPress }) {
   );
 }
 
-function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength }) {
+function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength, editable = true }) {
   const [focused,setFocused]=useState(false);
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={[styles.fieldBox, multiline && styles.fieldBoxMultiline, focused && styles.fieldBoxFocused]}>
+      <View style={[styles.fieldBox, multiline && styles.fieldBoxMultiline, focused && editable && styles.fieldBoxFocused, !editable && styles.fieldBoxReadOnly]}>
         {prefix ? <Text style={styles.fieldPrefix}>{prefix}</Text> : null}
         <TextInput
           ref={inputRef}
-          onFocus={()=>setFocused(true)}
+          onFocus={()=>{if(editable)setFocused(true);}}
           onBlur={()=>setFocused(false)}
           selectionColor={C.blueText}
           textAlignVertical={multiline?"top":"center"}
@@ -440,7 +440,9 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
           multiline={multiline}
           accessibilityLabel={label}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={editable ? onChangeText : undefined}
+          editable={editable}
+          accessibilityState={{disabled:!editable}}
           placeholder={placeholder}
           keyboardType={keyboardType}
           secureTextEntry={secureTextEntry}
@@ -572,9 +574,24 @@ function DatePickerField({ label, value, onChange, allowFuture = false, minimumD
   );
 }
 
+// Read-only help only: never put an active editor or an approval action here.
+// Existing specialists retain all workflow and dirty-state ownership.
+function Details({ label, children }) {
+  const [expanded, setExpanded] = useState(false);
+  return <View style={styles.detailsPanel}>
+    <Pressable accessibilityRole="button" accessibilityState={{expanded}}
+      onPress={()=>setExpanded(value=>!value)}
+      style={({pressed})=>[styles.detailsToggle,pressed&&styles.pressed]}>
+      <Text style={styles.detailsLabel}>{label}</Text>
+      <Text accessibilityElementsHidden importantForAccessibility="no" style={styles.detailsIndicator}>{expanded?"−":"+"}</Text>
+    </Pressable>
+    {expanded?<View style={styles.detailsBody}>{children}</View>:null}
+  </View>;
+}
+
 function Choice({ label, selected, onPress, sub }) {
   return (
-    <Pressable onPress={onPress} style={[styles.choice, selected && styles.choiceSelected]}>
+    <Pressable accessibilityRole="radio" accessibilityState={{selected:!!selected}} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected]}>
       <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected ? <View style={styles.radioCore} /> : null}
       </View>
@@ -594,6 +611,8 @@ function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
         {body ? <Text style={styles.toggleBody}>{body}</Text> : null}
       </View>
       <Switch
+        accessibilityLabel={title}
+        accessibilityHint={body}
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
@@ -733,6 +752,7 @@ export {
   SmallLink,
   Field,
   DatePickerField,
+  Details,
   Choice,
   ToggleRow,
   MetricRow,

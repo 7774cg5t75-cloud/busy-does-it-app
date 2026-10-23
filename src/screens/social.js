@@ -1040,7 +1040,9 @@ function SocialDraftReview({ s }) {
         textAlignVertical="top"
       /></View>
 
-      <Text style={styles.sectionLabel}>Where should it go?</Text>
+      <View style={styles.workspacePanel}>
+      <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Choose destinations</Text>
+      <Text style={styles.workspaceMeta}>Selections are publishing intentions, not delivery receipts. Review the exact connected account before approval.</Text>
       {hasMeta ? (
         <>
           <ToggleRow
@@ -1090,7 +1092,9 @@ function SocialDraftReview({ s }) {
         </Card>
       ) : null}
 
-      <Text style={styles.sectionLabel}>Schedule</Text>
+      </View>
+      <View style={styles.workspacePanel}>
+      <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Choose a date and time</Text>
       {recordLocked ? (
         <Card
           eyebrow="Publishing record locked"
@@ -1128,6 +1132,7 @@ function SocialDraftReview({ s }) {
         </>
       )}
 
+      </View>
       <Card
         eyebrow="Publishing safety"
         title={liveEnabled ? "Live provider publishing is enabled on the server" : "Live provider publishing is still server-disabled"}
