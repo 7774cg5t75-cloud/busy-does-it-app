@@ -1,3 +1,7 @@
+## Builder/customer navigation — 23 October2026
+
+Original page and saved-app searches filter presentation without changing active editors or data. Original Inbox lanes retain exact source/filing handlers; customer facts, note editing, private-reply identity and device/account evidence remain separate. Only older read-only activity uses the existing Details component. The public-contact editor now protects field/close transitions with one-use dirty review, denies stale/busy/foreign source callbacks, and registers with the existing Builder multi-part dirty/receipt acknowledgement owner. No new persistence, controller, production module or dependency. See [implementation and limitations](docs/BUILDER_CUSTOMER_NAVIGATION_2026_10_23.md) and companion CHECKS for the frozen349-pass run,105 foundation checks, architecture metrics and retained security gates. Screenshot infrastructure unchanged; no native/hosted/visual acceptance claimed.
+
 ## Phase69 — original specialist workspace refinement (23 October 2026)
 
 Existing builder/page controls, Creator format/tone/media/editor, Growth steps, Inbox source/status and customer reply/recovery views now use grouped neutral working panels and wrapping selected controls from the existing UI/theme. Website section arrangement follows actual private section order without mutating the draft; hidden sections remain restorable. Private wording appears before save decisions, with device/account outcomes separate. Original approval, dirty-state, voice, source and finite persistence specialists retain authority.
