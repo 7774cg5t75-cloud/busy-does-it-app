@@ -3,7 +3,6 @@ on:
   push:
     branches: [codex/builder-mission15-design-advancement]
     paths:
-      - .github/workflows/native-screenshots.yml
       - scripts/native-capture/request.json
   workflow_dispatch:
     inputs:
@@ -38,11 +37,14 @@ jobs:
           node-version: 24.19.0
       - name: Prepare exact source with inert capture transport
         run: python3 scripts/native-capture/prepare.py
-      - name: Preflight fixed loopback screenshot receiver
+      - name: Check attachment export policy with inert fixtures
         timeout-minutes: 1
-        run: python3 scripts/native-capture/native_stage.py receiver-check
+        run: python3 scripts/native-capture/check_attachments.py
       - name: Select installed compatible Xcode
         run: python3 scripts/native-capture/xcode.py
+      - name: Verify Apple attachment exporter before compilation
+        timeout-minutes: 1
+        run: python3 scripts/native-capture/export_attachments.py --check-tool
       - name: Install integrity-locked declared app dependencies
         working-directory: ${{ env.CAPTURE_WORK }}
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -69,22 +71,13 @@ jobs:
       - name: Run only Midnight Home XCTest (no compilation)
         timeout-minutes: 5
         run: python3 scripts/native-capture/native_stage.py test
-      - name: Validate genuine Home artifacts and bounded storage
+      - name: Export and validate source-bound Midnight Home attachment
         id: artifacts
-        if: always()
-        run: |
-          python3 - <<'PY'
-          import json,pathlib,os
-          root=pathlib.Path('artifacts/native-screenshots')
-          files=list(root.glob('*.png'))
-          assert files,'No actual screenshot produced'
-          assert sum(p.stat().st_size for p in files)<20*1024*1024,'Artifact exceeds 20MiB cap'
-          for p in files: assert p.read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
-          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('safe=true\n')
-          print('Genuine simulator PNGs:',len(files))
-          PY
+        timeout-minutes: 2
+        if: success()
+        run: python3 scripts/native-capture/export_attachments.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always() && steps.artifacts.outputs.safe == 'true'
+        if: success() && steps.artifacts.outputs.safe == 'true'
         with:
           name: native-ios-${{ github.sha }}-${{ github.run_attempt }}
           path: |

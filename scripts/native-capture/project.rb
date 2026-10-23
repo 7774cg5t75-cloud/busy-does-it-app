@@ -15,7 +15,6 @@ ui.build_configurations.each do |c|
  c.build_settings['SWIFT_VERSION']='5.0'
  c.build_settings['TEST_TARGET_NAME']=app.name
  c.build_settings['CODE_SIGNING_ALLOWED']='NO'
- c.build_settings['INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking']='YES'
 end
 p.save
 s=Xcodeproj::XCScheme.new;s.add_build_target(app);s.add_test_target(ui);s.set_launch_target(app)

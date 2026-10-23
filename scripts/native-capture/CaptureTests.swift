@@ -1,5 +1,6 @@
 import XCTest
 final class CaptureTests: XCTestCase {
+ let captureSourceCommit = "__BUSY_CAPTURE_SOURCE_SHA__"
  let app = XCUIApplication(bundleIdentifier: "com.busydoesit.capture")
  func element(_ label: String) -> XCUIElement { app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", label)).firstMatch }
  func tap(_ label: String) {
@@ -10,14 +11,16 @@ final class CaptureTests: XCTestCase {
  func capture(_ name:String) {
   sleep(2)
   XCTAssertEqual(app.state,.runningForeground,"Capture requires the actual foreground app")
-  let done=expectation(description:"Apple screenshot")
-  URLSession.shared.dataTask(with:URL(string:"http://127.0.0.1:8765/capture/"+name)!) { _,r,e in
-   XCTAssertNil(e);XCTAssertEqual((r as? HTTPURLResponse)?.statusCode,200);done.fulfill()
-  }.resume()
-  wait(for:[done],timeout:30)
+  let attachment = XCTAttachment(screenshot: app.screenshot())
+  attachment.name = "busy-" + name + "-" + captureSourceCommit
+  attachment.lifetime = .keepAlways
+  add(attachment)
+  print("CAPTURE attached=" + attachment.name)
  }
  func signInToOriginalHome() {
   continueAfterFailure=false
+  XCTAssertEqual(captureSourceCommit.count,40,"Capture source must be bound before compilation")
+  XCTAssertTrue(captureSourceCommit.allSatisfy { "0123456789abcdef".contains($0) })
   print("CAPTURE phase=app-launch")
   app.launch()
   let email=app.textFields["Email"]
@@ -31,6 +34,8 @@ final class CaptureTests: XCTestCase {
  }
  func testMidnightHome() {
   signInToOriginalHome()
+  XCTAssertTrue(app.textFields["Ask BUSY"].isHittable,"Home must be visibly ready")
+  XCTAssertEqual(app.alerts.count,0,"Do not capture a blocking application alert")
   capture("home-midnight")
  }
  func testHomeAppearances() {
