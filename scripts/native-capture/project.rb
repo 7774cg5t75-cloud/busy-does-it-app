@@ -5,9 +5,11 @@ app=p.targets.find{|t|t.product_type=='com.apple.product-type.application'}
 raise 'Application target missing' unless app
 ui=p.new_target(:ui_test_bundle,'BusyCaptureUITests',:ios,'16.0')
 ui.add_dependency(app)
+ui.product_reference.path='BusyCaptureUITests.xctest'
 f=p.main_group.new_file(File.join(root,'scripts/native-capture/CaptureTests.swift'))
 ui.source_build_phase.add_file_reference(f)
 ui.build_configurations.each do |c|
+ c.build_settings['PRODUCT_NAME']='BusyCaptureUITests'
  c.build_settings['PRODUCT_BUNDLE_IDENTIFIER']='com.busydoesit.capture.uitests'
  c.build_settings['GENERATE_INFOPLIST_FILE']='YES'
  c.build_settings['SWIFT_VERSION']='5.0'
