@@ -1,3 +1,9 @@
+## Phase69 — original specialist workspace refinement (23 October 2026)
+
+Existing builder/page controls, Creator format/tone/media/editor, Growth steps, Inbox source/status and customer reply/recovery views now use grouped neutral working panels and wrapping selected controls from the existing UI/theme. Website section arrangement follows actual private section order without mutating the draft; hidden sections remain restorable. Private wording appears before save decisions, with device/account outcomes separate. Original approval, dirty-state, voice, source and finite persistence specialists retain authority.
+
+No AppController growth, new production module/package/store or business-theme override. One new inert original-parent regression; existing full selection retained. Actual native/browser runtime remains unavailable, so no screenshot or visual acceptance is claimed. See combined Phase69 report/CHECKS for frozen source, actual results, interrupted candidate, architecture and remaining gates. All SQL fuses/hosted flags and the Phase52 retention counterexample remain unchanged.
+
 ## Phase68 — adaptive specialist working surfaces (23 October 2026)
 
 The original shared Shell/Card/Field/Button/navigation and palette-keyed stylesheet now improve the actual specialist routes without new controllers or a theme provider. Bounded tablet content, wrapping Work/Creator summaries, readable multiline editors with focus boundaries, neutral explanatory footers, semantic calendar/capture states and selected navigation are reused across the six destinations. Direct input-chrome changes cover Website Builder, customers, capture/Inbox, Content Creator and Work. Independent generated website/app previews keep their own palettes.
