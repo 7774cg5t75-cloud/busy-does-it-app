@@ -1,3 +1,9 @@
+## Phase68 — adaptive specialist working surfaces (23 October 2026)
+
+The original shared Shell/Card/Field/Button/navigation and palette-keyed stylesheet now improve the actual specialist routes without new controllers or a theme provider. Bounded tablet content, wrapping Work/Creator summaries, readable multiline editors with focus boundaries, neutral explanatory footers, semantic calendar/capture states and selected navigation are reused across the six destinations. Direct input-chrome changes cover Website Builder, customers, capture/Inbox, Content Creator and Work. Independent generated website/app previews keep their own palettes.
+
+AppController, businessSnapshotSession, SQL proposals/security fuses, source/receipt contracts and the original Phase52 loss counterexample are unchanged. One new inert parent-flow regression verifies both appearances; existing Automatic/store/orb/typing regressions remain. V22.49 original genuinely verified; private contents remain outside Git. Source compilation is not native rendering. See the combined Phase68 delivery report and CHECKS for frozen evidence, limitations and next work.
+
 ## Phase63 — owner-only account reply discovery and deliberate opening
 
 Prepared bounded discovery returns only recognition metadata for current supported actor-owned replies, reusing the existing private source validator. Original bootstrap offers account choices without rebinding local data; original CustomerRecords and reply hook implement Inspect → Keep/Open → fresh server check → original editor. Opening keeps every local record/device draft/global revision separate and grants no save/send/filing authority. Account-only wording is hidden after role/account changes; legacy local-customer navigation and ambiguous current-enquiry preparation are unavailable in this context.

@@ -1,3 +1,4 @@
+import {appColors as C} from "../theme/appearance.mjs";
 import {useOwnerEditNavigation} from './useOwnerEditNavigation';
 import {websiteMovementOptions,resolveWebsiteMovement} from "../core/websiteVisualMovement.mjs";
 import {BuilderTalkExplore} from './builderTalkExplore';
@@ -1358,8 +1359,8 @@ function WebsitePreview({ s }) {
           multiline maxLength={400}
           accessibilityLabel="Describe up to five named website page changes"
           placeholder="Move the services section up; make the hero heading smaller on phones"
-          placeholderTextColor="#97A7BD"
-          style={{minHeight:95,padding:12,borderRadius:12,backgroundColor:"#202D40",color:"#F4F7FE",textAlignVertical:"top"}}/>
+          placeholderTextColor={C.muted}
+          style={{minHeight:95,padding:12,borderRadius:12,backgroundColor:C.input,color:C.ink,borderWidth:1,borderColor:C.controlBorder,textAlignVertical:"top"}}/>
         <Button label={pageVoiceExpanded?"Hide page microphone":"🎙 Talk to BUSY about this whole page"}
           onPress={()=>setPageVoiceExpanded(value=>!value)}/>
         {pageVoiceExpanded?(

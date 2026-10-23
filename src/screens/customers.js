@@ -209,7 +209,7 @@ function NewEnquiry({ s }) {
         value={s.newEnquiryNote}
         onChangeText={s.setNewEnquiryNote}
         placeholder="What did they ask for?"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
 
@@ -703,7 +703,7 @@ function CustomerDetail({ s }) {
         value={s.customerNoteText}
         onChangeText={s.setCustomerNoteText}
         placeholder="Add a quick note about this customer"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
       <Button label="Add note" disabled={!s.customerNoteText.trim()} onPress={() => s.addCustomerNote(customer.id)} />
@@ -1019,7 +1019,7 @@ function JobPostDraft({ s }) {
     <Shell s={s} title="Finished-job post" subtitle="BUSY DOES IT has prepared the action. You can change the words before approval." brandCue="Prepare underneath. Owner decides what goes public.">
       <Card eyebrow="Prepared for you" title={`${allowedPhotos.length} approved job photo${allowedPhotos.length === 1 ? "" : "s"} + editable wording`} body="The source is a completed job already saved in BUSY DOES IT. No address or private customer detail is added automatically." tone="green" />
       <Text style={styles.fieldLabel}>Post draft</Text>
-      <TextInput multiline value={s.jobPostDraft} onChangeText={s.setJobPostDraft} placeholder="Write the finished-job post" placeholderTextColor="#9AA3B2" style={styles.messageInput} />
+      <TextInput multiline value={s.jobPostDraft} onChangeText={s.setJobPostDraft} placeholder="Write the finished-job post" placeholderTextColor={C.muted} style={styles.messageInput} />
       <Text style={styles.helper}>Saving moves this prepared action to the approval screen. It still does not publish anything.</Text>
       <Button label="Save & review approval" primary disabled={!s.jobPostDraft.trim()} onPress={s.saveJobPostDraft} />
       <Button label="Back to photos" onPress={() => s.go("jobPhotos")} />
@@ -1355,7 +1355,7 @@ function EnquiryFollowUp({ s }) {
         onChangeText={s.setEnquiryFollowUpDraft}
         style={styles.messageInput}
         placeholder="Follow-up message"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
       />
       <Card
         eyebrow="Approval"
@@ -1473,7 +1473,7 @@ function QuoteFollowUp({ s }) {
         onChangeText={s.setQuoteFollowUpDraft}
         style={styles.messageInput}
         placeholder="Follow-up message"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
       />
       <Card
         eyebrow="Approval"
@@ -1585,7 +1585,7 @@ function ReviewRequest({ s }) {
         onChangeText={s.setReviewRequestDraft}
         style={styles.messageInput}
         placeholder="Review request"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
       />
       <Card
         eyebrow="Trust rule"

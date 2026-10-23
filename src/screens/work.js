@@ -3918,7 +3918,7 @@ function ReplyActionDetail({ s }) {
               value={s.actionJobNote}
               onChangeText={s.setActionJobNote}
               placeholder="Anything useful to remember about the finished job?"
-              placeholderTextColor="#9AA3B2"
+              placeholderTextColor={C.muted}
               style={styles.messageInput}
             />
             <Button

@@ -1,3 +1,9 @@
+## Current private master — V22.49 verified in Phase68 (23 October 2026)
+
+The actual owner-supplied Word was opened and verified: SHA-256 `6107043b5470741cbc0bdb67ee52cf99917d1f9886f39a14d22fa290f2dfef11`, 2,132 body/table paragraphs and19 tables. Cover and footer identify V22.49. Complete ordered comparison with the genuinely accessible, fully reviewed V22.48 retains its requirements and adds the reviewed build-first policy reaffirmation. The earlier Phase67 missing-original note below is historical. Original and complete extraction stay private outside Git.
+
+Continue substantial connected implementation with independent automated verification. Protect the owner's time; extensive owner-performed device/hosted acceptance belongs to stabilisation unless a targeted check is essential for safety. Preserve every security/approval boundary, historical failure, spending limit and separate deployment/release gate. Verify actual private source access again in future tasks.
+
 ## Phase55 current attachment identity — V22.45 (22 October 2026)
 
 The actual owner-attached Word identifies V22.45 and has original SHA-256 `a04483eb47e53d682953dbdabafd5491f847fb2cbad32ddeba5f3b39c0d15bcf`; mission prose still names V22.44. Complete body/table comparison verifies unchanged V22.44 material plus the cover version and11 reviewed voice-discoverability paragraphs (2,080 paragraphs/19 tables total). V22.44 remains separately accessible and checksum-verified. See current master-access provenance; do not conflate the two files. Both private originals/extracts stay outside Git. No voice redesign, live action or release authority is inferred; future tasks must verify actual source access.

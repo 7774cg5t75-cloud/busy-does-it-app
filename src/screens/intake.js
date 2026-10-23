@@ -439,7 +439,7 @@ function QuickCapture({ s }) {
         value={s.captureRawText}
         onChangeText={s.setCaptureRawText}
         placeholder={"Optional text:\nSophie Green\nCould I get a quote for driveway cleaning?\n07700 900111"}
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
 
@@ -773,7 +773,7 @@ function QuickCaptureReview({ s }) {
         onChangeText={s.setCaptureNote}
         style={styles.messageInput}
         placeholder="Original message / note"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
       />
 
       <Card

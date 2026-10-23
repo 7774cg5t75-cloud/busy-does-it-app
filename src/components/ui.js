@@ -304,14 +304,14 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
             {!hideDevBadge ? <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text> : null}
           </View>
           {!noBack && s.history?.length > 0 ? (
-            <Pressable onPress={s.back} style={styles.backPill}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={s.back} style={styles.backPill}>
               <Text style={styles.backText}>Back</Text>
             </Pressable>
           ) : null}
         </View>
 
         {brandCue ? <Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{brandCue}</Text> : null}
-        {title ? <Text style={[styles.h1, dark && styles.homeDarkHeading]}>{title}</Text> : null}
+        {title ? <Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading]}>{title}</Text> : null}
         {subtitle ? <Text style={[styles.subtitle, dark && styles.homeDarkMuted]}>{subtitle}</Text> : null}
 
         {children}
@@ -337,7 +337,10 @@ function BottomNav({ s, dark = true }) {
         return (
           <Pressable
             key={label}
-            style={styles.navItem}
+            accessibilityRole="tab"
+            accessibilityLabel={label}
+            accessibilityState={{selected:active}}
+            style={[styles.navItem, active && styles.navItemSelected]}
             onPress={() => {
               s.jump(target, label);
             }}
@@ -372,9 +375,9 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
           <Text style={styles.eyebrow}>{eyebrowText}</Text>
         )
       ) : null}
-      {title ? <Text style={styles.cardTitle}>{title}</Text> : null}
+      {title ? <Text accessibilityRole="header" style={styles.cardTitle}>{title}</Text> : null}
       {body ? <Text style={styles.cardBody}>{body}</Text> : null}
-      {children}
+      {children ? <View style={styles.cardContent}>{children}</View> : null}
       {footer ? <Text style={styles.cardFooter}>{footer}</Text> : null}
     </View>
   );
@@ -417,13 +420,18 @@ function SmallLink({ label, onPress }) {
 }
 
 function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength }) {
+  const [focused,setFocused]=useState(false);
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.fieldBox}>
+      <View style={[styles.fieldBox, multiline && styles.fieldBoxMultiline, focused && styles.fieldBoxFocused]}>
         {prefix ? <Text style={styles.fieldPrefix}>{prefix}</Text> : null}
         <TextInput
           ref={inputRef}
+          onFocus={()=>setFocused(true)}
+          onBlur={()=>setFocused(false)}
+          selectionColor={C.blueText}
+          textAlignVertical={multiline?"top":"center"}
           maxLength={maxLength}
           multiline={multiline}
           accessibilityLabel={label}
@@ -433,7 +441,7 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
           keyboardType={keyboardType}
           secureTextEntry={secureTextEntry}
           autoCapitalize={autoCapitalize}
-          style={styles.fieldInput}
+          style={[styles.fieldInput,multiline && styles.fieldInputMultiline]}
           placeholderTextColor={C.muted}
         />
       </View>
@@ -585,8 +593,8 @@ function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
-        trackColor={{ false: "#C8CFD9", true: "#9FC0FF" }}
-        thumbColor={value ? C.blue : "#FFFFFF"}
+        trackColor={{ false: C.controlBorder, true: C.blue }}
+        thumbColor={C.onAction}
       />
     </View>
   );

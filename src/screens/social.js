@@ -797,7 +797,7 @@ function SocialCreator({ s }) {
         value={s.socialBrief}
         onChangeText={s.setSocialBrief}
         placeholder="e.g. This was a heavily stained driveway. Keep the wording simple and local."
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
 
@@ -830,7 +830,7 @@ function SocialCreator({ s }) {
             onChangeText={editCaption}
             style={styles.messageInput}
             placeholder="Write an announcement, useful information or your own approved offer"
-            placeholderTextColor="#9AA3B2"/>
+            placeholderTextColor={C.muted}/>
           <Button primary
             label={brandedCaptionAccepted&&photos.length?"Save branded post draft & review":photos.length?"Prepare private draft & review":"Save text draft & review"}
             disabled={!s.socialDraftText.trim()||analysing}
@@ -904,7 +904,7 @@ function SocialCreator({ s }) {
             onChangeText={editCaption}
             style={styles.messageInput}
             placeholder="Edit the caption before saving"
-            placeholderTextColor="#9AA3B2"
+            placeholderTextColor={C.muted}
             textAlignVertical="top"
           />
 
@@ -1029,7 +1029,7 @@ function SocialDraftReview({ s }) {
         editable={!recordLocked}
         style={[styles.messageInput, recordLocked && { opacity: 0.7 }]}
         placeholder="Post wording"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         textAlignVertical="top"
       />
 
@@ -1578,7 +1578,7 @@ function BusinessBrain({ s }) {
         value={s.businessBrainRuleDraft}
         onChangeText={s.setBusinessBrainRuleDraft}
         placeholder="Type a rule BUSY should respect…"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
       <Button

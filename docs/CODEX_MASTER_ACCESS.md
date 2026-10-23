@@ -168,3 +168,7 @@ Reopened the accessible complete original V22.41 Word supplied in this conversat
 ### Phase64 reattachment verification — 23 October 2026
 
 After the temporary prior attachment became unavailable, the owner reattached the genuine V22.48 Word. Actual original SHA-256481af7e3bbc2d4f555990b07ed93767ede53c45f737f7c75cff82434839d5df6;2,131 body/table paragraphs/19 tables. Complete ordered extraction matches the private Phase61 review. Filename/footer22.48 and stale cover22.46 remain unaltered. Original/extraction retained privately outside Git, not reconstructed or published. The earlier preflight blocker is resolved by genuine byte-verified access; no newer inaccessible version is invented.
+
+## Phase68 — V22.49 attachment genuinely verified
+
+Original Word SHA-256 `6107043b5470741cbc0bdb67ee52cf99917d1f9886f39a14d22fa290f2dfef11`;2,132 body/table paragraphs/19 tables; cover/footer22.49. Complete ordered comparison with the reviewed V22.48 confirms unchanged material plus version/date and the reviewed build-first reaffirmation. Private original/extraction remain outside public Git, mode0600. This resolves the initial Phase68 attachment blocker; it does not turn source verification into native/hosted acceptance. V22.48's historical stale cover remains unchanged in that separate original.
