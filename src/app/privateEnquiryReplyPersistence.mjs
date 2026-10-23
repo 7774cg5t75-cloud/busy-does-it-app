@@ -27,11 +27,13 @@ export async function persistPrivateReply({customer,record,isCurrent,reconcile},
 
 // Original account-session bindings: feature gate is rollout only, never authority.
 // The editor supplies its genuine live typing epoch. No copied state or payload apply.
-export function privateReplyAccountBindings({enabled,sessionRef,contextRef,ownerAccessToken,request}){
- if(enabled!==true)return {trustedAccountEnabled:false};
+export function privateReplyAccountBindings({enabled,recoveryEnabled=false,sessionRef,contextRef,ownerAccessToken,request}){
+ if(enabled!==true&&recoveryEnabled!==true)return {trustedAccountEnabled:false,accountRecoveryEnabled:false};
  const current=getEditorEpoch=>()=>({...contextRef.current,inputEpoch:getEditorEpoch()});
  return {
-  trustedAccountEnabled:true,
+  trustedAccountEnabled:enabled===true,accountRecoveryEnabled:recoveryEnabled===true,
+  loadAccountReplyChoices:args=>sessionRef.current.discoverPrivateReplies({...args,ownerAccessToken,request}),
+  inspectAccountReply:args=>sessionRef.current.inspectDiscoveredReply({...args,ownerAccessToken,request}),
   reconcilePrivateAccountReply:({getEditorEpoch})=>sessionRef.current.reconcilePrivateReply({getCurrent:current(getEditorEpoch),ownerAccessToken,request}),
   readPrivateAccountReply:({customerId,enquiryId,getEditorEpoch})=>sessionRef.current.readPrivateReply({getCurrent:current(getEditorEpoch),ownerAccessToken,request,customerId,enquiryId}),
   preparePrivateAccountEdit:({review,newText,getEditorEpoch})=>sessionRef.current.preparePrivateReplyEdit({getCurrent:current(getEditorEpoch),review,newText}),

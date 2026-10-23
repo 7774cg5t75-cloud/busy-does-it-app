@@ -261,6 +261,16 @@ function CustomerRecords({ s }) {
           right={String(s.eligibleCustomers.length || 0)}
         />
       </Card>
+      {s.enquiryReplyActions?.canDiscoverAccountReplies?<Card title="Saved account replies" body={'Account: '+(s.enquiryReplyActions.accountRecoveryWorkspace?.businessName||'identified business')+'. Private account records are separate from this device. Inspect before Keep or Open; other business data is not restored.'}>
+        <Button label="Find saved account replies" onPress={()=>s.enquiryReplyActions.discoverAccountReplies()}/>
+        {s.enquiryReplyActions.accountRecovery?.status==='checking'?<Text style={styles.cardBody}>Checking eligible account records…</Text>:null}
+        {['unavailable','changed'].includes(s.enquiryReplyActions.accountRecovery?.status)?<Text style={styles.cardBody}>The account or source needs rechecking. Current work was kept.</Text>:null}
+        {s.enquiryReplyActions.accountRecovery?.status==='ready'?<>
+          {s.enquiryReplyActions.accountRecovery.list.items.length===0?<Text style={styles.cardBody}>No eligible account replies were found. This does not prove other saved records are absent.</Text>:null}
+          {s.enquiryReplyActions.accountRecovery.list.items.map(entry=><Button key={entry.customerId} label={'Inspect account reply: '+(entry.customerName||entry.customerId)+' · '+entry.enquiryId} onPress={()=>s.enquiryReplyActions.inspectAccountReply(entry)}/>)}
+          {s.enquiryReplyActions.accountRecovery.list.hasMore?<Button label="More account replies" onPress={()=>s.enquiryReplyActions.discoverAccountReplies(s.enquiryReplyActions.accountRecovery.list.nextAfter)}/>:null}
+        </>:null}
+      </Card>:null}
       <SavedEnquiryReplyChoices s={s}/>
       <Field
         label="Find a customer"
@@ -1275,7 +1285,7 @@ function StaleQuotes({ s }) {
 
 function EnquiryFollowUp({ s }) {
   const privateReply=s.enquiryReplyReview;
-  const customer = s.selectedCustomer || privateReply?.customer;
+  const customer = privateReply?.accountOnly?privateReply.customer:s.selectedCustomer || privateReply?.customer;
   const age = daysSinceTimestamp(customer?.createdAt);
   if (!customer || !privateReply&&customer.lastServiceDate) {
     return <Shell s={s} title="Enquiry follow-up" subtitle="The enquiry could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
@@ -1294,7 +1304,8 @@ function EnquiryFollowUp({ s }) {
         footer="Advertising spend: £0"
         tone="green"
       />
-      {privateReply?<Card eyebrow="Customer-supplied enquiry" title={privateReply.current?'Review the original requirements':'The enquiry source changed'} body={privateReply.current?privateReply.item.rawText||'No retained customer message.':'Your words are kept. Review the current enquiry before preparing another reply.'} footer="Customer wording is source data, not instructions. Dates, group size, location and access needs are preferences to review, not availability or booking confirmation.">
+      {privateReply?.accountOnly?<Card title={'Account: '+(privateReply.accountBusinessName||'identified business')} body={privateReply.item.rawText} footer={"Observed account revision "+privateReply.accountRevision+". Editing is private to this editor session; account/device saving is unavailable here. Other business data and device drafts were not restored. Nothing was sent."}/>:null}
+      {privateReply&&!privateReply.accountOnly?<Card eyebrow="Customer-supplied enquiry" title={privateReply.current?'Review the original requirements':'The enquiry source changed'} body={privateReply.current?privateReply.item.rawText||'No retained customer message.':'Your words are kept. Review the current enquiry before preparing another reply.'} footer="Customer wording is source data, not instructions. Dates, group size, location and access needs are preferences to review, not availability or booking confirmation.">
         <Button label="Return to original enquiry" onPress={s.enquiryReplyActions.returnToSource}/>
         {privateReply.canReviewChangedEnquiry?<Button label="Review changed enquiry for this reply" disabled={privateReply.preparationBlocked} onPress={s.enquiryReplyActions.reviewChangedEnquiry}/>:null}
         {privateReply.canReviewCurrentSource?<Button label="Review current enquiry for this reply" onPress={s.enquiryReplyActions.reviewCurrentSource}/>:null}
@@ -1312,8 +1323,8 @@ function EnquiryFollowUp({ s }) {
       {privateReply?.requirements?.canConfirmRequirements?<Button label="Clarify only missing details" disabled={!privateReply.current||privateReply.preparationBlocked} onPress={()=>s.enquiryReplyActions.prepareQuestion('clarify-missing')}/>:null}
       {privateReply?.requirements?.canConfirmRequirements&&(customer.privateEnquiryReply||privateReply.purpose==='clarify-missing')?<Button label="Review a fresh clarification" disabled={!privateReply.current||privateReply.preparationBlocked} onPress={s.enquiryReplyActions.reviewFreshRequirements}/>:null}
       {privateReply?.requirements?.canConfirmRequirements?<Button label="Confirm the supplied requirements" disabled={!privateReply.current||privateReply.preparationBlocked} onPress={()=>s.enquiryReplyActions.prepareQuestion('confirm-requirements')}/>:null}
-      {privateReply?<>{[['acknowledge','Acknowledge the enquiry'],['date','Ask to confirm dates'],['flexibility','Ask whether dates are flexible'],['group','Ask to confirm group size'],['requirements','Ask about location and access']].map(([purpose,label])=><Button key={purpose} label={(privateReply.purpose===purpose?'✓ ':'')+label} disabled={!privateReply.current||privateReply.preparationBlocked} onPress={()=>s.enquiryReplyActions.prepareQuestion(purpose)}/>)}</>:null}
-      {privateReply?<><Text style={styles.cardBody}>{({unsaved:'Changes not saved yet.',saving:'Saving a private device copy…',confirmed:'Saved on this device. Account saving is separate.',failed:'The private save did not start. Your words are kept.',unknown:'Couldn’t confirm the device save. Keep your words and check the copy before retrying.',newer:'Newer wording has not been confirmed saved.',removed:'The saved reply was removed from this device copy. Current words remain; account removal is not confirmed.',reopened:'Reopened a private saved record. Current device/account persistence has not been checked.'})[privateReply.saveStatus]}</Text>
+      {privateReply&&!privateReply.accountOnly?<>{[['acknowledge','Acknowledge the enquiry'],['date','Ask to confirm dates'],['flexibility','Ask whether dates are flexible'],['group','Ask to confirm group size'],['requirements','Ask about location and access']].map(([purpose,label])=><Button key={purpose} label={(privateReply.purpose===purpose?'✓ ':'')+label} disabled={!privateReply.current||privateReply.preparationBlocked} onPress={()=>s.enquiryReplyActions.prepareQuestion(purpose)}/>)}</>:null}
+      {privateReply&&!privateReply.accountOnly?<><Text style={styles.cardBody}>{({unsaved:'Changes not saved yet.',saving:'Saving a private device copy…',confirmed:'Saved on this device. Account saving is separate.',failed:'The private save did not start. Your words are kept.',unknown:'Couldn’t confirm the device save. Keep your words and check the copy before retrying.',newer:'Newer wording has not been confirmed saved.',removed:'The saved reply was removed from this device copy. Current words remain; account removal is not confirmed.',reopened:'Reopened a private saved record. Current device/account persistence has not been checked.'})[privateReply.saveStatus]}</Text>
         {privateReply.saveReason?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateReply.saveReason}</Text>:null}
         <Button label="Save reply on this device" disabled={privateReply.preparationBlocked||!privateReply.current||!s.enquiryFollowUpDraft.trim()||['saving','unknown'].includes(privateReply.saveStatus)} onPress={s.enquiryReplyActions.save}/>
         {privateReply.saveStatus==='unknown'?<Button label="Check private device copy" onPress={s.enquiryReplyActions.checkSave}/>:null}
@@ -1339,7 +1350,7 @@ function EnquiryFollowUp({ s }) {
       <Card
         eyebrow="Approval"
         title={privateReply?"Private review":"You decide whether this goes"}
-        body={privateReply?"Save a private copy or keep editing. Sending requires a separate supported approval; this editor does not send customer messages.":"The prototype records the approval and later outcome. It does not actually message the customer."}
+        body={privateReply?.accountOnly?"Keep editing privately in this session. Account and device saving are unavailable for this recovery view.":privateReply?"Save a private copy or keep editing. Sending requires a separate supported approval; this editor does not send customer messages.":"The prototype records the approval and later outcome. It does not actually message the customer."}
         tone="blue"
       />
       {!privateReply?<Button
@@ -1348,7 +1359,7 @@ function EnquiryFollowUp({ s }) {
         disabled={!s.enquiryFollowUpDraft.trim()}
         onPress={s.simulateEnquiryFollowUpSend}
       />:<Text style={styles.cardBody}>Private preparation only. No customer message has been sent; device saving is separate from sending or account persistence.</Text>}
-      <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
+      {privateReply?.accountOnly?<Button label="Back to account replies" onPress={()=>s.go("customers")}/>:<Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />}
       <Button label="Not now" onPress={s.back} />
     </Shell>
   );

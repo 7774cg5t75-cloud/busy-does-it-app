@@ -2167,6 +2167,12 @@
       "args": [
         "scripts/check-mission15-phase62-services.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase63-recovery",
+      "args": [
+        "scripts/check-mission15-phase63-recovery.mjs"
+      ]
     }
   ]
 }

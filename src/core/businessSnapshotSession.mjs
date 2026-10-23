@@ -4,11 +4,16 @@ import {stableJson} from "./stableJson.mjs";
 const uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const stamp=stableJson;
 const rowOf=rows=>Array.isArray(rows)?rows.length===1?rows[0]:null:rows;
+// Fixed owner-private response policy shared by editor save and account recovery.
+function validPrivateReplyProjection(value,{businessId,ownerId,customerId,enquiryId,revision}){
+ const only=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
+ return !!(only(value,['businessId','ownerId','customerId','enquiryId','revision','schemaVersion','recordHash','sourceHash','eligible','reply','customer','enquiry'])&&value.businessId===businessId&&value.ownerId===ownerId&&value.customerId===customerId&&value.enquiryId===enquiryId&&value.revision===revision&&value.schemaVersion===1&&typeof value.eligible==='boolean'&&only(value.reply,['text'])&&typeof value.reply.text==='string'&&only(value.customer,['id','name'])&&value.customer.id===customerId&&typeof value.customer.name==='string'&&only(value.enquiry,['id','rawText'])&&value.enquiry.id===enquiryId&&typeof value.enquiry.rawText==='string'&&/^([a-f0-9]{64})$/.test(value.recordHash||'')&&/^([a-f0-9]{64})$/.test(value.sourceHash||''));
+}
 function createBusinessSnapshotSession(){
  let pending=null,observed=null,lastOwnSave=null,writeBlockedIdentity=null,uncertainMutationIdentity=null;
  let legacyWorkspacePaused=false;
  let privateBasis=null; // Exact own target receipt; never a full local snapshot revision.
- const mutationTickets=new WeakMap(),privateReviews=new WeakMap();
+ const mutationTickets=new WeakMap(),privateReviews=new WeakMap(),discoveredReplies=new WeakMap(),recoveryReviews=new WeakMap();
  const tickets=new WeakMap();
  function prepareRestore(getCurrent){
   const source=getCurrent();
@@ -134,6 +139,31 @@ function createBusinessSnapshotSession(){
    return {ok:true,readOnly:true,workspace:JSON.parse(stamp(value)),revisionDiffers:value.memberRole==='owner'&&Number.isSafeInteger(localRevision)&&Number.isSafeInteger(value.revision)&&localRevision!==value.revision,reason:(value.memberRole==='owner'&&Number.isSafeInteger(localRevision)&&Number.isSafeInteger(value.revision)&&localRevision!==value.revision?'The account revision differs from this device. Review recovery; device work is kept. ':'')+({missing:'The original account snapshot is missing. Current work is kept; automatic repair is unavailable.',empty:'Your account workspace is identified but has no supported saved domain data. Device work has not been uploaded.',present:'Your account is identified. Domain recovery is not yet available here; current device work is kept.',incompatible:'This account uses an incompatible format. Current work is kept; use a compatible client.',restricted:'Shared workspace identified. Owner-private account recovery is unavailable for this role.'})[state]};
   }catch{return fail();}
  }
+ // Discovery/recovery is read evidence only. Never mint an own-save receipt,
+ // restore local records, or trust a caller-created list entry as authority.
+ async function discoverPrivateReplies({businessId,ownerId,isCurrent,ownerAccessToken,request,after=null}){
+  if(!uuid.test(businessId||'')||!uuid.test(ownerId||'')||!isCurrent())return {ok:false};
+  try{
+   const token=await ownerAccessToken();if(!token||!isCurrent())return {ok:false};
+   const list=await request('rpc/busy_owner_reply_discover_v1',{method:'POST',token,body:{p_business_id:businessId,p_after_customer_id:after}});
+   if(!isCurrent()||!list||Object.keys(list).sort().join(',')!=='businessId,hasMore,items,nextAfter,ownerId,revision,schemaVersion'||list.businessId!==businessId||list.ownerId!==ownerId||list.schemaVersion!==1||!Number.isSafeInteger(list.revision)||list.revision<1||!Array.isArray(list.items)||list.items.length>25||typeof list.hasMore!=='boolean'||(list.hasMore?list.nextAfter!==list.items.at(-1)?.customerId:list.nextAfter!==null))return {ok:false};
+   const ids=new Set();for(const entry of list.items){if(!entry||Object.keys(entry).sort().join(',')!=='customerId,customerName,enquiryId'||![entry.customerId,entry.enquiryId].every(id=>typeof id==='string'&&id.length>0&&id.length<=240)||typeof entry.customerName!=='string'||entry.customerName.length>240||ids.has(entry.customerId))return {ok:false};ids.add(entry.customerId);}
+   const copy=JSON.parse(stamp(list));for(const entry of copy.items)discoveredReplies.set(entry,{businessId,ownerId,revision:list.revision,entryStamp:stamp(entry)});return {ok:true,list:copy};
+  }catch{return {ok:false};}
+ }
+ async function inspectDiscoveredReply({entry,review,isCurrent,ownerAccessToken,request}){
+  const source=review?recoveryReviews.get(review):discoveredReplies.get(entry);
+  if(!source||!isCurrent()||entry&&stamp(entry)!==source.entryStamp||review&&stamp(review)!==source.reviewStamp)return {ok:false};
+  if(review)recoveryReviews.delete(review); // One use, including denied/interrupted reads.
+  const customerId=review?.customerId||entry.customerId,enquiryId=review?.enquiryId||entry.enquiryId;
+  try{
+   const token=await ownerAccessToken();if(!token||!isCurrent())return {ok:false};
+   const value=await request('rpc/busy_owner_reply_review_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_customer_id:customerId,p_enquiry_id:enquiryId,p_expected_revision:source.revision}});
+   if(!isCurrent()||!validPrivateReplyProjection(value,{...source,customerId,enquiryId})||value.eligible!==true||review&&(value.recordHash!==review.recordHash||value.sourceHash!==review.sourceHash||value.reply.text!==review.reply.text||value.enquiry.rawText!==review.enquiry.rawText))return {ok:false};
+   if(review)recoveryReviews.delete(review); // One-use opening authority after recheck.
+   const copy=JSON.parse(stamp(value));if(!review)recoveryReviews.set(copy,{...source,reviewStamp:stamp(copy)});return {ok:true,review:copy};
+  }catch{return {ok:false};}
+ }
  // Metadata-only observation. It never clears an uncertain mutation, changes
  // local state/revision, or acknowledges unrelated dirty fields.
  async function reconcilePrivateReply({getCurrent,ownerAccessToken,request}){
@@ -165,9 +195,7 @@ function createBusinessSnapshotSession(){
   try{
    const token=await ownerAccessToken();if(!token||!current())return {ok:false};
    const review=await request('rpc/busy_owner_reply_review_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_customer_id:customerId,p_enquiry_id:enquiryId,p_expected_revision:accountRevision}});
-   if(!current()||review?.businessId!==source.businessId||review.ownerId!==source.ownerId||review.customerId!==customerId||review.enquiryId!==enquiryId||review.revision!==accountRevision||review.schemaVersion!==1||typeof review.reply?.text!=='string'||typeof review.enquiry?.rawText!=='string'||!/^([a-f0-9]{64})$/.test(review.recordHash||'')||!/^([a-f0-9]{64})$/.test(review.sourceHash||''))return {ok:false};
-   const only=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).every(key=>keys.includes(key));
-   if(!only(review,['businessId','ownerId','customerId','enquiryId','revision','schemaVersion','recordHash','sourceHash','eligible','reply','customer','enquiry'])||!only(review.reply,['text'])||!only(review.customer,['id','name'])||!only(review.enquiry,['id','rawText'])||review.customer.id!==customerId||review.enquiry.id!==enquiryId)return {ok:false};
+   if(!current()||!validPrivateReplyProjection(review,{businessId:source.businessId,ownerId:source.ownerId,customerId,enquiryId,revision:accountRevision}))return {ok:false};
    if(basis?.identity===source.identity&&(review.recordHash!==basis.recordHash||review.sourceHash!==basis.sourceHash||review.reply.text!==basis.text))return {ok:false,status:'reviewRequired'};
    const copy=JSON.parse(stamp(review));privateReviews.set(copy,{...source,accountRevision,payloadStamp:captured,reviewStamp:stamp(copy)});return {ok:true,review:copy};
   }catch{return {ok:false};}finally{if(pending===task)pending=null;}
@@ -225,6 +253,6 @@ function createBusinessSnapshotSession(){
   if(typeof customerId!=='string'||typeof inboxId!=='string'||!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
   try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(stamp({customers:receipt.payload.customers?.filter(row=>row?.id===customerId)||[],inboxItems:receipt.payload.inboxItems?.filter(row=>row?.id===inboxId)||[]}))};}catch{return {ok:false};}
  };
- return {inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ return {discoverPrivateReplies,inspectDiscoveredReply,inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};
