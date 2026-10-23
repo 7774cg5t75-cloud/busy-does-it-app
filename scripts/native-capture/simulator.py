@@ -11,7 +11,9 @@ for device in phones:
  try:udid=run('xcrun','simctl','create','Busy Capture',device['identifier'],runtime['identifier']);break
  except subprocess.CalledProcessError:continue
 else:raise SystemExit('No supported iPhone simulator')
-subprocess.run(['xcrun','simctl','bootstatus',udid,'-b'],check=True)
+print('Booting',device['name'],runtime['name'],flush=True)
+subprocess.run(['open','-a','Simulator','--args','-CurrentDeviceUDID',udid],check=True)
+subprocess.run(['xcrun','simctl','bootstatus',udid,'-b'],check=True,timeout=360)
 subprocess.run(['xcrun','simctl','status_bar',udid,'override','--time','9:41','--dataNetwork','wifi','--wifiMode','active','--wifiBars','3','--batteryState','charged','--batteryLevel','100'],check=True)
 with open(os.environ['GITHUB_ENV'],'a') as f:f.write('CAPTURE_UDID='+udid+'\n')
 p='artifacts/native-screenshots/manifest.json';m=json.load(open(p));m.update(device=device['name'],runtime=runtime['name']);open(p,'w').write(json.dumps(m,indent=2))

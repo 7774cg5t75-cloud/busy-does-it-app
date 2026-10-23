@@ -2226,6 +2226,13 @@
         "scripts/check-mission15-phase69-workspaces.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "native-screenshot-pipeline",
+      "args": [
+        "scripts/check-native-screenshot-pipeline.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

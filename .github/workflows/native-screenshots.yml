@@ -19,7 +19,7 @@ concurrency:
 jobs:
   ios:
     if: github.repository == '7774cg5t75-cloud/busy-does-it-app' && github.event.repository.private == false && github.ref == 'refs/heads/codex/builder-mission15-design-advancement'
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 50
     env:
       CI: '1'
@@ -53,6 +53,7 @@ jobs:
           fi
           ruby scripts/native-capture/project.rb "$PWD"
       - name: Boot supported iPhone
+        timeout-minutes: 8
         run: python3 scripts/native-capture/simulator.py
       - name: Capture through Apple tooling while XCTest drives the real app
         run: |
