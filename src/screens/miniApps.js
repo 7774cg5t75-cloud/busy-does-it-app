@@ -647,6 +647,10 @@ function MiniAppSurface({
 }
 
 function BusyAppsMarketplace({ s }) {
+  const [savedAppQuery,setSavedAppQuery]=React.useState("");
+  const savedApps=Array.isArray(s.myBusyApps)?s.myBusyApps:[];
+  const query=savedAppQuery.trim().toLocaleLowerCase("en");
+  const visibleSavedApps=savedApps.filter(item=>!query||[item.name,item.tagline,item.category].some(value=>String(value||"").toLocaleLowerCase("en").includes(query)));
   const results = Array.isArray(s.busyAppsResults) ? s.busyAppsResults : [];
 
   return (
@@ -710,6 +714,8 @@ function BusyAppsMarketplace({ s }) {
       </Card>
 
       <Text style={styles.sectionLabel}>My BUSY Apps</Text>
+      <Field label="Find an app you have used" value={savedAppQuery} onChangeText={setSavedAppQuery} placeholder="Business name, description or category"/>
+      {query?<><Text accessibilityLiveRegion="polite" style={styles.helper}>{visibleSavedApps.length+" matching saved apps. Public marketplace results below are separate."}</Text><Button label="Show all my saved apps" onPress={()=>setSavedAppQuery("")}/></>:null}
       {s.myBusyAppsLoading ? (
         <Card
           eyebrow="My BUSY Apps"
@@ -718,7 +724,7 @@ function BusyAppsMarketplace({ s }) {
           tone="blue"
         />
       ) : (s.myBusyApps || []).length ? (
-        (s.myBusyApps || []).map((item) => (
+        visibleSavedApps.map((item) => (
           <Card
             key={`mine-${item.id}`}
             eyebrow={item.favorite ? "Favourite BUSY App" : item.category || "BUSY App"}
@@ -2464,9 +2470,10 @@ function MiniAppBuilder({ s }) {
           </Text>
           <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
             config={view.draftConfig} suggestions={view.enquiryContentGaps?.suggestions||[]} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
-          <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
-            businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending}
-            onPreview={setStudioPreview} onNotice={setStudioNotice}/>
+          <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch,confirmedOwnerParts.contact||0].join(':')}
+            businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+            onDraftChange={value=>markOwnerDirty('contact',value)}
+            onPreview={proposal=>setStudioPreview(proposal,'contact')} onNotice={setStudioNotice}/>
           <View style={styles.inspectorGroup}>
           <Text accessibilityRole="header" style={styles.inspectorHeading}>Edit public wording</Text>
           <Text style={styles.workspaceMeta}>Choose one part, write your replacement, then preview it before approval.</Text>

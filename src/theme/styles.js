@@ -147,6 +147,7 @@ const createStyles=()=>StyleSheet.create({
   detailsLabel: {flex:1,minWidth:0,color:C.blueText,fontWeight:"700",fontSize:14,lineHeight:21},
   detailsIndicator: {color:C.blueText,fontSize:22},
   detailsBody: {paddingHorizontal:14,paddingBottom:14,gap:8},
+  navigationSelection: {backgroundColor:C.blueSoft,borderColor:C.blueText,borderWidth:1,borderRadius:16,padding:14,gap:6,marginVertical:10},
   inspectorGroup: {borderWidth:1,borderColor:C.border,borderRadius:16,backgroundColor:C.input,padding:14,marginVertical:10,gap:8},
   inspectorHeading: {color:C.ink,fontWeight:"700",fontSize:17,lineHeight:25},
   workflowCard: {backgroundColor:C.card,borderColor:C.border,borderWidth:1,borderRadius:18,padding:16,marginBottom:14,gap:6},

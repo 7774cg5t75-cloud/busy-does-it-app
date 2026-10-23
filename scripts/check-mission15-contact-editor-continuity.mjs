@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {createOwnerEditNavigation} from '../src/core/ownerEditNavigation.mjs';
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
+const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[];
+const find=(t,label)=>walk(t).find(x=>x.props?.label===label);
+const businessId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',ownerId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const config={modules:[{key:'business_profile',enabled:true}],navigation:['business_profile'],publicProfile:{businessName:'Fictional',contact:{phone:'07123456789',email:'fictional@example.invalid',openingHours:'Monday to Friday'}}};
+const app={id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',business_id:businessId,draft_revision:1,draft_config:config};
+const rt=createRuntime(),{AppContactEditor:Contact}=rt.load('src/screens/appContactEditor.js');let currentApp=app,busy=false,proposals=[],reports=[];
+const render=()=>rt.render(Contact,{businessId,app:currentApp,busy,onDraftChange:x=>reports.push(x),onPreview:x=>{proposals.push(x);return true;},onNotice:()=>{}});
+let t=render();find(t,'Edit public contact details').props.onPress();t=render();assert.equal(find(t,'Public phone').props.value,'07123456789');
+find(t,'Public phone').props.onChangeText('07999999999');t=render();find(t,'Edit public email').props.onPress();t=render();assert.equal(find(t,'Public phone').props.value,'07999999999');assert.ok(find(t,'Keep editing contact wording'));assert.ok(proposals.every(x=>x===null));
+const obsoleteDiscard=find(t,'Discard contact wording and continue').props.onPress;find(t,'Public phone').props.onChangeText('07888888888');t=render();obsoleteDiscard();t=render();assert.equal(find(t,'Public phone').props.value,'07888888888');
+find(t,'Hide public contact editor').props.onPress();t=render();find(t,'Keep editing contact wording').props.onPress();t=render();assert.equal(find(t,'Public phone').props.value,'07888888888');
+await rt.load('src/theme/appearance.mjs').updateAppearance({mode:'daylight'},async()=>{});t=render();assert.equal(find(t,'Public phone').props.value,'07888888888');
+find(t,'Preview public contact change').props.onPress();const proposal=proposals.at(-1);assert.ok(proposal.ok);assert.equal(proposal.source.businessId,businessId);assert.equal(proposal.operations[0].field,'phone');assert.equal(proposal.operations[0].value,'07888888888');assert.equal(config.publicProfile.contact.phone,'07123456789','preview cannot modify original contact');assert.equal(reports.at(-1),true,'preview does not clear unsaved metadata');
+find(t,'Edit public email').props.onPress();t=render();const discard=find(t,'Discard contact wording and continue').props.onPress;discard();t=render();assert.equal(find(t,'Public email').props.value,'fictional@example.invalid');discard();t=render();assert.equal(find(t,'Public email').props.value,'fictional@example.invalid');
+find(t,'Public email').props.onChangeText('new@example.invalid');t=render();const oldPreview=find(t,'Preview public contact change').props.onPress;busy=true;t=render();assert.equal(find(t,'Public email').props.editable,false);oldPreview();assert.equal(proposals.filter(Boolean).length,1);
+busy=false;currentApp={...app,business_id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd'};t=render();oldPreview();find(t,'Preview public contact change').props.onPress();assert.equal(proposals.filter(Boolean).length,1,'wrong-business source cannot produce a bound proposal or throw');
+// Actual original Builder parent registers contact alongside the other dirty editors.
+const pr=createRuntime(),{MiniAppBuilder:Builder}=pr.load('src/screens/miniApps.js'),{AppContactEditor:ParentContact}=pr.load('src/screens/appContactEditor.js');let prompt,writes=0;
+const scope='owner:business:miniAppBuilder',guard=createOwnerEditNavigation({getScope:()=>scope,confirm:x=>prompt=x});
+const s={ownerSession:{userId:ownerId},cloudWorkspace:{businessId},miniAppBuilderPlan:{missingFacts:[],modules:[],publicProfile:{}},miniAppsView:{app,draftConfig:config},setOwnerEditDirty:binding=>guard.report({...binding,scope}),requestOwnerEditTransition:guard.request,applyMiniAppPlan:()=>writes++};
+t=pr.render(Builder,{s});let child=walk(t).find(n=>n.type===ParentContact);assert.ok(child);child.props.onDraftChange(true);t=pr.render(Builder,{s});find(t,'Build this update & show me').props.onPress();assert.equal(writes,0);assert.ok(prompt);prompt.keep();assert.equal(writes,0);assert.equal(guard.hasDirtySource(config),true);
+console.log('PASS original contact field/close dirty review, stale and repeated discard denial, exact bound preview, theme/busy/source safeguards and genuine Builder parent dirty-navigation registration. No save, publication or external IO.');

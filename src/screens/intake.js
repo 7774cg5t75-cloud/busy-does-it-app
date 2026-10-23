@@ -147,13 +147,19 @@ import {
 
 
 function BusyInbox({ s }) {
+  const [search,setSearch]=useState("");
+  const [lane,setLane]=useState("All");
+  const query=search.trim().toLocaleLowerCase("en");
+  const matches=item=>!query||[item.parsed?.name,item.parsed?.phone,item.parsed?.email,item.parsed?.service,item.source,item.status].some(value=>String(value||"").toLocaleLowerCase("en").includes(query));
   const pending = s.inboxPendingItems || [];
   const attention = s.inboxNeedsAttentionItems || [];
   const ready = s.inboxReadyItems || [];
   const processed = [...(s.inboxItems || [])]
     .filter((item) => item.status !== "Pending")
-    .sort((a, b) => String(b.reviewedAt || b.queuedAt || "").localeCompare(String(a.reviewedAt || a.queuedAt || "")))
-    .slice(0, 6);
+    .sort((a, b) => String(b.reviewedAt || b.queuedAt || "").localeCompare(String(a.reviewedAt || a.queuedAt || "")));
+  const shownAttention=attention.filter(matches),shownReady=ready.filter(matches),shownProcessed=processed.filter(matches).slice(0,6);
+  const showAttention=lane==="All"||lane==="Needs attention",showReady=lane==="All"||lane==="Ready to review",showProcessed=lane==="All"||lane==="Processed";
+  const shownCount=(showAttention?shownAttention.length:0)+(showReady?shownReady.length:0)+(showProcessed?shownProcessed.length:0);
 
   const ItemCard = ({ item }) => {
     const parsed = item.parsed || {};
@@ -162,9 +168,9 @@ function BusyInbox({ s }) {
     const service = parsed.service || "Service not detected";
     const contact = parsed.phone || parsed.email || "Contact detail missing";
     return (
-      <View key={item.id} style={styles.activityCard}>
-        <View style={styles.activityTopRow}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
+      <View key={item.id} style={styles.workflowCard}>
+        <View style={styles.workflowHeader}>
+          <View style={styles.workflowIdentity}>
             <Text style={styles.customerTimelineLabel}>{String(parsed.stage || "Incoming").toUpperCase()}</Text>
             <Text style={styles.activityName}>{title}</Text>
             <Text style={styles.activityService}>{service}</Text>
@@ -176,7 +182,7 @@ function BusyInbox({ s }) {
                 ? "Continue"
                 : triage.lane === "Needs attention"
                 ? "Check"
-                : "Ready"
+                : triage.lane === "Ready to review" ? "Ready to review" : "Review needed"
             }
             tone={
               triage.reconciliation?.progression
@@ -279,11 +285,19 @@ function BusyInbox({ s }) {
       />
       <Button label="Automatic record filing settings" onPress={() => s.go("recordFilingSettings")} />
 
-      {attention.length ? <Text style={styles.sectionLabel}>Needs attention</Text> : null}
-      {attention.map((item) => <ItemCard key={item.id} item={item} />)}
+      <View style={styles.workspacePanel}>
+       <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Find an enquiry</Text>
+       <Field label="Find an Inbox item" value={search} onChangeText={setSearch} placeholder="Customer, contact, service or source"/>
+       <View style={styles.choiceGrid}>{["All","Needs attention","Ready to review","Processed"].map(value=><View key={value} style={styles.choiceCell}><Button compact selected={lane===value} label={(lane===value?"✓ ":"")+value} onPress={()=>setLane(value)}/></View>)}</View>
+       <Text accessibilityLiveRegion="polite" style={styles.workspaceMeta}>{shownCount+" visible items. Filtering changes this list only; it does not file, dismiss or send anything."}</Text>
+       {query||lane!=="All"?<Button label="Clear Inbox filters" onPress={()=>{setSearch("");setLane("All");}}/>:null}
+      </View>
+      {showAttention&&shownAttention.length ? <Text style={styles.sectionLabel}>Needs attention</Text> : null}
+      {showAttention&&shownAttention.map((item) => <ItemCard key={item.id} item={item} />)}
 
-      {ready.length ? <Text style={styles.sectionLabel}>Ready to review</Text> : null}
-      {ready.map((item) => <ItemCard key={item.id} item={item} />)}
+      {showReady&&shownReady.length ? <Text style={styles.sectionLabel}>Ready to review</Text> : null}
+      {showReady&&shownReady.map((item) => <ItemCard key={item.id} item={item} />)}
+      {!shownCount&&(query||lane!=="All")?<Text style={styles.helper}>No items match these filters. Clear them to see the other recorded items.</Text>:null}
 
       {!pending.length ? (
         <Card
@@ -307,15 +321,15 @@ function BusyInbox({ s }) {
       <Button label="Load 4 ordinary test Inbox items" onPress={s.queueInboxTestBatch} />
       <Text style={styles.helper}>The ordinary Inbox examples are test-only and are designed to exercise the review/exception lanes.</Text>
 
-      {processed.length ? (
+      {showProcessed&&shownProcessed.length ? (
         <>
           <Text style={styles.sectionLabel}>Recently processed</Text>
-          {processed.map((item) => (
-            <View key={item.id} style={styles.activityCard}>
-              <View style={styles.activityTopRow}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
+          {shownProcessed.map((item) => (
+            <View key={item.id} style={styles.workflowCard}>
+              <View style={styles.workflowHeader}>
+                <View style={styles.workflowIdentity}>
                   <Text style={styles.activityName}>{item.parsed?.name || "Incoming item"}</Text>
-                  <Text style={styles.activityService}>{item.parsed?.stage || "Incoming"} • {item.source}</Text>
+                  <Text style={styles.activityService}>{item.parsed?.stage || "Incoming"} • {item.source||"Source not recorded"}</Text>
                 </View>
                 <StatusChip
                   label={item.autoFiled ? "Auto-filed" : item.status}

@@ -2239,6 +2239,18 @@
       "args": [
         "scripts/check-mission15-working-surface-continuity.mjs"
       ]
+    },
+    {
+      "id": "mission15-contact-editor-continuity",
+      "args": [
+        "scripts/check-mission15-contact-editor-continuity.mjs"
+      ]
+    },
+    {
+      "id": "mission15-navigation-workspaces",
+      "args": [
+        "scripts/check-mission15-navigation-workspaces.mjs"
+      ]
     }
   ]
 }

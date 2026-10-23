@@ -647,6 +647,7 @@ function WebsiteBuilder({ s }) {
             footer={s.websitePublishingView?.liveDeployment ? "A separate approved version is currently live." : "This editor draft is not public until an exact hosted version is approved."}
             tone="blue"
           >
+            <Details label="Current website and revision"><MetricRow left="Website reference" right={draft.id}/><MetricRow left="Private draft revision" right={String(draft.generation)}/><Text style={styles.workspaceMeta}>These identify the draft you are editing; a public deployment has separate approval and revision evidence.</Text></Details>
             <MetricRow left="Pages" right={String(draft.pages?.length || 1)} />
             <Button label="Preview website" primary onPress={() => s.go("websitePreview")} />
           </Card>
@@ -1329,11 +1330,14 @@ function WebsitePreview({ s }) {
       <Card eyebrow="Select a page" title="Preview the actual page content"
         body="Choose a page below. BUSY uses your saved page sections, headings and page-specific SEO in the private design preview."
         tone="blue">
+        <View style={styles.navigationSelection}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>{"Current page: "+(activePage?.title||activePage?.id||"No page selected")}</Text><Text style={styles.workspaceMeta}>{activePage?.path||"/"}</Text></View>
+        <View style={styles.choiceGrid}>
         {(draft.pages||[]).map(page=>(
-          <Button key={page.id} label={(activePage?.id===page.id?"✓ ":"")+
+          <View key={page.id} style={styles.choiceCell}><Button compact selected={activePage?.id===page.id} label={(activePage?.id===page.id?"✓ ":"")+
             (page.title||page.id)+" • "+(page.path||"/")}
-            onPress={()=>setSelectedPageId(page.id)}/>
+            onPress={()=>setSelectedPageId(page.id)}/></View>
         ))}
+        </View>
       </Card>
 
       {!designCandidate?<WebsiteCompositionReview key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')}

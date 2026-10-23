@@ -18,6 +18,11 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
  const [sectionBody,setSectionBody]=React.useState("");
  const [deleteConfirm,setDeleteConfirm]=React.useState(false);
  const [showExport,setShowExport]=React.useState(false);
+ const [pageQuery,setPageQuery]=React.useState("");
+ const query=pageQuery.trim().toLocaleLowerCase("en");
+ const pages=draft?.pages||[];
+ const visiblePages=pages.filter(item=>!query||[item.title,item.path,item.id].some(value=>String(value||"").toLocaleLowerCase("en").includes(query)));
+ const activePage=pages.find(item=>item.id===(selected||metadata?.pageId));
  const page=(draft?.customPages||[]).find(x=>x.id===selected);
  const sections=Array.isArray(draft?.sections)?draft.sections:[];
  const dirty=React.useRef({}),epoch=React.useRef(0),inputSession=React.useRef(0),live=React.useRef(draft);live.current=draft;
@@ -69,20 +74,27 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
       footer="New pages and edits stay in your private draft until you approve an exact hosted preview and publication."
       tone="blue">
      <Text style={styles.sectionLabel}>Your pages</Text>
-     {(draft?.pages||[]).map(item=>(
-      <Button selected={item.id===selected||metadata?.pageId===item.id} key={item.id} label={(item.id===selected?"✓ ":"")+(item.title||item.id)+" • "+(item.path||"/")}
+     {activePage?<View style={styles.navigationSelection}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>{"Selected page: "+(activePage.title||activePage.id)}</Text><Text style={styles.workspaceMeta}>{activePage.path||"/"}</Text><Text style={styles.workspaceMeta}>Filtering this list keeps your current editor and unsaved wording.</Text></View>:null}
+     <Field label="Find a website page" value={pageQuery} onChangeText={setPageQuery} placeholder="Page name or address"/>
+     <Text accessibilityLiveRegion="polite" style={styles.helper}>{pages.length?visiblePages.length+" of "+pages.length+" pages shown":"No page entries are available in this draft. Nothing was created or restored."}</Text>
+     {query?<Button label="Show all website pages" onPress={()=>setPageQuery("")}/>:null}
+     <View style={styles.choiceGrid}>
+     {visiblePages.map(item=>(
+      <View key={item.id} style={styles.choiceCell}><Button compact selected={item.id===selected||metadata?.pageId===item.id} label={(item.id===selected||metadata?.pageId===item.id?"✓ ":"")+(item.title||item.id)+" • "+(item.path||"/")}
        onPress={()=>transition(()=>{
         if(item.id.startsWith("page-"))selectPage(item);else setSelected("");
         setMetadata({pageId:item.id,expectedWebsiteId:draft.id,expectedGeneration:draft.generation});
         setMetadataTitle(draft.seo?.pages?.[item.id]?.title||'');setMetadataDescription(draft.seo?.pages?.[item.id]?.description||'');
-       })}/>
+       })}/></View>
      ))}
+     </View>
+     {query&&!visiblePages.length?<Text style={styles.helper}>No page names or addresses match. Your selected page and current wording are kept below.</Text>:null}
      {metadata?<View style={styles.workspacePanel}>
       <Text style={styles.sectionLabel}>How this page is described in search</Text>
       <Text style={styles.cardBody}>Use accurate wording. This changes your private page title and description; it does not prove indexing or ranking improvements.</Text>
       <Field label="Search title (up to 70 characters)" value={metadataTitle} onChangeText={edit('seo',setMetadataTitle)}/>
-      <Field label="Search description (up to 160 characters)" value={metadataDescription} onChangeText={edit('seo',setMetadataDescription)}/>
-      <Button label="Save private page search details" onPress={()=>{if(apply({...metadata,action:'edit-page-metadata',title:metadataTitle,description:metadataDescription}))setMetadata(null);}}/>
+      <Field multiline label="Search description (up to 160 characters)" value={metadataDescription} onChangeText={edit('seo',setMetadataDescription)}/>
+      <Button primary label="Save private page search details" onPress={()=>{if(apply({...metadata,action:'edit-page-metadata',title:metadataTitle,description:metadataDescription}))setMetadata(null);}}/>
       <Button label="Restore automatic page search details" onPress={()=>{if(apply({...metadata,action:'reset-page-metadata'}))setMetadata(null);}}/>
      </View>:null}
      {page?(
@@ -90,7 +102,7 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
        <Text style={styles.sectionLabel}>Edit {page.title}</Text>
        <Text style={styles.cardBody}>{"Address: /pages/"+page.slug+" (stays the same when renamed)"}</Text>
        <Field label="Change page title" value={pageTitle} onChangeText={edit('title',setPageTitle)}/>
-       <Button label="Save page title" onPress={()=>
+       <Button primary label="Save page title" onPress={()=>
         apply({action:"rename-page",pageId:page.id,title:pageTitle})}/>
        <Text style={styles.sectionLabel}>Page sections</Text>
        {page.sectionIds.map(id=>{
@@ -163,7 +175,7 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
         style={[styles.fieldInput,{minHeight:110,textAlignVertical:"top"}]}/>
       </View>
      </View>
-     <Button label="Create private page" onPress={create}/>
+     <Button primary label="Create private page" onPress={create}/>
      </View>
      <Button label={showExport?"Hide ownership export":"Keep a copy of my website content"}
       onPress={()=>setShowExport(x=>!x)}/>

@@ -136,6 +136,7 @@ import {
   Card,
   Button,
   SmallLink,
+  Details,
   Field,
   DatePickerField,
   Choice,
@@ -282,6 +283,8 @@ function CustomerRecords({ s }) {
         </>:null}
       </Card>:null}
       <SavedEnquiryReplyChoices s={s}/>
+      <Text accessibilityRole="header" style={styles.sectionLabel}>Customer records on this device</Text>
+      <Text style={styles.workspaceMeta}>The list below is your current device workspace. Account inspection above is separate; opening one reply does not restore the business.</Text>
       <Field
         label="Find a customer"
         value={search}
@@ -443,16 +446,13 @@ function CustomerDetail({ s }) {
       <Card
         eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}
         title={customer.service}
-        body={
-          [
-            customer.phone || null,
-            customer.email || null,
-            customer.address || null,
-          ].filter(Boolean).join("\n") || "No contact details saved"
-        }
-        footer={customer.contactOk ? "Contact allowed" : "Do not contact"}
+        body="Recorded customer details. Contact settings are not proof of marketing consent or message delivery."
+        footer={customer.contactOk ? "Recorded contact setting: allowed" : "Do not contact"}
         tone="green"
       >
+        <MetricRow left="Phone" right={customer.phone||"Not recorded"}/>
+        <MetricRow left="Email" right={customer.email||"Not recorded"}/>
+        <MetricRow left="Job location" right={customer.address||"Not recorded"}/>
         <MetricRow
           left="Stage"
           right={
@@ -572,9 +572,9 @@ function CustomerDetail({ s }) {
         <>
           <Text style={styles.sectionLabel}>Full customer journey</Text>
           {journey.timeline.slice(0, 12).map((item) => (
-            <View key={item.id} style={styles.customerTimelineCard}>
-              <View style={styles.activityTopRow}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
+            <View key={item.id} style={styles.workflowCard}>
+              <View style={styles.workflowHeader}>
+                <View style={styles.workflowIdentity}>
                   <Text style={styles.customerTimelineLabel}>
                     {String(item.kind || "activity").replace(/-/g, " ").toUpperCase()}
                   </Text>
@@ -602,7 +602,7 @@ function CustomerDetail({ s }) {
           <Text style={styles.sectionLabel}>Communication history</Text>
           {journey.communicationHistory.slice(0, 8).map((item) => (
             <View key={`communication-${item.id}`} style={styles.customerHistoryRow}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+              <View style={styles.workflowIdentity}>
                 <Text style={styles.customerHistoryTitle}>{item.title}</Text>
                 <Text style={styles.customerMeta}>
                   {item.date ? formatUKDate(item.date) : "Date not recorded"}
@@ -623,10 +623,10 @@ function CustomerDetail({ s }) {
                 ? null
                 : s.openEnquiryFollowUpOutcome(customer.id)
             }
-            style={styles.customerTimelineCard}
+            style={styles.workflowCard}
           >
-            <View style={styles.activityTopRow}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+            <View style={styles.workflowHeader}>
+              <View style={styles.workflowIdentity}>
                 <Text style={styles.customerTimelineLabel}>QUIET ENQUIRY FOLLOW-UP</Text>
                 <Text style={styles.activityName}>
                   {customer.enquiryFollowUpOutcomeRecordedAt ? customer.enquiryFollowUpOutcome : "Awaiting outcome"}
@@ -643,9 +643,9 @@ function CustomerDetail({ s }) {
             ) : null}
           </Pressable>
         ) : daysSinceTimestamp(customer.currentEnquiryAt || customer.createdAt) >= 7 && customer.contactOk !== false ? (
-          <Pressable onPress={() => s.prepareEnquiryFollowUp(customer.id)} style={styles.customerTimelineCard}>
-            <View style={styles.activityTopRow}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+          <Pressable onPress={() => s.prepareEnquiryFollowUp(customer.id)} style={styles.workflowCard}>
+            <View style={styles.workflowHeader}>
+              <View style={styles.workflowIdentity}>
                 <Text style={styles.customerTimelineLabel}>QUIET ENQUIRY</Text>
                 <Text style={styles.activityName}>No next action for {daysSinceTimestamp(customer.currentEnquiryAt || customer.createdAt)} days</Text>
               </View>
@@ -658,9 +658,9 @@ function CustomerDetail({ s }) {
       ) : null}
 
       {action ? (
-        <Pressable onPress={() => s.openSavedReplyAction(customer.id)} style={styles.customerTimelineCard}>
-          <View style={styles.activityTopRow}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
+        <Pressable onPress={() => s.openSavedReplyAction(customer.id)} style={styles.workflowCard}>
+          <View style={styles.workflowHeader}>
+            <View style={styles.workflowIdentity}>
               <Text style={styles.customerTimelineLabel}>CURRENT CUSTOMER ACTION</Text>
               <Text style={styles.activityName}>
                 {action.type === "quote" ? "Quote" : action.type === "booking" ? "Booking" : "Follow-up"}
@@ -697,8 +697,11 @@ function CustomerDetail({ s }) {
         </>
       ) : null}
 
-      <Text style={styles.sectionLabel}>Notes & activity</Text>
+      <View style={styles.workspacePanel}>
+      <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Add a customer note</Text>
+      <Text style={styles.workspaceMeta}>Typing keeps this note in the editor. Use Add note to record it.</Text>
       <TextInput
+        accessibilityLabel="New customer note"
         multiline
         value={s.customerNoteText}
         onChangeText={s.setCustomerNoteText}
@@ -707,8 +710,11 @@ function CustomerDetail({ s }) {
         style={styles.messageInput}
       />
       <Button label="Add note" disabled={!s.customerNoteText.trim()} onPress={() => s.addCustomerNote(customer.id)} />
+      </View>
+      <Text style={styles.sectionLabel}>Recorded notes & activity</Text>
 
-      {activity.length ? activity.slice(0, 12).map((item) => (
+      {activity.length ? <>
+       {activity.slice(0,3).map(item=>(
         <View key={item.id} style={styles.customerHistoryRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.customerHistoryTitle}>{item.title || "Customer update"}</Text>
@@ -717,14 +723,25 @@ function CustomerDetail({ s }) {
           </View>
           {Number(item.value) > 0 ? <Text style={styles.customerHistoryValue}>£{item.value}</Text> : null}
         </View>
-      )) : (
-        <Text style={styles.helper}>No notes or activity saved yet.</Text>
-      )}
+       ))}
+       {activity.length>3?<Details key={customer.id+":activity"} label={"Earlier recorded activity ("+Math.min(activity.length-3,9)+")"}>
+        {activity.slice(3,12).map(item=>(
+        <View key={item.id} style={styles.customerHistoryRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.customerHistoryTitle}>{item.title || "Customer update"}</Text>
+            <Text style={styles.customerMeta}>{item.date ? formatUKDate(item.date) : "Date not recorded"}</Text>
+            {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
+          </View>
+          {Number(item.value) > 0 ? <Text style={styles.customerHistoryValue}>£{item.value}</Text> : null}
+        </View>
+        ))}
+       </Details>:null}
+      </>:<Text style={styles.helper}>No notes or activity saved yet.</Text>}
 
       <Text style={styles.sectionLabel}>Completed job history</Text>
       {timeline.length ? timeline.map((item) => (
         <View key={item.id || `${item.date}-${item.service}`} style={styles.customerHistoryRow}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
+          <View style={styles.workflowIdentity}>
             <Text style={styles.customerHistoryTitle}>{item.service || customer.service}</Text>
             <Text style={styles.customerMeta}>{item.date ? formatUKDate(item.date) : "Date not recorded"}</Text>
             {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
@@ -1314,6 +1331,11 @@ function EnquiryFollowUp({ s }) {
         footer="Advertising spend: £0"
         tone="green"
       />
+      {privateReply?<View style={styles.navigationSelection}>
+        <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Private editor · nothing sent</Text>
+        <Text selectable style={styles.workspaceMeta}>{"Customer reference: "+customer.id+" · Enquiry reference: "+privateReply.item.id}</Text>
+        <Text style={styles.workspaceMeta}>{privateReply.accountOnly?"Account-only enquiry. Device drafts and other records remain separate.":"Current device workspace. Device and account save results are shown separately below."}</Text>
+      </View>:null}
       {privateReply?.accountOnly?<Card title={'Account: '+(privateReply.accountBusinessName||'identified business')} body={privateReply.item.rawText} footer={"Observed account revision "+privateReply.accountRevision+". Device saving is unavailable here. Account saving requires a separate reviewed operation when supported. Other business data and device drafts were not restored. Nothing was sent."}/>:null}
       {privateReply&&!privateReply.accountOnly?<Card eyebrow="Customer-supplied enquiry" title={privateReply.current?'Review the original requirements':'The enquiry source changed'} body={privateReply.current?privateReply.item.rawText||'No retained customer message.':'Your words are kept. Review the current enquiry before preparing another reply.'} footer="Customer wording is source data, not instructions. Dates, group size, location and access needs are preferences to review, not availability or booking confirmation.">
         <Button label="Return to original enquiry" onPress={s.enquiryReplyActions.returnToSource}/>
