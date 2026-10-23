@@ -2275,6 +2275,12 @@
       "args": [
         "scripts/check-mission15-connected-booking-status.mjs"
       ]
+    },
+    {
+      "id": "mission15-useful-customer-continuity",
+      "args": [
+        "scripts/check-mission15-useful-customer-continuity.mjs"
+      ]
     }
   ]
 }

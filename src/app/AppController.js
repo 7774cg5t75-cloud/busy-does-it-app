@@ -35,7 +35,7 @@ import {executeAppDraftMutation} from "../core/appDraftMutation.mjs";
 import {executePrivateAppBatch} from "../core/privateAppEditSession.mjs";
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
 import {interpretOwnerStatusAfterErrorV3231} from "../core/ownerStatusRecoveryV3231.mjs";
-import {assessBookingCancelReadbackV3233} from "../core/bookingCancelReadbackV3233.mjs";
+import {assessBookingCancelReadbackV3233,inspectBookingReadbackV3233} from "../core/bookingCancelReadbackV3233.mjs";
 import {reconcileFirstAppReadback} from "../core/firstAppRecoveryV3198.mjs";
 import {evaluateCustomerRequestOutcome,customerRequestNotice}
  from "../core/customerJourneyOutcomeV3204.mjs";
@@ -1701,7 +1701,7 @@ function App() {
     if(action.details?.sourceMiniAppRequestId&&(readOnly||bookingStatus==='Cancelled')){
       const response=await miniAppsRequest('owner_booking_revision',{requestId:action.details.sourceMiniAppRequestId},{isCurrent:current});
       if(!current())return null;
-      if(readOnly){const r=response?.revision;if(response?.ok!==true||r?.ok!==true||r.readOnly!==true||r.businessId!==scope.businessId||r.requestId!==action.details.sourceMiniAppRequestId||typeof r.alreadyClosed!=='boolean')throw Error('The original request observation could not be verified.');return {kind:'booking-observation',readOnly:true,alreadyClosed:r.alreadyClosed,notOwnReceipt:true};}
+      if(readOnly){const observed=inspectBookingReadbackV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,response});if(!observed.ok)throw Error(observed.reason);return observed;}
       approved=assessBookingCancelReadbackV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,response,localBookingStatus:action.details.bookingStatus||''});
       if(!approved.ok)throw Error(approved.reason);
     }

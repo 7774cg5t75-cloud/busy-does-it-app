@@ -36,3 +36,14 @@ function assessBookingCancelReadbackV3233({
   mayRetryAutomatically:false,maySend:false};
 }
 export {assessBookingCancelReadbackV3233};
+
+// Fixed original revision projection only. Observation cannot settle an own lost receipt.
+export function inspectBookingReadbackV3233({businessId,requestId,response}={}){
+ const r=response?.revision,deny=()=>({ok:false,reason:'The original booking evidence is incomplete or inconsistent.'});
+ if(!UUID.test(businessId||'')||!UUID.test(requestId||'')||response?.ok!==true||r?.ok!==true||r.kind!=='owner_booking_revision_v3233'||r.businessId!==businessId||r.requestId!==requestId||!UUID.test(r.appId||'')||r.readOnly!==true||r.ownerApprovalRequired!==true||r.customerDetailsIncluded!==false||r.calendarDelivered!==false||r.customerNotified!==false||r.mayRetryAutomatically!==false||typeof r.updatedAt!=='string'||!Number.isFinite(Date.parse(r.updatedAt)))return deny();
+ const draft=r.status==='reviewing'&&r.bridgeState==='booking_draft'&&r.workLedgerState==='not_applicable'&&r.mayClose===true&&r.alreadyClosed===false;
+ const confirmed=r.status==='accepted'&&r.bridgeState==='booking_confirmed'&&r.workLedgerState==='confirmed'&&r.mayClose===true&&r.alreadyClosed===false;
+ const closed=r.status==='closed'&&r.bridgeState==='closed'&&['cancelled','not_applicable'].includes(r.workLedgerState)&&r.mayClose===false&&r.alreadyClosed===true;
+ if(!draft&&!confirmed&&!closed)return deny();
+ return {ok:true,kind:'booking-observation',businessId,requestId,appId:r.appId,sourceState:draft?'draft':confirmed?'confirmed':'closed',updatedAt:r.updatedAt,workLedgerState:r.workLedgerState,alreadyClosed:closed,readOnly:true,notOwnReceipt:true,canAdoptLocalStatus:false,mayRetryAutomatically:false,mayReschedule:false};
+}

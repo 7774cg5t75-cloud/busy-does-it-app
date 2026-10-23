@@ -1,7 +1,7 @@
 import React from 'react';
 import {Alert} from 'react-native';
 import {parseEnquiryListingReference} from '../core/ownerConversationPreparation.mjs';
-import {prepareEnquiryReplyText,prepareEnquiryCatalogueText} from '../core/enquiryReplyText.mjs';
+import {prepareEnquiryReplyText,prepareEnquiryCatalogueText,prepareQuoteEnquiryAddition} from '../core/enquiryReplyText.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 import {quoteCustomerSource as customerSource} from '../core/privateQuoteCopy.mjs';
 import {useOwnerEditNavigation} from './useOwnerEditNavigation';
@@ -69,17 +69,18 @@ export function useQuoteActionReview(s){
  };
  const prepareEnquiry=(item,purpose='quote-preparation')=>{
   if(!item||typeof item!=='object')return false;
-  if(!['quote-preparation','quote-information'].includes(purpose))return false;
+  if(!['quote-preparation','quote-information','quote-add-details'].includes(purpose))return false;
   const profile=live.current.businessCreationIntelligence?.sharedProfile,revision=live.current.cloudRevision;
   const itemStamp=stableJson(item),profileStamp=stableJson(profile||null);
   const sourceCurrent=()=>current()&&!conflict&&!pending.current&&action?.type==='quote'&&(!action.details?.quoteStatus||action.details.quoteStatus==='Prepared')&&customer.contactOk!==false&&live.current.cloudRevision===revision&&Number.isSafeInteger(revision)&&live.current.quoteEnquiryOriginItem===item&&live.current.inboxItems?.filter(row=>row.id===item?.id).length===1&&live.current.inboxItems.includes(item)&&live.current.customers?.filter(row=>row.id===customer.id).length===1&&live.current.customers.includes(customer)&&stableJson(item)===itemStamp&&stableJson(live.current.businessCreationIntelligence?.sharedProfile||null)===profileStamp;
   if(epoch.current!==renderEpoch||!sourceCurrent())return false;
-  const prepared=prepareEnquiryReplyText({customer,item,businessId:s.cloudWorkspace.businessId,approvedProfile:profile,purpose});
-  if(!prepared.ok)return false;
+  const prepared=purpose==='quote-add-details'?prepareQuoteEnquiryAddition({customer,item,businessId:s.cloudWorkspace.businessId,wording:values(live.current)[1]}):prepareEnquiryReplyText({customer,item,businessId:s.cloudWorkspace.businessId,approvedProfile:profile,purpose});
+  if(!prepared.ok){if(purpose==='quote-add-details')Alert.alert('Keep your current wording',prepared.reason);return false;}
+  let used=false;
   const typing=epoch.current,wording=values(live.current);
-  Alert.alert('Use these enquiry details?',prepared.text+'\n\nThis changes only your private wording. Your amount and date stay unchanged. Nothing is saved or sent.',[
-   {text:'Keep my wording',style:'cancel'},
-   {text:'Use these requirements',onPress:()=>sourceCurrent()&&epoch.current===typing&&same(values(live.current),wording)?edit('actionQuoteMessage',prepared.text):false},
+  Alert.alert(purpose==='quote-add-details'?'Add these supplied details?':'Use these enquiry details?',(purpose==='quote-add-details'?'Current wording:\n'+wording[1]+'\n\nProposed wording:\n':'')+prepared.text+'\n\nThis changes only your private wording. Your amount and date stay unchanged. Nothing is saved or sent.',[
+   {text:'Keep my wording',style:'cancel',onPress:()=>{used=true;}},
+   {text:'Use these requirements',onPress:()=>{if(used||!sourceCurrent()||epoch.current!==typing||!same(values(live.current),wording))return false;used=true;return edit('actionQuoteMessage',prepared.text);}},
   ]);
   return true;
  };
@@ -91,15 +92,16 @@ export function useQuoteActionReview(s){
   try{
    const prepared=await read();if(!sourceCurrent())return false;
    if(!prepared.ok){Alert.alert('Review the selected item','The enquiry’s selected item or option changed, expired or could not be checked. Your wording, amount and date are kept.');return false;}
+   let used=false;
    Alert.alert(prepared.changed?'Review the changed listing':'Use this approved item?',prepared.text+'\n\nReview the listed information and customer requests. Your amount and date stay unchanged. Nothing is saved or sent.',[
-    {text:'Keep my wording',style:'cancel'},
+    {text:'Keep my wording',style:'cancel',onPress:()=>{used=true;}},
     {text:prepared.changed?'Use reviewed current information':'Use this item information',onPress:async()=>{
-     if(!sourceCurrent())return false;
+     if(used||!sourceCurrent())return false;used=true;
      try{const checked=await read();if(!sourceCurrent()||!checked.ok||checked.recordStamp!==prepared.recordStamp||stableJson(checked.selection)!==stableJson(prepared.selection))return false;return edit('actionQuoteMessage',checked.text);}catch{return false;}
     }},
    ]);return true;
   }catch{if(sourceCurrent())Alert.alert('Could not check this item','Keep your current wording. No preparation was accepted or saved.');return false;}
  };
  const enquiryInformation=current()&&s.quoteEnquiryOriginItem?prepareEnquiryReplyText({customer,item:s.quoteEnquiryOriginItem,businessId:s.cloudWorkspace.businessId,approvedProfile:s.businessCreationIntelligence?.sharedProfile,purpose:'quote-information'}):null;
- return {edit,commit,transition,prepareEnquiry,prepareCatalogue,canExplainService:enquiryInformation?.ok===true,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
+ return {edit,commit,transition,prepareEnquiry,appendEnquiry:item=>prepareEnquiry(item,'quote-add-details'),prepareCatalogue,canExplainService:enquiryInformation?.ok===true,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
 }

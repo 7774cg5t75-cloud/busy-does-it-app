@@ -8,7 +8,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 export function useBookingActionReview(s){
  const live=React.useRef(s),epoch=React.useRef(0),dirty=React.useRef(false),pending=React.useRef(null);live.current=s;
  const mounted=React.useRef(true);React.useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;pending.current=null;};},[]);
- const [statusReview,setStatusReview]=React.useState(null),statusTicket=React.useRef(null);
+ const [statusReview,setStatusReview]=React.useState(null),statusTicket=React.useRef(null),inspection=React.useRef(null);
  const customer=s.selectedReplyCustomer,action=s.replyActions?.[customer?.id],scope=s.ownerWorkspaceScope;
  const actor=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId,role=s.cloudWorkspace?.role,view=s.screen??s.view;
  const table=s.replyActions,tableStamp=JSON.stringify(table),revision=s.cloudRevision,slot=s.quietSlot;
@@ -60,12 +60,21 @@ export function useBookingActionReview(s){
   return s.requestOwnerEditTransition(()=>{if(used||!current()||pending.current)return false;used=true;return operation();},{isCurrent});
  };
  const inspectStatus=async()=>{
-  const captured=epoch.current;
-  const valid=()=>current()&&epoch.current===captured;
+  const captured=epoch.current,token={};inspection.current=token;
+  const operation=live.current.bookingStatusOperation;
+  const valid=()=>inspection.current===token&&current()&&epoch.current===captured&&live.current.bookingStatusOperation===operation;
   if(!valid()||typeof s.prepareBookingStatus!=='function')return false;
   try{const observed=await s.prepareBookingStatus(customer.id,'Cancelled',{isCurrent:valid,readOnly:true});if(!valid()||!observed?.readOnly||!observed.notOwnReceipt)return false;
-   setStatusReview({scope,id:customer.id,phase:'observation',message:observed.kind==='local-booking-observation'?'This is the current local booking only. No account outcome or durable draft was verified.':observed.alreadyClosed?'The original account request now shows closed. This is an observation, not proof that your interrupted action committed. Do not replay cancellation.':'The original account request is not recorded as closed. This does not settle a pending or lost acknowledgement; do not retry it automatically.'});return true;
+   const bound=operation?.scope===scope&&operation.customerId===customer.id&&operation.role===role&&operation.requestId===action.details?.sourceMiniAppRequestId;
+   const attempt=bound?{id:operation.id,target:operation.bookingStatus,revision:operation.revision,phase:operation.phase,ownReceipt:['confirmed','confirmed-review'].includes(operation.phase)}:null;
+   const message=observed.kind==='local-booking-observation'?'This is the current local booking only. No account outcome or durable draft was verified.':observed.alreadyClosed?'The original account request now shows closed. This is an observation, not proof that your interrupted action committed. Do not replay cancellation.':'The original account request is not recorded as closed. This does not settle a pending or lost acknowledgement; do not retry it automatically.';
+   setStatusReview({scope,id:customer.id,role,actor,action,stamp,typing:captured,operation,phase:'observation',message,investigation:{customerId:customer.id,requestId:action.details?.sourceMiniAppRequestId||'',localStatus:action.details?.bookingStatus||'Not recorded',attempt,source:observed.kind==='booking-observation'?observed:null}});return true;
   }catch{if(valid())setStatusReview({scope,id:customer.id,phase:'observation',message:'The original request could not be checked. Keep your wording; no operation was retried.'});return false;}
+ };
+ const openDiary=()=>{
+  const day=action.details?.bookingDate,parsed=new Date(String(day)+'T12:00:00Z');
+  if(typeof day!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==day)return false;
+  return transition(()=>{s.setOperatorCalendarDate?.(day);return s.go?.('workCalendar');});
  };
  const reviewStatus=status=>statusBlocked()?false:transition(async()=>{
   const captured=epoch.current,wording=values(live.current),token={};statusTicket.current=token;
@@ -93,6 +102,7 @@ export function useBookingActionReview(s){
     ]);return true;
   }catch(error){if(statusTicket.current===token)statusTicket.current=null;if(current())setStatusReview({scope,id:customer.id,phase:'failed',message:error?.message||'Could not review the original booking. Nothing was submitted.'});return false;}
  });
+ const freshInvestigation=!statusReview?.investigation||(statusReview.role===role&&statusReview.actor===actor&&statusReview.action===action&&statusReview.stamp===stamp&&statusReview.typing===epoch.current&&statusReview.operation===s.bookingStatusOperation);
  const unsupportedReschedule=!!action?.details?.sourceMiniAppRequestId&&(s.actionBookingDate!==action.details.bookingDate||s.actionBookingTime!==action.details.bookingTime);
- return {edit,commit,transition,unsupportedReschedule,reviewStatus,inspectStatus,statusBlocked:statusBlocked(),statusReview:statusReview&&statusReview.scope===scope&&statusReview.id===customer?.id&&(!s.bookingStatusOperation||s.bookingStatusOperation.customerId!==customer?.id||s.bookingStatusOperation.phase==='pending'||statusReview.phase==='observation')?statusReview:null,conflict,saving:!!pending.current,dirty:dirty.current};
+ return {edit,commit,transition,unsupportedReschedule,reviewStatus,inspectStatus,openDiary,statusBlocked:statusBlocked(),statusReview:statusReview&&freshInvestigation&&statusReview.scope===scope&&statusReview.id===customer?.id&&(!s.bookingStatusOperation||s.bookingStatusOperation.customerId!==customer?.id||s.bookingStatusOperation.phase==='pending'||statusReview.phase==='observation')?statusReview:null,conflict,saving:!!pending.current,dirty:dirty.current};
 }

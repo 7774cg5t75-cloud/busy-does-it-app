@@ -76,3 +76,21 @@ export function prepareEnquiryCatalogueReply({customer,item,businessId,result,ap
   warning:changed?'The enquiry refers to an earlier listing. Earlier facts cannot be verified here; review these current approved details against the original request.':'Review current approved details against the original customer request.',
   text:base.text+'\n\n'+(changed?'Your enquiry refers to an earlier listing version. Please review these current listed details:':'Here are the current listed details for you to review:')+'\n'+information+'\n\nPlease let us know whether these details meet your requirements. Listed information does not confirm availability, an agreed quote or a booking.'};
 }
+
+// Append only the original structured requirements; existing owner words are never rewritten.
+export function prepareQuoteEnquiryAddition({customer,item,businessId,wording}={}){
+ const valid=prepareEnquiryReplyText({customer,item,businessId,purpose:'quote-preparation'}),supplied=readCustomerEnquiryRequirements(item?.rawText);
+ const heading='Customer-supplied enquiry details to review (not confirmed):';
+ if(typeof businessId!=='string'||!businessId||!valid.ok||!supplied||typeof wording!=='string'||wording.length>12000)return {ok:false,reason:'Review the original supplied enquiry and your current wording before adding details.'};
+ const existing=wording.split('\n');
+ if(existing.includes(heading))return {ok:false,reason:'Supplied details are already present. Review the original enquiry before replacing any earlier wording.'};
+ const lines=[];
+ for(const field of ENQUIRY_REQUIREMENTS){
+  const value=supplied[field.key];if(!value.trim())continue;
+  const line=field.label+': '+value;
+  if(existing.some(row=>row.startsWith(field.label+': ')&&row!==line))return {ok:false,reason:'Your wording already has a different value for '+field.label+'. Keep your wording and review the source before replacing it.'};
+  if(!existing.includes(line))lines.push(line);
+ }
+ if(!lines.length)return {ok:false,reason:'The exact supplied details are already in your wording. Nothing needs to be added.'};
+ return {ok:true,text:wording+(wording?(wording.endsWith('\n')?'\n':'\n\n'):'')+heading+'\n'+lines.join('\n'),customerId:customer.id,inboxId:item.id,customerWordsNotInstructions:true,privateOnly:true,automaticallySends:false};
+}

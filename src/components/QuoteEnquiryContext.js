@@ -16,6 +16,7 @@ export function QuoteEnquiryContext(props){
   {item.parsed?.service?<Text style={styles.cardBody}>{'Requested service: '+item.parsed.service}</Text>:null}
   <Text selectable style={styles.workspaceMeta}>{'Filed enquiry reference: '+item.id+' · Recorded source: '+(item.source||'Not recorded')}</Text>
   {item.rawText?<View style={styles.recordRow}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Recorded enquiry wording</Text><Text selectable style={styles.conversationBody}>{item.rawText}</Text></View>:<Text style={styles.cardBody}>The original item has no retained message wording. Review its customer record for supplied details.</Text>}
+  {props.appendQuote&&readCustomerEnquiryRequirements(item.rawText)?<Button label="Add supplied details without replacing my wording" onPress={()=>props.appendQuote(item)}/>:null}
   {props.prepareQuote&&readCustomerEnquiryRequirements(item.rawText)?<Button label="Use supplied details in my quote draft" onPress={()=>props.prepareQuote(item)}/>:null}
   {props.prepareCatalogue&&parseEnquiryListingReference(item.rawText)?<Button label="Use current approved item information" onPress={()=>props.prepareCatalogue(item)}/>:null}
   {props.prepareService?<Button label="Use approved service information" onPress={()=>props.prepareService(item)}/>:null}
