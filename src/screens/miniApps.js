@@ -2823,18 +2823,18 @@ function MiniAppBuilder({ s }) {
               if(liveControlContext.current!==controlContext)return;
               setStudioPreview(proposal,'selected');setStudioNotice('Review the selected visual change in the original Studio comparison. Approval saves one private revision; Undo restores it.');
             }}/>
-          <Text style={styles.sectionLabel}>Select the part you want to change</Text>
-          {[
+          <View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Select the part you want to change</Text>
+          <View style={styles.choiceGrid}>{[
             ["header","Header"],["spacing","Spacing"],["navigation","Navigation"]
           ].map(([part,label])=>(
-            <Button key={part} label={(selectedAppPart===part?"✓ ":"")+"Edit "+label}
+            <View key={part} style={styles.choiceCell}><Button compact selected={selectedAppPart===part} label={(selectedAppPart===part?"✓ ":"")+"Edit "+label}
               onPress={()=>{setSelectedAppPart(part);setPendingAppearance(null);
-                setAppearanceInstructionNotice("");setShowAppVoice(false);}}/>
-          ))}
+                setAppearanceInstructionNotice("");setShowAppVoice(false);}}/></View>
+          ))}</View>
           <Field label="Tell BUSY how to change the selected part"
             value={appearanceWords} onChangeText={setAppearanceWords}
-            placeholder="e.g. Make the header bold, or use roomier spacing"/>
-          <Button label="Preview my described app change" disabled={!appearanceWords.trim()}
+            placeholder="e.g. Make the header bold, or use roomier spacing"/></View>
+          <Button primary label="Preview my described app change" disabled={!appearanceWords.trim()}
             onPress={()=>{
               const proposal=interpretSelectedAppAppearance(view.draftConfig,{
                 selected:selectedAppPart,text:appearanceWords

@@ -41,6 +41,7 @@ export default function GetPaidOwnerReview({s,customer,saved,type,bookingStatus=
         tone="blue"/>
       <Field label="Describe the quote (private)"
         value={quoteBrief} onChangeText={setQuoteBrief}
+        multiline
         placeholder="e.g. Repair a tap for £125, materials included"/>
       {quoteBrief.trim()?(draft?.ok?<>
         <Card eyebrow="Owner review • not sent"

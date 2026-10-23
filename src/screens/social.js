@@ -776,10 +776,13 @@ function SocialCreator({ s }) {
 
       {photos.length ? (
         <View style={styles.photoGrid}>
-          {photos.map((photo) => (
+          {photos.map((photo,index) => (
             <View key={photo.id || photo.uri} style={styles.photoTile}>
-              <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+              <Image accessibilityLabel={"Selected photo "+(index+1)} source={{ uri: photo.uri }} style={styles.photoImage} />
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={"Remove selected photo "+(index+1)}
+                accessibilityState={{disabled:analysing}}
                 disabled={analysing}
                 onPress={() => s.removeSocialPhoto(photo.id)}
                 style={styles.photoRemove}
@@ -791,6 +794,7 @@ function SocialCreator({ s }) {
         </View>
       ) : null}
 
+      <View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Your preparation brief</Text>
       <Text style={styles.fieldLabel}>Anything BUSY should know? (optional)</Text>
       <TextInput
         multiline
@@ -799,7 +803,7 @@ function SocialCreator({ s }) {
         placeholder="e.g. This was a heavily stained driveway. Keep the wording simple and local."
         placeholderTextColor={C.muted}
         style={styles.messageInput}
-      />
+      /></View>
 
       {brandSnapshot.ok&&businessId?<Card
         eyebrow="Your Business Brand DNA"
@@ -816,7 +820,7 @@ function SocialCreator({ s }) {
         {brandReview?<View>
           {brandReview.ok?<View>
             <Text style={styles.sectionLabel}>Review your branded wording</Text>
-            <Text selectable style={styles.cardBody}>{brandReview.copy}</Text>
+            <Text selectable style={styles.draftPreview}>{brandReview.copy}</Text>
             <Button label="Use this wording in my post"
               onPress={applyBrandCaption}/>
           </View>:<Text style={styles.cardBody}>{brandReview.reason}</Text>}
@@ -829,6 +833,7 @@ function SocialCreator({ s }) {
           <TextInput multiline value={s.socialDraftText}
             onChangeText={editCaption}
             style={styles.messageInput}
+            accessibilityLabel="Your private content wording"
             placeholder="Write an announcement, useful information or your own approved offer"
             placeholderTextColor={C.muted}/>
           <Button primary
@@ -971,7 +976,7 @@ function SocialDraftReview({ s }) {
     <NewsletterAccountReadback s={s}/>
     <Button label="Save newsletter draft privately" disabled={!s.socialDraftText.trim()} onPress={s.saveGeneratedSocialDraft}/>
     <Card title="Review before using outside Busy" body="Check the subject, facts, links and offer terms. Recipient eligibility has not been checked. Before sending elsewhere, you need an authorised sender, lawful marketing permission, an unsubscribe method and a review of any costs. An enquiry alone does not grant newsletter permission." footer="No email, campaign, graphic or recurring schedule has been created. Your selected photos and social destinations are kept, but are not attached or used by this text preparation."/>
-    <Text selectable style={styles.cardBody}>{s.socialDraftText}</Text>
+    <Text selectable style={styles.draftPreview}>{s.socialDraftText}</Text>
     <Button label="Back to Content Creator" onPress={()=>s.go('socialCreator')}/>
   </Shell>;
 
@@ -1021,6 +1026,7 @@ function SocialDraftReview({ s }) {
         />
       ) : null}
 
+      <View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Review your caption</Text>
       <Text style={styles.fieldLabel}>Caption</Text>
       <TextInput
         multiline
@@ -1028,10 +1034,11 @@ function SocialDraftReview({ s }) {
         onChangeText={s.setSocialDraftText}
         editable={!recordLocked}
         style={[styles.messageInput, recordLocked && { opacity: 0.7 }]}
+        accessibilityLabel="Post caption"
         placeholder="Post wording"
         placeholderTextColor={C.muted}
         textAlignVertical="top"
-      />
+      /></View>
 
       <Text style={styles.sectionLabel}>Where should it go?</Text>
       {hasMeta ? (

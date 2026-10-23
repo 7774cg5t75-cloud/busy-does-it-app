@@ -2219,6 +2219,13 @@
         "scripts/check-mission15-phase68-working-surfaces.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-phase69-workspaces",
+      "args": [
+        "scripts/check-mission15-phase69-workspaces.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

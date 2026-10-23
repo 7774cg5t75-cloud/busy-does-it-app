@@ -167,7 +167,8 @@ function BusyInbox({ s }) {
           <View style={{ flex: 1, paddingRight: 10 }}>
             <Text style={styles.customerTimelineLabel}>{String(parsed.stage || "Incoming").toUpperCase()}</Text>
             <Text style={styles.activityName}>{title}</Text>
-            <Text style={styles.activityService}>{service} • {item.source}</Text>
+            <Text style={styles.activityService}>{service}</Text>
+            <Text style={styles.workspaceMeta}>{"Source: "+(item.source||"Not recorded")+" · "+(item.status||"Status not recorded")}</Text>
           </View>
           <StatusChip
             label={
@@ -186,7 +187,7 @@ function BusyInbox({ s }) {
             }
           />
         </View>
-        <Text style={styles.activitySummary}>{contact}</Text>
+        <View style={styles.workspacePanel}><Text style={styles.workspaceMeta}>Customer contact</Text><Text selectable style={styles.activitySummary}>{contact}</Text></View>
         {item.screenshots?.length ? (
           <Text style={styles.customerHistoryPhotoMeta}>
             {item.screenshots.length} screenshot{item.screenshots.length === 1 ? "" : "s"} attached • order {String(item.screenshotOrderConfidence || "check").toLowerCase()}

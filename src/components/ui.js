@@ -383,15 +383,17 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
   );
 }
 
-function Button({ label, onPress, primary = false, danger = false, disabled = false }) {
+function Button({ label, onPress, primary = false, danger = false, disabled = false, selected, compact = false }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{disabled}}
+      accessibilityState={{disabled,...(selected===undefined?{}:{selected})}}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
+        compact && styles.buttonCompact,
+        selected && styles.buttonSelected,
         primary && styles.buttonPrimary,
         danger && styles.buttonDanger,
         disabled && styles.buttonDisabled,
@@ -401,6 +403,8 @@ function Button({ label, onPress, primary = false, danger = false, disabled = fa
       <Text
         style={[
           styles.buttonText,
+          compact && styles.buttonTextCompact,
+          selected && styles.buttonTextSelected,
           primary && styles.buttonTextPrimary,
           danger && styles.buttonTextPrimary,
         ]}

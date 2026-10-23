@@ -1,3 +1,4 @@
+import {appColors as C} from "../theme/appearance.mjs";
 import React from "react";
 import {useOwnerEditNavigation} from "./useOwnerEditNavigation";
 import {Text,TextInput,View} from "react-native";
@@ -69,14 +70,14 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
       tone="blue">
      <Text style={styles.sectionLabel}>Your pages</Text>
      {(draft?.pages||[]).map(item=>(
-      <Button key={item.id} label={(item.id===selected?"✓ ":"")+(item.title||item.id)+" • "+(item.path||"/")}
+      <Button selected={item.id===selected||metadata?.pageId===item.id} key={item.id} label={(item.id===selected?"✓ ":"")+(item.title||item.id)+" • "+(item.path||"/")}
        onPress={()=>transition(()=>{
         if(item.id.startsWith("page-"))selectPage(item);else setSelected("");
         setMetadata({pageId:item.id,expectedWebsiteId:draft.id,expectedGeneration:draft.generation});
         setMetadataTitle(draft.seo?.pages?.[item.id]?.title||'');setMetadataDescription(draft.seo?.pages?.[item.id]?.description||'');
        })}/>
      ))}
-     {metadata?<View>
+     {metadata?<View style={styles.workspacePanel}>
       <Text style={styles.sectionLabel}>How this page is described in search</Text>
       <Text style={styles.cardBody}>Use accurate wording. This changes your private page title and description; it does not prove indexing or ranking improvements.</Text>
       <Field label="Search title (up to 70 characters)" value={metadataTitle} onChangeText={edit('seo',setMetadataTitle)}/>
@@ -84,22 +85,8 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
       <Button label="Save private page search details" onPress={()=>{if(apply({...metadata,action:'edit-page-metadata',title:metadataTitle,description:metadataDescription}))setMetadata(null);}}/>
       <Button label="Restore automatic page search details" onPress={()=>{if(apply({...metadata,action:'reset-page-metadata'}))setMetadata(null);}}/>
      </View>:null}
-     <Text style={styles.sectionLabel}>Create a new page</Text>
-     <Field label="Page title" value={newTitle} onChangeText={edit('create',setNewTitle)}
-       placeholder="e.g. Meet our team"/>
-     <View style={styles.fieldWrap}>
-      <Text style={styles.fieldLabel}>Introduction (your exact wording)</Text>
-      <View style={styles.fieldBox}>
-       <TextInput value={newBody} onChangeText={edit('create',setNewBody)}
-        multiline numberOfLines={4} textAlignVertical="top"
-        placeholder="Tell visitors about this page"
-        placeholderTextColor="#9AA3B2"
-        style={[styles.fieldInput,{minHeight:110,textAlignVertical:"top"}]}/>
-      </View>
-     </View>
-     <Button label="Create private page" onPress={create}/>
      {page?(
-      <View>
+      <View key="selected-page" style={styles.workspacePanel}>
        <Text style={styles.sectionLabel}>Edit {page.title}</Text>
        <Text style={styles.cardBody}>{"Address: /pages/"+page.slug+" (stays the same when renamed)"}</Text>
        <Field label="Change page title" value={pageTitle} onChangeText={edit('title',setPageTitle)}/>
@@ -109,7 +96,7 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
        {page.sectionIds.map(id=>{
         const section=sections.find(s=>s.id===id);
         return section?(
-         <View key={id}>
+         <View key={id} style={styles.recordRow}>
           <Text style={styles.cardBody}>{section.title||id}</Text>
           <Button label="Move section up" onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"up"})}/>
           <Button label="Move section down" onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"down"})}/>
@@ -125,10 +112,10 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
        <Field label="Section heading" value={sectionTitle} onChangeText={edit('section',setSectionTitle)}/>
        <View style={styles.fieldWrap}>
         <Text style={styles.fieldLabel}>Your wording</Text>
-        <View style={styles.fieldBox}>
+        <View style={[styles.fieldBox,styles.fieldBoxMultiline]}>
          <TextInput value={sectionBody} onChangeText={edit('section',setSectionBody)} multiline
           textAlignVertical="top" numberOfLines={4}
-          placeholderTextColor="#9AA3B2" placeholder="What would you like this section to say?"
+          placeholderTextColor={C.muted} placeholder="What would you like this section to say?"
           style={[styles.fieldInput,{minHeight:100,textAlignVertical:"top"}]}/>
         </View>
        </View>
@@ -162,6 +149,22 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
         }}/>
       </View>
      ):null}
+     <View key="new-page" style={styles.workspacePanel}>
+     <Text style={styles.sectionLabel}>Create a new page</Text>
+     <Field label="Page title" value={newTitle} onChangeText={edit('create',setNewTitle)}
+       placeholder="e.g. Meet our team"/>
+     <View style={styles.fieldWrap}>
+      <Text style={styles.fieldLabel}>Introduction (your exact wording)</Text>
+      <View style={[styles.fieldBox,styles.fieldBoxMultiline]}>
+       <TextInput value={newBody} onChangeText={edit('create',setNewBody)}
+        multiline numberOfLines={4} textAlignVertical="top"
+        placeholder="Tell visitors about this page"
+        placeholderTextColor={C.muted}
+        style={[styles.fieldInput,{minHeight:110,textAlignVertical:"top"}]}/>
+      </View>
+     </View>
+     <Button label="Create private page" onPress={create}/>
+     </View>
      <Button label={showExport?"Hide ownership export":"Keep a copy of my website content"}
       onPress={()=>setShowExport(x=>!x)}/>
      {showExport?(
