@@ -20,7 +20,7 @@ jobs:
   ios:
     if: github.repository == '7774cg5t75-cloud/busy-does-it-app' && github.event.repository.private == false && github.ref == 'refs/heads/codex/builder-mission15-design-advancement'
     runs-on: macos-15-intel
-    timeout-minutes: 50
+    timeout-minutes: 45
     env:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
@@ -57,16 +57,19 @@ jobs:
             gem install --user-install xcodeproj --version 1.27.0 --no-document
           fi
           ruby scripts/native-capture/project.rb "$PWD"
-      - name: Boot supported iPhone
+      - name: Compile native app and XCTest bundle (no launch)
+        timeout-minutes: 25
+        run: python3 scripts/native-capture/native_stage.py build
+      - name: Boot supported iPhone after compilation
         timeout-minutes: 8
         run: python3 scripts/native-capture/simulator.py
-      - name: Capture through Apple tooling while XCTest drives the real app
+      - name: Run only Midnight Home XCTest (no compilation)
+        timeout-minutes: 5
         run: |
           python3 scripts/native-capture/receiver.py > "$RUNNER_TEMP/capture-receiver.log" 2>&1 &
           receiver=$!
           trap 'kill "$receiver" 2>/dev/null || true' EXIT
-          workspace=$(find "$CAPTURE_WORK/ios" -maxdepth 1 -name '*.xcworkspace' -print -quit)
-          xcodebuild -workspace "$workspace" -scheme BusyCapture -configuration Release -destination "platform=iOS Simulator,id=$CAPTURE_UDID" -derivedDataPath "$RUNNER_TEMP/busy-derived" CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO test -quiet
+          python3 scripts/native-capture/native_stage.py test
       - name: Validate genuine Home artifacts and bounded storage
         id: artifacts
         if: always()

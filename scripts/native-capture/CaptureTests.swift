@@ -16,14 +16,25 @@ final class CaptureTests: XCTestCase {
   }.resume()
   wait(for:[done],timeout:30)
  }
- func testHomeAppearances() {
-  continueAfterFailure=false;app.launch()
+ func signInToOriginalHome() {
+  continueAfterFailure=false
+  print("CAPTURE phase=app-launch")
+  app.launch()
   let email=app.textFields["Email"]
   XCTAssertTrue(email.waitForExistence(timeout:60),"Original sign-in UI did not launch")
   email.tap();email.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:(email.value as? String ?? "").count));email.typeText("capture@example.invalid")
   let password=app.secureTextFields["Password"];password.tap();password.typeText("FictionalOnly123!")
+  print("CAPTURE phase=original-sign-in")
   tap("Sign in")
   XCTAssertTrue(app.textFields["Ask BUSY"].waitForExistence(timeout:60),"Original Home failed to restore fictional workspace")
+  print("CAPTURE phase=home-ready")
+ }
+ func testMidnightHome() {
+  signInToOriginalHome()
+  capture("home-midnight")
+ }
+ func testHomeAppearances() {
+  signInToOriginalHome()
   capture("home-midnight")
   tap("Settings");tap("Daylight appearance");tap("Home")
   XCTAssertTrue(app.textFields["Ask BUSY"].waitForExistence(timeout:30));capture("home-daylight")

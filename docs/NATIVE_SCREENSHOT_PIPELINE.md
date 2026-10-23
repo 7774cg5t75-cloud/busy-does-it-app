@@ -1,6 +1,6 @@
 # Genuine native screenshots — owner-requested, fictional and free-runner only
 
-This workflow builds the actual Mission15 application for an iOS Simulator. It does not use EAS, an Apple signing account, a cloud app build, HTML rendering or generated mock-ups. Native execution/results are recorded in the capture report; workflow source alone is not proof of a successful image.
+This workflow builds the actual Mission15 application for an iOS Simulator. It does not use EAS, an Apple signing account, paid hosted build services, HTML rendering or generated mock-ups. Native execution/results are recorded in the capture report; workflow source alone is not proof of a successful image.
 
 ## Ask for a capture
 
@@ -22,13 +22,13 @@ Fresh simulator + separate app identifier keep device/Keychain data isolated. Pu
 
 ## Build/capture boundaries
 
-* Standard Intel `macos-15-intel`, exact public repository/branch guard, bounded50-minute job. No larger/custom/self-hosted runner input.
+* Standard Intel `macos-15-intel`, exact public repository/branch guard, bounded45-minute job. No larger/custom/self-hosted runner input.
 * Official checkout/setup/upload actions pinned to verified commit SHAs; read-only repository token and checkout credential persistence disabled. No secrets referenced.
 * Capture-only lock records the existing application's dependencies with official registry URLs and SHA512 integrity. Install uses `npm ci --ignore-scripts`; no lifecycle scripts during package installation. Explicit Expo/CocoaPods/Xcode commands perform the reviewed native build.
 * Select the newest installed Xcode with Swift6.2 or newer before CocoaPods/build; record the actual toolchain in the manifest. No toolchain download or privileged system-default change.
 * Existing installed simulator runtime only, foreground Simulator and six-minute boot deadline; prefer iPhone14Pro, otherwise record the actual supported iPhone. No claim of a particular model unless the manifest establishes it.
-* Release simulator build embeds actual JS at the recorded commit, with no Metro tunnel. XCTest drives controls; a localhost-only receiver calls Apple `xcrun simctl io … screenshot`.
-* Capture Home in Midnight and Daylight first, then the six original entry areas in Midnight. Get Paid is the actual quote-assistance explanation, not a payment dashboard. Report only successfully executed captures; later route failure preserves earlier PNGs.
+* Separate `build-for-testing` (24-minute process deadline/25-minute step) and `test-without-building` (4-minute process deadline/5-minute step). Compile before booting Simulator to avoid competing resource use. Release embeds JS without a Metro tunnel; only x86_64 is compiled, C/Swift optimisations are disabled for capture. Native commands, compiler progress, process-name/CPU heartbeats, exact stage exits and deadlines are logged. Signing remains disabled.
+* The controlled diagnostic attempt selects **only Midnight Home**, with XCTest execution limited to180seconds and a20-second Apple screenshot subprocess deadline. The broader appearance/route test remains available in source but is not selected. Do not broaden capture until Home actually works.
 * PNG signature and total20MiB cap before upload; uploader runs only after the artifact gate succeeds. One-day retention, no binary/cache upload. No artifact is uploaded when no actual screenshot exists.
 
 GitHub documents standard hosted runners as free for public repositories; larger runners are chargeable. Public-only guard and fixed standard label must remain. No billing settings are changed. Future agents should recheck applicable GitHub policy before changing runner/storage scope.
@@ -58,3 +58,11 @@ The original pinned view-shot4.0.3 fails against ReactNative0.86.3 because its i
 Expo Audio declares an unconstrained expo-asset peer. npm had hoisted SDK58 expo-asset into the SDK57 build, which Metro could not resolve against Expo57. The app now explicitly requests SDK57 expo-asset, matching Expo’s own dependency. Official registry integrity is locked; no runtime module is stubbed out to obtain a build.
 
 The ARM attempt at05a9799 never received a runner: GitHub reported macOS arm64 capacity constraints and cancelled the unassigned job after15minutes. The request uses the standard free Intel macOS pool instead; this is an infrastructure failure, not an application or XCTest failure.
+
+## Run7 forensic correction (23 October2026)
+
+Run39967258319 at459c2ccd2ced5c7f45ac7fbd14965316346a0296 was cancelled. Full decoded job log:3,096 lines/296,643 characters. Combined native stage14:19:59–15:00:08UTC (40m9s). Fresh react-native-svg compiler warnings persisted through15:00:01; cancellation cleanup terminated four clang processes. There are no XCTest suite/test-start or app-launch events. This establishes compilation had not completed; it does not establish a launch or XCTest defect. The nested ExpoModulesJSI xcframework build reports260seconds and multiple platform slices; repeated native source warnings also show costly compilation. The original Release command did not constrain architecture or optimisation and hid normal progress with-quiet.
+
+Correction: keep embedded-JS Release runtime behaviour but disable native C/Swift optimisation, compile only the Intel simulator architecture, build before simulator boot, separate build/test commands and bound both processes. Do not call this speed improvement proven until actual runner execution. The sole authorised retry targets Midnight Home. No repeated automatic attempts, build caches, extra packages, paid runners or hosted services are introduced. Run7 remains cancelled, artifact validation exited1, upload skipped and no PNG exists.
+
+Local correction verification retained one failed candidate: the original source check still looked for CODE_SIGNING_ALLOWED in workflow YAML after that command moved into native_stage.py. It failed with AssertionError/exit1; the assertion now checks the actual command owner, retaining the same signing denial. Executable Python command checks verify build/test separation, exact device/test selection and missing/ambiguous workspace rejection. These are harness tests, not native execution.
