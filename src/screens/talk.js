@@ -14,10 +14,11 @@ import { styles } from "../theme/styles";
 import { Shell, Card, Button, MetricRow, StatusChip } from "../components/ui";
 
 function TalkToBusy({ s }) {
-  const [localTypedCommand, setLocalTypedCommand] = useState("");
-  const typedCommand=typeof s.busyEntryText==='string'?s.busyEntryText:localTypedCommand;
+  const typedScope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.cloudWorkspace?.role]);
+  const [localDraft,setLocalDraft]=useState({scope:typedScope,text:s.busyEntryText||""});
+  const typedCommand=localDraft.scope===typedScope?localDraft.text:"";
   const typingEpoch=useRef(0);
-  const setTypedCommand=value=>{typingEpoch.current++;(s.setBusyEntryText||setLocalTypedCommand)(value);};
+  const setTypedCommand=value=>{typingEpoch.current++;setLocalDraft({scope:typedScope,text:value});s.setBusyEntryText?.(value);};
   const currentTyped=useRef(typedCommand);currentTyped.current=typedCommand;
   const [showQuickAsks, setShowQuickAsks] = useState(false);
   const [showConversation, setShowConversation] = useState(false);

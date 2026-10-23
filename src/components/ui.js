@@ -317,7 +317,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         {children}
         </ScrollView>
       </KeyboardAvoidingView>
-      {!noNav&&!keyboardVisible&&!s.busyMiniOrbHidden&&['workHub','customerRecords','growthCommandCentre','socialCentre','settings','results'].includes(s.screen)&&typeof s.openTalkToBusy==='function'?<BusyMiniOrb s={s}/>:null}
+      {!noNav&&!keyboardVisible&&!s.busyMiniOrbHidden&&['workHub','customerRecords','growthCommandCentre','socialMedia','settings','results'].includes(s.screen)&&typeof s.openTalkToBusy==='function'?<BusyMiniOrb s={s}/>:null}
       {!noNav && !keyboardVisible ? <BottomNav s={s} dark={dark} /> : null}
     </View>
   );

@@ -17217,17 +17217,17 @@ function App() {
     },ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION,
   });
   const appearance=useAppearanceDevice();
-  const composerScope=businessWorkspaceScopeRef.current;
-  const [busyEntryDraft,setBusyEntryDraft]=useState({scope:composerScope,text:""});
+  const composerScope=businessWorkspaceScopeRef.current,composerRole=cloudWorkspace?.role||"";
+  const [busyEntryDraft,setBusyEntryDraft]=useState({scope:composerScope,role:composerRole,text:""});
   const busyEntrySendRef=useRef(null),busyComposerLive=useRef(null);
-  busyComposerLive.current={scope:composerScope,text:busyEntryDraft.scope===composerScope?busyEntryDraft.text:""};
+  busyComposerLive.current={scope:composerScope,role:composerRole,text:busyEntryDraft.scope===composerScope&&busyEntryDraft.role===composerRole?busyEntryDraft.text:""};
   const appState = {
     appearance,
-    busyEntryText:busyEntryDraft.scope===composerScope?busyEntryDraft.text:"",
-    setBusyEntryText:text=>{if(businessWorkspaceScopeRef.current===composerScope){busyEntrySendRef.current=null;busyComposerLive.current={scope:composerScope,text};setBusyEntryDraft({scope:composerScope,text});}},
-    sendBusyEntry:text=>{if(businessWorkspaceScopeRef.current!==composerScope||busyComposerLive.current.text!==text||!text.trim()||busyCommandStatus==="thinking"||busyEntrySendRef.current)return false;openTalkToBusy(false);busyEntrySendRef.current={scope:composerScope,text};setBusyEntryDraft({scope:composerScope,text});return true;},
-    busyEntrySubmission:busyEntrySendRef.current?.scope===composerScope?busyEntrySendRef.current:null,
-    takeBusyEntrySubmission:ticket=>{if(businessWorkspaceScopeRef.current!==composerScope||busyEntrySendRef.current!==ticket||ticket?.scope!==composerScope)return null;busyEntrySendRef.current=null;return ticket.text;},
+    busyEntryText:busyEntryDraft.scope===composerScope&&busyEntryDraft.role===composerRole?busyEntryDraft.text:"",
+    setBusyEntryText:text=>{if(businessWorkspaceScopeRef.current===composerScope&&busyComposerLive.current.role===composerRole){busyEntrySendRef.current=null;busyComposerLive.current={scope:composerScope,role:composerRole,text};setBusyEntryDraft({scope:composerScope,role:composerRole,text});}},
+    sendBusyEntry:text=>{if(businessWorkspaceScopeRef.current!==composerScope||busyComposerLive.current.role!==composerRole||busyComposerLive.current.text!==text||!text.trim()||busyCommandStatus==="thinking"||busyEntrySendRef.current)return false;openTalkToBusy(false);busyEntrySendRef.current={scope:composerScope,role:composerRole,text};setBusyEntryDraft({scope:composerScope,role:composerRole,text});return true;},
+    busyEntrySubmission:busyEntrySendRef.current?.scope===composerScope&&busyEntrySendRef.current.role===composerRole?busyEntrySendRef.current:null,
+    takeBusyEntrySubmission:ticket=>{if(businessWorkspaceScopeRef.current!==composerScope||busyComposerLive.current.role!==composerRole||busyEntrySendRef.current!==ticket||ticket?.scope!==composerScope)return null;busyEntrySendRef.current=null;return ticket.text;},
     setOwnerEditDirty,
     releaseOwnerEdit:token=>ownerEditNavigation.current.release(token),
     requestOwnerEditTransition:(transition,options)=>ownerEditNavigation.current.request(transition,options),
