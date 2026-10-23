@@ -1,6 +1,7 @@
 import {QuoteFollowUpChoices} from '../components/QuoteFollowUpChoices';
 import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
 import {QuotePrivateSaveStatus} from '../components/QuotePrivateSaveStatus';
+import {useBookingActionReview} from './useBookingActionReview';
 import {useQuoteActionReview} from './useQuoteActionReview';
 import React, { useEffect, useState } from "react";
 import GetPaidOwnerReview from "../components/GetPaidOwnerReview";
@@ -3566,6 +3567,7 @@ function ReplyActions({ s }) {
 }
 
 function ReplyActionDetail({ s }) {
+  const bookingReview=useBookingActionReview(s);
   const quoteReview=useQuoteActionReview(s);
   const customer = s.selectedReplyCustomer;
   if (!customer) {
@@ -3639,6 +3641,7 @@ function ReplyActionDetail({ s }) {
 
   const finish = (details) => {
     const save=()=>{const result=s.completeReplyAction(customer.id,details);if(result===false)return false;s.back();return true;};
+    if(type==='booking')return bookingReview.commit(()=>s.completeReplyAction(customer.id,details),next=>JSON.stringify(next?.details)===JSON.stringify(details),{savedFields:['actionBookingDate','actionBookingTime','actionJobValue']});
     if(type!=='quote')return save();
     const reviewed=s.prepareQuoteDetails?s.prepareQuoteDetails(customer.id,details,saved):details;
     return reviewed?quoteReview.commit(()=>s.completeReplyAction(customer.id,reviewed),reviewed):false;
@@ -3806,6 +3809,8 @@ function ReplyActionDetail({ s }) {
           />
         ) : null}
 
+        {bookingReview.conflict?<Card title="Booking changed" body="Your typed details are kept. Reopen the current booking before making another change. Nothing here confirms an account save." tone="amber"/>:null}
+        {bookingReview.dirty?<Text accessibilityLiveRegion="polite" style={styles.helper}>You have unfinished booking details or a completion note. Leaving requires a separate decision; saving the date and time does not save a completion note.</Text>:null}
         <GetPaidOwnerReview s={s} customer={customer} saved={saved}
           type="booking" bookingStatus={bookingStatus} todayISO={todayISO} />
         <View
@@ -3836,8 +3841,8 @@ function ReplyActionDetail({ s }) {
           {savedBookingNeedsReview && !bookingCorrectionReady ? (
             <Pressable
               onPress={() => {
-                s.setActionBookingDate(suggestedBookingDate);
-                s.setActionBookingTime(suggestedBookingTime);
+                bookingReview.edit('actionBookingDate',suggestedBookingDate);
+                bookingReview.edit('actionBookingTime',suggestedBookingTime);
               }}
               style={styles.slotFixButton}
             >
@@ -3854,7 +3859,7 @@ function ReplyActionDetail({ s }) {
         <DatePickerField
           label="Booking date"
           value={s.actionBookingDate}
-          onChange={s.setActionBookingDate}
+          onChange={value=>bookingReview.edit('actionBookingDate',value)}
           allowFuture
           minimumDate={bookingStatus === "Completed" ? null : dateToISO(new Date())}
         />
@@ -3864,7 +3869,7 @@ function ReplyActionDetail({ s }) {
             <Pressable
               accessibilityRole="button" accessibilityState={{selected:s.actionBookingTime===time}}
               key={time}
-              onPress={() => s.setActionBookingTime(time)}
+              onPress={() => bookingReview.edit('actionBookingTime',time)}
               style={[
                 styles.timeChoice,
                 s.actionBookingTime === time && styles.timeChoiceSelected,
@@ -3881,11 +3886,12 @@ function ReplyActionDetail({ s }) {
             </Pressable>
           ))}
         </View>
-        <Field label="Or enter a time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 14:30" />
+        <Field editable={!bookingReview.conflict} label="Or enter a time" value={s.actionBookingTime} onChangeText={value=>bookingReview.edit('actionBookingTime',value)} placeholder="e.g. 14:30" />
         <Field
           label={saved.done && bookingStatus === "Confirmed" ? "Actual / expected job value" : "Expected job value"}
           value={s.actionJobValue}
-          onChangeText={s.setActionJobValue}
+          editable={!bookingReview.conflict}
+          onChangeText={value=>bookingReview.edit('actionJobValue',value)}
           keyboardType="number-pad"
           prefix="£"
           placeholder="Optional"
@@ -3899,7 +3905,7 @@ function ReplyActionDetail({ s }) {
               {bookingClashes[0].customer.name} is already booked for {formatUKDate(s.actionBookingDate)} at {s.actionBookingTime}.
             </Text>
             {freeBookingTime ? (
-              <Pressable onPress={() => s.setActionBookingTime(freeBookingTime)} style={styles.slotFixButton}>
+              <Pressable onPress={() => bookingReview.edit('actionBookingTime',freeBookingTime)} style={styles.slotFixButton}>
                 <Text style={styles.slotFixButtonText}>Use {freeBookingTime} instead</Text>
               </Pressable>
             ) : null}
@@ -3909,7 +3915,7 @@ function ReplyActionDetail({ s }) {
         <Button
           label={saved.done ? "Save booking changes" : "Save booking confirmation"}
           primary
-          disabled={!s.actionBookingTime.trim() || bookingClashes.length > 0}
+          disabled={bookingReview.conflict || bookingReview.saving || !s.actionBookingTime.trim() || bookingClashes.length > 0}
           onPress={() =>
             finish({
               ...(saved.details || {}),
@@ -3928,37 +3934,40 @@ function ReplyActionDetail({ s }) {
             <TextInput
               multiline
               accessibilityLabel="Completed job note"
+              editable={!bookingReview.conflict}
+              accessibilityState={{disabled:bookingReview.conflict}}
               textAlignVertical="top"
               value={s.actionJobNote}
-              onChangeText={s.setActionJobNote}
+              onChangeText={value=>bookingReview.edit('actionJobNote',value)}
               placeholder="Anything useful to remember about the finished job?"
               placeholderTextColor={C.muted}
               style={styles.messageInput}
             />
             <Button
               label="Mark job completed"
+              disabled={bookingReview.conflict||bookingReview.saving}
               onPress={() => {
-                const jobId = s.markBookingCompleted(customer.id, s.actionJobValue, s.actionJobNote);
-                if (jobId) s.startJobPhotoPrompt(customer.id, jobId);
+                let jobId;
+                jobId = bookingReview.commit(()=>s.markBookingCompleted(customer.id, s.actionJobValue, s.actionJobNote),next=>next?.details?.bookingStatus==='Completed'&&next.details.bookingDate===saved.details?.bookingDate&&next.details.completionNote===String(s.actionJobNote||'').trim(),{leave:false,savedFields:['actionJobValue','actionJobNote'],onAccepted:()=>s.startJobPhotoPrompt(customer.id,jobId)});
               }}
             />
-            <Button label="Cancel booking" onPress={() => s.setBookingStatus(customer.id, "Cancelled")} />
+            <Button label="Cancel booking" onPress={() => bookingReview.transition(()=>s.setBookingStatus(customer.id, "Cancelled"))} />
           </>
         ) : null}
         {saved.done && bookingStatus === "Cancelled" ? (
-          <Button label="Reopen booking" onPress={() => s.setBookingStatus(customer.id, "Confirmed")} />
+          <Button label="Reopen booking" onPress={() => bookingReview.transition(()=>s.setBookingStatus(customer.id, "Confirmed"))} />
         ) : null}
         {saved.done && bookingStatus === "Completed" ? (
           <>
             <Button
               label="Manage job photos"
-              onPress={() => s.openJobAssets(customer.id, `job-${customer.id}-${saved.details?.bookingDate}`)}
+              onPress={() => bookingReview.transition(()=>s.openJobAssets(customer.id, `job-${customer.id}-${saved.details?.bookingDate}`))}
             />
-            <Button label="View customer job history" onPress={() => s.openCustomer(customer.id)} />
+            <Button label="View customer job history" onPress={() => bookingReview.transition(()=>s.openCustomer(customer.id))} />
           </>
         ) : null}
 
-        <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
+        <Button label="Open customer" onPress={() => bookingReview.transition(()=>s.openCustomer(customer.id))} />
         <Button label="Cancel" onPress={s.back} />
       </Shell>
     );

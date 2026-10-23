@@ -11,22 +11,25 @@ export function AppGalleryDescriptionEditor({config,revision,busy,onDraftChange,
  const [source,setSource]=React.useState(config),[selected,setSelected]=React.useState(null);
  const [query,setQuery]=React.useState('');
  const gallery=Array.isArray(config?.publicProfile?.assets?.gallery)?config.publicProfile.assets.gallery:[];
+ const galleryStamp=JSON.stringify(gallery);
  const search=query.trim().toLocaleLowerCase('en');
  const shown=gallery.map((photo,index)=>({photo,index})).filter(({photo,index})=>!search||[String(index+1),photo?.alt,photo?.caption].some(value=>String(value||'').toLocaleLowerCase('en').includes(search)));
  const live=React.useRef(null),epoch=React.useRef(0),dirty=React.useRef(false),pendingRef=React.useRef(null);
  const clearPending=()=>{pendingRef.current=null;setPending(null);};
  live.current={config,revision,number,alt,caption,busy};
- const current=()=>live.current.config===config&&live.current.revision===revision&&!live.current.busy;
+ const current=()=>live.current.config===config&&live.current.revision===revision&&!live.current.busy&&JSON.stringify(config?.publicProfile?.assets?.gallery||[])===galleryStamp;
  const change=setter=>value=>{if(!current())return;epoch.current++;dirty.current=true;clearPending();setter(value);onDraftChange?.(true);onPreview?.(null);};
  const resolve=action=>{if(!current())return;const captured=epoch.current;
   const run=()=>{if(!current()||captured!==epoch.current)return false;action();return true;};
   if(dirty.current){const ticket={run,epoch:captured,config,revision};pendingRef.current=ticket;setPending(ticket);}else run();
  };
- const load=()=>resolve(()=>{
+ const load=()=>{
   const index=Number(live.current.number)-1,item=config?.publicProfile?.assets?.gallery?.[index];
-  if(!item||typeof item.uri!=='string'||!item.uri||!(item.approved===true||item.marketingOk===true)){onNotice?.('Choose an existing approved gallery photo.');return;}
-  epoch.current++;dirty.current=false;setSource(config);setSelected({index,uri:item.uri});setAlt(String(item.alt||''));setCaption(String(item.caption||''));onDraftChange?.(false);onPreview?.(null);
- });
+  if(!Number.isInteger(index)||index<0||!item||typeof item.uri!=='string'||!item.uri||!(item.approved===true||item.marketingOk===true)){onNotice?.('Choose an existing approved gallery photo. Your wording is kept.');return;}
+  resolve(()=>{
+   epoch.current++;dirty.current=false;setSource(config);setSelected({index,uri:item.uri});setAlt(String(item.alt||''));setCaption(String(item.caption||''));onDraftChange?.(false);onPreview?.(null);
+  });
+ };
  const captured=epoch.current;
  const stale=source!==config;
  if(!gallery.length&&!selected&&!dirty.current)return <View style={styles.inspectorGroup}><Text accessibilityRole="header" style={styles.inspectorHeading}>Gallery descriptions</Text><Text style={styles.cardBody}>No gallery photos are available to describe. Use the original gallery controls to add suitable imagery first. Nothing was loaded, approved or saved here.</Text></View>;
@@ -38,7 +41,8 @@ export function AppGalleryDescriptionEditor({config,revision,busy,onDraftChange,
    <Button label="Keep editing photo wording" onPress={()=>{if(current()&&pendingRef.current===pending)clearPending();}}/>
    <Button label="Discard photo wording and continue" disabled={pending.config!==config||pending.revision!==revision} onPress={()=>{
     if(!current()||pendingRef.current!==pending||pending.config!==config||pending.revision!==revision||pending.epoch!==epoch.current)return;
-    clearPending();dirty.current=false;setAlt('');setCaption('');setSelected(null);onDraftChange?.(false);pending.run();
+    // The validated continuation owns replacement. A failed load must never erase wording.
+    clearPending();pending.run();
    }}/></View>:null}
   <Field label="Find a gallery photo" value={query} onChangeText={setQuery} placeholder="Photo number, loaded description or caption"/>
   {query?<Button label="Show all gallery photos" onPress={()=>setQuery('')}/>:null}
@@ -51,10 +55,10 @@ export function AppGalleryDescriptionEditor({config,revision,busy,onDraftChange,
     return <View key={index} style={styles.choiceCell}><Button compact
      label={'Photo '+(index+1)+(approved?'':' · not approved')}
      selected={Number(number)===index+1} disabled={busy||!approved}
-     onPress={()=>resolve(()=>setNumber(String(index+1)))}/></View>;
+     onPress={()=>resolve(()=>{setNumber(String(index+1));setAlt('');setCaption('');setSelected(null);dirty.current=false;onDraftChange?.(false);})}/></View>;
    })}
   </View>
-  <Field label="Gallery photo number (1 is first)" keyboardType="number-pad" editable={!busy} value={number} onChangeText={value=>resolve(()=>setNumber(value))}/>
+  <Field label="Gallery photo number (1 is first)" keyboardType="number-pad" editable={!busy} value={number} onChangeText={value=>resolve(()=>{setNumber(value);setAlt('');setCaption('');setSelected(null);dirty.current=false;onDraftChange?.(false);})}/>
   <Button label="Load this photo's existing descriptions" disabled={busy||!gallery.length} onPress={load}/>
   <Field label="Image description for screen readers" multiline editable={!busy} value={alt} onChangeText={change(setAlt)}/>
   <Field label="Optional public caption" multiline editable={!busy} value={caption} onChangeText={change(setCaption)}/>

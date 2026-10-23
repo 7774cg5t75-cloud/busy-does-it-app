@@ -2263,6 +2263,12 @@
       "args": [
         "scripts/check-mission15-gallery-recovery-ui.mjs"
       ]
+    },
+    {
+      "id": "mission15-booking-edit-continuity",
+      "args": [
+        "scripts/check-mission15-booking-edit-continuity.mjs"
+      ]
     }
   ]
 }
