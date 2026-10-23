@@ -29,14 +29,18 @@ export async function persistPrivateReply({customer,record,isCurrent,reconcile},
 // The editor supplies its genuine live typing epoch. No copied state or payload apply.
 export function privateReplyAccountBindings({enabled,recoveryEnabled=false,sessionRef,contextRef,ownerAccessToken,request}){
  if(enabled!==true&&recoveryEnabled!==true)return {trustedAccountEnabled:false,accountRecoveryEnabled:false};
- const current=getEditorEpoch=>()=>({...contextRef.current,inputEpoch:getEditorEpoch()});
+ const current=(getEditorEpoch,getRecoveredContext)=>()=>{
+  const original=contextRef.current,recovered=getRecoveredContext?.();
+  if(getRecoveredContext&&!recovered)return {...original,ready:false,inputEpoch:getEditorEpoch()};
+  return {...original,...(recovered?{identity:recovered.workspace,businessId:recovered.workspace.businessId,ownerId:recovered.workspace.actorId,role:recovered.workspace.memberRole,ready:true,recoveredReply:recovered.projection}:{}),inputEpoch:getEditorEpoch()};
+ };
  return {
   trustedAccountEnabled:enabled===true,accountRecoveryEnabled:recoveryEnabled===true,
   loadAccountReplyChoices:args=>sessionRef.current.discoverPrivateReplies({...args,ownerAccessToken,request}),
   inspectAccountReply:args=>sessionRef.current.inspectDiscoveredReply({...args,ownerAccessToken,request}),
-  reconcilePrivateAccountReply:({getEditorEpoch})=>sessionRef.current.reconcilePrivateReply({getCurrent:current(getEditorEpoch),ownerAccessToken,request}),
-  readPrivateAccountReply:({customerId,enquiryId,getEditorEpoch})=>sessionRef.current.readPrivateReply({getCurrent:current(getEditorEpoch),ownerAccessToken,request,customerId,enquiryId}),
-  preparePrivateAccountEdit:({review,newText,getEditorEpoch})=>sessionRef.current.preparePrivateReplyEdit({getCurrent:current(getEditorEpoch),review,newText}),
-  commitPrivateAccountEdit:({ticket,getEditorEpoch})=>sessionRef.current.mutatePrivate({getCurrent:current(getEditorEpoch),ownerAccessToken,request,ticket}),
+  reconcilePrivateAccountReply:({getEditorEpoch,getRecoveredContext})=>sessionRef.current.reconcilePrivateReply({getCurrent:current(getEditorEpoch,getRecoveredContext),ownerAccessToken,request}),
+  readPrivateAccountReply:({customerId,enquiryId,getEditorEpoch,getRecoveredContext})=>sessionRef.current.readPrivateReply({getCurrent:current(getEditorEpoch,getRecoveredContext),ownerAccessToken,request,customerId,enquiryId}),
+  preparePrivateAccountEdit:({review,newText,getEditorEpoch,getRecoveredContext})=>sessionRef.current.preparePrivateReplyEdit({getCurrent:current(getEditorEpoch,getRecoveredContext),review,newText}),
+  commitPrivateAccountEdit:({ticket,getEditorEpoch,getRecoveredContext})=>sessionRef.current.mutatePrivate({getCurrent:current(getEditorEpoch,getRecoveredContext),ownerAccessToken,request,ticket}),
  };
 }

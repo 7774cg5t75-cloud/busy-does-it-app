@@ -2173,6 +2173,18 @@
       "args": [
         "scripts/check-mission15-phase63-recovery.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase64-recovered-save",
+      "args": [
+        "scripts/check-mission15-phase64-recovered-save.mjs"
+      ]
+    },
+    {
+      "id": "mission15-phase64-filing-parent",
+      "args": [
+        "scripts/check-mission15-phase64-filing-parent.mjs"
+      ]
     }
   ]
 }

@@ -175,7 +175,15 @@ function createBusinessSnapshotSession(){
    const token=await ownerAccessToken();if(!token||!current())return fail('unresolved');
    const metadata=await request('rpc/busy_owner_account_revision_v1',{method:'POST',token,body:{p_business_id:source.businessId}});
    if(!current()||!metadata||Object.keys(metadata).sort().join(',')!=='businessId,ownerId,revision,schemaVersion'||metadata.businessId!==source.businessId||metadata.ownerId!==source.ownerId||metadata.schemaVersion!==1||!Number.isSafeInteger(metadata.revision)||metadata.revision<1)return fail('unresolved');
-   if(uncertainMutationIdentity===source.identity)return {...fail('unresolved'),observedRevision:metadata.revision};
+   if(uncertainMutationIdentity===source.identity){
+    // Read-only observation cannot recover a lost own-operation receipt.
+    const recovered=source.recoveredReply;
+    if(recovered){
+     const value=await request('rpc/busy_owner_reply_review_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_customer_id:recovered.customerId,p_enquiry_id:recovered.enquiryId,p_expected_revision:metadata.revision}});
+     if(current()&&validPrivateReplyProjection(value,{businessId:source.businessId,ownerId:source.ownerId,customerId:recovered.customerId,enquiryId:recovered.enquiryId,revision:metadata.revision})&&value.eligible&&value.sourceHash===recovered.sourceHash)return {...fail('observedUncertain'),observedRevision:metadata.revision,observedText:value.reply.text};
+    }
+    return {...fail('unresolved'),observedRevision:metadata.revision};
+   }
    const basis=privateBasis;
    if(!basis||basis.identity!==source.identity||basis.ownerId!==source.ownerId||basis.businessId!==source.businessId||basis.localRevision!==source.revision)return {...fail('reviewRequired'),observedRevision:metadata.revision};
    if(metadata.revision!==basis.revision)return {...fail('conflict'),observedRevision:metadata.revision};
@@ -185,18 +193,28 @@ function createBusinessSnapshotSession(){
  // Exact owner-private projection; never falls back to raw snapshot SELECT.
  async function readPrivateReply({getCurrent,ownerAccessToken,request,customerId,enquiryId}){
   const source=getCurrent();if(!source?.ready||source.role!=='owner'||!uuid.test(source.ownerId||'')||!uuid.test(source.businessId||'')||!Number.isSafeInteger(source.inputEpoch)||!Number.isSafeInteger(source.revision)||pending?.identity===source.identity)return {ok:false};
-  const basis=privateBasis;let accountRevision=source.revision;
+  const basis=privateBasis?.identity===source.identity?privateBasis:null;let accountRevision=source.revision;
+  const captured=stamp(source.getPayload());
   if(basis?.identity===source.identity){
    if(basis.ownerId!==source.ownerId||basis.businessId!==source.businessId||basis.localRevision!==source.revision||basis.customerId!==customerId||basis.enquiryId!==enquiryId)return {ok:false,status:'reviewRequired'};
    const checked=await reconcilePrivateReply({getCurrent,ownerAccessToken,request});if(!checked.ok)return checked;accountRevision=checked.revision;
   }
-  const captured=stamp(source.getPayload()),current=()=>{try{const v=getCurrent();return v?.ready&&v.identity===source.identity&&v.ownerId===source.ownerId&&v.businessId===source.businessId&&v.role==='owner'&&v.revision===source.revision&&v.inputEpoch===source.inputEpoch&&stamp(v.getPayload())===captured;}catch{return false;}};
+  // An account-only editor has no local snapshot revision authority. Observe
+  // metadata afresh, then check the exact opened source/record before review.
+  if(source.recoveredReply&&!basis){
+   const token=await ownerAccessToken();if(!token)return {ok:false};
+   const metadata=await request('rpc/busy_owner_account_revision_v1',{method:'POST',token,body:{p_business_id:source.businessId}});
+   if(!metadata||Object.keys(metadata).sort().join(',')!=='businessId,ownerId,revision,schemaVersion'||metadata.businessId!==source.businessId||metadata.ownerId!==source.ownerId||metadata.schemaVersion!==1||!Number.isSafeInteger(metadata.revision)||metadata.revision<source.recoveredReply.revision)return {ok:false,status:'reviewRequired'};
+   accountRevision=metadata.revision;
+  }
+  const current=()=>{try{const v=getCurrent();return v?.ready&&v.identity===source.identity&&v.ownerId===source.ownerId&&v.businessId===source.businessId&&v.role==='owner'&&v.revision===source.revision&&v.inputEpoch===source.inputEpoch&&stamp(v.getPayload())===captured;}catch{return false;}};
   const task={identity:source.identity};pending=task;
   try{
    const token=await ownerAccessToken();if(!token||!current())return {ok:false};
    const review=await request('rpc/busy_owner_reply_review_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_customer_id:customerId,p_enquiry_id:enquiryId,p_expected_revision:accountRevision}});
    if(!current()||!validPrivateReplyProjection(review,{businessId:source.businessId,ownerId:source.ownerId,customerId,enquiryId,revision:accountRevision}))return {ok:false};
    if(basis?.identity===source.identity&&(review.recordHash!==basis.recordHash||review.sourceHash!==basis.sourceHash||review.reply.text!==basis.text))return {ok:false,status:'reviewRequired'};
+   if(source.recoveredReply&&!basis&&(review.recordHash!==source.recoveredReply.recordHash||review.sourceHash!==source.recoveredReply.sourceHash||review.enquiry.rawText!==source.recoveredReply.enquiry.rawText||review.reply.text!==source.recoveredReply.reply.text))return {ok:false,status:'reviewRequired'};
    const copy=JSON.parse(stamp(review));privateReviews.set(copy,{...source,accountRevision,payloadStamp:captured,reviewStamp:stamp(copy)});return {ok:true,review:copy};
   }catch{return {ok:false};}finally{if(pending===task)pending=null;}
  }

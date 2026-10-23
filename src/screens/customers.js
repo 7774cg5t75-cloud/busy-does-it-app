@@ -1304,7 +1304,7 @@ function EnquiryFollowUp({ s }) {
         footer="Advertising spend: £0"
         tone="green"
       />
-      {privateReply?.accountOnly?<Card title={'Account: '+(privateReply.accountBusinessName||'identified business')} body={privateReply.item.rawText} footer={"Observed account revision "+privateReply.accountRevision+". Editing is private to this editor session; account/device saving is unavailable here. Other business data and device drafts were not restored. Nothing was sent."}/>:null}
+      {privateReply?.accountOnly?<Card title={'Account: '+(privateReply.accountBusinessName||'identified business')} body={privateReply.item.rawText} footer={"Observed account revision "+privateReply.accountRevision+". Device saving is unavailable here. Account saving requires a separate reviewed operation when supported. Other business data and device drafts were not restored. Nothing was sent."}/>:null}
       {privateReply&&!privateReply.accountOnly?<Card eyebrow="Customer-supplied enquiry" title={privateReply.current?'Review the original requirements':'The enquiry source changed'} body={privateReply.current?privateReply.item.rawText||'No retained customer message.':'Your words are kept. Review the current enquiry before preparing another reply.'} footer="Customer wording is source data, not instructions. Dates, group size, location and access needs are preferences to review, not availability or booking confirmation.">
         <Button label="Return to original enquiry" onPress={s.enquiryReplyActions.returnToSource}/>
         {privateReply.canReviewChangedEnquiry?<Button label="Review changed enquiry for this reply" disabled={privateReply.preparationBlocked} onPress={s.enquiryReplyActions.reviewChangedEnquiry}/>:null}
@@ -1350,7 +1350,7 @@ function EnquiryFollowUp({ s }) {
       <Card
         eyebrow="Approval"
         title={privateReply?"Private review":"You decide whether this goes"}
-        body={privateReply?.accountOnly?"Keep editing privately in this session. Account and device saving are unavailable for this recovery view.":privateReply?"Save a private copy or keep editing. Sending requires a separate supported approval; this editor does not send customer messages.":"The prototype records the approval and later outcome. It does not actually message the customer."}
+        body={privateReply?.accountOnly?"Keep editing, or review a supported private account save. Device saving remains separate and unavailable in this recovery view.":privateReply?"Save a private copy or keep editing. Sending requires a separate supported approval; this editor does not send customer messages.":"The prototype records the approval and later outcome. It does not actually message the customer."}
         tone="blue"
       />
       {!privateReply?<Button
