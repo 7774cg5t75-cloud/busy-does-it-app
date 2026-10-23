@@ -25,9 +25,10 @@ Fresh simulator + separate app identifier keep device/Keychain data isolated. Pu
 * Standard Apple Silicon `macos-15`, exact public repository/branch guard, bounded50-minute job. No larger/custom/self-hosted runner input.
 * Official checkout/setup/upload actions pinned to verified commit SHAs; read-only repository token and checkout credential persistence disabled. No secrets referenced.
 * Capture-only lock records the existing application's dependencies with official registry URLs and SHA512 integrity. Install uses `npm ci --ignore-scripts`; no lifecycle scripts during package installation. Explicit Expo/CocoaPods/Xcode commands perform the reviewed native build.
+* Select the newest installed Xcode with Swift6.2 or newer before CocoaPods/build; record the actual toolchain in the manifest. No toolchain download or privileged system-default change.
 * Existing installed simulator runtime only, foreground Simulator and six-minute boot deadline; prefer iPhone14Pro, otherwise record the actual supported iPhone. No claim of a particular model unless the manifest establishes it.
 * Release simulator build embeds actual JS at the recorded commit, with no Metro tunnel. XCTest drives controls; a localhost-only receiver calls Apple `xcrun simctl io … screenshot`.
-* Initial test targets genuine Home in Midnight and Daylight. Broader screen coverage must be added/executed and labelled; do not infer it from workflow design.
+* Capture Home in Midnight and Daylight first, then the six original entry areas in Midnight. Get Paid is the actual quote-assistance explanation, not a payment dashboard. Report only successfully executed captures; later route failure preserves earlier PNGs.
 * PNG signature and total20MiB cap before upload; uploader runs only after the artifact gate succeeds. One-day retention, no binary/cache upload. No artifact is uploaded when no actual screenshot exists.
 
 GitHub documents standard hosted runners as free for public repositories; larger runners are chargeable. Public-only guard and fixed standard label must remain. No billing settings are changed. Future agents should recheck applicable GitHub policy before changing runner/storage scope.
@@ -47,3 +48,11 @@ Official references:
 * https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
 * https://docs.expo.dev/guides/local-app-development/
 * https://developer.apple.com/library/archive/documentation/IDEs/Conceptual/iOS_Simulator_Guide/InteractingwiththeiOSSimulator/InteractingwiththeiOSSimulator.html
+
+An actual iOS Metro/Hermes export runs before native generation, so bundling failures stop before the expensive Xcode stage. This compiler check is not screenshot evidence.
+
+## Native compatibility found during the first execution
+
+The original pinned view-shot4.0.3 fails against ReactNative0.86.3 because its iOS implementation names removed RCTScrollView types. The SHA512-verified official Expo57.0.23 `bundledNativeModules.json` specifies view-shot5.1.0; the existing dependency and capture lock are updated to that version. Its `captureRef` API is retained. No UI/controller patch or replacement screenshot renderer is used. Earlier source revisions with incompatible dependency declarations fail `npm ci` instead of receiving a silent dependency override.
+
+Expo Audio declares an unconstrained expo-asset peer. npm had hoisted SDK58 expo-asset into the SDK57 build, which Metro could not resolve against Expo57. The app now explicitly requests SDK57 expo-asset, matching Expo’s own dependency. Official registry integrity is locked; no runtime module is stubbed out to obtain a build.

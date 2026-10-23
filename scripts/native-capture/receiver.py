@@ -1,7 +1,7 @@
 import hashlib,json,os,subprocess
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler,HTTPServer
-art=Path('artifacts/native-screenshots');allowed={'home-midnight','home-daylight'}
+art=Path('artifacts/native-screenshots');allowed={'home-midnight','home-daylight','website-builder-midnight','app-builder-midnight','content-creator-midnight','get-more-customers-midnight','work-customers-midnight','get-paid-explanation-midnight'}
 class Handler(BaseHTTPRequestHandler):
  def log_message(self,*args):pass
  def do_GET(self):

@@ -43,6 +43,9 @@ jobs:
       - name: Install integrity-locked declared app dependencies
         working-directory: ${{ env.CAPTURE_WORK }}
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Preflight actual iOS JavaScript and Hermes bundle
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: npx --no-install expo export --platform ios --max-workers 2 --output-dir "$RUNNER_TEMP/busy-bundle-preflight"
       - name: Generate actual native application
         working-directory: ${{ env.CAPTURE_WORK }}
         run: npx --no-install expo prebuild --platform ios --no-install
