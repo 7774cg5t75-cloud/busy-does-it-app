@@ -110,8 +110,8 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
         return section?(
          <View key={id} style={styles.recordRow}>
           <Text style={styles.cardBody}>{section.title||id}</Text>
-          <Button label="Move section up" onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"up"})}/>
-          <Button label="Move section down" onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"down"})}/>
+          <View style={styles.choiceGrid}><View style={styles.choiceCell}><Button compact label="Move section up" onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"up"})}/></View>
+          <View style={styles.choiceCell}><Button compact label="Move section down" onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"down"})}/></View></View>
           {page.sectionIds.length>1?(
            <Button label="Move section back to home page" onPress={()=>
             apply({action:"remove-page-section",pageId:page.id,sectionId:id})}/>
@@ -134,18 +134,21 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
        <Button label="Add section to page" onPress={addSection}/>
        <Text style={styles.sectionLabel}>Add a photo and description</Text>
        <Text style={styles.cardBody}>Choose an already approved gallery photograph. Your section heading and wording above are reused; you can edit them afterwards.</Text>
+       {!(sections.find(x=>x.id==="gallery")?.items||[]).some(asset=>asset?.approved!==false&&asset?.storagePath)?<Text style={styles.helper}>No eligible gallery photo is available for this page. Your heading and wording are kept; no photo was added.</Text>:null}
+       <View style={styles.choiceGrid}>
        {(sections.find(x=>x.id==="gallery")?.items||[])
          .filter(asset=>asset?.approved!==false&&asset?.storagePath)
          .slice(0,12).map((asset,index)=>(
-          <Button key={asset.storagePath}
+          <View key={asset.storagePath} style={styles.choiceCell}><Button compact
            label={"Add approved photo "+(index+1)+" with the wording above"}
            onPress={()=>{
              if(apply({action:"add-photo-feature",pageId:selected,
                  title:sectionTitle,body:sectionBody,storagePath:asset.storagePath})){
                setSectionTitle("");setSectionBody("");
              }
-           }}/>
+           }}/></View>
          ))}
+       </View>
        <Text style={styles.sectionLabel}>Move one of your existing text sections to this page</Text>
        {sections.filter(s=>s.id.startsWith("custom-")&&s.type==="text"&&s.enabled!==false&&!page.sectionIds.includes(s.id))
         .slice(0,30).map(s=>(

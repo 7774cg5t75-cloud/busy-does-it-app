@@ -2251,6 +2251,18 @@
       "args": [
         "scripts/check-mission15-navigation-workspaces.mjs"
       ]
+    },
+    {
+      "id": "mission15-conversation-workspaces",
+      "args": [
+        "scripts/check-mission15-conversation-workspaces.mjs"
+      ]
+    },
+    {
+      "id": "mission15-gallery-recovery-ui",
+      "args": [
+        "scripts/check-mission15-gallery-recovery-ui.mjs"
+      ]
     }
   ]
 }

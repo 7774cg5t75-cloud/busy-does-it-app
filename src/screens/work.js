@@ -3688,9 +3688,13 @@ function ReplyActionDetail({ s }) {
         <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" todayISO={todayISO} />
         <Card eyebrow="Private quote" title={quoteReview.conflict?'The saved quote changed':quoteReview.saving?'Checking the updated record':quoteReview.dirty?'Changes not recorded yet':'Private record review'} body={quoteReview.conflict?'Your words are kept. Reopen the current quote or deliberately discard your changes before using a different source.':'Recording this quote uses the current workspace record. Device/account persistence and customer delivery are not confirmed by this form.'} tone="blue" />
         <QuotePrivateSaveStatus s={s} record={saved} dirty={quoteReview.dirty} check={quoteReview.checkDeviceCopy}/>
-        <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={value=>quoteReview.edit('actionQuoteAmount',value)} keyboardType="number-pad" prefix="£" />
+        <View style={styles.workspacePanel}>
+        <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Edit this private quote</Text>
+        <Text style={styles.workspaceMeta}>{"Customer reference: "+customer.id+" · Current record: "+quoteStatus+". Fields below are your working copy, not a delivery receipt."}</Text>
+        <Field editable={!quoteReview.conflict} label="Quote amount" value={s.actionQuoteAmount} onChangeText={value=>quoteReview.edit('actionQuoteAmount',value)} keyboardType="number-pad" prefix="£" />
         <Text style={styles.fieldLabel}>Draft reply</Text>
-        <TextInput multiline value={s.actionQuoteMessage} onChangeText={value=>quoteReview.edit('actionQuoteMessage',value)} style={styles.messageInput} />
+        <TextInput multiline accessibilityLabel="Private quote wording" editable={!quoteReview.conflict} accessibilityState={{disabled:quoteReview.conflict}} value={s.actionQuoteMessage} onChangeText={value=>quoteReview.edit('actionQuoteMessage',value)} placeholder="Your exact private quote wording" placeholderTextColor={C.muted} textAlignVertical="top" style={[styles.messageInput,styles.replyEditor]} />
+        </View>
         {(quoteStatus === "Prepared" || quoteStatus === "Sent" || !saved.done) ? (
           <>
             <DatePickerField
@@ -3844,6 +3848,9 @@ function ReplyActionDetail({ s }) {
           ) : null}
         </View>
 
+        <View style={styles.workspacePanel}>
+        <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Booking date, time and value</Text>
+        <Text style={styles.workspaceMeta}>{"Customer reference: "+customer.id+" · Recorded status: "+bookingStatus+". Editing fields does not contact the customer."}</Text>
         <DatePickerField
           label="Booking date"
           value={s.actionBookingDate}
@@ -3855,6 +3862,7 @@ function ReplyActionDetail({ s }) {
         <View style={styles.timeChoiceWrap}>
           {timeOptionsForSlot(s.quietSlot).map((time) => (
             <Pressable
+              accessibilityRole="button" accessibilityState={{selected:s.actionBookingTime===time}}
               key={time}
               onPress={() => s.setActionBookingTime(time)}
               style={[
@@ -3883,6 +3891,7 @@ function ReplyActionDetail({ s }) {
           placeholder="Optional"
         />
 
+        </View>
         {bookingClashes.length ? (
           <View style={styles.clashBox}>
             <Text style={styles.clashTitle}>Booking clash</Text>
@@ -3918,6 +3927,8 @@ function ReplyActionDetail({ s }) {
             <Text style={styles.fieldLabel}>Completion note (optional)</Text>
             <TextInput
               multiline
+              accessibilityLabel="Completed job note"
+              textAlignVertical="top"
               value={s.actionJobNote}
               onChangeText={s.setActionJobNote}
               placeholder="Anything useful to remember about the finished job?"

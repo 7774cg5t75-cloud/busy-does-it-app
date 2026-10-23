@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text} from 'react-native';
+import {Text,View} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
 import {parseEnquiryListingReference} from '../core/ownerConversationPreparation.mjs';
@@ -14,7 +14,8 @@ export function QuoteEnquiryContext(props){
  return <Card eyebrow="Original filed enquiry" title={item.parsed?.name||'Customer request'} body="Review the current customer request alongside your private quote. Saving the quote can retain its filing reference; device/account saving and customer delivery need separate evidence. Requested dates and requirements are not confirmed availability or bookings.">
   {s.quoteEnquiryLinkStatus==='linked'?<Text style={styles.cardBody}>This quote retains a link to this filing record. Review the current request; the link does not prove that its wording is unchanged or that the quote was delivered.</Text>:null}
   {item.parsed?.service?<Text style={styles.cardBody}>{'Requested service: '+item.parsed.service}</Text>:null}
-  {item.rawText?<Text selectable style={styles.cardBody}>{item.rawText}</Text>:<Text style={styles.cardBody}>The original item has no retained message wording. Review its customer record for supplied details.</Text>}
+  <Text selectable style={styles.workspaceMeta}>{'Filed enquiry reference: '+item.id+' · Recorded source: '+(item.source||'Not recorded')}</Text>
+  {item.rawText?<View style={styles.recordRow}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Recorded enquiry wording</Text><Text selectable style={styles.conversationBody}>{item.rawText}</Text></View>:<Text style={styles.cardBody}>The original item has no retained message wording. Review its customer record for supplied details.</Text>}
   {props.prepareQuote&&readCustomerEnquiryRequirements(item.rawText)?<Button label="Use supplied details in my quote draft" onPress={()=>props.prepareQuote(item)}/>:null}
   {props.prepareCatalogue&&parseEnquiryListingReference(item.rawText)?<Button label="Use current approved item information" onPress={()=>props.prepareCatalogue(item)}/>:null}
   {props.prepareService?<Button label="Use approved service information" onPress={()=>props.prepareService(item)}/>:null}
