@@ -15,7 +15,7 @@ final class CaptureTests: XCTestCase {
   attachment.name = "busy-" + name + "-" + captureSourceCommit
   attachment.lifetime = .keepAlways
   add(attachment)
-  print("CAPTURE attached=" + attachment.name)
+  print("CAPTURE attached=busy-" + name + "-" + captureSourceCommit)
  }
  func signInToOriginalHome() {
   continueAfterFailure=false
