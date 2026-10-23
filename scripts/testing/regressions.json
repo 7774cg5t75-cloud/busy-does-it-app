@@ -2198,6 +2198,20 @@
         "scripts/check-mission15-phase66-interrupted-enquiries.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-phase67-appearance",
+      "args": [
+        "scripts/check-mission15-phase67-appearance.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission15-phase67-parent",
+      "args": [
+        "scripts/check-mission15-phase67-parent.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

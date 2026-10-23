@@ -64,3 +64,9 @@ This preflight is a **required step**, not a suggestion. The owner prefers takin
 ## Definition of a successful sweep
 
 Meaningful functional or maintainability improvements, no newly introduced regression according to available automated checks, transparent remaining uncertainty, and no additional unapproved costs. At ~five-sweep intervals, include architectural health as a first-class deliverable.
+
+## Build-first active development — owner Phase67 instruction (23 October2026)
+
+Prioritise coherent batches of working application code, reuse and essential automated quality checks. Use source/component, syntax, dependency, architecture and relevant security regressions during development; run the full applicable automated selection on frozen source before completion claims. Correct critical defects at their real boundary. Do not turn every mission into owner-performed device acceptance, hosted infrastructure investigation or documentation-only preparation. Actual device/browser/provider/JWT/release acceptance remains honestly separate and requires its existing authority; no relaxed security assertions, paid actions, hosted switches or abort-fuse removal.
+
+Product authority for this mission is the accessible genuine V22.48 original plus explicit Phase67 implementation instructions. V22.49's original is unavailable and not reconstructed. The approved visual direction may now be implemented in original app chrome/Home/settings while preserving corporate identity, six destinations, source/tenant approvals, all existing business records and owner-created website/app appearances. Device appearance preferences must remain separate from business Brand DNA and account snapshots.

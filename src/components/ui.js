@@ -1,3 +1,5 @@
+import {BusyMiniOrb} from "./BusyOrb";
+import {moodForScreen} from "../theme/appearance.mjs";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -277,6 +279,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
 
   return (
     <View style={[styles.shell, dark && styles.homeDarkShell]}>
+      <View pointerEvents="none" accessibilityElementsHidden style={{position:"absolute",top:0,right:0,width:190,height:220,borderRadius:160,backgroundColor:C[moodForScreen(s.screen)],opacity:.045}}/>
       <KeyboardAvoidingView
         style={styles.keyboardAvoider}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -314,6 +317,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         {children}
         </ScrollView>
       </KeyboardAvoidingView>
+      {!noNav&&!keyboardVisible&&!s.busyMiniOrbHidden&&['workHub','customerRecords','growthCommandCentre','socialCentre','settings','results'].includes(s.screen)&&typeof s.openTalkToBusy==='function'?<BusyMiniOrb s={s}/>:null}
       {!noNav && !keyboardVisible ? <BottomNav s={s} dark={dark} /> : null}
     </View>
   );
@@ -379,6 +383,8 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
 function Button({ label, onPress, primary = false, danger = false, disabled = false }) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{disabled}}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
@@ -428,7 +434,7 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
           secureTextEntry={secureTextEntry}
           autoCapitalize={autoCapitalize}
           style={styles.fieldInput}
-          placeholderTextColor="#9AA3B2"
+          placeholderTextColor={C.muted}
         />
       </View>
     </View>

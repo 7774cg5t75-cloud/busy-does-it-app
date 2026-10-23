@@ -1,3 +1,4 @@
+import {appColors} from "../theme/appearance.mjs";
 export const TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED = false; // Separate read/write cutover approval required.
 export const TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED = false; // Separate reviewed server/client cutover required.
 import {busyRuntimeCloudConfig} from "./stagingRuntimeIsolation.mjs";
@@ -152,25 +153,7 @@ function ownerSessionFromPayload(data) {
 
 // V3.84: shared dark design tokens for the entire authenticated product.
 // Keep high-contrast text tones distinct from filled-button colors.
-const C = {
-  bg: "#0D131E",
-  card: "#171F2D",
-  ink: "#F4F7FE",
-  muted: "#B4C0D2",
-  blue: "#3671E3",
-  blueText: "#94BCFF",
-  blueSoft: "#1A2A44",
-  green: "#7BE0AE",
-  greenAction: "#238F57",
-  greenSoft: "#173329",
-  amber: "#F6C16E",
-  amberAction: "#9D631D",
-  amberSoft: "#342817",
-  red: "#FF9494",
-  redAction: "#AA3F4F",
-  border: "#344157",
-  shadow: "#000000",
-};
+const C = appColors;
 
 const VERTICAL_PACKS = {
   "exterior-cleaning": {

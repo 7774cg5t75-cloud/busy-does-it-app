@@ -1,3 +1,4 @@
+import {AppearanceChoices} from "../components/AppearanceChoices";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -224,6 +225,7 @@ function Settings({ s }) {
   const connectedCount = Object.values(s.connectedAccounts).filter(Boolean).length;
   return (
     <Shell s={s} noBack title="Settings" subtitle="Your business details, connected accounts and approval rules, all in one place.">
+      <AppearanceChoices/>
       <Card
         eyebrow="Your everyday settings"
         title="What would you like to manage?"

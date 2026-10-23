@@ -1,0 +1,12 @@
+import React from 'react';
+import {Appearance} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getAppearance,subscribeAppearance,setDeviceScheme,hydrateAppearance,updateAppearance} from './appearance.mjs';
+// One device preference source, shared with the original palette/styles. No provider/remount.
+export function useAppearance(){
+ const [value,setValue]=React.useState(getAppearance);
+ React.useEffect(()=>subscribeAppearance(setValue),[]);
+ return {...value,choose:mode=>updateAppearance({mode,chosen:true},AsyncStorage.setItem),skip:()=>updateAppearance({chosen:true},AsyncStorage.setItem),resetOrb:()=>updateAppearance({orbEdge:'right'},AsyncStorage.setItem)};
+}
+export function useAppearanceDevice(){const value=useAppearance();React.useEffect(()=>{setDeviceScheme(Appearance?.getColorScheme?.());const subscription=Appearance?.addChangeListener?.(({colorScheme})=>setDeviceScheme(colorScheme));hydrateAppearance(AsyncStorage.getItem);return()=>subscription?.remove();},[]);return value;}
+export const retainOrbEdge=edge=>updateAppearance({orbEdge:edge},AsyncStorage.setItem);

@@ -1,3 +1,4 @@
+import {useAppearanceDevice} from "../theme/useAppearance";
 import {useFirstEnquiryFiling} from '../screens/useFirstEnquiryFiling';
 import {persistPrivateReply,privateReplyAccountBindings} from './privateEnquiryReplyPersistence.mjs';
 import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
@@ -13251,6 +13252,7 @@ function App() {
   };
 
   const openTalkToBusy = (startVoice = false, websiteMode = "") => {
+    if(typeof busyEntrySendRef!=="undefined")busyEntrySendRef.current=null;
     clearBusyCommandResult();
     // A website-specific guide must never leak into a normal BUSY chat.
     setWebsiteConversationMode(["build", "edit"].includes(websiteMode) ? websiteMode : "");
@@ -17214,7 +17216,18 @@ function App() {
       return allowed?current:{...current,ready:false};
     },ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION,
   });
+  const appearance=useAppearanceDevice();
+  const composerScope=businessWorkspaceScopeRef.current;
+  const [busyEntryDraft,setBusyEntryDraft]=useState({scope:composerScope,text:""});
+  const busyEntrySendRef=useRef(null),busyComposerLive=useRef(null);
+  busyComposerLive.current={scope:composerScope,text:busyEntryDraft.scope===composerScope?busyEntryDraft.text:""};
   const appState = {
+    appearance,
+    busyEntryText:busyEntryDraft.scope===composerScope?busyEntryDraft.text:"",
+    setBusyEntryText:text=>{if(businessWorkspaceScopeRef.current===composerScope){busyEntrySendRef.current=null;busyComposerLive.current={scope:composerScope,text};setBusyEntryDraft({scope:composerScope,text});}},
+    sendBusyEntry:text=>{if(businessWorkspaceScopeRef.current!==composerScope||busyComposerLive.current.text!==text||!text.trim()||busyCommandStatus==="thinking"||busyEntrySendRef.current)return false;openTalkToBusy(false);busyEntrySendRef.current={scope:composerScope,text};setBusyEntryDraft({scope:composerScope,text});return true;},
+    busyEntrySubmission:busyEntrySendRef.current?.scope===composerScope?busyEntrySendRef.current:null,
+    takeBusyEntrySubmission:ticket=>{if(businessWorkspaceScopeRef.current!==composerScope||busyEntrySendRef.current!==ticket||ticket?.scope!==composerScope)return null;busyEntrySendRef.current=null;return ticket.text;},
     setOwnerEditDirty,
     releaseOwnerEdit:token=>ownerEditNavigation.current.release(token),
     requestOwnerEditTransition:(transition,options)=>ownerEditNavigation.current.request(transition,options),
@@ -18140,7 +18153,7 @@ function App() {
   if (!ownerSession?.accessToken) {
     return (
       <SafeAreaView style={styles.safe}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={appearance.resolved==="daylight"?"dark-content":"light-content"} />
         <AccountAccess s={appState} />
       </SafeAreaView>
     );
@@ -18162,7 +18175,7 @@ function App() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={appearance.resolved==="daylight"?"dark-content":"light-content"} />
       {React.createElement(component, { s: appState })}
     </SafeAreaView>
   );
