@@ -36,6 +36,8 @@ export function privateReplyAccountBindings({enabled,recoveryEnabled=false,sessi
  };
  return {
   trustedAccountEnabled:enabled===true,accountRecoveryEnabled:recoveryEnabled===true,
+  readFirstAccountReply:({customerId,enquiryId,getEditorEpoch,getRecoveredContext})=>sessionRef.current.reviewEnquiry({getCurrent:current(getEditorEpoch,getRecoveredContext),ownerAccessToken,request,customerId,enquiryId}),
+  prepareFirstAccountReply:({review,newText,getEditorEpoch,getRecoveredContext})=>sessionRef.current.prepareEnquiryOperation({getCurrent:current(getEditorEpoch,getRecoveredContext),review,newText}),
   loadAccountReplyChoices:args=>sessionRef.current.discoverPrivateReplies({...args,ownerAccessToken,request}),
   inspectAccountReply:args=>sessionRef.current.inspectDiscoveredReply({...args,ownerAccessToken,request}),
   reconcilePrivateAccountReply:({getEditorEpoch,getRecoveredContext})=>sessionRef.current.reconcilePrivateReply({getCurrent:current(getEditorEpoch,getRecoveredContext),ownerAccessToken,request}),

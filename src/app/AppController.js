@@ -1,3 +1,4 @@
+import {useFirstEnquiryFiling} from '../screens/useFirstEnquiryFiling';
 import {persistPrivateReply,privateReplyAccountBindings} from './privateEnquiryReplyPersistence.mjs';
 import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
 import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
@@ -748,6 +749,7 @@ function App() {
   const [advanced, setAdvanced] = useState(false);
   const [outcome, setOutcome] = useState("Won");
   const [wonValue, setWonValue] = useState("620");
+  const captureTypingEpoch=useRef(0);
   const [captureRawText, setCaptureRawText] = useState("");
   const [captureScreenshots, setCaptureScreenshots] = useState([]);
   const [captureScreenshotOrderConfidence, setCaptureScreenshotOrderConfidence] = useState("Not checked");
@@ -2755,10 +2757,10 @@ function App() {
         if(!currentOwner())return false;
         // Identification is not domain recovery. Do not bind another business's
         // current local records, advance revision, apply payload or start autosave.
-        ownerScope.accountRecoveryWorkspace=checked.ok&&checked.workspace.memberRole==='owner'&&checked.workspace.snapshotStatus==='present'?checked.workspace:null;
+        ownerScope.accountRecoveryWorkspace=checked.ok&&checked.workspace.memberRole==='owner'&&['present','empty'].includes(checked.workspace.snapshotStatus)?checked.workspace:null;
         if(ownerScope.accountRecoveryWorkspace&&typeof Alert!=="undefined"){
           const identified=ownerScope.accountRecoveryWorkspace;
-          Alert.alert("Account identified","Current device work is kept. You can privately inspect eligible account replies; other domains have not been restored.",[{text:"Keep local work",style:"cancel"},{text:"Find saved replies",onPress:()=>{if(currentOwner()&&ownerScope.accountRecoveryWorkspace===identified){ownerScope.accountReplyActions?.discoverAccountReplies();go("customers");}}}]);
+          Alert.alert("Account identified","Current device work is kept. You can privately inspect eligible account replies; other domains have not been restored.",[{text:"Keep local work",style:"cancel"},...(identified.snapshotStatus==='empty'?[{text:"Capture first enquiry",onPress:()=>{if(currentOwner()&&ownerScope.accountRecoveryWorkspace===identified)go("quickCapture");}}]:[]),{text:"Find saved replies",onPress:()=>{if(currentOwner()&&ownerScope.accountRecoveryWorkspace===identified){ownerScope.accountReplyActions?.discoverAccountReplies();go("customers");}}}]);
         }
         setCloudInitialised(false);
         setCloudSyncStatus(checked.ok?"Account identified; device work kept":"Account check unavailable; device work kept");
@@ -6356,6 +6358,7 @@ function App() {
   };
   const saveQuickCapture = () => {
     if(typeof TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED!=="undefined"&&TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED===true){
+      if(typeof firstEnquiryFilingActions!=="undefined"&&firstEnquiryFilingActions.enabled)return firstEnquiryFilingActions.review();
       Alert.alert("Account filing unavailable","Secure account filing is not supported for this capture yet. Your capture fields are kept; nothing was filed or uploaded.");
       return false;
     }
@@ -8467,6 +8470,8 @@ function App() {
     storage:AsyncStorage,setCustomers,
   });
   const enquiryReplyActions=useEnquiryReplyPreparation({screen,...(typeof privateReplyAccountBindings==="function"?privateReplyAccountBindings({enabled:TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED,recoveryEnabled:typeof TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED!=="undefined"&&TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED===true,sessionRef:snapshotSessionRef,contextRef:snapshotContextRef,ownerAccessToken,request:busyDataRequest}):{}),recoveryWorkspace:typeof cloudOwnerScopeRef!=="undefined"?cloudOwnerScopeRef.current.accountRecoveryWorkspace||null:null,loadApprovedContent:()=>businessContentRequest('content_list'),readOwnSave:({customerId,inboxId})=>snapshotSessionRef.current.readOwnSave({getCurrent:()=>snapshotContextRef.current,customerId,inboxId}),canContinueRevision:(fromRevision,toRevision)=>snapshotSessionRef.current.canContinueRevision({getCurrent:()=>snapshotContextRef.current,fromRevision,toRevision}),readAccount:()=>snapshotSessionRef.current.read({getCurrent:()=>snapshotContextRef.current,ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION}),clearOrigin:()=>{replyActionOrigin.current=null;},persistPrivateReply:persistPrivateEnquiryReply,scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision,customers,inboxItems,profile:businessCreationIntelligence.sharedProfile,selectedInboxItemId,contextKind:["replyActionDetail","quoteFollowUp","customerDetail","communicationThread","enquiryFollowUp"].includes(screen)?"customer":"inbox",contextCustomerId:["replyActionDetail","quoteFollowUp"].includes(screen)?selectedReplyActionId:selectedCustomerId,origin:replyActionOrigin.current,getOrigin:()=>replyActionOrigin.current,selectedCustomerId,text:enquiryFollowUpDraft,setText:setEnquiryFollowUpDraft,setSelectedCustomerId,go,requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),confirm:Alert.alert,setOrigin:(customerId,item)=>{replyActionOrigin.current={workspace:businessWorkspaceScopeRef.current,customerId,item,stamp:JSON.stringify(item)};},returnToSource:returnToQuoteEnquiry});
+  const firstEnquiryFilingActions=useFirstEnquiryFiling({enabled:TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED&&TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED,scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,workspace:cloudOwnerScopeRef.current.accountRecoveryWorkspace,ownerId:ownerSession?.userId,contextRef:snapshotContextRef,sessionRef:snapshotSessionRef,epochRef:captureTypingEpoch,screen,selectedInboxItemId,capture:{source:captureSource,rawText:captureRawText,name:captureName,phone:capturePhone,email:captureEmail,address:captureAddress,service:captureService,date:captureDate,time:captureTime,note:captureNote,confidence:captureConfidence,value:captureValue,stage:captureStage,forceNew:captureForceNew,screenshots:captureScreenshots,analysis:captureBrainAnalysis},ownerAccessToken,request:busyDataRequest,confirm:Alert.alert,go,openReply:enquiryReplyActions.inspectFirstAccountReply});
+
   cloudOwnerScopeRef.current.accountReplyActions=enquiryReplyActions; // Latest-render recovery action; no stale bootstrap closure.
   const socialContentActions=useSocialContentHandoff({customers,loadSocialStatus:()=>socialPublishRequest('status'),loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording, photos and destination choices. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
@@ -17888,7 +17893,7 @@ function App() {
     newEnquiryDate,
     setNewEnquiryDate,
     captureRawText,
-    setCaptureRawText: updateCaptureRawText,
+    setCaptureRawText: value=>{captureTypingEpoch.current++;updateCaptureRawText(value);},
     captureScreenshots,
     captureScreenshotOrderConfidence,
     captureScreenshotOrderReason,
@@ -17900,31 +17905,31 @@ function App() {
     removeCaptureScreenshot,
     moveCaptureScreenshot,
     captureSource,
-    setCaptureSource: updateCaptureSource,
+    setCaptureSource: value=>{captureTypingEpoch.current++;updateCaptureSource(value);},
     captureStage,
-    setCaptureStage,
+    setCaptureStage: value=>{captureTypingEpoch.current++;setCaptureStage(value);},
     captureName,
-    setCaptureName,
+    setCaptureName: value=>{captureTypingEpoch.current++;setCaptureName(value);},
     capturePhone,
-    setCapturePhone,
+    setCapturePhone: value=>{captureTypingEpoch.current++;setCapturePhone(value);},
     captureEmail,
-    setCaptureEmail,
+    setCaptureEmail: value=>{captureTypingEpoch.current++;setCaptureEmail(value);},
     captureAddress,
-    setCaptureAddress,
+    setCaptureAddress: value=>{captureTypingEpoch.current++;setCaptureAddress(value);},
     captureService,
-    setCaptureService,
+    setCaptureService: value=>{captureTypingEpoch.current++;setCaptureService(value);},
     captureDate,
-    setCaptureDate,
+    setCaptureDate: value=>{captureTypingEpoch.current++;setCaptureDate(value);},
     captureTime,
-    setCaptureTime,
+    setCaptureTime: value=>{captureTypingEpoch.current++;setCaptureTime(value);},
     captureValue,
-    setCaptureValue,
+    setCaptureValue: value=>{captureTypingEpoch.current++;setCaptureValue(value);},
     captureNote,
-    setCaptureNote,
+    setCaptureNote: value=>{captureTypingEpoch.current++;setCaptureNote(value);},
     captureConfidence,
     captureExtractedFields,
     captureForceNew,
-    setCaptureForceNew,
+    setCaptureForceNew: value=>{captureTypingEpoch.current++;setCaptureForceNew(value);},
     captureMatch,
     intakeLog,
     intakeMergedCount,
@@ -17970,6 +17975,7 @@ function App() {
     reopenInboxItem,
     openBusyInbox,
     analyseQuickCapture,
+    firstEnquiryFilingActions,
     saveQuickCapture,
     customerNoteText,
     setCustomerNoteText,

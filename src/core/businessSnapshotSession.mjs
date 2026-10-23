@@ -13,6 +13,7 @@ function createBusinessSnapshotSession(){
  let pending=null,observed=null,lastOwnSave=null,writeBlockedIdentity=null,uncertainMutationIdentity=null;
  let legacyWorkspacePaused=false;
  let privateBasis=null; // Exact own target receipt; never a full local snapshot revision.
+ const enquiryReviews=new WeakMap();
  const mutationTickets=new WeakMap(),privateReviews=new WeakMap(),discoveredReplies=new WeakMap(),recoveryReviews=new WeakMap();
  const tickets=new WeakMap();
  function prepareRestore(getCurrent){
@@ -193,7 +194,7 @@ function createBusinessSnapshotSession(){
  // Exact owner-private projection; never falls back to raw snapshot SELECT.
  async function readPrivateReply({getCurrent,ownerAccessToken,request,customerId,enquiryId}){
   const source=getCurrent();if(!source?.ready||source.role!=='owner'||!uuid.test(source.ownerId||'')||!uuid.test(source.businessId||'')||!Number.isSafeInteger(source.inputEpoch)||!Number.isSafeInteger(source.revision)||pending?.identity===source.identity)return {ok:false};
-  const basis=privateBasis?.identity===source.identity?privateBasis:null;let accountRevision=source.revision;
+  const basis=privateBasis?.identity===source.identity&&privateBasis.customerId===customerId&&privateBasis.enquiryId===enquiryId?privateBasis:null;let accountRevision=source.revision;
   const captured=stamp(source.getPayload());
   if(basis?.identity===source.identity){
    if(basis.ownerId!==source.ownerId||basis.businessId!==source.businessId||basis.localRevision!==source.revision||basis.customerId!==customerId||basis.enquiryId!==enquiryId)return {ok:false,status:'reviewRequired'};
@@ -220,7 +221,7 @@ function createBusinessSnapshotSession(){
  }
  function preparePrivateReplyEdit({getCurrent,review,newText}){
   const source=review&&privateReviews.get(review),live=getCurrent();
-  if(!source||privateBasis?.identity===source.identity&&privateBasis.revision!==source.accountRevision||review.eligible!==true||typeof newText!=='string'||!newText.trim()||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return null;
+  if(!source||privateBasis?.identity===source.identity&&privateBasis.customerId===(review?.customerId||source.targetId)&&privateBasis.revision!==source.accountRevision||review.eligible!==true||typeof newText!=='string'||!newText.trim()||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return null;
   try{if(stamp(review)!==source.reviewStamp||live?.identity!==source.identity||live.role!=='owner'||live.ownerId!==source.ownerId||live.businessId!==source.businessId||live.revision!==source.revision||live.inputEpoch!==source.inputEpoch||!live.ready||stamp(live.getPayload())!==source.payloadStamp)return null;
    privateReviews.delete(review);const ticket={};mutationTickets.set(ticket,{...source,protocol:'owner_reply_v2',operation:'private_reply_edit_text',targetId:review.customerId,enquiryId:review.enquiryId,recordHash:review.recordHash,sourceHash:review.sourceHash,expectedRecord:{text:review.reply.text},newText});return ticket;
   }catch{return null;}
@@ -239,18 +240,19 @@ function createBusinessSnapshotSession(){
   if(!source)return fail('Review this exact private operation before using it.');
   mutationTickets.delete(ticket);
   const current=()=>{try{const live=getCurrent();return live?.ready&&live.identity===source.identity&&live.ownerId===source.ownerId&&live.businessId===source.businessId&&live.revision===source.revision&&live.role===source.role&&live.inputEpoch===source.inputEpoch&&stamp(live.getPayload())===source.payloadStamp;}catch{return false;}};
-  if(!current()||source.protocol==='owner_reply_v2'&&privateBasis?.identity===source.identity&&privateBasis.revision!==source.accountRevision||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return fail('The workspace, current words or save state changed. Nothing was sent.');
+  if(!current()||source.protocol==='owner_reply_v2'&&privateBasis?.identity===source.identity&&privateBasis.customerId===source.targetId&&privateBasis.revision!==source.accountRevision||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return fail('The workspace, current words or save state changed. Nothing was sent.');
   const task={identity:source.identity};pending=task;let sent=false;
   try{
    const token=await ownerAccessToken();if(!token||!current())return fail('The signed-in workspace or current words changed. Nothing was sent.');
    sent=true;lastOwnSave=null;observed=null;writeBlockedIdentity=source.identity;
-   const privateV2=source.protocol==='owner_reply_v2',expectedRevision=privateV2?source.accountRevision:source.revision;
-   const receipt=await request(privateV2?'rpc/busy_owner_reply_text_v2':'rpc/busy_snapshot_private_mutation_v1',{method:'POST',token,body:privateV2?{p_business_id:source.businessId,p_customer_id:source.targetId,p_enquiry_id:source.enquiryId,p_expected_revision:expectedRevision,p_record_hash:source.recordHash,p_source_hash:source.sourceHash,p_new_text:source.newText}:{p_business_id:source.businessId,p_expected_revision:source.revision,p_expected_schema:1,p_operation:source.operation,p_target_id:source.targetId,p_expected_record:source.expectedRecord,p_new_text:source.newText,p_expected_source:source.expectedSource}});
+   const creating=source.protocol==='owner_reply_create',privateV2=source.protocol==='owner_reply_v2'||creating,expectedRevision=privateV2?source.accountRevision:source.revision;
+   const receipt=await request(creating?'rpc/busy_owner_reply_create_v1':privateV2?'rpc/busy_owner_reply_text_v2':'rpc/busy_snapshot_private_mutation_v1',{method:'POST',token,body:creating?{p_business_id:source.businessId,p_expected_revision:expectedRevision,p_customer_id:source.targetId,p_enquiry_id:source.enquiryId,p_customer_hash:source.customerHash,p_source_hash:source.sourceHash,p_text:source.newText}:privateV2?{p_business_id:source.businessId,p_customer_id:source.targetId,p_enquiry_id:source.enquiryId,p_expected_revision:expectedRevision,p_record_hash:source.recordHash,p_source_hash:source.sourceHash,p_new_text:source.newText}:{p_business_id:source.businessId,p_expected_revision:source.revision,p_expected_schema:1,p_operation:source.operation,p_target_id:source.targetId,p_expected_record:source.expectedRecord,p_new_text:source.newText,p_expected_source:source.expectedSource}});
+   if(creating&&!/^([a-f0-9]{64})$/.test(receipt?.sourceHash||''))throw Error('Invalid created source receipt');
    if(privateV2&&(receipt?.enquiryId!==source.enquiryId||!/^([a-f0-9]{64})$/.test(receipt.recordHash||'')))throw Error('The private source receipt did not match.');
-   const expectedTarget=source.operation==='private_reply_edit_text'?{...source.expectedRecord,text:source.newText}:null;
+   const expectedTarget=['private_reply_edit_text','private_reply_create'].includes(source.operation)?{...source.expectedRecord,text:source.newText}:null;
    if(!receipt||receipt.businessId!==source.businessId||receipt.actorId!==source.ownerId||receipt.operation!==source.operation||receipt.targetId!==source.targetId||receipt.previousRevision!==expectedRevision||receipt.revision!==expectedRevision+1||receipt.schemaVersion!==1||stamp(receipt.target)!==stamp(expectedTarget))throw Error('The private mutation receipt did not match.');
    if(!current()){uncertainMutationIdentity=source.identity;return {...fail('The operation returned after the editor changed. Check the account; nothing was restored.'),uncertain:true};}
-   if(privateV2)privateBasis={identity:source.identity,ownerId:source.ownerId,businessId:source.businessId,localRevision:source.revision,revision:receipt.revision,customerId:source.targetId,enquiryId:source.enquiryId,recordHash:receipt.recordHash,sourceHash:source.sourceHash,text:source.newText};
+   if(privateV2)privateBasis={identity:source.identity,ownerId:source.ownerId,businessId:source.businessId,localRevision:source.revision,revision:receipt.revision,customerId:source.targetId,enquiryId:source.enquiryId,recordHash:receipt.recordHash,sourceHash:creating?receipt.sourceHash:source.sourceHash,text:source.newText};
    // This is a target receipt, never a full-snapshot save or permission to restore.
    return {ok:true,receipt:JSON.parse(stamp(receipt)),localChangesRemain:true};
   }catch(error){
@@ -258,6 +260,56 @@ function createBusinessSnapshotSession(){
    return {...fail('Private account operation was not confirmed. Keep current work and check the account; no write was repeated.'),uncertain:uncertainMutationIdentity===source.identity};
   }finally{if(pending===task)pending=null;}
  }
+
+ // Initial intake stays finite: metadata -> narrow source review -> one-use
+ // registration/filing. These tickets never confirm unrelated device work.
+ const exactContext=(source,getCurrent,captured)=>{try{const v=getCurrent();return v?.ready&&v.role==='owner'&&v.identity===source.identity&&v.businessId===source.businessId&&v.ownerId===source.ownerId&&v.revision===source.revision&&v.inputEpoch===source.inputEpoch&&stamp(v.getPayload())===captured;}catch{return false;}};
+ async function reviewEnquiry({getCurrent,enquiryId=null,ownerAccessToken,request,customerId=null}){
+  const source=getCurrent();if(!source?.ready||source.role!=='owner'||!uuid.test(source.businessId||'')||!uuid.test(source.ownerId||'')||!Number.isSafeInteger(source.inputEpoch)||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return {ok:false};
+  const captured=stamp(source.getPayload()),current=()=>exactContext(source,getCurrent,captured),task={identity:source.identity};pending=task;
+  try{
+   const token=await ownerAccessToken();if(!token||!current())return {ok:false};
+   const m=await request('rpc/busy_owner_account_revision_v1',{method:'POST',token,body:{p_business_id:source.businessId}});
+   if(!current()||!m||Object.keys(m).sort().join(',')!=='businessId,ownerId,revision,schemaVersion'||m.businessId!==source.businessId||m.ownerId!==source.ownerId||m.schemaVersion!==1||!Number.isSafeInteger(m.revision)||m.revision<1)return {ok:false};
+   let packet=m;
+   if(enquiryId){
+    packet=await request(customerId?'rpc/busy_owner_first_reply_review_v1':'rpc/busy_owner_pending_review_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_expected_revision:m.revision,p_enquiry_id:enquiryId,...customerId?{p_customer_id:customerId}:{}}});
+    const only=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
+    if(!current()||packet?.businessId!==source.businessId||packet.ownerId!==source.ownerId||packet.revision!==m.revision||packet.schemaVersion!==1||!/^([a-f0-9]{64})$/.test(packet.sourceHash||''))return {ok:false};
+    if(customerId){
+     if(!only(packet,['businessId','ownerId','revision','schemaVersion','sourceHash','customerHash','customer','enquiry'])||!/^([a-f0-9]{64})$/.test(packet.customerHash||'')||!only(packet.customer,['id','name','service','phone','email','address','contactOk'])||packet.customer.id!==customerId||Object.entries(packet.customer).some(([k,v])=>k==='contactOk'?typeof v!=='boolean':typeof v!=='string')||!only(packet.enquiry,['id','status','filedCustomerId','filedStage','reviewedAt','queuedAt','rawText'])||Object.values(packet.enquiry).some(v=>typeof v!=='string')||packet.enquiry.id!==enquiryId||packet.enquiry.status!=='Filed'||packet.enquiry.filedCustomerId!==customerId)return {ok:false};
+    }else if(!only(packet,['businessId','ownerId','revision','schemaVersion','sourceHash','pending'])||!only(packet.pending,['id','rawText','source'])||packet.pending.id!==enquiryId||Object.values(packet.pending).some(v=>typeof v!=='string'))return {ok:false};
+   }
+   const review=JSON.parse(stamp(packet));enquiryReviews.set(review,{...source,accountRevision:m.revision,payloadStamp:captured,reviewStamp:stamp(review),customerId,enquiryId});return {ok:true,review};
+  }catch{return {ok:false};}finally{if(pending===task)pending=null;}
+ }
+ function prepareEnquiryOperation({getCurrent,review,capture,manual=null,newText=null}){
+  const source=enquiryReviews.get(review);if(!source||stamp(review)!==source.reviewStamp||!exactContext(source,getCurrent,source.payloadStamp)||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return null;
+  const ticket={};
+  if(source.customerId){
+   if(typeof newText!=='string'||!newText.trim())return null;
+   mutationTickets.set(ticket,{...source,protocol:'owner_reply_create',operation:'private_reply_create',targetId:source.customerId,enquiryId:source.enquiryId,customerHash:review.customerHash,sourceHash:review.sourceHash,expectedRecord:{},newText});
+  }else{
+   if(source.enquiryId?(!capture||capture.enquiryId!==source.enquiryId||capture.sourceHash!==review.sourceHash):(!manual||typeof manual.enquiryId!=='string'||typeof manual.rawText!=='string'))return null;
+   const body=source.enquiryId?{p_business_id:source.businessId,p_expected_revision:source.accountRevision,p_capture:JSON.parse(stamp(capture))}:{p_business_id:source.businessId,p_expected_revision:source.accountRevision,p_enquiry_id:manual.enquiryId,p_raw_text:manual.rawText};
+   enquiryReviews.set(ticket,{...source,body,path:source.enquiryId?'rpc/busy_owner_first_enquiry_v1':'rpc/busy_owner_manual_source_v1',operation:source.enquiryId?'first_enquiry_filing':'manual_source_registration'});
+  }
+  enquiryReviews.delete(review);return ticket;
+ }
+ async function commitEnquiry({getCurrent,ticket,ownerAccessToken,request}){
+  const source=enquiryReviews.get(ticket);enquiryReviews.delete(ticket);if(!source?.body||!exactContext(source,getCurrent,source.payloadStamp)||pending?.identity===source.identity||uncertainMutationIdentity===source.identity)return {ok:false};
+  const task={identity:source.identity};pending=task;let sent=false;
+  try{
+   const token=await ownerAccessToken();if(!token||!exactContext(source,getCurrent,source.payloadStamp))return {ok:false};
+   sent=true;const receipt=await request(source.path,{method:'POST',token,body:source.body});
+   const capture=source.body.p_capture,fields=capture?['businessId','actorId','operation','customerId','enquiryId','sourceRecordId','intakeId','activityId','previousRevision','revision','schemaVersion','filedStage']:['businessId','actorId','operation','enquiryId','previousRevision','revision','schemaVersion'];
+   if(!receipt||Object.keys(receipt).sort().join(',')!==fields.sort().join(',')||receipt.businessId!==source.businessId||receipt.actorId!==source.ownerId||receipt.operation!==source.operation||receipt.previousRevision!==source.accountRevision||receipt.revision!==source.accountRevision+1||receipt.schemaVersion!==1||receipt.enquiryId!==(capture?.enquiryId||source.body.p_enquiry_id)||capture&&(['customerId','sourceRecordId','intakeId','activityId'].some(k=>receipt[k]!==capture[k])||receipt.filedStage!=='Enquiry'))throw Error('Receipt mismatch');
+   if(!exactContext(source,getCurrent,source.payloadStamp))throw Error('Current capture changed');
+   lastOwnSave=null;observed=null;writeBlockedIdentity=source.identity;return {ok:true,receipt:JSON.parse(stamp(receipt)),localChangesRemain:true};
+  }catch(error){if(sent&&![400,401,403,404,409].includes(error?.status))uncertainMutationIdentity=source.identity;return {ok:false,uncertain:uncertainMutationIdentity===source.identity};}
+  finally{if(pending===task)pending=null;}
+ }
+
  // Local editor continuity only, minted solely from an exact original PATCH receipt.
  // A matching observation after a lost response is deliberately insufficient.
  const canContinueRevision=({getCurrent,fromRevision,toRevision})=>{
@@ -271,6 +323,6 @@ function createBusinessSnapshotSession(){
   if(typeof customerId!=='string'||typeof inboxId!=='string'||!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
   try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(stamp({customers:receipt.payload.customers?.filter(row=>row?.id===customerId)||[],inboxItems:receipt.payload.inboxItems?.filter(row=>row?.id===inboxId)||[]}))};}catch{return {ok:false};}
  };
- return {discoverPrivateReplies,inspectDiscoveredReply,inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ return {reviewEnquiry,prepareEnquiryOperation,commitEnquiry,discoverPrivateReplies,inspectDiscoveredReply,inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};

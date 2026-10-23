@@ -582,7 +582,8 @@ function QuickCapture({ s }) {
   );
 }
 function QuickCaptureReview({ s }) {
-  const match = s.captureMatch;
+  const accountMode=s.firstEnquiryFilingActions?.enabled===true;
+  const match = accountMode?null:s.captureMatch;
   const brainThread =
     s.captureBrainAnalysis?.thread ||
     s.captureBrainAnalysis?.threads?.[0] ||
@@ -683,7 +684,7 @@ function QuickCaptureReview({ s }) {
         tone={s.captureConfidence === "High" ? "green" : s.captureConfidence === "Medium" ? "blue" : "amber"}
       />
 
-      {match ? (
+      {accountMode?<Card eyebrow="Account eligibility is rechecked" title="First account filing only" body="This requires empty account customer/intake history. A device match is not account evidence; existing account customers need their original matching workflow."/>:match ? (
         <Card
           eyebrow="Possible existing customer"
           title={match.customer.name}
@@ -748,7 +749,7 @@ function QuickCaptureReview({ s }) {
           tone="amber"
         />
       ) : null}
-      <DatePickerField label={s.captureStage === "Booking" ? "Booking date" : s.captureStage === "Completed job" ? "Job date" : s.captureStage === "Quote sent" ? "Quote sent date" : "Enquiry received"} value={s.captureDate} onChange={s.setCaptureDate} allowFuture={s.captureStage === "Booking"} />
+      <DatePickerField label={accountMode?"Owner-recorded enquiry date (UTC)":s.captureStage === "Booking" ? "Booking date" : s.captureStage === "Completed job" ? "Job date" : s.captureStage === "Quote sent" ? "Quote sent date" : "Enquiry received"} value={s.captureDate} onChange={s.setCaptureDate} allowFuture={s.captureStage === "Booking"} />
 
       {s.captureStage === "Booking" ? (
         <Field label="Booking time" value={s.captureTime} onChangeText={s.setCaptureTime} placeholder="14:00" />
@@ -777,9 +778,9 @@ function QuickCaptureReview({ s }) {
 
       <Card
         eyebrow="What Save will do"
-        title={match ? "Merge into the existing customer" : "Create one customer record"}
+        title={accountMode?"Review a first account Enquiry":match ? "Merge into the existing customer" : "Create one customer record"}
         body={
-          s.captureStage === "Enquiry"
+          accountMode?"This text-only path registers an owner-supplied source separately, then reviews filing the first Enquiry. It does not merge a local match or restore other account data. Other stages and media imports are unsupported.":s.captureStage === "Enquiry"
             ? "Save the enquiry date and start the normal 7-day lifecycle watch."
             : s.captureStage === "Quote sent"
             ? "Create/update the customer and save a sent quote with its automatic follow-up date."
@@ -791,13 +792,17 @@ function QuickCaptureReview({ s }) {
         tone="green"
       />
 
-      <Button label={match ? "Approve merge into customer" : "Approve & create record"} primary disabled={!canSave} onPress={s.saveQuickCapture} />
+      {s.firstEnquiryFilingActions?.enabled?<Card title="Private account filing" body={({checking:'Checking current account source…',review:'Review the exact account proposal before proceeding.',saving:'Checking this finite account operation…',registered:'Owner-supplied source confirmed. Review again to file the first Enquiry.',filed:'This Enquiry filing has an exact account receipt.',unknown:'Account outcome uncertain. Keep these words. Do not retry; no operation was repeated.',reviewRequired:'Account/source review is required or this capture is unsupported. Your fields are kept.',cancelled:'Current capture kept. Nothing further was filed.'})[s.firstEnquiryFilingActions.state?.status]||'Text-only first Enquiry, with separate source registration and filing approval. Other customer stages remain unsupported.'} footer="Account receipts do not save this entire workspace or contact a customer."/>:null}
+      <Button label={s.firstEnquiryFilingActions?.enabled?"Review first account Enquiry":match ? "Approve merge into customer" : "Approve & create record"} primary disabled={!canSave||accountMode&&(s.captureStage!=='Enquiry'||s.captureScreenshots?.length>0||!!s.captureBrainAnalysis||['checking','saving','unknown'].includes(s.firstEnquiryFilingActions.state?.status))} onPress={s.saveQuickCapture} />
       <Button label="Back to pasted text" onPress={s.back} />
     </Shell>
   );
 }
 
 function QuickCaptureSaved({ s }) {
+  const account=s.firstEnquiryFilingActions?.state;
+  if(account?.status==='filed')return <Shell s={s} title="Enquiry filed to this account" subtitle="Only this reviewed filing is confirmed. Device work and other unsaved fields remain separate."><Card title={account.workspace.businessName} body={'Customer '+account.receipt.customerId+' · enquiry '+account.receipt.enquiryId} footer={'Committed account revision '+account.receipt.revision+'. No reply, quote, booking or message was created.'}/><Button label="Prepare first private reply" primary onPress={s.firstEnquiryFilingActions.openReply}/><Button label="Back to capture" onPress={()=>s.go('quickCaptureReview')}/></Shell>;
+
   const customer = s.selectedCustomer;
   const latest = s.intakeLog?.[s.intakeLog.length - 1] || null;
   if (!customer || !latest) {

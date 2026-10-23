@@ -2185,6 +2185,12 @@
       "args": [
         "scripts/check-mission15-phase64-filing-parent.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase65-first-journey",
+      "args": [
+        "scripts/check-mission15-phase65-first-journey.mjs"
+      ]
     }
   ]
 }
