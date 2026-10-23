@@ -2269,6 +2269,12 @@
       "args": [
         "scripts/check-mission15-booking-edit-continuity.mjs"
       ]
+    },
+    {
+      "id": "mission15-connected-booking-status",
+      "args": [
+        "scripts/check-mission15-connected-booking-status.mjs"
+      ]
     }
   ]
 }

@@ -3641,6 +3641,7 @@ function ReplyActionDetail({ s }) {
 
   const finish = (details) => {
     const save=()=>{const result=s.completeReplyAction(customer.id,details);if(result===false)return false;s.back();return true;};
+    if(type==='booking'&&saved.details?.sourceMiniAppRequestId&&details.bookingStatus!==saved.details.bookingStatus)return bookingReview.reviewStatus(details.bookingStatus);
     if(type==='booking')return bookingReview.commit(()=>s.completeReplyAction(customer.id,details),next=>JSON.stringify(next?.details)===JSON.stringify(details),{savedFields:['actionBookingDate','actionBookingTime','actionJobValue']});
     if(type!=='quote')return save();
     const reviewed=s.prepareQuoteDetails?s.prepareQuoteDetails(customer.id,details,saved):details;
@@ -3809,8 +3810,12 @@ function ReplyActionDetail({ s }) {
           />
         ) : null}
 
+        {s.bookingStatusOperation?.customerId===customer.id?<Card eyebrow="Booking operation" title={s.bookingStatusOperation.phase==='unknown'?'Outcome uncertain':s.bookingStatusOperation.phase==='pending'?'Checking or applying':s.bookingStatusOperation.phase==='local'?'Local record only':s.bookingStatusOperation.phase==='confirmed-review'?'Confirmed; local review needed':s.bookingStatusOperation.phase==='confirmed'?'Original transaction confirmed':'Review needed'} body={s.bookingStatusOperation.message} footer="A booking status is not a message, external calendar receipt or whole-account save." tone={['unknown','conflict','failed'].includes(s.bookingStatusOperation.phase)?'amber':'blue'}/>:null}
+        {bookingReview.statusReview?<Text accessibilityLiveRegion="polite" style={styles.helper}>{bookingReview.statusReview.message}</Text>:null}
+        <Button label="Inspect original booking status" onPress={bookingReview.inspectStatus}/>
+        {bookingReview.unsupportedReschedule?<Card title="Linked booking date change is not supported here" body="Your draft date and time are kept. This editor cannot reschedule the original Business App request. Inspect that booking before changing its recorded slot." tone="amber"/>:null}
         {bookingReview.conflict?<Card title="Booking changed" body="Your typed details are kept. Reopen the current booking before making another change. Nothing here confirms an account save." tone="amber"/>:null}
-        {bookingReview.dirty?<Text accessibilityLiveRegion="polite" style={styles.helper}>You have unfinished booking details or a completion note. Leaving requires a separate decision; saving the date and time does not save a completion note.</Text>:null}
+        {bookingReview.dirty?<Text accessibilityLiveRegion="polite" style={styles.helper}>You have unfinished booking details or a completion note. Leaving requires a separate decision; saving the date and time does not save a completion note. Unfinished fields are not a verified device draft and may not survive closing Busy.</Text>:null}
         <GetPaidOwnerReview s={s} customer={customer} saved={saved}
           type="booking" bookingStatus={bookingStatus} todayISO={todayISO} />
         <View
@@ -3915,7 +3920,7 @@ function ReplyActionDetail({ s }) {
         <Button
           label={saved.done ? "Save booking changes" : "Save booking confirmation"}
           primary
-          disabled={bookingReview.conflict || bookingReview.saving || !s.actionBookingTime.trim() || bookingClashes.length > 0}
+          disabled={bookingReview.unsupportedReschedule || bookingReview.statusBlocked || bookingReview.conflict || bookingReview.saving || !s.actionBookingTime.trim() || bookingClashes.length > 0}
           onPress={() =>
             finish({
               ...(saved.details || {}),
@@ -3945,17 +3950,17 @@ function ReplyActionDetail({ s }) {
             />
             <Button
               label="Mark job completed"
-              disabled={bookingReview.conflict||bookingReview.saving}
+              disabled={bookingReview.statusBlocked||bookingReview.conflict||bookingReview.saving}
               onPress={() => {
                 let jobId;
                 jobId = bookingReview.commit(()=>s.markBookingCompleted(customer.id, s.actionJobValue, s.actionJobNote),next=>next?.details?.bookingStatus==='Completed'&&next.details.bookingDate===saved.details?.bookingDate&&next.details.completionNote===String(s.actionJobNote||'').trim(),{leave:false,savedFields:['actionJobValue','actionJobNote'],onAccepted:()=>s.startJobPhotoPrompt(customer.id,jobId)});
               }}
             />
-            <Button label="Cancel booking" onPress={() => bookingReview.transition(()=>s.setBookingStatus(customer.id, "Cancelled"))} />
+            <Button disabled={bookingReview.statusBlocked} label="Cancel booking" onPress={() => bookingReview.reviewStatus("Cancelled")} />
           </>
         ) : null}
         {saved.done && bookingStatus === "Cancelled" ? (
-          <Button label="Reopen booking" onPress={() => bookingReview.transition(()=>s.setBookingStatus(customer.id, "Confirmed"))} />
+          <Button disabled={bookingReview.statusBlocked} label="Reopen booking" onPress={() => bookingReview.reviewStatus("Confirmed")} />
         ) : null}
         {saved.done && bookingStatus === "Completed" ? (
           <>

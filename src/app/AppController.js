@@ -604,6 +604,8 @@ function App() {
   const privateContentWrite=useRef(null);
   const [privateQuoteSave,setPrivateQuoteSave]=useState(null);
   const privateQuoteWrite=useRef(null);
+  const [bookingStatusOperation,setBookingStatusOperation]=useState(null);
+  const bookingStatusWrite=useRef(null);
   const cloudOwnerScopeRef=useRef(null),businessCacheScopeRef=useRef(null),preservedBusinessCacheRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   const businessWorkspaceScopeRef=useRef(null);
@@ -654,6 +656,7 @@ function App() {
   const [busyCommandStatus, setBusyCommandStatus] = useState("idle");
   const [busyCommandResult, setBusyCommandResult] = useState(null);
   const [busyCommandError, setBusyCommandError] = useState("");
+  const busyCommandLive=useRef(null);busyCommandLive.current=busyCommandResult;
   const [busyVoiceStartNonce, setBusyVoiceStartNonce] = useState(0);
   const [busyConversationTurns, setBusyConversationTurns] = useState([]);
   const [busyOperatorSnapshot, setBusyOperatorSnapshot] = useState(null);
@@ -1686,8 +1689,45 @@ function App() {
     });
   };
 
-  const setBookingStatus = async (customerId, bookingStatus) => {
-    const actionBefore = replyActions[customerId];
+  const prepareBookingStatus = async (customerId,bookingStatus,{isCurrent=()=>true,readOnly=false}={}) => {
+    const scope=businessWorkspaceScopeRef.current,source=replyActionSources.current;
+    const action=source.replyActions?.[customerId],matches=[...source.customers,...source.lastSimulatedRecipients].filter(row=>row.id===customerId);
+    const customer=matches[0],stamp=JSON.stringify([customer,action]),role=source.role,revision=source.cloudRevision;
+    const current=()=>!!scope?.businessId&&!!scope?.ownerScope?.userId&&businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&['owner','admin'].includes(role)&&replyActionSources.current.role===role&&replyActionSources.current.cloudRevision===revision&&replyActionSources.current.replyActions?.[customerId]===action&&[...replyActionSources.current.customers,...replyActionSources.current.lastSimulatedRecipients].some(row=>row===customer)&&JSON.stringify([customer,action])===stamp&&isCurrent();
+    if(!current()||!customer||matches.some(row=>row!==customer)||action?.type!=='booking'||!['Cancelled','Confirmed'].includes(bookingStatus)||[customer.businessId,customer.business_id].some(id=>id&&id!==scope.businessId))return null;
+    const previous=bookingStatusWrite.current;
+    if(!readOnly&&previous?.scope===scope&&['pending','unknown','confirmed-review'].includes(previous.phase))return null;
+    let approved=null;
+    if(action.details?.sourceMiniAppRequestId&&(readOnly||bookingStatus==='Cancelled')){
+      const response=await miniAppsRequest('owner_booking_revision',{requestId:action.details.sourceMiniAppRequestId},{isCurrent:current});
+      if(!current())return null;
+      if(readOnly){const r=response?.revision;if(response?.ok!==true||r?.ok!==true||r.readOnly!==true||r.businessId!==scope.businessId||r.requestId!==action.details.sourceMiniAppRequestId||typeof r.alreadyClosed!=='boolean')throw Error('The original request observation could not be verified.');return {kind:'booking-observation',readOnly:true,alreadyClosed:r.alreadyClosed,notOwnReceipt:true};}
+      approved=assessBookingCancelReadbackV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,response,localBookingStatus:action.details.bookingStatus||''});
+      if(!approved.ok)throw Error(approved.reason);
+    }
+    if(readOnly)return {kind:'local-booking-observation',readOnly:true,notOwnReceipt:true};
+    return {scope,customerId,bookingStatus,action,customer,stamp,role,revision,approved,current,used:false};
+  };
+
+  const setBookingStatus = async (customerId, bookingStatus, {review=null,isCurrent=()=>true}={}) => {
+    const scope=businessWorkspaceScopeRef.current,source=replyActionSources.current,role=source.role,revision=source.cloudRevision;
+    const actionBefore = source.replyActions?.[customerId];
+    const customer=source.customers.find(row=>row.id===customerId)||source.lastSimulatedRecipients.find(row=>row.id===customerId);
+    const candidates=[...source.customers,...source.lastSimulatedRecipients].filter(row=>row.id===customerId);
+    const stamp=JSON.stringify([customer,actionBefore]),diaryStamp=JSON.stringify(source.replyActions);
+    const workspaceCurrent=()=>!!scope?.businessId&&!!scope?.ownerScope?.userId&&businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&replyActionSources.current.role===role&&['owner','admin'].includes(role);
+    const current=()=>workspaceCurrent()&&JSON.stringify(replyActionSources.current.replyActions)===diaryStamp&&replyActionSources.current.cloudRevision===revision&&replyActionSources.current.replyActions?.[customerId]===actionBefore&&[...replyActionSources.current.customers,...replyActionSources.current.lastSimulatedRecipients].includes(customer)&&JSON.stringify([customer,actionBefore])===stamp&&isCurrent();
+    const previous=bookingStatusWrite.current;
+    if(!current()||!customer||candidates.some(row=>row!==customer)||actionBefore?.type!=='booking'||actionBefore.details?.bookingStatus===bookingStatus||!['Confirmed','Cancelled'].includes(bookingStatus)||[customer.businessId,customer.business_id].some(id=>id&&id!==scope.businessId)||previous?.scope===scope&&['pending','unknown','confirmed-review'].includes(previous.phase))return false;
+    if(bookingStatus==='Confirmed'&&Object.entries(source.replyActions).some(([id,row])=>id!==customerId&&row?.type==='booking'&&row.done&&!['Cancelled','Completed'].includes(row.details?.bookingStatus||'Confirmed')&&row.details?.bookingDate===actionBefore.details?.bookingDate&&row.details?.bookingTime===actionBefore.details?.bookingTime)){setMiniAppsError('Another recorded booking uses this date and time. Review the diary first.');return false;}
+    if(review&&(review.used||review.scope!==scope||review.customerId!==customerId||review.bookingStatus!==bookingStatus||review.action!==actionBefore||review.customer!==customer||review.stamp!==stamp||review.role!==role||review.revision!==revision||!review.current()))return false;
+    if(review)review.used=true;
+    const expectedDetails={...(actionBefore.details||{}),bookingStatus,summary:bookingStatus==='Cancelled'?`Booking cancelled for ${formatUKDate(actionBefore.details?.bookingDate)} at ${actionBefore.details?.bookingTime||'—'}`:`Booking set for ${formatUKDate(actionBefore.details?.bookingDate)} at ${actionBefore.details?.bookingTime||'—'}`};
+    const operation={scope,customerId,before:actionBefore,matches:next=>next?.type==='booking'&&JSON.stringify(next.details)===JSON.stringify(expectedDetails),requestId:actionBefore.details?.sourceMiniAppRequestId||'',bookingStatus,revision,role,phase:'pending',id:busyRequestId('booking-status')};
+    const publish=(phase,message)=>{operation.phase=phase;operation.message=message;if(workspaceCurrent()&&bookingStatusWrite.current===operation)setBookingStatusOperation({...operation});};
+    bookingStatusWrite.current=operation;publish('pending','Checking the original booking. Your editor remains unchanged.');
+    let writeAttempted=false;
+
     if(bookingStatus==="Confirmed"&&actionBefore?.details?.sourceMiniAppRequestId){
       const day=String(actionBefore.details.bookingDate||"");
       const time=String(actionBefore.details.bookingTime||"");
@@ -1697,14 +1737,14 @@ function App() {
          !Number.isFinite(Date.parse(timestamp))||
          new Date(timestamp).toISOString().slice(0,10)!==day){
         setMiniAppsError("Choose a real diary date and time before confirming this Business App booking request.");
-        return false;
+        publish("failed","Choose a valid recorded date and time before review.");return false;
       }
     }
     // Commit the server-side request/link/event/status before changing the
     // local calendar. A failed RPC must not create a false local confirmation.
     const sourceMiniAppRequestId=actionBefore?.details?.sourceMiniAppRequestId||"";
     if(sourceMiniAppRequestId&&["Confirmed","Cancelled"].includes(bookingStatus)){
-      const originalBusinessId=cloudWorkspace?.businessId||"";
+      const originalBusinessId=scope.businessId||"";
       let cancellationWriteAttempted=false;
       try{
         let linked;
@@ -1713,8 +1753,8 @@ function App() {
           // cannot authorise a stale request/diary mutation.
           const snapshot=await miniAppsRequest("owner_booking_revision",{
             requestId:sourceMiniAppRequestId
-          });
-          if(!originalBusinessId||cloudWorkspace?.businessId!==originalBusinessId)
+          },{isCurrent:current});
+          if(!originalBusinessId||!current())
             throw Error("The active business changed. Reopen its booking.");
           const approved=assessBookingCancelReadbackV3233({
             businessId:originalBusinessId,requestId:sourceMiniAppRequestId,
@@ -1722,19 +1762,23 @@ function App() {
             localBookingStatus:actionBefore?.details?.bookingStatus||""
           });
           if(!approved.ok)throw Error(approved.reason);
-          cancellationWriteAttempted=true;
+          if(review?.approved&&(review.approved.expectedStatus!==approved.expectedStatus||review.approved.expectedUpdatedAt!==approved.expectedUpdatedAt))throw Error('The original booking changed after review. Review it again.');
+          if(!current())throw Error('The booking context changed before submission.');
+          cancellationWriteAttempted=true;writeAttempted=true;
           const result=await miniAppsRequest("update_request_status",{
             requestId:sourceMiniAppRequestId,status:"closed",
             expectedStatus:approved.expectedStatus,
             expectedUpdatedAt:approved.expectedUpdatedAt
-          });
+          },{isCurrent:current,requestKey:operation.id});
           if(result?.ok!==true||result?.request?.id!==sourceMiniAppRequestId||
-             result.request.status!=="closed"||
+             result.request.business_id!==originalBusinessId||result.request.status!=="closed"||
              result.request.atomicBookingClosureCommitted!==true)
             throw Error("BUSY cannot verify the saved booking closure. Check the original request.");
           linked={link:{atomicHandoff:true},status:result.status,
             statusRefreshRequired:result.statusRefreshRequired===true};
         }else{
+          if(!current())throw Error("The booking context changed before submission.");
+          writeAttempted=true;
           linked=await miniAppsRequest("mark_request_linked",{
             requestId:sourceMiniAppRequestId,
             customerRecordId:customerId,
@@ -1744,18 +1788,20 @@ function App() {
               bookingDate:actionBefore?.details?.bookingDate||"",
               bookingTime:actionBefore?.details?.bookingTime||""
             }
-          });
-          if(!linked?.link?.atomicHandoff||
-             linked.link.workLedgerState!=="confirmed"||
+          },{isCurrent:current,requestKey:operation.id});
+          if(linked?.link?.atomicHandoff!==true||
+             linked.link.request_id!==sourceMiniAppRequestId||linked.link.business_id!==originalBusinessId||linked.link.customer_record_id!==customerId||linked.link.action_record_id!==`miniapp-booking-${sourceMiniAppRequestId}`||linked.link.workLedgerState!=="confirmed"||
              linked.link.workLedgerDurable!==true)
             throw Error("The durable Work booking confirmation is not verified.");
         }
+        if(!current()){publish('confirmed-review','The original transaction was confirmed, but this editor changed. Inspect the current booking; local fields were not replaced.');return false;}
         // Post-commit dashboard refresh is best effort; it must never
         // reclassify a saved booking as a failed action.
         try{
           if(linked.status)applyMiniAppsStatus(linked);
           else await refreshMiniAppsStatus({quiet:true});
         }catch{ /* Original transaction is already saved. */ }
+        if(!current()){publish("confirmed-review","The transaction was confirmed. Reopen the current booking before updating local records.");return false;}
         setMiniAppsNotice(linked.statusRefreshRequired?
           "BUSY saved the Work change; the latest inbox is still refreshing. "+
           "External calendar delivery has not been checked.":
@@ -1763,28 +1809,31 @@ function App() {
           "External calendar and customer delivery remain unverified.");
       }catch(error){
         if(cancellationWriteAttempted&&originalBusinessId&&
-           cloudWorkspace?.businessId===originalBusinessId){
+           current()){
           // Network failure could happen AFTER the transaction committed.
           // One read-only check, never silently submit Cancel again.
           try{
             const observed=await miniAppsRequest("owner_booking_revision",{
               requestId:sourceMiniAppRequestId
-            });
+            },{isCurrent:current});
             const state=observed?.revision;
-            if(observed?.ok===true&&state?.businessId===originalBusinessId&&
+            if(current()&&observed?.ok===true&&state?.businessId===originalBusinessId&&
                state?.requestId===sourceMiniAppRequestId&&
                state?.alreadyClosed===true){
+              publish("unknown","The account now shows closed. This observation cannot identify the interrupted action. Do not retry cancellation.");
               setMiniAppsError("The original request now shows closed. BUSY cannot tell which action closed it. Check the latest Work booking before updating your local calendar.");
               return false;
             }
           }catch{ /* Stay uncertain; do not retry. */ }
         }
-        setMiniAppsError(error?.message||
+        publish(writeAttempted?"unknown":"conflict",writeAttempted?"The outcome is uncertain. Do not retry; inspect the original request. Your local booking and wording are kept.":error?.message||"The booking changed before submission.");
+        if(workspaceCurrent())setMiniAppsError(error?.message||
           "BUSY could not verify the latest Work booking. Open the current request before trying again.");
         return false;
       }
     }
-    updateReplyAction(customerId, (action) => ({
+    if(!current()){publish(writeAttempted?"confirmed":"conflict","The booking context changed. Local records and wording were kept.");return false;}
+    updateReplyAction(customerId, (action) => action!==actionBefore? action:({
       ...action,
       done: true,
       details: {
@@ -1823,10 +1872,13 @@ function App() {
       value: actionBefore?.details?.sourceQuoteAmount || actionBefore?.details?.jobValue || "",
     });
 
-    setTimeout(() => saveBusinessCloud({ quiet: true }), 250);
+    publish(sourceMiniAppRequestId?'confirmed':'local',sourceMiniAppRequestId?'The original request and Work transaction were confirmed. Device/account snapshot saving and external delivery are separate.':'Updated the local booking record only. Account saving and customer agreement are not confirmed.');
+    setTimeout(() => {if(workspaceCurrent()&&bookingStatusWrite.current===operation&&replyActionSources.current.cloudRevision===revision)saveBusinessCloud({ quiet: true });}, 250);
+    return true;
   };
 
   const markBookingCompleted = (customerId, jobValue, completionNote = "") => {
+    if(bookingStatusWrite.current?.customerId===customerId&&bookingStatusWrite.current.scope===businessWorkspaceScopeRef.current&&['pending','unknown','confirmed-review'].includes(bookingStatusWrite.current.phase))return null;
     const action = replyActions[customerId];
     if (!action?.details?.bookingDate) return null;
     const amount = Number(jobValue) || Number(action.details?.sourceQuoteAmount) || 0;
@@ -4938,6 +4990,10 @@ function App() {
 
   const completeReplyAction = (customerId, details = {}) => {
     const action = replyActions[customerId];
+    if(action?.type==='booking'){
+      if(bookingStatusWrite.current?.customerId===customerId&&bookingStatusWrite.current.scope===businessWorkspaceScopeRef.current&&['pending','unknown','confirmed-review'].includes(bookingStatusWrite.current.phase))return false;
+      if(action.details?.sourceMiniAppRequestId&&(details.bookingDate!==action.details.bookingDate||details.bookingTime!==action.details.bookingTime||details.bookingStatus!==action.details.bookingStatus)){setMiniAppsError('Linked status changes require the original reviewed transaction; rescheduling is not supported here. Your local draft is kept.');return false;}
+    }
     if(action?.type==='quote'&&details.enquiryReference){
       const reviewed=prepareQuoteDetails(customerId,details,action);
       if(!reviewed||JSON.stringify(reviewed.enquiryReference)!==JSON.stringify(details.enquiryReference)||details.enquiryReference.businessId!==cloudWorkspace?.businessId||details.enquiryReference.customerId!==customerId)return false;
@@ -12683,6 +12739,13 @@ function App() {
     if (!command || command.needsClarification || command.applied || command.localNavigationOnly) return false;
     const customer = findBusyCommandCustomer(command.customerName || "");
     const commandValue = Number(command.value) || 0;
+    if(['create_booking','edit_booking','cancel_booking','complete_job'].includes(command.intent)){
+      const source=replyActionSources.current,operation=bookingStatusWrite.current;
+      if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(source.role)||customer&&!source.customers.includes(customer)||ownerEditNavigation.current.hasDirtyEdits()){setBusyCommandError('Keep your unfinished work and reopen the current customer booking before this action.');return false;}
+      if(operation?.scope===businessWorkspaceScopeRef.current&&operation.customerId===customer?.id&&['pending','unknown','confirmed-review'].includes(operation.phase)){setBusyCommandError('This booking already has a pending or unresolved status operation. Inspect it; do not retry.');return false;}
+      if(['create_booking','edit_booking'].includes(command.intent)&&source.replyActions?.[customer?.id]?.details?.sourceMiniAppRequestId){setBusyCommandError('Rescheduling a linked Business App request is not supported by this command. Your existing booking is unchanged.');return false;}
+    }
+
 
     switch (command.intent) {
       case "growth_project_open":
@@ -12894,19 +12957,19 @@ function App() {
         const rollback = operatorRollbackFor(target.id);
         const bookedDate = action.details?.bookingDate || "";
         const bookedTime = action.details?.bookingTime || "";
-        setBookingStatus(target.id, "Cancelled");
-        rememberBusyAudit({
-          type: "booking-cancelled",
-          label: `Cancelled ${target.name}'s booking`,
-          customerId: target.id,
-          rollback,
-        });
-        markBusyCommandApplied(
-          command,
-          "Booking cancelled",
-          `${target.name}'s booking for ${formatUKDate(bookedDate)} at ${bookedTime || "time not set"} is marked cancelled. You can undo this BUSY change below.`
-        );
-        return true;
+        const scope=businessWorkspaceScopeRef.current,role=replyActionSources.current.role;
+        const current=()=>businessWorkspaceScopeRef.current===scope&&replyActionSources.current.role===role&&busyCommandLive.current===command;
+        if(!current()||bookingStatusWrite.current?.scope===scope&&bookingStatusWrite.current.phase==='pending')return false;
+        setBusyCommandStatus('thinking');
+        return Promise.resolve(setBookingStatus(target.id,"Cancelled",{isCurrent:current})).then(ok=>{
+          if(!current())return false;
+          setBusyCommandStatus('ready');
+          if(ok!==true){setBusyCommandError('Cancellation was not confirmed for this command. Keep the current booking and inspect its operation status. Do not retry an uncertain outcome.');return false;}
+          // A committed server cancellation is not undone by restoring a cached local snapshot.
+          if(!action.details?.sourceMiniAppRequestId)rememberBusyAudit({type:'booking-cancelled',label:`Cancelled ${target.name}'s local booking`,customerId:target.id,rollback});
+          markBusyCommandApplied(command,'Booking status updated',`${target.name}'s recorded booking for ${formatUKDate(bookedDate)} at ${bookedTime||'time not set'} was updated. `+(action.details?.sourceMiniAppRequestId?'The original Work transaction confirmed cancellation. External calendar and customer delivery remain unverified.':'This is a local record update; account saving and customer agreement are not confirmed.'));
+          return true;
+        }).catch(()=>{if(current()){setBusyCommandStatus('ready');setBusyCommandError('The cancellation outcome could not be verified. Inspect the original request; do not retry automatically.');}return false;});
       }
       case "complete_job": {
         const validation = validateOperatorCommand({
@@ -12921,11 +12984,12 @@ function App() {
         const target = validation.customer;
         const action = validation.booking;
         const rollback = operatorRollbackFor(target.id);
-        markBookingCompleted(
+        const completedJobId=markBookingCompleted(
           target.id,
           commandValue || action.details?.jobValue || "",
           command.note || ""
         );
+        if(!completedJobId)return false;
         rememberBusyAudit({
           type: "job-completed",
           label: `Marked ${target.name}'s job complete`,
@@ -14888,7 +14952,10 @@ function App() {
     }
   };
 
-  const refreshMiniAppsStatus = async ({ quiet = false } = {}) => {
+  const refreshMiniAppsStatus = async ({ quiet = false,isCurrent=()=>true } = {}) => {
+    const scope=businessWorkspaceScopeRef.current,role=replyActionSources.current.role,approvedCurrent=isCurrent;
+    isCurrent=()=>businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&replyActionSources.current.role===role&&approvedCurrent();
+    if(!isCurrent())return false;
     if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
       if (!quiet) setMiniAppsError("Sign in and connect the BUSY cloud workspace first.");
       return false;
@@ -14896,14 +14963,15 @@ function App() {
     if (!quiet) setMiniAppsLoading(true);
     setMiniAppsError("");
     try {
-      const data = await miniAppsRequest("owner_status");
+      const data = await miniAppsRequest("owner_status",{},{isCurrent});
+      if(!isCurrent())return false;
       applyMiniAppsStatus(data);
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not load your Business App.");
+      if(isCurrent())setMiniAppsError(error?.message || "BUSY could not load your Business App.");
       return false;
     } finally {
-      if (!quiet) setMiniAppsLoading(false);
+      if (isCurrent()&&!quiet) setMiniAppsLoading(false);
     }
   };
 
@@ -18060,6 +18128,8 @@ function App() {
     setQuoteStatus,
     convertQuoteToBooking,
     setBookingStatus,
+    prepareBookingStatus,
+    bookingStatusOperation:bookingStatusOperation?.scope===businessWorkspaceScopeRef.current&&bookingStatusOperation.role===cloudWorkspace?.role?bookingStatusOperation:null,
     markBookingCompleted,
     markReminderDone,
     rescheduleReminder,

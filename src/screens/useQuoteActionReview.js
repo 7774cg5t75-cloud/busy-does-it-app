@@ -15,13 +15,14 @@ function recordValues(action,fallback){
 // Volatile input/receipt metadata only. Original parent fields and reply actions own the data.
 export function useQuoteActionReview(s){
  const live=React.useRef(s),epoch=React.useRef(0),dirty=React.useRef(false),pending=React.useRef(null);live.current=s;
- const view=s.view,role=s.cloudWorkspace?.role,revision=s.cloudRevision;
+ const mounted=React.useRef(true);React.useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;pending.current=null;};},[]);
+ const view=s.screen??s.view,role=s.cloudWorkspace?.role,revision=s.cloudRevision;
  const scope=s.ownerWorkspaceScope,customer=s.selectedReplyCustomer,action=customer?s.replyActions?.[customer.id]:null;
  const customerStamp=JSON.stringify(customerSource(customer)),stamp=JSON.stringify(action),renderEpoch=epoch.current,renderValues=values(s);
  const baseline=React.useRef({scope,customerId:customer?.id,action,stamp,values:renderValues});
  if(baseline.current.scope!==scope||baseline.current.customerId!==customer?.id){baseline.current={scope,customerId:customer?.id,action,stamp,values:renderValues};dirty.current=false;pending.current=null;}
- const current=()=>!!scope&&!!s.ownerSession?.userId&&!!s.cloudWorkspace?.businessId&&
-  ['owner','admin'].includes(role)&&live.current.cloudWorkspace?.role===role&&live.current.view===view&&live.current.cloudRevision===revision&&
+ const current=()=>mounted.current&&!!scope&&!!s.ownerSession?.userId&&!!s.cloudWorkspace?.businessId&&
+  ['owner','admin'].includes(role)&&live.current.cloudWorkspace?.role===role&&(live.current.screen??live.current.view)===view&&live.current.cloudRevision===revision&&
   ![customer?.businessId,customer?.business_id].some(id=>id&&id!==s.cloudWorkspace?.businessId)&&
   JSON.stringify(customerSource(customer))===customerStamp&&live.current.ownerWorkspaceScope===scope&&
   live.current.ownerSession?.userId===s.ownerSession?.userId&&live.current.cloudWorkspace?.businessId===s.cloudWorkspace?.businessId&&
