@@ -19,7 +19,7 @@ concurrency:
 jobs:
   ios:
     if: github.repository == '7774cg5t75-cloud/busy-does-it-app' && github.event.repository.private == false && github.ref == 'refs/heads/codex/builder-mission15-design-advancement'
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 50
     env:
       CI: '1'

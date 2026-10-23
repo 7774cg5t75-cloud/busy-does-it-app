@@ -22,7 +22,7 @@ Fresh simulator + separate app identifier keep device/Keychain data isolated. Pu
 
 ## Build/capture boundaries
 
-* Standard Apple Silicon `macos-15`, exact public repository/branch guard, bounded50-minute job. No larger/custom/self-hosted runner input.
+* Standard Intel `macos-15-intel`, exact public repository/branch guard, bounded50-minute job. No larger/custom/self-hosted runner input.
 * Official checkout/setup/upload actions pinned to verified commit SHAs; read-only repository token and checkout credential persistence disabled. No secrets referenced.
 * Capture-only lock records the existing application's dependencies with official registry URLs and SHA512 integrity. Install uses `npm ci --ignore-scripts`; no lifecycle scripts during package installation. Explicit Expo/CocoaPods/Xcode commands perform the reviewed native build.
 * Select the newest installed Xcode with Swift6.2 or newer before CocoaPods/build; record the actual toolchain in the manifest. No toolchain download or privileged system-default change.
@@ -56,3 +56,5 @@ An actual iOS Metro/Hermes export runs before native generation, so bundling fai
 The original pinned view-shot4.0.3 fails against ReactNative0.86.3 because its iOS implementation names removed RCTScrollView types. The SHA512-verified official Expo57.0.23 `bundledNativeModules.json` specifies view-shot5.1.0; the existing dependency and capture lock are updated to that version. Its `captureRef` API is retained. No UI/controller patch or replacement screenshot renderer is used. Earlier source revisions with incompatible dependency declarations fail `npm ci` instead of receiving a silent dependency override.
 
 Expo Audio declares an unconstrained expo-asset peer. npm had hoisted SDK58 expo-asset into the SDK57 build, which Metro could not resolve against Expo57. The app now explicitly requests SDK57 expo-asset, matching Expo’s own dependency. Official registry integrity is locked; no runtime module is stubbed out to obtain a build.
+
+The ARM attempt at05a9799 never received a runner: GitHub reported macOS arm64 capacity constraints and cancelled the unassigned job after15minutes. The request uses the standard free Intel macOS pool instead; this is an infrastructure failure, not an application or XCTest failure.
