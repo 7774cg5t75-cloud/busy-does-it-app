@@ -30,7 +30,7 @@ BEGIN
  SELECT count(*) INTO total FROM jsonb_array_elements(snap.payload->'inboxItems') x WHERE x->>'id'=eid;
  IF total<>1 THEN RAISE EXCEPTION 'Missing or ambiguous source' USING ERRCODE='22023'; END IF;
  SELECT x INTO item FROM jsonb_array_elements(snap.payload->'inboxItems') x WHERE x->>'id'=eid;
- IF item ? 'version' OR item->>'status' IS DISTINCT FROM 'Pending' OR (item ? 'businessId' AND item->>'businessId' IS DISTINCT FROM p_business_id::text) OR (item ? 'business_id' AND item->>'business_id' IS DISTINCT FROM p_business_id::text) THEN RAISE EXCEPTION 'Source identity mismatch' USING ERRCODE='42501'; END IF;
+ IF (item ? 'registeredBy' AND item->>'registeredBy' IS DISTINCT FROM actor::text) OR item ? 'version' OR item->>'status' IS DISTINCT FROM 'Pending' OR (item ? 'businessId' AND item->>'businessId' IS DISTINCT FROM p_business_id::text) OR (item ? 'business_id' AND item->>'business_id' IS DISTINCT FROM p_business_id::text) THEN RAISE EXCEPTION 'Source identity mismatch' USING ERRCODE='42501'; END IF;
  IF p_capture->>'sourceHash' IS DISTINCT FROM encode(sha256(convert_to(item::text,'UTF8')),'hex') THEN RAISE EXCEPTION 'Source changed' USING ERRCODE='40001'; END IF;
  IF jsonb_typeof(item->'rawText') IS DISTINCT FROM 'string' OR btrim(item->>'rawText')='' OR jsonb_typeof(item->'source') IS DISTINCT FROM 'string' OR length(item->>'source') NOT BETWEEN 1 AND 240 OR (item ? 'screenshots' AND item->'screenshots'<>'[]'::jsonb) OR (item ? 'aiAnalysis' AND item->'aiAnalysis'<>'null'::jsonb) OR coalesce(item->>'visionPending','false')<>'false' OR (item->'parsed' ? 'stage' AND item->'parsed'->>'stage'<>'Enquiry') THEN RAISE EXCEPTION 'Unsupported source/media/stage' USING ERRCODE='22023'; END IF;
  source_name:=item->>'source';
