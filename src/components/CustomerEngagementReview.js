@@ -16,6 +16,7 @@ export function CustomerEngagementReview({s,customer}){
  React.useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
  const action=s.replyActions?.[customer?.id],scope=s.ownerWorkspaceScope,actor=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId,role=s.cloudWorkspace?.role,view=s.screen||'customerDetail';
  const context={bookingOperation:s.bookingStatusOperation,quoteCopy:s.privateQuoteSave,ownerId:actor,businessId:business,role,revision:s.cloudRevision,customer,customers:s.customers||[],inboxItems:s.inboxItems||[],action,profile:s.businessCreationIntelligence?.sharedProfile};
+ const sourceCaptured=stableJson([context,selected,model]);
  const captured=stableJson([context,selected,model,form]);live.current={s,customer,action,scope,actor,business,role,view,context,selected,model,form,captured};
  const renderEpoch=typing.current;
  const current=()=>mounted.current&&live.current.scope===scope&&live.current.actor===actor&&live.current.business===business&&live.current.role===role&&role==='owner'&&live.current.view===view&&live.current.customer===customer&&live.current.action===action&&live.current.captured===captured&&stableJson([live.current.context,live.current.selected,live.current.model,live.current.form])===captured;
@@ -35,7 +36,8 @@ export function CustomerEngagementReview({s,customer}){
  };
  const entry=bound?model.engagements.find(e=>e.id===selected):null;
  const editable=fresh()&&entry?.evidence==='session-proposal';
- const setField=(key,value)=>{if(!editable||!current())return false;typing.current++;live.current.form={...live.current.form,[key]:value};setForm(v=>({...v,[key]:value}));report(true);return true;};
+ const inputCurrent=()=>mounted.current&&live.current.scope===scope&&live.current.actor===actor&&live.current.business===business&&live.current.role===role&&role==='owner'&&live.current.view===view&&live.current.customer===customer&&live.current.action===action&&stableJson([live.current.context,live.current.selected,live.current.model])===sourceCaptured;
+ const setField=(key,value)=>{if(!editable||!inputCurrent())return false;typing.current++;live.current.form={...live.current.form,[key]:value};setForm(v=>({...v,[key]:value}));report(true);return true;};
  const quoteState={...s,screen:view,quoteEngagementId:selected,quoteEditorSession:session.current,selectedReplyCustomer:customer,replyActions:{[customer?.id]:entry?.record},actionQuoteAmount:form.amount,actionQuoteMessage:form.text,actionQuoteSentDate:form.date,
   setActionQuoteAmount:v=>setField('amount',v),setActionQuoteMessage:v=>setField('text',v),setActionQuoteSentDate:v=>setField('date',v),setOwnerEditDirty:value=>{fieldDirty.current=value;report(true);},releaseOwnerEdit:()=>{},withOwnerEditCommit:()=>false};
  const quoteReview=useQuoteActionReview(quoteState);
