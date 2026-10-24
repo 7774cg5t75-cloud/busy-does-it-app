@@ -1,3 +1,14 @@
+## Canonical Work/Get Paid, private follow-ups and historical inspection — 24 October2026
+
+Frozen functional GitHub `bf1178945951f84d59f50a18b931bd16c08a283e`, local `370ff39f33f9aebfff318d3daeebaa4d6b7ba59c`, matching tree `19ea73db58c3740e4fe2fc8725e6859470bb5236`. Genuine private V22.51 checksum reverified; complete prior review reused and private source remains outside Git.
+
+Original WorkHub and Get Paid shortcut now reuse the canonical customer/quote working surface behind the unchanged false rollout flag. An engagement-private follow-up editor reuses finite private-draft SQL/session and original dirty navigation for inspect→exact review→save→readback→edit. Quote fields, legacy Work, unrelated customers and independent revisions remain separate. Historical owner/creator read now survives changed/missing/ambiguous/unsupported source while returning only fixed quote/provenance fields and explicitly denying mutation authority. Strict editing/private reads still require current source; no reassociation, auto-retry, inherited own receipt, customer restoration, booking/financial/sending authority or legacy migration expansion.
+
+Fresh frozen379/0/0/0 application, foundation105, original PG262 plus canonical67 stages passed; last completed component→actual PG35-call checkpoint passed before the final workspace-effect correction (covered by final parent tests). Cancelled optional later bridge has no result and is not counted/retried. Discard/readback and hidden-workspace dirty-state defects were reproduced/corrected; failures and four interrupted suites retained. SQL requires current67-stage/hash evidence before bridge IO. Eight-file/native syntax, Python compilation, pinned tool health and static architecture pass. Audit1,523 files/160,235 lines/3,048 static edges/zero detected cycles; AppController unchanged. No native/JWT/device acceptance claim.
+
+See [implementation and gates](docs/CANONICAL_WORK_CONTINUATION_2026_10_24.md), [application evidence](docs/CANONICAL_WORK_CONTINUATION_APPLICATION_CHECKS_2026_10_24.json), [SQL evidence](docs/CANONICAL_WORK_CONTINUATION_SQL_CHECKS_2026_10_24.json). Source-correction/rebase, archival private wording, account-only customer continuity, legacy private attribution and canonical-ID booking lifecycle remain gates. £0; no hosted/project/database operations, deployment, provider/customer/financial/booking/tax/publication/screenshots/workflow actions. Fuses/flags, Phase52 known-loss probe and draft21→23→24→25→26 preserved.
+
+
 ## Canonical individual Work engagements — V22.51, 24 October 2026
 
 Genuine private V22.51 approves individual authoritative engagements; the nested-v2 session proposal below remains historical compatibility evidence, superseded as the permanent model. Private original SHA-256 `9740b05c5e523ef881e50a03f3fd65b29c65667b2c874992712575db20aa2c3b` was verified; original/extraction remain outside Git.
