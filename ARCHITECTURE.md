@@ -1,3 +1,18 @@
+## Returning account quote/private editing without restored customers — 24 October2026
+
+Frozen functional GitHub `cffee1822266579f35b9810edf72725b06ecf219`, local `f2a8cceb839beea896e34df6e8ac42fb40e1ffa4`, matching tree `1010af2bb518b9a9e7baaed621e9ffa99167598e`. Genuine private V22.51 hash reverified; prior complete review reused and original/extraction outside Git.
+
+Original Account→CanonicalWorkPanel→useQuoteActionReview/PrivateQuoteFields now supports explicit current server edit context with no local Customer/replyActions insertion. New finite context RPC rechecks live owner, creator, exact target/current Filed source and revision, advertises only available reviewed finite operations and denies after writer rollback. Existing writer predicates/CAS still independently authorise every save. Historical/compare objects and caller clones cannot mint client context. Confirmed quote saves independently refresh exact server context; no global revision increment or whole-workspace receipt.
+
+The original engagement-private follow-up editor accepts an exact customer reference without creating a Customer. Review/save/readback, independent draft revisions, delayed-read typing and unknown-outcome fences remain. Expired bindings retain unsaved private wording mounted/read-only; explicit Keep/Discard guards close. Duplicate quote callbacks cannot clear an outstanding request's pending state. Source changes/rebase, retention/erasure, legacy attribution and booking lifecycle remain gates; no new migration/sending/financial/provider authority.
+
+Fresh frozen381/0/0/0 application, foundation105, original PG262 and canonical96 stages pass. Complete58-RPC component→actual-PG bridge on the SAME clean final source covers empty arrays→discovery→context→quote edit/save→private save→fresh-session readback, independent second record/legacy preservation, binding expiry/dirty close and lost-acknowledgement fences. One failed expiry regression and two interrupted suites retained; earlier59-call checkpoints not counted as final. Local mock UID/native boundaries are not hosted JWT/device acceptance. SQL hash `6e13c33d933b5ac481fcb609f4304ce656fc64e489fb6e2d08eb381050fc80e0`; bridge requires96 stages/current hash. PG explicitly no TCP/private Unix socket, stopped afterward.
+
+Seven-file/native syntax, Python compilation, pinned tool health and static architecture pass:1,526 files/160,469 lines/3,055 edges/zero detected cycles. AppController unchanged18,287 lines/97 imports; no new production package/module/store. Original six areas, private data, design, approval contracts, fuses/disabled flags and Phase52 known-loss probe preserved.
+
+See [implementation and remaining gates](docs/RETURNING_ACCOUNT_EDITING_2026_10_24.md), [application checks](docs/RETURNING_ACCOUNT_EDITING_APPLICATION_CHECKS_2026_10_24.json) and [SQL/client evidence](docs/RETURNING_ACCOUNT_EDITING_SQL_CHECKS_2026_10_24.json). Hosted rollout remains disabled. £0; no hosted/project operations, migration/deployment, customer/provider/booking/payment/tax/publication/screenshots/workflow actions. Draft21→23→24→25→26 remains open/draft/unmerged.
+
+
 ## Returning account engagements and source comparison — 24 October2026
 
 Frozen functional GitHub `30ed6b200520ab038a7366f7483da136c64275ee`, local `149ad9ab391480ae9b81b354f9a2c8ae137b621e`, matching tree `f10c020d76416c740e7694e9f362156e37267e35`. Genuine private V22.51 bytes reverified; complete previous review reused, private original/extraction outside Git.
