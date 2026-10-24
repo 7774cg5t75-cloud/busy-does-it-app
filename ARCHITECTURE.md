@@ -1,3 +1,16 @@
+## Canonical individual Work engagements — V22.51, 24 October 2026
+
+Genuine private V22.51 approves individual authoritative engagements; the nested-v2 session proposal below remains historical compatibility evidence, superseded as the permanent model. Private original SHA-256 `9740b05c5e523ef881e50a03f3fd65b29c65667b2c874992712575db20aa2c3b` was verified; original/extraction remain outside Git.
+
+Frozen functional GitHub `6c29228034f923a00fc40c32c3f074de8a63c14e`, local `3fb5a323c601da92a1c607a5f30e91215e50fa6a`, identical tree `93cd895d937e0880e007ee729a910a5ef7c7192b`. Abort-fused canonical table/private-draft proposal, finite creator-owner create/list/read/quote edit/private wording RPCs and hard-disabled original Customer/quote integration are implemented. Actual local PG/component transport creates two separate quotes, reopens/edits one and preserves the other, all legacy Work and snapshot data. Independent CAS, exact target receipts, live membership/source checks, unknown preservation/non-disclosure and uncertainty fencing remain explicit. No generic writer, duplicate customer DB, active-slot dual write, booking/provider authority or global snapshot-revision advancement.
+
+Legacy private authorship is unproven: application migration and legacy wording/hash disclosure are denied. Only the fictional known-owner operator fixture tests complete-record retention/atomicity; hosted backfill needs reviewed attribution policy. Source changes/archival read, broader jobs/bookings, engagement-specific original reply UI, service cutover and real JWT/device/staging remain gates. Nothing is deployed or enabled.
+
+Fresh frozen application378/0/0/0; foundation105; original PG262 plus new canonical60/0/0/0; original JS components→PG23 finite RPC calls, all child/runner0. Eight-file syntax, native-source parser, Python compilation, pinned dependency health and static architecture pass. Failed candidates retained; local mock UID does not prove JWT/PostgREST. AppController adds two wiring lines, no root state; audit1,520 files/160,068 lines/3,036 static edges/zero detected cycles. Original screenshot pipeline, hosted schema/functions, prior SQL/fuses, disabled flags, Phase52 known-loss probe and other specialists preserved.
+
+See [implementation and remaining gates](docs/CANONICAL_WORK_FOUNDATION_2026_10_24.md), [application checks](docs/CANONICAL_WORK_APPLICATION_CHECKS_2026_10_24.json) and [SQL/client execution and failures](docs/CANONICAL_WORK_SQL_CHECKS_2026_10_24.json). £0 additional spending; no hosted/project access, deployment, provider/customer/financial/booking/tax/publication/screenshot/workflow actions. Draft21→23→24→25→26 remains open/draft/unmerged; activation and staging require separate owner authority.
+
+
 ## Multiple Work engagements — session review and original-slot proposal, 24 October 2026
 
 Corrected frozen GitHub `fad4dcf800ad828afe8f21dace9bbe7b1b81c16f`, local `fe717552947ba3a3b6ccb7e8487fe60c791fe79b`, identical tree `ff26cef21c11c6a4268e530472301a1f45b2fc51`. Genuine private V22.49 reverified; no master amendment or permanent model approval inferred.
