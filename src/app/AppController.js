@@ -235,7 +235,7 @@ import {
   validateOperatorCommand,
 } from "../domain/operator2";
 import { buildWorkCalendarIntelligence } from "../domain/workCalendar2";
-import {reconcileWorkBookingLedger} from "../core/workBookingReconciliationV3181.mjs";
+import {reconcileWorkBookingLedger,continueLinkedWorkBooking} from "../core/workBookingReconciliationV3181.mjs";
 import { buildDailyCommandCentre } from "../domain/dailyCommandCentre";
 import { buildCustomerJourney2 } from "../domain/customerJourney2";
 import { buildCommunicationsHub } from "../domain/communicationsHub";
@@ -3904,7 +3904,7 @@ function App() {
     return record;
   };
 
-  const checkPrivateQuoteCopy=async({isCurrent=()=>true}={})=>{
+  const checkPrivateQuoteCopy=async({isCurrent=()=>true,review=false}={})=>{
     const scope=businessWorkspaceScopeRef.current,customerId=selectedReplyActionId,record=replyActions[customerId];
     const customer=customers.find(row=>row.id===customerId)||lastSimulatedRecipients.find(row=>row.id===customerId);
     const stamp=JSON.stringify(record),customerStamp=JSON.stringify(quoteCustomerSource(customer));
@@ -3915,7 +3915,7 @@ function App() {
     const result=await readPrivateQuoteCopy({read:()=>AsyncStorage.getItem(key),ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,customer,record});
     if(privateQuoteWrite.current!==receipt)return false;
     if(!current()){if(businessWorkspaceScopeRef.current===scope)setPrivateQuoteSave({...receipt,status:'unknown'});return false;}
-    const status=isCurrent()?result.status:'unknown';setPrivateQuoteSave({...receipt,status});return status==='confirmed';
+    const status=isCurrent()?result.status:'unknown';setPrivateQuoteSave({...receipt,status});return review?(status==='confirmed'?result:{status:'unknown'}):status==='confirmed';
   };
 
   const checkPrivateContentCopy=async()=>{
@@ -16993,19 +16993,12 @@ function App() {
     }
   };
 
-  const openMiniAppLinkedBooking = (requestId) => {
-    const link = miniAppsView?.linkByRequest?.get?.(requestId) || null;
-    const customerId = link?.customer_record_id || "";
-    if (!customerId || !replyActions?.[customerId]) {
-      setMiniAppsError(
-        "BUSY could not find the linked booking action for this request."
-      );
-      return false;
-    }
-    setSelectedCustomerId(customerId);
-    openSavedReplyAction(customerId);
-    return true;
-  };
+  const openMiniAppLinkedBooking = requestId => continueLinkedWorkBooking({
+    requestId,getCurrent:()=>({view:navigationStateRef.current.screen,scope:businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope?renderedBusinessWorkspaceScope:null,actor:ownerSession?.userId,businessId:cloudWorkspace?.businessId,appId:miniAppsView?.app?.id,role:replyActionSources.current.role,source:{...replyActionSources.current,revision:replyActionSources.current.cloudRevision,link:miniAppsView?.linkByRequest?.get?.(requestId)||null}}),
+    read:(id,isCurrent)=>miniAppsRequest('owner_booking_revision',{requestId:id,includeAssociation:true},{isCurrent}),
+    transition:(run,options)=>ownerEditNavigation.current.request(run,options),
+    open:id=>{setSelectedCustomerId(id);return openSavedReplyAction(id);},notice:setMiniAppsError
+  });
 
   const awardMiniAppLoyaltyStamp = async (requestId) => {
     if (!requestId) return false;

@@ -3691,7 +3691,7 @@ function ReplyActionDetail({ s }) {
         <QuoteEnquiryContext s={s} appendQuote={quoteReview.appendEnquiry} prepareQuote={quoteReview.prepareEnquiry} prepareCatalogue={quoteReview.prepareCatalogue} prepareService={quoteReview.canExplainService?item=>quoteReview.prepareEnquiry(item,'quote-information'):null}/>
         <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" todayISO={todayISO} />
         <Card eyebrow="Private quote" title={quoteReview.conflict?'The saved quote changed':quoteReview.saving?'Checking the updated record':quoteReview.dirty?'Changes not recorded yet':'Private record review'} body={quoteReview.conflict?'Your words are kept. Reopen the current quote or deliberately discard your changes before using a different source.':'Recording this quote uses the current workspace record. Device/account persistence and customer delivery are not confirmed by this form.'} tone="blue" />
-        <QuotePrivateSaveStatus s={s} record={saved} dirty={quoteReview.dirty} check={quoteReview.checkDeviceCopy}/>
+        <QuotePrivateSaveStatus s={s} record={saved} dirty={quoteReview.dirty} check={quoteReview.checkDeviceCopy} resume={quoteReview.reviewDeviceCopy}/>
         <View style={styles.workspacePanel}>
         <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Edit this private quote</Text>
         <Text style={styles.workspaceMeta}>{"Customer reference: "+customer.id+" · Current record: "+quoteStatus+". Fields below are your working copy, not a delivery receipt."}</Text>

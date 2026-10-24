@@ -102,6 +102,29 @@ export function useQuoteActionReview(s){
    ]);return true;
   }catch{if(sourceCurrent())Alert.alert('Could not check this item','Keep your current wording. No preparation was accepted or saved.');return false;}
  };
+ const reviewDeviceCopy=async()=>{
+  const typing=epoch.current,wording=values(live.current);
+  const valid=()=>current()&&!conflict&&!pending.current&&action?.details?.quoteStatus==='Prepared'&&epoch.current===typing&&same(values(live.current),wording);
+  if(!valid()||typeof s.checkPrivateQuoteCopy!=='function')return false;
+  try{const checked=await s.checkPrivateQuoteCopy({isCurrent:valid,review:true});if(!valid())return false;
+   if(checked?.status!=='confirmed'||!checked.form){Alert.alert('Keep your current quote','A complete matching prepared quote was not verified in this device copy. Your fields stay unchanged. No account save or delivery was confirmed.');return false;}
+   const form=checked.form;let used=false;
+   const use=async wordingOnly=>{
+    if(used||!valid())return false;used=true;
+    try{const fresh=await s.checkPrivateQuoteCopy({isCurrent:valid,review:true});
+     if(!valid()||fresh?.status!=='confirmed'||stableJson(fresh.form)!==stableJson(form))return false;
+     if(!wordingOnly)edit('actionQuoteAmount',form.amount);
+     edit('actionQuoteMessage',form.message);
+     if(!wordingOnly)edit('actionQuoteSentDate',form.date);return true;
+    }catch{if(valid())Alert.alert('Device quote could not be checked','Your fields are kept. No save was retried.');return false;}
+   };
+   Alert.alert('Review checked device quote','Current amount: '+wording[0]+' · date: '+wording[2]+'\nCurrent wording:\n'+wording[1]+'\n\nDevice amount: '+form.amount+' · date: '+form.date+'\nDevice wording:\n'+form.message+'\n\nChoose wording only to keep your edited amount and date, or all checked fields. Another read is required. This does not save, send or confirm an account operation.',[
+    {text:'Keep editing',style:'cancel',onPress:()=>{used=true;}},
+    {text:'Use checked wording only',onPress:()=>use(true)},
+    {text:'Use checked device fields',onPress:()=>use(false)}
+   ]);return true;
+  }catch{if(valid())Alert.alert('Device quote could not be checked','Your current words, amount and date are kept. Nothing was retried.');return false;}
+ };
  const enquiryInformation=current()&&s.quoteEnquiryOriginItem?prepareEnquiryReplyText({customer,item:s.quoteEnquiryOriginItem,businessId:s.cloudWorkspace.businessId,approvedProfile:s.businessCreationIntelligence?.sharedProfile,purpose:'quote-information'}):null;
- return {edit,commit,transition,prepareEnquiry,appendEnquiry:item=>prepareEnquiry(item,'quote-add-details'),prepareCatalogue,canExplainService:enquiryInformation?.ok===true,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
+ return {edit,commit,transition,reviewDeviceCopy,prepareEnquiry,appendEnquiry:item=>prepareEnquiry(item,'quote-add-details'),prepareCatalogue,canExplainService:enquiryInformation?.ok===true,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
 }
