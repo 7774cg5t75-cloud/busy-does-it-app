@@ -2299,6 +2299,18 @@
       "args": [
         "scripts/check-mission15-saturday-content-builders.mjs"
       ]
+    },
+    {
+      "id": "mission15-returning-private-followup",
+      "args": [
+        "scripts/check-mission15-returning-private-followup.mjs"
+      ]
+    },
+    {
+      "id": "mission15-returning-content-builders",
+      "args": [
+        "scripts/check-mission15-returning-content-builders.mjs"
+      ]
     }
   ]
 }

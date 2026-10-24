@@ -40,8 +40,13 @@ export function reviewPrivateQuoteFollowUp({workspace,workspaceRef,draftRef,epoc
 }
 
 // Exact own object readback, not matching words or a durable/account receipt.
-export function continuePrivateQuoteFollowUp(draft,workspace,source){
+function privateQuoteRecordObserved(draft,workspace,source){
  const saved=draft?.privateSave;
- if(!saved||draft.workspace!==workspace||source.ownerId!==saved.ownerId||source.businessId!==saved.businessId||source.role!==saved.role||source.revision!==saved.revision||source.replyActions?.[draft.customerId]!==saved.next||JSON.stringify(draft.customer)!==saved.customerStamp||JSON.stringify(draft.originItem)!==saved.originStamp||![...(source.customers||[]),...(source.lastSimulatedRecipients||[])].includes(draft.customer))return draft;
- return draft.action===saved.next?draft:{...draft,action:saved.next};
+ return !!saved&&draft.workspace===workspace&&source.ownerId===saved.ownerId&&source.businessId===saved.businessId&&source.role===saved.role&&source.revision===saved.revision&&source.replyActions?.[draft.customerId]===saved.next&&JSON.stringify(draft.customer)===saved.customerStamp&&JSON.stringify(draft.originItem)===saved.originStamp&&[...(source.customers||[]),...(source.lastSimulatedRecipients||[])].includes(draft.customer);
+}
+export function continuePrivateQuoteFollowUp(draft,workspace,source){
+ return privateQuoteRecordObserved(draft,workspace,source)&&draft.action!==draft.privateSave.next?{...draft,action:draft.privateSave.next}:draft;
+}
+export function isPrivateQuoteFollowUpRecorded(draft,workspace,source){
+ return privateQuoteRecordObserved(draft,workspace,source)&&draft.words===draft.privateSave.next.details.followUpMessage;
 }

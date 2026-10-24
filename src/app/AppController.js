@@ -7,7 +7,7 @@ import {privateContentChannels,restoreContentDraft} from '../core/contentDraftCh
 import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails,reviewedFiledEnquiry} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource,quoteFormFields} from '../core/privateQuoteCopy.mjs';
-import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent,reviewPrivateQuoteFollowUp,continuePrivateQuoteFollowUp} from '../core/quoteDraftTransition.mjs';
+import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent,reviewPrivateQuoteFollowUp,continuePrivateQuoteFollowUp,isPrivateQuoteFollowUpRecorded} from '../core/quoteDraftTransition.mjs';
 import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
 import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
@@ -17882,7 +17882,7 @@ function App() {
     setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
     savePrivateQuoteFollowUp,
-    quoteFollowUpPrivateRecorded:!!quoteFollowUpScope.current?.privateSave&&quoteFollowUpScope.current.privateSave.next===replyActions[selectedReplyActionId]&&quoteFollowUpScope.current?.words===replyActions[selectedReplyActionId]?.details?.followUpMessage,
+    quoteFollowUpPrivateRecorded:isPrivateQuoteFollowUpRecorded(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,quoteFollowUpSources.current),
     prepareQuoteDetails,
     quoteEnquiryLinkStatus:replyActions[selectedReplyActionId]?.details?.enquiryReference?resolveQuoteEnquiryReference(replyActions[selectedReplyActionId].details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId:selectedReplyActionId,inboxItems,revision:cloudRevision})?'linked':'needs-review':'',
     resumeCurrentEnquiry,

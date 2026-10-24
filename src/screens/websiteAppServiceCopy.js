@@ -12,8 +12,10 @@ import {planCopyMissingAppServices,confirmCopyMissingAppServices} from "../core/
  */
 function WebsiteAppServiceCopy({website,app,businessId,onApply}){
  const [fillDescriptions,setFillDescriptions]=React.useState(false);
- const [review,setReview]=React.useState(null);
- const live=React.useRef(null);live.current={website,app,businessId};
+ const [review,updateReview]=React.useState(null);
+ const decision=React.useRef(null),setReview=value=>{decision.current=value;updateReview(value);};
+ const live=React.useRef(null),alive=React.useRef(true);live.current={website,app,businessId};
+ React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;decision.current=null;};},[]);
  const plan=planCopyMissingAppServices(website,app,{businessId,fillDescriptions});
  const available=plan.ok&&(plan.addedCount>0||plan.filledCount>0);
  if(!website?.id||!app?.id)return null;
@@ -58,8 +60,9 @@ function WebsiteAppServiceCopy({website,app,businessId,onApply}){
     </Text>
     <Button primary label="Copy these services into my PRIVATE website"
      onPress={()=>{
-      if(live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId)return;
+      if(!review||decision.current!==review||!alive.current||live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId)return;
       if(!confirmCopyMissingAppServices(website,app,{businessId,evidence:review}).ok){setReview(null);return;}
+      setReview(null);
       const accepted=onApply?.(review);
       if(accepted===true)setReview(null);
      }}/>

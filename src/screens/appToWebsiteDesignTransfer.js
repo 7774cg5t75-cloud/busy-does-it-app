@@ -12,9 +12,11 @@ function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
  const [withServices,setWithServices]=React.useState(false);
  const [includeDesign,setIncludeDesign]=React.useState(true),[includePublicInformation,setIncludePublicInformation]=React.useState(false);
  const [includeMissingAnswers,setIncludeMissingAnswers]=React.useState(false);
- const [review,setReview]=React.useState(null);
+ const [review,updateReview]=React.useState(null);
+ const decision=React.useRef(null),setReview=value=>{decision.current=value;updateReview(value);};
  const [notice,setNotice]=React.useState("");
- const live=React.useRef(null);live.current={website,app,businessId};
+ const live=React.useRef(null),alive=React.useRef(true);live.current={website,app,businessId};
+ React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;decision.current=null;};},[]);
  React.useEffect(()=>{setReview(null);setNotice("");},
   [website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
  if(!website?.id||!app?.id||!businessId)return null;
@@ -66,9 +68,10 @@ function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
      </Text>
      <Button primary label="Approve this PRIVATE website change"
       onPress={()=>{
-       if(live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId){setReview(null);return;}
+       if(!review||decision.current!==review||!alive.current||live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId){setReview(null);return;}
        const check=confirmAppToWebsiteDesign({website,app,businessId,evidence:review});
        if(!check.ok){setNotice(check.reason);setReview(null);return;}
+       setReview(null);
        const applied=onApply?.(review);
        if(applied===true){setNotice("Website draft updated. Nothing was published.");setReview(null);}
        else {setNotice("Website has changed. Review the latest draft.");setReview(null);}

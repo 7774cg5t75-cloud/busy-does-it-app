@@ -1486,7 +1486,7 @@ function QuoteFollowUp({ s }) {
       <Card
         eyebrow="Existing customer intent"
         title={customer.name}
-        body={`${customer.service} • quote ${action.details?.quoteAmount ? `£${action.details.quoteAmount}` : "value not recorded"}${age !== null ? ` • ${age} days since the recorded quote date` : ""}`}
+        body={`${customer.service} • quote ${action.details?.quoteAmount!=null&&String(action.details.quoteAmount).trim()!=='' ? `£${action.details.quoteAmount}` : "value not recorded"}${age !== null ? ` • ${age} days since the recorded quote date` : ""}`}
         footer="Advertising spend: £0"
         tone="green"
       />

@@ -219,10 +219,11 @@ export function useSocialContentHandoff(input){
    }});return true;
   }catch{return false;}
  };
- const reuseNewsletter=async({isCurrent=()=>true}={})=>{
+ const reusePreparedDraft=async(channel,{isCurrent=()=>true}={})=>{
+  if(!['newsletter','social'].includes(channel))return false;
   if(!valid()||epoch.current!==renderEpoch||!isCurrent())return false;
   const record=live.current.records?.find(row=>row.id===live.current.selectedDraftId),evidence=live.current.sourceContext?.contentEvidence;
-  if(!record||record.status!=='Draft'||record.publishedAt||evidence!==record.contentEvidence||evidence?.channel!=='newsletter'||evidence.businessId!==live.current.businessId||live.current.sourceContext?.pendingContentIdea)return false;
+  if(!record||record.status!=='Draft'||record.publishedAt||evidence!==record.contentEvidence||evidence?.channel!==channel||evidence.businessId!==live.current.businessId||[record.ownerId,record.owner_id].some(id=>id&&id!==live.current.ownerId)||live.current.sourceContext?.pendingContentIdea)return false;
   const stamp=savedAnnouncementStamp(record),ticket=capture();
   if(!recordCurrent(record,stamp)||!await reviewSource()||!isCurrent()||!recordCurrent(record,stamp)||!fresh({...ticket,epoch:ticket.epoch+1}))return false;
   const reviewed=capture();
@@ -234,6 +235,8 @@ export function useSocialContentHandoff(input){
    setContext({...source,contentEvidence:{...evidence,reusedDraft:{id:record.id,updatedAt:record.updatedAt||'',businessId:live.current.businessId}}});return true;
   }});return true;
  };
+ const reuseNewsletter=options=>reusePreparedDraft('newsletter',options);
+ const reuseSocialDraft=options=>reusePreparedDraft('social',options);
  const resumeNewsletterWording=async()=>{
   if(!valid()||epoch.current!==renderEpoch)return false;
   const record=live.current.records?.find(row=>row.id===live.current.selectedDraftId),evidence=live.current.sourceContext?.contentEvidence;
@@ -298,5 +301,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection,result.channel||'social');return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection,result.channel||'social')}:result;
  };
- return {pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource:()=>reviewSource(),reviewSavedSource:record=>reviewSource(record),reuseNewsletter,refreshNewsletterSource,resumeNewsletterWording,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource:()=>reviewSource(),reviewSavedSource:record=>reviewSource(record),reuseNewsletter,reuseSocialDraft,refreshNewsletterSource,resumeNewsletterWording,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }
