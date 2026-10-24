@@ -16,6 +16,7 @@ const fieldChoices={
  faq:["title"],
  testimonials:["title"],
  gallery:["title"],
+ products:["title"],events:["title"],
  contact:["title","body","phone","email","openingHours"],
  text:["title","body"],
  "photo-feature":["title","body"],
@@ -117,7 +118,7 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
   else{
    if(!publicWord(change.title,80,true)||!['cards','rows'].includes(change.layout)||change.featuredId!==undefined&&change.featuredId!==''&&!/^[a-zA-Z0-9_-]{12,80}$/.test(change.featuredId))return fail('Choose the section heading, layout and optional featured record.',draft);
    if(change.previewFeed!==undefined&&(!validPublicBusinessContent(change.previewFeed)||change.previewFeed.businessId!==(draft.businessId||draft.business_id)))return fail('The approved record snapshot belongs to another business.',draft);
-   const section={...change.previewFeed?{previewFeed:change.previewFeed}:{},id:change.sectionId,type:change.sectionId,title:change.title,enabled:true,contentSource:'business_records_v1',contentLayout:change.layout,featuredId:change.featuredId||''};
+   const section={...(found[0]||{}),...change.previewFeed?{previewFeed:change.previewFeed}:{},id:change.sectionId,type:change.sectionId,title:change.title,enabled:true,contentSource:'business_records_v1',contentLayout:change.layout,featuredId:change.featuredId||''};
    sections=found.length?sections.map(s=>s.id===section.id?section:s):[...sections,section];
   }
   return {applied:true,draft:{...draft,sections},privateOnly:true,reason:'Updated the private shared-record section. Nothing was published.'};
@@ -133,6 +134,7 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
  if(sectionMatches.length!==1)return fail("That website section is missing or ambiguous.",draft);
  const section=sectionMatches[0];
  const allowed=fieldChoices[section.type]||[];
+ if(['products','events'].includes(section.type)&&field==='title'&&value.length>80)return fail('Shared-record headings support up to 80 characters.',draft);
  const newValue=clean(value);
  let sections,description;
  if(itemId!==undefined&&itemId!==null){

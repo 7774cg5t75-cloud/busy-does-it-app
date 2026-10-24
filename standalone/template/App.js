@@ -1,4 +1,11 @@
-import {prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
+import {useServiceBrowseReturn} from './useServiceBrowseReturn';
+import {createNativeRequestScreen} from './nativeRequestScreen';
+import {ServiceActionButton} from './serviceActionButton';
+import {serviceCardStyle} from './appServicePresentation.mjs';
+import {appImagePresentation} from './appImageAppearance.mjs';
+import {AppFaqCard} from './appFaqCard';
+import {ServiceDetails} from "./serviceDetails";
+import {appComponentTextStyle} from './appComponentAppearance.mjs';
 import {BusinessContentView} from './businessContentView';
 /**
  * V3.155 independent native Business App. Offline by default.
@@ -11,13 +18,11 @@ import {SafeAreaView,ScrollView,View,Text,TextInput,Pressable,StatusBar,Image,
  ActivityIndicator,useWindowDimensions,Linking} from "react-native";
 import prototype from "./prototype.json";
 import {verifiedPublicRuntime,publicNativeApp} from "./nativeBusinessClient";
-import {sendNativeGuestRequest} from "./nativeGuestRequests";
 import {responsiveAppLayout} from "./appResponsiveDesign.mjs";
-import {nativeContactAction,searchPublicNativeServices,browsePublicNativeServices} from "./nativeCustomerActions.mjs";
+import {nativeContactAction,searchPublicNativeServices,browsePublicNativeServices,prepareServiceQuestion,SERVICE_QUESTION_TOPICS} from "./nativeCustomerActions.mjs";
 import {ServiceCategoryFilter} from './serviceCategoryFilter';
 import {nativePalette} from "./nativePalette.mjs";
 import {appVisualPresentation} from "./appVisualPresentationV3194.mjs";
-import {nativePreferredDates} from "./nativePreferredDates.mjs";
 const LOOK=prototype.appearance||{};
 const COLORS=nativePalette(LOOK.brandPalette,LOOK.brandAccent);
 const VISUAL=appVisualPresentation(LOOK);
@@ -33,11 +38,11 @@ function Button({title,onPress,disabled=false}){
      fontWeight:"700",textAlign:"center"}}>{title}</Text>
  </Pressable>;
 }
-function Field({title,value,onChange,multiline=false}){
+function Field({title,value,onChange,multiline=false,maxLength,disabled=false,inputRef}){
  return <View style={{marginTop:13}}>
   <Text style={{color:COLORS.text,fontWeight:"600"}}>{title}</Text>
-  <TextInput accessibilityLabel={title} value={value} onChangeText={onChange}
-    multiline={multiline} keyboardType={title==="Email address"?"email-address":"default"}
+  <TextInput ref={inputRef} accessibilityLabel={title} editable={!disabled} accessibilityState={{disabled}} value={value} onChangeText={onChange}
+    multiline={multiline} maxLength={maxLength} keyboardType={title==="Email address"?"email-address":"default"}
     autoCapitalize={title==="Email address"?"none":"sentences"}
     placeholderTextColor={COLORS.muted}
     style={{color:COLORS.text,backgroundColor:COLORS.bg,borderColor:COLORS.line,
@@ -45,116 +50,24 @@ function Field({title,value,onChange,multiline=false}){
       minHeight:multiline?92:48,textAlignVertical:"top"}}/>
  </View>;
 }
-function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,contentSelection=null}){
- const [input,setInput]=useState(savedState?.input||{name:"",email:"",phone:"",service:initialService,
-  preferredDate:"",message:initialMessage,note:""});
- const [busy,setBusy]=useState(false),[result,setResult]=useState(savedState?.result||null);
- const [possibleDuplicateRetry,setPossibleDuplicateRetry]=useState(savedState?.possibleDuplicateRetry||false);
- useEffect(()=>{if(!inFlight.current)onSaveState?.({input,result,possibleDuplicateRetry});},[input,result,possibleDuplicateRetry]);
- const inFlight=React.useRef(false);
- const dateChoices=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
- const type=screen.key==="booking_request"?"booking_request":"enquiry";
- const enabled=type==="booking_request"?live?.supportsBookingRequest:live?.supportsEnquiry;
- const set=(key)=>(value)=>{
-  if(result?.ok)return;
-  setInput(prev=>({...prev,[key]:value}));
-  if(!result?.mayHaveBeenReceived){
-   setResult(null);setPossibleDuplicateRetry(false);
-  }
- };
- const send=async()=>{
-  if(inFlight.current||busy||!enabled||result?.ok||
-    result?.mayHaveBeenReceived&&!possibleDuplicateRetry)return;
-  if(contentSelection){const checked=prepareBusinessContentEnquiry(live.businessContent,contentSelection.businessId,contentSelection);if(!checked.ok){setResult({ok:false,reason:checked.reason});return;}}
-  inFlight.current=true;
-  setBusy(true);setResult(null);setPossibleDuplicateRetry(false);
-  onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:'This request is still unconfirmed. Do not submit a second request.'},possibleDuplicateRetry:false});
-  try{
-   const next=await sendNativeGuestRequest(runtime,live,type,input);
-   onSaveState?.({input,result:next,possibleDuplicateRetry:false});setResult(next);
-  }catch{
-   onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:"The request outcome is unconfirmed."},possibleDuplicateRetry:false});
-   setResult({ok:false,mayHaveBeenReceived:true,
-    reason:"The connection failed. Your request may have reached the business."});
-  }finally{inFlight.current=false;setBusy(false);}
- };
- return <View style={box}>
-  <Text style={{...t,fontWeight:"700",fontSize:20}}>{screen.title}</Text>
-  <Text style={sub}>{type==="booking_request"?
-    "Ask for an appointment. The business must confirm the date and time before anything is booked.":
-    "Send a message directly to this business using BUSY's verified guest request service."}</Text>
-  {!enabled?<Text style={sub}>This customer request action is not available on the live app.</Text>:(
-   <>
-    <Field title="Your name" value={input.name} onChange={set("name")}/>
-    <Field title="Email address" value={input.email} onChange={set("email")}/>
-    <Field title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
-    {type==="booking_request"?<>
-      <Field title="Service you want" value={input.service} onChange={set("service")}/>
-      <Text style={{...sub,fontSize:13}}>Choose a preferred day, or type a different date below. These are NOT available appointment slots.</Text>
-      <View style={{flexDirection:"row",flexWrap:"wrap",gap:7,marginTop:8}}>
-       {dateChoices.map(day=><Pressable key={day.value} accessibilityRole="button"
-         accessibilityLabel={"Prefer "+day.label}
-         accessibilityState={{selected:input.preferredDate===day.value}}
-         onPress={()=>set("preferredDate")(day.value)}
-         style={{backgroundColor:input.preferredDate===day.value?COLORS.accent:COLORS.bg,
-           borderColor:COLORS.line,borderWidth:1,paddingVertical:11,paddingHorizontal:12,
-           minHeight:46,borderRadius:8}}>
-         <Text style={{color:input.preferredDate===day.value?COLORS.bg:COLORS.text}}>
-          {day.label}
-         </Text>
-       </Pressable>)}
-      </View>
-      <Field title="Preferred date (optional)" value={input.preferredDate}
-       onChange={set("preferredDate")}/>
-      <Field title="Notes (optional)" value={input.note}
-       onChange={set("note")} multiline/>
-     </>:<Field title="Your message" value={input.message}
-        onChange={set("message")} multiline/>}
-    <Text style={{...sub,fontSize:12}}>By sending, you share these details with the business
-      so it can reply. Anti-spam verification may take a few moments.
-      This is not a confirmed booking or payment.</Text>
-    {busy?<ActivityIndicator color={COLORS.accent} style={{marginTop:15}}/>:null}
-    <Button title={busy?"Verifying and sending…":
-      type==="booking_request"?"Send booking REQUEST":"Send enquiry"}
-      disabled={busy||result?.ok===true||
-       (result?.mayHaveBeenReceived===true&&!possibleDuplicateRetry)} onPress={send}/>
-    {result?<Text accessibilityRole="text"
-       style={{color:result.ok?"#91E1B8":"#FFD8A8",marginTop:15}}>
-       {result.ok?result.message:result.reason}
-       {result.ok?" Keep this confirmation for your records.":""}
-     </Text>:null}
-    {result?.ok?<Button title="Start a separate new request"
-       onPress={()=>{
-        setInput({name:"",email:"",phone:"",service:initialService,
-         preferredDate:"",message:"",note:""});
-        setResult(null);setPossibleDuplicateRetry(false);
-       }}/>:null}
-    {result?.mayHaveBeenReceived&&!possibleDuplicateRetry?<View>
-      <Text style={sub}>
-       Don't send repeatedly unless you have checked with the business:
-       an earlier request might already have been recorded.
-      </Text>
-      <Button title="I understand — allow one more attempt"
-       onPress={()=>setPossibleDuplicateRetry(true)}/>
-     </View>:null}
-   </>
-  )}
- </View>;
-}
-function ServicesInfo({app,layout,onRequestService}){
+const RequestScreen=createNativeRequestScreen({Button,Field,COLORS,box,t,sub});
+function ServicesInfo({app,layout,onRequestService,contextKey='',savedBrowseState,onSaveBrowseState}){
  const [query,setQuery]=useState("");
  const [category,setCategory]=useState('');
- const browse=browsePublicNativeServices(app.services||[],query,category),results=browse.rows;
+ const [questionService,setQuestionService]=useState('');
+ const serviceReturn=useServiceBrowseReturn({services:app.services||[],contextKey,query,category,setQuery,setCategory,savedBrowseState,onSaveBrowseState});
+ const browse=browsePublicNativeServices(app.services||[],serviceReturn.query,serviceReturn.category),results=browse.rows;
  return <View style={box}>
   <Text style={{...t,fontSize:VISUAL.type.sectionSize,fontWeight:VISUAL.type.sectionWeight}}>Services</Text>
-  <ServiceCategoryFilter categories={browse.categories} selected={browse.selectedCategory} onSelect={setCategory} colors={COLORS}/>
+  <ServiceCategoryFilter categories={browse.categories} selected={browse.selectedCategory} onSelect={serviceReturn.onCategory} colors={COLORS} query={serviceReturn.query} resultCount={results.length} onClear={serviceReturn.clear}/>
   {app.services?.length>4?<TextInput accessibilityLabel="Search services"
-    value={query} onChangeText={setQuery}
+    value={serviceReturn.query} onChangeText={serviceReturn.onQuery}
     placeholder="Find a service" placeholderTextColor={COLORS.muted}
     style={{color:COLORS.text,backgroundColor:COLORS.bg,padding:12,
       minHeight:48,borderRadius:9,marginTop:12}}/>:null}
+  {serviceReturn.canReturn?<Button title="Back to my service results" onPress={serviceReturn.back}/>:null}
   {results.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:12}}>
-   {results.map((service,i)=><View key={i} style={{marginTop:14,
+   {results.map((service,i)=><View key={service.id||service.name||i} style={{marginTop:14,
      width:VISUAL.serviceColumns===1?"100%":
        layout?.serviceColumns===2?"48%":"100%",
      backgroundColor:VISUAL.serviceStyle==="cards"?COLORS.bg:COLORS.surface,
@@ -163,53 +76,53 @@ function ServicesInfo({app,layout,onRequestService}){
      borderRadius:VISUAL.serviceStyle==="rows"?0:11,
      padding:VISUAL.serviceStyle==="rows"?6:12,
      borderBottomWidth:VISUAL.serviceStyle==="rows"?1:undefined,
-     borderBottomColor:VISUAL.serviceStyle==="rows"?COLORS.line:undefined}}>
+     borderBottomColor:VISUAL.serviceStyle==="rows"?COLORS.line:undefined,...serviceCardStyle(app.servicePresentation||LOOK.servicePresentation,service.id,COLORS)}}>
      {i===0&&VISUAL.featuredFirst?<Text style={{
        color:COLORS.accent,fontWeight:"700",fontSize:12,marginBottom:6}}>
        Featured service
      </Text>:null}
      <Text style={{...t,fontWeight:VISUAL.type.sectionWeight,
-       fontSize:VISUAL.type.bodySize+2}}>{service.name}</Text>
-     <Text style={sub}>{service.description||"Ask the business for details."}</Text>
-     {service.category?<Text style={sub}>{'Category: '+service.category}</Text>:null}
-     {service.priceLabel?<Text style={sub}>{'Price information: '+service.priceLabel}</Text>:null}
-     {service.durationLabel?<Text style={sub}>{'Typical duration: '+service.durationLabel}</Text>:null}
+       fontSize:VISUAL.type.bodySize+2,...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':title',{colors:COLORS,baseSize:VISUAL.type.bodySize+2})}}>{service.name}</Text>
+     <ServiceDetails service={service} onRelatedServices={serviceReturn.related} colors={COLORS} bodySize={VISUAL.type.bodySize} textStyle={appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':body',{colors:COLORS,baseSize:VISUAL.type.bodySize})}/>
      {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
-      <Button title={"Request "+service.name}
+      <ServiceActionButton serviceId={service.id} action="booking_request" presentation={app.servicePresentation||LOOK.servicePresentation} colors={COLORS} title={"Request "+service.name}
        onPress={()=>onRequestService?.(service.name,"booking_request")}/>:null}
      {app.supportsEnquiry&&app.moduleKeys?.includes("enquiry")?
-      <Button title={"Ask about "+service.name}
+      <ServiceActionButton serviceId={service.id} action="enquiry" presentation={app.servicePresentation||LOOK.servicePresentation} colors={COLORS} title={"Ask about "+service.name}
        onPress={()=>onRequestService?.(service.name,"enquiry")}/>:null}
+     {app.supportsEnquiry&&app.moduleKeys?.includes("enquiry")?<View>
+      <Button title={questionService===service.name?"Hide question ideas":"Help me ask about "+service.name} onPress={()=>setQuestionService(questionService===service.name?'':service.name)}/>
+      {questionService===service.name?SERVICE_QUESTION_TOPICS.map(topic=><Button key={topic.key} title={topic.label} onPress={()=>onRequestService?.(service.name,'enquiry',null,topic.key)}/>):null}
+     </View>:null}
    </View>)}
   </View>:<Text style={sub}>{query?"No services match your search.":"No public services are listed."}</Text>}
  </View>;
 }
-function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferEnquiry,contactNotice}){
+function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferEnquiry,contactNotice,catalogueContextKey='',catalogueStates={},onCatalogueStateChange}){
  if(screen.key==="business_profile")return <View style={box}>
-  <Text style={{...t,fontSize:21,fontWeight:"700"}}>{app.title}</Text>
-  <Text style={sub}>{app.tagline||app.about||"Contact this business for more information."}</Text>
+  <Text style={{...t,fontSize:21,fontWeight:"700",...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-title',{colors:COLORS,baseSize:21})}}>{app.title}</Text>
+  <Text style={{...sub,...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-tagline',{colors:COLORS,baseSize:VISUAL.type.bodySize})}}>{app.tagline||app.about||"Contact this business for more information."}</Text>
   {app.heroUrl?<Image source={{uri:app.heroUrl}} accessible
     accessibilityRole="image" accessibilityLabel="Business cover photo"
     style={{height:layout?.ok?layout.heroHeight:190,
       borderRadius:LOOK.imageCorners==="square"?2:12,marginTop:12}}
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
-  {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?(name,prepared)=>onRequestService?.(name,'enquiry',prepared):null}/>)}
-  {(app.faqs||[]).map((row,i)=><View key={'faq'+i} style={{marginTop:16}}><Text style={{...t,fontWeight:'700'}}>{row.question}</Text><Text style={sub}>{row.answer}</Text></View>)}
+  {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueStates[block.kind]} onSaveBrowseState={value=>onCatalogueStateChange?.(block.kind,value)} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?(name,prepared)=>onRequestService?.(name,'enquiry',prepared):null}/>)}
+  {(app.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={COLORS} componentStyles={app.componentStyles||LOOK.componentStyles} bodySize={VISUAL.type.bodySize}/>)}
   {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
  </View>;
- if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService}/>;
+ if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService} contextKey={catalogueContextKey} savedBrowseState={catalogueStates.services} onSaveBrowseState={value=>onCatalogueStateChange?.('services',value)}/>;
  if(screen.key==="gallery")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Approved photos</Text>
    {app.gallery?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>
      {app.gallery.map((photo,i)=>
        <View key={i} style={{width:layout?.galleryColumns===3?"31%":
          layout?.galleryColumns===2?"48%":"100%"}}>
-       <Image source={{uri:photo.uri}} accessible accessibilityRole="image"
+       <Image source={{uri:photo.uri}} resizeMode={appImagePresentation(app.imageStyles||LOOK.imageStyles,photo.uri).resizeMode} accessible accessibilityRole="image"
         accessibilityLabel={String(photo.alt||photo.caption||"Business photo "+(i+1))}
-        style={{width:"100%",height:layout?.ok?layout.galleryHeight:190,
-          borderRadius:LOOK.imageCorners==="square"?2:11,marginTop:12}}/>
-       {photo.caption?<Text style={{...sub,fontSize:13}}>{photo.caption}</Text>:null}
+        style={{width:"100%",...appImagePresentation(app.imageStyles||LOOK.imageStyles,photo.uri,{height:layout?.ok?layout.galleryHeight:190,corners:LOOK.imageCorners}),marginTop:12}}/>
+       {photo.caption?<Text style={{...sub,fontSize:VISUAL.type.bodySize}}>{photo.caption}</Text>:null}
        </View>
      )}</View>:<Text style={sub}>No photographs have been approved for this app yet.</Text>}
  </View>;
@@ -260,11 +173,14 @@ export default function App(){
  const connected=verifiedPublicRuntime(runtime);
  const [current,setCurrent]=useState(prototype.screenSchema.screens[0].key);
  const [requestedService,setRequestedService]=useState("");
+ const [requestOrigin,setRequestOrigin]=useState('');
  const [requestedIntent,setRequestedIntent]=useState("");
  const [requestedKind,setRequestedKind]=useState("service");
  const [requestedMessage,setRequestedMessage]=useState("");
  const [requestSelection,setRequestSelection]=useState(null);
  const requestForms=React.useRef(new Map());
+ const lastRequest=React.useRef(null);
+ const catalogueCache=React.useRef({scope:'',states:{}});
  const [refreshSequence,setRefreshSequence]=useState(0);
  const [measuredFrameWidth,setMeasuredFrameWidth]=useState(0);
  const [contactNotice,setContactNotice]=useState("");
@@ -281,9 +197,18 @@ export default function App(){
   return ()=>{active=false;};
  },[connected,runtime?.expectedVersionId,refreshSequence]);
  const pages=live?prototype.screenSchema.screens.filter(s=>
-  live.moduleKeys?.includes(s.key)):[];
+  live.moduleKeys?.includes(s.key)).map(s=>({...s,title:live.navigationLabels?.[s.key]||s.title})):[];
  const chosen=pages.find(x=>x.key===current)||pages[0];
+ const publicViewContext=JSON.stringify([live?.businessContent?.businessId||'',live?.appId||'',live?.versionId||'',runtime?.expectedAppId||'',runtime?.expectedVersionId||'']);
+ const viewContext=React.useRef(publicViewContext);viewContext.current=publicViewContext;
+ const runtimeScreen=React.useRef(null);runtimeScreen.current={live,screen:chosen?.key};
+ if(catalogueCache.current.scope!==publicViewContext)catalogueCache.current={scope:publicViewContext,states:{}};
  const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection]);
+ const requestIdentity=React.useRef(requestFormKey);requestIdentity.current=requestFormKey;
+ const savedReturn=lastRequest.current?.scope===publicViewContext?lastRequest.current:null;
+ const resumeIntent=savedReturn?.screen||requestedIntent;
+ const resumeRequestKey=savedReturn?.key||JSON.stringify([live?.versionId,requestedIntent,requestedKind,requestedService,requestedIntent,requestSelection]);
+ const resumableRequest=requestForms.current.get(resumeRequestKey);
  const outerPadding=LOOK.layoutDensity==="compact"?13:
    LOOK.layoutDensity==="airy"?28:20;
  const contentWidth=Math.max(250,Math.floor((measuredFrameWidth||viewport.width)-2*outerPadding));
@@ -330,7 +255,7 @@ export default function App(){
     </Text>
     <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?"column":"row",flexWrap:"wrap",marginBottom:15,gap:7}}>
      {pages.map(item=><Pressable key={item.key} accessibilityRole="button"
-      accessibilityLabel={"View "+item.title} onPress={()=>setCurrent(item.key)}
+      accessibilityLabel={"View "+item.title} onPress={()=>{if(viewContext.current!==publicViewContext)return;if(['enquiry','booking_request'].includes(item.key)&&!['enquiry','booking_request'].includes(chosen.key))setRequestOrigin(chosen.key);setCurrent(item.key);}}
       style={{backgroundColor:item.key===chosen.key?COLORS.accent:COLORS.surface,
        width:responsive.ok&&responsive.navigation==="list"?"100%":undefined,
        minHeight:48,justifyContent:"center",
@@ -340,20 +265,37 @@ export default function App(){
        fontWeight:"600"}}>{item.title}</Text>
      </Pressable>)}
     </View>
+    {!['enquiry','booking_request'].includes(chosen.key)&&resumableRequest&&pages.some(page=>page.key===resumeIntent)?<Button title={resumableRequest.result?.ok?'Return to saved request':resumableRequest.result?.mayHaveBeenReceived?'Return to unconfirmed request':'Return to my unfinished request'} onPress={()=>{if(viewContext.current!==publicViewContext||requestForms.current.get(resumeRequestKey)!==resumableRequest||lastRequest.current!==savedReturn)return;if(savedReturn){setRequestedKind(savedReturn.kind);setRequestedService(savedReturn.service);setRequestedIntent(savedReturn.intent);setRequestSelection(savedReturn.selection);setRequestedMessage(savedReturn.message);setRequestOrigin(savedReturn.origin);}setCurrent(resumeIntent);}}/>:null}
     {["enquiry","booking_request"].includes(chosen.key)?
      <RequestScreen key={requestFormKey}
       screen={chosen} live={live} runtime={runtime} contentSelection={requestSelection}
       savedState={requestForms.current.get(requestFormKey)}
-      onSaveState={value=>{const key=requestFormKey;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
+      onRemoveAttachment={value=>{
+       if(viewContext.current!==publicViewContext||requestIdentity.current!==requestFormKey||!requestSelection||chosen.key!=='enquiry')return;
+       const previous=requestForms.current.get(requestFormKey);
+       if(previous?.result?.ok||previous?.result?.mayHaveBeenReceived)return;
+       const nextKey=JSON.stringify([live?.versionId,chosen.key,'service','',requestedIntent,null]);
+       requestIdentity.current=nextKey;
+       requestForms.current.delete(requestFormKey);
+       requestForms.current.set(nextKey,{...value,enquiryReview:null,result:null,possibleDuplicateRetry:false});
+       lastRequest.current={key:nextKey,scope:publicViewContext,screen:chosen.key,kind:'service',service:'',intent:requestedIntent,selection:null,message:'',origin:requestOrigin};
+       if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);
+       setRequestSelection(null);setRequestedService('');setRequestedKind('service');setRequestedMessage('');
+      }}
+      returnInformationLabel={requestSelection?'Back to item information':'Back to app information'}
+      onReturnToInformation={requestOrigin&&pages.some(page=>page.key===requestOrigin)?()=>{if(viewContext.current===publicViewContext)setCurrent(requestOrigin);}:null}
+      onSaveState={value=>{if(viewContext.current!==publicViewContext)return;const key=requestFormKey;if(requestIdentity.current!==key&&!requestForms.current.has(key))return;requestForms.current.set(key,value);if(requestIdentity.current===key)lastRequest.current={key,scope:publicViewContext,screen:chosen.key,kind:requestedKind,service:requestedService,intent:requestedIntent,selection:requestSelection,message:requestedMessage,origin:requestOrigin};if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
       initialService={chosen.key===requestedIntent?
        requestedService:""}
       initialMessage={requestedMessage|| (chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?
        requestedKind==="offer"?
         "I would like to ask about the offer: "+requestedService+".":
         "I would like to know more about "+requestedService+".":"")}/>:
-     <LiveInfo screen={chosen} app={live} layout={responsive}
+     <LiveInfo screen={chosen} app={live} layout={responsive} catalogueContextKey={publicViewContext} catalogueStates={catalogueCache.current.states} onCatalogueStateChange={(kind,value)=>{if(catalogueCache.current.scope===publicViewContext&&runtimeScreen.current.live===live&&runtimeScreen.current.screen===chosen.key)catalogueCache.current.states[kind]=value;}}
       onOpenOfferEnquiry={offerTitle=>{
+       if(viewContext.current!==publicViewContext||runtimeScreen.current.live!==live||runtimeScreen.current.screen!==chosen.key||!live.offers?.some(offer=>offer.title===offerTitle))return;
        if(!live.supportsEnquiry||!live.moduleKeys?.includes("enquiry"))return;
+       setRequestOrigin(chosen.key);
        setRequestSelection(null);setRequestedMessage("");setRequestedService(offerTitle);setRequestedKind("offer");
        setRequestedIntent("enquiry");setCurrent("enquiry");
       }}
@@ -365,13 +307,17 @@ export default function App(){
        Linking.openURL(action.url).catch(()=>setContactNotice(
         "This device could not open that contact method. Use the details shown above."));
       }}
-      onRequestService={(serviceName,intent,prepared)=>{
+      onRequestService={(serviceName,intent,prepared,topic)=>{
+       if(viewContext.current!==publicViewContext||runtimeScreen.current.live!==live||runtimeScreen.current.screen!==chosen.key)return;
        if(intent==="booking_request"&&
           (!live.supportsBookingRequest||!live.moduleKeys?.includes(intent)))return;
        if(intent==="enquiry"&&
           (!live.supportsEnquiry||!live.moduleKeys?.includes(intent)))return;
        if(!["booking_request","enquiry"].includes(intent))return;
-       setRequestSelection(prepared?.ok?{...prepared.selection,businessId:prepared.businessId}:null);setRequestedMessage(prepared?.ok?prepared.message:"");setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind("service");
+       const question=topic?prepareServiceQuestion(live.services||[],serviceName,topic):null;
+       if(topic&&(!question?.ok||intent!=='enquiry')){setContactNotice(question?.reason||'Choose an enquiry question.');return;}
+       setRequestOrigin(chosen.key);
+       setRequestSelection(prepared?.ok?{...prepared.selection,businessId:prepared.businessId}:null);setRequestedMessage(question?.ok?question.message:prepared?.ok?prepared.message:"");setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind(topic?"service-question-"+topic:"service");
        setCurrent(intent);
       }}/>}
    </View>:null}

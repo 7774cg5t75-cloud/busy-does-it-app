@@ -1,5 +1,9 @@
+import {GrowthSavedAnnouncements} from '../components/GrowthSavedAnnouncements';
+import {GrowthCatalogueIdeas} from '../components/GrowthCatalogueIdeas';
+import {GrowthWebsiteOpportunities} from "../components/GrowthWebsiteOpportunities";
+import {GrowthContentIdeas} from "../components/GrowthContentIdeas";
 import React from "react";
-import {Text} from "react-native";
+import {Text,View} from "react-native";
 import {Shell,Card,Button,Field,MetricRow} from "../components/ui";
 import {styles} from "../theme/styles";
 import {listGrowthProjects} from "../domain/growthProjectCloud.mjs";
@@ -68,9 +72,11 @@ function GrowthCommandCentre({s}){
     s.openBusinessCreationJourney();
   };
   return (
-    <Shell s={s} title="Grow my business"
+    <Shell s={s} title="Get More Customers"
       subtitle="Your saved business growth projects, their last private review stage and what needs attention next."
       brandCue="Review your saved projects before anything goes public.">
+      <GrowthSavedAnnouncements s={s}/><GrowthContentIdeas s={s}/><GrowthCatalogueIdeas s={s}/>
+      <GrowthWebsiteOpportunities s={s}/>
       <Card eyebrow="Project overview"
         title={busy?"Checking your private projects…":centre.counts.projects+" saved growth project"+(centre.counts.projects===1?"":"s")}
         body={centre.notice}
@@ -113,7 +119,8 @@ function GrowthCommandCentre({s}){
           tone={project.stale || project.next?.status==="blocked"?"amber":"blue"}>
           <MetricRow left="Owner-reviewed drafts" right={project.progress.reviewed+" of "+project.progress.total}/>
           <MetricRow left="Passed to private editors" right={String(project.progress.handedOff)}/>
-          {project.tasks.map(task=><MetricRow key={task.target} left={task.label} right={task.status.replace(/_/g," ")} />)}
+          <View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Private preparation steps</Text>
+          {project.tasks.map(task=><MetricRow key={task.target} left={task.label} right={task.status.replace(/_/g," ")} />)}</View>
           <Button label={"Continue "+project.serviceName} primary onPress={()=>openProject(project.serviceName)}/>
         </Card>
       ))}

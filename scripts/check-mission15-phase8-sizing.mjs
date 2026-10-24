@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from '../src/core/websiteContextPlan.mjs';
+import {reviewWebsiteEditingQuality} from '../supabase/functions/busy-website-worker/websiteEditingQuality.mjs';
+const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml}=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyWebsiteLayoutChange','applyStructuredWebsiteEdit','renderWebsiteHtml']);
+const draft=buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{businessName:'Fictional Workshop',description:'Owner wording.',services:[{name:'Survey',description:'Discuss a survey.'}],email:'owner@example.test'}}});
+const selection={draftId:draft.id,pageId:'home',generation:draft.generation,sectionId:'hero',field:'body'};
+const plan=planSelectedWebsiteChanges(draft,'home',selection,'set this paragraph size to large; set this paragraph size to extra-large on phones; set this paragraph size to normal on desktop');assert.ok(plan.ok,plan.reason);
+const result=prepareSelectedWebsiteTransaction(draft,plan,{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange});assert.ok(result.applied);
+const hero=result.draft.sections.find(s=>s.id==='hero');assert.equal(hero.appearance.bodySize,'large');assert.equal(hero.appearance.mobileBodySize,'extra-large');assert.equal(hero.appearance.desktopBodySize,'normal');
+const html=renderWebsiteHtml(result.draft,'home');assert.match(html,/owner-text-mobileBodySize-extra-large/);assert.match(html,/@media\(max-width:600px\)/);assert.match(html,/@media\(min-width:1000px\)/);assert.equal(renderWebsiteHtml(JSON.parse(JSON.stringify(result.draft)),'home'),html);
+for(const value of ['0px','9999px','calc(1px)','tiny'])assert.equal(applyWebsiteLayoutChange(draft,{action:'section-style',sectionId:'hero',field:'bodySize',value}).applied,false);
+const locked={...draft,theme:{...draft.theme,lockedSections:['hero']}};assert.equal(applyWebsiteLayoutChange(locked,{action:'section-style',sectionId:'hero',field:'bodySize',value:'large'}).applied,false);
+const buttonPlan=planSelectedWebsiteChanges(draft,'home',{...selection,field:'cta'},'make this button wider');assert.ok(buttonPlan.ok);
+const button=prepareSelectedWebsiteTransaction(draft,buttonPlan,{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange});assert.ok(button.applied);
+assert.equal(button.draft.sections.find(s=>s.id==='hero').ctaHref,draft.sections.find(s=>s.id==='hero').ctaHref);assert.equal(button.draft.sections.find(s=>s.id==='hero').cta,draft.sections.find(s=>s.id==='hero').cta);assert.match(button.draft.html,/owner-cta-wide/);assert.match(button.draft.html,/width:100%;min-height:50px/);
+assert.ok(reviewWebsiteEditingQuality(button.draft).mayCommit);assert.equal(draft.sections.find(s=>s.id==='hero').appearance,undefined);
+console.log('PASS actual finite paragraph/viewport and button size operations, original selected transaction, local HTML/CSS, reload, owner locks and preserved real action. Static renderer evidence, not measured browser geometry.');

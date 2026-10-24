@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import {createRequire} from 'node:module';import {createOwnerEditNavigation} from '../src/core/ownerEditNavigation.mjs';
+const require=createRequire(import.meta.url),{parse}=require('@babel/parser'),source=fs.readFileSync('src/app/AppController.js','utf8'),functions={};
+function walk(n){if(!n||typeof n!=='object')return;if(n.type==='VariableDeclarator'&&['applyCloudSnapshot','restoreLatestCloudCopy'].includes(n.id?.name))functions[n.id.name]=source.slice(n.init.start,n.init.end);for(const [k,v]of Object.entries(n))if(!['loc','start','end'].includes(k)){if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==='object')walk(v);}}walk(parse(source,{sourceType:'module',plugins:['jsx']}));
+let scope='owner:business:websiteBuilder',prompt;const guard=createOwnerEditNavigation({getScope:()=>scope,confirm:p=>prompt=p}),draft={id:'site',generation:2},token={},identity={source:draft,projectId:'site',revision:2};
+const register=()=>guard.report({token,identity,scope,dirty:true,onDiscard:()=>true});
+let mutated=0;const sentinel=new Error('first original setter');const deps={ownerEditNavigation:{current:guard},websiteDraftRef:{current:draft},completeBusinessSnapshot:x=>x,bindWebsiteDraftScope:x=>x,setOnboardingComplete:()=>{mutated++;throw sentinel;}};
+const apply=Function(...Object.keys(deps),'return '+functions.applyCloudSnapshot)(...Object.values(deps));register();assert.throws(()=>apply({onboardingComplete:true},'business'),/wording is not saved/);assert.equal(mutated,0);
+guard.request(()=>{});prompt.keep();assert.throws(()=>apply({onboardingComplete:true},'business'),/wording is not saved/);guard.request(()=>{});const old=prompt.discard;register();assert.equal(old(),false);assert.throws(()=>apply({onboardingComplete:true},'business'),/wording is not saved/);
+guard.request(()=>{});prompt.discard();assert.throws(()=>apply({onboardingComplete:true},'business'),e=>e===sentinel);assert.equal(mutated,1,'Deliberate current discard allows original authenticated application');
+// Execute actual asynchronous restore with typing after trusted restore starts.
+let finish,status='',error='',revision=0;const id={},snapshotRestoreRef={current:null};const noop=()=>{};
+const env={ownerSession:{accessToken:'inert'},cloudWorkspace:{businessId:'business'},snapshotRestoreRef,snapshotIdentityRef:{current:id},snapshotSessionRef:{current:{restore:()=>new Promise(resolve=>finish=resolve)}},snapshotContextRef:{current:{}},setCloudInitialising:noop,setCloudSyncError:v=>error=v,setCloudSyncStatus:v=>status=v,ownerAccessToken:noop,busyDataRequest:noop,CLOUD_SCHEMA_VERSION:1,applyCloudSnapshot:apply,setCloudRevision:()=>revision++,setCloudLastSyncedAt:noop,setCloudConflict:noop};
+const restore=Function(...Object.keys(env),'return '+functions.restoreLatestCloudCopy)(...Object.values(env));const pending=restore({original:'ticket'});register();finish({ok:true,payload:{onboardingComplete:true},businessId:'business',revision:9});assert.equal(await pending,false);assert.match(error,/wording is not saved/);assert.equal(status,'Restore needs attention');assert.equal(revision,0);assert.equal(mutated,1);assert.equal(snapshotRestoreRef.current,null);
+// Full snapshot replacement also affects original App Studio and quote records.
+for(const source of [{id:'quote',revision:3},{id:'app',revision:7}]){
+ guard.report({token:{},identity:{source,projectId:source.id,revision:source.revision},scope,dirty:true,onDiscard:()=>true});
+ assert.throws(()=>apply({onboardingComplete:true},'business'),/wording is not saved/);
+ assert.equal(mutated,1,'A non-website dirty editor blocks before the first snapshot setter');
+ guard.request(()=>{});prompt.keep();assert.equal(guard.hasDirtyEdits(),true);
+ guard.request(()=>{});assert.equal(prompt.discard(),true);assert.equal(guard.hasDirtyEdits(),false);
+}
+register();scope='other-owner:other-business:home';assert.throws(()=>apply({onboardingComplete:true},'business'),e=>e===sentinel,'Old owner registration cannot block mandatory scope replacement');
+console.log('PASS actual authenticated snapshot application stops before state mutation when any currently registered original editor is dirty; original asynchronous restore rejects typing during await without success/revision acknowledgement. Current deliberate discard and owner-scope reset remain effective. Auth/transport inert, hosted policies unverified.');

@@ -1,3 +1,6 @@
+import {builderExploreRemoteGuard} from './builderExploreRemoteGuard.mjs';
+import {reviewAppEditingQuality} from "./appAppearanceEditing.mjs";
+import {checkReviewedCustomerVersion} from "./customerReviewedVersion.mjs";
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
 import {validContentLayout} from './businessContentRecords.mjs';
 import {manageBusinessContent,readBusinessContent} from '../_shared/businessContentStore.mjs';
@@ -37,7 +40,7 @@ import {ownerGuestAlertEvidenceV3227} from "./ownerGuestAlertEvidenceV3227.mjs";
 import {chooseOwnerRequestNextStepV3228} from "./ownerNextStepV3228.mjs";
 import {verifyOwnerRequestFreshnessV3231} from "./ownerRequestFreshnessV3231.mjs";
 import {classifyBookingClosureEvidenceV3232} from "./bookingCloseEvidenceV3232.mjs";
-import {classifyBookingRevisionV3233} from "./ownerBookingRevisionV3233.mjs";
+import {classifyBookingRevisionV3233,classifyBookingAssociationV3233} from "./ownerBookingRevisionV3233.mjs";
 import {chooseOwnerConversationActionV3234} from "./ownerConversationActionV3234.mjs";
 import {readCurrentOwnerFollowupV3235} from "./ownerFollowupReadbackV3235.mjs";
 
@@ -489,7 +492,7 @@ async function exactOwnerInboxReceipt(
 
 /** V3.233 read-only authenticated owner booking freshness, no PII or writes. */
 async function ownerBookingRevisionV3233(businessId:string,body:any){
- const requestId=clean(body?.requestId,80);
+ const requestId=clean(body?.requestId,80),associated=body?.includeAssociation===true;
  const app=await appForBusiness(businessId);
  if(!app?.id)throw Error("Current Business App is unavailable.");
  const request=await supabase.from("busy_mini_app_requests")
@@ -500,18 +503,26 @@ async function ownerBookingRevisionV3233(businessId:string,body:any){
  if(!request.data)throw Error("The original booking request is unavailable.");
  const [link,work]=await Promise.all([
   supabase.from("busy_mini_app_request_links")
-   .select("request_id,business_id,bridge_state")
+   .select(associated?"request_id,business_id,bridge_state,customer_record_id,action_record_id,updated_at":"request_id,business_id,bridge_state")
    .eq("request_id",requestId).eq("business_id",businessId).maybeSingle(),
-  supabase.from("busy_mini_app_work_bookings")
-   .select("request_id,business_id,state")
+  (associated?supabase.from("busy_mini_app_work_bookings")
+   .select("id,request_id,business_id,mini_app_id,customer_record_id,action_record_id,calendar_date,calendar_time,calendar_timezone,state,source,updated_at"):supabase.from("busy_mini_app_work_bookings")
+   .select("request_id,business_id,state"))
    .eq("request_id",requestId).eq("business_id",businessId).maybeSingle()
  ]);
  if(link.error||work.error)throw Error("The original Work booking could not be checked.");
- const check=classifyBookingRevisionV3233({
+ const base=classifyBookingRevisionV3233({
   businessId,appId:app.id,requestId,request:request.data,
   link:link.data,work:work.data
  });
+ const check=associated?classifyBookingAssociationV3233({businessId,appId:app.id,requestId,request:request.data,link:link.data,work:work.data}):base;
  if(!check.ok)throw Error(check.reason);
+ if(associated){
+  // The original atomic handoff updates request.updated_at with link/ledger changes.
+  const after=await supabase.from("busy_mini_app_requests").select("id,status,updated_at")
+   .eq("id",requestId).eq("business_id",businessId).eq("mini_app_id",app.id).maybeSingle();
+  if(after.error||!after.data||after.data.status!==request.data.status||after.data.updated_at!==request.data.updated_at)throw Error("The booking changed during inspection. Review it again.");
+ }
  return check;
 }
 
@@ -2827,6 +2838,8 @@ async function uploadMiniAppHtml(path: string, html: string, cacheControl: strin
 }
 
 async function publishMiniAppWebArtifact(app: any, version: any) {
+  const quality=reviewAppEditingQuality(version?.config);
+  if(!quality.mayCommit)throw new Error(quality.explanation);
   await ensureMiniAppPublicBucket();
   const html = publicMiniAppWebHtml(app, version);
   const bytes = new TextEncoder().encode(html).byteLength;
@@ -3361,6 +3374,7 @@ async function appDetail(
       favorite,
     },
     version: version.data,
+    requestReview:{schema:"published-version.v1",appId:app.data.id,versionId:version.data.id},
     loyaltyProgress,
     businessContent:version.data.config?.contentLayout?.length?await readBusinessContent(supabase,app.data.business_id,{publicOnly:true}):null,
   };
@@ -3487,6 +3501,13 @@ async function submitRequest(
         notificationDeliveryVerified:false,retryMayCreateDuplicate:false};
     }
   }
+
+  // Reconcile a saved idempotent request ABOVE this gate, even if the app
+  // has since been republished. A new action must match the reviewed version.
+  const reviewed=checkReviewedCustomerVersion(body,detail);
+  if(!reviewed.ok)return {reviewRequired:true,newRequestSaved:false,
+    reviewedAppId:body.expectedAppId,reviewedVersionId:body.expectedVersionId,
+    reason:reviewed.reason};
 
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const recent = await supabase
@@ -4163,6 +4184,8 @@ Deno.serve(async (request: Request) => {
   try {
     const user = await requireUser(request);
     const body = await request.json().catch(() => ({}));
+    const exploreGate=builderExploreRemoteGuard(body);
+    if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
     const action = clean(body?.action, 80);
     const businessId = clean(body?.businessId, 80);
     const requestId =
@@ -4493,10 +4516,15 @@ Deno.serve(async (request: Request) => {
         resolvedBusinessId,member.role,body))});
     }
     if (action === "owner_booking_revision") {
+      if(body?.includeAssociation===true&&member.role!=="owner")throw Error("Only the current business owner may inspect customer associations.");
       if(!["owner","admin"].includes(member.role))
         throw Error("Owner or admin permissions are required.");
-      return json(200,{ok:true,revision:await ownerBookingRevisionV3233(
-        resolvedBusinessId,body)});
+      const revision=await ownerBookingRevisionV3233(resolvedBusinessId,body);
+      if(body?.includeAssociation===true){
+        const live=await membership(user.id,resolvedBusinessId,false);
+        if(live.business_id!==resolvedBusinessId||live.role!=="owner")throw Error("Current owner membership is required.");
+      }
+      return json(200,{ok:true,revision});
     }
     if (action === "send_request_message") {
       if(body?.reviewedFollowupStamp!==undefined&&

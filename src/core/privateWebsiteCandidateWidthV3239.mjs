@@ -52,6 +52,10 @@ function boundedReport(report,mode){
   if(!Number.isSafeInteger(number)||number<0||number>100000)return null;
   counts[field]=number;
  }
+ if(report.counts.textBlocks!==undefined){
+  const n=report.counts.textBlocks;if(!Number.isSafeInteger(n)||n<0||n>10000)return null;
+  counts.textBlocks=n;
+ }
  if(counts.viewport<250||counts.viewport>3000||
    counts.width>100000)return null;
  const issues=[];

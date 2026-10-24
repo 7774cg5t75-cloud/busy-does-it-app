@@ -1,7 +1,10 @@
 // Evaluate actual local JS modules and component bodies with deterministic
 // React hooks/native boundaries. No effects, timers, native rendering or IO.
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),babel=require('@babel/core');
+// Compilation only is shared; exports, React state and IO remain per runtime.
+const compiledModules=new Map();
 function createRuntime({width=390,states=new Map()}={}){
+ const statistics={transforms:0,compileCacheHits:0,preloads:0,vmRuns:0,controllerVmMs:null,timeoutMs:10000};
  const root=path.resolve(__dirname,'../..'),cache=new Map(),effects=[];let index=0,slots=[],captured=null;const componentSlots=new Map();
  const React={createElement:(type,props,...children)=>({type,props:{...props,children}}),Fragment:'Fragment',
   useState(value){const i=index++,ownedSlots=slots;if(!(i in ownedSlots))ownedSlots[i]=states.has(i)?states.get(i):typeof value==='function'?value():value;return [ownedSlots[i],next=>ownedSlots[i]=typeof next==='function'?next(ownedSlots[i]):next];},
@@ -15,11 +18,20 @@ function createRuntime({width=390,states=new Map()}={}){
   if(!resolved)throw Error('Missing local module '+file);if(cache.has(resolved))return cache.get(resolved).exports;
   if(resolved.endsWith('.json'))return JSON.parse(fs.readFileSync(resolved,'utf8'));
   const module={exports:{}};cache.set(resolved,module);
-  let source=fs.readFileSync(resolved,'utf8');if(resolved.endsWith('/src/app/AppController.js')){const marker='  if (!hydrated || !ownerAuthReady) {';if(!source.includes(marker))throw Error('Missing context capture boundary');source=source.replace(marker,'  __captureContext(appState);\n'+marker);}const code=babel.transformSync(source,{filename:resolved,babelrc:false,configFile:false,compact:true,plugins:[require('@babel/plugin-transform-modules-commonjs'),[require('@babel/plugin-transform-react-jsx'),{runtime:'classic'}]]}).code;
+  let source=fs.readFileSync(resolved,'utf8');if(resolved.endsWith('/src/app/AppController.js')){const marker='  if (!hydrated || !ownerAuthReady) {';if(!source.includes(marker))throw Error('Missing context capture boundary');source=source.replace(marker,'  __captureContext(appState);\n'+marker);}let compiled=compiledModules.get(resolved);
+  if(!compiled||compiled.source!==source){
+   const dependencies=[],collect=({node})=>{if(node.source?.value)dependencies.push(node.source.value);};
+   const code=babel.transformSync(source,{filename:resolved,babelrc:false,configFile:false,compact:true,plugins:[()=>({visitor:{ImportDeclaration:collect,ExportNamedDeclaration:collect,ExportAllDeclaration:collect}}),require('@babel/plugin-transform-modules-commonjs'),[require('@babel/plugin-transform-react-jsx'),{runtime:'classic'}]]}).code;
+   compiled={source,code,dependencies};compiledModules.set(resolved,compiled);statistics.transforms++;
+  }else statistics.compileCacheHits++;
+  const {code,dependencies}=compiled;
+  // Do not charge transitive Babel preparation to the parent's bounded VM.
+  for(const id of dependencies)if(id.startsWith('.')){statistics.preloads++;load(path.resolve(path.dirname(resolved),id));}
+
   const requireLocal=id=>{if(id.startsWith('.'))return load(path.resolve(path.dirname(resolved),id));if(Object.hasOwn(external,id))return external[id];throw Error('Unmodelled external boundary '+id+' in '+resolved);};
   const context={__captureContext:value=>captured=value,module,exports:module.exports,require:requireLocal,console,URL,URLSearchParams,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,Date,Math,JSON,Promise,Set,Map,WeakMap,WeakSet,process:{env:{EXPO_PUBLIC_BUSY_ENVIRONMENT:'isolated-staging'}},fetch:noIO,setTimeout:noIO,clearTimeout:()=>{},setInterval:noIO,clearInterval:()=>{},__DEV__:true};
-  vm.runInNewContext(code,context,{filename:resolved,timeout:10000});return module.exports;
+  const started=Date.now();vm.runInNewContext(code,context,{filename:resolved,timeout:10000});statistics.vmRuns++;if(resolved.endsWith('/src/app/AppController.js'))statistics.controllerVmMs=Date.now()-started;return module.exports;
  }
- return {load:relative=>load(path.resolve(root,relative)),render(Component,props){index=0;if(!componentSlots.has(Component))componentSlots.set(Component,[]);slots=componentSlots.get(Component);return Component(props);},get appState(){return captured;},effects,get modules(){return cache.size;}};
+ return {statistics,native,load:relative=>load(path.resolve(root,relative)),render(Component,props){index=0;if(!componentSlots.has(Component))componentSlots.set(Component,[]);slots=componentSlots.get(Component);return Component(props);},get appState(){return captured;},effects,get modules(){return cache.size;}};
 }
 module.exports={createRuntime};

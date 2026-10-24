@@ -1,3 +1,5 @@
+import {checkReviewedCustomerVersion} from "../supabase/functions/busy-mini-apps/customerReviewedVersion.mjs";
+import {emptyEnquiryRequirements,prepareCustomerEnquiry} from '../src/core/customerEnquiryRequirements.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
@@ -18,6 +20,8 @@ const event={...feed,records:[{id:'event_record_001',kind:'event',revision:1,dat
 assert.equal(prepare(event,business,{recordId:'event_record_001',revision:1}).ok,true);
 assert.equal(prepare({...event,records:[{...event.records[0],data:{...event.records[0].data,status:'cancelled'}}]},business,{recordId:'event_record_001',revision:1}).ok,false);
 assert.equal(prepare(event,business,{recordId:'event_record_001',revision:1},{now:Date.parse('2031-01-01')}).ok,false);
+const eventNeeds=prepareCustomerEnquiry({message:'Can our group attend?',requirements:{...emptyEnquiryRequirements(),quantity:'4',details:'Step-free access'},feed:event,businessId:business,selection:{recordId:'event_record_001',revision:1}});assert.equal(eventNeeds.ok,true);assert.match(eventNeeds.message,/Event: Workshop/);assert.match(eventNeeds.message,/Step-free access/);assert.match(eventNeeds.message,/not an order, reservation or confirmed attendance/);
+assert.equal(prepareCustomerEnquiry({message:'Question',feed:event,businessId:business,selection:{recordId:'event_record_001',revision:2}}).ok,false);
 let detail;const ownerScope={userId:user},live={app:{id:appId,business_id:business,slug:'ceramics'},version:{id:version,config:{modules:[{key:'enquiry',enabled:true}]}},businessContent:feed};
 const context={ownerScope,request:async()=>live,setMiniAppsAction(){},setMiniAppsError(){},setSelectedBusyAppDetail:v=>detail=v,go(){},schedule(){}};
 const reads=createMarketplaceReadActions(()=>context);
@@ -25,7 +29,7 @@ await reads.openBusyAppDetail('ceramics','web','enquiry',selection);assert.deepE
 await reads.openBusyAppDetail('ceramics','web','enquiry',{...selection,revision:1});assert.equal(detail.entryContentInterest,null);assert.match(detail.entryContentNotice,/changed/);
 const slots=new Map(),storage={getItemAsync:async k=>slots.get(k),setItemAsync:async(k,v)=>slots.set(k,v),deleteItemAsync:async k=>slots.delete(k)};
 const attempt=createCustomerRequestAttempt(storage,{userId:user,appId,versionId:version,requestType:'enquiry'},()=> 'request-key-001');
-const payload={name:'Fictional visitor',email:'visitor@example.invalid',phone:'',service:selected.service,message:selected.message};
+const payload={name:'Fictional visitor',email:'visitor@example.invalid',phone:'',service:selected.service,message:prepareCustomerEnquiry({message:'Can three people attend?',requirements:{...emptyEnquiryRequirements(),quantity:'3',location:'Studio'},feed,businessId:business,selection}).message};
 assert.equal((await attempt.prepare(payload)).blocked,false);assert.equal((await attempt.prepare(payload)).retrying,true);assert.equal((await attempt.prepare({...payload,message:'Changed draft'})).blocked,true);
 assert.ok(!JSON.stringify([...slots]).includes('visitor@example.invalid'));
 // Execute the actual trusted submission function with an inert DB/provider boundary.
@@ -37,9 +41,12 @@ const actualDetail=new Function('supabase','trackConsumerApp','recordMiniAppEntr
 const canonicalDetail=await actualDetail('ceramics','', 'unknown',false);assert.equal(canonicalDetail.app.business_id,business,'the real app_detail response must retain its server-resolved tenant');
 const body=source.slice(source.indexOf('async function submitRequest('),source.indexOf('// Provider submission status',source.indexOf('async function submitRequest(')));
 const saved=[];const db={from(table){const filters=[];let inserted=null;const result=()=>{if(table==='busy_mini_apps')return {data:{business_id:business},error:null};if(table==='busy_mini_app_request_events')return {error:null};if(inserted){const row={id:'request_saved_001',status:'received',...inserted};saved.push(row);return {data:row,error:null};}return {data:saved.find(r=>filters.every(([k,v])=>r[k]===v))||null,count:0,error:null};};const q={select:()=>q,eq:(k,v)=>{filters.push([k,v]);return q;},gte:()=>q,insert:v=>{inserted=v;return q;},single:async()=>result(),maybeSingle:async()=>result(),then:(a,b)=>Promise.resolve(result()).then(a,b)};return q;}};
-const submit=new Function('supabase','clean','safeArray','appDetail','checkCustomerRequestReplay','verifiedRequestEvidence','trackConsumerApp','notifyBusinessOfMiniAppRequest',stripTypeScriptTypes(body)+';return submitRequest;')(db,(v,max)=>typeof v==='string'?v.trim().slice(0,max):'',v=>Array.isArray(v)?v:[],async()=>live,checkCustomerRequestReplay,()=>({verifiedSaved:true}),async()=>{},async()=>{});
-const receipt=await submit(user,{slug:'ceramics',requestType:'enquiry',payload},'request-key-001');
-assert.equal(receipt.savedRequestConfirmed,true);assert.equal(saved.length,1);assert.equal(saved[0].business_id,business);assert.equal(saved[0].consumer_user_id,user);assert.equal(saved[0].payload.message,selected.message);assert.equal(saved[0].service_name,selected.service);assert.equal(receipt.notificationDeliveryVerified,false);
+const submit=new Function('supabase','clean','safeArray','appDetail','checkCustomerRequestReplay','checkReviewedCustomerVersion','verifiedRequestEvidence','trackConsumerApp','notifyBusinessOfMiniAppRequest',stripTypeScriptTypes(body)+';return submitRequest;')(db,(v,max)=>typeof v==='string'?v.trim().slice(0,max):'',v=>Array.isArray(v)?v:[],async()=>live,checkCustomerRequestReplay,checkReviewedCustomerVersion,()=>({verifiedSaved:true}),async()=>{},async()=>{});
+assert.deepEqual(canonicalDetail.requestReview,{schema:'published-version.v1',appId,versionId:version});
+const receipt=await submit(user,{slug:'ceramics',requestType:'enquiry',payload,expectedAppId:appId,expectedVersionId:version},'request-key-001');
+assert.equal(saved[0].version_id,version,'Owner inbox request retains the exact reviewed published version');
+const stale=await submit(user,{slug:'ceramics',requestType:'enquiry',payload,expectedAppId:appId,expectedVersionId:'stale-version'},'different-key');assert.equal(stale.reviewRequired,true);assert.equal(saved.length,1,'Stale review cannot create another owner-inbox request');
+assert.equal(receipt.savedRequestConfirmed,true);assert.equal(saved.length,1);assert.equal(saved[0].business_id,business);assert.equal(saved[0].consumer_user_id,user);assert.equal(saved[0].payload.message,payload.message);assert.match(saved[0].payload.message,/Quantity or group size \(optional\): 3/);assert.match(saved[0].payload.message,/approved revision 2/);assert.equal(saved[0].service_name,selected.service);assert.equal(receipt.notificationDeliveryVerified,false);
 await submit(user,{slug:'ceramics',requestType:'enquiry',payload},'request-key-001');assert.equal(saved.length,1);
 await assert.rejects(()=>submit(user,{slug:'ceramics',requestType:'enquiry',payload:{...payload,message:'Different context'}},'request-key-001'));
 for(const path of ['standalone/template/businessContentRecords.mjs','supabase/functions/_shared/businessContentRecords.mjs','supabase/functions/busy-mini-apps/businessContentRecords.mjs','supabase/functions/busy-website-worker/businessContentRecords.mjs'])assert.equal(fs.readFileSync(new URL('../'+path,import.meta.url),'utf8'),fs.readFileSync(new URL('../src/core/businessContentRecords.mjs',import.meta.url),'utf8'));

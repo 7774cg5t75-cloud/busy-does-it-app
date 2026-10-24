@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {planAppVoiceInstructions as plan,proposeCoordinatedAppChanges as propose} from '../src/core/appCoordinatedStudio.mjs';
+import {browsePublicNativeServices} from '../standalone/template/nativeCustomerActions.mjs';
+const config={modules:['business_profile','services','enquiry','contact'].map(key=>({key,enabled:true})),navigation:['business_profile','services','enquiry','contact'],publicProfile:{services:[{id:'existing',name:'Repair',description:'Existing approved copy'}]}};
+const original=JSON.stringify(config);
+const p=plan(config,'add service "Site survey" description "Tell us about the property first."; update service "Site survey" category to "Project planning"; update service "Site survey" price label to "Quote after review"; move enquiries before services');
+assert.equal(p.ok,true,p.reason);assert.equal(p.operations.length,2);assert.equal(p.nextConfig.publicProfile.services[0].id,'existing');
+assert.deepEqual(p.nextConfig.navigation,['business_profile','enquiry','services','contact']);
+const browsed=browsePublicNativeServices(p.nextConfig.publicProfile.services,'survey','Project planning');assert.equal(browsed.rows.length,1);assert.equal(browsed.rows[0].priceLabel,'Quote after review');
+const undo=propose(p.nextConfig,p.undoOperations);assert.equal(undo.ok,true,undo.reason);assert.deepEqual(undo.nextConfig,config);assert.equal(JSON.stringify(config),original);
+for(const words of ['add service "Repair" description "Duplicate"','update service "Missing" category to "Other"','add service "New" description "Copy"; publish website','move enquiries before payments','move services before services','update service "Repair" category to "'+ 'a'.repeat(81)+'"'])assert.equal(plan(config,words).ok,false,words);
+for(const lock of ['services','copy','navigation','enquiry'])assert.equal(plan({...config,presentation:{ownerLockedElements:[lock]}},'add service "New" description "Copy"; move enquiries before services').ok,false,lock);
+assert.equal(plan({...config,modules:config.modules.filter(m=>m.key!=='services'),navigation:config.navigation.filter(k=>k!=='services')},'add service "New" description "Copy"').ok,false);
+assert.equal(fs.readFileSync('src/core/appCoordinatedStudio.mjs','utf8'),fs.readFileSync('supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs','utf8'));
+console.log('PASS literal service preparation -> original validated Studio operations -> shared customer browse, relative navigation, exact Undo, locks/parity/unsupported paths. No hosted acceptance.');

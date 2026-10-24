@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import {createAppStudioSession} from '../core/appStudioSession.mjs';
 import {appStudioCheckpointKey,createAppStudioCheckpoint} from '../core/appStudioCheckpoint.mjs';
 
-function usePrivateAppStudio(context,onSave){
+function usePrivateAppStudio(context,onSave,onRead,canDispatch){
  const [,redraw]=React.useState(0);
  const session=React.useRef(null);
  const key=appStudioCheckpointKey(context);
@@ -19,6 +19,7 @@ function usePrivateAppStudio(context,onSave){
   return ()=>editor.detach();
  },[editor]);
  return {...editor.snapshot(),prepare:editor.prepare,setNotice:editor.setNotice,
-  discard:editor.discard,removeChange:editor.removeChange,approve:()=>editor.approve(onSave),undoLast:()=>editor.undo(onSave)};
+  canEdit:()=>{const state=editor.snapshot();return !state.pending&&!state.uncertain;},
+  reconcile:()=>editor.reconcile(onRead),discard:editor.discard,removeChange:editor.removeChange,approve:()=>editor.approve(onSave,canDispatch),undoLast:()=>editor.undo(onSave,canDispatch)};
 }
 export {usePrivateAppStudio};

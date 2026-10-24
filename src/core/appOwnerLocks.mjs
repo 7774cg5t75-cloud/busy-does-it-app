@@ -1,3 +1,4 @@
+import {componentLockTargets} from './appComponentAppearance.mjs';
 // Owner locks are editing constraints, not permissions or evidence of quality.
 function appOwnerLocks(config){
  const locks=config?.presentation?.ownerLockedElements;
@@ -18,12 +19,19 @@ function appEditLockReason(config,op){
   galleryLayout:["gallery","photos"],serviceStyle:["services"],
   brandAccent:["branding","colours","colors"],brandPalette:["branding","colours","colors"]};
  const targets=[];
+ if(['service_presentation','reset_service_presentation'].includes(op?.kind)){targets.push('services','appearance','servicePresentation',String(op.field||''));const fields=op.kind==='reset_service_presentation'?Object.keys(config.presentation?.servicePresentation?.[op.field]||{}).filter(k=>op.value==='card'?!k.startsWith('enquiry')&&!k.startsWith('booking'):k.startsWith(String(op.value))):Object.keys(op.value||config.presentation?.servicePresentation?.[op.field]||{});if(fields.some(k=>k.endsWith('Label')))targets.push('copy');if(fields.some(k=>k.startsWith('enquiry')))targets.push('enquiry','buttons');if(fields.some(k=>k.startsWith('booking')))targets.push('booking_request','buttons');}
+ if(op?.kind==='navigation_label')targets.push('navigation','copy',op.moduleKey);
+ if(op?.kind==='image_appearance')targets.push('appearance','gallery','photos','imageStyles');
+ if(op?.kind==='component_appearance')targets.push(...componentLockTargets(String(op.field||'')));
  if(['content_layout','restore_content_layout'].includes(op?.kind))targets.push('business_profile','copy','navigation','products','events');
  if(op?.kind==="appearance")targets.push("appearance",op.field,...(groups[op.field]||[]));
  else if(op?.kind==="restore_appearance"){
   const before=config?.presentation||{},after=op.value||{};
+  if(JSON.stringify(before.servicePresentation||{})!==JSON.stringify(after.servicePresentation||{})){targets.push('services');for(const key of new Set([...Object.keys(before.servicePresentation||{}),...Object.keys(after.servicePresentation||{})]))for(const field of new Set([...Object.keys(before.servicePresentation?.[key]||{}),...Object.keys(after.servicePresentation?.[key]||{})]))if(before.servicePresentation?.[key]?.[field]!==after.servicePresentation?.[key]?.[field]){targets.push(key);if(field.endsWith('Label'))targets.push('copy');if(field.startsWith('enquiry'))targets.push('enquiry','buttons');if(field.startsWith('booking'))targets.push('booking_request','buttons');}}
+  if(JSON.stringify(before.imageStyles||{})!==JSON.stringify(after.imageStyles||{}))targets.push('gallery','photos');
   for(const field of new Set([...Object.keys(before),...Object.keys(after)]))
    if(JSON.stringify(before[field])!==JSON.stringify(after[field]))targets.push("appearance",field,...(groups[field]||[]));
+  for(const key of new Set([...Object.keys(before.componentStyles||{}),...Object.keys(after.componentStyles||{})]))if(JSON.stringify(before.componentStyles?.[key])!==JSON.stringify(after.componentStyles?.[key]))targets.push(...componentLockTargets(key));
  }else if(["move","first","navigation"].includes(op?.kind)){
   targets.push("navigation",op.moduleKey);
   const before=config?.navigation||[];let after=[...before];

@@ -1,0 +1,53 @@
+{
+  "startingRemoteSha": "3b1e4ea75039b7dbdec291ccf804790cc0e9450a",
+  "functionalCheckpoints": [
+    "7714decae1a9ae64babe5d2cc753734a77ce69c5",
+    "bf38047a646725278b860d40fc888f0736072240"
+  ],
+  "evidence": "Offline original source with inert native/auth/transport boundaries; no hosted/device/browser evidence",
+  "baseline": {
+    "passed": 101,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "initialExpandedRun": {
+    "passed": 103,
+    "failed": 1,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "correctedHarnessRerun": [
+    {
+      "id": "check-mission14-experience-recovery",
+      "status": "passed",
+      "exitCode": 0
+    }
+  ],
+  "finalCatalogueFocusedRerun": [
+    {
+      "id": "check-mission15-phase12-component-styles",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "id": "check-mission15-phase12-explore",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "id": "check-mission15-phase12-explore-handoff",
+      "status": "passed",
+      "exitCode": 0
+    }
+  ],
+  "syntaxChangedExploreFiles": 14,
+  "environmentPolicyTestsPassed": 4,
+  "aggregatePassingSelectedChecks": 104,
+  "limitations": [
+    "Not a single clean expanded run: one inherited extraction fixture import was corrected and rerun.",
+    "Final catalogue follow-up reruns all three affected Phase 12 checks.",
+    "No new restricted server credential/session for remote AI Explore.",
+    "Browser and physical-device acceptance outstanding."
+  ]
+}

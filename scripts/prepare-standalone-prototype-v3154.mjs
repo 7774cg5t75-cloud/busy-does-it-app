@@ -23,9 +23,13 @@ const handoff=buildStandalonePrivateHandoff({app,preview,plan,catalog,ownerConfi
 const descriptor=nativeShellDescriptor(handoff);
 if(!descriptor.ok)throw Error("Unsafe prototype: "+descriptor.reason);
 await mkdir(output,{recursive:true});
-for(const file of ["App.js","app.config.js","index.js","package.json","nativeBusinessClient.js","nativeGuestProof.js","nativeGuestRequests.js","appResponsiveDesign.mjs","nativeCustomerActions.mjs","nativePreferredDates.mjs","appPublicCollections.mjs","publicServiceDetails.mjs","businessContentView.js","businessContentRecords.mjs","serviceCategoryFilter.js"])
+for(const file of ["useServiceBrowseReturn.js","requestDraftStatus.js","selectedListingSummary.js","nativeRequestScreen.js","enquiryTopicShortcuts.js","catalogueState.mjs","serviceActionButton.js","appFaqCard.js","App.js","app.config.js","index.js","package.json","nativeBusinessClient.js","nativeGuestProof.js","nativeGuestRequests.js","appResponsiveDesign.mjs","nativeCustomerActions.mjs","nativePreferredDates.mjs","appPublicCollections.mjs","publicServiceDetails.mjs","serviceDetails.js","businessContentView.js","businessContentRecords.mjs","serviceCategoryFilter.js","customerEnquiryRequirements.mjs"])
  await copyFile(path.join(template,file),path.join(output,file));
 await copyFile(path.join(root,"src","core","nativePalette.mjs"),path.join(output,"nativePalette.mjs"));
+await copyFile(path.join(root,'src','core','appComponentAppearance.mjs'),path.join(output,'appComponentAppearance.mjs'));
+await copyFile(path.join(root,'src','core','appImageAppearance.mjs'),path.join(output,'appImageAppearance.mjs'));
+await copyFile(path.join(root,'src','core','appServicePresentation.mjs'),path.join(output,'appServicePresentation.mjs'));
+await copyFile(path.join(root,'src','core','appNavigationLabels.mjs'),path.join(output,'appNavigationLabels.mjs'));
 await copyFile(path.join(root,"src","core","appVisualPresentationV3194.mjs"),path.join(output,"appVisualPresentationV3194.mjs"));
 await writeFile(path.join(output,"prototype.json"),JSON.stringify(descriptor,null,2)+"\n",{mode:0o600});
 if((await stat(path.join(output,"App.js"))).size<500)throw Error("Native shell missing");

@@ -1,0 +1,49 @@
+{
+  "runId": 39994930825,
+  "jobId": 120555868176,
+  "runNumber": 10,
+  "attempt": 1,
+  "sourceCommit": "f934b91441735c78e1dc41a4559b5dc77e17f0c9",
+  "sourceTree": "00465e436142d34f43f11496084e7c3394fba460",
+  "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/39994930825",
+  "result": "failure",
+  "runner": "standard macos-15-intel; public repository",
+  "scope": "Midnight Home only",
+  "preflight": {
+    "localAttachmentTests": {
+      "passed": 23,
+      "failed": 0,
+      "exit": 0,
+      "kind": "inert unit fixtures, not native evidence"
+    },
+    "sourcePipelineCheckExit": 0,
+    "hostedAttachmentPolicy": "success",
+    "installedAppleExporter": "success",
+    "dependencyInstall": "success",
+    "hermesBundle": "success",
+    "nativeGeneration": "success",
+    "cocoaPodsAndUITestPreparation": "success"
+  },
+  "nativeBuild": {
+    "exit": 65,
+    "timedOut": false,
+    "elapsedSeconds": 782.9,
+    "deadlineSeconds": 1440,
+    "error": "CaptureTests.swift:18:42: value of optional type 'String?' must be unwrapped to a value of type 'String'",
+    "cause": "Diagnostic logging concatenated optional XCTAttachment.name with a non-optional String."
+  },
+  "simulatorLaunch": "skipped",
+  "xctestExecution": "skipped",
+  "attachmentExport": "skipped",
+  "artifactUpload": "skipped",
+  "artifacts": [],
+  "screenshotProduced": false,
+  "correction": "Log the same already known non-optional source-bound attachment name directly; do not force-unwrap or change capture/authentication behaviour.",
+  "correctionVerification": "Exact source replacement reviewed against compiler diagnostic; no fresh Swift compilation. Local execution environment became unavailable during hosted run.",
+  "retry": false,
+  "productionApplicationModified": false,
+  "hostedDatabaseAccess": false,
+  "deployments": false,
+  "additionalExternalSpendingGBP": 0,
+  "nextCaptureRequiresSeparateExplicitOwnerApproval": true
+}

@@ -1,3 +1,4 @@
+import {reviewedPairIsCurrent} from '../core/ownerBuilderDraftGuardV3195.mjs';
 import React from "react";
 import {Text,View} from "react-native";
 import {Card,Button} from "../components/ui";
@@ -8,8 +9,10 @@ import {appVisualPresentation,TYPE_LABELS} from "../core/appVisualPresentationV3
 /** Preview then tap; no background or automatic site publication. */
 function WebsiteAppTypographyMatch({website,app,businessId,onApply}){
  const [review,setReview]=React.useState(null);
+ const live=React.useRef(null);live.current={website,app,businessId};
  const plan=planMatchAppTypeToWebsite(website,app,{businessId});
  if(!plan.ok&&!review)return null;
+ if(review&&!reviewedPairIsCurrent(website,app,businessId,review))return <Card title="Review updated builder drafts" body="The brand source or website changed. No old proposal was applied."><Button label="Review current brand choices" onPress={()=>setReview(null)}/></Card>;
  const chosen=review||plan;
  const visual=appVisualPresentation({typeStyle:chosen.typeStyle});
  return <Card eyebrow="Coordinate your look"
@@ -37,7 +40,7 @@ function WebsiteAppTypographyMatch({website,app,businessId,onApply}){
        contact actions and published site are unaffected. Undo remains available.
      </Text>
      <Button primary label="Apply typography to my PRIVATE website"
-      onPress={()=>{if(onApply?.(review)===true)setReview(null);}}/>
+      onPress={()=>{if(live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId)return;if(onApply?.(review)===true)setReview(null);}}/>
      <Button label="Cancel — keep my website as it is"
       onPress={()=>setReview(null)}/>
     </View>

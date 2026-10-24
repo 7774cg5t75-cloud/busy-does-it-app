@@ -1,3 +1,19 @@
+import {canonicalWorkBindings,CANONICAL_WORK_ACCOUNT_ENABLED} from '../core/canonicalWorkSession.mjs';
+import {useAppearanceDevice} from "../theme/useAppearance";
+import {useFirstEnquiryFiling} from '../screens/useFirstEnquiryFiling';
+import {persistPrivateReply,privateReplyAccountBindings} from './privateEnquiryReplyPersistence.mjs';
+import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
+import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
+import {privateContentChannels,restoreContentDraft,readPrivateContentCopy} from '../core/contentDraftChanges.mjs';
+import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails,reviewedFiledEnquiry,customerQuoteEntry} from '../core/quoteEnquiryReference.mjs';
+import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
+import {readPrivateQuoteCopy,quoteCustomerSource,quoteFormFields} from '../core/privateQuoteCopy.mjs';
+import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent,reviewPrivateQuoteFollowUp,continuePrivateQuoteFollowUp,isPrivateQuoteFollowUpRecorded} from '../core/quoteDraftTransition.mjs';
+import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
+import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
+import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
+import {createOwnerEditNavigation} from '../core/ownerEditNavigation.mjs';
+import {prepareReviewedWebsiteComposition} from '../core/websiteReviewedComposition.mjs';
 import {parseBusinessContentInterest} from '../core/businessContentRecords.mjs';
 import {validateNativeGuestRequest} from "../../standalone/template/nativeCustomerActions.mjs";
 import {createAppNotificationActions} from "../core/appNotificationActions.mjs";
@@ -7,7 +23,7 @@ import {createMarketplaceReadActions} from "../core/marketplaceReadActions.mjs";
 import {createWebsiteLiveActions} from "../core/websiteLiveActions.mjs";
 import {createBusinessCacheRecoveryActions} from "../core/businessCacheRecoveryActions.mjs";
 import {enqueuePrivateCheckpoint} from "../core/privateCheckpointQueue.mjs";
-import {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot} from "../core/businessCache.mjs";
+import {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot,confirmBusinessCacheWrite,confirmBusinessCacheRead} from "../core/businessCache.mjs";
 import {createWebsiteDomainActions} from "../core/websiteDomainActions.mjs";
 import {createBusinessSnapshotSession} from "../core/businessSnapshotSession.mjs";
 import {bindWebsiteDraftScope,websiteDraftHasScope} from "../core/websiteDraftScope.mjs";
@@ -20,7 +36,7 @@ import {executeAppDraftMutation} from "../core/appDraftMutation.mjs";
 import {executePrivateAppBatch} from "../core/privateAppEditSession.mjs";
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
 import {interpretOwnerStatusAfterErrorV3231} from "../core/ownerStatusRecoveryV3231.mjs";
-import {assessBookingCancelReadbackV3233} from "../core/bookingCancelReadbackV3233.mjs";
+import {assessBookingCancelReadbackV3233,inspectBookingReadbackV3233,inspectBookingAssociationV3233} from "../core/bookingCancelReadbackV3233.mjs";
 import {reconcileFirstAppReadback} from "../core/firstAppRecoveryV3198.mjs";
 import {evaluateCustomerRequestOutcome,customerRequestNotice}
  from "../core/customerJourneyOutcomeV3204.mjs";
@@ -91,6 +107,8 @@ try {
 import {planWebsiteAppRequestHandoff} from "../core/websiteAppHandoffV3214.mjs";
 import * as Core from "../core/runtime";
 const {
+  TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED,
+  TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED,
   APP_VERSION,
   PROTOTYPE_BADGE,
   BUSY_AI_URL,
@@ -218,7 +236,7 @@ import {
   validateOperatorCommand,
 } from "../domain/operator2";
 import { buildWorkCalendarIntelligence } from "../domain/workCalendar2";
-import {reconcileWorkBookingLedger} from "../core/workBookingReconciliationV3181.mjs";
+import {reconcileWorkBookingLedger,continueLinkedWorkBooking} from "../core/workBookingReconciliationV3181.mjs";
 import { buildDailyCommandCentre } from "../domain/dailyCommandCentre";
 import { buildCustomerJourney2 } from "../domain/customerJourney2";
 import { buildCommunicationsHub } from "../domain/communicationsHub";
@@ -507,6 +525,8 @@ function App() {
   const [socialBrief, setSocialBrief] = useState("");
   const [socialAiStatus, setSocialAiStatus] = useState("idle");
   const [socialAiResult, setSocialAiResult] = useState(null);
+  const socialAnalysisNonce=useRef(0);
+  const socialPrivateSaveOperation=useRef(null);
   const [socialAiError, setSocialAiError] = useState("");
   const [socialCaptionId, setSocialCaptionId] = useState("");
   const [socialDraftText, setSocialDraftText] = useState("");
@@ -581,6 +601,12 @@ function App() {
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
   const [businessCacheRecovery,setBusinessCacheRecovery]=useState(null);
+  const [privateContentSave,setPrivateContentSave]=useState(null);
+  const privateContentWrite=useRef(null);
+  const [privateQuoteSave,setPrivateQuoteSave]=useState(null);
+  const privateQuoteWrite=useRef(null);
+  const [bookingStatusOperation,setBookingStatusOperation]=useState(null);
+  const bookingStatusWrite=useRef(null);
   const cloudOwnerScopeRef=useRef(null),businessCacheScopeRef=useRef(null),preservedBusinessCacheRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   const businessWorkspaceScopeRef=useRef(null);
@@ -631,6 +657,7 @@ function App() {
   const [busyCommandStatus, setBusyCommandStatus] = useState("idle");
   const [busyCommandResult, setBusyCommandResult] = useState(null);
   const [busyCommandError, setBusyCommandError] = useState("");
+  const busyCommandLive=useRef(null);busyCommandLive.current=busyCommandResult;
   const [busyVoiceStartNonce, setBusyVoiceStartNonce] = useState(0);
   const [busyConversationTurns, setBusyConversationTurns] = useState([]);
   const [busyOperatorSnapshot, setBusyOperatorSnapshot] = useState(null);
@@ -704,6 +731,8 @@ function App() {
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
+  const quoteFollowUpTypingEpoch=useRef(0);
+  const quoteFollowUpScope=useRef(null),quoteFollowUpRenderEpoch=quoteFollowUpTypingEpoch.current;
   const [quoteFollowUpOutcome, setQuoteFollowUpOutcome] = useState("No reply yet");
   const [enquiryFollowUpDraft, setEnquiryFollowUpDraft] = useState("");
   const [enquiryFollowUpOutcome, setEnquiryFollowUpOutcome] = useState("No reply yet");
@@ -725,6 +754,7 @@ function App() {
   const [advanced, setAdvanced] = useState(false);
   const [outcome, setOutcome] = useState("Won");
   const [wonValue, setWonValue] = useState("620");
+  const captureTypingEpoch=useRef(0);
   const [captureRawText, setCaptureRawText] = useState("");
   const [captureScreenshots, setCaptureScreenshots] = useState([]);
   const [captureScreenshotOrderConfidence, setCaptureScreenshotOrderConfidence] = useState("Not checked");
@@ -849,12 +879,28 @@ function App() {
     if (userCacheKey) {
       try{
         const writeScope=cloudOwnerScopeRef.current,writeBusiness=cloudWorkspace.businessId;
-        const encoded=encodeBusinessCache({ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,payload:data});
-        enqueuePrivateCheckpoint(userCacheKey,()=>AsyncStorage.setItem(userCacheKey,encoded)).catch(()=>{if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be saved. Your cloud copy is unchanged.");});
+        const record=socialDrafts.find(item=>item.id===selectedSocialDraftId&&item.status==='Draft');
+        const receipt=record?{scope:businessWorkspaceScopeRef.current,record,status:'saving'}:null;
+        if(receipt)privateContentWrite.current=receipt;
+        const quoteRecord=data.replyActions?.[selectedReplyActionId];
+        const quoteReceipt=quoteRecord?.type==='quote'?{scope:businessWorkspaceScopeRef.current,record:quoteRecord,customerId:selectedReplyActionId,stamp:JSON.stringify(quoteRecord),revision:cloudRevision,status:'saving'}:null;
+        if(quoteReceipt)privateQuoteWrite.current=quoteReceipt;
+        let encoded;
+        try{encoded=encodeBusinessCache({ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,payload:data});}
+        catch(error){if(receipt){receipt.status='failed';setPrivateContentSave(receipt);}if(quoteReceipt)setPrivateQuoteSave({...quoteReceipt,status:'failed'});throw error;}
+        if(receipt){receipt.encoded=encoded;receipt.cacheKey=userCacheKey;receipt.ownerId=ownerSession.userId;receipt.businessId=writeBusiness;setPrivateContentSave(receipt);}
+        if(quoteReceipt)setPrivateQuoteSave(quoteReceipt);
+        enqueuePrivateCheckpoint(userCacheKey,async()=>{
+          if(!receipt&&!quoteReceipt)return AsyncStorage.setItem(userCacheKey,encoded);
+          const result=await confirmBusinessCacheWrite({encoded,ownerId:ownerSession.userId,businessId:writeBusiness,write:value=>AsyncStorage.setItem(userCacheKey,value),read:()=>AsyncStorage.getItem(userCacheKey)});
+          if(receipt&&privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:result.status});
+          if(quoteReceipt&&privateQuoteWrite.current===quoteReceipt&&businessWorkspaceScopeRef.current===quoteReceipt.scope)setPrivateQuoteSave({...quoteReceipt,status:result.status});
+          if(result.status!=='confirmed')throw Error('Device readback was not confirmed.');
+        }).catch(()=>{if(quoteReceipt&&privateQuoteWrite.current===quoteReceipt&&businessWorkspaceScopeRef.current===quoteReceipt.scope)setPrivateQuoteSave({...quoteReceipt,status:'unknown'});if(receipt&&privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:'unknown'});if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be confirmed. Your cloud copy is unchanged; keep your current wording.");});
       }catch{setCloudSyncError("The device copy could not be verified for this business.");}
     }
   }, [
-    businessCacheRecovery,cloudWorkspace?.businessId,cloudRevision,cloudInitialised,cloudInitialising,
+    selectedSocialDraftId,businessCacheRecovery,cloudWorkspace?.businessId,cloudRevision,cloudInitialised,cloudInitialising,
     hydrated,
     ownerAuthReady,
     ownerSession?.userId,
@@ -918,24 +964,17 @@ function App() {
     advanced,
   ]);
 
-  const go = (next) => {
-    setHistory((h) => [...h, screen]);
-    setScreen(next);
-  };
-
-  const back = () => {
-    if (!history.length) return;
-    const copy = [...history];
-    const prev = copy.pop();
-    setHistory(copy);
-    setScreen(prev);
-  };
-
-  const jump = (next, nextTab = tab) => {
-    setHistory([]);
-    setScreen(next);
-    setTab(nextTab);
-  };
+  const navigationScope=[ownerSession?.userId||'',cloudWorkspace?.businessId||'',screen].join(':');
+  const navigationScopeRef=useRef(navigationScope);navigationScopeRef.current=navigationScope;
+  const navigationOwnerScope=[ownerSession?.userId||'',cloudWorkspace?.businessId||''].join(':');
+  const navigationStateRef=useRef(null);navigationStateRef.current={screen,history,tab};
+  const navigationOwnerCurrent=()=>navigationScopeRef.current.startsWith(navigationOwnerScope+':');
+  const ownerEditNavigation=useRef(null);
+  if(!ownerEditNavigation.current)ownerEditNavigation.current=createOwnerEditNavigation({getScope:()=>navigationScopeRef.current,confirm:({keep,discard,reason})=>Alert.alert('Your wording is not saved',reason==='source-change'?'Keep editing, then use Preview and approval to save your wording. Discard changes only if you want the reviewed private source change to replace the unsaved wording. Nothing is published.':'Keep editing, then use the original Preview and approval controls to save. Discard changes only if you want to leave without them.',[{text:'Keep editing',style:'cancel',onPress:keep},{text:'Discard changes',style:'destructive',onPress:discard}])});
+  const setOwnerEditDirty=binding=>ownerEditNavigation.current.report({...binding,scope:navigationScope});
+  const go = next => navigationOwnerCurrent()&&ownerEditNavigation.current.request(()=>{const from=navigationStateRef.current.screen;setHistory(h=>[...h,from]);setScreen(next);});
+  const back = () => {if(!navigationOwnerCurrent()||!navigationStateRef.current.history.length)return;return ownerEditNavigation.current.request(()=>{const copy=[...navigationStateRef.current.history],prev=copy.pop();setHistory(copy);setScreen(prev);});};
+  const jump = (next,nextTab=navigationStateRef.current.tab) => navigationOwnerCurrent()&&ownerEditNavigation.current.request(()=>{setHistory([]);setScreen(next);setTab(nextTab);});
 
   const confirmSpareSlot = (slot) => {
     const nextSlot = slot || "Any suitable work";
@@ -1409,20 +1448,10 @@ function App() {
     if (!customer) return false;
 
     if (type === "quote") {
-      const service = services.find((item) => item.name === customer.service);
-      const fallbackAmount =
-        Number(customer.lastJobValue) > 0 ? customer.lastJobValue : service?.value || "";
-      const amount = saved?.details?.quoteAmount ?? fallbackAmount;
-      setActionQuoteAmount(String(amount || ""));
-      setActionQuoteMessage(
-        saved?.details?.message ||
-          `Hi ${customer.name.split(" ")[0]}, thanks for getting back to us. The quote for ${customer.service.toLowerCase()} is £${amount || "—"}. Let me know if you’d like to go ahead.`
-      );
-      setActionQuoteSentDate(
-        saved?.details?.quoteSentAt
-          ? String(saved.details.quoteSentAt).slice(0, 10)
-          : dateToISO(new Date())
-      );
+      const form=quoteFormFields({customer,saved,services,today:dateToISO(new Date())});
+      setActionQuoteAmount(form.amount);
+      setActionQuoteMessage(form.message);
+      setActionQuoteSentDate(form.date);
     } else if (type === "booking") {
       setActionBookingDate(saved?.details?.bookingDate || nextDateForSlot(quietSlot));
       setActionBookingTime(saved?.details?.bookingTime || defaultTimeForSlot(quietSlot));
@@ -1441,29 +1470,71 @@ function App() {
     return true;
   };
 
+  const replyActionOrigin=useRef(null);
+  const replyActionSources=useRef(null);replyActionSources.current={customers,lastSimulatedRecipients,replyActions,inboxItems,selectedInboxItemId,selectedCustomerId,selectedReplyActionId,cloudRevision,role:cloudWorkspace?.role};
   const beginReplyAction = (customerId, suggested) => {
     const customer =
       customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
     if (!customer || !suggested) return;
 
+    const previous=replyActions[customerId];
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.replyActions[customerId]===previous&&(replyActionSources.current.customers.includes(customer)||replyActionSources.current.lastSimulatedRecipients.includes(customer));
+    return ownerEditNavigation.current.request(()=>{
     saveReplyAction(customerId, suggested.task, suggested.type, "simulated");
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, suggested.type);
     go("replyActionDetail");
+    },{isCurrent});
   };
 
-  const openSavedReplyAction = (customerId) => {
+  const openSavedReplyAction = (customerId,originInboxId="") => {
     const saved = replyActions[customerId];
     if (!saved) return;
+    const original=replyActionSources.current,customer=[...original.customers,...original.lastSimulatedRecipients].find(row=>row.id===customerId),stamp=JSON.stringify([customer,saved]);
+    const originItem=originInboxId?original.inboxItems.find(item=>item.id===originInboxId&&item.status==='Filed'&&item.filedCustomerId===customerId):saved.details?.enquiryReference?resolveQuoteEnquiryReference(saved.details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems:original.inboxItems,revision:original.cloudRevision}):null,originStamp=originItem?JSON.stringify(originItem):'';
+    if(!customer||originInboxId&&!originItem)return false;
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===original.cloudRevision&&replyActionSources.current.replyActions[customerId]===saved&&[...replyActionSources.current.customers,...replyActionSources.current.lastSimulatedRecipients].includes(customer)&&JSON.stringify([customer,saved])===stamp&&(!originItem||replyActionSources.current.inboxItems.includes(originItem)&&JSON.stringify(originItem)===originStamp);
+    return ownerEditNavigation.current.request(()=>{
+    if(originItem)replyActionOrigin.current={workspace:renderedBusinessWorkspaceScope,customerId,item:originItem,stamp:originStamp};
+    else if(saved.details?.enquiryReference||replyActionOrigin.current?.customerId!==customerId)replyActionOrigin.current=null;
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, saved.type);
     go("replyActionDetail");
+    },{isCurrent});
   };
 
-  const startDirectCustomerAction = (customerId, type) => {
-    const customer = customers.find((item) => item.id === customerId);
-    if (!customer || !["quote", "booking", "reminder"].includes(type)) return;
+  const prepareQuoteDetails = (customerId,details,expectedAction) => {
+    const current=replyActionSources.current,action=current.replyActions[customerId],customer=current.customers.find(row=>row.id===customerId)||current.lastSimulatedRecipients.find(row=>row.id===customerId);
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(current.role)||!customer||[customer.businessId,customer.business_id].some(id=>id&&id!==cloudWorkspace?.businessId)||action?.type!=='quote'||current.selectedReplyActionId!==customerId||current.cloudRevision!==cloudRevision||expectedAction&&action!==expectedAction||!details||typeof details!=='object'||Array.isArray(details))return false;
+    const origin=replyActionOrigin.current;
+    return prepareQuoteEnquiryDetails({details,existingReference:action.details?.enquiryReference,businessId:cloudWorkspace?.businessId,customerId,revision:cloudRevision,inboxItems:current.inboxItems,
+      item:origin?.workspace===renderedBusinessWorkspaceScope&&origin.customerId===customerId?origin.item:null,sourceStamp:origin?.stamp});
+  };
+
+  const returnToQuoteEnquiry = (customerId=replyActionSources.current.selectedReplyActionId) => {
+    const origin=replyActionOrigin.current,initial=replyActionSources.current;
+    const isCurrent=()=>!!origin&&replyActionOrigin.current===origin&&businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&origin.workspace===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&origin.customerId===customerId&&(replyActionSources.current.selectedReplyActionId===customerId||replyActionSources.current.selectedCustomerId===customerId)&&replyActionSources.current.cloudRevision===initial.cloudRevision&&replyActionSources.current.inboxItems.includes(origin.item)&&origin.item.status==='Filed'&&origin.item.filedCustomerId===origin.customerId&&JSON.stringify(origin.item)===origin.stamp;
+    return ownerEditNavigation.current.request(()=>go('busyInbox'),{isCurrent});
+  };
+
+  const startDirectCustomerAction = (customerId, type, originInboxId="") => {
+    if(!["quote","booking","reminder"].includes(type))return false;
+    const source=replyActionSources.current,view=navigationStateRef.current.screen;
+    const reviewed=reviewedFiledEnquiry({origin:replyActionOrigin.current,workspace:renderedBusinessWorkspaceScope,customerId,inboxItems:source.inboxItems});
+    if(!originInboxId&&replyActionOrigin.current?.workspace===renderedBusinessWorkspaceScope&&replyActionOrigin.current.customerId===customerId&&!reviewed)return false;
+    originInboxId=originInboxId||reviewed?.id||"";
+    const entry=customerQuoteEntry({businessId:cloudWorkspace?.businessId,customerId,customers:source.customers,inboxItems:source.inboxItems,actions:source.replyActions,originInboxId,revision:source.cloudRevision});
+    if(!entry){Alert.alert("Review the current customer and enquiry","This business, customer or filing identity could not be checked. Current work was kept; no new action was created.");return false;}
+    const {customer,item,previous,reference}=entry,stamp=JSON.stringify([customer,item,previous]);
+    const sourceCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(source.role)&&replyActionSources.current.role===source.role&&replyActionSources.current.cloudRevision===source.cloudRevision&&replyActionSources.current.replyActions[customerId]===previous&&replyActionSources.current.customers.filter(row=>row.id===customerId).length===1&&replyActionSources.current.customers.includes(customer)&&JSON.stringify([customer,item,previous])===stamp&&(!item||replyActionSources.current.inboxItems.includes(item)&&replyActionSources.current.inboxItems.filter(row=>row.id===item.id).length===1);
+    const isCurrent=()=>navigationStateRef.current.screen===view&&sourceCurrent();
+    if(!isCurrent())return false;
+    if(previous){
+      if(previous.type===type)return openSavedReplyAction(customerId,originInboxId);
+      Alert.alert("Keep the existing Work record","This customer already has a different Work action. Open that record before starting another kind of work. Your quote, dates and booking details were not replaced.");return false;
+    }
+    return ownerEditNavigation.current.request(()=>{
     const task =
       type === "quote"
         ? "Prepare and send a quote"
@@ -1472,7 +1543,7 @@ function App() {
         : "Save a follow-up reminder";
 
     loadReplyActionForm(customerId, type);
-    setReplyActions((current) => ({
+    setReplyActions((current) => !sourceCurrent()||current[customerId]!==previous?current:({
       ...current,
       [customerId]: {
         task,
@@ -1480,9 +1551,10 @@ function App() {
         origin: "manual",
         createdAt: new Date().toISOString(),
         done: false,
-        details: {},
+        details: type==='quote'&&reference?{enquiryReference:reference}:{},
       },
     }));
+    replyActionOrigin.current=item?{workspace:renderedBusinessWorkspaceScope,customerId,item,stamp:JSON.stringify(item)}:null;
     setSelectedReplyActionId(customerId);
     appendCustomerActivity(customerId, {
       kind: type,
@@ -1495,13 +1567,20 @@ function App() {
       note: "Started directly from the customer record.",
     });
     go("replyActionDetail");
+    },{isCurrent});
   };
 
-  const openCustomer = (customerId) => {
-    const customer = customers.find((item) => item.id === customerId);
-    if (!customer) return;
-    setSelectedCustomerId(customerId);
-    go("customerDetail");
+  const openCustomer = (customerId,originInboxId="") => {
+    const customer = customers.find((item) => item.id === customerId),original=replyActionSources.current;
+    const item=originInboxId?original.inboxItems.find(row=>row.id===originInboxId&&row.status==='Filed'&&row.filedCustomerId===customerId):null;
+    if(!customer||originInboxId&&!item)return false;
+    const stamp=JSON.stringify([customer,item]);
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===original.cloudRevision&&replyActionSources.current.customers.includes(customer)&&JSON.stringify([customer,item])===stamp&&(!item||replyActionSources.current.inboxItems.includes(item));
+    return ownerEditNavigation.current.request(()=>{
+      if(item)replyActionOrigin.current={workspace:renderedBusinessWorkspaceScope,customerId,item,stamp:JSON.stringify(item)};
+      else if(replyActionOrigin.current?.customerId!==customerId)replyActionOrigin.current=null;
+      setSelectedCustomerId(customerId);go("customerDetail");
+    },{isCurrent});
   };
 
   const updateReplyAction = (customerId, updater) => {
@@ -1578,30 +1657,38 @@ function App() {
     const action = replyActions[customerId];
     const customer = customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
-    if (!action || !customer) return;
-    const quoteAmount = action.details?.quoteAmount || customer.lastJobValue || "";
+    const source=replyActionSources.current,scope=renderedBusinessWorkspaceScope,view=navigationStateRef.current.screen;
+    const rows=[...source.customers,...source.lastSimulatedRecipients].filter(row=>row.id===customerId);
+    const origin=action?.details?.enquiryReference?resolveQuoteEnquiryReference(action.details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems:source.inboxItems,revision:source.cloudRevision}):null;
+    const stamp=JSON.stringify([customer,action,origin]);
+    const current=()=>businessWorkspaceScopeRef.current===scope&&['owner','admin'].includes(source.role)&&replyActionSources.current.role===source.role&&replyActionSources.current.cloudRevision===source.cloudRevision&&replyActionSources.current.replyActions[customerId]===action&&replyActionSources.current.customers.concat(replyActionSources.current.lastSimulatedRecipients).includes(customer)&&JSON.stringify([customer,action,origin])===stamp&&(!origin||replyActionSources.current.inboxItems.includes(origin));
+    if(!customer||rows.some(row=>row!==customer)||!current()||action?.type!=='quote'||action.done!==true||action.details?.quoteStatus!=='Accepted'||action.details?.sourceMiniAppRequestId||[customer.businessId,customer.business_id].some(id=>id&&id!==cloudWorkspace?.businessId)||action.details.enquiryReference&&!origin||!['string','number'].includes(typeof action.details.quoteAmount)||!String(action.details.quoteAmount).trim()||!Number.isFinite(Number(action.details.quoteAmount))||Number(action.details.quoteAmount)<0)return false;
+    const quoteAmount = action.details.quoteAmount;
+    return ownerEditNavigation.current.request(()=>{
+
     const bookingDate = nextDateForSlot(quietSlot);
     const bookingTime = defaultTimeForSlot(quietSlot);
-    setReplyActions((current) => ({
-      ...current,
+    setReplyActions((records) => !current()||records[customerId]!==action?records:({
+      ...records,
       [customerId]: {
         ...action,
         type: "booking",
         task: "Confirm the booking time",
         done: false,
         details: {
+          ...(action.details||{}),
           sourceQuoteAmount: quoteAmount,
           sourceQuoteStatus: "Accepted",
           bookingDate,
           bookingTime,
           bookingStatus: "Draft",
-          summary: `Accepted quote £${quoteAmount || "—"} ready to book`,
+          summary: `Accepted quote £${quoteAmount ?? "—"} ready to book`,
         },
       },
     }));
     setCustomers((list) =>
-      list.map((item) =>
-        item.id === customerId
+      !current()?list:list.map((item) =>
+        item === customer
           ? {
               ...item,
               lifecycleStatus: "Booking being arranged",
@@ -1614,17 +1701,57 @@ function App() {
     setSelectedReplyActionId(customerId);
     setActionBookingDate(bookingDate);
     setActionBookingTime(bookingTime);
-    setActionJobValue(String(quoteAmount || ""));
+    setActionJobValue(String(quoteAmount ?? ""));
     appendCustomerActivity(customerId, {
       kind: "booking",
       title: "Accepted quote moved to booking",
-      note: `Quote value £${quoteAmount || "—"} is ready to schedule.`,
-      value: quoteAmount || "",
+      note: `Quote value £${quoteAmount ?? "—"} is ready to schedule.`,
+      value: quoteAmount ?? "",
     });
+    return true;
+    },{isCurrent:()=>navigationStateRef.current.screen===view&&current()});
   };
 
-  const setBookingStatus = async (customerId, bookingStatus) => {
-    const actionBefore = replyActions[customerId];
+  const prepareBookingStatus = async (customerId,bookingStatus,{isCurrent=()=>true,readOnly=false,association=false}={}) => {
+    const scope=businessWorkspaceScopeRef.current,source=replyActionSources.current;
+    const action=source.replyActions?.[customerId],matches=[...source.customers,...source.lastSimulatedRecipients].filter(row=>row.id===customerId);
+    const customer=matches[0],stamp=JSON.stringify([customer,action]),role=source.role,revision=source.cloudRevision;
+    const current=()=>!!scope?.businessId&&!!scope?.ownerScope?.userId&&businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&['owner','admin'].includes(role)&&replyActionSources.current.role===role&&replyActionSources.current.cloudRevision===revision&&replyActionSources.current.replyActions?.[customerId]===action&&[...replyActionSources.current.customers,...replyActionSources.current.lastSimulatedRecipients].some(row=>row===customer)&&JSON.stringify([customer,action])===stamp&&isCurrent();
+    if(!current()||!customer||matches.some(row=>row!==customer)||action?.type!=='booking'||!['Cancelled','Confirmed'].includes(bookingStatus)||[customer.businessId,customer.business_id].some(id=>id&&id!==scope.businessId))return null;
+    if(association&&(!readOnly||role!=='owner'))return null;
+    const previous=bookingStatusWrite.current;
+    if(!readOnly&&previous?.scope===scope&&['pending','unknown','confirmed-review'].includes(previous.phase))return null;
+    let approved=null;
+    if(action.details?.sourceMiniAppRequestId&&(readOnly||bookingStatus==='Cancelled')){
+      const response=await miniAppsRequest('owner_booking_revision',{requestId:action.details.sourceMiniAppRequestId,...(association?{includeAssociation:true}:{})},{isCurrent:current});
+      if(!current())return null;
+      if(readOnly){const observed=association?inspectBookingAssociationV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,customerId,actionId:`miniapp-booking-${action.details.sourceMiniAppRequestId}`,response}):inspectBookingReadbackV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,response});if(!observed.ok)throw Error(observed.reason);return observed;}
+      approved=assessBookingCancelReadbackV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,response,localBookingStatus:action.details.bookingStatus||''});
+      if(!approved.ok)throw Error(approved.reason);
+    }
+    if(readOnly)return {kind:'local-booking-observation',readOnly:true,notOwnReceipt:true};
+    return {scope,customerId,bookingStatus,action,customer,stamp,role,revision,approved,current,used:false};
+  };
+
+  const setBookingStatus = async (customerId, bookingStatus, {review=null,isCurrent=()=>true}={}) => {
+    const scope=businessWorkspaceScopeRef.current,source=replyActionSources.current,role=source.role,revision=source.cloudRevision;
+    const actionBefore = source.replyActions?.[customerId];
+    const customer=source.customers.find(row=>row.id===customerId)||source.lastSimulatedRecipients.find(row=>row.id===customerId);
+    const candidates=[...source.customers,...source.lastSimulatedRecipients].filter(row=>row.id===customerId);
+    const stamp=JSON.stringify([customer,actionBefore]),diaryStamp=JSON.stringify(source.replyActions);
+    const workspaceCurrent=()=>!!scope?.businessId&&!!scope?.ownerScope?.userId&&businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&replyActionSources.current.role===role&&['owner','admin'].includes(role);
+    const current=()=>workspaceCurrent()&&JSON.stringify(replyActionSources.current.replyActions)===diaryStamp&&replyActionSources.current.cloudRevision===revision&&replyActionSources.current.replyActions?.[customerId]===actionBefore&&[...replyActionSources.current.customers,...replyActionSources.current.lastSimulatedRecipients].includes(customer)&&JSON.stringify([customer,actionBefore])===stamp&&isCurrent();
+    const previous=bookingStatusWrite.current;
+    if(!current()||!customer||candidates.some(row=>row!==customer)||actionBefore?.type!=='booking'||actionBefore.details?.bookingStatus===bookingStatus||!['Confirmed','Cancelled'].includes(bookingStatus)||[customer.businessId,customer.business_id].some(id=>id&&id!==scope.businessId)||previous?.scope===scope&&['pending','unknown','confirmed-review'].includes(previous.phase))return false;
+    if(bookingStatus==='Confirmed'&&Object.entries(source.replyActions).some(([id,row])=>id!==customerId&&row?.type==='booking'&&row.done&&!['Cancelled','Completed'].includes(row.details?.bookingStatus||'Confirmed')&&row.details?.bookingDate===actionBefore.details?.bookingDate&&row.details?.bookingTime===actionBefore.details?.bookingTime)){setMiniAppsError('Another recorded booking uses this date and time. Review the diary first.');return false;}
+    if(review&&(review.used||review.scope!==scope||review.customerId!==customerId||review.bookingStatus!==bookingStatus||review.action!==actionBefore||review.customer!==customer||review.stamp!==stamp||review.role!==role||review.revision!==revision||!review.current()))return false;
+    if(review)review.used=true;
+    const expectedDetails={...(actionBefore.details||{}),bookingStatus,summary:bookingStatus==='Cancelled'?`Booking cancelled for ${formatUKDate(actionBefore.details?.bookingDate)} at ${actionBefore.details?.bookingTime||'—'}`:`Booking set for ${formatUKDate(actionBefore.details?.bookingDate)} at ${actionBefore.details?.bookingTime||'—'}`};
+    const operation={scope,customerId,before:actionBefore,matches:next=>next?.type==='booking'&&JSON.stringify(next.details)===JSON.stringify(expectedDetails),requestId:actionBefore.details?.sourceMiniAppRequestId||'',bookingStatus,revision,role,phase:'pending',id:busyRequestId('booking-status')};
+    const publish=(phase,message)=>{operation.phase=phase;operation.message=message;if(workspaceCurrent()&&bookingStatusWrite.current===operation)setBookingStatusOperation({...operation});};
+    bookingStatusWrite.current=operation;publish('pending','Checking the original booking. Your editor remains unchanged.');
+    let writeAttempted=false;
+
     if(bookingStatus==="Confirmed"&&actionBefore?.details?.sourceMiniAppRequestId){
       const day=String(actionBefore.details.bookingDate||"");
       const time=String(actionBefore.details.bookingTime||"");
@@ -1634,14 +1761,14 @@ function App() {
          !Number.isFinite(Date.parse(timestamp))||
          new Date(timestamp).toISOString().slice(0,10)!==day){
         setMiniAppsError("Choose a real diary date and time before confirming this Business App booking request.");
-        return false;
+        publish("failed","Choose a valid recorded date and time before review.");return false;
       }
     }
     // Commit the server-side request/link/event/status before changing the
     // local calendar. A failed RPC must not create a false local confirmation.
     const sourceMiniAppRequestId=actionBefore?.details?.sourceMiniAppRequestId||"";
     if(sourceMiniAppRequestId&&["Confirmed","Cancelled"].includes(bookingStatus)){
-      const originalBusinessId=cloudWorkspace?.businessId||"";
+      const originalBusinessId=scope.businessId||"";
       let cancellationWriteAttempted=false;
       try{
         let linked;
@@ -1650,8 +1777,8 @@ function App() {
           // cannot authorise a stale request/diary mutation.
           const snapshot=await miniAppsRequest("owner_booking_revision",{
             requestId:sourceMiniAppRequestId
-          });
-          if(!originalBusinessId||cloudWorkspace?.businessId!==originalBusinessId)
+          },{isCurrent:current});
+          if(!originalBusinessId||!current())
             throw Error("The active business changed. Reopen its booking.");
           const approved=assessBookingCancelReadbackV3233({
             businessId:originalBusinessId,requestId:sourceMiniAppRequestId,
@@ -1659,19 +1786,23 @@ function App() {
             localBookingStatus:actionBefore?.details?.bookingStatus||""
           });
           if(!approved.ok)throw Error(approved.reason);
-          cancellationWriteAttempted=true;
+          if(review?.approved&&(review.approved.expectedStatus!==approved.expectedStatus||review.approved.expectedUpdatedAt!==approved.expectedUpdatedAt))throw Error('The original booking changed after review. Review it again.');
+          if(!current())throw Error('The booking context changed before submission.');
+          cancellationWriteAttempted=true;writeAttempted=true;
           const result=await miniAppsRequest("update_request_status",{
             requestId:sourceMiniAppRequestId,status:"closed",
             expectedStatus:approved.expectedStatus,
             expectedUpdatedAt:approved.expectedUpdatedAt
-          });
+          },{isCurrent:current,requestKey:operation.id});
           if(result?.ok!==true||result?.request?.id!==sourceMiniAppRequestId||
-             result.request.status!=="closed"||
+             result.request.business_id!==originalBusinessId||result.request.status!=="closed"||
              result.request.atomicBookingClosureCommitted!==true)
             throw Error("BUSY cannot verify the saved booking closure. Check the original request.");
           linked={link:{atomicHandoff:true},status:result.status,
             statusRefreshRequired:result.statusRefreshRequired===true};
         }else{
+          if(!current())throw Error("The booking context changed before submission.");
+          writeAttempted=true;
           linked=await miniAppsRequest("mark_request_linked",{
             requestId:sourceMiniAppRequestId,
             customerRecordId:customerId,
@@ -1681,18 +1812,20 @@ function App() {
               bookingDate:actionBefore?.details?.bookingDate||"",
               bookingTime:actionBefore?.details?.bookingTime||""
             }
-          });
-          if(!linked?.link?.atomicHandoff||
-             linked.link.workLedgerState!=="confirmed"||
+          },{isCurrent:current,requestKey:operation.id});
+          if(linked?.link?.atomicHandoff!==true||
+             linked.link.request_id!==sourceMiniAppRequestId||linked.link.business_id!==originalBusinessId||linked.link.customer_record_id!==customerId||linked.link.action_record_id!==`miniapp-booking-${sourceMiniAppRequestId}`||linked.link.workLedgerState!=="confirmed"||
              linked.link.workLedgerDurable!==true)
             throw Error("The durable Work booking confirmation is not verified.");
         }
+        if(!current()){publish('confirmed-review','The original transaction was confirmed, but this editor changed. Inspect the current booking; local fields were not replaced.');return false;}
         // Post-commit dashboard refresh is best effort; it must never
         // reclassify a saved booking as a failed action.
         try{
           if(linked.status)applyMiniAppsStatus(linked);
           else await refreshMiniAppsStatus({quiet:true});
         }catch{ /* Original transaction is already saved. */ }
+        if(!current()){publish("confirmed-review","The transaction was confirmed. Reopen the current booking before updating local records.");return false;}
         setMiniAppsNotice(linked.statusRefreshRequired?
           "BUSY saved the Work change; the latest inbox is still refreshing. "+
           "External calendar delivery has not been checked.":
@@ -1700,28 +1833,31 @@ function App() {
           "External calendar and customer delivery remain unverified.");
       }catch(error){
         if(cancellationWriteAttempted&&originalBusinessId&&
-           cloudWorkspace?.businessId===originalBusinessId){
+           current()){
           // Network failure could happen AFTER the transaction committed.
           // One read-only check, never silently submit Cancel again.
           try{
             const observed=await miniAppsRequest("owner_booking_revision",{
               requestId:sourceMiniAppRequestId
-            });
+            },{isCurrent:current});
             const state=observed?.revision;
-            if(observed?.ok===true&&state?.businessId===originalBusinessId&&
+            if(current()&&observed?.ok===true&&state?.businessId===originalBusinessId&&
                state?.requestId===sourceMiniAppRequestId&&
                state?.alreadyClosed===true){
+              publish("unknown","The account now shows closed. This observation cannot identify the interrupted action. Do not retry cancellation.");
               setMiniAppsError("The original request now shows closed. BUSY cannot tell which action closed it. Check the latest Work booking before updating your local calendar.");
               return false;
             }
           }catch{ /* Stay uncertain; do not retry. */ }
         }
-        setMiniAppsError(error?.message||
+        publish(writeAttempted?"unknown":"conflict",writeAttempted?"The outcome is uncertain. Do not retry; inspect the original request. Your local booking and wording are kept.":error?.message||"The booking changed before submission.");
+        if(workspaceCurrent())setMiniAppsError(error?.message||
           "BUSY could not verify the latest Work booking. Open the current request before trying again.");
         return false;
       }
     }
-    updateReplyAction(customerId, (action) => ({
+    if(!current()){publish(writeAttempted?"confirmed":"conflict","The booking context changed. Local records and wording were kept.");return false;}
+    updateReplyAction(customerId, (action) => action!==actionBefore? action:({
       ...action,
       done: true,
       details: {
@@ -1760,10 +1896,13 @@ function App() {
       value: actionBefore?.details?.sourceQuoteAmount || actionBefore?.details?.jobValue || "",
     });
 
-    setTimeout(() => saveBusinessCloud({ quiet: true }), 250);
+    publish(sourceMiniAppRequestId?'confirmed':'local',sourceMiniAppRequestId?'The original request and Work transaction were confirmed. Device/account snapshot saving and external delivery are separate.':'Updated the local booking record only. Account saving and customer agreement are not confirmed.');
+    setTimeout(() => {if(workspaceCurrent()&&bookingStatusWrite.current===operation&&replyActionSources.current.cloudRevision===revision)saveBusinessCloud({ quiet: true });}, 250);
+    return true;
   };
 
   const markBookingCompleted = (customerId, jobValue, completionNote = "") => {
+    if(bookingStatusWrite.current?.customerId===customerId&&bookingStatusWrite.current.scope===businessWorkspaceScopeRef.current&&['pending','unknown','confirmed-review'].includes(bookingStatusWrite.current.phase))return null;
     const action = replyActions[customerId];
     if (!action?.details?.bookingDate) return null;
     const amount = Number(jobValue) || Number(action.details?.sourceQuoteAmount) || 0;
@@ -2148,10 +2287,13 @@ function App() {
   });
 
   snapshotContextRef.current={identity:snapshotIdentityRef.current,ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||"",
-    revision:cloudRevision,ready:cloudInitialised,getPayload:buildPersistentSnapshot};
+    revision:cloudRevision,role:cloudWorkspace?.role||"",ready:cloudInitialised,getPayload:buildPersistentSnapshot};
 
   const applyCloudSnapshot = (saved,websiteBusinessId="") => {
     if (!saved || typeof saved !== "object") return;
+    // Authenticated loads are not reviewed field commits. Never erase wording
+    // typed while a restore/load was pending. Security resets use their own path.
+    if(ownerEditNavigation.current.hasDirtyEdits())throw Error("Your current wording is not saved. Keep editing, or deliberately discard it before restoring the cloud copy.");
     // Validate nested provenance before any state mutation.
     if(saved.websiteDraft&&websiteBusinessId)bindWebsiteDraftScope(saved.websiteDraft,websiteBusinessId);
     saved=completeBusinessSnapshot(saved);
@@ -2687,6 +2829,21 @@ function App() {
         name: row?.business_name || businessName || "My Business",
         role: row?.member_role || "owner",
       };
+      if(typeof TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED!=="undefined"&&TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED===true){
+        const checked=await snapshotSessionRef.current.inspectWorkspace({businessId,ownerId:userId,localRevision:cloudRevision,isCurrent:currentOwner,ownerAccessToken:async()=>token,request:busyDataRequest});
+        if(!currentOwner())return false;
+        // Identification is not domain recovery. Do not bind another business's
+        // current local records, advance revision, apply payload or start autosave.
+        ownerScope.accountRecoveryWorkspace=checked.ok&&checked.workspace.memberRole==='owner'&&['present','empty'].includes(checked.workspace.snapshotStatus)?checked.workspace:null;
+        if(ownerScope.accountRecoveryWorkspace&&typeof Alert!=="undefined"){
+          const identified=ownerScope.accountRecoveryWorkspace;
+          Alert.alert("Account identified","Current device work is kept. You can privately inspect eligible account replies; other domains have not been restored.",[{text:"Keep local work",style:"cancel"},...(identified.snapshotStatus==='empty'?[{text:"Capture first enquiry",onPress:()=>{if(currentOwner()&&ownerScope.accountRecoveryWorkspace===identified)go("quickCapture");}}]:[]),{text:"Find saved replies",onPress:()=>{if(currentOwner()&&ownerScope.accountRecoveryWorkspace===identified){ownerScope.accountReplyActions?.discoverAccountReplies();go("customers");}}}]);
+        }
+        setCloudInitialised(false);
+        setCloudSyncStatus(checked.ok?"Account identified; device work kept":"Account check unavailable; device work kept");
+        setCloudSyncError(checked.reason);
+        return false;
+      }
       setCloudWorkspace(workspace);
 
       const cacheKey=businessCacheKey(storageKeyForUser(userId),businessId);
@@ -2758,8 +2915,9 @@ function App() {
       setCloudInitialised(true);
       return true;
     } catch (error) {if(!currentOwner())return false;
-      setCloudSyncError(error?.message || "Cloud workspace could not be loaded.");
-      setCloudSyncStatus("Cloud unavailable");
+      const writeDenied=error?.status===403&&error?.payload?.code==="42501";
+      setCloudSyncError(writeDenied?"Account initialisation needs a compatible trusted writer. Current work was kept; no replacement was attempted.":error?.message || "Cloud workspace could not be loaded.");
+      setCloudSyncStatus(writeDenied?"Account saving paused; current work kept":"Cloud unavailable");
       return false;
     } finally {if(currentOwner()){
       setCloudAttempted(true);
@@ -2768,6 +2926,7 @@ function App() {
   };
 
   const fetchCloudSnapshot = async (tokenOverride = "") => {
+    if(typeof TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED!=="undefined"&&TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED===true)throw Error("Secure domain recovery is unavailable here. Current work was kept.");
     if (!cloudWorkspace?.businessId) return null;
     const task=websiteBeginTask("snapshot");if(!task)throw Error("The business workspace changed or another snapshot read is in progress.");
     try{
@@ -2800,7 +2959,7 @@ function App() {
     }
     if(result.conflict||result.uncertain&&!result.observedMatch)setCloudConflict({remoteRevision:result.remoteRevision||0,remoteUpdatedAt:result.remoteUpdatedAt||"",uncertain:result.uncertain===true});
     setCloudSyncError(result.reason||"Save could not be confirmed.");
-    setCloudSyncStatus(result.observedMatch?"Cloud copy observed; confirmation lost":result.conflict?"Newer cloud copy found":"Sync needs attention");
+    setCloudSyncStatus(result.readOnly?"Account saving paused; current work kept":result.observedMatch?"Cloud copy observed; confirmation lost":result.conflict?"Newer cloud copy found":"Sync needs attention");
     return false;
   };
 
@@ -3036,8 +3195,11 @@ function App() {
     await resetPrototype({ preserveUserCache: true });
   };
 
-  const socialPublishRequest = async (action, payload = {}) => {
+  const socialPublishRequest = async (action, payload = {}, {isCurrent=()=>true}={}) => {
+    const requestScope=businessWorkspaceScopeRef.current;
+    const current=()=>businessWorkspaceScopeRef.current===requestScope&&isCurrent();
     const token = await ownerAccessToken();
+    if(!current())throw Error('The publishing workspace changed. Reopen the current draft before continuing.');
     if (!token) {
       throw new Error("BUSY account sign-in is required for publishing controls.");
     }
@@ -3057,6 +3219,7 @@ function App() {
       action === "publish_now" || action === "retry_post" ? 45000 : 25000
     );
     const data = await response.json().catch(() => ({}));
+    if(!current())throw Error('The publishing response belongs to an earlier workspace or draft. Nothing was applied locally.');
     if (!response.ok) {
       if (response.status === 401) {
         await persistOwnerSession(null);
@@ -3209,6 +3372,7 @@ function App() {
               scheduledAt: post.scheduled_for || draft.scheduledAt || null,
               publishedAt: post.published_at || draft.publishedAt || null,
               updatedAt: post.updated_at || draft.updatedAt,
+              cloudUpdatedAt:post.updated_at||draft.cloudUpdatedAt||null,
             };
           })
         );
@@ -3404,10 +3568,10 @@ function App() {
     go("socialMedia");
   };
 
-  const startSocialFromPhone = () => {
+  const startSocialFromPhone = () => socialContentActions.replaceDraft(()=>{
     resetSocialCreator();
     go("socialCreator");
-  };
+  });
 
   const startSocialFromJob = (customerId = selectedCustomerId, jobId = selectedJobId) => {
     const customer = customers.find((item) => item.id === customerId);
@@ -3418,6 +3582,7 @@ function App() {
       Alert.alert("No approved job photos", "Choose job photos and allow BUSY to suggest them for marketing first.");
       return false;
     }
+    return socialContentActions.replaceFromJob(customer,job,()=>{
     const service = job.service || customer.service || "";
     setSelectedCustomerId(customerId);
     setSelectedJobId(jobId);
@@ -3446,9 +3611,11 @@ function App() {
     setSelectedSocialDraftId(null);
     go("socialCreator");
     return true;
+    });
   };
 
   const chooseSocialPhotos = async () => {
+    const ticket=socialContentActions.capture();if(!socialContentActions.fresh(ticket))return false;
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
@@ -3457,7 +3624,8 @@ function App() {
         quality: 0.65,
         base64: true,
       });
-      if (result.canceled) return;
+      if (result.canceled||!socialContentActions.fresh(ticket)) return false;
+      socialContentActions.invalidate();
       const picked = (result.assets || []).map((asset, index) => ({
         id: asset.assetId || `social-photo-${Date.now()}-${index}`,
         uri: asset.uri,
@@ -3478,11 +3646,13 @@ function App() {
       setSocialAiResult(null);
       setSocialAiError("");
     } catch (error) {
+      if(!socialContentActions.fresh(ticket))return false;
       Alert.alert("Could not open photos", "Please try again. Nothing was uploaded.");
     }
   };
 
   const removeSocialPhoto = (id) => {
+    socialContentActions.invalidate();
     setSocialCreatePhotos((current) => current.filter((photo) => photo.id !== id));
     setSocialAiStatus("idle");
     setSocialAiResult(null);
@@ -3492,7 +3662,7 @@ function App() {
   const commitSocialCaption = (caption) => {
     if (!caption) return;
     setSocialCaptionId(caption.id);
-    setSocialDraftText(caption.text || "");
+    socialContentActions.editText(caption.text || "");
     const recommended = new Set(caption.recommendedChannels || []);
     const metaConnection = socialPublishingStatus?.connections?.meta || {};
     const googleConnection = socialPublishingStatus?.connections?.google_business || {};
@@ -3519,8 +3689,10 @@ function App() {
   };
 
   const applySocialCaption = (caption) => {
-    if (!caption) return;
-    const currentText = String(socialDraftText || "").trim();
+    const ticket=socialContentActions.capture();
+    if(!caption||!socialContentActions.fresh(ticket)||!ticket.aiResult?.captions?.includes(caption))return;
+    const replace=()=>{if(socialContentActions.fresh(ticket)){socialContentActions.invalidate();commitSocialCaption(caption);}};
+    const currentText = String(ticket.text || "").trim();
     const nextText = String(caption.text || "").trim();
     const selectedCaption = (socialAiResult?.captions || []).find(
       (item) => item.id === socialCaptionId
@@ -3539,18 +3711,23 @@ function App() {
           { text: "Keep my wording", style: "cancel" },
           {
             text: "Replace wording",
-            onPress: () => commitSocialCaption(caption),
+            onPress: replace,
           },
         ]
       );
       return;
     }
 
-    commitSocialCaption(caption);
+    replace();
   };
 
   const runSocialContentAI = async () => {
+    if(socialContentActions.isRenderCurrent?.()===false)return false;
     if (!socialCreatePhotos.length) return false;
+    const ticket=socialContentActions.capture(),scope=businessWorkspaceScopeRef.current,nonce=++socialAnalysisNonce.current;
+    if(!socialContentActions.fresh(ticket))return false;
+    const current=()=>socialAnalysisNonce.current===nonce&&socialContentActions.fresh(ticket);
+    const outdated=()=>{if(businessWorkspaceScopeRef.current===scope&&socialAnalysisNonce.current===nonce){setSocialAiStatus("outdated");setSocialAiError("Your draft changed while analysis was pending. Your latest wording and media were kept; no result was applied and nothing was retried automatically.");}return false;};
     setSocialAiStatus("analysing");
     setSocialAiError("");
 
@@ -3565,6 +3742,7 @@ function App() {
         });
       }
 
+      if(!current())return outdated();
       const response = await fetch(BUSY_SOCIAL_URL, {
         method: "POST",
         headers: {
@@ -3596,6 +3774,7 @@ function App() {
       });
 
       const payload = await response.json();
+      if(!current())return outdated();
       if (!response.ok) {
         throw new Error(payload?.error || `BUSY social AI returned ${response.status}.`);
       }
@@ -3607,11 +3786,12 @@ function App() {
           service: payload.detectedService,
         }));
       }
-      if (!String(socialDraftText || "").trim()) {
+      if (!String(ticket.text || "").trim()) {
         commitSocialCaption(payload.captions?.[0]);
       }
       return true;
     } catch (error) {
+      if(!current())return outdated();
       setSocialAiStatus("error");
       setSocialAiError(error?.message || "BUSY could not analyse these photos.");
       return false;
@@ -3619,6 +3799,7 @@ function App() {
   };
 
   const toggleSocialDraftChannel = (key) => {
+    socialContentActions.invalidate();
     setSocialDraftChannels((current) => ({ ...current, [key]: !current[key] }));
   };
 
@@ -3636,18 +3817,35 @@ function App() {
     ].filter(Boolean);
   };
 
+
+  const socialDraftScope=businessWorkspaceScopeRef.current;
+  const beginSocialAction=(record,ownSave=false)=>beginSocialContentAction({scope:socialDraftScope,scopeRef:businessWorkspaceScopeRef,operationRef:socialPrivateSaveOperation,actions:socialContentActions,record,ownSave,view:{text:socialDraftText,photos:socialCreatePhotos,selectedId:selectedSocialDraftId,records:socialDrafts}});
   const upsertSocialDraft = (status = "Draft") => {
-    const text = socialDraftText.trim();
-    if (!text || !socialCreatePhotos.length) return null;
-    const channels = socialChannelNames();
+    if(socialContentActions.isRenderCurrent?.()===false)return null;
+    if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
+    const currentDraft=socialContentActions.capture();
+    if(currentDraft.text!==socialDraftText||currentDraft.selectedId!==selectedSocialDraftId||currentDraft.photos!==socialCreatePhotos||currentDraft.records!==socialDrafts)return null;
+    const newsletter=socialSourceContext.contentEvidence?.channel==='newsletter';
+    const text = newsletter?socialDraftText:socialDraftText.trim();
+    if (!text.trim() || (status !== "Draft" && !socialCreatePhotos.length)) return null;
+    // Private intent survives a disconnected account; public preparation still
+    // uses the original connection-filtered destinations below.
+    const channels = status==='Draft'&&typeof currentDraft.channels==='string'?(privateContentChannels(currentDraft.channels)||socialChannelNames()):socialChannelNames();
     if (status !== "Draft" && !channels.length) {
       Alert.alert("Choose a destination", "Select at least one social profile before scheduling or approving this post.");
       return null;
     }
 
     const now = new Date().toISOString();
-    const existing = socialDrafts.find((draft) => draft.id === selectedSocialDraftId);
+    const matches=selectedSocialDraftId==null?[]:socialDrafts.filter(draft=>draft?.id===selectedSocialDraftId);
+    if(selectedSocialDraftId!=null&&(matches.length!==1||socialContentActions.canUpdatePrivateDraft?.(matches[0])===false)){
+      Alert.alert("Saved draft changed", "Your words, media and channel choices are kept. Reopen one current private draft, or deliberately start a separate draft before saving.");
+      return null;
+    }
+    const existing = matches[0];
+    if(existing&&((existing.status||"Draft")!=="Draft"||existing.publishedAt))return null;
     const id = existing?.id || `social-draft-${Date.now()}`;
+    if(!existing&&socialDrafts.some(draft=>draft?.id===id))return null;
     const photos = socialCreatePhotos.map((photo) => ({
       id: photo.id,
       uri: photo.uri,
@@ -3663,6 +3861,8 @@ function App() {
       id,
       source: socialSourceContext.type,
       sourceLabel: socialSourceContext.label,
+      contentEvidence:socialSourceContext.contentEvidence||null,
+      suggestedPlatform:["Facebook","Instagram"].includes(socialSourceContext.suggestedPlatform)?socialSourceContext.suggestedPlatform:"",
       sourceCustomerId: socialSourceContext.customerId || "",
       sourceJobId: socialSourceContext.jobId || "",
       service:
@@ -3671,7 +3871,7 @@ function App() {
         existing?.service ||
         "",
       photos,
-      brief: socialBrief.trim(),
+      brief: newsletter?socialBrief:socialBrief.trim(),
       text,
       selectedCaptionId: socialCaptionId,
       captions: socialAiResult?.captions || existing?.captions || [],
@@ -3733,12 +3933,39 @@ function App() {
     return record;
   };
 
+  const checkPrivateQuoteCopy=async({isCurrent=()=>true,review=false}={})=>{
+    const scope=businessWorkspaceScopeRef.current,customerId=selectedReplyActionId,record=replyActions[customerId];
+    const customer=customers.find(row=>row.id===customerId)||lastSimulatedRecipients.find(row=>row.id===customerId);
+    const stamp=JSON.stringify(record),customerStamp=JSON.stringify(quoteCustomerSource(customer));
+    const current=()=>businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.selectedReplyActionId===customerId&&replyActionSources.current.cloudRevision===cloudRevision&&replyActionSources.current.replyActions[customerId]===record&&JSON.stringify(record)===stamp&&JSON.stringify(quoteCustomerSource(replyActionSources.current.customers.find(row=>row.id===customerId)||replyActionSources.current.lastSimulatedRecipients.find(row=>row.id===customerId)))===customerStamp;
+    const key=businessCacheKey(storageKeyForUser(ownerSession?.userId),cloudWorkspace?.businessId);
+    if(!current()||!isCurrent()||record?.type!=='quote'||!key||!customer)return false;
+    const receipt={scope,record,customerId,stamp,revision:cloudRevision,status:'checking'};privateQuoteWrite.current=receipt;setPrivateQuoteSave(receipt);
+    const result=await readPrivateQuoteCopy({read:()=>AsyncStorage.getItem(key),ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,customer,record});
+    if(privateQuoteWrite.current!==receipt)return false;
+    if(!current()){if(businessWorkspaceScopeRef.current===scope)setPrivateQuoteSave({...receipt,status:'unknown'});return false;}
+    const status=isCurrent()?result.status:'unknown';setPrivateQuoteSave({...receipt,status});return review?(status==='confirmed'?result:{status:'unknown'}):status==='confirmed';
+  };
+
+  const checkPrivateContentCopy=async()=>{
+    if(businessWorkspaceScopeRef.current!==socialDraftScope)return false;
+    const ticket=socialContentActions.capture(),matches=ticket.records?.filter(row=>row?.id===ticket.selectedId),record=matches?.length===1?matches[0]:null,receipt=privateContentWrite.current;
+    const key=businessCacheKey(storageKeyForUser(ownerSession?.userId),cloudWorkspace?.businessId),stamp=JSON.stringify(record);
+    const current=()=>businessWorkspaceScopeRef.current===socialDraftScope&&privateContentWrite.current===receipt&&snapshotContextRef.current?.revision===cloudRevision&&socialContentActions.capture().records===ticket.records&&socialContentActions.fresh(ticket)&&ticket.records?.filter(row=>row?.id===record?.id).length===1&&ticket.records.includes(record)&&JSON.stringify(record)===stamp;
+    if(!key||!record||!current())return false;
+    const result=await readPrivateContentCopy({read:()=>AsyncStorage.getItem(key),ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,record});
+    if(!current())return false;
+    setPrivateContentSave({scope:socialDraftScope,record,status:result.status,observedOnly:true});return result.status==='confirmed';
+  };
+
   const saveGeneratedSocialDraft = () => {
     const record = upsertSocialDraft("Draft");
     if (record) go("socialDraftReview");
   };
 
   const buildSocialPublishPayload = async (record, ownerApproved = false) => {
+    if(record?.contentEvidence?.channel==='newsletter')throw Error('Newsletter wording is private preparation. Email sending and social publication are not available for this draft.');
+    if(!socialCreatePhotos.length)throw Error("This is a private text draft. Add approved photos before using the publishing queue.");
     const photos = [];
     for (let index = 0; index < socialCreatePhotos.length; index += 1) {
       const photo = socialCreatePhotos[index];
@@ -3772,7 +3999,8 @@ function App() {
   };
 
   const applyCloudSocialPost = (post, fallbackRecord = null) => {
-    if (!post?.client_draft_id) return null;
+    if (businessWorkspaceScopeRef.current!==socialDraftScope||!post?.client_draft_id) return null;
+    setSocialPublishingStatus(current=>businessWorkspaceScopeRef.current!==socialDraftScope?current:{...current,queue:[...(current.queue||[]).filter(item=>item.client_draft_id!==post.client_draft_id),post]});
     const now = new Date().toISOString();
     const media = Array.isArray(post.media) ? post.media : [];
     const previous =
@@ -3794,6 +4022,7 @@ function App() {
         ? post.scheduled_for
         : previous.scheduledAt || null,
       updatedAt: post.updated_at || now,
+      cloudUpdatedAt:post.updated_at||previous.cloudUpdatedAt||null,
     };
 
     setSocialDrafts((items) => {
@@ -3889,29 +4118,37 @@ function App() {
   };
 
   const saveSocialDraftOnly = async () => {
-    const record = upsertSocialDraft("Draft");
-    if (!record) return false;
-    setSocialPublishingLoading(true);
-    setSocialPublishingAction("save");
-    setSocialPublishingError("");
+    if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
+    if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current?.scope===socialDraftScope)return false;
+    const ticket=socialContentActions.capture(),record=upsertSocialDraft("Draft");
+    if(!record)return false;
+    const operation={scope:socialDraftScope};socialPrivateSaveOperation.current=operation;
+    const current=()=>businessWorkspaceScopeRef.current===socialDraftScope&&socialPrivateSaveOperation.current===operation&&socialContentActions.freshSave(ticket,record);
+    const outdated=()=>{if(businessWorkspaceScopeRef.current===socialDraftScope&&socialPrivateSaveOperation.current===operation)setSocialPublishingError('Your draft changed during the cloud save. Current edits were kept; check the original saved record before repeating an uncertain action.');return false;};
+    setSocialPublishingLoading(true);setSocialPublishingAction("save");setSocialPublishingError("");
     try {
-      const payload = await buildSocialPublishPayload(record, false);
-      const data = await socialPublishRequest("save_draft", payload);
-      applyCloudSocialPost(data.post, record);
-      await refreshSocialPublishingStatus({ quiet: true });
-      go("socialMedia");
+      const payload=await buildSocialPublishPayload(record,false);
+      if(!current())return outdated();
+      const data=await socialPublishRequest("save_draft",payload,{isCurrent:current});
+      if(!current())return outdated();
+      if(!matchesSocialContentPost(data?.post,record,['Draft'],{ownSave:true}))throw Error('The cloud response did not confirm this exact private draft.');
+      applyCloudSocialPost(data.post,record);
+      await refreshSocialPublishingStatus({quiet:true});
+      if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current!==operation)return false;
+      // Keep the editor open: this confirmation belongs to the earlier saved record, not any newer typing.
       return true;
-    } catch (error) {
-      setSocialPublishingError(error?.message || "BUSY could not save this draft to the publishing queue.");
-      Alert.alert("Draft saved on this phone", error?.message || "BUSY could not sync the cloud draft.");
-      return false;
-    } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+    }catch(error){
+      if(!current())return outdated();
+      setSocialPublishingError(error?.message||"The cloud draft save could not be confirmed.");
+      Alert.alert("Cloud save not confirmed","Your current content is kept in this workspace. Check the private device-copy status separately. "+(error?.message||"Do not assume a cloud save or publication succeeded."));return false;
+    }finally{
+      if(socialPrivateSaveOperation.current===operation){socialPrivateSaveOperation.current=null;if(businessWorkspaceScopeRef.current===socialDraftScope){setSocialPublishingLoading(false);setSocialPublishingAction("");}}
     }
   };
 
   const scheduleSocialDraft = async () => {
+    if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
+    if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current?.scope===socialDraftScope)return false;
     const record = upsertSocialDraft("Draft");
     if (!record) return false;
     const scheduledFor = socialScheduledForISO();
@@ -3919,16 +4156,18 @@ function App() {
       Alert.alert("Choose a future time", "Scheduled posts need a date and time in the future.");
       return false;
     }
+    const operation=beginSocialAction(record,true);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("schedule");
     setSocialPublishingError("");
     try {
       const payload = await buildSocialPublishPayload(record, true);
       payload.scheduledFor = scheduledFor;
-      const data = await socialPublishRequest("schedule", payload);
+      if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
+      const data = await socialPublishRequest("schedule", payload, {isCurrent:operation.current});
+      if(!operation.matches(data.post,["Scheduled", "Held for setup"])||!Number.isFinite(Date.parse(data.post.scheduled_for))||Date.parse(data.post.scheduled_for)!==Date.parse(scheduledFor)){if(operation.scoped())setSocialPublishingError("The response did not confirm this exact draft and action. Check the original record before repeating an uncertain request.");return false;}
       const saved = applyCloudSocialPost(data.post, record);
       rememberSocialChannels(record.channels || []);
-      await refreshSocialPublishingStatus({ quiet: true });
       const when = new Date(scheduledFor);
       const whenLabel = Number.isNaN(when.getTime())
         ? "the selected time"
@@ -3939,34 +4178,37 @@ function App() {
             minute: "2-digit",
           });
       Alert.alert(
-        "Post scheduled",
-        `BUSY will publish to ${(record.channels || []).join(" + ")} at ${whenLabel}. You can cancel it from the Social Control Centre before it starts publishing.`
+        saved?.status==="Scheduled"?"Post scheduled":"Schedule held for setup",
+        saved?.status==="Scheduled"?`The server confirmed this schedule for ${(record.channels || []).join(" + ")} at ${whenLabel}. Review or cancel it in Content Creator.`:"The schedule is held for setup. This is not confirmation that a provider will publish it."
       );
-      go("socialMedia");
       return !!saved;
     } catch (error) {
+      if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
       setSocialPublishingError(error?.message || "BUSY could not schedule this post.");
       Alert.alert("Could not schedule", error?.message || "BUSY could not schedule this post.");
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
   const approveSocialDraft = async () => {
+    if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
+    if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current?.scope===socialDraftScope)return false;
     const record = upsertSocialDraft("Draft");
     if (!record) return false;
+    const operation=beginSocialAction(record,true);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("publish");
     setSocialPublishingError("");
     try {
       const payload = await buildSocialPublishPayload(record, true);
       payload.scheduledFor = null;
-      const data = await socialPublishRequest("publish_now", payload);
+      if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
+      const data = await socialPublishRequest("publish_now", payload, {isCurrent:operation.current});
+      if(!operation.matches(data.post,["Published", "Partial failure", "Failed", "Publishing", "Ready to publish", "Held for setup"])){if(operation.scoped())setSocialPublishingError("The response did not confirm this exact draft and action. Check the original record before repeating an uncertain request.");return false;}
       const saved = applyCloudSocialPost(data.post, record);
       rememberSocialChannels(record.channels || []);
-      await refreshSocialPublishingStatus({ quiet: true });
       const publishStatus = saved?.status || data.post?.status || "Failed";
       const providerResults = saved?.providerResults || data.post?.provider_results || {};
       const successfulChannels = (record.channels || []).filter(
@@ -3980,12 +4222,15 @@ function App() {
           "Post published",
           `BUSY published this post to ${successfulChannels.join(" + ") || (record.channels || []).join(" + ")}. Provider receipts are saved against this post.`
         );
-        go("socialMedia");
       } else if (publishStatus === "Partial failure") {
         Alert.alert(
           "Published with a problem",
-          `Published to ${successfulChannels.join(" + ") || "at least one destination"}. ${failedChannels.join(" + ") || "Another destination"} failed, and BUSY will retry only the failed destination(s).`
+          `Published to ${successfulChannels.join(" + ") || "at least one destination"}. ${failedChannels.join(" + ") || "Another destination"} failed, and you can separately review a retry of only the failed destination(s).`
         );
+      } else if(publishStatus==='Publishing'){
+        Alert.alert('Publication pending','The original server record is still processing. Do not resend; check its status and provider receipts before any retry.');
+      } else if(['Ready to publish','Held for setup'].includes(publishStatus)){
+        Alert.alert('Not published · review needed','This record is held for review or setup. Publication has not been confirmed; a separate owner-approved action is still required.');
       } else {
         Alert.alert(
           "Post not published",
@@ -3994,53 +4239,52 @@ function App() {
       }
       return !!saved;
     } catch (error) {
+      if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
       const serverPost = error?.payload?.post;
-      if (serverPost) applyCloudSocialPost(serverPost, record);
+      if (serverPost&&operation.matches(serverPost,["Failed","Partial failure","Ready to publish","Publishing","Held for setup"])) applyCloudSocialPost(serverPost, record);
       setSocialPublishingError(error?.message || "BUSY could not publish this post.");
-      await refreshSocialPublishingStatus({ quiet: true });
       Alert.alert(
-        "Publishing not live yet",
+        "Publishing outcome not confirmed",
         error?.message || "BUSY could not publish this post."
       );
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
   const retrySocialDraft = async () => {
     const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
-    if (!draft) return false;
+    if (!draft||!['Failed', 'Partial failure', 'Ready to publish'].includes(draft.status)) return false;
+    const operation=beginSocialAction(draft);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("retry");
     setSocialPublishingError("");
     try {
       const data = await socialPublishRequest("retry_post", {
         clientDraftId: draft.id,
-      });
+      },{isCurrent:operation.current});
+      if(!operation.matches(data.post,['Published', 'Partial failure', 'Failed', 'Publishing', 'Ready to publish'])){if(operation.scoped())setSocialPublishingError("The current draft action was not confirmed. Check its saved record before repeating an uncertain request.");return false;}
       const next = applyCloudSocialPost(data.post, draft);
       rememberSocialChannels(next?.channels || draft.channels || []);
-      await refreshSocialPublishingStatus({ quiet: true });
       const retried = Array.isArray(data.retriedChannels)
         ? data.retriedChannels.join(" + ")
         : "the failed destination";
       Alert.alert(
-        "Retry complete",
+        next?.status==='Publishing'?"Retry still processing":"Retry result received",
         next?.status === "Published"
           ? `BUSY retried only ${retried}. All selected destinations now have successful provider receipts.`
           : `BUSY retried only ${retried}. Current status: ${next?.status || "updated"}.`
       );
       return true;
     } catch (error) {
+      if(!operation.current())return false;
       const message = error?.message || "BUSY could not retry this post.";
       setSocialPublishingError(message);
-      await refreshSocialPublishingStatus({ quiet: true });
-      Alert.alert("Retry failed", message);
+      Alert.alert("Retry outcome not confirmed", message);
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
@@ -4056,7 +4300,8 @@ function App() {
   };
 
   const removeLocalSocialDraft = (draft) => {
-    if (!draft?.id) return;
+    if (businessWorkspaceScopeRef.current!==socialDraftScope||!draft?.id) return;
+    setSocialPublishingStatus(current=>businessWorkspaceScopeRef.current!==socialDraftScope?current:{...current,queue:(current.queue||[]).filter(item=>item.client_draft_id!==draft.id)});
     setSocialDrafts((items) => items.filter((item) => item.id !== draft.id));
 
     if (draft.source === "job" && draft.sourceCustomerId && draft.sourceJobId) {
@@ -4095,24 +4340,25 @@ function App() {
 
   const deleteSocialDraft = async () => {
     const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
-    if (!draft) return false;
+    if (!draft||!['Draft', 'Failed', 'Ready to publish'].includes(draft.status)||draft.publishedAt) return false;
+    const operation=beginSocialAction(draft);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("delete");
     setSocialPublishingError("");
     try {
-      await socialPublishRequest("delete_draft", { clientDraftId: draft.id });
+      const data=await socialPublishRequest("delete_draft", { clientDraftId: draft.id },{isCurrent:operation.current});
+      if(!operation.current()||data?.deleted!==true){if(operation.scoped())setSocialPublishingError("Deletion was not confirmed for this current request. Keep your draft and check its status before repeating.");return false;}
       removeLocalSocialDraft(draft);
-      await refreshSocialPublishingStatus({ quiet: true });
       go("socialMedia");
       return true;
     } catch (error) {
+      if(!operation.current())return false;
       const message = error?.message || "BUSY could not delete this draft.";
       setSocialPublishingError(message);
-      Alert.alert("Draft not deleted", message);
+      Alert.alert("Deletion not confirmed", message);
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
@@ -4131,29 +4377,31 @@ function App() {
 
   const cancelScheduledSocialDraft = async () => {
     const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
-    if (!draft) return false;
+    if (!draft||!['Scheduled', 'Held for setup'].includes(draft.status)) return false;
+    const operation=beginSocialAction(draft);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("cancel-schedule");
     setSocialPublishingError("");
     try {
       const data = await socialPublishRequest("cancel_schedule", {
         clientDraftId: draft.id,
-      });
+        ...draft.cloudUpdatedAt?{expectedUpdatedAt:draft.cloudUpdatedAt}:{},
+      },{isCurrent:operation.current});
+      if(!operation.matches(data.post,['Draft'])){if(operation.scoped())setSocialPublishingError("The current draft action was not confirmed. Check its saved record before repeating an uncertain request.");return false;}
       applyCloudSocialPost(data.post, draft);
-      await refreshSocialPublishingStatus({ quiet: true });
       Alert.alert(
         "Schedule cancelled",
         "The post is back as a draft. Nothing will be published at the old scheduled time."
       );
       return true;
     } catch (error) {
+      if(!operation.current())return false;
       const message = error?.message || "BUSY could not cancel this scheduled post.";
       setSocialPublishingError(message);
-      Alert.alert("Schedule not cancelled", message);
+      Alert.alert("Cancellation not confirmed", message);
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
@@ -4173,50 +4421,25 @@ function App() {
   };
 
   const openSocialDraft = (id) => {
+    if(businessWorkspaceScopeRef.current!==socialDraftScope)return false;
     const draft = socialDrafts.find((item) => item.id === id);
     if (!draft) return;
+    return socialContentActions.reopen(draft,()=>{
+    const restored=restoreContentDraft(draft,{today:dateToISO(new Date()),storyLabel:draft.story?socialStoryLabel(draft.story.type):''});
     setSelectedSocialDraftId(id);
-    setSocialCreatePhotos(
-      (draft.photos || []).map((photo) => {
-        const cloud = (draft.cloudMedia || []).find((item) => item.id === photo.id);
-        return cloud
-          ? {
-              ...photo,
-              storagePath: cloud.storagePath,
-              contentType: cloud.contentType || photo.mimeType || "image/jpeg",
-            }
-          : { ...photo };
-      })
-    );
-    setSocialBrief(draft.brief || "");
-    setSocialAiResult({
-      summary: draft.story
-        ? `${socialStoryLabel(draft.story.type)} content`
-        : "Saved social draft",
-      detectedService: draft.service || "",
-      story: draft.story || null,
-      privacyWarnings: draft.privacyWarnings || [],
-      captions: draft.captions || [],
-    });
+    setSocialCreatePhotos(restored.photos);
+    setSocialBrief(restored.brief);
+    setSocialAiResult(restored.analysis);
     setSocialAiStatus("ready");
     setSocialAiError("");
-    setSocialCaptionId(draft.selectedCaptionId || "");
-    setSocialDraftText(draft.text || "");
-    setSocialDraftChannels({
-      facebook: (draft.channels || []).includes("Facebook"),
-      instagram: (draft.channels || []).includes("Instagram"),
-      googleBusiness: (draft.channels || []).includes("Google Business"),
-    });
-    setSocialScheduleDate(draft.scheduleDate || dateToISO(new Date()));
-    setSocialScheduleTime(draft.scheduleTime || "19:00");
-    setSocialSourceContext({
-      type: draft.source || "phone",
-      label: draft.sourceLabel || "Saved draft",
-      customerId: draft.sourceCustomerId || "",
-      jobId: draft.sourceJobId || "",
-      service: draft.service || "",
-    });
+    setSocialCaptionId(restored.captionId);
+    setSocialDraftText(restored.text);
+    setSocialDraftChannels(restored.channels);
+    setSocialScheduleDate(restored.date);
+    setSocialScheduleTime(restored.time);
+    setSocialSourceContext(restored.source);
     go("socialDraftReview");
+    });
   };
 
   const saveBusinessBrainRule = () => {
@@ -4415,6 +4638,7 @@ function App() {
   const prepareEnquiryFollowUp = (customerId) => {
     const customer = customers.find((item) => item.id === customerId);
     if (!customer || customer.lastServiceDate || replyActions[customerId]) return;
+    return enquiryReplyActions.replaceLegacy(customer,()=>{
     const firstName = String(customer.name || "").split(" ")[0] || "there";
     const draft =
       customer.enquiryFollowUpDraft ||
@@ -4423,9 +4647,11 @@ function App() {
     setEnquiryFollowUpDraft(draft);
     setEnquiryFollowUpOutcome(customer.enquiryFollowUpOutcome || "No reply yet");
     go("enquiryFollowUp");
+    });
   };
 
   const simulateEnquiryFollowUpSend = () => {
+    if(enquiryReplyActions.hasSession())return false;
     const customerId = selectedCustomerId;
     const draft = enquiryFollowUpDraft.trim();
     const customer = customers.find((item) => item.id === customerId);
@@ -4465,13 +4691,16 @@ function App() {
   const openEnquiryFollowUpOutcome = (customerId) => {
     const customer = customers.find((item) => item.id === customerId);
     if (!customer?.enquiryFollowUpSentAt) return;
+    return enquiryReplyActions.replaceLegacy(customer,()=>{
     setSelectedCustomerId(customerId);
     setEnquiryFollowUpDraft(customer.enquiryFollowUpDraft || "");
     setEnquiryFollowUpOutcome(customer.enquiryFollowUpOutcome || "No reply yet");
     go("enquiryFollowUpOutcome");
+    });
   };
 
   const saveEnquiryFollowUpOutcome = () => {
+    if(enquiryReplyActions.hasSession())return false;
     const customerId = selectedCustomerId;
     const customer = customers.find((item) => item.id === customerId);
     if (!customer?.enquiryFollowUpSentAt) return;
@@ -4512,32 +4741,57 @@ function App() {
     openCustomer(customerId);
   };
 
-  const prepareQuoteFollowUp = (customerId) => {
+  const quoteFollowUpSources=useRef(null);quoteFollowUpSources.current={customers,replyActions,lastSimulatedRecipients,inboxItems,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision};
+  quoteFollowUpScope.current=continuePrivateQuoteFollowUp(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,quoteFollowUpSources.current);
+  const savePrivateQuoteFollowUp=()=>reviewPrivateQuoteFollowUp({workspace:renderedBusinessWorkspaceScope,workspaceRef:businessWorkspaceScopeRef,draftRef:quoteFollowUpScope,epochRef:quoteFollowUpTypingEpoch,renderEpoch:quoteFollowUpRenderEpoch,getCurrent:()=>({...quoteFollowUpSources.current,selectedId:replyActionSources.current.selectedReplyActionId,view:navigationStateRef.current.screen}),confirm:Alert.alert,write:(id,before,next,isCurrent)=>setReplyActions(rows=>isCurrent()&&rows[id]===before?{...rows,[id]:next}:rows)});
+  const prepareQuoteFollowUp = (customerId,originInboxId="") => {
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
+    const authority=quoteFollowUpSources.current;
+    if(!authority?.ownerId||!authority.businessId||authority.businessId!==cloudWorkspace?.businessId||authority.revision!==cloudRevision||!['owner','admin'].includes(authority.role))return false;
+    const sourceOwner=authority.ownerId,sourceBusiness=authority.businessId,sourceRevision=authority.revision;
     const action = replyActions[customerId];
     const customer =
       customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
     if (!customer || action?.type !== "quote" || action.details?.quoteStatus !== "Sent") return;
+    const originItem=originInboxId?inboxItems.find(item=>item.id===originInboxId&&item.status==="Filed"&&item.filedCustomerId===customerId):action.details?.enquiryReference?resolveQuoteEnquiryReference(action.details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems,revision:cloudRevision}):null;
+    const originStamp=originItem?JSON.stringify(originItem):'';
+    if((originInboxId||action.details?.enquiryReference)&&!originItem)return false;
+    const quoteStamp=JSON.stringify([customer,action]);
+    const sourceCurrent=()=>quoteFollowUpSources.current?.ownerId===sourceOwner&&quoteFollowUpSources.current?.businessId===sourceBusiness&&quoteFollowUpSources.current?.revision===sourceRevision&&['owner','admin'].includes(quoteFollowUpSources.current?.role)&&![customer.businessId,customer.business_id].some(id=>id&&id!==sourceBusiness)&&JSON.stringify([customer,action])===quoteStamp&&quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer))&&(!originItem||quoteFollowUpSources.current?.inboxItems?.includes(originItem)&&originItem.status==="Filed"&&originItem.filedCustomerId===customerId&&JSON.stringify(originItem)===originStamp);
+    if(quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch||!sourceCurrent())return false;
+    if(quoteFollowUpScope.current?.workspace===renderedBusinessWorkspaceScope&&quoteFollowUpScope.current?.customerId===customerId&&quoteFollowUpScope.current?.action===action&&quoteFollowUpScope.current?.words?.trim()){
+      if(originItem){replyActionOrigin.current={workspace:renderedBusinessWorkspaceScope,customerId,item:originItem,stamp:originStamp};quoteFollowUpScope.current={...quoteFollowUpScope.current,originItem};quoteFollowUpTypingEpoch.current++;}
+      setSelectedReplyActionId(customerId);go("quoteFollowUp");return true;
+    }
+    return protectQuoteDraftTransition({workspace:renderedBusinessWorkspaceScope,workspaceRef:businessWorkspaceScopeRef,draftRef:quoteFollowUpScope,epochRef:quoteFollowUpTypingEpoch,renderEpoch:quoteFollowUpRenderEpoch,sourceCurrent,confirm:Alert.alert,apply:()=>{
     const amount = action.details?.quoteAmount;
     const service = customer.service || "the work";
     const draft =
       action.details?.followUpMessage ||
       `Hi ${customer.name.split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
+    replyActionOrigin.current=originItem?{workspace:renderedBusinessWorkspaceScope,customerId,item:originItem,stamp:originStamp}:null;
+    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,customer,originItem,words:draft};
+    quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(draft);
     setQuoteFollowUpOutcome(action.details?.followUpOutcome || "No reply yet");
     go("quoteFollowUp");
+    }});
   };
 
   const simulateQuoteFollowUpSend = () => {
+    if(quoteFollowUpScope.current?.workspace!==businessWorkspaceScopeRef.current||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId||quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch)return false;
     const customerId = selectedReplyActionId;
     const action = replyActions[customerId];
     const customer =
       customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
+    if(!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,customerId,action,customer))return false;
     const draft = quoteFollowUpDraft.trim();
     if (!customer || action?.type !== "quote" || !draft) return;
     const sentAt = new Date().toISOString();
+    quoteFollowUpScope.current=null;
     updateReplyAction(customerId, (current) => ({
       ...current,
       done: true,
@@ -4572,18 +4826,26 @@ function App() {
   };
 
   const openQuoteFollowUpOutcome = (customerId) => {
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
     const action = replyActions[customerId];
     if (!action?.details?.followUpSentAt) return;
+    const sourceCurrent=()=>quoteFollowUpSources.current?.replyActions?.[customerId]===action;
+    return protectQuoteDraftTransition({workspace:renderedBusinessWorkspaceScope,workspaceRef:businessWorkspaceScopeRef,draftRef:quoteFollowUpScope,epochRef:quoteFollowUpTypingEpoch,renderEpoch:quoteFollowUpRenderEpoch,sourceCurrent,confirm:Alert.alert,apply:()=>{
+    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,words:action.details?.followUpMessage||""};quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(action.details?.followUpMessage || "");
     setQuoteFollowUpOutcome(action.details?.followUpOutcome || "No reply yet");
     go("quoteFollowUpOutcome");
+    }});
   };
 
   const saveQuoteFollowUpOutcome = () => {
+    if(quoteFollowUpScope.current?.workspace!==businessWorkspaceScopeRef.current||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return false;
+    if(quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch)return false;
     const customerId = selectedReplyActionId;
     const action = replyActions[customerId];
-    if (!action?.details?.followUpSentAt) return;
+    if (!action?.details?.followUpSentAt||!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,customerId,action)) return false;
+    quoteFollowUpScope.current=null;quoteFollowUpTypingEpoch.current++;
     const recordedAt = new Date().toISOString();
     const nextQuoteStatus =
       quoteFollowUpOutcome === "Accepted"
@@ -4762,6 +5024,16 @@ function App() {
 
   const completeReplyAction = (customerId, details = {}) => {
     const action = replyActions[customerId];
+    if(action?.type==='booking'){
+      if(bookingStatusWrite.current?.customerId===customerId&&bookingStatusWrite.current.scope===businessWorkspaceScopeRef.current&&['pending','unknown','confirmed-review'].includes(bookingStatusWrite.current.phase))return false;
+      if(action.details?.sourceMiniAppRequestId&&(details.bookingDate!==action.details.bookingDate||details.bookingTime!==action.details.bookingTime||details.bookingStatus!==action.details.bookingStatus)){setMiniAppsError('Linked status changes require the original reviewed transaction; rescheduling is not supported here. Your local draft is kept.');return false;}
+    }
+    if(action?.type==='quote'&&details.enquiryReference){
+      const reviewed=prepareQuoteDetails(customerId,details,action);
+      if(!reviewed||JSON.stringify(reviewed.enquiryReference)!==JSON.stringify(details.enquiryReference)||details.enquiryReference.businessId!==cloudWorkspace?.businessId||details.enquiryReference.customerId!==customerId)return false;
+      // New associations must come from the current reviewed original enquiry.
+      if(JSON.stringify(action.details?.enquiryReference)!==JSON.stringify(details.enquiryReference)&&!resolveQuoteEnquiryReference(details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems:replyActionSources.current.inboxItems,revision:cloudRevision}))return false;
+    }
     setReplyActions((current) => ({
       ...current,
       [customerId]: current[customerId]
@@ -6062,6 +6334,9 @@ function App() {
   const openInboxItem = (id) => {
     const item = inboxItems.find((candidate) => candidate.id === id);
     if (!item || item.status !== "Pending") return;
+    const stamp=JSON.stringify(item);
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===cloudRevision&&replyActionSources.current.inboxItems.includes(item)&&item.status==='Pending'&&JSON.stringify(item)===stamp;
+    return ownerEditNavigation.current.request(()=>{
     const parsed = item.parsed || parseQuickCapture(item.rawText, services, trade);
     setSelectedInboxItemId(id);
     setCaptureForceNew(false);
@@ -6089,6 +6364,18 @@ function App() {
     setCaptureExtractedFields(parsed.extractedFields || []);
     setTab("Work");
     go("quickCaptureReview");
+    },{isCurrent});
+  };
+
+  const resumeCurrentEnquiry = () => {
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(replyActionSources.current.role))return {found:false,blocked:true};
+    const origin=replyActionOrigin.current;
+    if(origin?.workspace===renderedBusinessWorkspaceScope)return {found:true,opened:returnToQuoteEnquiry(origin.customerId)===true};
+    const item=inboxItems.find(row=>row.id===selectedInboxItemId&&row.status==='Pending'),stamp=JSON.stringify(item);
+    if(!item)return {found:false};
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===cloudRevision&&replyActionSources.current.selectedInboxItemId===item.id&&replyActionSources.current.inboxItems.includes(item)&&item.status==='Pending'&&JSON.stringify(item)===stamp;
+    // Existing capture fields belong to this selected review. Never reload them.
+    return {found:true,opened:ownerEditNavigation.current.request(()=>go('quickCaptureReview'),{isCurrent})===true};
   };
 
   const dismissInboxItem = (id) => {
@@ -6161,6 +6448,11 @@ function App() {
     return true;
   };
   const saveQuickCapture = () => {
+    if(typeof TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED!=="undefined"&&TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED===true){
+      if(typeof firstEnquiryFilingActions!=="undefined"&&firstEnquiryFilingActions.enabled)return firstEnquiryFilingActions.review();
+      Alert.alert("Account filing unavailable","Secure account filing is not supported for this capture yet. Your capture fields are kept; nothing was filed or uploaded.");
+      return false;
+    }
     const name = captureName.trim();
     const phone = capturePhone.trim();
     const email = captureEmail.trim();
@@ -6635,6 +6927,7 @@ function App() {
     setJobPostOutcome("No enquiry yet");
     setJobPostOutcomeValue("");
     setSocialDrafts([]);
+    privateQuoteWrite.current=null;setPrivateQuoteSave(null);
     setSocialCreatePhotos([]);
     setSocialBrief("");
     setSocialAiStatus("idle");
@@ -6724,6 +7017,7 @@ function App() {
     });
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
+    quoteFollowUpScope.current=null;quoteFollowUpTypingEpoch.current++;
     setQuoteFollowUpDraft("");
     setQuoteFollowUpOutcome("No reply yet");
     setEnquiryFollowUpDraft("");
@@ -8261,6 +8555,16 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
+  const persistPrivateEnquiryReply=request=>persistPrivateReply(request,{
+    key:businessCacheKey(storageKeyForUser(ownerSession?.userId),cloudWorkspace?.businessId),
+    getCurrent:()=>({scope:businessWorkspaceScopeRef.current,renderedScope:renderedBusinessWorkspaceScope,context:snapshotContextRef.current,role:replyActionSources.current.role}),
+    storage:AsyncStorage,setCustomers,
+  });
+  const enquiryReplyActions=useEnquiryReplyPreparation({screen,getWorkAction:id=>replyActionSources.current.replyActions[id],...(typeof privateReplyAccountBindings==="function"?privateReplyAccountBindings({enabled:TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED,recoveryEnabled:typeof TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED!=="undefined"&&TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED===true,sessionRef:snapshotSessionRef,contextRef:snapshotContextRef,ownerAccessToken,request:busyDataRequest}):{}),recoveryWorkspace:typeof cloudOwnerScopeRef!=="undefined"?cloudOwnerScopeRef.current.accountRecoveryWorkspace||null:null,loadApprovedContent:()=>businessContentRequest('content_list'),readOwnSave:({customerId,inboxId})=>snapshotSessionRef.current.readOwnSave({getCurrent:()=>snapshotContextRef.current,customerId,inboxId}),canContinueRevision:(fromRevision,toRevision)=>snapshotSessionRef.current.canContinueRevision({getCurrent:()=>snapshotContextRef.current,fromRevision,toRevision}),readAccount:()=>snapshotSessionRef.current.read({getCurrent:()=>snapshotContextRef.current,ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION}),clearOrigin:()=>{replyActionOrigin.current=null;},persistPrivateReply:persistPrivateEnquiryReply,scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision,customers,inboxItems,profile:businessCreationIntelligence.sharedProfile,selectedInboxItemId,contextKind:["replyActionDetail","quoteFollowUp","customerDetail","communicationThread","enquiryFollowUp"].includes(screen)?"customer":"inbox",contextCustomerId:["replyActionDetail","quoteFollowUp"].includes(screen)?selectedReplyActionId:selectedCustomerId,origin:replyActionOrigin.current,getOrigin:()=>replyActionOrigin.current,selectedCustomerId,text:enquiryFollowUpDraft,setText:setEnquiryFollowUpDraft,setSelectedCustomerId,go,requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),confirm:Alert.alert,setOrigin:(customerId,item)=>{replyActionOrigin.current={workspace:businessWorkspaceScopeRef.current,customerId,item,stamp:JSON.stringify(item)};},returnToSource:returnToQuoteEnquiry});
+  const firstEnquiryFilingActions=useFirstEnquiryFiling({enabled:TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED&&TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED,scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,workspace:cloudOwnerScopeRef.current.accountRecoveryWorkspace,ownerId:ownerSession?.userId,contextRef:snapshotContextRef,sessionRef:snapshotSessionRef,epochRef:captureTypingEpoch,screen,selectedInboxItemId,capture:{source:captureSource,rawText:captureRawText,name:captureName,phone:capturePhone,email:captureEmail,address:captureAddress,service:captureService,date:captureDate,time:captureTime,note:captureNote,confidence:captureConfidence,value:captureValue,stage:captureStage,forceNew:captureForceNew,screenshots:captureScreenshots,analysis:captureBrainAnalysis},ownerAccessToken,request:busyDataRequest,confirm:Alert.alert,go,openReply:enquiryReplyActions.inspectFirstAccountReply,findSavedReplies:enquiryReplyActions.discoverAccountReplies,openPending:pending=>{captureTypingEpoch.current++;setSelectedInboxItemId(null);setCaptureRawText(pending.rawText);setCaptureSource(pending.source);go('quickCaptureReview');}});
+
+  cloudOwnerScopeRef.current.accountReplyActions=enquiryReplyActions; // Latest-render recovery action; no stale bootstrap closure.
+  const socialContentActions=useSocialContentHandoff({customers,loadSocialStatus:()=>socialPublishRequest('status'),loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording, photos and destination choices. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
     brandBrain,
@@ -12052,12 +12356,60 @@ function App() {
   };
 
   const submitBusyCommand = async ({ text = "", audioUri = "" } = {}) => {
+    if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
     const cleanText = String(text || "").trim();
     if (!cleanText && !audioUri) {
       setBusyCommandError("Tell BUSY what you want to do.");
       return null;
     }
     const growthNonce=++growthOperatorRequestRef.current;
+    // Typed and already-transcribed requests use the same finite local routes.
+    // Navigation is not completion, publication, messaging or payment authority.
+    const acceptLocalNavigation=(transcript)=>{
+      if(businessWorkspaceScopeRef.current!==socialDraftScope||growthOperatorRequestRef.current!==growthNonce)return null;
+      const local=localCoreAreaRequest(transcript);if(!local)return null;
+      const allowed=!!ownerSession?.userId&&!!cloudWorkspace?.businessId&&['owner','admin'].includes(cloudWorkspace?.role);
+      let response=local.response;
+      if(allowed&&local.resumeEnquiryReply){
+        const result=enquiryReplyActions.resume();
+        if(result.blocked)response='Your current business permissions need review before opening private replies.';
+        else if(result.found&&result.saved)response=result.opened?'Reopened the existing private reply record. Review its enquiry and persistence separately; nothing was sent.':'Keep your current wording or deliberately reopen the saved private reply. Nothing was sent.';
+        else if(result.found)response=result.opened?'Continue your private enquiry reply. Current wording is kept; nothing was saved or sent.':'Your current source or wording needs review before continuing. Your words are kept.';
+        else if(result.needsSelection){go('customerRecords');response='Choose the correct saved private reply by customer. No reply was guessed or sent.';}
+        else{openBusyInbox();response='Choose an existing filed enquiry in Busy Inbox. No saved or sent reply is inferred.';}
+      }else if(allowed&&local.enquiryReplyPurpose){
+        const result=enquiryReplyActions.prepareCurrent(local.enquiryReplyPurpose);
+        if(result.blocked)response='Your current business permissions need review before preparing private replies.';
+        else if(result.stale)response='Your enquiry context or wording changed. Your latest words are kept; review the current enquiry again.';
+        else if(result.found)response=result.prepared?'Review your editable private enquiry reply. Nothing was saved or sent.':'Keep your current wording or deliberately review the new reply. Nothing was sent.';
+        else{openBusyInbox();response='Choose the exact filed enquiry in Busy Inbox before preparing a private reply. No customer was guessed or messaged.';}
+      }else if(allowed&&local.resumeEnquiry){
+        const result=resumeCurrentEnquiry();
+        if(!result.found&&!result.blocked)openBusyInbox();
+        response=result.blocked?'Your current business permissions need review before opening private enquiries.':result.found?(result.opened?'Review your current enquiry. Existing form wording has been kept; nothing was filed or sent.':'Your current enquiry or unfinished edits need attention before returning. Nothing was filed or sent.'):'Choose an existing enquiry in Busy Inbox. No particular enquiry was guessed or changed.';
+      }else if(allowed&&local.continueContent){
+        const currentContent=()=>{
+          const ticket=socialContentActions.capture();
+          return {ownerWorkspaceScope:businessWorkspaceScopeRef.current,ownerSession,cloudWorkspace:{...cloudWorkspace,role:replyActionSources.current.role},socialContentActions,socialSourceContext,socialDraftText:ticket.text,socialCreatePhotos:ticket.photos,socialBrief:ticket.brief,socialDraftChannels:ticket.channels,socialDrafts:ticket.records,selectedSocialDraftId:ticket.selectedId,go};
+        };
+        const continuation=homeUnsavedContentReview(currentContent(),currentContent);
+        if(continuation)response=continuation.onAction()?'Continue your current unsaved content. Your words, photos and destination choices are kept; nothing was saved or published.':'Your content or current permissions changed. Keep your latest wording and review Content Creator.';
+        else if(['owner','admin'].includes(replyActionSources.current.role))go(local.route);
+        else response='Your current business permissions need review before opening private content.';
+      }else if(allowed&&(local.chooseQuote||local.chooseReply)){
+        if(['owner','admin'].includes(replyActionSources.current.role))go(local.route);
+        else response='Your current business permissions need review before opening private quotes.';
+      }else if(allowed&&(local.continueQuote||local.reviewQuoteFollowUp)){
+        const source=replyActionSources.current;
+        if(!['owner','admin'].includes(source.role))response='Your current business permissions need review before opening private quotes.';
+        else{
+        const target=(local.reviewQuoteFollowUp?followUpQuoteTarget:preparedQuoteTarget)({ownerWorkspaceScope:socialDraftScope,ownerSession,cloudWorkspace:{...cloudWorkspace,role:source.role},customers:source.customers,replyActions:source.replyActions,selectedReplyActionId:source.selectedReplyActionId},local.quoteCustomerName);
+        if(target){const opened=openSavedReplyAction(target.customer.id);response=opened?(local.reviewQuoteFollowUp?'Review the recorded quote and original enquiry for '+target.customer.name+' before choosing private follow-up preparation. Recorded status is not proof of customer delivery. Nothing has been sent.':'Review the existing private quote for '+target.customer.name+'. Nothing has been sent or approved.'):'Your current changes or the quote source need attention before opening this private quote. Nothing has been sent.';}
+        else go(local.route);
+        }
+      }else if(allowed){if(local.route==='busyInbox')openBusyInbox();else go(local.route);}
+      return acceptGrowthOperator({handled:true,result:{title:"Busy",intent:"open_core_area",localNavigationOnly:true,transcript,response:allowed?response:"Sign in as this business owner and select your business before opening private work.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+    };
     setBusyCommandStatus("thinking");
     setBusyCommandError("");
     setBusyCommandResult(null);
@@ -12065,6 +12417,13 @@ function App() {
       // Local typed routing uses the authenticated project rows, avoiding an AI
       // request for grounded project-only questions.
       if(cleanText && !audioUri && !businessCreationConversationActive){
+        const contentIntent=socialContentActions.route(cleanText);
+        if(contentIntent.handled){
+          const opened=contentIntent.opened;
+          return acceptGrowthOperator({handled:true,result:{title:contentIntent.savedAnnouncementSelection?"Get More Customers":"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:cleanText,response:opened?contentIntent.reason:(contentIntent.blockedReason||"Sign in as this business owner to prepare content."),mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+        }
+        const localNavigation=acceptLocalNavigation(cleanText);
+        if(localNavigation)return localNavigation;
         const activityAnswer=await tryBusinessActivityOperator(cleanText,growthNonce);
         if(activityAnswer?.cancelled)return null;
         if(activityAnswer?.handled)return acceptGrowthOperator(activityAnswer);
@@ -12073,6 +12432,7 @@ function App() {
         if(handled?.handled)return acceptGrowthOperator(handled);
       }
       const token = await ownerAccessToken();
+      if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
       if (!token) throw new Error("Sign in again before using BUSY Operator.");
 
       const context = buildBusyCommandContext();
@@ -12146,10 +12506,12 @@ function App() {
       }
 
       const payload = await response.json().catch(() => ({}));
+      if(businessWorkspaceScopeRef.current!==socialDraftScope||growthOperatorRequestRef.current!==growthNonce)return null;
       if (!response.ok) {
         throw new Error(payload?.error || `BUSY Operator returned ${response.status}.`);
       }
 
+      if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
       const command = payload?.command || {};
       let result = {
         ...command,
@@ -12159,6 +12521,11 @@ function App() {
       // Audio was transcribed by the existing BUSY Operator service; resolve
       // project-only commands before its standard actions can run.
       if(result.transcript && !businessCreationConversationActive){
+        const contentIntent=socialContentActions.route(result.transcript);
+        if(contentIntent.handled)return acceptGrowthOperator({handled:true,result:{title:contentIntent.savedAnnouncementSelection?"Get More Customers":"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:result.transcript,response:contentIntent.opened?contentIntent.reason:(contentIntent.blockedReason||"Sign in as this business owner to prepare content."),mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+        if(growthOperatorRequestRef.current!==growthNonce)return null;
+        const localNavigation=acceptLocalNavigation(result.transcript);
+        if(localNavigation)return localNavigation;
         const activityAnswer=await tryBusinessActivityOperator(result.transcript,growthNonce);
         if(activityAnswer?.cancelled)return null;
         if(activityAnswer?.handled)return acceptGrowthOperator(activityAnswer);
@@ -12346,6 +12713,7 @@ function App() {
       setBusyCommandStatus("ready");
       return result;
     } catch (error) {
+      if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
       const message = error?.message || "BUSY could not understand that request.";
       setBusyCommandError(message);
       setBusyCommandStatus("error");
@@ -12357,6 +12725,7 @@ function App() {
     !!command &&
     !command.needsClarification &&
     !command.applied &&
+    !command.localNavigationOnly &&
     command.intent !== "operator_plan" &&
     !operatorIsAnswerOnly(command.intent || "unknown");
 
@@ -12401,9 +12770,16 @@ function App() {
   };
 
   const executeBusyCommand = (command = busyCommandResult) => {
-    if (!command || command.needsClarification || command.applied) return false;
+    if (!command || command.needsClarification || command.applied || command.localNavigationOnly) return false;
     const customer = findBusyCommandCustomer(command.customerName || "");
     const commandValue = Number(command.value) || 0;
+    if(['create_booking','edit_booking','cancel_booking','complete_job'].includes(command.intent)){
+      const source=replyActionSources.current,operation=bookingStatusWrite.current;
+      if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(source.role)||customer&&!source.customers.includes(customer)||ownerEditNavigation.current.hasDirtyEdits()){setBusyCommandError('Keep your unfinished work and reopen the current customer booking before this action.');return false;}
+      if(operation?.scope===businessWorkspaceScopeRef.current&&operation.customerId===customer?.id&&['pending','unknown','confirmed-review'].includes(operation.phase)){setBusyCommandError('This booking already has a pending or unresolved status operation. Inspect it; do not retry.');return false;}
+      if(['create_booking','edit_booking'].includes(command.intent)&&source.replyActions?.[customer?.id]?.details?.sourceMiniAppRequestId){setBusyCommandError('Rescheduling a linked Business App request is not supported by this command. Your existing booking is unchanged.');return false;}
+    }
+
 
     switch (command.intent) {
       case "growth_project_open":
@@ -12615,19 +12991,19 @@ function App() {
         const rollback = operatorRollbackFor(target.id);
         const bookedDate = action.details?.bookingDate || "";
         const bookedTime = action.details?.bookingTime || "";
-        setBookingStatus(target.id, "Cancelled");
-        rememberBusyAudit({
-          type: "booking-cancelled",
-          label: `Cancelled ${target.name}'s booking`,
-          customerId: target.id,
-          rollback,
-        });
-        markBusyCommandApplied(
-          command,
-          "Booking cancelled",
-          `${target.name}'s booking for ${formatUKDate(bookedDate)} at ${bookedTime || "time not set"} is marked cancelled. You can undo this BUSY change below.`
-        );
-        return true;
+        const scope=businessWorkspaceScopeRef.current,role=replyActionSources.current.role;
+        const current=()=>businessWorkspaceScopeRef.current===scope&&replyActionSources.current.role===role&&busyCommandLive.current===command;
+        if(!current()||bookingStatusWrite.current?.scope===scope&&bookingStatusWrite.current.phase==='pending')return false;
+        setBusyCommandStatus('thinking');
+        return Promise.resolve(setBookingStatus(target.id,"Cancelled",{isCurrent:current})).then(ok=>{
+          if(!current())return false;
+          setBusyCommandStatus('ready');
+          if(ok!==true){setBusyCommandError('Cancellation was not confirmed for this command. Keep the current booking and inspect its operation status. Do not retry an uncertain outcome.');return false;}
+          // A committed server cancellation is not undone by restoring a cached local snapshot.
+          if(!action.details?.sourceMiniAppRequestId)rememberBusyAudit({type:'booking-cancelled',label:`Cancelled ${target.name}'s local booking`,customerId:target.id,rollback});
+          markBusyCommandApplied(command,'Booking status updated',`${target.name}'s recorded booking for ${formatUKDate(bookedDate)} at ${bookedTime||'time not set'} was updated. `+(action.details?.sourceMiniAppRequestId?'The original Work transaction confirmed cancellation. External calendar and customer delivery remain unverified.':'This is a local record update; account saving and customer agreement are not confirmed.'));
+          return true;
+        }).catch(()=>{if(current()){setBusyCommandStatus('ready');setBusyCommandError('The cancellation outcome could not be verified. Inspect the original request; do not retry automatically.');}return false;});
       }
       case "complete_job": {
         const validation = validateOperatorCommand({
@@ -12642,11 +13018,12 @@ function App() {
         const target = validation.customer;
         const action = validation.booking;
         const rollback = operatorRollbackFor(target.id);
-        markBookingCompleted(
+        const completedJobId=markBookingCompleted(
           target.id,
           commandValue || action.details?.jobValue || "",
           command.note || ""
         );
+        if(!completedJobId)return false;
         rememberBusyAudit({
           type: "job-completed",
           label: `Marked ${target.name}'s job complete`,
@@ -12973,6 +13350,7 @@ function App() {
   };
 
   const openTalkToBusy = (startVoice = false, websiteMode = "") => {
+    if(typeof busyEntrySendRef!=="undefined")busyEntrySendRef.current=null;
     clearBusyCommandResult();
     // A website-specific guide must never leak into a normal BUSY chat.
     setWebsiteConversationMode(["build", "edit"].includes(websiteMode) ? websiteMode : "");
@@ -13412,6 +13790,7 @@ function App() {
   // V3.195: one private-website commit path for reviewed cross-builder
   // edits. Undo, Redo, current ref and notice must remain synchronized.
   const commitReviewedBuilderDraft=(current,nextDraft,notice)=>{
+    const apply=()=>{
     const checked=checkPrivateWebsiteDraftCommit({current,candidate:nextDraft,
       live:websiteDraftRef.current,scopeCurrent:websiteHistoryIsCurrent(),businessId:websiteHistoryScope.businessId});
     if(!checked.applied){setWebsiteBuilderNotice(checked.reason);return false;}
@@ -13421,6 +13800,18 @@ function App() {
     setWebsiteDraft(nextDraft);
     setWebsiteBuilderNotice(notice);
     return true;
+    };
+    return ownerEditNavigation.current.sourceChange(current,apply);
+  };
+
+  const applyReviewedWebsiteComposition=(evidence,options={})=>{
+    const current=websiteDraftRef.current;
+    const prepared=prepareReviewedWebsiteComposition(evidence,{website:current,app:miniAppsStatus?.app,
+      businessId:cloudWorkspace?.businessId||''},{layoutEdit:applyWebsiteLayoutChange});
+    if(!prepared.ok){setWebsiteBuilderNotice(prepared.reason);return false;}
+    let next=prepared.draft;
+    if(options.ownerFeedback){const feedback=recordWebsiteOwnerDesignFeedback(next,{...options.ownerFeedback,at:new Date().toISOString()});if(feedback.applied)next=feedback.draft;}
+    return commitReviewedBuilderDraft(current,next,'Saved the reviewed composition and branding as one private edit. Undo restores the complete prior website.');
   };
 
   // V3.192: explicit, same-business private copy from current Business App
@@ -13570,7 +13961,7 @@ function App() {
     const current=websiteDraftRef.current;
     return prepareWebsitePageInstructionPreview(current,{
       draftId:current?.id,pageId,generation,instruction},{
-      layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml
+      fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml
     });
   };
   // Optional AI intent translation. One metered request, explicit tap,
@@ -13585,7 +13976,7 @@ function App() {
     });
     if(!plan.ok){setWebsiteBuilderNotice(plan.reason);return {applied:false,reason:plan.reason};}
     const prepared=prepareSelectedWebsiteTransaction(current,plan,{
-      fieldEdit:()=>({applied:false}),layoutEdit:applyWebsiteLayoutChange
+      fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange
     });
     setWebsiteBuilderNotice(prepared.reason||"");
     if(!prepared.applied)return prepared;
@@ -13605,16 +13996,17 @@ function App() {
 
   // V3.144: explicit owner feedback stays attached to the current private
   // website draft; it is not a global learning signal or automatic retraining.
-  const recordMeasuredWebsiteFeedback = ({draftId,pageId,changeId,choice}) => {
+  const recordMeasuredWebsiteFeedback = ({draftId,pageId,changeId,choice,operation,expectedSource}) => {
+    if(expectedSource&&websiteDraftRef.current!==expectedSource)return false;
     if(!websiteDraftRef.current||websiteDraftRef.current.id!==draftId)return false;
     const checked=recordWebsiteOwnerDesignFeedback(websiteDraftRef.current,{
-      draftId,pageId,changeId,choice,at:new Date().toISOString()
+      draftId,pageId,changeId,choice,operation,at:new Date().toISOString()
     });
     if(!checked.applied)return false;
     setWebsiteDraft(current=>{
-      if(!current||current.id!==draftId)return current;
+      if(!current||current.id!==draftId||expectedSource&&current!==expectedSource)return current;
       return recordWebsiteOwnerDesignFeedback(current,{
-        draftId,pageId,changeId,choice,at:new Date().toISOString()
+        draftId,pageId,changeId,choice,operation,at:new Date().toISOString()
       }).draft;
     });
     setWebsiteBuilderNotice("Saved your design preference privately for this website. Nothing was shared or published.");
@@ -13734,13 +14126,18 @@ function App() {
       setWebsiteBuilderNotice("Build your website and connect your business cloud workspace before backing up original photos.");
       return false;
     }
+    const mayBackup=()=>{
+      if(!ownerEditNavigation.current.hasDirtySource(websiteDraft))return true;
+      setWebsiteBuilderNotice('Your wording is not saved. Keep editing, then save or discard it before continuing photo backup. Your wording was kept.');return false;
+    };
+    if(!mayBackup())return false;
     const task=websiteBeginTask("media");
     if(!task)return false;
     const original=task.context.draft;
     const businessId=task.context.businessId;
     try{
     const token=await ownerAccessToken();
-    if(!websiteTaskCurrent(task))return false;
+    if(!websiteTaskCurrent(task)||!mayBackup())return false;
     if(!token){
       setWebsiteBuilderNotice("Sign in again before backing up your website photos.");
       return false;
@@ -13759,7 +14156,7 @@ function App() {
     let copied=0,missing=0,bytesTotal=0,next=original;
     try{
       for(const {key,asset} of assets){
-        if(!websiteTaskCurrent(task))return false;
+        if(!websiteTaskCurrent(task)||!mayBackup())return false;
         const uri=String(asset?.uri||"").trim();
         if(!/^(?:file|content):\/\//i.test(uri)){missing++;continue;}
         try{
@@ -13769,7 +14166,7 @@ function App() {
             missing++;continue;
           }
           const base64=await local.base64();
-          if(!websiteTaskCurrent(task))return false;
+          if(!websiteTaskCurrent(task)||!mayBackup())return false;
           if(base64.length>12_600_000){missing++;continue;}
           const response=await fetchWithTimeout(
             BUSY_SUPABASE_URL+"/functions/v1/busy-website-original-media",{
@@ -13779,7 +14176,7 @@ function App() {
               body:JSON.stringify({action:"upload",businessId,photoBase64:base64})
             },60000);
           const data=await response.json().catch(()=>({}));
-          if(!websiteTaskCurrent(task))return false;
+          if(!websiteTaskCurrent(task)||!mayBackup())return false;
           if(!response.ok||!data.ok||!validExportOriginalPath(data.storagePath,businessId)){
             missing++;continue;
           }
@@ -13787,12 +14184,10 @@ function App() {
           copied++;bytesTotal+=size;
         }catch{missing++;}
       }
-      if(!websiteTaskCurrent(task))return false;
+      if(!websiteTaskCurrent(task)||!mayBackup())return false;
       if(copied){
-        setWebsiteUndo(items=>[...items,original].slice(-8));
-        setWebsiteRedo([]);
         next=rebuildPrivateWebsiteDraft(next);
-        websiteDraftRef.current=next;setWebsiteDraft(next);
+        if(!commitReviewedBuilderDraft(original,next,'Saved private original-photo references. Your live website is unchanged.'))return false;
       }
       setWebsiteBuilderNotice(copied+" original photograph"+(copied===1?"":"s")+
         " securely backed up for future ZIP exports. "+
@@ -13800,7 +14195,7 @@ function App() {
         "Your website has NOT been published or changed online.");
       return copied>0&&missing===0;
     }catch{
-      if(!websiteTaskCurrent(task))return false;
+      if(!websiteTaskCurrent(task)||!mayBackup())return false;
       setWebsiteBuilderNotice("Backup could not finish. Your published website is untouched.");
       return false;
     }
@@ -13889,6 +14284,7 @@ function App() {
     return result.ok;
   };
   const restoreWebsiteRecoveryPoint=()=>{
+    const restore=()=>{
     if(!websiteHistoryIsCurrent())return false;
     const current=websiteDraftRef.current;
     if(current!==websiteDraft)return false;
@@ -13900,9 +14296,12 @@ function App() {
     websiteDraftRef.current=result.draft;
     setWebsiteDraft(result.draft);
     return true;
+    };
+    return ownerEditNavigation.current.sourceChange(websiteDraft,restore);
   };
 
   const restoreWebsiteHistoryEntry=(direction)=>{
+    const restore=()=>{
     if(!websiteHistoryIsCurrent())return false;
     const current=websiteDraftRef.current;
     if(current!==websiteDraft)return false;
@@ -13918,6 +14317,8 @@ function App() {
       setWebsiteRedo(items=>items.slice(0,-1));setWebsiteUndo(items=>[...items,current].slice(-8));
     }
     websiteDraftRef.current=result.draft;setWebsiteDraft(result.draft);return true;
+    };
+    return ownerEditNavigation.current.sourceChange(websiteDraft,restore);
   };
   const undoWebsiteChange = () => restoreWebsiteHistoryEntry("undo");
   const redoWebsiteChange = () => restoreWebsiteHistoryEntry("redo");
@@ -14585,7 +14986,10 @@ function App() {
     }
   };
 
-  const refreshMiniAppsStatus = async ({ quiet = false } = {}) => {
+  const refreshMiniAppsStatus = async ({ quiet = false,isCurrent=()=>true } = {}) => {
+    const scope=businessWorkspaceScopeRef.current,role=replyActionSources.current.role,approvedCurrent=isCurrent;
+    isCurrent=()=>businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&replyActionSources.current.role===role&&approvedCurrent();
+    if(!isCurrent())return false;
     if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
       if (!quiet) setMiniAppsError("Sign in and connect the BUSY cloud workspace first.");
       return false;
@@ -14593,14 +14997,15 @@ function App() {
     if (!quiet) setMiniAppsLoading(true);
     setMiniAppsError("");
     try {
-      const data = await miniAppsRequest("owner_status");
+      const data = await miniAppsRequest("owner_status",{},{isCurrent});
+      if(!isCurrent())return false;
       applyMiniAppsStatus(data);
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not load your Business App.");
+      if(isCurrent())setMiniAppsError(error?.message || "BUSY could not load your Business App.");
       return false;
     } finally {
-      if (!quiet) setMiniAppsLoading(false);
+      if (isCurrent()&&!quiet) setMiniAppsLoading(false);
     }
   };
 
@@ -15641,6 +16046,18 @@ function App() {
       ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""});
   };
 
+  const readCurrentAppStudioDraft=async({appId}={})=>{
+    const captured=privateAppEditScopeRef.current;
+    const isCurrent=()=>{const live=privateAppEditScopeRef.current;return !!captured?.userId&&live?.userId===captured.userId&&live.businessId===captured.businessId&&live.app?.id===appId;};
+    if(!isCurrent()||privateAppEditInFlightRef.current)return {ok:false};
+    try{
+      const status=await miniAppsRequest('owner_status',{},{isCurrent});
+      if(!isCurrent()||status?.app?.id!==appId||status.app.business_id!==captured.businessId)return {ok:false};
+      applyMiniAppsStatus(status);
+      return {ok:true,readOnly:true,ownerId:captured.userId,businessId:captured.businessId,app:status.app};
+    }catch{return {ok:false};}
+  };
+
   const saveCoordinatedAppChanges=async({operations,appId,expectedRevision,source}={})=>{
     const captured=privateAppEditScopeRef.current;
     if(privateAppEditInFlightRef.current)return {ok:false,reason:"A private app save is already being checked."};
@@ -15901,6 +16318,12 @@ function App() {
     const customerUserId = ownerSession?.userId || "";
     if (!slug || !appId || !customerUserId ||customerRequestRenderEpoch!==customerRequestEpochRef.current||
         customerRequestInFlightRef.current?.epoch===customerRequestEpochRef.current) return false;
+    const reviewedVersion=selectedBusyAppDetail?.requestReview;
+    if(reviewedVersion?.schema!=="published-version.v1"||reviewedVersion.appId!==appId||
+      reviewedVersion.versionId!==selectedBusyAppDetail?.version?.id){
+      setMiniAppsError("Reload this Business App before reviewing a new request. Its current request-version service is required. Earlier uncertain requests can still be checked through recovery.");
+      return false;
+    }
     const validatedRequest=validateNativeGuestRequest(requestType,payload);
     if(!validatedRequest.ok){setMiniAppsError(validatedRequest.reason);return false;}
     // Keep one request key for the SAME in-memory draft after an ambiguous
@@ -15925,9 +16348,18 @@ function App() {
       customerRequestPendingRef.current={signature,requestKey:key};
       if(differentDraft)throw Error('An earlier request needs checking before changed details can be sent.');
       const data = await miniAppsRequest(
-        "submit_request",{slug,requestType,payload},
+        "submit_request",{slug,requestType,payload,expectedAppId:appId,expectedVersionId:reviewedVersion.versionId},
         {includeBusiness:false,requestKey:key,isCurrent:scopeStillCurrent}
       );
+      if(data?.reviewRequired===true&&data.newRequestSaved===false&&
+        data.reviewedAppId===appId&&data.reviewedVersionId===reviewedVersion.versionId){
+        const cleared=await durable.complete(key).catch(()=>false);
+        if(!scopeStillCurrent())return false;
+        if(cleared&&customerRequestPendingRef.current?.requestKey===key)customerRequestPendingRef.current=null;
+        setMiniAppsError("The published app changed. Nothing new was sent. Reload this Business App, check its service details and review your request again."+
+          (cleared?"":" The device reference still needs checking through recovery."));
+        return false;
+      }
       const verified=evaluateCustomerRequestOutcome({
         businessAppId:appId,customerUserId,requestType,
         response:data,evidenceSource:"submit_response"
@@ -16074,11 +16506,12 @@ function App() {
 
   const requestConversationContextRef=useRef(null),requestConversationActionsRef=useRef(null);
   requestConversationContextRef.current={ownerScope:cloudOwnerScopeRef.current,workspaceScope:businessWorkspaceScopeRef.current,businessId:cloudWorkspace?.businessId||"",
-    detail:selectedMiniAppRequestDetail,role:selectedMiniAppRequestRole,request:miniAppsRequest,
+    detail:selectedMiniAppRequestDetail,role:selectedMiniAppRequestRole,screen,request:miniAppsRequest,
+    accountRecoveryEnabled:TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED,memberRole:cloudWorkspace?.role,accountReader:({observed,isCurrent})=>snapshotSessionRef.current.inspectBookingWork({enabled:TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED,getCurrent:()=>snapshotContextRef.current,observed,isCurrent,ownerAccessToken,request:busyDataRequest}),requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),setCalendarDate:setOperatorCalendarDate,
     setOwnerFollowupReview,setMiniAppRequestHistoryLoading,setMiniAppsError,setSelectedMiniAppRequestRole,
     setSelectedMiniAppRequestDetail,setTab,go,applyMiniAppsStatus,loadMyBusyApps};
   if(!requestConversationActionsRef.current)requestConversationActionsRef.current=createRequestConversationActions(()=>requestConversationContextRef.current);
-  const {loadMiniAppRequestDetail}=requestConversationActionsRef.current;
+  const {loadMiniAppRequestDetail,inspectMiniAppAccountBooking}=requestConversationActionsRef.current;
 
   // A request can fall off the recent 30-row inbox page. Independently
   // check one authenticated owner-scoped row without changing unread state.
@@ -16594,19 +17027,12 @@ function App() {
     }
   };
 
-  const openMiniAppLinkedBooking = (requestId) => {
-    const link = miniAppsView?.linkByRequest?.get?.(requestId) || null;
-    const customerId = link?.customer_record_id || "";
-    if (!customerId || !replyActions?.[customerId]) {
-      setMiniAppsError(
-        "BUSY could not find the linked booking action for this request."
-      );
-      return false;
-    }
-    setSelectedCustomerId(customerId);
-    openSavedReplyAction(customerId);
-    return true;
-  };
+  const openMiniAppLinkedBooking = requestId => continueLinkedWorkBooking({
+    requestId,getCurrent:()=>({selection:requestConversationContextRef.current.detail?.request?.id||'',view:navigationStateRef.current.screen,scope:businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope?renderedBusinessWorkspaceScope:null,actor:ownerSession?.userId,businessId:cloudWorkspace?.businessId,appId:miniAppsView?.app?.id,role:replyActionSources.current.role,source:{...replyActionSources.current,revision:replyActionSources.current.cloudRevision,link:miniAppsView?.linkByRequest?.get?.(requestId)||null}}),
+    read:(id,isCurrent)=>miniAppsRequest('owner_booking_revision',{requestId:id,includeAssociation:true},{isCurrent}),
+    transition:(run,options)=>ownerEditNavigation.current.request(run,options),
+    open:id=>{setSelectedCustomerId(id);return openSavedReplyAction(id);},notice:setMiniAppsError
+  });
 
   const awardMiniAppLoyaltyStamp = async (requestId) => {
     if (!requestId) return false;
@@ -16859,6 +17285,8 @@ function App() {
     if (!customer || !thread || customer.contactOk === false || thread.duplicateGuard?.blocked) {
       return false;
     }
+    const local=enquiryReplyActions.prepareCurrent('acknowledge',customerId);
+    if(local.found||local.blocked||local.stale)return local.prepared===true;
     setSelectedCustomerId(customer.id);
     openTalkToBusy(false);
     setTimeout(() => {
@@ -16877,7 +17305,29 @@ function App() {
     return draftCustomerReply(customerId);
   };
 
+  const readPrivateContentAccount=()=>snapshotSessionRef.current.read({
+    getCurrent:()=>{
+      const current=snapshotContextRef.current;
+      const allowed=businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&current?.ownerId===ownerSession?.userId&&current?.businessId===cloudWorkspace?.businessId&&['owner','admin'].includes(replyActionSources.current.role);
+      return allowed?current:{...current,ready:false};
+    },ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION,
+  });
+  const appearance=useAppearanceDevice();
+  const composerScope=businessWorkspaceScopeRef.current,composerRole=cloudWorkspace?.role||"";
+  const [busyEntryDraft,setBusyEntryDraft]=useState({scope:composerScope,role:composerRole,text:""});
+  const busyEntrySendRef=useRef(null),busyComposerLive=useRef(null);
+  busyComposerLive.current={scope:composerScope,role:composerRole,text:busyEntryDraft.scope===composerScope&&busyEntryDraft.role===composerRole?busyEntryDraft.text:""};
   const appState = {
+    appearance,
+    busyEntryText:busyEntryDraft.scope===composerScope&&busyEntryDraft.role===composerRole?busyEntryDraft.text:"",
+    setBusyEntryText:text=>{if(businessWorkspaceScopeRef.current===composerScope&&busyComposerLive.current.role===composerRole){busyEntrySendRef.current=null;busyComposerLive.current={scope:composerScope,role:composerRole,text};setBusyEntryDraft({scope:composerScope,role:composerRole,text});}},
+    sendBusyEntry:text=>{if(businessWorkspaceScopeRef.current!==composerScope||busyComposerLive.current.role!==composerRole||busyComposerLive.current.text!==text||!text.trim()||busyCommandStatus==="thinking"||busyEntrySendRef.current)return false;openTalkToBusy(false);busyEntrySendRef.current={scope:composerScope,role:composerRole,text};setBusyEntryDraft({scope:composerScope,role:composerRole,text});return true;},
+    busyEntrySubmission:busyEntrySendRef.current?.scope===composerScope&&busyEntrySendRef.current.role===composerRole?busyEntrySendRef.current:null,
+    takeBusyEntrySubmission:ticket=>{if(businessWorkspaceScopeRef.current!==composerScope||busyComposerLive.current.role!==composerRole||busyEntrySendRef.current!==ticket||ticket?.scope!==composerScope)return null;busyEntrySendRef.current=null;return ticket.text;},
+    setOwnerEditDirty,
+    releaseOwnerEdit:token=>ownerEditNavigation.current.release(token),
+    requestOwnerEditTransition:(transition,options)=>ownerEditNavigation.current.request(transition,options),
+    withOwnerEditCommit:(token,identity,operation)=>ownerEditNavigation.current.withCommit(token,identity,operation),
     screen,
     history,
     go,
@@ -16946,6 +17396,7 @@ function App() {
     applyBusinessAppBrandToWebsite,
     applyBusinessAppTypographyToWebsite,
     applyAppDesignToWebsite,
+    applyReviewedWebsiteComposition,
     applySelectedWebsiteInstruction,
     previewSelectedWebsiteInstruction,
     previewWebsitePageInstruction,
@@ -17069,6 +17520,7 @@ function App() {
     openOwnerMiniAppRequest,
     openCustomerMiniAppRequest,
     loadEarlierMiniAppRequestMessages,
+    inspectMiniAppAccountBooking,
     toggleBusyAppFavorite,
     sendMiniAppRequestMessage,
     verifyOwnerRequestInbox,
@@ -17091,6 +17543,7 @@ function App() {
     toggleMiniAppModule,
     savePrivateAppAppearance,
     saveCoordinatedAppChanges,
+    readCurrentAppStudioDraft,
     checkPrivateAppVisualReview,
     reviewPrivateAppScreenshot,
     comparePrivateAppScreenshots,
@@ -17324,25 +17777,32 @@ function App() {
     socialPreferredChannels,
     socialCreatePhotos,
     socialBrief,
-    setSocialBrief,
+    setSocialBrief:value=>{socialContentActions.invalidate();setSocialBrief(value);},
     socialAiStatus,
     socialAiResult,
     socialAiError,
     socialCaptionId,
     socialDraftText,
-    setSocialDraftText,
+    setSocialDraftText:socialContentActions.editText,
     socialDraftChannels,
     socialScheduleDate,
-    setSocialScheduleDate,
+    setSocialScheduleDate:value=>{socialContentActions.invalidate();setSocialScheduleDate(value);},
     socialScheduleTime,
-    setSocialScheduleTime,
+    setSocialScheduleTime:value=>{socialContentActions.invalidate();setSocialScheduleTime(value);},
     socialSourceContext,
+    canonicalWork:canonicalWorkBindings({enabled:CANONICAL_WORK_ACCOUNT_ENABLED,sessionRef:snapshotSessionRef,getCurrent:()=>({...snapshotContextRef.current,scope:businessWorkspaceScopeRef.current,role:replyActionSources.current.role}),ownerAccessToken,request:busyDataRequest}),
+    privateQuoteSave:privateQuoteSave?.scope===businessWorkspaceScopeRef.current&&privateQuoteSave.revision===cloudRevision?{record:privateQuoteSave.record,customerId:privateQuoteSave.customerId,stamp:privateQuoteSave.stamp,status:privateQuoteSave.status}:null,
+    checkPrivateQuoteCopy,
+    privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?{record:privateContentSave.record,status:privateContentSave.status,observedOnly:privateContentSave.observedOnly===true}:null,
+    socialContentActions,
+    readPrivateContentAccount,
     selectedSocialDraftId,
     socialPublishingStatus,
     socialPublishingLoading,
     socialPublishingError,
     socialPublishingAction,
     ownerSession,
+    ownerWorkspaceScope:businessWorkspaceScopeRef.current,
     ownerEmail,
     setOwnerEmail,
     ownerPassword,
@@ -17437,6 +17897,7 @@ function App() {
     runSocialContentAI,
     applySocialCaption,
     toggleSocialDraftChannel,
+    checkPrivateContentCopy,
     saveGeneratedSocialDraft,
     saveSocialDraftOnly,
     scheduleSocialDraft,
@@ -17450,12 +17911,25 @@ function App() {
     openSocialDraft,
     saveBusinessBrainRule,
     removeBusinessBrainRule,
-    quoteFollowUpDraft,
-    setQuoteFollowUpDraft,
+    quoteFollowUpDraft:quoteFollowUpScope.current?.workspace===businessWorkspaceScopeRef.current&&quoteFollowUpScope.current?.customerId===selectedReplyActionId?quoteFollowUpDraft:"",
+    getQuoteFollowUpTypingEpoch:()=>quoteFollowUpTypingEpoch.current,
+    setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
-    setQuoteFollowUpOutcome,
-    enquiryFollowUpDraft,
-    setEnquiryFollowUpDraft,
+    savePrivateQuoteFollowUp,
+    quoteFollowUpPrivateRecorded:isPrivateQuoteFollowUpRecorded(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,quoteFollowUpSources.current,selectedReplyActionId),
+    prepareQuoteDetails,
+    quoteEnquiryLinkStatus:replyActions[selectedReplyActionId]?.details?.enquiryReference?resolveQuoteEnquiryReference(replyActions[selectedReplyActionId].details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId:selectedReplyActionId,inboxItems,revision:cloudRevision})?'linked':'needs-review':'',
+    resumeCurrentEnquiry,
+    returnToQuoteEnquiry,
+    customerEnquiryOriginItem:['owner','admin'].includes(cloudWorkspace?.role)?reviewedFiledEnquiry({origin:replyActionOrigin.current,workspace:businessWorkspaceScopeRef.current,customerId:selectedCustomerId,inboxItems}):null,
+    quoteEnquiryOriginItem:['owner','admin'].includes(cloudWorkspace?.role)?reviewedFiledEnquiry({origin:replyActionOrigin.current,workspace:businessWorkspaceScopeRef.current,customerId:selectedReplyActionId,inboxItems}):null,
+    quoteFollowUpOriginItem:quoteFollowUpScope.current?.workspace===businessWorkspaceScopeRef.current&&quoteFollowUpScope.current?.customerId===selectedReplyActionId&&inboxItems.includes(quoteFollowUpScope.current?.originItem)&&quoteFollowUpScope.current?.originItem?.filedCustomerId===selectedReplyActionId&&quoteFollowUpScope.current?.originItem?.status==="Filed"?quoteFollowUpScope.current.originItem:null,
+    quoteFollowUpSourceCurrent:isQuoteDraftSourceCurrent(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,selectedReplyActionId,replyActions[selectedReplyActionId],customers.find(row=>row.id===selectedReplyActionId)||lastSimulatedRecipients.find(row=>row.id===selectedReplyActionId)),
+    setQuoteFollowUpOutcome:value=>{if(!["No reply yet","Still considering","Accepted","Declined"].includes(value)||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,selectedReplyActionId,quoteFollowUpSources.current?.replyActions?.[selectedReplyActionId]))return;quoteFollowUpTypingEpoch.current++;setQuoteFollowUpOutcome(value);},
+    enquiryFollowUpDraft:enquiryReplyActions.text,
+    setEnquiryFollowUpDraft:enquiryReplyActions.edit,
+    enquiryReplyActions,
+    enquiryReplyReview:enquiryReplyActions.review,
     enquiryFollowUpOutcome,
     setEnquiryFollowUpOutcome,
     reviewRequestDraft,
@@ -17532,7 +18006,7 @@ function App() {
     newEnquiryDate,
     setNewEnquiryDate,
     captureRawText,
-    setCaptureRawText: updateCaptureRawText,
+    setCaptureRawText: value=>{captureTypingEpoch.current++;updateCaptureRawText(value);},
     captureScreenshots,
     captureScreenshotOrderConfidence,
     captureScreenshotOrderReason,
@@ -17544,31 +18018,31 @@ function App() {
     removeCaptureScreenshot,
     moveCaptureScreenshot,
     captureSource,
-    setCaptureSource: updateCaptureSource,
+    setCaptureSource: value=>{captureTypingEpoch.current++;updateCaptureSource(value);},
     captureStage,
-    setCaptureStage,
+    setCaptureStage: value=>{captureTypingEpoch.current++;setCaptureStage(value);},
     captureName,
-    setCaptureName,
+    setCaptureName: value=>{captureTypingEpoch.current++;setCaptureName(value);},
     capturePhone,
-    setCapturePhone,
+    setCapturePhone: value=>{captureTypingEpoch.current++;setCapturePhone(value);},
     captureEmail,
-    setCaptureEmail,
+    setCaptureEmail: value=>{captureTypingEpoch.current++;setCaptureEmail(value);},
     captureAddress,
-    setCaptureAddress,
+    setCaptureAddress: value=>{captureTypingEpoch.current++;setCaptureAddress(value);},
     captureService,
-    setCaptureService,
+    setCaptureService: value=>{captureTypingEpoch.current++;setCaptureService(value);},
     captureDate,
-    setCaptureDate,
+    setCaptureDate: value=>{captureTypingEpoch.current++;setCaptureDate(value);},
     captureTime,
-    setCaptureTime,
+    setCaptureTime: value=>{captureTypingEpoch.current++;setCaptureTime(value);},
     captureValue,
-    setCaptureValue,
+    setCaptureValue: value=>{captureTypingEpoch.current++;setCaptureValue(value);},
     captureNote,
-    setCaptureNote,
+    setCaptureNote: value=>{captureTypingEpoch.current++;setCaptureNote(value);},
     captureConfidence,
     captureExtractedFields,
     captureForceNew,
-    setCaptureForceNew,
+    setCaptureForceNew: value=>{captureTypingEpoch.current++;setCaptureForceNew(value);},
     captureMatch,
     intakeLog,
     intakeMergedCount,
@@ -17614,6 +18088,7 @@ function App() {
     reopenInboxItem,
     openBusyInbox,
     analyseQuickCapture,
+    firstEnquiryFilingActions,
     saveQuickCapture,
     customerNoteText,
     setCustomerNoteText,
@@ -17685,6 +18160,8 @@ function App() {
     setQuoteStatus,
     convertQuoteToBooking,
     setBookingStatus,
+    prepareBookingStatus,
+    bookingStatusOperation:bookingStatusOperation?.scope===businessWorkspaceScopeRef.current&&bookingStatusOperation.role===cloudWorkspace?.role?bookingStatusOperation:null,
     markBookingCompleted,
     markReminderDone,
     rescheduleReminder,
@@ -17778,7 +18255,7 @@ function App() {
   if (!ownerSession?.accessToken) {
     return (
       <SafeAreaView style={styles.safe}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={appearance.resolved==="daylight"?"dark-content":"light-content"} />
         <AccountAccess s={appState} />
       </SafeAreaView>
     );
@@ -17800,7 +18277,7 @@ function App() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={appearance.resolved==="daylight"?"dark-content":"light-content"} />
       {React.createElement(component, { s: appState })}
     </SafeAreaView>
   );

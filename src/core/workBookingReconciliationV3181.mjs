@@ -4,6 +4,7 @@
  * snapshots are retained for other work and optional customer display fields.
  * This does not certify external calendar delivery or published app success.
  */
+import {inspectBookingAssociationV3233} from './bookingCancelReadbackV3233.mjs';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function reconcileWorkBookingLedger({
  businessId="",appId="",ledger=null,localBookings=[]
@@ -69,3 +70,24 @@ function reconcileWorkBookingLedger({
    noDataWritten:true,noCrossBusinessLearning:true};
 }
 export {reconcileWorkBookingLedger};
+
+// Original request-to-loaded-Work navigation only. Never creates or restores a record.
+export async function continueLinkedWorkBooking({requestId,getCurrent,read,transition,open,notice}){
+ const start=getCurrent(),{scope,source,appId}=start||{};
+ const id=source?.link?.customer_record_id,action=source?.replyActions?.[id];
+ const candidates=[...(source?.customers||[]),...(source?.lastSimulatedRecipients||[])].filter(row=>row?.id===id),customer=candidates[0];
+ const stamp=JSON.stringify([customer,action,source?.link]),revision=source?.revision;
+ const current=()=>{const now=getCurrent();return now?.scope===scope&&now.actor===start.actor&&now.businessId===start.businessId&&now.role==='owner'&&now.view===start.view&&now.selection===start.selection&&now.appId===appId&&now.source?.revision===revision&&now.source.replyActions?.[id]===action&&JSON.stringify([customer,action,now.source.link])===stamp&&[...(now.source.customers||[]),...(now.source.lastSimulatedRecipients||[])].includes(customer)&&[...(now.source.customers||[]),...(now.source.lastSimulatedRecipients||[])].filter(row=>row?.id===id).every(row=>row===customer);};
+ if(!UUID.test(requestId||'')||!scope||!start.actor||start.role!=='owner'||!Number.isSafeInteger(revision)||revision<1||source?.link?.action_record_id!==`miniapp-booking-${requestId}`||!customer||candidates.some(row=>row!==customer)||action?.type!=='booking'||action.details?.sourceMiniAppRequestId!==requestId||source.link?.request_id!==requestId||source.link?.business_id!==start.businessId||[customer.businessId,customer.business_id].some(b=>b&&b!==start.businessId)||!current()){notice?.('The current linked customer and booking are unavailable. Open this business’s supported recovery; no record was restored.');return false;}
+ const inspect=async()=>{
+  const result=inspectBookingAssociationV3233({businessId:start.businessId,requestId,customerId:id,actionId:`miniapp-booking-${requestId}`,response:await read(requestId,current)});
+  if(!current()||!result.ok||result.appId!==appId)throw Error('The booking association changed or could not be verified. Keep your work and inspect the current request.');
+  return result;
+ };
+ try{const observed=await inspect(),fresh=await inspect();
+  if(JSON.stringify(fresh)!==JSON.stringify(observed)){notice?.('The booking changed during review. Your work is kept; open the current request again.');return false;}
+  let used=false;
+  // Original navigation approvals are synchronous. Do not discard before an awaited read.
+  return transition(()=>{if(used||!current())return false;used=true;return open(id)!==false;},{isCurrent:()=>!used&&current()});
+ }catch(error){if(current())notice?.(error.message);return false;}
+}

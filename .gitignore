@@ -1,0 +1,6 @@
+# Local runtime and isolated verification dependencies; never commit packages.
+node_modules/
+.test-artifacts/
+
+__pycache__/
+.tmp/

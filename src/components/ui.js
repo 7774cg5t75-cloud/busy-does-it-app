@@ -1,3 +1,5 @@
+import {BusyMiniOrb} from "./BusyOrb";
+import {moodForScreen} from "../theme/appearance.mjs";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -277,6 +279,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
 
   return (
     <View style={[styles.shell, dark && styles.homeDarkShell]}>
+      <View pointerEvents="none" accessibilityElementsHidden style={{position:"absolute",top:0,right:0,width:190,height:220,borderRadius:160,backgroundColor:C[moodForScreen(s.screen)],opacity:.045}}/>
       <KeyboardAvoidingView
         style={styles.keyboardAvoider}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -301,19 +304,20 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
             {!hideDevBadge ? <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text> : null}
           </View>
           {!noBack && s.history?.length > 0 ? (
-            <Pressable onPress={s.back} style={styles.backPill}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={s.back} style={styles.backPill}>
               <Text style={styles.backText}>Back</Text>
             </Pressable>
           ) : null}
         </View>
 
         {brandCue ? <Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{brandCue}</Text> : null}
-        {title ? <Text style={[styles.h1, dark && styles.homeDarkHeading]}>{title}</Text> : null}
+        {title ? <Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading]}>{title}</Text> : null}
         {subtitle ? <Text style={[styles.subtitle, dark && styles.homeDarkMuted]}>{subtitle}</Text> : null}
 
         {children}
         </ScrollView>
       </KeyboardAvoidingView>
+      {!noNav&&!keyboardVisible&&!s.busyMiniOrbHidden&&['workHub','customerRecords','growthCommandCentre','socialMedia','settings','results'].includes(s.screen)&&typeof s.openTalkToBusy==='function'?<BusyMiniOrb s={s}/>:null}
       {!noNav && !keyboardVisible ? <BottomNav s={s} dark={dark} /> : null}
     </View>
   );
@@ -333,9 +337,11 @@ function BottomNav({ s, dark = true }) {
         return (
           <Pressable
             key={label}
-            style={styles.navItem}
+            accessibilityRole="tab"
+            accessibilityLabel={label}
+            accessibilityState={{selected:active}}
+            style={[styles.navItem, active && styles.navItemSelected]}
             onPress={() => {
-              s.setTab(label);
               s.jump(target, label);
             }}
           >
@@ -369,21 +375,25 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
           <Text style={styles.eyebrow}>{eyebrowText}</Text>
         )
       ) : null}
-      {title ? <Text style={styles.cardTitle}>{title}</Text> : null}
+      {title ? <Text accessibilityRole="header" style={styles.cardTitle}>{title}</Text> : null}
       {body ? <Text style={styles.cardBody}>{body}</Text> : null}
-      {children}
+      {children ? <View style={styles.cardContent}>{children}</View> : null}
       {footer ? <Text style={styles.cardFooter}>{footer}</Text> : null}
     </View>
   );
 }
 
-function Button({ label, onPress, primary = false, danger = false, disabled = false }) {
+function Button({ label, onPress, primary = false, danger = false, disabled = false, selected, compact = false }) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{disabled,...(selected===undefined?{}:{selected})}}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
+        compact && styles.buttonCompact,
+        selected && styles.buttonSelected,
         primary && styles.buttonPrimary,
         danger && styles.buttonDanger,
         disabled && styles.buttonDisabled,
@@ -393,6 +403,8 @@ function Button({ label, onPress, primary = false, danger = false, disabled = fa
       <Text
         style={[
           styles.buttonText,
+          compact && styles.buttonTextCompact,
+          selected && styles.buttonTextSelected,
           primary && styles.buttonTextPrimary,
           danger && styles.buttonTextPrimary,
         ]}
@@ -411,21 +423,32 @@ function SmallLink({ label, onPress }) {
   );
 }
 
-function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences" }) {
+function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength, editable = true }) {
+  const [focused,setFocused]=useState(false);
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.fieldBox}>
+      <View style={[styles.fieldBox, multiline && styles.fieldBoxMultiline, focused && editable && styles.fieldBoxFocused, !editable && styles.fieldBoxReadOnly]}>
         {prefix ? <Text style={styles.fieldPrefix}>{prefix}</Text> : null}
         <TextInput
+          ref={inputRef}
+          onFocus={()=>{if(editable)setFocused(true);}}
+          onBlur={()=>setFocused(false)}
+          selectionColor={C.blueText}
+          textAlignVertical={multiline?"top":"center"}
+          maxLength={maxLength}
+          multiline={multiline}
+          accessibilityLabel={label}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={editable ? onChangeText : undefined}
+          editable={editable}
+          accessibilityState={{disabled:!editable}}
           placeholder={placeholder}
           keyboardType={keyboardType}
           secureTextEntry={secureTextEntry}
           autoCapitalize={autoCapitalize}
-          style={styles.fieldInput}
-          placeholderTextColor="#9AA3B2"
+          style={[styles.fieldInput,multiline && styles.fieldInputMultiline]}
+          placeholderTextColor={C.muted}
         />
       </View>
     </View>
@@ -551,9 +574,24 @@ function DatePickerField({ label, value, onChange, allowFuture = false, minimumD
   );
 }
 
+// Read-only help only: never put an active editor or an approval action here.
+// Existing specialists retain all workflow and dirty-state ownership.
+function Details({ label, children }) {
+  const [expanded, setExpanded] = useState(false);
+  return <View style={styles.detailsPanel}>
+    <Pressable accessibilityRole="button" accessibilityState={{expanded}}
+      onPress={()=>setExpanded(value=>!value)}
+      style={({pressed})=>[styles.detailsToggle,pressed&&styles.pressed]}>
+      <Text style={styles.detailsLabel}>{label}</Text>
+      <Text accessibilityElementsHidden importantForAccessibility="no" style={styles.detailsIndicator}>{expanded?"−":"+"}</Text>
+    </Pressable>
+    {expanded?<View style={styles.detailsBody}>{children}</View>:null}
+  </View>;
+}
+
 function Choice({ label, selected, onPress, sub }) {
   return (
-    <Pressable onPress={onPress} style={[styles.choice, selected && styles.choiceSelected]}>
+    <Pressable accessibilityRole="radio" accessibilityState={{selected:!!selected}} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected]}>
       <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected ? <View style={styles.radioCore} /> : null}
       </View>
@@ -573,11 +611,13 @@ function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
         {body ? <Text style={styles.toggleBody}>{body}</Text> : null}
       </View>
       <Switch
+        accessibilityLabel={title}
+        accessibilityHint={body}
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
-        trackColor={{ false: "#C8CFD9", true: "#9FC0FF" }}
-        thumbColor={value ? C.blue : "#FFFFFF"}
+        trackColor={{ false: C.controlBorder, true: C.blue }}
+        thumbColor={C.onAction}
       />
     </View>
   );
@@ -712,6 +752,7 @@ export {
   SmallLink,
   Field,
   DatePickerField,
+  Details,
   Choice,
   ToggleRow,
   MetricRow,

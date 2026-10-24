@@ -1051,10 +1051,14 @@ async function publishPost(post: any, channelsOverride: string[] | null = null) 
         (failedChannels.length && channelsOverride ? 1 : failedChannels.length ? 1 : 0),
       updated_at: now,
     })
+    .eq("workspace_key", WORKSPACE)
     .eq("id", post.id)
+    .eq("status", "Publishing")
+    .eq("updated_at", post.updated_at)
     .select("*")
-    .single();
+    .maybeSingle();
   if (error) throw error;
+  if (!data) throw new Error("Publication result could not be recorded against its claimed revision. Do not resend; reconcile provider results first.");
   return data;
 }
 
@@ -1076,24 +1080,38 @@ async function processDuePosts() {
 
   let processed = 0;
   for (const post of data || []) {
-    await supabase
+    // A scanned row is not a claim. Only the worker that changes this exact
+    // approved revision may enter the provider path; a cancellation wins safely.
+    if (!post.updated_at) throw new Error("Scheduled post revision is missing. Review it before publishing.");
+    const { data: claimed, error: claimError } = await supabase
       .from("busy_social_posts")
       .update({ status: "Publishing", updated_at: new Date().toISOString() })
+      .eq("workspace_key", WORKSPACE)
       .eq("id", post.id)
-      .eq("status", "Scheduled");
+      .eq("status", "Scheduled")
+      .eq("owner_approved", true)
+      .eq("updated_at", post.updated_at)
+      .select("*")
+      .maybeSingle();
+    if (claimError) throw claimError;
+    if (!claimed) continue;
     try {
-      await publishPost({ ...post, status: "Publishing" });
+      await publishPost(claimed);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await supabase
         .from("busy_social_posts")
         .update({
-          status: "Failed",
-          last_error: message,
-          retry_count: Number(post.retry_count || 0) + 1,
+          // An exception may follow a provider send or an uncertain result write.
+          // Keep the claim non-retryable until the original outcome is reconciled.
+          status: "Publishing",
+          last_error: "Could not confirm publication outcome. Do not resend. " + message,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", post.id);
+        .eq("workspace_key", WORKSPACE)
+        .eq("id", claimed.id)
+        .eq("status", "Publishing")
+        .eq("updated_at", claimed.updated_at);
     }
     processed += 1;
   }
@@ -1161,9 +1179,12 @@ async function deleteDraft(clientDraftId: string) {
   return { deleted: true, cloudRecordFound: true };
 }
 
-async function cancelScheduledPost(clientDraftId: string) {
+async function cancelScheduledPost(clientDraftId: string, expectedUpdatedAt: unknown = undefined) {
   const post = await getPostByClientDraftId(clientDraftId);
   if (!post) throw new Error("That scheduled post no longer exists.");
+  if (!post.updated_at || expectedUpdatedAt !== undefined && (typeof expectedUpdatedAt !== "string" || expectedUpdatedAt !== post.updated_at)) {
+    throw new Error("That scheduled revision changed. Read its current account status before cancelling.");
+  }
   if (!["Scheduled", "Held for setup"].includes(String(post.status || ""))) {
     throw new Error(
       post.status === "Publishing" || post.status === "Published"
@@ -1183,12 +1204,14 @@ async function cancelScheduledPost(clientDraftId: string) {
     })
     .eq("workspace_key", WORKSPACE)
     .eq("client_draft_id", post.client_draft_id)
-    .in("status", ["Scheduled", "Held for setup"])
+    .eq("id", post.id)
+    .eq("status", post.status)
+    .eq("updated_at", post.updated_at)
     .select("*")
     .maybeSingle();
   if (error) throw error;
   if (!data) {
-    throw new Error("That post started publishing before BUSY could cancel it.");
+    throw new Error("That schedule changed or started publishing before BUSY could cancel this revision.");
   }
   return data;
 }
@@ -1414,7 +1437,7 @@ Deno.serve(async (request: Request) => {
 
     if (action === "cancel_schedule") {
       const clientDraftId = cleanText(body?.clientDraftId, 180);
-      return json(200, { ok: true, post: await cancelScheduledPost(clientDraftId) });
+      return json(200, { ok: true, post: await cancelScheduledPost(clientDraftId, body?.expectedUpdatedAt) });
     }
 
     if (action === "schedule") {
@@ -1491,6 +1514,7 @@ Deno.serve(async (request: Request) => {
         throw new Error("All selected destinations already have successful provider receipts.");
       }
       await assertChannelsConnected(failedChannels);
+      if (!existing.updated_at) throw new Error("Post revision is missing. Review its account record before retrying.");
       const { data: publishing, error: updateError } = await supabase
         .from("busy_social_posts")
         .update({
@@ -1498,10 +1522,15 @@ Deno.serve(async (request: Request) => {
           last_error: null,
           updated_at: new Date().toISOString(),
         })
+        .eq("workspace_key", WORKSPACE)
         .eq("id", existing.id)
+        .eq("status", existing.status)
+        .eq("updated_at", existing.updated_at)
+        .eq("owner_approved", true)
         .select("*")
-        .single();
+        .maybeSingle();
       if (updateError) throw updateError;
+      if (!publishing) throw new Error("That post changed or another operation claimed it. Read its current status before retrying.");
       return json(200, {
         ok: true,
         retriedChannels: failedChannels,

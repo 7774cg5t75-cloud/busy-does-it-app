@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {parse} from '@babel/parser';
+import {createAppStudioSession} from '../src/core/appStudioSession.mjs';
+import {proposeCoordinatedAppChanges as propose} from '../src/core/appCoordinatedStudio.mjs';
+const ownerId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',businessId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const config={modules:[{key:'business_profile',enabled:true}],navigation:['business_profile'],presentation:{layoutDensity:'compact'}};
+const app={id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',business_id:businessId,draft_revision:4,draft_config:config},context={ownerId,businessId,app};
+const proposal=propose(config,[{kind:'appearance',field:'layoutDensity',value:'airy'}]),newer={...app,draft_revision:5,draft_config:proposal.nextConfig};
+let writes=0,saved=null;const checkpoint={save:async value=>{saved=JSON.parse(JSON.stringify(value));},load:async()=>saved};
+const session=createAppStudioSession({checkpoint});session.setContext(context);await session.restore();session.prepare(proposal);await session.approve(async()=>{writes++;throw Error('Transport lost');});
+assert.equal(session.snapshot().uncertain,true);assert.equal(session.prepare(proposal),false);assert.equal(session.prepare(null),false);assert.equal(session.discard(),false);await session.approve(()=>{writes++;});assert.equal(writes,1);
+for(const result of [{ok:true,readOnly:true,ownerId,businessId,app},{ok:true,readOnly:true,ownerId:'other',businessId,app:newer},{ok:true,readOnly:false,ownerId,businessId,app:newer},{ok:true,readOnly:true,ownerId,businessId,app:{...newer,business_id:'foreign'}}])assert.equal((await session.reconcile(async()=>result)).ok,false);
+assert.equal(writes,1);assert.equal(session.snapshot().canUndo,false);
+await new Promise(r=>setTimeout(r,0));const restart=createAppStudioSession({checkpoint});restart.setContext({...context,app:newer});await restart.restore();assert.equal(restart.snapshot().uncertain,true);assert.equal(restart.snapshot().preview,null);
+const outcome=await restart.reconcile(async()=>({ok:true,readOnly:true,ownerId,businessId,app:newer}));assert.equal(outcome.ok,true);assert.equal(outcome.previousSaveConfirmed,false);assert.equal(restart.snapshot().canUndo,false);assert.equal(restart.snapshot().canApprove,false);assert.equal(writes,1);
+const fresh=propose(newer.draft_config,[{kind:'appearance',field:'layoutDensity',value:'compact'}]);assert.equal(restart.prepare(fresh),true,'A fresh proposal is possible after inspecting an advanced draft');
+let release;const pending=session.reconcile(()=>new Promise(r=>{release=r;}));session.setContext({...context,ownerId:'different'});release({ok:true,readOnly:true,ownerId,businessId,app:newer});assert.equal((await pending).ok,false);assert.equal(session.snapshot().notice,'');
+// Execute the actual narrow controller adapter with an inert authenticated-request boundary.
+const source=fs.readFileSync('src/app/AppController.js','utf8'),ast=parse(source,{sourceType:'module',plugins:['jsx']});let node;
+function walk(n){if(!n||typeof n!=='object')return;if(n.type==='VariableDeclarator'&&n.id?.name==='readCurrentAppStudioDraft'){assert.equal(node,undefined);node=n.init;}for(const value of Object.values(n))if(Array.isArray(value))value.forEach(walk);else if(value&&typeof value==='object')walk(value);}walk(ast);assert.ok(node);
+const scope={current:{userId:ownerId,businessId,app}},flight={current:false};let requests=0,applied=0,reply={app:newer};
+const read=Function('privateAppEditScopeRef','privateAppEditInFlightRef','miniAppsRequest','applyMiniAppsStatus','return ('+source.slice(node.start,node.end)+')')(scope,flight,async(action,body,options)=>{assert.equal(action,'owner_status');assert.equal(options.isCurrent(),true);requests++;return reply;},()=>applied++);
+const verified=await read({appId:app.id});assert.equal(verified.ok,true);assert.equal(verified.readOnly,true);assert.equal(verified.ownerId,ownerId);assert.equal(applied,1);
+reply={app:{...newer,business_id:'foreign'}};assert.equal((await read({appId:app.id})).ok,false);assert.equal(applied,1);flight.current=true;assert.equal((await read({appId:app.id})).ok,false);assert.equal(requests,2);
+console.log('PASS uncertain Studio save barrier, no replay/discard bypass, original-revision refusal, encrypted-phase restart, newer read-only recovery without inferred Undo/attribution, actor cancellation and actual controller read adapter. Inert storage/transport.');

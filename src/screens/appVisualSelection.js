@@ -1,0 +1,91 @@
+import {AppServicePresentationControls} from './appServicePresentationControls';
+import {AppNavigationLabelControls} from './appNavigationLabelControls';
+import {AppSelectedInstruction} from "./appSelectedInstruction";
+import {AppComponentStyleControls} from './appComponentStyleControls';
+import {AppSelectedServiceControls} from './appSelectedServiceControls';
+import {AppSelectedBrandControls} from './appSelectedBrandControls';
+import {AppSelectedFaqControls} from './appSelectedFaqControls';
+import React from 'react';
+import {AppSelectedImageControls} from './appSelectedImageControls';
+import {selectedAppImage} from '../core/appSelectedImage.mjs';
+import {Text,View} from 'react-native';
+import {Button,Field} from '../components/ui';
+import {styles} from '../theme/styles';
+import {proposeCoordinatedAppChanges} from '../core/appCoordinatedStudio.mjs';
+import {proposeAppSectionMove} from '../core/appSectionOrder.mjs';
+import {PROFILE_TEXT_LIMITS} from '../core/appProfileFieldUndo.mjs';
+// Native selection + bounded controls reuse the ORIGINAL Studio proposal,
+// comparison, CAS approval and Undo. No native dragging or local save engine.
+export function AppVisualSelection({Surface,config,businessContent,onPrepare,busy=false,voiceScope,onTranscribe,onDraftChange}){
+ const [selection,setSelection]=React.useState(null),[selectionSource,setSelectionSource]=React.useState(null);
+ const dirty=React.useRef(false),dirtyEpoch=React.useRef(0);
+ const [pendingSelection,setPendingSelection]=React.useState(null);
+ const [wording,setWording]=React.useState('');
+ const [imageCopy,setImageCopy]=React.useState({alt:'',caption:''});
+ const live=React.useRef(null);live.current={config,busy,selection,wording,imageCopy};
+ const setWordingDraft=value=>{live.current.wording=value;setWording(value);};
+ const current=()=>live.current.config===config&&!live.current.busy;
+ const commitSelection=value=>{
+  if(!current())return;
+  dirty.current=false;onDraftChange?.(false);dirtyEpoch.current++;setPendingSelection(null);live.current.selection=value;setSelection(value);setSelectionSource(config);
+  const image=selectedAppImage(config,value);setImageCopy({alt:image?.alt||'',caption:image?.caption||''});
+  const field=value?.part==='header'?'tagline':value?.part==='wording'?value.field:null;
+  setWordingDraft(field?String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??''):'');
+ };
+ const select=value=>{if(!current())return;if(dirty.current){setPendingSelection({value,config,selection:live.current.selection,epoch:dirtyEpoch.current});return;}commitSelection(value);};
+ const reportDirty=value=>{if(current()&&selectionSource===config&&live.current.selection===selection){dirty.current=!!value;onDraftChange?.(!!value);dirtyEpoch.current++;setPendingSelection(null);}};
+ const selectionCurrent=selectionSource===config;
+ const prepare=operation=>{
+  if(!current()||!selectionCurrent||live.current.selection!==selection||live.current.wording!==wording||live.current.imageCopy!==imageCopy)return;
+  const proposal=proposeCoordinatedAppChanges(config,Array.isArray(operation)?operation:[operation]);
+  if(proposal.ok)onPrepare(proposal);
+ };
+ const choices=selection?.part==='header'?[['typeStyle','balanced'],['typeStyle','editorial'],['typeStyle','impact'],['typeStyle','friendly']]:
+  selection?.part==='navigation'?[['navigationStyle','tabs'],['navigationStyle','list']]:
+  selection?.part==='spacing'?[['layoutDensity','comfortable'],['layoutDensity','compact'],['layoutDensity','airy']]:
+  selection?.part==='services'?[['serviceStyle','cards'],['serviceStyle','rows'],['serviceStyle','spotlight']]:
+  selection?.part==='gallery'?[['galleryLayout','grid'],['galleryLayout','stack'],['imageScale','regular'],['imageScale','large'],['imageCorners','rounded'],['imageCorners','square']]:[];
+ const field=selection?.part==='header'?'tagline':selection?.part==='wording'?selection.field:null;
+ const textOp=Object.hasOwn(PROFILE_TEXT_LIMITS,field||'')?{kind:'text',field,value:wording}:null;
+ const textProof=textOp?proposeCoordinatedAppChanges(config,[textOp]):null;
+ const moves=selection?.moduleKey?['up','down'].filter(direction=>proposeAppSectionMove(config,{moduleKey:selection.moduleKey,direction}).ok):[];
+ return <View>
+  <Text style={styles.cardBody}>Tap an outlined part to edit it. These controls prepare a private Studio comparison; nothing is saved or published here.</Text>
+  <Surface config={config} businessContent={businessContent} ownerEdit={{selection:selectionCurrent?selection:null,onSelect:select}}/>
+  <Button label={(selection?.part==='spacing'?'✓ ':'')+'Select app spacing'} disabled={busy} onPress={()=>select({part:'spacing'})}/>
+  <Button label={(selection?.part==='branding'?'✓ ':'')+'Select app colours'} disabled={busy} onPress={()=>select({part:'branding'})}/>
+  {pendingSelection?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>Your wording is not saved. Review it with the existing Preview control, or discard it before switching.</Text><Button label="Keep editing my wording" onPress={()=>setPendingSelection(null)}/><Button label="Discard wording and switch" disabled={pendingSelection.config!==config} onPress={()=>{if(current()&&pendingSelection.config===config&&pendingSelection.selection===live.current.selection&&pendingSelection.epoch===dirtyEpoch.current)commitSelection(pendingSelection.value);}}/></View>:null}
+  {selection?<View accessibilityLiveRegion="polite">
+   <Text style={styles.sectionLabel}>{'Selected '+(selection.moduleKey||selection.field||selection.part).replaceAll('_',' ')}</Text>
+   {!selectionCurrent?<View><Text accessibilityRole="alert" style={styles.cardBody}>The app source changed. Your unsubmitted wording is kept here; reselect the current part before preparing changes.</Text><Button label="Use current app source" disabled={busy} onPress={()=>select(selection)}/></View>:null}
+   {selection.part==='service'?<AppSelectedServiceControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare} onDraftChange={reportDirty}/>:null}
+   {selection.part==='faq'?<AppSelectedFaqControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare} onDraftChange={reportDirty}/>:null}
+   {textOp?<View>
+    <Field label={field==='tagline'?'App tagline (header and summary)':'Selected business '+field} value={wording} maxLength={PROFILE_TEXT_LIMITS[field]} multiline onChangeText={value=>{if(current()&&selectionCurrent&&live.current.selection===selection){dirty.current=true;onDraftChange?.(true);dirtyEpoch.current++;setPendingSelection(null);setWordingDraft(value);}}}/>
+    <Text style={styles.cardBody}>Owner-written wording only. Review every affected screen in Studio before applying; your existing approval and Undo controls remain.</Text>
+    <Button label="Cancel selected wording" disabled={busy||!selectionCurrent} onPress={()=>{if(current()&&selectionCurrent&&live.current.selection===selection)(dirty.current=false,onDraftChange?.(false),dirtyEpoch.current++,setPendingSelection(null),setWordingDraft(String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??'')));}}/>
+    <Button label="Preview selected wording" disabled={busy||!selectionCurrent||!textProof?.ok} onPress={()=>prepare(textOp)}/>
+    {selectionCurrent&&textProof&&!textProof.ok?<Text style={styles.cardBody}>{textProof.reason}</Text>:null}
+   </View>:null}
+   <AppNavigationLabelControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare} onDraftChange={reportDirty}/>
+   {['service','service-button'].includes(selection.part)?<AppServicePresentationControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare} onDraftChange={reportDirty}/>:null}
+   <AppComponentStyleControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare} onDraftChange={reportDirty}/>
+   {['services','gallery'].includes(selection.part)?<Text style={styles.cardBody}>Presentation applies to this collection, preserving its content and customer actions.</Text>:null}
+   <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>
+    {choices.map(([field,value])=>{
+     const proof=proposeCoordinatedAppChanges(config,[{kind:'appearance',field,value}]);
+     return <Button key={field+value} label={'Preview '+value+' '+(field==='typeStyle'?'typography':field==='serviceStyle'?'services':field==='galleryLayout'?'gallery layout':field==='imageScale'?'images':field==='imageCorners'?'image corners':selection.part)} disabled={busy||!selectionCurrent||!proof.ok} onPress={()=>prepare({kind:'appearance',field,value})}/>;
+    })}
+   </View>
+   {selection.part==='image'?<View><Text style={styles.cardBody}>Only this photograph is selected. Choose the entire gallery separately to change its layout.</Text><Button label="Select entire gallery" disabled={busy||!selectionCurrent} onPress={()=>{if(current()&&live.current.selection===selection)select({part:'gallery',moduleKey:'gallery'});}}/></View>:null}
+   {selection.part==='image'?<AppSelectedImageControls config={config} selection={selection} copy={imageCopy} disabled={busy||!selectionCurrent} onCopy={value=>{if(current()&&selectionCurrent&&live.current.selection===selection&&live.current.imageCopy===imageCopy)setImageCopy(value);}} onPrepare={prepare} onDraftChange={reportDirty}/>:null}
+
+
+   {selection.part==='branding'?<AppSelectedBrandControls config={config} disabled={busy||!selectionCurrent} onPrepare={prepare} onDraftChange={reportDirty}/>:null}
+   {moves.map(direction=><Button key={direction} label={'Preview selected section '+direction} disabled={busy||!selectionCurrent} onPress={()=>prepare({kind:'move',moduleKey:selection.moduleKey,direction})}/>)}
+   {!['service','image','branding','faq'].includes(selection.part)&&!textOp&&!choices.some(([field,value])=>proposeCoordinatedAppChanges(config,[{kind:'appearance',field,value}]).ok)&&!moves.length?<Text accessibilityRole="alert" style={styles.cardBody}>No change is available for this selection. Current choices and owner locks are preserved.</Text>:null}
+   <AppSelectedInstruction key={JSON.stringify(selection)} config={config} selection={selection} disabled={busy||!selectionCurrent} voiceScope={voiceScope} onTranscribe={onTranscribe} onPrepare={proposal=>{if(current()&&selectionCurrent&&live.current.selection===selection)onPrepare(proposal);}}/>
+   <Button label="Cancel selection" onPress={()=>{select(null);}}/>
+  </View>:null}
+ </View>;
+}

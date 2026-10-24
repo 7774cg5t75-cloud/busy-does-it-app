@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import {createRequire} from 'node:module';
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs'),rt=createRuntime(),{default:App}=rt.load('src/app/AppController.js');rt.render(App,{});
+const {HomeScreen}=rt.load('src/screens/home.js'),{HomeCoreAreas}=rt.load('src/components/HomeCoreAreas.js'),walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[];
+const calls=[],s={...rt.appState,ownerSession:{userId:'owner'},cloudWorkspace:{businessId:'business'},openWebsiteBuilder:()=>calls.push('website'),openMiniAppBuilder:()=>calls.push('app'),openSocialCentre:()=>calls.push('content'),go:key=>calls.push(key),jump:key=>calls.push(key)};
+const tree=rt.render(HomeScreen,{s}),entry=walk(tree).find(n=>n.type===HomeCoreAreas);assert.ok(entry,'Genuine Home renders six-area component');let areas=rt.render(HomeCoreAreas,entry.props),buttons=walk(areas).filter(n=>n.type==='Pressable');
+assert.deepEqual(buttons.map(n=>n.props.accessibilityLabel),['Website Builder','App Builder','Content Creator','Get More Customers','Work & Customers','Get Paid']);
+for(const button of buttons)button.props.onPress();assert.deepEqual(calls,['website','app','content','growthCommandCentre','workHub']);areas=rt.render(HomeCoreAreas,entry.props);assert.ok(walk(areas).find(n=>n.props?.accessibilityLabel==='Open Work for quote assistance'));assert.ok(JSON.stringify(areas).includes('does not create an invoice'));
+const old=buttons[0].props.onPress;rt.render(HomeCoreAreas,{s:{...s,ownerSession:{userId:'other-owner'}}});old();assert.equal(calls.length,5,'Prior owner callback cannot route current owner');
+const diary=walk(tree).find(n=>n.props?.accessibilityLabel==='Diary');diary.props.onPress();assert.equal(calls.at(-1),'bookings');assert.ok(walk(tree).find(n=>n.props?.accessibilityLabel==='Inbox'));
+console.log('PASS actual App state -> Home -> six exact stable core shortcuts and original routes; Get Paid opens truthful private-assistance explanation, owner-switch callbacks rejected, Diary/Inbox retained. Effects/native navigation inert, no provider calls.');

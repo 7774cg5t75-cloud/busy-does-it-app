@@ -1,3 +1,9 @@
+import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
+import {websitePageGuide} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
+import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
+import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
+import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../../src/core/businessContentHtml.mjs';
 import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";
 /**
@@ -26,6 +32,12 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';",
+ "import {websitePageGuide} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';",
+ "import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';",
+ "import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';",
+ 'import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";',
+ "import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';",
  "import {businessContentSectionHtml} from '../core/businessContentHtml.mjs';",
  'import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";',
  'import { syncWebsitePageModel } from "./websiteManagement";',
@@ -51,7 +63,8 @@ function stripKnownModule(file){
 const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
  "\nreturn {syncWebsitePageModel};")();
 const deps=Object.freeze({
- syncWebsitePageModel:management.syncWebsitePageModel,
+ testimonialSpotlightItems,
+ websitePageGuide,serviceIndexHtml,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,
  planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,
  editWebsiteDraftField,protectWebsiteOwnerLocks,businessContentSectionHtml

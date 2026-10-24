@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {beginBuilderExplore,runBuilderExplore,prepareBuilderExploreHandoff} from '../src/core/builderExplore.mjs';
+import {createAppStudioSession} from '../src/core/appStudioSession.mjs';
+import {proposeCoordinatedAppChanges} from '../src/core/appCoordinatedStudio.mjs';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+import {planWebsitePageInstructions} from '../src/core/websitePageInstructions.mjs';
+import {prepareSelectedWebsiteTransaction} from '../src/core/websiteContextPlan.mjs';
+import {checkPrivateWebsiteDraftCommit} from '../src/core/privateWebsiteDraftCommit.mjs';
+const ownerId='11111111-1111-4111-8111-111111111111',businessId='22222222-2222-4222-8222-222222222222';
+const config={modules:['business_profile','services','contact','gallery'].map(key=>({key,enabled:true})),navigation:['business_profile','services','contact','gallery'],publicProfile:{businessName:'Fictional workshop'}};
+let app={id:'33333333-3333-4333-8333-333333333333',business_id:businessId,draft_revision:2,draft_config:config};
+const context={kind:'app',ownerId,businessId,project:app};let session=beginBuilderExplore(context);session=runBuilderExplore(session,context,{type:'discuss',text:'move gallery above contact'}).session;const h=prepareBuilderExploreHandoff(session,context,{ownerConfirmed:true});assert.ok(h.ok);let writes=0;const studio=createAppStudioSession();studio.setContext({ownerId,businessId,app,config});assert.equal(studio.prepare(h.proposal),true);assert.equal(writes,0,'Handoff only prepares original Studio');
+async function save(request){writes++;assert.equal(request.expectedRevision,app.draft_revision);const p=proposeCoordinatedAppChanges(app.draft_config,request.operations);assert.ok(p.ok);app={...app,draft_revision:app.draft_revision+1,draft_config:p.nextConfig};return {ok:true,status:{app},newRevision:app.draft_revision,undoOperations:p.undoOperations};}
+assert.ok((await studio.approve(save)).ok);assert.equal(writes,1);studio.setContext({ownerId,businessId,app,config:app.draft_config});assert.ok((await studio.undo(save)).ok);assert.equal(writes,2);assert.deepEqual(app.draft_config,config);
+const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit}=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyWebsiteLayoutChange','applyStructuredWebsiteEdit']);
+const website=buildWebsiteDraft({businessId,brandBrain:{websiteReady:true,websiteBrief:{businessName:'Fictional site',description:'Owner words.'}}}),web={kind:'website',ownerId,businessId,project:website};
+let ws=beginBuilderExplore(web);const phrase='make the whole page easier to read on phones';ws=runBuilderExplore(ws,web,{type:'discuss',text:phrase}).session;assert.ok(ws.idea,'Existing page reading instruction should support a dry private alternative');const handoff=prepareBuilderExploreHandoff(ws,web,{ownerConfirmed:true});assert.ok(handoff.ok);
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs'),rt=createRuntime(),{BuilderExploreEditReview}=rt.load('src/screens/builderExploreEditReview.js');
+const walk=n=>Array.isArray(n)?n.flatMap(walk):n&&typeof n==='object'?[n,...walk(n.props?.children)]:[],find=(t,label)=>walk(t).find(n=>n.props?.label===label);
+let committed=null,cancelled=0;const props={context:web,handoff,onCancel:()=>cancelled++,onApply:request=>{const plan=planWebsitePageInstructions(website,{...request,draftId:website.id}),edit=prepareSelectedWebsiteTransaction(website,plan,{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange});const checked=checkPrivateWebsiteDraftCommit({current:website,candidate:edit.draft,live:website,scopeCurrent:true,businessId});if(checked.applied)committed=checked.draft;return checked;}};
+let tree=rt.render(BuilderExploreEditReview,props);assert.equal(committed,null);const old=find(tree,'Approve this private website edit');find(tree,'Cancel — keep original website').props.onPress();old.props.onPress();assert.equal(committed,null);assert.equal(cancelled,1);
+const fresh=createRuntime(),Review=fresh.load('src/screens/builderExploreEditReview.js').BuilderExploreEditReview;tree=fresh.render(Review,props);find(tree,'Approve this private website edit').props.onPress();assert.ok(committed);assert.ok(committed.generation>website.generation);const generation=committed.generation;find(tree,'Approve this private website edit').props.onPress();assert.equal(committed.generation,generation,'One approval cannot repeat after completion');
+console.log('PASS actual Explore handoff -> original Studio preview -> separate approval/save/exact Undo, plus original website plan/commit and cancellation/duplicate guards. Inert save/transport and native boundaries, no hosted or device claim.');

@@ -39,3 +39,18 @@ function classifyBookingRevisionV3233({
   mayRetryAutomatically:false,customerDetailsIncluded:false};
 }
 export {classifyBookingRevisionV3233};
+
+// Internal persisted references only: no snapshot, names, messages or caller metadata.
+export function classifyBookingAssociationV3233(input={}){
+ const base=classifyBookingRevisionV3233(input),{link,work,appId}=input;
+ const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9:_-]{0,159}$/.test(v);
+ const time=v=>typeof v==='string'&&Number.isFinite(Date.parse(v));
+ if(!base.ok||!id(link?.customer_record_id)||!id(link?.action_record_id)||!time(link?.updated_at))return deny('The original customer association is unavailable.');
+ let diary=null;
+ if(work){
+  const day=work.calendar_date,at=work.calendar_time,parsed=new Date(String(day)+'T12:00:00Z');
+  if(!UUID.test(work.id||'')||work.mini_app_id!==appId||work.customer_record_id!==link.customer_record_id||work.action_record_id!==link.action_record_id||work.source!=='business_app_request_v3181'||!time(work.updated_at)||typeof day!=='string'||!/^20\d{2}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==day||typeof at!=='string'||!/^([01]\d|2[0-3]):[0-5]\d:00$/.test(at)||typeof work.calendar_timezone!=='string'||!/^[A-Za-z_]+(?:\/[A-Za-z0-9_+\-]+)*$/.test(work.calendar_timezone)||work.calendar_timezone.length>64)return deny('The original customer and Work diary records disagree.');
+  diary={id:work.id,date:day,time:at.slice(0,5),timeZone:work.calendar_timezone,state:work.state,revision:work.updated_at};
+ }
+ return {...base,association:{kind:'persisted_booking_association_v3233',customerId:link.customer_record_id,actionId:link.action_record_id,linkRevision:link.updated_at,diary},notOwnReceipt:true};
+}

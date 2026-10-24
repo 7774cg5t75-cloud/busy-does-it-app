@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+import {planWebsitePageInstructions as plan,prepareWebsitePageInstructionPreview as preview} from '../src/core/websitePageInstructions.mjs';
+import {prepareSelectedWebsiteTransaction as transact} from '../src/core/websiteContextPlan.mjs';
+import {planAppVoiceInstructions as appPlan,proposeCoordinatedAppChanges as appApply} from '../src/core/appCoordinatedStudio.mjs';
+const {buildWebsiteDraft,applyStructuredWebsiteEdit:edit,applyWebsiteLayoutChange:layout,renderWebsiteHtml:render}=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyStructuredWebsiteEdit','applyWebsiteLayoutChange','renderWebsiteHtml']);
+let draft=buildWebsiteDraft({businessId:'00000000-0000-4000-8000-000000000001',brandBrain:{websiteReady:true,websiteBrief:{businessName:'Fictional workshop',email:'hello@example.test'}}});
+draft=edit(draft,{action:'content-section',sectionId:'products',title:'Owner collection',layout:'cards',featuredId:'product-featured-001'}).draft;
+draft=layout(draft,{action:'section-style',sectionId:'products',field:'mobileSectionSpacing',value:'compact'}).draft;
+const request={draftId:draft.id,generation:draft.generation,pageId:'products',instruction:'show products as rows; change products heading to "Our chosen collection"'};
+const deps={fieldEdit:edit,layoutEdit:layout,renderPage:render},before=JSON.stringify(draft),out=transact(draft,plan(draft,request),deps);assert.equal(out.applied,true,out.reason);assert.equal(JSON.stringify(draft),before);const section=out.draft.sections.find(s=>s.id==='products');assert.equal(section.title,'Our chosen collection');assert.equal(section.contentLayout,'rows');assert.equal(section.featuredId,'product-featured-001');assert.equal(section.appearance.mobileSectionSpacing,'compact');assert.equal(preview(draft,request,deps).ok,true);assert.match(render(out.draft,'products'),/Our chosen collection/);assert.match(render(out.draft,'products'),/owner-mobile-space-compact/);
+const locked={...draft,theme:{...draft.theme,lockedSections:['products']}};assert.equal(transact(locked,plan(locked,request),deps).applied,false);
+assert.equal(plan(draft,{...request,pageId:'contact'}).ok,false);assert.equal(edit(draft,{sectionId:'products',field:'title',value:'x'.repeat(81)}).applied,false);
+const config={modules:[{key:'business_profile',enabled:true}],navigation:['business_profile'],contentLayout:[{kind:'product',title:'Custom products',layout:'rows',featuredId:'product-featured-001'},{kind:'event',title:'Custom events',layout:'cards'}]};
+const app=appPlan(config,'move events before products; rename products section to "Our collection"');assert.equal(app.ok,true,app.reason);assert.deepEqual(app.nextConfig.contentLayout.map(x=>x.kind),['event','product']);assert.equal(app.nextConfig.contentLayout[1].featuredId,'product-featured-001');assert.deepEqual(appApply(app.nextConfig,app.undoOperations).nextConfig,config);assert.equal(appPlan(config,'move events before products; move products before events').ok,false);assert.equal(appPlan({...config,presentation:{ownerLockedElements:['products']}},'move events before products').ok,false);
+assert.equal(fs.readFileSync('src/core/appCoordinatedStudio.mjs','utf8'),fs.readFileSync('supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs','utf8'));
+console.log('PASS real website catalogue layout/title transaction preserving destination styling/featured identity, original locks/HTML/preview and coordinated app record order with exact Undo and parity. No browser/hosted claim.');

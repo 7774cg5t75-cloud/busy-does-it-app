@@ -1,3 +1,5 @@
+import {websiteTextColourCss} from "./websiteTextColours.mjs";
+import {textTypographyCss} from "./websiteTextTypography.mjs";
 /**
  * BUSY DOES IT V3.99 — professional website design foundations.
  * Pure JS so CI can exercise the actual design rules without a live release.
@@ -170,9 +172,63 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .grid article{height:100%}
 .grid article p,section article p{color:#475569;line-height:1.65}
 .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px;margin-top:35px}
+/* Existing image-led compositions: only rich, uncustomised galleries gain a wide-screen feature. */
+@media(min-width:1100px){
+ :is(.visual-hero-image-feature,.visual-hero-type-poster) #gallery:not(.owner-gallery-compact):not(.owner-gallery-large):not(.owner-desktop-gallery-compact):not(.owner-desktop-gallery-large) .gallery-rich{grid-template-columns:repeat(3,minmax(0,1fr))}
+ :is(.visual-hero-image-feature,.visual-hero-type-poster) #gallery:not(.owner-gallery-compact):not(.owner-gallery-large):not(.owner-desktop-gallery-compact):not(.owner-desktop-gallery-large) .gallery-rich > .gallery-image:first-child{grid-column:span 2;grid-row:span 2;height:clamp(360px,48vw,620px);min-width:0;max-width:100%}
+}
 .gallery-image{display:block;width:100%;height:300px;object-fit:cover;border-radius:18px}
+/* Reading layouts retain the original heading/paragraph source order. */
+section.owner-reading-column .wrap > p{max-width:64ch;overflow-wrap:anywhere}
+section.owner-reading-column .wrap > :is(h1,h2){max-width:22ch;overflow-wrap:anywhere}
+section.owner-reading-editorial .wrap > p{max-width:68ch;overflow-wrap:anywhere}
+/* Long-form article flow: original DOM words/order; one column until wide desktop. */
+section.owner-reading-columns .wrap > p{max-width:76ch;overflow-wrap:anywhere}
+section.owner-reading-columns .wrap > :is(h1,h2){max-width:30ch}
+@media(min-width:1100px){
+ section.owner-reading-columns .wrap > p{max-width:none;column-count:2;column-gap:clamp(32px,5vw,72px);column-rule:1px solid var(--line);orphans:3;widows:3}
+}
+
+@media(min-width:801px){
+ section.owner-reading-editorial .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:clamp(24px,5vw,72px);align-items:start}
+ section.owner-reading-editorial .wrap > :is(h1,h2){grid-column:1;grid-row:1;min-width:0;margin-top:0;overflow-wrap:anywhere}
+ section.owner-reading-editorial .wrap > p{grid-column:2;grid-row:1;min-width:0;margin-top:0}
+}
+/* A first supplied quotation becomes the lead; item order and typography overrides stay original. */
+.testimonial-spotlight{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.testimonial-spotlight > article{min-width:0;padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--soft);overflow-wrap:anywhere}
+.testimonial-spotlight > article > h3{margin-top:0}
+.testimonial-spotlight > article > p{margin-bottom:0}
+@media(min-width:801px){
+ .testimonial-spotlight{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .testimonial-spotlight > article:first-child{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:clamp(24px,4vw,56px);padding:clamp(24px,4vw,48px)}
+ .testimonial-spotlight > article:first-child > p{margin-top:0}
+ .testimonial-spotlight > article:first-child:not([class*="owner-text-body"]) > p{font-size:clamp(1.2rem,2vw,1.65rem);line-height:1.6}
+}
+.page-section-guide{border-bottom:1px solid var(--line);padding:20px 0;background:var(--soft)}
+.page-section-guide p{font-weight:700;margin:0 0 12px}
+.page-section-guide ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:8px;list-style:none;padding:0;margin:0}
+.page-section-guide a{display:flex;align-items:center;min-height:44px;padding:10px 12px;color:inherit;border:1px solid var(--line);border-radius:8px;overflow-wrap:anywhere;text-decoration:underline;text-underline-offset:3px}
+.page-section-guide a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+section.owner-services-index .service-index-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;margin-top:24px}
+section.owner-services-index nav ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+section.owner-services-index nav a{display:flex;align-items:center;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:inherit;overflow-wrap:anywhere}
+section.owner-services-index nav a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+section.owner-services-index article{min-width:0;padding:24px 0;border:0;border-bottom:1px solid var(--line);background:transparent;box-shadow:none;border-radius:0;scroll-margin-top:100px}
+section.owner-services-index article p{max-width:66ch;overflow-wrap:anywhere}
+section.owner-services-index article h3{overflow-wrap:anywhere}
+@media(min-width:801px){section.owner-services-index .service-index-layout{grid-template-columns:minmax(0,1fr) minmax(0,2.4fr);gap:clamp(24px,5vw,64px);align-items:start}}
+section.owner-faq-questions .faq-questions{display:grid;grid-template-columns:1fr;gap:12px;margin-top:28px}
+section.owner-faq-questions article{padding:0;border:1px solid var(--line);border-radius:12px;background:var(--soft);box-shadow:none;min-width:0}
+section.owner-faq-questions summary{cursor:pointer;padding:20px;min-height:48px;overflow-wrap:anywhere}
+section.owner-faq-questions summary h3{display:inline;margin:0}
+section.owner-faq-questions summary h3:not(.owner-item-heading-large):not(.owner-item-heading-compact){font-size:1.15rem}
+section.owner-faq-questions summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+section.owner-faq-questions details > p{padding:0 20px 20px;margin:0;max-width:70ch;overflow-wrap:anywhere}
 .photo-feature-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,68px);align-items:center}
-.photo-feature-grid img{display:block;width:100%;height:clamp(240px,34vw,440px);object-fit:cover;border-radius:20px}
+.photo-feature-grid > *{min-width:0;max-width:100%}
+.photo-feature-grid h2,.photo-feature-grid a{overflow-wrap:anywhere}
+.photo-feature-grid img{display:block;box-sizing:border-box;max-width:100%;width:100%;height:clamp(240px,34vw,440px);object-fit:cover;border-radius:20px}
 .photo-feature-grid p{max-width:58ch;overflow-wrap:anywhere}
 @media(max-width:800px){.photo-feature-grid{grid-template-columns:1fr}.photo-feature-grid img{height:clamp(220px,60vw,370px)}}
 
@@ -231,21 +287,45 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
    independent within each industry. Every variation has a mobile fallback. */
 .visual-hero-type-center .hero-no-image .wrap{align-items:center;text-align:center}
 .visual-hero-type-center .hero-no-image .hero-content{margin-inline:auto}
-.visual-hero-type-center .hero-no-image .hero .lead{margin-inline:auto}
+.visual-hero-type-center .hero-no-image .lead{margin-inline:auto}
 .visual-hero-type-right .hero-no-image .wrap{align-items:flex-end;text-align:right}
 .visual-hero-type-right .hero-no-image .hero-content{margin-left:auto}
-.visual-hero-type-right .hero-no-image .hero .lead{margin-left:auto}
+.visual-hero-type-right .hero-no-image .lead{margin-left:auto}
 .visual-hero-type-poster .hero-no-image h1{font-size:clamp(3.7rem,11vw,8.5rem);line-height:.95;max-width:1000px}
 .visual-hero-type-poster .hero-no-image .hero-art{right:-8%;top:-35%;width:54vw}
 .visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:1}
 .visual-hero-image-left .hero-with-image .hero-content{grid-column:2;grid-row:1}
-.visual-hero-image-frame .hero-image{border-radius:4px!important;border:12px solid rgba(255,255,255,.11)}
+/* Framed composition balances longer copy against an inset approved image. */
+.visual-hero-image-frame .hero-with-image .wrap{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:center;gap:clamp(24px,5vw,72px)}
+.visual-hero-image-frame .hero-image{box-sizing:border-box;max-width:100%;min-width:0;border-radius:4px!important;border:clamp(6px,1.2vw,12px) solid rgba(255,255,255,.11)}
+.hero-content{min-width:0;overflow-wrap:anywhere}
+.hero .cta{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .visual-hero-image-feature .hero-with-image .wrap{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}
 .visual-hero-image-feature .hero-image{height:clamp(320px,49vw,625px);border-radius:4px}
 .visual-cards-outlines .grid article{background:transparent;border:2px solid var(--line);box-shadow:none;border-radius:4px}
 .visual-cards-rows .grid{display:flex;flex-direction:column;gap:0}
 .visual-cards-rows .grid article{background:transparent;border:0;border-bottom:1px solid var(--line);box-shadow:none;border-radius:0;padding:24px 0}
 .visual-cards-rows .grid article h3{font-size:1.5rem}
+/* Services only: preserve title-first reading order and stack on phones. */
+@media(min-width:801px){
+ .visual-cards-rows #services .grid article{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:clamp(18px,3vw,40px);align-items:start}
+ .visual-cards-rows #services .grid article h3,.visual-cards-rows #services .grid article p{min-width:0;margin-block:0;overflow-wrap:anywhere}
+}
+
+/* Explicit section choices override a global card style, without changing
+   other collections. Normal document order remains title then description. */
+:is(#services,section).owner-services-directory .grid{display:grid;grid-template-columns:1fr;gap:0}
+:is(#services,section).owner-services-directory .grid article{display:block;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:clamp(20px,3vw,36px) 0}
+:is(#services,section).owner-services-directory .grid article h3,:is(#services,section).owner-services-directory .grid article p{min-width:0;margin-top:0;overflow-wrap:anywhere}
+:is(#services,section).owner-services-directory .grid article p{max-width:64ch;line-height:1.75}
+:is(#services,section).owner-services-cards .grid{display:grid;grid-template-columns:1fr;gap:20px}
+:is(#services,section).owner-services-cards .grid article{display:block;padding:24px;background:var(--soft);border:1px solid var(--line);border-radius:16px;box-shadow:none;min-width:0}
+:is(#services,section).owner-services-cards .grid article h3,:is(#services,section).owner-services-cards .grid article p{overflow-wrap:anywhere}
+@media(min-width:801px){
+ :is(#services,section).owner-services-directory .grid article{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:clamp(24px,4vw,64px);align-items:start}
+ :is(#services,section).owner-services-cards .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
 .visual-ornament-arch .hero-art{border-radius:240px 240px 4px 4px;transform:rotate(0deg)}
 .visual-ornament-stripes .hero-art{border-radius:0;background:repeating-linear-gradient(115deg,var(--glow) 0,var(--glow) 10px,transparent 10px,transparent 25px);opacity:.12;transform:rotate(-8deg)}
 .visual-ornament-glow .hero-art{border-radius:50%;filter:blur(38px);opacity:.22}
@@ -307,6 +387,12 @@ section.owner-crop-center .gallery-image,
 section.owner-crop-center .photo-feature-grid img{object-position:center center}
 section.owner-photo-right .photo-feature-grid img{grid-column:2;grid-row:1}
 section.owner-photo-right .photo-feature-grid > div{grid-column:1;grid-row:1}
+@media(min-width:801px){
+ section.owner-desktop-photo-left .photo-feature-grid img{grid-column:1;grid-row:1}
+ section.owner-desktop-photo-left .photo-feature-grid > div{grid-column:2;grid-row:1}
+ section.owner-desktop-photo-right .photo-feature-grid img{grid-column:2;grid-row:1}
+ section.owner-desktop-photo-right .photo-feature-grid > div{grid-column:1;grid-row:1}
+}
 section.owner-gallery-compact .gallery{grid-template-columns:repeat(auto-fit,minmax(min(100%,185px),1fr));gap:10px}
 section.owner-gallery-compact .gallery-image{height:clamp(175px,22vw,240px)}
 section.owner-gallery-large .gallery{grid-template-columns:repeat(auto-fit,minmax(min(100%,350px),1fr));gap:20px}
@@ -332,7 +418,7 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
 @media(max-width:800px){
  .visual-hero-image-left .hero-with-image .hero-content{grid-column:1;grid-row:1}
  .visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:2}
- .visual-hero-image-feature .hero-with-image .wrap{grid-template-columns:1fr}
+ .visual-hero-image-feature .hero-with-image .wrap,.visual-hero-image-frame .hero-with-image .wrap{grid-template-columns:1fr}
  .visual-hero-type-poster .hero-no-image h1{font-size:clamp(3rem,11vw,5rem)}
  .visual-hero-type-right .hero-no-image .wrap{align-items:flex-start;text-align:left}
 }
@@ -359,8 +445,17 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
  .family-portfolio .hero-image{border-radius:18px}
 }
 @media(max-width:380px){.wrap{width:min(100% - 28px,var(--content))}.brand{font-size:1.05rem}.cta{width:100%}}
+/* Body-reading overrides keep the existing headline hierarchy and facts. */
+section.owner-body-large p:not(.lead),section.owner-body-large li{font-size:1.125rem;line-height:1.75}
+section.owner-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1.7}
 /* V3.149: finite viewport overrides, shared by exported and hosted sites */
 @media(max-width:600px){
+ section.owner-mobile-space-compact:not(.hero){padding-block:28px}
+ section.owner-mobile-space-compact.hero .wrap{padding-block:48px}
+ section.owner-mobile-space-generous:not(.hero){padding-block:72px}
+ section.owner-mobile-space-generous.hero .wrap{padding-block:88px}
+ section.owner-mobile-body-large p:not(.lead),section.owner-mobile-body-large li{font-size:1.125rem;line-height:1.75}
+ section.owner-mobile-body-large .lead{font-size:1.25rem;line-height:1.7}
  section.owner-mobile-heading-compact h1{font-size:clamp(2.05rem,8vw,3rem)}
  section.owner-mobile-heading-compact h2{font-size:clamp(1.7rem,6vw,2.4rem)}
  section.owner-mobile-heading-large h1{font-size:clamp(3.3rem,12vw,5rem)}
@@ -371,6 +466,12 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
  section.owner-mobile-gallery-large .gallery-image{height:clamp(290px,90vw,420px)}
 }
 @media(min-width:960px){
+ section.owner-desktop-space-compact:not(.hero){padding-block:48px}
+ section.owner-desktop-space-compact.hero .wrap{padding-block:72px}
+ section.owner-desktop-space-generous:not(.hero){padding-block:128px}
+ section.owner-desktop-space-generous.hero .wrap{padding-block:152px}
+ section.owner-desktop-body-large p:not(.lead),section.owner-desktop-body-large li{font-size:1.125rem;line-height:1.75}
+ section.owner-desktop-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1.7}
  section.owner-desktop-heading-compact h1{font-size:clamp(2.6rem,5vw,4.1rem)}
  section.owner-desktop-heading-compact h2{font-size:clamp(1.9rem,3vw,2.8rem)}
  section.owner-desktop-heading-large h1{font-size:clamp(4.5rem,8vw,8rem)}
@@ -381,6 +482,8 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
  section.owner-desktop-gallery-large .gallery-image{height:clamp(330px,32vw,460px)}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+${websiteTextColourCss(d)}
+section.owner-cta-spacious .cta{min-height:58px;padding:18px 28px;white-space:normal}\nsection.owner-cta-wide .cta{display:flex;width:100%;min-height:50px;max-width:100%;white-space:normal}\n${textTypographyCss}
 `;
 }
 export {PALETTES,designForWebsite,designCss,withWhiteContrast};

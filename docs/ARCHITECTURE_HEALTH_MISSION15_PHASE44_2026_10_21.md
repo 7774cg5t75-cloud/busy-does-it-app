@@ -1,0 +1,22 @@
+# Mission 15 Phase 44 architecture health
+
+Completed the two existing checkpoint verifications and four further connected improvements. No new production module, dependency, store, schema, provider, assistant or publishing engine. Original customer fields, snapshots, CAS session, Brand DNA, Creator pending intent/review/upsert/reopen and Home ranking remain the boundaries.
+
+Static census on frozen functional tree `ab551f409f57e29e68abb8ebab9e1ea045ff4190`: **1,379 source files / 154,087 physical lines / 2,764 static relative edges / zero detected cycles**. Phase 43: 1,372 / 153,846 / 2,747 / zero. AppController 18,190 lines (+1), miniApps 5,363, main mini-app Edge 4,606. Line count is not a quality score; dense inherited expressions remain difficult to maintain. Seven new source-check scripts since Phase 43 account for much of the census change. Eleven changed functional files parse; final corrected files reparsed. Complete offline selection 288/0/0/0, exit 0; exact historical/final evidence in the Phase 44 CHECKS JSON.
+
+Useful architecture changes:
+
+* Existing snapshot session owns one ephemeral exact-save receipt. It does not expose a writable approval token or persist another ledger. Read-only observations and uncertain writes cannot mint it. Reply rebind still requires exact source/target and current role/scope. No DB/REST/schema contract changed.
+* Original announcement preparation handles a bounded plain-text newsletter format; it does not add an email/editor engine. Brand identity/voice and exact original saved owner facts are reused. Existing editable review and snapshots retain format provenance and owner edits. Newsletter provider controls are absent and the original outbound builder denies this format before upload.
+* Home rejects ambiguous/changed/foreign saved drafts before the original protected reopen. Duplicate identity enumeration uses a single count pass rather than a repeated full scan; no runtime speed claim is made.
+* Account-removal observation compares the exact retained field and keeps device removal, account absence, changed record and unknown outcome distinct. Actual parent/client paths use inert authenticated IO tests, not a hosted guarantee.
+
+Reviewed remaining risks and next actions:
+
+1. **Controller and hook complexity.** AppController is still oversized; reply hook coordinates several evidence states and Creator has duplicated finite format lists. Prefer a tested shared format policy and a focused private-reply evidence extraction when extending them, preserving original authority and UI. Test fixtures repeat setup; a reusable fixture harness is preferable to further copied suites. No speculative rewrite is justified by this audit.
+2. **Mixed-client snapshot retention.** Original envelope/default/cache preserve optional private fields here. A newer remote snapshot omitting those fields preserves differing older device bytes for deliberate review; it does not merge them automatically. Older applications may strip fields or reintroduce a removed reply. Durable removal/retention needs a reviewed versioned server contract and compatibility acceptance, not a client tombstone invented here.
+3. **Newsletter scope and rollout.** Only owner-supplied plain-text update/offer preparation is implemented. Approved-record newsletter sources, rendered responsive email and genuinely eligible audience review remain next work. No email/provider/campaign activation exists. New client transport denial does not bind older clients or add server approval identity. A real sending rollout requires trusted, scoped, versioned permission/suppression/sender/cost/approval/receipt contracts and separate acceptance.
+4. **Publisher authority.** Existing prototype business membership/RLS, source approval, media ownership/deletion, atomic mutation claims, scheduler restrictions and unknown provider-outcome reconciliation remain production gates. Local receipt/source checks are not server authentication or exactly-once guarantees.
+5. **Evidence and integration.** Source tests are inert; browser/iPhone/iPad/OS, hosted auth/RLS/CAS/contention, real provider and stacked-PR/release acceptance remain unverified. PR #26 is large and depends on #25 → #24 → #23 → #21; no merge compatibility is assumed.
+
+£0 spending, no hosted changes or live external actions. Keep Mission 15/PR #26 and dependencies open/unmerged. Next deep review after about five further substantial sweeps, sooner if authority or source complexity changes.

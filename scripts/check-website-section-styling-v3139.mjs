@@ -1,3 +1,4 @@
+import {originalWebsiteSectionRuntime} from "./lib/original-website-section-runtime.mjs";
 import {websiteBuilderTestHarnessV3222} from "./lib/website-builder-test-harness-v3222.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -111,16 +112,14 @@ for(const token of ["owner-heading-large","owner-heading-compact","owner-align-c
 }
 assert.ok(css.includes("@media(max-width:800px)"),"Responsive CSS available");
 assert.ok(css.includes("section.owner-photo-right .photo-feature-grid img"),"Photo side CSS uses section scope");
-const worker=read("supabase/functions/busy-website-worker/index.ts");
-assert.ok(worker.includes("function sectionAppearanceClasses(section: any)"));
-assert.ok(worker.includes('const sectionClasses=sectionAppearanceClasses(section);'));
-for(const part of [
- 'class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?',
- 'id="gallery"${sectionAttrs}',
- 'id="services"${sectionAttrs}',
- 'id="contact"${sectionAttrs}',
- 'class="photo-feature${sectionClasses?'
-]) assert.ok(worker.includes(part),"Worker honours section presentation: "+part);
+const hostedSection=originalWebsiteSectionRuntime();
+for(const section of spaced.draft.sections.filter(s=>s.enabled!==false)){
+ const output=hostedSection(spaced.draft,section,{[photo.storagePath]:'https://fictional.example.test/photo.jpg',[photo2.storagePath]:'https://fictional.example.test/photo2.jpg'},false);
+ const expected=section.appearance?.headingScale==='large'?'owner-heading-large':null;
+ if(expected)assert.ok(output.includes(expected),'Actual hosted renderer preserves selected section heading style');
+ if(section.id==='services')assert.ok(output.includes('owner-align-center')&&output.includes('owner-space-generous'));
+ assert.ok(!output.includes('<script'),'No editor script in hosted section');
+}
 const screen=read("src/screens/websiteTapEditor.js");
 assert.ok(screen.includes('onLayoutChange?.(change)'));
 assert.ok(screen.includes('action:"section-style"'));

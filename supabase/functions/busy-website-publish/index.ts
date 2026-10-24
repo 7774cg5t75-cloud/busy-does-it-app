@@ -1,3 +1,4 @@
+import {builderExploreRemoteGuard} from '../_shared/builderExploreRemoteGuard.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {evaluateLaunchPreflight} from "./launchPreflight.mjs";
@@ -1343,6 +1344,8 @@ Deno.serve(async (request: Request) => {
   try {
     const user = await requireUser(request);
     const body = await request.json().catch(() => ({}));
+    const exploreGate=builderExploreRemoteGuard(body);
+    if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
     const action = cleanText(body?.action, 80);
     const requestedBusinessId = cleanText(body?.businessId, 80);
     const writeActions = new Set([

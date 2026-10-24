@@ -1,11 +1,12 @@
+import {validEnquiryRequirements} from './customerEnquiryRequirements.mjs';
 import {enqueuePrivateCheckpoint} from './privateCheckpointQueue.mjs';
 const ID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const LIMITS={name:120,email:200,phone:80,service:240,message:3000};
 const selectionOK=s=>s===null||!!s&&typeof s==='object'&&!Array.isArray(s)&&Object.keys(s).every(k=>['recordId','revision','variantId'].includes(k))&&typeof s.recordId==='string'&&/^[A-Za-z0-9_-]{1,80}$/.test(s.recordId)&&Number.isSafeInteger(s.revision)&&s.revision>0&&(s.variantId===undefined||typeof s.variantId==='string'&&/^[A-Za-z0-9_-]{1,80}$/.test(s.variantId));
 function validCustomerEnquiryDraft(draft){
  return !!draft&&typeof draft==='object'&&!Array.isArray(draft)&&
-  Object.keys(draft).every(k=>Object.hasOwn(LIMITS,k)||k==='contentInterest')&&
-  Object.entries(LIMITS).every(([k,n])=>typeof draft[k]==='string'&&draft[k].length<=n)&&selectionOK(draft.contentInterest);
+  Object.keys(draft).every(k=>Object.hasOwn(LIMITS,k)||k==='contentInterest'||k==='requirements')&&
+  Object.entries(LIMITS).every(([k,n])=>typeof draft[k]==='string'&&draft[k].length<=n)&&selectionOK(draft.contentInterest)&&(draft.requirements===undefined||validEnquiryRequirements(draft.requirements));
 }
 /** Explicit opt-in only. Existing encrypted native storage and shared write
  * queue; no AsyncStorage/web fallback, cloud sync or automatic submission.

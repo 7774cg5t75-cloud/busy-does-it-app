@@ -1,3 +1,4 @@
+import {createOwnerEditNavigation} from '../src/core/ownerEditNavigation.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parse} from '@babel/parser';
@@ -15,7 +16,7 @@ const locked={...current,theme:{...current.theme,lockedSections:['services']}};a
 assert.equal(voice(locked,'hide services').applied,false);assert.equal(voice(locked,'make it warmer').applied,false);assert.equal(copy({draft:locked,approved:{services:[{name:'Lawn care'}]},serviceName:'Lawn care',text:'Changed owner text'}).applied,false);
 const source=readFileSync('src/app/AppController.js','utf8');const a=source.indexOf('  const restoreWebsiteHistoryEntry='),b=source.indexOf('  const openWebsiteBuilder = ',a);let resultDraft;
 const ref={current},values={undo:[before],redo:[]};let live=true;
-const fn=Function('websiteDraftRef','websiteDraft','websiteUndo','websiteRedo','websiteHistoryScope','websiteHistoryIsCurrent','makeWebsiteRecoveryPoint','restoreWebsiteRecoverySnapshot','rebuildPrivateWebsiteDraft','setWebsiteBuilderNotice','setWebsiteUndo','setWebsiteRedo','setWebsiteDraft',source.slice(a,b)+';return undoWebsiteChange;')(ref,current,values.undo,values.redo,scope,()=>live,make,restore,rebuild,()=>{},v=>values.undo=v(values.undo),v=>values.redo=v(values.redo),v=>{resultDraft=v;});
+const fn=Function('websiteDraftRef','websiteDraft','websiteUndo','websiteRedo','websiteHistoryScope','websiteHistoryIsCurrent','makeWebsiteRecoveryPoint','restoreWebsiteRecoverySnapshot','rebuildPrivateWebsiteDraft','setWebsiteBuilderNotice','setWebsiteUndo','setWebsiteRedo','setWebsiteDraft','ownerEditNavigation',source.slice(a,b)+';return undoWebsiteChange;')(ref,current,values.undo,values.redo,scope,()=>live,make,restore,rebuild,()=>{},v=>values.undo=v(values.undo),v=>values.redo=v(values.redo),v=>{resultDraft=v;},{current:createOwnerEditNavigation({getScope:()=>"fixture",confirm:()=>{throw Error("No dirty editor in this baseline");}})});
 assert.equal(fn(),true);assert.equal(resultDraft.generation,current.generation+1);assert.equal(fn(),false);live=false;assert.equal(fn(),false);assert.equal(values.undo.length,0);assert.equal(values.redo.length,1);
 parse(readFileSync('src/screens/useWebsiteDraftHistory.js','utf8'),{sourceType:'module',plugins:['jsx']});
 console.log('PASS: exact scoped history, bounded stacks, obsolete callback rejection, real controller monotonic Undo/double-tap protection, public status preservation and legacy voice/shared-copy locks. Local domain/controller simulation only.');

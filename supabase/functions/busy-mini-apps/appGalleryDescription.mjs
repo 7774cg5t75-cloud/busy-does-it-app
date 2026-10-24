@@ -58,4 +58,4 @@ function proposeGalleryImageDescription(config,{index,expectedUri,value,allowUnc
   description:"Updated accessible text for approved gallery photo "+(index+1),
   mediaUnchanged:true,privateUntilApproved:true,bookingsUnchanged:true};
 }
-export {proposeGalleryImageDescription,restoreGalleryDescription};
+export {proposeGalleryImageDescription,restoreGalleryDescription,text as validGalleryDescriptionText};

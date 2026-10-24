@@ -1,3 +1,4 @@
+import {installWebsiteMovement} from "./websiteVisualMovement.mjs";
 /**
  * V3.138 private tap-to-edit bridge and selection guard.
  * Only a locally generated concept HTML view may install the script.
@@ -11,7 +12,7 @@ const list=v=>Array.isArray(v)?v:[];
 const clean=v=>typeof v==="string"?v:"";
 const supportedPhoto=new Set(["hero","photo-feature","gallery"]);
 const MAX_MESSAGE=600;
-function makeTapToEditHtml(html){
+function makeTapToEditHtml(html,movement=null){
  if(typeof html!=="string"||html.length>500000||!html.startsWith("<!doctype html>")||
     !html.includes("</body>")||/<script\b/i.test(html))
   throw Error("The private website preview is invalid for editing.");
@@ -31,6 +32,14 @@ function makeTapToEditHtml(html){
   .busy-selection-toolbar button[data-action="voice"]{background:#27476e;font-size:19px}
   .busy-selection-toolbar button[data-action="edit"]{font-size:14px;font-weight:700}
   @media (prefers-reduced-motion:reduce){.busy-selection-toolbar{transition:none}}
+  .busy-section-move{position:relative;z-index:2;min-height:44px;margin:8px;padding:8px 14px;
+    background:#151c2b;color:#fff;border:2px solid #8db4ff;border-radius:8px;touch-action:none;cursor:grab}
+  .busy-section-move-options[hidden]{display:none!important}
+  .busy-section-move:focus-visible{outline:3px solid #4489ed;outline-offset:3px}
+  section[data-busy-drop="before"]{box-shadow:inset 0 5px #4489ed}
+  section[data-busy-drop="after"]{box-shadow:inset 0 -5px #4489ed}
+  .busy-move-status{position:fixed;bottom:0;left:0;right:0;z-index:2147483001;background:#151c2b;color:white;font:14px system-ui;padding:6px;pointer-events:none}
+  .busy-move-status:empty{display:none}
   </style>`;
  const script=`<script>(function(){
   "use strict";
@@ -87,6 +96,7 @@ function makeTapToEditHtml(html){
     toolbar.appendChild(button);
    });
    document.body.appendChild(toolbar);
+   (${installWebsiteMovement.toString()})(${JSON.stringify(movement).replace(/</g,"\\u003c")});
    Array.prototype.forEach.call(document.querySelectorAll("[data-busy-edit-section]"),
     function(element){
      if(!element.hasAttribute("tabindex"))element.setAttribute("tabindex","0");
@@ -136,6 +146,7 @@ function makeTapToEditHtml(html){
   },true);
   document.addEventListener("click",function(event){
    if(toolbar&&toolbar.contains(event.target))return;
+   if(event.target&&event.target.closest&&event.target.closest(".busy-section-move"))return;
    var element=event.target&&event.target.closest&&
      event.target.closest("[data-busy-edit-section]");
    if(event.detail!==0&&touchHit&&Date.now()-touchAt<800&&

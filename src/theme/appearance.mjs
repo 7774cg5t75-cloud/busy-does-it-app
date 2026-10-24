@@ -1,0 +1,22 @@
+// Device-only BUSY chrome. Never part of Brand DNA or a business snapshot.
+export const APPEARANCE_KEY='busy-device-appearance-v1';
+export const appearanceModes=['midnight','daylight','automatic'];
+const midnight={bg:'#0D1424',card:'#172133',ink:'#F2F5FC',muted:'#B2BED2',blue:'#3769D1',blueText:'#A8CAFF',blueSoft:'#1B2D49',green:'#8BD8B8',greenAction:'#237A53',greenSoft:'#18372E',amber:'#F1CB89',amberAction:'#8A5C19',amberSoft:'#352C1E',red:'#FFACB7',redAction:'#A33249',border:'#36465F',controlBorder:'#697D9A',shadow:'#030713',surface:'#202D42',cyan:'#80DCEB',violet:'#BEAEF7',rose:'#EBAAC7',onAction:'#FFFFFF',input:'#111B2C',nav:'#111C2E'};
+const daylight={bg:'#F3F5FA',card:'#FFFFFF',ink:'#17243A',muted:'#4D5D76',blue:'#2856B3',blueText:'#2354A8',blueSoft:'#E7EFFC',green:'#206447',greenAction:'#237A53',greenSoft:'#E5F3EC',amber:'#754C12',amberAction:'#805016',amberSoft:'#FFF2DB',red:'#A12742',redAction:'#A33249',border:'#B8C5D8',controlBorder:'#7F8DA5',shadow:'#17243A',surface:'#E8EEF7',cyan:'#176C80',violet:'#6950AA',rose:'#9B4A72',onAction:'#FFFFFF',input:'#FFFFFF',nav:'#FFFFFF'};
+export const palettes=Object.freeze({midnight:Object.freeze(midnight),daylight:Object.freeze(daylight)});
+export const design=Object.freeze({space:{xs:4,sm:8,md:12,lg:20,xl:28,hero:36},radius:{control:16,card:22,pill:999},type:{title:30,heading:21,body:16,caption:13},touch:48});
+let snapshot=Object.freeze({mode:'midnight',scheme:'dark',resolved:'midnight',orbEdge:'right',chosen:false,persistence:'local'}),epoch=0,queue=Promise.resolve();const listeners=new Set();
+export const getAppearance=()=>snapshot;
+export const palette=()=>palettes[snapshot.resolved];
+export const subscribeAppearance=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
+function publish(next){const resolved=next.mode==='automatic'?(next.scheme==='light'?'daylight':'midnight'):next.mode;snapshot=Object.freeze({...next,resolved});for(const fn of listeners)fn(snapshot);}
+export function setDeviceScheme(scheme){const next=scheme==='light'?'light':'dark';if(next!==snapshot.scheme)publish({...snapshot,scheme:next});}
+export async function hydrateAppearance(read){const started=epoch;try{const raw=await read(APPEARANCE_KEY);if(started!==epoch||!raw)return;const v=JSON.parse(raw);if(v.version!==1||!appearanceModes.includes(v.mode)||!['left','right'].includes(v.orbEdge)||typeof v.chosen!=='boolean')return;publish({...snapshot,mode:v.mode,orbEdge:v.orbEdge,chosen:v.chosen,persistence:'saved'});}catch{/* A preference read must never block authentication/tasks. */}}
+export function updateAppearance(change,write){if(change.mode!==undefined&&!appearanceModes.includes(change.mode)||change.orbEdge!==undefined&&!['left','right'].includes(change.orbEdge))return Promise.resolve(false);const ticket=++epoch;publish({...snapshot,...change,persistence:'saving'});const encoded=JSON.stringify({version:1,mode:snapshot.mode,orbEdge:snapshot.orbEdge,chosen:snapshot.chosen});queue=queue.catch(()=>{}).then(()=>write(APPEARANCE_KEY,encoded));return queue.then(()=>{if(ticket===epoch)publish({...snapshot,persistence:'saved'});return true;},()=>{if(ticket===epoch)publish({...snapshot,persistence:'unconfirmed'});return false;});}
+// Compatibility for existing screen imports: values resolve during rendering;
+// no business palette is read or changed. Cached styles are keyed by appearance.
+export const appColors=new Proxy({},{get:(_,key)=>palette()[key],ownKeys:()=>Reflect.ownKeys(midnight),getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});
+export function moodForScreen(screen=''){if(/website/i.test(screen))return 'cyan';if(/miniApp|appBuilder|businessCreation/i.test(screen))return 'violet';if(/social|content|newsletter/i.test(screen))return 'rose';if(/growth|marketing/i.test(screen))return 'violet';if(/paid|quote|invoice|payment/i.test(screen))return 'green';return 'cyan';}
+export function orbState({recording=false,speaking=false,status='',error='',approval=false}={}){if(error)return 'error';if(recording)return 'listening';if(speaking)return 'speaking';if(['thinking','processing','transcribing','interpreting','sending','loading'].includes(status))return 'processing';if(approval)return 'approval';return 'idle';}
+export const snapOrbEdge=(x,width)=>x+24<width/2?'left':'right';
+export const clampOrbX=(x,width)=>Math.min(Math.max(12,x),Math.max(12,width-60));

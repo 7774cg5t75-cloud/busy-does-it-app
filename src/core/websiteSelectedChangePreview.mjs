@@ -1,3 +1,4 @@
+import {reviewWebsiteEditingQuality} from "../../supabase/functions/busy-website-worker/websiteEditingQuality.mjs";
 /**
  * V3.148 — Private, on-demand, exact-element design preview.
  *
@@ -33,7 +34,7 @@ function previewSelectedWebsiteInstruction(draft,{selection,instruction}={},deps
     !originalHtml.startsWith("<!doctype html>")||!candidateHtml.startsWith("<!doctype html>")||
     /<script\b|data-busy-edit-section|busy.contextual-action.v1/i.test(originalHtml+candidateHtml))
   return fail("The safe, static preview could not be prepared.");
- return {ok:true,draftId:draft.id,pageId:selection.pageId,
+ return {ok:true,quality:reviewWebsiteEditingQuality(result.draft),draftId:draft.id,pageId:selection.pageId,
   generation:draft.generation,originalHtml,candidateHtml,
   steps:plan.steps.map(x=>({spoken:x.spoken,description:x.description})),
   summary:"Preview only — "+result.steps+
@@ -41,3 +42,24 @@ function previewSelectedWebsiteInstruction(draft,{selection,instruction}={},deps
    ". The original stays untouched until you choose Apply."};
 }
 export {previewSelectedWebsiteInstruction};
+
+// Amend only a finite suggestion through the original selected instruction
+// planner. No draft writes, publication, raw operations or independent Undo.
+function amendSelectedWebsiteQualityInstruction(draft,{selection,instruction,repair}={}){
+ if(!selectedWebsiteVoiceContextIsCurrent(draft,selection))return fail('This selection changed. Tap the current website part again.');
+ const wording={headingScale:'make this heading normal',sectionSpacing:'set this section spacing to normal'};
+ if(selection.itemId||repair?.action!=='section-style'||repair.sectionId!==selection.sectionId||
+    repair.value!=='normal'||!Object.hasOwn(wording,repair.field)||
+    repair.field==='headingScale'&&selection.field!=='title')
+  return fail('Use the section controls for this adjustment. Your current proposal is unchanged.');
+ const plan=planSelectedWebsiteChanges(draft,selection.pageId,selection,instruction);if(!plan.ok)return fail(plan.reason);
+ const same=change=>change?.action==='section-style'&&change.sectionId===repair.sectionId&&change.field===repair.field;
+ if(plan.steps.some(step=>step.change?.action==='style-group'&&step.change.operations.some(same)))
+  return fail('This setting is part of a coordinated style. Review its section controls instead; no changes were made.');
+ let replaced=false;
+ const clauses=plan.steps.map(step=>{if(same(step.change)){replaced=true;return wording[repair.field];}return step.spoken;});
+ if(!replaced)clauses.push(wording[repair.field]);
+ const revised=clauses.join('; '),checked=planSelectedWebsiteChanges(draft,selection.pageId,selection,revised);
+ return checked.ok?{ok:true,instruction:revised,plan:checked}:fail(checked.reason);
+}
+export {amendSelectedWebsiteQualityInstruction};

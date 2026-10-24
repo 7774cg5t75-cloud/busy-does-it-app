@@ -24,7 +24,7 @@ function createWebsiteHistoryCheckpoint(storage,scope,{now=Date.now}={}){
     if(saved.undo.length>=saved.redo.length)saved.undo.shift();else saved.redo.shift();
    }
    const raw=JSON.stringify(saved);if(raw.length>MAX)throw Error('This website is too large for encrypted device recovery. Your current draft remains available; export a content copy.');
-   await storage.setItemAsync(key,raw);return {undo:saved.undo.length,redo:saved.redo.length};
+   await storage.setItemAsync(key,raw);if(await storage.getItemAsync(key)!==raw)throw Error('Private device recovery could not be read back exactly. Keep your current work; no account save is confirmed.');return {undo:saved.undo.length,redo:saved.redo.length};
   }),
   load:draft=>enqueuePrivateCheckpoint(key,async()=>{
    if(!key||!validDraft(draft,scope))return null;

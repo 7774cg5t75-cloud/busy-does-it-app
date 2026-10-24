@@ -1,3 +1,4 @@
+import {verifyOriginalWebsiteInstructionRuntime} from "./lib/original-website-instruction-runtime.mjs";
 import {websiteBuilderTestHarnessV3222} from "./lib/website-builder-test-harness-v3222.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -76,7 +77,7 @@ const screen=read("src/screens/websiteBuilder.js");
 assert.ok(controller.includes("const applySelectedWebsiteInstruction ="));
 assert.ok(controller.includes("selection.draftId!==current.id"));
 assert.ok(controller.includes("planSelectedWebsiteChanges(current,selection.pageId,selection,instruction)"));
-assert.ok(controller.includes("websiteDraftRef.current=updated.draft"));
+verifyOriginalWebsiteInstructionRuntime();
 assert.ok(controller.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"),
  "Atomic multi-step change uses exactly one Undo entry");
 assert.ok(screen.includes("onApplyInstruction={s.applySelectedWebsiteInstruction}"));

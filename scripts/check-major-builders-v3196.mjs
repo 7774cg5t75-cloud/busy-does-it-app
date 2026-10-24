@@ -159,9 +159,9 @@ for(const str of ["Match my website closely","Keep my brand, adapt for an app",
 for(const str of ["Match the app's style closely","Keep my brand, adapt for a website",
  "Approve this PRIVATE website change","confirmAppToWebsiteDesign({website,app,businessId,evidence:review})"])
  ok(site.includes(str),"Missing App->Website owner experience "+str);
-ok(mini.includes("<WebsiteToAppDesignTransfer website={s.websiteDraft}"));
+ok(/<WebsiteToAppDesignTransfer\b[^>]*website=\{s\.websiteDraft\}/.test(mini));
 ok(mini.includes("onPreview={setStudioPreview}"));
-ok(websiteUI.includes("<AppToWebsiteDesignTransfer website={draft}"));
+ok(/<AppToWebsiteDesignTransfer\b[^>]*website=\{draft\}/.test(websiteUI));
 ok(websiteUI.includes("onApply={s.applyAppDesignToWebsite}"));
 ok(ctrl.includes("const applyAppDesignToWebsite=evidence=>"));
 ok(ctrl.includes("confirmAppToWebsiteDesign({website:current,app,businessId,evidence})"));

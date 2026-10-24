@@ -28,6 +28,8 @@ function selectBusinessCache(cache,remote){
 // business in selective legacy state setters. This is not a schema migration.
 function completeBusinessSnapshot(payload={}){
  if(!object(payload))throw Error('The business snapshot must be an object.');
+ // A proposed multi-engagement container cannot enter legacy one-slot setters.
+ if(object(payload.replyActions)&&Object.values(payload.replyActions).some(value=>value?.kind==='customer-work-engagements'))throw Error('This Work model requires a compatible engagement reader. Original data was kept.');
  const defaults={onboardingComplete:false,businessName:'',trade:'',verticalId:'exterior-cleaning',postcode:'',radius:'',brandProfile:{},websiteDraft:null,
   quietSlot:'',quietSlotConfirmed:false,activeWorkGoal:null,unansweredReviewCount:0,recentPhotoCountNeeded:0,
   customers:[],lastSimulatedRecipients:[],reactivationRuns:[],replyActions:{},services:[],alwaysAsk:false,customerContact:false,testLimit:'',weeklyLimit:'',connectedAccounts:{},dismissedOpportunities:[],selectedServiceId:'',intakeLog:[],inboxItems:[],connectionSyncLog:[],socialDrafts:[],socialPreferredChannels:{},businessBrainRules:[],businessBrainFeedback:[],proactiveNoticeState:{},busyCommandHistory:[],busyConversationTurns:[],busyOperatorSnapshot:null,dailyCommandCheckpoint:null,busyActionAudit:[],autopilotMode:'off',autopilotLastCheckAt:'',autopilotLastSignature:'',autopilotSnoozed:{},autopilotPreparedLog:[],businessMemoryHistory:[],businessMemoryLastReviewAt:'',proactiveNotificationsEnabled:false,proactiveNotificationPermission:'undetermined',proactiveMorningTime:'08:00',proactiveQuietHoursEnabled:true,proactiveQuietStart:'20:00',proactiveQuietEnd:'08:00',proactiveJobReminderMinutes:60,proactiveScheduledMap:{},proactiveNotificationLog:[],diaryConnection:{},diaryEventMap:{},recordFilingMode:'review',advanced:false};
@@ -40,3 +42,18 @@ function completeBusinessSnapshot(payload={}){
  return result;
 }
 export {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot};
+
+// Read back the original scoped device copy; this is not a second draft store.
+async function confirmBusinessCacheWrite({write,read,encoded,ownerId,businessId}){
+ try{
+  await write(encoded);
+  return await confirmBusinessCacheRead({read,encoded,ownerId,businessId});
+ }catch{return {status:'unknown'};}
+}
+export {confirmBusinessCacheWrite};
+
+// Reconcile uncertain device evidence without repeating any write or provider action.
+async function confirmBusinessCacheRead({read,encoded,ownerId,businessId}){
+ try{const raw=await read();return {status:raw===encoded&&decodeBusinessCache(raw,{ownerId,businessId})?'confirmed':'unknown'};}catch{return {status:'unknown'};}
+}
+export {confirmBusinessCacheRead};

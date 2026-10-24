@@ -1,3 +1,4 @@
+import {builderExploreRemoteGuard} from '../_shared/builderExploreRemoteGuard.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "jsr:@supabase/supabase-js@2";
 import {normalizeVisualCritique} from "./visualCriticContract.mjs";
@@ -135,6 +136,8 @@ Deno.serve(async(request:Request)=>{
   const user=await supabase.auth.getUser(token);
   if(user.error||!user.data.user?.id)return json(401,{error:"Sign-in expired"});
   const body=await request.json();
+  const exploreGate=builderExploreRemoteGuard(body);
+  if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
   const businessId=asText(body.businessId,90),deploymentId=asText(body.deploymentId,90);
   if(!validUuid(businessId))return json(400,{error:"Select a valid business workspace"});
   const membership=await supabase.from("busy_business_memberships")
