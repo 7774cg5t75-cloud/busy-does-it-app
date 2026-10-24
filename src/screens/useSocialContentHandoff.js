@@ -187,14 +187,14 @@ export function useSocialContentHandoff(input){
   epoch.current++;setContext({...live.current.sourceContext,contentSourceReview:{status:result.ok?'current':result.unknown?'unknown':'changed',reason:result.reason||'',checkedText:ticket.text,evidence}});return result.ok;
  };
  const recordCurrent=(record,stamp)=>!!record&&live.current.records?.includes(record)&&live.current.records.filter(row=>row.id===record.id).length===1&&![record.businessId,record.business_id,record.contentEvidence?.businessId].some(id=>id&&id!==live.current.businessId)&&savedAnnouncementStamp(record)===stamp;
- const refreshNewsletterSource=async({isCurrent=()=>true}={})=>{
+ const refreshPreparedSource=async(channel,{isCurrent=()=>true}={})=>{
   if(!valid()||epoch.current!==renderEpoch||!isCurrent())return false;
   const evidence=live.current.sourceContext?.contentEvidence,record=live.current.records?.find(row=>row.id===live.current.selectedDraftId);
-  if(evidence?.channel!=='newsletter'||evidence.businessId!==live.current.businessId||live.current.sourceContext?.pendingContentIdea||!record||record.status!=='Draft'||record.publishedAt)return false;
+  if(!['newsletter','social'].includes(channel)||evidence?.channel!==channel||evidence.businessId!==live.current.businessId||live.current.sourceContext?.pendingContentIdea||!record||record.status!=='Draft'||record.publishedAt)return false;
   const stamp=savedAnnouncementStamp(record),ticket=capture();
   const stillCurrent=()=>isCurrent()&&fresh(ticket)&&live.current.sourceContext?.contentEvidence===evidence&&recordCurrent(record,stamp);
   const prepareCurrent=async()=>{
-   const base={...context(),sourceMode:evidence.sourceMode,treatment:evidence.treatment||'standard',channel:'newsletter'};
+   const base={...context(),sourceMode:evidence.sourceMode,treatment:evidence.treatment||'standard',channel};
    if(['product','event'].includes(evidence.purpose)){
     const result=await live.current.loadApprovedContent?.();
     if(result?.ok!==true||result.businessId!==live.current.businessId)return {ok:false};
@@ -210,15 +210,18 @@ export function useSocialContentHandoff(input){
   try{
    const prepared=await prepareCurrent();if(!stillCurrent()||!prepared.ok)return false;
    let used=false;
-   input.confirm?.({keep:()=>{used=true;},actionLabel:'Use current starting facts',message:prepared.copy+'\n\nReview these current starting facts against your own wording. Only the starting facts change; your exact subject, body, photos and destination choices stay. Your edited wording is not independently verified. Nothing is saved or sent.',discard:async()=>{
+   input.confirm?.({keep:()=>{used=true;},actionLabel:channel==='social'?'Start separate draft with current facts':'Use current starting facts',message:prepared.copy+'\n\n'+(channel==='social'?'This creates a separate private preparation; the saved original stays unchanged. ':'')+'Review these current starting facts against your own wording. Only the starting facts change; your exact subject, body, photos and destination choices stay. Your edited wording is not independently verified. Nothing is saved or sent.',discard:async()=>{
     if(used||!stillCurrent())return false;used=true;
     try{const checked=await prepareCurrent();if(!stillCurrent()||!checked.ok||stableJson(checked)!==stableJson(prepared))return false;
-     epoch.current++;const {contentSourceReview,contentCloudReview,...source}=live.current.sourceContext;
-     setContext({...source,contentEvidence:{...checked,...evidence.reusedDraft?{reusedDraft:evidence.reusedDraft}:{},manualSourceReview:{previousSource:evidence.source,previousSelection:evidence.selection||null,wordingReviewedAutomatically:false}}});return true;
+     epoch.current++;if(channel==='social'){live.current={...live.current,selectedDraftId:null};input.setSelectedDraftId(null);}
+     const {contentSourceReview,contentCloudReview,...source}=live.current.sourceContext;
+     setContext({...source,contentEvidence:{...checked,...(channel==='social'?{reusedDraft:{id:record.id,updatedAt:record.updatedAt||'',businessId:live.current.businessId}}:evidence.reusedDraft?{reusedDraft:evidence.reusedDraft}:{}),manualSourceReview:{previousSource:evidence.source,previousSelection:evidence.selection||null,wordingReviewedAutomatically:false}}});return true;
     }catch{return false;}
    }});return true;
   }catch{return false;}
  };
+ const refreshNewsletterSource=options=>refreshPreparedSource('newsletter',options);
+ const reviewSocialVariation=options=>refreshPreparedSource('social',options);
  const reusePreparedDraft=async(channel,{isCurrent=()=>true}={})=>{
   if(!['newsletter','social'].includes(channel))return false;
   if(!valid()||epoch.current!==renderEpoch||!isCurrent())return false;
@@ -303,5 +306,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection,result.channel||'social');return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection,result.channel||'social')}:result;
  };
- return {canUpdatePrivateDraft:record=>valid()&&epoch.current===renderEpoch&&!!record&&live.current.selectedDraftId===record.id&&live.current.records?.filter(row=>row?.id===record.id).length===1&&live.current.records.includes(record)&&(record.status||'Draft')==='Draft'&&!record.publishedAt&&(!record.businessId||record.businessId===live.current.businessId)&&(!record.contentEvidence?.businessId||record.contentEvidence.businessId===live.current.businessId),pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource:()=>reviewSource(),reviewSavedSource:record=>reviewSource(record),reuseNewsletter,reuseSocialDraft,refreshNewsletterSource,resumeNewsletterWording,resumeSocialWording,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {canUpdatePrivateDraft:record=>valid()&&epoch.current===renderEpoch&&!!record&&live.current.selectedDraftId===record.id&&live.current.records?.filter(row=>row?.id===record.id).length===1&&live.current.records.includes(record)&&(record.status||'Draft')==='Draft'&&!record.publishedAt&&(!record.businessId||record.businessId===live.current.businessId)&&(!record.contentEvidence?.businessId||record.contentEvidence.businessId===live.current.businessId),pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource:()=>reviewSource(),reviewSavedSource:record=>reviewSource(record),reuseNewsletter,reuseSocialDraft,refreshNewsletterSource,reviewSocialVariation,resumeNewsletterWording,resumeSocialWording,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }

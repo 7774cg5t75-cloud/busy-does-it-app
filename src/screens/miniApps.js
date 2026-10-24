@@ -2469,8 +2469,8 @@ function MiniAppBuilder({ s }) {
           <Text style={styles.cardBody}>
             Voice provides transcription only, within its existing daily allowance. BUSY asks before changing the private app.
           </Text>
-          <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
-            config={view.draftConfig} suggestions={view.enquiryContentGaps?.suggestions||[]} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
+          <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['public-info']||0].join(':')}
+            onDraftChange={value=>markOwnerDirty('public-info',value)} config={view.draftConfig} suggestions={view.enquiryContentGaps?.suggestions||[]} onPreview={proposal=>setStudioPreview(proposal,'public-info')} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}/>
           <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch,confirmedOwnerParts.contact||0].join(':')}
             businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
             onDraftChange={value=>markOwnerDirty('contact',value)}

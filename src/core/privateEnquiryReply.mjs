@@ -27,6 +27,8 @@ export async function writePrivateEnquiryReplyCopy({ownerId,businessId,revision,
  // record cannot silently erase it through JSON serialization.
  try{
   if(!Array.isArray(payload?.customers)||payload.customers.filter(row=>row?.id===customer?.id).length!==1||!payload.customers.includes(customer)||[customer?.businessId,customer?.business_id].some(id=>id&&id!==businessId))return {status:'failed'};
+  if(record!==null&&customer.privateEnquiryReply&&[customer.privateEnquiryReply.ownerId,customer.privateEnquiryReply.businessId,customer.privateEnquiryReply.customerId].some((id,index)=>id!==[ownerId,businessId,customer.id][index]))return {status:'failed'};
+  if(record?.purpose==='quote-preparation'&&customer.privateEnquiryReply&&customer.privateEnquiryReply.reference?.inboxId!==record.reference?.inboxId)return {status:'failed'};
   if(record===null){const old=customer.privateEnquiryReply;if(old&&(old.ownerId!==ownerId||old.businessId!==businessId||old.customerId!==customer.id))return {status:'failed'};}
   else if(!record||typeof record!=='object'||!resolvePrivateEnquiryReply({ownerId,businessId,customer:{...customer,privateEnquiryReply:record},inboxItems:payload.inboxItems,revision}))return {status:'failed'};
   if(record!==null&&customer.privateEnquiryReply){

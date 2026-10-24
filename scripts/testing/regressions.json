@@ -2383,6 +2383,24 @@
       "args": [
         "scripts/check-mission15-recorded-quote-work-draft.mjs"
       ]
+    },
+    {
+      "id": "mission15-repeat-customer-preparation",
+      "args": [
+        "scripts/check-mission15-repeat-customer-preparation.mjs"
+      ]
+    },
+    {
+      "id": "mission15-corrected-social-variation",
+      "args": [
+        "scripts/check-mission15-corrected-social-variation.mjs"
+      ]
+    },
+    {
+      "id": "mission15-public-wording-continuity",
+      "args": [
+        "scripts/check-mission15-public-wording-continuity.mjs"
+      ]
     }
   ]
 }
