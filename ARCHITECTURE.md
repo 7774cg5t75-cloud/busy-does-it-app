@@ -1,3 +1,13 @@
+## Safe source-change decisions and retained returning Work — 24 October2026
+
+Frozen functional local `5304ef0478d8aaf355a0855363b9c4235c3e0397`, matching GitHub `a2cc92887c19b330a38afe91347035a97d7ca5a0`, tree `0af088c63d071dabfbcd25f48d987d9381bc9dcd`. Genuine private V22.51 hash reverified; original/extraction remain outside Git.
+
+Existing canonical editor now compares retained/current source and account/session quote facts without replacing words. Displayed comparisons pause quote/private saves; quote review also pauses during a pending inspection. Only a fresh original finite eligibility read for the same hash/revision can resume a separate reviewed save. Changed/restricted/unavailable sources stay read-only. Quote/private review epochs invalidate stale approvals. Private account observations and selectable session words stay separate; stable-scope same-actor role loss hides the retained editor from display/accessibility rather than unmounting it. Different owner/business/scope receives no old private subtree. Session retention is not durable storage or new authority. All-cleared saved quotes now remain dirty. No SQL, permission, storage, package or AppController expansion.
+
+Fresh final381 application/105 foundation,262 original PG/96 canonical PG,65 actual component-to-PG RPC calls pass on final clean functional source. First bridge Discard failure and interrupted195/0/0/186 runner2 preserved; original React effects explicitly exercised, assertions unchanged. PG17 used explicit no TCP/private Unix socket, stopped afterward. Initial socket sandbox denial retained. Local mock UID/inert components are not hosted JWT/PostgREST/native acceptance.
+
+See [implementation, policy decisions and limited staging prerequisites](docs/SOURCE_CHANGE_DECISIONS_2026_10_24.md) and companion application/SQL CHECKS. Source rebase, legacy authorship/disclosure, real-data retention/erasure and booking execution remain gated. Canonical UUID/provenance/independent revisions/private ownership, unknown fields, old-client read/write fences, production fuses, disabled hosted flags and Phase52 counterexample are unchanged. £0, no hosted/deployment/provider/screenshots/workflow actions; draft21→23→24→25→26 preserved.
+
 ## Returning account quote/private editing without restored customers — 24 October2026
 
 Frozen functional GitHub `cffee1822266579f35b9810edf72725b06ecf219`, local `f2a8cceb839beea896e34df6e8ac42fb40e1ffa4`, matching tree `1010af2bb518b9a9e7baaed621e9ffa99167598e`. Genuine private V22.51 hash reverified; prior complete review reused and original/extraction outside Git.
