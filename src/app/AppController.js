@@ -17882,7 +17882,7 @@ function App() {
     setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
     savePrivateQuoteFollowUp,
-    quoteFollowUpPrivateRecorded:isPrivateQuoteFollowUpRecorded(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,quoteFollowUpSources.current),
+    quoteFollowUpPrivateRecorded:isPrivateQuoteFollowUpRecorded(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,quoteFollowUpSources.current,selectedReplyActionId),
     prepareQuoteDetails,
     quoteEnquiryLinkStatus:replyActions[selectedReplyActionId]?.details?.enquiryReference?resolveQuoteEnquiryReference(replyActions[selectedReplyActionId].details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId:selectedReplyActionId,inboxItems,revision:cloudRevision})?'linked':'needs-review':'',
     resumeCurrentEnquiry,

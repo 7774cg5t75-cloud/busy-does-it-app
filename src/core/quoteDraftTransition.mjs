@@ -47,6 +47,6 @@ function privateQuoteRecordObserved(draft,workspace,source){
 export function continuePrivateQuoteFollowUp(draft,workspace,source){
  return privateQuoteRecordObserved(draft,workspace,source)&&draft.action!==draft.privateSave.next?{...draft,action:draft.privateSave.next}:draft;
 }
-export function isPrivateQuoteFollowUpRecorded(draft,workspace,source){
- return privateQuoteRecordObserved(draft,workspace,source)&&draft.words===draft.privateSave.next.details.followUpMessage;
+export function isPrivateQuoteFollowUpRecorded(draft,workspace,source,customerId){
+ return draft?.customerId===customerId&&privateQuoteRecordObserved(draft,workspace,source)&&draft.words===draft.privateSave.next.details.followUpMessage;
 }
