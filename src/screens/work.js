@@ -3820,6 +3820,18 @@ function ReplyActionDetail({ s }) {
           {bookingReview.statusReview.investigation.source?<><Text style={styles.cardBody}>{'Observed original source: '+bookingReview.statusReview.investigation.source.sourceState+' · Work ledger: '+bookingReview.statusReview.investigation.source.workLedgerState}</Text><Text selectable style={styles.workspaceMeta}>{'Recorded source revision time: '+bookingReview.statusReview.investigation.source.updatedAt}</Text></>:null}
           <Text style={styles.helper}>Review the recorded diary and customer. This inspection cannot replace a local booking, clear uncertainty, reschedule or retry a request. Customer and calendar delivery remain unverified.</Text>
         </View>:null}
+        {bookingReview.statusReview?.investigation?.source?.association?<View style={styles.workspacePanel}>
+          <Text style={styles.cardTitle}>Verified persisted booking association</Text>
+          <Text selectable style={styles.workspaceMeta}>{'Customer '+bookingReview.statusReview.investigation.source.association.customerId+' · Work action '+bookingReview.statusReview.investigation.source.association.actionId}</Text>
+          {bookingReview.statusReview.investigation.source.association.diary?<>
+            <Text style={styles.cardBody}>{'BUSY Work diary: '+bookingReview.statusReview.investigation.source.association.diary.date+' at '+bookingReview.statusReview.investigation.source.association.diary.time+' ('+bookingReview.statusReview.investigation.source.association.diary.timeZone+')'}</Text>
+            {bookingReview.statusReview.investigation.source.association.diary.date!==saved.details?.bookingDate||bookingReview.statusReview.investigation.source.association.diary.time!==saved.details?.bookingTime?<Text accessibilityLiveRegion="polite" style={styles.helper}>{'Different from this local booking: '+(saved.details?.bookingDate||'Date not recorded')+' at '+(saved.details?.bookingTime||'Time not recorded')+'. Your fields have not been replaced.'}</Text>:null}
+            <Text style={styles.helper}>Compare this source slot with your current fields. Opening the diary does not replace your booking, settle an uncertain save or confirm external calendar delivery.</Text>
+            <Button label="Open verified source diary day" onPress={()=>bookingReview.openSource('diary')}/>
+          </>:<Text style={styles.helper}>This request has no durable Work diary record. A draft is not a confirmed booking.</Text>}
+          <Button label="Open source-linked customer" onPress={()=>bookingReview.openSource('customer')}/>
+        </View>:null}
+        <Button label="Inspect customer and diary association" onPress={bookingReview.inspectContext}/>
         <Button label="Review this booking in the diary" onPress={bookingReview.openDiary}/>
         <Button label="Inspect original booking status" onPress={bookingReview.inspectStatus}/>
         {bookingReview.unsupportedReschedule?<Card title="Linked booking date change is not supported here" body="Your draft date and time are kept. This editor cannot reschedule the original Business App request. Inspect that booking before changing its recorded slot." tone="amber"/>:null}

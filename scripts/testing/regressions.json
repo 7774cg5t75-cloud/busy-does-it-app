@@ -2281,6 +2281,12 @@
       "args": [
         "scripts/check-mission15-useful-customer-continuity.mjs"
       ]
+    },
+    {
+      "id": "mission15-source-bound-bookings",
+      "args": [
+        "scripts/check-mission15-source-bound-bookings.mjs"
+      ]
     }
   ]
 }

@@ -35,7 +35,7 @@ import {executeAppDraftMutation} from "../core/appDraftMutation.mjs";
 import {executePrivateAppBatch} from "../core/privateAppEditSession.mjs";
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
 import {interpretOwnerStatusAfterErrorV3231} from "../core/ownerStatusRecoveryV3231.mjs";
-import {assessBookingCancelReadbackV3233,inspectBookingReadbackV3233} from "../core/bookingCancelReadbackV3233.mjs";
+import {assessBookingCancelReadbackV3233,inspectBookingReadbackV3233,inspectBookingAssociationV3233} from "../core/bookingCancelReadbackV3233.mjs";
 import {reconcileFirstAppReadback} from "../core/firstAppRecoveryV3198.mjs";
 import {evaluateCustomerRequestOutcome,customerRequestNotice}
  from "../core/customerJourneyOutcomeV3204.mjs";
@@ -1689,19 +1689,20 @@ function App() {
     });
   };
 
-  const prepareBookingStatus = async (customerId,bookingStatus,{isCurrent=()=>true,readOnly=false}={}) => {
+  const prepareBookingStatus = async (customerId,bookingStatus,{isCurrent=()=>true,readOnly=false,association=false}={}) => {
     const scope=businessWorkspaceScopeRef.current,source=replyActionSources.current;
     const action=source.replyActions?.[customerId],matches=[...source.customers,...source.lastSimulatedRecipients].filter(row=>row.id===customerId);
     const customer=matches[0],stamp=JSON.stringify([customer,action]),role=source.role,revision=source.cloudRevision;
     const current=()=>!!scope?.businessId&&!!scope?.ownerScope?.userId&&businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&['owner','admin'].includes(role)&&replyActionSources.current.role===role&&replyActionSources.current.cloudRevision===revision&&replyActionSources.current.replyActions?.[customerId]===action&&[...replyActionSources.current.customers,...replyActionSources.current.lastSimulatedRecipients].some(row=>row===customer)&&JSON.stringify([customer,action])===stamp&&isCurrent();
     if(!current()||!customer||matches.some(row=>row!==customer)||action?.type!=='booking'||!['Cancelled','Confirmed'].includes(bookingStatus)||[customer.businessId,customer.business_id].some(id=>id&&id!==scope.businessId))return null;
+    if(association&&(!readOnly||role!=='owner'))return null;
     const previous=bookingStatusWrite.current;
     if(!readOnly&&previous?.scope===scope&&['pending','unknown','confirmed-review'].includes(previous.phase))return null;
     let approved=null;
     if(action.details?.sourceMiniAppRequestId&&(readOnly||bookingStatus==='Cancelled')){
-      const response=await miniAppsRequest('owner_booking_revision',{requestId:action.details.sourceMiniAppRequestId},{isCurrent:current});
+      const response=await miniAppsRequest('owner_booking_revision',{requestId:action.details.sourceMiniAppRequestId,...(association?{includeAssociation:true}:{})},{isCurrent:current});
       if(!current())return null;
-      if(readOnly){const observed=inspectBookingReadbackV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,response});if(!observed.ok)throw Error(observed.reason);return observed;}
+      if(readOnly){const observed=association?inspectBookingAssociationV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,customerId,actionId:`miniapp-booking-${action.details.sourceMiniAppRequestId}`,response}):inspectBookingReadbackV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,response});if(!observed.ok)throw Error(observed.reason);return observed;}
       approved=assessBookingCancelReadbackV3233({businessId:scope.businessId,requestId:action.details.sourceMiniAppRequestId,response,localBookingStatus:action.details.bookingStatus||''});
       if(!approved.ok)throw Error(approved.reason);
     }

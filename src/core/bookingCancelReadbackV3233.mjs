@@ -47,3 +47,16 @@ export function inspectBookingReadbackV3233({businessId,requestId,response}={}){
  if(!draft&&!confirmed&&!closed)return deny();
  return {ok:true,kind:'booking-observation',businessId,requestId,appId:r.appId,sourceState:draft?'draft':confirmed?'confirmed':'closed',updatedAt:r.updatedAt,workLedgerState:r.workLedgerState,alreadyClosed:closed,readOnly:true,notOwnReceipt:true,canAdoptLocalStatus:false,mayRetryAutomatically:false,mayReschedule:false};
 }
+
+export function inspectBookingAssociationV3233({businessId,requestId,customerId,actionId,response}={}){
+ const base=inspectBookingReadbackV3233({businessId,requestId,response}),a=response?.revision?.association;
+ const deny=()=>({ok:false,reason:'The current customer and original booking association could not be verified. Keep your wording and inspect the source again.'});
+ if(!base.ok||response.revision.notOwnReceipt!==true||a?.kind!=='persisted_booking_association_v3233'||a.customerId!==customerId||a.actionId!==actionId||typeof a.linkRevision!=='string'||!Number.isFinite(Date.parse(a.linkRevision)))return deny();
+ let diary=null;
+ if(a.diary){
+  const d=a.diary,p=new Date(String(d.date)+'T12:00:00Z');
+  if(!UUID.test(d.id||'')||typeof d.date!=='string'||!/^20\d{2}-\d{2}-\d{2}$/.test(d.date)||!Number.isFinite(p.getTime())||p.toISOString().slice(0,10)!==d.date||typeof d.time!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(d.time)||typeof d.timeZone!=='string'||!/^[A-Za-z_]+(?:\/[A-Za-z0-9_+\-]+)*$/.test(d.timeZone)||d.timeZone.length>64||d.state!==base.workLedgerState||typeof d.revision!=='string'||!Number.isFinite(Date.parse(d.revision)))return deny();
+  diary={id:d.id,date:d.date,time:d.time,timeZone:d.timeZone,state:d.state,revision:d.revision};
+ }else if(base.workLedgerState!=='not_applicable')return deny();
+ return {...base,association:{kind:a.kind,customerId,actionId,linkRevision:a.linkRevision,diary}};
+}

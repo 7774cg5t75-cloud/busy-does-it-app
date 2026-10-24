@@ -59,17 +59,30 @@ export function useBookingActionReview(s){
   if(!isCurrent()||typeof s.requestOwnerEditTransition!=='function')return false;
   return s.requestOwnerEditTransition(()=>{if(used||!current()||pending.current)return false;used=true;return operation();},{isCurrent});
  };
- const inspectStatus=async()=>{
+ const inspectStatus=async(withAssociation=false)=>{
+  withAssociation=withAssociation===true;
   const captured=epoch.current,token={};inspection.current=token;
   const operation=live.current.bookingStatusOperation;
   const valid=()=>inspection.current===token&&current()&&epoch.current===captured&&live.current.bookingStatusOperation===operation;
   if(!valid()||typeof s.prepareBookingStatus!=='function')return false;
-  try{const observed=await s.prepareBookingStatus(customer.id,'Cancelled',{isCurrent:valid,readOnly:true});if(!valid()||!observed?.readOnly||!observed.notOwnReceipt)return false;
+  try{const observed=await s.prepareBookingStatus(customer.id,'Cancelled',{isCurrent:valid,readOnly:true,association:withAssociation});if(!valid()||!observed?.readOnly||!observed.notOwnReceipt)return false;
    const bound=operation?.scope===scope&&operation.customerId===customer.id&&operation.role===role&&operation.requestId===action.details?.sourceMiniAppRequestId;
    const attempt=bound?{id:operation.id,target:operation.bookingStatus,revision:operation.revision,phase:operation.phase,ownReceipt:['confirmed','confirmed-review'].includes(operation.phase)}:null;
    const message=observed.kind==='local-booking-observation'?'This is the current local booking only. No account outcome or durable draft was verified.':observed.alreadyClosed?'The original account request now shows closed. This is an observation, not proof that your interrupted action committed. Do not replay cancellation.':'The original account request is not recorded as closed. This does not settle a pending or lost acknowledgement; do not retry it automatically.';
-   setStatusReview({scope,id:customer.id,role,actor,action,stamp,typing:captured,operation,phase:'observation',message,investigation:{customerId:customer.id,requestId:action.details?.sourceMiniAppRequestId||'',localStatus:action.details?.bookingStatus||'Not recorded',attempt,source:observed.kind==='booking-observation'?observed:null}});return true;
+   setStatusReview({scope,id:customer.id,role,actor,revision,view,customerStamp,action,stamp,typing:captured,operation,phase:'observation',message,investigation:{customerId:customer.id,requestId:action.details?.sourceMiniAppRequestId||'',localStatus:action.details?.bookingStatus||'Not recorded',attempt,source:observed.kind==='booking-observation'?observed:null}});return true;
   }catch{if(valid())setStatusReview({scope,id:customer.id,phase:'observation',message:'The original request could not be checked. Keep your wording; no operation was retried.'});return false;}
+ };
+ const openSource=async target=>{
+  const observed=statusReview?.investigation?.source,captured=epoch.current,operation=live.current.bookingStatusOperation,token={};inspection.current=token;
+  const valid=()=>inspection.current===token&&current()&&!conflict&&epoch.current===captured&&live.current.bookingStatusOperation===operation&&role==='owner';
+  if(!valid()||!observed?.association||!['customer','diary'].includes(target)||target==='diary'&&!observed.association.diary)return false;
+  try{
+   const checked=await s.prepareBookingStatus(customer.id,'Cancelled',{isCurrent:valid,readOnly:true,association:true});
+   if(!valid())return false;
+   if(!checked?.association||JSON.stringify(checked)!==JSON.stringify(observed)){setStatusReview(null);Alert.alert('Booking context changed','Your words are kept. Inspect the current association again before continuing.');return false;}
+   inspection.current=null;
+   return transition(()=>target==='customer'?s.openCustomer?.(customer.id):(()=>{s.setOperatorCalendarDate?.(checked.association.diary.date);return s.go?.('workCalendar');})());
+  }catch{if(valid())Alert.alert('Could not verify booking context','Your words are kept. No operation was retried. Inspect the source again.');return false;}
  };
  const openDiary=()=>{
   const day=action.details?.bookingDate,parsed=new Date(String(day)+'T12:00:00Z');
@@ -102,7 +115,7 @@ export function useBookingActionReview(s){
     ]);return true;
   }catch(error){if(statusTicket.current===token)statusTicket.current=null;if(current())setStatusReview({scope,id:customer.id,phase:'failed',message:error?.message||'Could not review the original booking. Nothing was submitted.'});return false;}
  });
- const freshInvestigation=!statusReview?.investigation||(statusReview.role===role&&statusReview.actor===actor&&statusReview.action===action&&statusReview.stamp===stamp&&statusReview.typing===epoch.current&&statusReview.operation===s.bookingStatusOperation);
+ const freshInvestigation=!statusReview?.investigation||(statusReview.role===role&&statusReview.actor===actor&&statusReview.revision===revision&&statusReview.view===view&&statusReview.customerStamp===customerStamp&&statusReview.action===action&&statusReview.stamp===stamp&&statusReview.typing===epoch.current&&statusReview.operation===s.bookingStatusOperation);
  const unsupportedReschedule=!!action?.details?.sourceMiniAppRequestId&&(s.actionBookingDate!==action.details.bookingDate||s.actionBookingTime!==action.details.bookingTime);
- return {edit,commit,transition,unsupportedReschedule,reviewStatus,inspectStatus,openDiary,statusBlocked:statusBlocked(),statusReview:statusReview&&freshInvestigation&&statusReview.scope===scope&&statusReview.id===customer?.id&&(!s.bookingStatusOperation||s.bookingStatusOperation.customerId!==customer?.id||s.bookingStatusOperation.phase==='pending'||statusReview.phase==='observation')?statusReview:null,conflict,saving:!!pending.current,dirty:dirty.current};
+ return {edit,commit,transition,unsupportedReschedule,reviewStatus,inspectStatus,inspectContext:()=>inspectStatus(true),openSource,openDiary,statusBlocked:statusBlocked(),statusReview:statusReview&&freshInvestigation&&statusReview.scope===scope&&statusReview.id===customer?.id&&(!s.bookingStatusOperation||s.bookingStatusOperation.customerId!==customer?.id||s.bookingStatusOperation.phase==='pending'||statusReview.phase==='observation')?statusReview:null,conflict,saving:!!pending.current,dirty:dirty.current};
 }
