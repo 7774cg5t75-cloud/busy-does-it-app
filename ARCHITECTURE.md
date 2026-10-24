@@ -1,3 +1,15 @@
+## Enquiry → quote → Work and connected private drafts — 24 October 2026
+
+Frozen functional GitHub `2af51b2d62ade003564ab67ac426d952ba63db08`, local `3fe17544e11878e622e508708f8e3250cec0ebef`, identical tree `cfc846e427c2725ca9dd0a8bee6a429f6e5b0cd7`. Genuine private V22.49 bytes reverified; private contents remain outside Git.
+
+Original Filed-enquiry Customer context now enters/reopens its actual private quote, retaining supported filing identity and original reviewed origins. Same-kind Work reopens intact; a different current action is not silently overwritten. Actual requirements review/private Prepared save/original Work reopen tested with amounts/dates/words preserved. Separate original Accepted-quote conversion now requires that recorded status/finite amount/current source and dirty review, preserving quote evidence and zero in a local booking Draft; no acceptance, confirmed booking or provider action invented.
+
+Creator can independently observe an exactly matching selected Draft in the original scoped device cache without a previous write receipt, retaining newer words/media and unresolved own-write identity. Observed-only UI never implies an own acknowledgement, account save or publication. Original App service editor consumes stale Keep/Discard decisions and blocks outdated/pending preview, changed rows/revisions/busy/unmount callbacks while retaining exact text and original Undo.
+
+Seven existing production modules, four original-parent regressions, two extended original fixtures; no new production module/package/store/controller/ledger. AppController+24 bounded lines in original action/read ownership; existing monolith remains a risk. Frozen371/0/0/0 application, all children/runner0; production105,13-file syntax, native-source syntax, dependency and architecture checks pass. Static audit1,504 files/159,369 physical lines/2,993 relative edges/zero detected cycles; dynamic coupling not certified. Failed fixture candidates retained. No fresh SQL execution claimed: original proposals/runner/fixtures/account session/fuses/flags unchanged.
+
+See [implementation and limits](docs/ENQUIRY_QUOTE_WORK_CONTINUITY_2026_10_24.md) and [checks](docs/ENQUIRY_QUOTE_WORK_CONTINUITY_CHECKS_2026_10_24.json). Original one-current-action-per-customer and unsupported broad account/quote/content writes remain limits; no generic restoration or parallel ledger. Phase52 counterexample and read/write privacy boundaries unchanged. Genuine JWT/PostgREST, effective deployed ACL/RLS, device/cache/process-death/provider and staged rollback acceptance remain separate. £0; no hosted operations, deployment, screenshots, communications, booking/financial/tax/provider execution or workflows. Preserve draft21→23→24→25→26 and separately approved oldest-first integration.
+
 ## Returning-customer experience and connected completion — 24 October 2026
 
 Frozen functional GitHub `2ffb9eca984c8e9cb9863e23deed3e2d349841a5`, local `2ee605f7025907aa9a62837dc45245ceae3b5163`, identical tree `9f7c6b5c958fa2cbac211b9d07f760ecbe22f2fe`. Genuine private V22.49 original reverified; private contents stay outside Git.
