@@ -1,3 +1,13 @@
+## Canonical quote → reviewed private Work preparation — 24 October2026
+
+Frozen local `92b411503b5c7b0afbd9023b5d4fb6b59e05dba1`, matching GitHub `3142e00ad4be84b2324df66bd9c500867b04d842`, tree `5c20d9ac0295d8bc3e65ccfff458aebb01993127`. Genuine private V22.51 hash reverified; original outside Git.
+
+Original Get Paid intelligence and engagement-private editor now prepare owner-reviewed Work planning from the exact current canonical quote/source, recheck before Use and separately review/save/read back through the existing private target. Zero amount/exact wording/quote date/UUID preserved; notes explicitly establish no customer acceptance, booking link, diary confirmation or payment. Quote remains Prepared, no new engagement/ledger/customer or lifecycle mutation. Source-conflict Keep preserves unfinished words and leaves comparison read-only. No source rebase or private attribution authority invented.
+
+Fresh final381 app/105 foundation/262 original PG/96 canonical PG and76 actual component/database RPC children pass, all final runners0. Quote stays revision3 while private preparation reaches revision5; second engagement and original snapshot/legacy remain intact. No failed/interrupted test candidates this mission; earlier failures preserved. PG explicitly no TCP/private socket, stopped afterward. Local UID/inert native boundaries are not hosted JWT/device/provider acceptance.
+
+See [implementation and remaining authorities](docs/CANONICAL_QUOTE_WORK_PLANNING_2026_10_24.md) and companion application/SQL CHECKS. SQL/package/fuses/disabled flags/Phase52 remain unchanged. AppController untouched, no dependency/new production module; source census1,526 files/160,600 lines/3,057 edges/zero static cycles. £0; no hosted/deployment/real action/screenshots/workflow/merge operations. Draft21→23→24→25→26 preserved.
+
 ## Safe source-change decisions and retained returning Work — 24 October2026
 
 Frozen functional local `5304ef0478d8aaf355a0855363b9c4235c3e0397`, matching GitHub `a2cc92887c19b330a38afe91347035a97d7ca5a0`, tree `0af088c63d071dabfbcd25f48d987d9381bc9dcd`. Genuine private V22.51 hash reverified; original/extraction remain outside Git.
