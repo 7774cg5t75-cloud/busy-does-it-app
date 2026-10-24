@@ -63,3 +63,16 @@ The current managed policy allowed the registry, but the command sandbox separat
 ### Phase 23 — named Babel plugin resolution
 
 The reviewed regression runner now gives only its child checks `NODE_PATH=<repository>/scripts/offline-tools/node_modules`. Some inherited checks pass Babel plugin names as strings; Babel resolves those relative to the working directory, which could fail despite a healthy pinned prefix when an earlier session's shell export was absent. The runner supplies this test-only lookup explicitly and records it in its evidence JSON. No global shell configuration, runtime dependency, download or Codex platform permission is changed. Prefer explicit `requireTools` plugin objects in new checks. Offline bootstrap and health commands remain unchanged.
+
+## 24 October 2026 — restored disposable PostgreSQL17 cache
+
+The approved runtime was restored at `/workspace/pg17-disposable`, outside public Git. Server/client packages are **17.11-0+deb13u1**, from the signed Debian trixie index at `https://deb.debian.org/debian`. Complete package URLs were resolved with APT before download; SHA-256 values matched both the signed index and the retained Phase59 evidence:
+
+- `https://deb.debian.org/debian/pool/main/p/postgresql-17/postgresql-17_17.11-0%2bdeb13u1_amd64.deb` — `d2ce1ddffafa783f9acda4c92c86fc21e8288bff3782d739294f14fa797d7886`.
+- `https://deb.debian.org/debian/pool/main/p/postgresql-17/postgresql-client-17_17.11-0%2bdeb13u1_amd64.deb` — `9d8558f8dd57c8e92e218a20698383575d53742ca3f9e7c2b7fe5f246d5216ae`.
+
+APT configuration/lists/cache are isolated below that directory, using the existing Debian archive keyring and signed verification. Packages were extracted with `dpkg-deb`, without system installation, service changes or maintainer-script execution. No additional dependencies were installed; local library resolution was checked. Retain/reverify the cache rather than downloading executable replacements from arbitrary sources. A new environment may not preserve these files; verify availability and hashes again.
+
+`root/usr/lib/postgresql/17/bin` holds the tools; `data` and the mode0700 `socket` directory are dedicated to fictional fixtures. The initialized cluster uses local trust only inside that restricted directory, rejects host authentication, and starts with `listen_addresses=''` and `unix_socket_permissions=0700`. No TCP listener or hosted connection is needed. In this session the normal sandbox denied Unix-socket binding; per-command additional network permission allowed that local socket. Do not work around this by enabling TCP or changing sandbox/security policy. Stop the cluster after testing; this mission's final stop exited0.
+
+Use the original `phase66_postgres.py` chain with the private exact provisioning definitions supplied outside Git, followed by `account_work_postgres.py` against the same disposable database and a fresh successful baseline report. See `docs/sql-proposals/account-work/README.md`. Real local PostgreSQL locks, privileges, transactions and denials are tested; the synthetic UID fixture does not establish genuine Supabase JWT/PostgREST enforcement. No hosted staging or production action is implied.
