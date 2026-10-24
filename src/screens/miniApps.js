@@ -4972,9 +4972,12 @@ function MiniAppRequestDetailForm({ s }) {
   const detail = s.selectedMiniAppRequestDetail || {};
   const request = detail.request || null;
   const role = s.selectedMiniAppRequestRole || "customer";
-  const [draft, setDraft] = React.useState("");
+  const [draft, setDraftValue] = React.useState("");
+  const replyTyping=React.useRef(0);
+  const setDraft=value=>{replyTyping.current++;liveReply.current=value;setDraftValue(value);};
   const [reviewedReplyStamp,setReviewedReplyStamp]=React.useState(null);
   const liveReply=React.useRef(null),replyAlive=React.useRef(true);liveReply.current=draft;
+  const liveReplyContext=React.useRef(s);liveReplyContext.current=s;
   React.useEffect(()=>{replyAlive.current=true;return()=>{replyAlive.current=false;};},[]);
   const ownerView = role === "business";
   React.useEffect(()=>{
@@ -5181,9 +5184,14 @@ function MiniAppRequestDetailForm({ s }) {
                         disabled={!!s.miniAppsAction||!!s.ownerFollowupBusy}
                         onPress={()=>{
                           const stamp=s.ownerFollowupReview.sourceStamp;
+                          const epoch=replyTyping.current,originalWords=liveReply.current,review=s.ownerFollowupReview;
+                          let consumed=false;
+                          const current=()=>{const now=liveReplyContext.current;return replyAlive.current&&replyTyping.current===epoch&&liveReply.current===originalWords&&now.ownerSession?.userId===s.ownerSession?.userId&&now.cloudWorkspace?.businessId===s.cloudWorkspace?.businessId&&now.selectedMiniAppRequestRole===role&&now.selectedMiniAppRequestDetail?.request===request&&now.ownerFollowupReview===review&&review.sourceStamp===stamp;};
                           const apply=async()=>{
+                            if(consumed||!current())return false;consumed=true;
                             const confirmed=await s.prepareVerifiedOwnerFollowupDraft(
                               request.id,stamp);
+                            if(!current())return false;
                             if(confirmed?.ok&&confirmed.sourceStamp&&
                                confirmed.requestId===request.id&&
                                confirmed.appId===request.mini_app_id){
@@ -5193,6 +5201,7 @@ function MiniAppRequestDetailForm({ s }) {
                                 appId:request.mini_app_id,
                                 sourceStamp:confirmed.sourceStamp
                               });
+                              return true;
                             }else{
                               Alert.alert("Review the latest conversation",
                                 confirmed?.reason||
@@ -5202,10 +5211,10 @@ function MiniAppRequestDetailForm({ s }) {
                           if(draft.trim()){
                             Alert.alert("Replace your current reply?",
                               "Busy will check the current saved messages again before replacing your unsent text. Nothing will be sent.",[
-                                {text:"Keep my text",style:"cancel"},
+                                {text:"Keep my text",style:"cancel",onPress:()=>{consumed=true;}},
                                 {text:"Recheck and use draft",onPress:apply}
                               ]);
-                          }else apply();
+                          }else return apply();
                         }}/>
                     </View>
                   ):null}
@@ -5217,6 +5226,18 @@ function MiniAppRequestDetailForm({ s }) {
               </Text>
             </Card>
           ):null}
+          {ownerView&&request.request_type==='booking_request'?<Card eyebrow="Returning to work" title="Inspect this account booking" body="Check one current account customer and Work action. This does not restore the workspace or settle an uncertain booking.">
+            <Button label="Inspect current account customer and Work" onPress={()=>{const epoch=replyTyping.current;return s.inspectMiniAppAccountBooking?.(request.id,{isCurrent:()=>replyAlive.current&&replyTyping.current===epoch});}}/>
+            {detail.accountBookingReview&&detail.accountBookingReview.requestId===request.id&&detail.accountBookingReview.businessId===request.business_id&&detail.accountBookingReview.appId===request.mini_app_id&&s.cloudWorkspace?.role==='owner'?<View>
+              <Text style={styles.sectionLabel}>{detail.accountBookingReview.customer.name+' · '+detail.accountBookingReview.customer.service}</Text>
+              <Text selectable style={styles.cardBody}>{'Customer '+detail.accountBookingReview.customer.id+' · Work '+detail.accountBookingReview.action.id+' · account revision '+detail.accountBookingReview.revision}</Text>
+              <Text style={styles.cardBody}>{'Account booking: '+detail.accountBookingReview.action.status+' · '+detail.accountBookingReview.action.date+' '+detail.accountBookingReview.action.time}</Text>
+              <Text style={styles.cardBody}>{'Work diary: '+detail.accountBookingReview.ledger.date+' '+detail.accountBookingReview.ledger.time+' · '+detail.accountBookingReview.ledger.timeZone}</Text>
+              <Text style={styles.cardBody}>{detail.accountBookingReview.matchesLedger?'These account and Work facts agree. No local customer was inserted and no own-operation receipt was reconstructed.':'Account and Work facts differ. Keep current work and review the source; no automatic repair is available.'}</Text>
+              <Button label="Review account booking day in diary" disabled={!!draft.trim()||!detail.accountBookingReview.matchesLedger} onPress={()=>{if(liveReply.current?.trim())return false;const epoch=replyTyping.current;return s.inspectMiniAppAccountBooking?.(request.id,{navigate:'diary',isCurrent:()=>replyAlive.current&&replyTyping.current===epoch});}}/>
+              {draft.trim()?<Text style={styles.helper}>Your unfinished conversation wording is kept. Finish or clear it deliberately before leaving this context.</Text>:null}
+            </View>:null}
+          </Card>:null}
           {ownerView && link?.bridge_state === "booking_draft" ? (
             <Card
               eyebrow="BUSY booking"

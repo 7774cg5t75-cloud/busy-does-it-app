@@ -3814,9 +3814,15 @@ function App() {
     }
 
     const now = new Date().toISOString();
-    const existing = socialDrafts.find((draft) => draft.id === selectedSocialDraftId);
+    const matches=selectedSocialDraftId==null?[]:socialDrafts.filter(draft=>draft?.id===selectedSocialDraftId);
+    if(selectedSocialDraftId!=null&&(matches.length!==1||socialContentActions.canUpdatePrivateDraft?.(matches[0])===false)){
+      Alert.alert("Saved draft changed", "Your words, media and channel choices are kept. Reopen one current private draft, or deliberately start a separate draft before saving.");
+      return null;
+    }
+    const existing = matches[0];
     if(existing&&((existing.status||"Draft")!=="Draft"||existing.publishedAt))return null;
     const id = existing?.id || `social-draft-${Date.now()}`;
+    if(!existing&&socialDrafts.some(draft=>draft?.id===id))return null;
     const photos = socialCreatePhotos.map((photo) => ({
       id: photo.id,
       uri: photo.uri,
@@ -16475,11 +16481,12 @@ function App() {
 
   const requestConversationContextRef=useRef(null),requestConversationActionsRef=useRef(null);
   requestConversationContextRef.current={ownerScope:cloudOwnerScopeRef.current,workspaceScope:businessWorkspaceScopeRef.current,businessId:cloudWorkspace?.businessId||"",
-    detail:selectedMiniAppRequestDetail,role:selectedMiniAppRequestRole,request:miniAppsRequest,
+    detail:selectedMiniAppRequestDetail,role:selectedMiniAppRequestRole,screen,request:miniAppsRequest,
+    accountRecoveryEnabled:TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED,memberRole:cloudWorkspace?.role,accountReader:({observed,isCurrent})=>snapshotSessionRef.current.inspectBookingWork({enabled:TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED,getCurrent:()=>snapshotContextRef.current,observed,isCurrent,ownerAccessToken,request:busyDataRequest}),requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),setCalendarDate:setOperatorCalendarDate,
     setOwnerFollowupReview,setMiniAppRequestHistoryLoading,setMiniAppsError,setSelectedMiniAppRequestRole,
     setSelectedMiniAppRequestDetail,setTab,go,applyMiniAppsStatus,loadMyBusyApps};
   if(!requestConversationActionsRef.current)requestConversationActionsRef.current=createRequestConversationActions(()=>requestConversationContextRef.current);
-  const {loadMiniAppRequestDetail}=requestConversationActionsRef.current;
+  const {loadMiniAppRequestDetail,inspectMiniAppAccountBooking}=requestConversationActionsRef.current;
 
   // A request can fall off the recent 30-row inbox page. Independently
   // check one authenticated owner-scoped row without changing unread state.
@@ -17488,6 +17495,7 @@ function App() {
     openOwnerMiniAppRequest,
     openCustomerMiniAppRequest,
     loadEarlierMiniAppRequestMessages,
+    inspectMiniAppAccountBooking,
     toggleBusyAppFavorite,
     sendMiniAppRequestMessage,
     verifyOwnerRequestInbox,

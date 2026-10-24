@@ -2311,6 +2311,30 @@
       "args": [
         "scripts/check-mission15-returning-content-builders.mjs"
       ]
+    },
+    {
+      "id": "mission15-account-work-reader",
+      "args": [
+        "scripts/check-mission15-account-work-reader.mjs"
+      ]
+    },
+    {
+      "id": "mission15-followup-device-continuity",
+      "args": [
+        "scripts/check-mission15-followup-device-continuity.mjs"
+      ]
+    },
+    {
+      "id": "mission15-content-target-continuity",
+      "args": [
+        "scripts/check-mission15-content-target-continuity.mjs"
+      ]
+    },
+    {
+      "id": "mission15-request-draft-continuity",
+      "args": [
+        "scripts/check-mission15-request-draft-continuity.mjs"
+      ]
     }
   ]
 }

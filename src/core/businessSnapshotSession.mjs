@@ -1,3 +1,4 @@
+import {validAccountBookingWork} from './bookingCancelReadbackV3233.mjs';
 import {stableJson} from "./stableJson.mjs";
 // The original authenticated snapshot REST/CAS route. No second backend,
 // persistence queue, migration or automatic mutation retry.
@@ -131,6 +132,23 @@ function createBusinessSnapshotSession(){
   finally{if(pending===task)pending=null;}
  }
  // Bootstrap identification only. No payload apply, cache replacement or save.
+ async function inspectBookingWork({enabled=false,getCurrent,observed,isCurrent=()=>true,ownerAccessToken,request}){
+  const fail=()=>({ok:false,readOnly:true,reason:'Account booking inspection is unavailable or changed. Device work is kept; no operation was retried.'});
+  if(!enabled)return {...fail(),disabled:true};
+  const source=getCurrent(),a=observed?.association,d=a?.diary;
+  if(!source?.identity||source.role!=='owner'||!uuid.test(source.ownerId||'')||!uuid.test(source.businessId||'')||observed?.businessId!==source.businessId||!d||!isCurrent()||pending?.identity===source.identity)return fail();
+  let payload;try{payload=stamp(source.getPayload());}catch{return fail();}
+  const current=()=>{const now=getCurrent();try{return isCurrent()&&now?.identity===source.identity&&now.ownerId===source.ownerId&&now.businessId===source.businessId&&now.role==='owner'&&now.revision===source.revision&&stamp(now.getPayload())===payload;}catch{return false;}};
+  const task={identity:source.identity};pending=task;
+  try{
+   const token=await ownerAccessToken();if(!token||!current())return fail();
+   const meta=await request('rpc/busy_owner_account_revision_v1',{method:'POST',token,body:{p_business_id:source.businessId}});
+   if(!current()||!meta||Object.keys(meta).sort().join(',')!=='businessId,ownerId,revision,schemaVersion'||meta.businessId!==source.businessId||meta.ownerId!==source.ownerId||meta.schemaVersion!==1||!Number.isSafeInteger(meta.revision)||meta.revision<1)return fail();
+   const value=await request('rpc/busy_owner_booking_work_review_v1',{method:'POST',token,body:{p_business_id:source.businessId,p_request_id:observed.requestId,p_customer_id:a.customerId,p_action_id:a.actionId,p_expected_revision:meta.revision,p_request_revision:observed.updatedAt,p_link_revision:a.linkRevision,p_work_revision:d.revision}});
+   if(!current()||!validAccountBookingWork(value,{...source,revision:meta.revision},observed))return fail();
+   return {ok:true,readOnly:true,review:JSON.parse(stamp(value)),localRevisionDiffers:meta.revision!==source.revision};
+  }catch{return fail();}finally{if(pending===task)pending=null;}
+ }
  async function inspectWorkspace({businessId,ownerId,localRevision,isCurrent,ownerAccessToken,request}){
   legacyWorkspacePaused=true; // Explicit protocol entry; never raw-read/write fallback.
   const fail=()=>({ok:false,readOnly:true,reason:'Account identity could not be verified. Current device work was kept.'});
@@ -360,6 +378,6 @@ function createBusinessSnapshotSession(){
   if(typeof customerId!=='string'||typeof inboxId!=='string'||!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
   try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(stamp({customers:receipt.payload.customers?.filter(row=>row?.id===customerId)||[],inboxItems:receipt.payload.inboxItems?.filter(row=>row?.id===inboxId)||[]}))};}catch{return {ok:false};}
  };
- return {hasUncertainMutation:identity=>uncertainMutationIdentity===identity,discoverInterruptedEnquiries,inspectInterruptedEnquiry,reviewEnquiry,prepareEnquiryOperation,commitEnquiry,discoverPrivateReplies,inspectDiscoveredReply,inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ return {hasUncertainMutation:identity=>uncertainMutationIdentity===identity,discoverInterruptedEnquiries,inspectInterruptedEnquiry,reviewEnquiry,prepareEnquiryOperation,commitEnquiry,discoverPrivateReplies,inspectDiscoveredReply,inspectBookingWork,inspectWorkspace,reconcilePrivateReply,readPrivateReply,preparePrivateReplyEdit,preparePrivateMutation,mutatePrivate,readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};

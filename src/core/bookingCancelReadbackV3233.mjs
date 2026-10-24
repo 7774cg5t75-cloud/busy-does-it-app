@@ -60,3 +60,15 @@ export function inspectBookingAssociationV3233({businessId,requestId,customerId,
  }else if(base.workLedgerState!=='not_applicable')return deny();
  return {...base,association:{kind:a.kind,customerId,actionId,linkRevision:a.linkRevision,diary}};
 }
+
+// Fixed account-only recognition projection. This is never a restore or receipt permit.
+export function validAccountBookingWork(value,source,observed){
+ const exact=(v,keys)=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join(',')===[...keys].sort().join(',');
+ const a=observed?.association,d=a?.diary;
+ if(!a||!d||!exact(value,['businessId','ownerId','requestId','appId','revision','schemaVersion','requestRevision','linkRevision','workRevision','customer','action','ledger','matchesLedger','readOnly','notOwnReceipt','canRestore'])||value.businessId!==source.businessId||value.ownerId!==source.ownerId||value.requestId!==observed.requestId||value.appId!==observed.appId||value.revision!==source.revision||value.schemaVersion!==1||value.requestRevision!==observed.updatedAt||value.linkRevision!==a.linkRevision||value.workRevision!==d.revision||value.readOnly!==true||value.notOwnReceipt!==true||value.canRestore!==false||typeof value.matchesLedger!=='boolean')return false;
+ const c=value.customer,b=value.action,l=value.ledger;
+ if(!exact(c,['id','name','service'])||c.id!==a.customerId||typeof c.name!=='string'||!c.name||c.name.length>240||typeof c.service!=='string'||!c.service||c.service.length>240||!exact(b,['id','type','status','date','time'])||b.id!==a.actionId||b.type!=='booking'||!['Draft','Confirmed','Cancelled'].includes(b.status)||typeof b.date!=='string'||typeof b.time!=='string'||!exact(l,['id','date','time','timeZone','state'])||l.id!==d.id||l.date!==d.date||l.time!==d.time||l.timeZone!==d.timeZone||l.state!==d.state)return false;
+ const date=new Date(b.date+'T12:00:00Z');
+ if(b.date!==''&&(!/^20\d{2}-\d{2}-\d{2}$/.test(b.date)||!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==b.date)||b.time!==''&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(b.time)||b.status!=='Draft'&&(!b.date||!b.time))return false;
+ return value.matchesLedger===(b.date===l.date&&b.time===l.time&&b.status===(l.state==='confirmed'?'Confirmed':'Cancelled'));
+}

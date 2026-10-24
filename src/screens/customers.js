@@ -2,6 +2,7 @@ import {SavedEnquiryReplyChoices} from '../components/SavedEnquiryReplyChoices';
 import {SavedEnquiryReplyButton} from '../components/SavedEnquiryReplyButton';
 import {QuoteFollowUpRecordReview} from '../components/QuoteFollowUpRecordReview';
 import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
+import {QuotePrivateSaveStatus} from '../components/QuotePrivateSaveStatus';
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -1470,6 +1471,8 @@ function EnquiryFollowUpOutcome({ s }) {
 }
 
 function QuoteFollowUp({ s }) {
+  const live=React.useRef(s),alive=React.useRef(true);live.current=s;
+  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
   const customer = s.selectedReplyCustomer;
   const action = customer ? s.replyActions?.[customer.id] : null;
   const age = daysSinceTimestamp(action?.details?.quoteSentAt || action?.completedAt);
@@ -1510,6 +1513,11 @@ function QuoteFollowUp({ s }) {
       />
       {s.savePrivateQuoteFollowUp?<Button label="Review private wording save" disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.savePrivateQuoteFollowUp}/>:null}
       {s.quoteFollowUpPrivateRecorded?<Text accessibilityLiveRegion="polite" style={styles.helper}>This exact private wording was observed in the original workspace quote record. Device/account saving and customer delivery remain separate.</Text>:null}
+      <QuotePrivateSaveStatus s={s} record={action} dirty={s.quoteFollowUpDraft!==(action.details?.followUpMessage||'')} check={s.checkPrivateQuoteCopy&&s.getQuoteFollowUpTypingEpoch?()=>{
+        const epoch=s.getQuoteFollowUpTypingEpoch(),scope=s.ownerWorkspaceScope,words=s.quoteFollowUpDraft;
+        const current=()=>{const now=live.current;return alive.current&&now.ownerWorkspaceScope===scope&&now.screen===s.screen&&now.ownerSession?.userId===s.ownerSession?.userId&&now.cloudWorkspace?.businessId===s.cloudWorkspace?.businessId&&now.selectedReplyCustomer===customer&&now.replyActions?.[customer.id]===action&&now.quoteFollowUpDraft===words&&now.getQuoteFollowUpTypingEpoch?.()===epoch;};
+        return current()?s.checkPrivateQuoteCopy({isCurrent:current}):false;
+      }:null}/>
       <Button label="Approve simulated send" primary disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.simulateQuoteFollowUpSend} />
       <Button label="Open original quote" onPress={() => s.openSavedReplyAction(customer.id)} />
       <Button label="Not now" onPress={s.back} />
