@@ -1,6 +1,6 @@
 import {CanonicalWorkPanel} from './CanonicalWorkPanel';
 import React from 'react';
-import {Text} from 'react-native';
+import {Text,View} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
 
@@ -39,11 +39,15 @@ export function CanonicalAccountWork({s}){
   }catch{if(current())setNotice('Account inspection unavailable. No missing record or successful save is inferred. Current local work is unchanged.');return false;}
   finally{if(flight.current===token){flight.current=null;if(current())setPending(null);}}
  };
- if(!api?.enabled||s.cloudWorkspace?.role!=='owner')return null;
- if(visible(editor))return <Card eyebrow="Current account editing" title={"Engagement "+editor.value.engagementId} body="Server-reviewed current source. Editing this engagement does not restore a customer or change other Work.">
+ if(!api?.enabled)return null;
+ const roleHidden=s.cloudWorkspace?.role!=='owner';
+ // Retain the same authorised editor instance, hidden, while this same actor loses role access.
+ // A different actor/business/scope never receives the retained private subtree.
+ if(visible(editor))return <View style={roleHidden?{display:'none'}:undefined} accessibilityElementsHidden={roleHidden} importantForAccessibility={roleHidden?'no-hide-descendants':'auto'}><Card eyebrow="Current account editing" title={"Engagement "+editor.value.engagementId} body="Server-reviewed current source. Editing this engagement does not restore a customer or change other Work.">
   <Button label="Close account editor" onPress={()=>s.requestOwnerEditTransition?.(()=>{if(current()){setEditor(null);setSelection(null);setPrivateDraft(null);}},{isCurrent:current})}/>
   <CanonicalWorkPanel key={owner+':'+business+':'+editor.value.engagementId} s={s} accountContext={editor.value}/>
- </Card>;
+ </Card></View>;
+ if(roleHidden)return null;
  const original=selected?.originalContext,now=selected?.currentContext;
  return <Card eyebrow="Returning to account work" title="Find my account engagements" body="Inspect your authorised account records even when this device has no customer copy. This route is read-only and never restores whole business data.">
   {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
