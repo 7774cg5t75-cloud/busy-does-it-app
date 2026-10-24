@@ -1,3 +1,13 @@
+## Independent Work notes and unverified agreement preparation — 24 October2026
+
+Frozen local `19d5e8028293159264be2f3eb8f56068ca53e134`, matching GitHub `a10bf1d36c32573da6cbd5458b035b72de537678`, tree `157b2f16499ee180bbab8b411138b34ec73a80be`; genuine private V22.51 hash reverified, original outside Git.
+
+Original private-draft table/RPCs now support exact work_notes purpose independently from reply/followup, with existing owner/creator/source checks, purpose-bound CAS/receipt and unchanged raw grants/RLS. Fixed original-editor wrappers have separate React state/keys/dirty metadata; no old followup text is reclassified or migrated. Existing capability envelope remains parseable for older clients; new kind rejects on old servers with no fallback. Work notes alone offer Work planning and explicitly owner-attested/unverified agreement preparation. Quote remains Prepared; no independent agreement proof, request/ledger association, booking or diary mutation is inferred.
+
+Fresh final381 app/105 foundation/262 original PG/114 canonical PG and90 actual component/database RPC calls pass on clean frozen source. Followup revision4 and Work-notes revision2 coexist under quote revision3 with independent second engagement/legacy/snapshot preserved.113-stage intermediate success and one existing-table-preflight failure0/1/113 runner1 retained; full114 rerun after original synthetic reset. No assertion/VM/fuse weakening. PG explicitly no TCP/private socket, stopped. Local UID/inert native boundaries are not hosted JWT/device/provider acceptance.
+
+See [implementation, agreement/linkage proposal and gates](docs/INDEPENDENT_WORK_NOTES_AGREEMENT_2026_10_24.md) and companion CHECKS. SQL SHA `5cb3d213e3ea66478973d0b760724c5ae79cac1fcc925b5246a92f9d2610bcad`; source-rebase/legacy privacy/retention/booking and real staging remain gated. No AppController/new production module/package/store;1,526 files/160,658 lines/3,057 edges/zero static cycles. Fuses/disabled flags/Phase52 preserved. £0/no hosted/deployment/real provider/screenshots/workflow/merge actions; draft21→23→24→25→26 preserved.
+
 ## Canonical quote → reviewed private Work preparation — 24 October2026
 
 Frozen local `92b411503b5c7b0afbd9023b5d4fb6b59e05dba1`, matching GitHub `3142e00ad4be84b2324df66bd9c500867b04d842`, tree `5c20d9ac0295d8bc3e65ccfff458aebb01993127`. Genuine private V22.51 hash reverified; original outside Git.
