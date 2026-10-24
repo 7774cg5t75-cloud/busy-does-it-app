@@ -17,12 +17,13 @@ export function useQuoteActionReview(s){
  const live=React.useRef(s),epoch=React.useRef(0),dirty=React.useRef(false),pending=React.useRef(null);live.current=s;
  const mounted=React.useRef(true);React.useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;pending.current=null;};},[]);
  const view=s.screen??s.view,role=s.cloudWorkspace?.role,revision=s.cloudRevision;
+ const engagementId=s.quoteEngagementId||null,editorSession=s.quoteEditorSession||null;
  const scope=s.ownerWorkspaceScope,customer=s.selectedReplyCustomer,action=customer?s.replyActions?.[customer.id]:null;
  const customerStamp=JSON.stringify(customerSource(customer)),stamp=JSON.stringify(action),renderEpoch=epoch.current,renderValues=values(s);
- const baseline=React.useRef({scope,customerId:customer?.id,action,stamp,values:renderValues});
- if(baseline.current.scope!==scope||baseline.current.customerId!==customer?.id){baseline.current={scope,customerId:customer?.id,action,stamp,values:renderValues};dirty.current=false;pending.current=null;}
+ const baseline=React.useRef({scope,engagementId,editorSession,customerId:customer?.id,action,stamp,values:renderValues});
+ if(baseline.current.scope!==scope||baseline.current.customerId!==customer?.id||baseline.current.engagementId!==engagementId||baseline.current.editorSession!==editorSession){baseline.current={scope,engagementId,editorSession,customerId:customer?.id,action,stamp,values:renderValues};dirty.current=false;pending.current=null;}
  const current=()=>mounted.current&&!!scope&&!!s.ownerSession?.userId&&!!s.cloudWorkspace?.businessId&&
-  ['owner','admin'].includes(role)&&live.current.cloudWorkspace?.role===role&&(live.current.screen??live.current.view)===view&&live.current.cloudRevision===revision&&
+  ['owner','admin'].includes(role)&&live.current.cloudWorkspace?.role===role&&(live.current.quoteEngagementId||null)===engagementId&&(live.current.quoteEditorSession||null)===editorSession&&(live.current.screen??live.current.view)===view&&live.current.cloudRevision===revision&&
   ![customer?.businessId,customer?.business_id].some(id=>id&&id!==s.cloudWorkspace?.businessId)&&
   JSON.stringify(customerSource(customer))===customerStamp&&live.current.ownerWorkspaceScope===scope&&
   live.current.ownerSession?.userId===s.ownerSession?.userId&&live.current.cloudWorkspace?.businessId===s.cloudWorkspace?.businessId&&
@@ -30,14 +31,14 @@ export function useQuoteActionReview(s){
  const acknowledged=pending.current&&pending.current.scope===scope&&pending.current.customerId===customer?.id&&
   pending.current.customerStamp===customerStamp&&action!==pending.current.action&&JSON.stringify(action?.details)===pending.current.details;
  const changed=baseline.current.action!==action||baseline.current.stamp!==stamp;
- if(changed&&!pending.current&&!dirty.current&&same(renderValues,recordValues(action,baseline.current.values)))baseline.current={scope,customerId:customer?.id,action,stamp,values:renderValues};
+ if(changed&&!pending.current&&!dirty.current&&same(renderValues,recordValues(action,baseline.current.values)))baseline.current={scope,engagementId,editorSession,customerId:customer?.id,action,stamp,values:renderValues};
  const conflict=(baseline.current.action!==action||baseline.current.stamp!==stamp)&&!acknowledged;
- const report=useOwnerEditNavigation(s,{source:action,projectId:'quote:'+customer?.id,revision:stamp},()=>{
+ const report=useOwnerEditNavigation(s,{source:action,projectId:'quote:'+customer?.id+(engagementId?':'+engagementId:''),revision:stamp},()=>{
   if(!current())return false;
   const restored=recordValues(action,baseline.current.values);
   fields.forEach((field,index)=>s['set'+field[0].toUpperCase()+field.slice(1)]?.(restored[index]));
   epoch.current++;dirty.current=false;pending.current=null;
-  baseline.current={scope,customerId:customer?.id,action,stamp,values:restored};return true;
+  baseline.current={scope,engagementId,editorSession,customerId:customer?.id,action,stamp,values:restored};return true;
  });
  const edit=(field,value)=>{
   if(!current()||conflict||action?.type!=='quote'||!fields.includes(field)||typeof value!=='string')return false;
@@ -57,7 +58,7 @@ export function useQuoteActionReview(s){
  React.useEffect(()=>{
   const receipt=pending.current;
   if(!receipt||!acknowledged||!current())return;
-  pending.current=null;baseline.current={scope,customerId:customer.id,action,stamp,values:receipt.values};
+  pending.current=null;baseline.current={scope,engagementId,editorSession,customerId:customer.id,action,stamp,values:receipt.values};
   if(epoch.current===receipt.epoch&&same(values(live.current),receipt.values)){
    dirty.current=false;report(false);s.back?.();
   }else{dirty.current=true;report(true);}

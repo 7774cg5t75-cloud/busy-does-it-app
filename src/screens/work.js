@@ -1,3 +1,4 @@
+import {PrivateQuoteFields} from '../components/PrivateQuoteFields';
 import {QuoteFollowUpChoices} from '../components/QuoteFollowUpChoices';
 import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
 import {QuotePrivateSaveStatus} from '../components/QuotePrivateSaveStatus';
@@ -3692,13 +3693,7 @@ function ReplyActionDetail({ s }) {
         <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" todayISO={todayISO} />
         <Card eyebrow="Private quote" title={quoteReview.conflict?'The saved quote changed':quoteReview.saving?'Checking the updated record':quoteReview.dirty?'Changes not recorded yet':'Private record review'} body={quoteReview.conflict?'Your words are kept. Reopen the current quote or deliberately discard your changes before using a different source.':'Recording this quote uses the current workspace record. Device/account persistence and customer delivery are not confirmed by this form.'} tone="blue" />
         <QuotePrivateSaveStatus s={s} record={saved} dirty={quoteReview.dirty} check={quoteReview.checkDeviceCopy} resume={quoteReview.reviewDeviceCopy}/>
-        <View style={styles.workspacePanel}>
-        <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Edit this private quote</Text>
-        <Text style={styles.workspaceMeta}>{"Customer reference: "+customer.id+" · Current record: "+quoteStatus+". Fields below are your working copy, not a delivery receipt."}</Text>
-        <Field editable={!quoteReview.conflict} label="Quote amount" value={s.actionQuoteAmount} onChangeText={value=>quoteReview.edit('actionQuoteAmount',value)} keyboardType="number-pad" prefix="£" />
-        <Text style={styles.fieldLabel}>Draft reply</Text>
-        <TextInput multiline accessibilityLabel="Private quote wording" editable={!quoteReview.conflict} accessibilityState={{disabled:quoteReview.conflict}} value={s.actionQuoteMessage} onChangeText={value=>quoteReview.edit('actionQuoteMessage',value)} placeholder="Your exact private quote wording" placeholderTextColor={C.muted} textAlignVertical="top" style={[styles.messageInput,styles.replyEditor]} />
-        </View>
+        {PrivateQuoteFields({s,review:quoteReview,customerId:customer.id,status:quoteStatus})}
         {(quoteStatus === "Prepared" || quoteStatus === "Sent" || !saved.done) ? (
           <>
             <DatePickerField

@@ -1,3 +1,4 @@
+import {CustomerEngagementReview} from '../components/CustomerEngagementReview';
 import {SavedEnquiryReplyChoices} from '../components/SavedEnquiryReplyChoices';
 import {SavedEnquiryReplyButton} from '../components/SavedEnquiryReplyButton';
 import {QuoteFollowUpRecordReview} from '../components/QuoteFollowUpRecordReview';
@@ -443,6 +444,7 @@ function CustomerDetail({ s }) {
       brandCue="One customer. One clear history."
     >
       <SavedEnquiryReplyButton s={s} customer={customer}/>
+      <CustomerEngagementReview s={s} customer={customer}/>
       {s.customerEnquiryOriginItem?<QuoteEnquiryContext s={s} customerId={customer.id} item={s.customerEnquiryOriginItem} openQuote/>:null}
       <Card
         eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}
