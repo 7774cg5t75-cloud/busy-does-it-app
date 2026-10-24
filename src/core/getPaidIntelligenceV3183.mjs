@@ -143,3 +143,15 @@ function reviewGetPaidNextStep({
   noAutomatedSpending:true,noNetworkRequests:true,noCrossBusinessLearning:true};
 }
 export {prepareGetPaidQuoteDraft,reviewGetPaidNextStep};
+
+// Preparation only; callers must obtain these finite observations through trusted IO.
+// This does not validate acceptance or establish a request/diary/ledger association.
+export function prepareCanonicalQuoteWorkNotes({record,comparison}={}){
+ const r=record,d=r?.record?.details,c=comparison;
+ if(!r||!c||!UUID.test(r.businessId||'')||!UUID.test(r.engagementId||'')||!UUID.test(r.ownerId||'')||typeof r.customerId!=='string'||!r.customerId||r.customerId.length>240||typeof r.enquiryId!=='string'||!r.enquiryId||r.enquiryId.length>240||r.type!=='quote'||r.status!=='Prepared'||r.schemaVersion!==1||!Number.isSafeInteger(r.revision)||r.revision<1||!(/^[0-9a-f]{64}$/).test(r.recordHash||'')||!(/^[0-9a-f]{64}$/).test(r.sourceHash||'')||r.notOwnReceipt!==true||c.notOwnReceipt!==true||c.comparisonOnly!==true||c.mutationAuthorised!==false||c.sourceState!=='current'||['businessId','ownerId','customerId','engagementId','enquiryId','revision','recordHash','sourceHash'].some(key=>r[key]!==c[key])||!d||d.quoteStatus!=='Prepared'||typeof d.message!=='string'||!d.message.trim()||d.message.length>8000||!/^\d+(?:\.\d{1,2})?$/.test(String(d.quoteAmount))||typeof d.plannedSentDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(d.plannedSentDate))return {ok:false,reason:'A matching current Prepared quote and original source are required. Keep your wording and inspect again.'};
+ const day=new Date(d.plannedSentDate+'T12:00:00Z');if(!Number.isFinite(day.getTime())||day.toISOString().slice(0,10)!==d.plannedSentDate)return {ok:false,reason:'The planned quote date needs review.'};
+ const text='PRIVATE WORK PREPARATION — NOT A BOOKING\nEngagement: '+r.engagementId+'\nCustomer reference: '+r.customerId+'\nOriginal enquiry: '+r.enquiryId+'\nQuote revision reviewed: '+r.revision+'\nPrepared amount: £'+d.quoteAmount+'\nPlanned quote date (not an appointment): '+d.plannedSentDate+'\n\nRecorded quote wording (unchanged):\n'+d.message+'\n\nBefore progressing this engagement:\n• Review scope, exclusions and current requirements.\n• Obtain and verify customer agreement for this exact quote.\n• Review availability, date, time and diary conflicts.\n• Establish the original request/link/Work booking relationship.\n\nAcceptance, booking association, diary confirmation, delivery and payment have not been established by this preparation. Keep the same engagement ID; do not replace earlier Work.';
+ let bytes;try{bytes=encodeURIComponent(text).replace(/%[A-F0-9]{2}/g,'x').length;}catch{return {ok:false,reason:'The complete wording contains unsupported text. Nothing was truncated.'};}
+ if(text.length>10000||bytes>10000)return {ok:false,reason:'The complete preparation exceeds the private wording limit. Keep your existing words; no text was truncated.'};
+ return {ok:true,text,engagementId:r.engagementId,revision:r.revision,status:'Prepared',acceptanceVerified:false,bookingAssociationVerified:false,diaryChanged:false,customerContacted:false,paymentExecuted:false,preparationOnly:true};
+}

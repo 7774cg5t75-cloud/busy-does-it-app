@@ -1,4 +1,5 @@
 import React from 'react';
+import {prepareCanonicalQuoteWorkNotes} from '../core/getPaidIntelligenceV3183.mjs';
 import {Text,Alert} from 'react-native';
 import {Card,Field,Button} from './ui';
 import {styles} from '../theme/styles';
@@ -35,6 +36,34 @@ export function CanonicalPrivateFollowUp({s,customer,customerId:accountCustomerI
   }catch{if(current())setNotice('Private account inspection unavailable. Your words are kept; do not retry an uncertain save.');return false;}
   finally{flight.current=false;if(mounted.current)setPending(false);}
  };
+ // Reuse this owner-private editor/target; never create a booking or another Work record.
+ const prepareWork=async()=>{
+  if(!current()||flight.current||!draft||['unknown','pending'].includes(api.status().status))return false;
+  const captured=epoch.current,originalDraft=draft;
+  const valid=()=>current()&&epoch.current===captured&&live.current.draft===originalDraft;
+  const inspectQuote=async()=>{
+   const fresh=await api.read(customerId,record.engagementId);
+   if(!valid()||fresh.revision!==record.revision||fresh.recordHash!==record.recordHash)return null;
+   const comparison=await api.compare(customerId,record.engagementId);
+   if(!valid())return null;const prepared=prepareCanonicalQuoteWorkNotes({record:fresh,comparison});return prepared.ok?prepared:null;
+  };
+  flight.current='read';setPending(true);
+  try{
+   const proposed=await inspectQuote();if(!valid())return false;
+   if(!proposed){setNotice('The current quote/source cannot support Work preparation. Your words are kept; inspect its conflict. No acceptance or booking is inferred.');return false;}
+   let used=false;
+   Alert.alert('Review private Work preparation','Current private wording:\n'+words+'\n\nProposed preparation:\n'+proposed.text+'\n\nThis changes only this editor after another source check. Save separately. Nothing is accepted, booked or sent.',[
+    {text:'Keep my wording',style:'cancel',onPress:()=>{used=true;}},
+    {text:'Use private work notes',onPress:async()=>{
+     if(used||!valid()||flight.current)return false;used=true;flight.current='read';setPending(true);
+     try{const checked=await inspectQuote();if(!valid()||!checked||checked.text!==proposed.text)return false;epoch.current++;live.current.words=checked.text;setWords(checked.text);report(true);setNotice('Private Work preparation only. Review and save its exact wording separately; the canonical quote remains Prepared and no booking exists from this action.');return true;}
+     catch{if(current())setNotice('Current source could not be rechecked. Your wording is kept.');return false;}
+     finally{flight.current=false;if(mounted.current)setPending(false);}
+    }}
+   ]);return true;
+  }catch{if(current())setNotice('Work preparation unavailable. Keep your words and inspect the current source.');return false;}
+  finally{flight.current=false;if(mounted.current)setPending(false);}
+ };
  const review=()=>{
   if(!current()||flight.current||!draft||!words.trim())return false;
   const fields={text:words},ticket=api.review({operation:'private',record,draft,fields,operationId:'private_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,12),editor:editor()});
@@ -66,6 +95,6 @@ export function CanonicalPrivateFollowUp({s,customer,customerId:accountCustomerI
   </>:null}
   {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
   <Button label="Inspect private follow-up" disabled={pending||!contextCurrent} onPress={inspect}/>
-  {draft?<><Text style={styles.workspaceMeta}>{'Private draft revision '+draft.revision+(draft.needsReview?' · Current engagement must be reviewed':'')+'. Account observation is separate from this editor.'}</Text><Field label="Private engagement follow-up wording" multiline value={words} editable={contextCurrent&&flight.current!=='save'} onChangeText={value=>{if(!current()||flight.current==='save')return false;epoch.current++;live.current.words=value;setWords(value);report(value!==(draft.text||''));}}/><Button label="Review private follow-up save" disabled={pending||!contextCurrent||!words.trim()||api.status().status==='unknown'} onPress={review}/></>:null}
+  {draft?<><Button label="Prepare private Work notes from this quote" disabled={pending||!contextCurrent||['unknown','pending'].includes(api.status().status)} onPress={prepareWork}/><Text style={styles.workspaceMeta}>{'Private draft revision '+draft.revision+(draft.needsReview?' · Current engagement must be reviewed':'')+'. Account observation is separate from this editor.'}</Text><Field label="Private engagement follow-up wording" multiline value={words} editable={contextCurrent&&flight.current!=='save'} onChangeText={value=>{if(!current()||flight.current==='save')return false;epoch.current++;live.current.words=value;setWords(value);report(value!==(draft.text||''));}}/><Button label="Review private follow-up save" disabled={pending||!contextCurrent||!words.trim()||api.status().status==='unknown'} onPress={review}/></>:null}
  </Card>;
 }
