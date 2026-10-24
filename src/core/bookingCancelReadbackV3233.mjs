@@ -72,3 +72,20 @@ export function validAccountBookingWork(value,source,observed){
  if(b.date!==''&&(!/^20\d{2}-\d{2}-\d{2}$/.test(b.date)||!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==b.date)||b.time!==''&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(b.time)||b.status!=='Draft'&&(!b.date||!b.time))return false;
  return value.matchesLedger===(b.date===l.date&&b.time===l.time&&b.status===(l.state==='confirmed'?'Confirmed':'Cancelled'));
 }
+
+// Display comparison only. Neither a local match nor this predicate authorises a write.
+export function accountBookingContext(review,{ownerId,businessId,role,request,customers=[],lastSimulatedRecipients=[],replyActions={},revision}={}){
+ if(role!=='owner'||!UUID.test(ownerId||'')||!UUID.test(businessId||'')||review?.ownerId!==ownerId||review.businessId!==businessId||request?.business_id!==businessId||request.id!==review.requestId||request.mini_app_id!==review.appId||!Number.isSafeInteger(review.revision)||review.revision<1)return null;
+ const observed={requestId:request.id,appId:request.mini_app_id,updatedAt:review.requestRevision,association:{customerId:review.customer?.id,actionId:review.action?.id,linkRevision:review.linkRevision,diary:{...review.ledger,revision:review.workRevision}}};
+ if(![review.requestRevision,review.linkRevision,review.workRevision].every(x=>typeof x==='string'&&Number.isFinite(Date.parse(x)))||!validAccountBookingWork(review,{ownerId,businessId,revision:review.revision},observed))return null;
+ const rows=[...(Array.isArray(customers)?customers:[]),...(Array.isArray(lastSimulatedRecipients)?lastSimulatedRecipients:[])].filter(row=>row?.id===review.customer.id);
+ let device='missing';
+ if(rows.length>1)device='ambiguous';
+ else if(rows.length===1){
+  const c=rows[0],a=replyActions?.[c.id],d=a?.details;
+  if([c.businessId,c.business_id].some(id=>id&&id!==businessId))device='foreign';
+  else if(a?.type!=='booking'||d?.sourceMiniAppRequestId!==request.id)device='unsupported';
+  else device=c.name===review.customer.name&&c.service===review.customer.service&&d.bookingStatus===review.action.status&&d.bookingDate===review.action.date&&d.bookingTime===review.action.time?'matching':'different';
+ }
+ return {device,revisionDiffers:Number.isSafeInteger(revision)&&revision!==review.revision,sourceConflict:!review.matchesLedger};
+}

@@ -2335,6 +2335,12 @@
       "args": [
         "scripts/check-mission15-request-draft-continuity.mjs"
       ]
+    },
+    {
+      "id": "mission15-returning-account-context",
+      "args": [
+        "scripts/check-mission15-returning-account-context.mjs"
+      ]
     }
   ]
 }

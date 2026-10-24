@@ -23,7 +23,7 @@ function createRequestConversationActions(getContext){
     return c.requestTransition(()=>{if(!current())return false;accountInspection=null;c.setCalendarDate(result.review.ledger.date);c.go('workCalendar');return true;},{isCurrent:current});
    }
    c.setSelectedMiniAppRequestDetail({...source,accountBookingReview:result.review});return true;
-  }catch(error){if(current())c.setMiniAppsError(error?.message||'Account inspection failed. Current work was kept.');return false;}
+  }catch(error){if(current()){const {accountBookingReview,...kept}=source;c.setSelectedMiniAppRequestDetail(kept);c.setMiniAppsError(error?.message||'Account inspection failed. Current work was kept.');}return false;}
  },loadMiniAppRequestDetail:async(requestId,role,{before='',append=false,navigate=true}={})=>{
   const c=getContext(),owner=role==='business',source=c.detail;
   if(!UUID.test(requestId)||!['business','customer'].includes(role)||!c.ownerScope?.userId||owner&&!c.businessId)return false;

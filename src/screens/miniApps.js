@@ -1,3 +1,4 @@
+import {accountBookingContext} from '../core/bookingCancelReadbackV3233.mjs';
 import {useServiceBrowseReturn} from '../../standalone/template/useServiceBrowseReturn';
 import {captureAppDraftAcknowledgement,acknowledgedAppDraftPart} from '../core/appDraftAcknowledgement.mjs';
 import {useOwnerEditNavigation} from './useOwnerEditNavigation';
@@ -42,7 +43,7 @@ import {File as ExpoFile} from "expo-file-system";
 import QRCode from "react-native-qrcode-svg";
 
 import { styles } from "../theme/styles";
-import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
+import { Shell, Card, Button, Field, MetricRow, StatusChip, Details } from "../components/ui";
 import { miniAppModuleLabel } from "../domain/miniApps";
 import { businessAppPreviewProof } from "../core/businessAppPreviewProof.mjs";
 import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/appDistributionChoices.mjs";
@@ -4984,6 +4985,8 @@ function MiniAppRequestDetailForm({ s }) {
     setReviewedReplyStamp(null);
     setDraft("");
   },[request?.id,role]);
+  const accountReview=detail.accountBookingReview;
+  const accountContext=accountBookingContext(accountReview,{ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,role:s.cloudWorkspace?.role,request,customers:s.customers,lastSimulatedRecipients:s.lastSimulatedRecipients,replyActions:s.replyActions,revision:s.cloudRevision});
   const guestWebRequest = request?.request_origin === "guest_web";
   const followUpSuggestion=request?.id?
     s.miniAppsView?.followUpIntelligence?.items?.find(item=>
@@ -5227,10 +5230,14 @@ function MiniAppRequestDetailForm({ s }) {
             </Card>
           ):null}
           {ownerView&&request.request_type==='booking_request'?<Card eyebrow="Returning to work" title="Inspect this account booking" body="Check one current account customer and Work action. This does not restore the workspace or settle an uncertain booking.">
-            <Button label="Inspect current account customer and Work" onPress={()=>{const epoch=replyTyping.current;return s.inspectMiniAppAccountBooking?.(request.id,{isCurrent:()=>replyAlive.current&&replyTyping.current===epoch});}}/>
-            {detail.accountBookingReview&&detail.accountBookingReview.requestId===request.id&&detail.accountBookingReview.businessId===request.business_id&&detail.accountBookingReview.appId===request.mini_app_id&&s.cloudWorkspace?.role==='owner'?<View>
+            <Button label="Inspect current account customer and Work" disabled={s.cloudWorkspace?.role!=='owner'} onPress={()=>{const epoch=replyTyping.current;return s.inspectMiniAppAccountBooking?.(request.id,{isCurrent:()=>replyAlive.current&&replyTyping.current===epoch});}}/>
+            {!accountContext?<Text accessibilityLiveRegion="polite" style={styles.helper}>{s.cloudWorkspace?.role!=='owner'?'Owner-private account inspection is unavailable for this role.':'No supported account context is verified here. Inspect again; missing, changed, inaccessible or unsupported records cannot be restored from this view.'}</Text>:null}
+            {accountContext?<View>
               <Text style={styles.sectionLabel}>{detail.accountBookingReview.customer.name+' · '+detail.accountBookingReview.customer.service}</Text>
-              <Text selectable style={styles.cardBody}>{'Customer '+detail.accountBookingReview.customer.id+' · Work '+detail.accountBookingReview.action.id+' · account revision '+detail.accountBookingReview.revision}</Text>
+              <Text accessibilityLiveRegion="polite" style={styles.cardBody}>Last checked account version — read-only. This is not a recovered editable customer or a save receipt.</Text>
+              <Text style={styles.cardBody}>{{missing:'No corresponding customer is loaded on this device. You can inspect this account observation without restoring a customer.',ambiguous:'Device identity is ambiguous. No customer can be safely selected from these copies.',foreign:'A device record has a different business identity. It was not used.',unsupported:'The device customer has no matching supported booking source. Nothing was combined.',matching:'The listed device facts match this account observation. This does not confirm a save or settle an earlier uncertain operation.',different:'The device and account facts differ. Your device copy and unsaved work are kept; no automatic replacement is available.'}[accountContext.device]}</Text>
+              {accountContext.revisionDiffers?<Text style={styles.helper}>Account and device revisions differ. Inspecting this booking does not update the rest of your workspace.</Text>:null}
+              <Details label="Read-only customer and source references"><Text selectable style={styles.cardBody}>{'Customer '+accountReview.customer.id+' · Work '+accountReview.action.id+' · request '+accountReview.requestId+' · account revision '+accountReview.revision}</Text><Text style={styles.cardBody}>{'Request checked: '+accountReview.requestRevision+' · Work checked: '+accountReview.workRevision}</Text><Text style={styles.helper}>Contact details, private notes, replies and unrelated records are not included. Open only the supported diary context below; broad customer editing remains unavailable.</Text></Details>
               <Text style={styles.cardBody}>{'Account booking: '+detail.accountBookingReview.action.status+' · '+detail.accountBookingReview.action.date+' '+detail.accountBookingReview.action.time}</Text>
               <Text style={styles.cardBody}>{'Work diary: '+detail.accountBookingReview.ledger.date+' '+detail.accountBookingReview.ledger.time+' · '+detail.accountBookingReview.ledger.timeZone}</Text>
               <Text style={styles.cardBody}>{detail.accountBookingReview.matchesLedger?'These account and Work facts agree. No local customer was inserted and no own-operation receipt was reconstructed.':'Account and Work facts differ. Keep current work and review the source; no automatic repair is available.'}</Text>
