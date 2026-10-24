@@ -21,6 +21,7 @@ export function ContentDraftStatus({s}){
   exact&&receipt.status==='unknown'?'The device save could not be confirmed. Keep your wording; no cloud or publishing success is assumed.':
   'This draft is in memory. Device recovery has not yet been confirmed for this version.';
  return <><Text accessibilityLiveRegion="polite" style={styles.cardBody}>{message}</Text>
+  {newer&&record.contentEvidence?.channel==='newsletter'&&s.socialContentActions?.resumeNewsletterWording?<Button label="Review saved newsletter wording only" onPress={s.socialContentActions.resumeNewsletterWording}/>:null}
   {exact&&receipt.status==='unknown'&&!newer&&!otherChanges&&s.checkPrivateContentCopy?<Button label="Check private device copy" onPress={s.checkPrivateContentCopy}/>:null}
  </>;
 }

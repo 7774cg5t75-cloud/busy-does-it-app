@@ -27,11 +27,11 @@ export function AppGalleryDescriptionEditor({config,revision,busy,onDraftChange,
   const index=Number(live.current.number)-1,item=config?.publicProfile?.assets?.gallery?.[index];
   if(!Number.isInteger(index)||index<0||!item||typeof item.uri!=='string'||!item.uri||!(item.approved===true||item.marketingOk===true)){onNotice?.('Choose an existing approved gallery photo. Your wording is kept.');return;}
   resolve(()=>{
-   epoch.current++;dirty.current=false;setSource(config);setSelected({index,uri:item.uri});setAlt(String(item.alt||''));setCaption(String(item.caption||''));onDraftChange?.(false);onPreview?.(null);
+   epoch.current++;dirty.current=false;setSource(config);setSelected({index,uri:item.uri,stamp:JSON.stringify(item),alt:String(item.alt||''),caption:String(item.caption||'')});setAlt(String(item.alt||''));setCaption(String(item.caption||''));onDraftChange?.(false);onPreview?.(null);
   });
  };
  const captured=epoch.current;
- const stale=source!==config;
+ const stale=source!==config||!!selected&&JSON.stringify(gallery[selected.index])!==selected.stamp;
  if(!gallery.length&&!selected&&!dirty.current)return <View style={styles.inspectorGroup}><Text accessibilityRole="header" style={styles.inspectorHeading}>Gallery descriptions</Text><Text style={styles.cardBody}>No gallery photos are available to describe. Use the original gallery controls to add suitable imagery first. Nothing was loaded, approved or saved here.</Text></View>;
  return <View style={styles.inspectorGroup}>
   <Text accessibilityRole="header" style={styles.inspectorHeading}>Make gallery photos accessible</Text>
@@ -48,7 +48,7 @@ export function AppGalleryDescriptionEditor({config,revision,busy,onDraftChange,
   {query?<Button label="Show all gallery photos" onPress={()=>setQuery('')}/>:null}
   <Text style={styles.workspaceMeta}>{shown.length+' of '+gallery.length+' photo positions shown. Filtering does not load another photo or change your wording.'}</Text>
   {!shown.length?<Text style={styles.helper}>No photo positions match. Current loaded wording is kept below.</Text>:null}
-  {selected?<Details label={'Loaded photo '+(selected.index+1)+' · saved descriptions'}><Text style={styles.workspaceMeta}>These are the descriptions loaded for this editing session, not proof of current account saving or media rights.</Text><Text selectable style={styles.cardBody}>{String(source?.publicProfile?.assets?.gallery?.[selected.index]?.alt||'No loaded description')}</Text><Text selectable style={styles.cardBody}>{String(source?.publicProfile?.assets?.gallery?.[selected.index]?.caption||'No loaded caption')}</Text></Details>:null}
+  {selected?<Details label={'Loaded photo '+(selected.index+1)+' · saved descriptions'}><Text style={styles.workspaceMeta}>These are the descriptions loaded for this editing session, not proof of current account saving or media rights.</Text><Text selectable style={styles.cardBody}>{selected.alt||'No loaded description'}</Text><Text selectable style={styles.cardBody}>{selected.caption||'No loaded caption'}</Text></Details>:null}
   <View style={styles.choiceGrid}>
    {shown.map(({photo,index})=>{
     const approved=!!photo&&(photo.approved===true||photo.marketingOk===true)&&typeof photo.uri==='string'&&!!photo.uri;
@@ -66,9 +66,9 @@ export function AppGalleryDescriptionEditor({config,revision,busy,onDraftChange,
    if(!current()||captured!==epoch.current)return;epoch.current++;clearPending();dirty.current=false;setAlt('');setCaption('');setSelected(null);setSource(config);onDraftChange?.(false);onPreview?.(null);
   }}/>
   <Button primary label="Preview photo description changes" disabled={busy||stale||!selected||!!pending} onPress={()=>{
-   if(!current()||captured!==epoch.current||source!==config||!selected)return;
+   if(!current()||captured!==epoch.current||stale||!selected)return;
    const item=config.publicProfile?.assets?.gallery?.[selected.index];
-   if(item?.uri!==selected.uri)return;
+   if(item?.uri!==selected.uri||JSON.stringify(item)!==selected.stamp)return;
    const plan=proposeCoordinatedAppChanges(config,[{kind:'photo_description',index:selected.index,expectedUri:selected.uri,value:{alt,caption}}]);
    onPreview?.(plan.ok?plan:null);onNotice?.(plan.ok?'Review the exact photo descriptions before approving.':plan.reason);
   }}/>

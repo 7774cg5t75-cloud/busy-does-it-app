@@ -2287,6 +2287,18 @@
       "args": [
         "scripts/check-mission15-source-bound-bookings.mjs"
       ]
+    },
+    {
+      "id": "mission15-saturday-work-quotes",
+      "args": [
+        "scripts/check-mission15-saturday-work-quotes.mjs"
+      ]
+    },
+    {
+      "id": "mission15-saturday-content-builders",
+      "args": [
+        "scripts/check-mission15-saturday-content-builders.mjs"
+      ]
     }
   ]
 }

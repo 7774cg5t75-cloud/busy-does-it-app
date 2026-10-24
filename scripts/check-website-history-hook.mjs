@@ -21,3 +21,13 @@ args={...args,draft:{...draft,generation:3}};render();await flush();assert.equal
 // Failed recovery must not block ordinary editing; scope checks remain live.
 args={...args,businessId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'};render();await flush();assert.equal(output.websiteHistoryIsCurrent(),false);assert.equal(writes,1);
 console.log('PASS: actual hook preserves rejected recovery, saves a later edit and blocks cached foreign workspace history. Deterministic hook runner/fake native storage only.');
+
+// Newer Undo edits that return to empty stacks still supersede an older pending load.
+slots=[];index=0;effects=[];args={...scope,draft};
+await createWebsiteHistoryCheckpoint(storage,scope).save(draft,{undo:[{...draft,generation:1}],redo:[],point:null});
+const originalRead=storage.getItemAsync;let finishRead;storage.getItemAsync=key=>new Promise(resolve=>finishRead=()=>resolve(data.get(key)));
+render();await new Promise(resolve=>setImmediate(resolve));assert.ok(finishRead);
+output.setWebsiteUndo([{...draft,generation:1}]);output.setWebsiteUndo([]);render();finishRead();await flush();
+assert.equal(output.websiteUndo.length,0);assert.match(output.websiteRecoveryNotice,/Editing continued|Encrypted device recovery saved/);
+storage.getItemAsync=originalRead;
+console.log('PASS actual website history hook: owner Undo activity survives delayed encrypted history even after returning to empty stacks. No draft, public site or account replacement.');
