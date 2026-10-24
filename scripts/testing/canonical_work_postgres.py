@@ -214,7 +214,26 @@ stage('malformed-comparison-remains-readonly',lambda:comparison_variant("jsonb_s
 stage('coowner-original-current-comparison-denied',lambda:denied(f"SELECT public.busy_work_compare_v1('{B}','{C}','{state['second']}');",uid=S))
 stage('wrong-business-original-current-comparison-denied',lambda:denied(f"SELECT public.busy_work_compare_v1('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','{C}','{state['second']}');"))
 stage('service-account-discovery-denied',lambda:denied(f"SELECT public.busy_work_discover_v1('{B}');",role='service_role'))
+def edit_context_current():
+ id=state['second'];r=row(id);v=rpc('edit_context',[B,C,id,r['revision']]);eq(v['currentEditContext'],True);eq(v['revision'],r['revision']);eq(v['allowedOperations'],['edit_quote','private_followup']);eq(v['contextSnapshotRevision'],100);eq(v['customerId'],C);eq(v['engagementId'],id);assert 'secretSynthetic' not in json.dumps(v) and 'unknownPrivate' not in json.dumps(v)
+stage('current-finite-edit-context-derived-from-live-source',edit_context_current)
+stage('edit-context-requires-exact-revision',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',NULL);",'22023'))
+stage('stale-edit-context-revision-denied',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',1);",'40001'))
+def context_source(patch,code):
+ id=state['second'];rev=row(id)['revision'];r=call(f"BEGIN;UPDATE public.busy_business_snapshots SET payload={patch} WHERE business_id='{B}';"+auth(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{id}',{rev});"));assert r.returncode!=0 and code in r.stderr
+stage('corrected-source-cannot-open-current-editor',lambda:context_source("jsonb_set(payload,'{inboxItems,1,rawText}','\"Changed source\"')",'40001'))
+stage('missing-customer-cannot-open-current-editor',lambda:context_source("jsonb_set(payload,'{customers}','[]')",'22023'))
+stage('foreign-source-cannot-open-current-editor',lambda:context_source("jsonb_set(payload,'{inboxItems,1,registeredBy}','\""+S+"\"')",'42501'))
+for uid,label in [(M,'member'),(S,'coowner'),(D,'foreign')]:
+ stage(label+'-edit-context-denied',lambda uid=uid:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});",uid=uid))
+def role_context(remove=False):
+ id=state['second'];rev=row(id)['revision'];change=f"DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}'" if remove else f"UPDATE public.busy_business_memberships SET role='admin' WHERE business_id='{B}' AND user_id='{O}'"
+ r=call('BEGIN;'+change+';'+auth(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{id}',{rev});"));assert r.returncode!=0 and '42501' in r.stderr
+stage('admin-edit-context-denied',role_context)
+stage('revoked-edit-context-denied',lambda:role_context(True))
+stage('anonymous-edit-context-denied',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',1);",role='anon',uid=''))
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
+stage('rollback-denies-fresh-edit-context-without-reopening-writes',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"))
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
  start=len(logs)

@@ -10,8 +10,8 @@ export function createCanonicalWorkSession(){
  return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
   const initial=getCurrent(),scope=initial?.scope,start={ownerId:initial?.ownerId,businessId:initial?.businessId,role:initial?.role};
   const valid=()=>{const c=getCurrent();return enabled===true&&!!scope&&typeof scope==='object'&&c?.scope===scope&&c.ready===true&&c.ownerId===start.ownerId&&c.businessId===start.businessId&&c.role==='owner'&&start.role==='owner'&&!!c.ownerId&&uuid(c.businessId);};
-  const observe=(value,kind)=>{observations.set(value,{scope,owner:start.ownerId,business:start.businessId,kind,stamp:stableJson(value)});return value;};
-  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision);};
+  const observe=(value,kind)=>{observations.set(value,{scope,owner:start.ownerId,business:start.businessId,kind,localRevision:getCurrent().revision,stamp:stableJson(value)});return value;};
+  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(kind!=='edit'||getCurrent().revision===b.localRevision);};
   const io=async(name,body,beforeSend=()=>true)=>{if(!valid())throw Error('Canonical Work is disabled or the workspace changed.');const token=await ownerAccessToken();if(!valid()||!token||!beforeSend())throw Error('Current authentication or review unavailable.');const value=await request('rpc/busy_work_'+name+'_v1',{method:'POST',token,body:{p_business_id:start.businessId,...body}});if(!valid())throw Error('Workspace changed during the request. Keep local work.');return value;};
   const scoped=(v,c,id=null)=>v&&v.businessId===start.businessId&&v.customerId===c&&(v.ownerId===start.ownerId||v.actorId===start.ownerId)&&(!id||v.engagementId===id);
   const source=async(customerId,enquiryId,revision)=>{
@@ -30,11 +30,16 @@ export function createCanonicalWorkSession(){
   const history=async(customerId,id)=>{if(!uuid(id))throw Error('Invalid engagement identity.');const value=await io('history',{p_customer_id:customerId,p_engagement_id:id});if(!scoped(value,customerId,id)||value.historicalOnly!==true||value.mutationAuthorised!==false||value.notOwnReceipt!==true||!['current','changed','restricted','unsupported','unavailable'].includes(value.sourceState)||value.originalSource?.enquiryId!==value.enquiryId||!hash(value.sourceHash)||!Number.isSafeInteger(value.revision)||value.revision<1)throw Error('Historical identity mismatch.');return value;};
   const discover=async(after=null)=>{const value=await io('discover',{p_after:after,p_limit:20});if(value?.businessId!==start.businessId||value.ownerId!==start.ownerId||value.notOwnReceipt!==true||!Array.isArray(value.items)||value.items.length>20||value.nextCursor!==null&&!uuid(value.nextCursor)||value.items.some(x=>!uuid(x.engagementId)||typeof x.customerId!=='string'||typeof x.enquiryId!=='string'||x.type!=='quote'||x.status!=='Prepared'||!Number.isSafeInteger(x.revision)||x.revision<1||Object.keys(x).some(k=>!['engagementId','customerId','enquiryId','type','status','revision'].includes(k)))||new Set(value.items.map(x=>x.engagementId)).size!==value.items.length)throw Error('Unsupported account engagement page.');return value;};
   const compare=async(customerId,id)=>{if(!uuid(id))throw Error('Invalid engagement identity.');const value=await io('compare',{p_customer_id:customerId,p_engagement_id:id});if(!scoped(value,customerId,id)||value.notOwnReceipt!==true||value.historicalOnly!==true||value.comparisonOnly!==true||value.mutationAuthorised!==false||!['current','changed','restricted','unsupported','unavailable'].includes(value.sourceState)||!value.originalContext||value.currentContext!==null&&typeof value.currentContext!=='object')throw Error('Unsupported source comparison.');return value;};
+  const editContext=async(customerId,id,revision)=>{if(!uuid(id)||!Number.isSafeInteger(revision)||revision<1)throw Error('Current engagement revision required.');const value=await io('edit_context',{p_customer_id:customerId,p_engagement_id:id,p_expected_revision:revision});if(!scoped(value,customerId,id)||value.currentEditContext!==true||value.schemaVersion!==1||value.revision!==revision||value.type!=='quote'||value.status!=='Prepared'||!hash(value.sourceHash)||!hash(value.recordHash)||!Number.isSafeInteger(value.contextSnapshotRevision)||value.contextSnapshotRevision<1||value.notOwnReceipt!==true||!Array.isArray(value.allowedOperations)||!value.allowedOperations.includes('edit_quote')||value.allowedOperations.some(x=>!['edit_quote','private_followup'].includes(x))||value.record?.type!=='quote'||!value.record.details||Object.keys(value.record.details).some(k=>!['quoteStatus','quoteAmount','message','plannedSentDate'].includes(k)))throw Error('Current edit context unavailable.');return observe(value,'edit');};
+  const isEditContext=(value,operation='edit_quote')=>observed(value,'edit')&&value.currentEditContext===true&&value.allowedOperations.includes(operation);
   const privateRead=async(customerId,id,kind)=>{const value=await io('private_read',{p_customer_id:customerId,p_engagement_id:id,p_kind:kind});if(!scoped(value,customerId,id)||value.kind!==kind||!Number.isSafeInteger(value.revision)||value.revision<0||value.notOwnReceipt!==true||typeof value.needsReview!=='boolean'||value.revision===0&&value.text!==null||value.revision>0&&(typeof value.text!=='string'||!Number.isSafeInteger(value.engagementRevision)||value.engagementRevision<1))throw Error('Private draft identity mismatch.');return observe(value,'private');};
   const review=({operation,source:src,record,draft,fields,operationId,editor})=>{
    if(!valid()||!['create','edit','private'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
    const base=operation==='create'?src:record;
-   if(!observed(base,operation==='create'?'source':'record')||editor.customerId!==base.customerId||operation==='private'&&(!observed(draft,'private')||draft.engagementId!==record.engagementId||draft.customerId!==record.customerId))return null;
+   const sourceKind=operation==='create'?'source':observed(base,'edit')?'edit':'record';
+   if(!observed(base,sourceKind)||editor.customerId!==base.customerId||operation==='private'&&(!observed(draft,'private')||draft.engagementId!==record.engagementId||draft.customerId!==record.customerId))return null;
+   if(sourceKind==='edit'&&!isEditContext(base,operation==='private'?'private_followup':'edit_quote'))return null;
+   if(sourceKind==='edit'&&operation==='private'&&draft?.kind!=='followup')return null;
    if(['edit','private'].includes(operation)&&editor.engagementId!==record.engagementId)return null;
    if(operation==='create'&&editor.engagementId!==null)return null;
    if(['create','edit'].includes(operation)&&(!fields||typeof fields.text!=='string'||!fields.text.trim()||typeof fields.amount!=='string'||!/^\d+(?:\.\d{1,2})?$/.test(fields.amount)||typeof fields.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(fields.date)))return null;
@@ -42,7 +47,7 @@ export function createCanonicalWorkSession(){
    if(operation==='create'&&src.hasLegacyWork)return null;
    if(operation==='private'&&(!['reply','followup'].includes(draft.kind)||typeof fields?.text!=='string'||!fields.text.trim()))return null;
    const ticket=Object.freeze({operation,operationId,customerId:base.customerId,enquiryId:base.enquiryId||record?.enquiryId,engagementId:record?.engagementId||null,fields:JSON.parse(stableJson(fields||{})),source:base});
-   tickets.set(ticket,{scope,editor:stableJson(editor),source:base,sourceKind:operation==='create'?'source':'record',draft,stamp:stableJson(ticket),used:false});return ticket;
+   tickets.set(ticket,{scope,editor:stableJson(editor),source:base,sourceKind,draft,stamp:stableJson(ticket),used:false});return ticket;
   };
   const cancel=ticket=>{const t=tickets.get(ticket);if(t)t.used=true;return false;};
   const commit=async(ticket,getEditor)=>{
@@ -65,7 +70,7 @@ export function createCanonicalWorkSession(){
     const result={status:'confirmed',evidence,receipt,ticket};outcomes.set(scope,result);return result;
    }catch{const status=sent?'unknown':'reviewRequired';if(outcomes.get(scope)===pending)outcomes.set(scope,{status,ticket});return {status,ticket};}
   };
-  return {enabled:enabled===true,evidence,source,list,read,history,discover,compare,privateRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
+  return {enabled:enabled===true,evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
  }};
 }
 

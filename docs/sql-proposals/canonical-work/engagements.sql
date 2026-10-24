@@ -166,6 +166,17 @@ BEGIN
  END IF;
  RETURN h||jsonb_build_object('sourceState',state,'originalContext',original,'currentContext',current_source,'comparisonOnly',true,'currentSnapshotRevision',CASE WHEN current_source IS NOT NULL THEN x->'revision' ELSE NULL END,'customerEvidenceChanged',CASE WHEN current_source IS NOT NULL THEN r.customer_hash IS DISTINCT FROM x->>'customerHash' ELSE NULL END,'enquiryEvidenceChanged',CASE WHEN current_source IS NOT NULL THEN r.source_hash IS DISTINCT FROM x->>'sourceHash' ELSE NULL END);
 END $$;
+-- Current finite editor eligibility; never a restored customer or historical capability.
+CREATE FUNCTION public.busy_work_edit_context_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;ops text[]:=ARRAY['edit_quote'];snapshot_rev bigint;
+BEGIN
+ IF p_expected_revision IS NULL OR p_expected_revision<1 THEN RAISE EXCEPTION 'Expected engagement revision required' USING ERRCODE='22023';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);
+ IF has_function_privilege('authenticated',to_regprocedure('public.busy_work_edit_quote_v1(uuid,text,uuid,bigint,text,text,text,text,text)'),'EXECUTE') IS DISTINCT FROM true THEN RAISE EXCEPTION 'Quote editing unavailable' USING ERRCODE='42501';END IF;
+ IF has_function_privilege('authenticated',to_regprocedure('public.busy_work_private_write_v1(uuid,text,uuid,bigint,bigint,text,text,text,text)'),'EXECUTE') THEN ops:=array_append(ops,'private_followup');END IF;
+ SELECT revision INTO snapshot_rev FROM public.busy_business_snapshots WHERE business_id=p_business_id;
+ RETURN busy_work_private.project(r)||jsonb_build_object('currentEditContext',true,'allowedOperations',to_jsonb(ops),'contextSnapshotRevision',snapshot_rev);
+END $$;
 CREATE FUNCTION public.busy_work_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);
 BEGIN RETURN busy_work_private.project(r);END $$;
@@ -214,7 +225,7 @@ END $$;
 CREATE TRIGGER busy_canonical_legacy_readonly BEFORE UPDATE OR DELETE ON public.busy_business_snapshots FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_legacy();
 DO $$ DECLARE f record;r text;t regclass;
 BEGIN
- FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1') LOOP
+ FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1') LOOP
   EXECUTE format('ALTER FUNCTION %s OWNER TO postgres',f.signature);EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
   IF f.proname LIKE 'busy_work_%' AND f.proname<>'busy_work_migrate_legacy_v1' THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
  END LOOP;

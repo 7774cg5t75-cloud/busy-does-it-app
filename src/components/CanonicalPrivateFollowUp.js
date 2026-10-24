@@ -6,15 +6,17 @@ import {stableJson} from '../core/stableJson.mjs';
 import {useOwnerEditNavigation} from '../screens/useOwnerEditNavigation';
 
 // Wording belongs to this editor; storage/revisions remain the existing finite adapter.
-export function CanonicalPrivateFollowUp({s,customer,record,api}){
+export function CanonicalPrivateFollowUp({s,customer,customerId:accountCustomerId,record,accountContext=null,api}){
+ const customerId=accountCustomerId??customer?.id;
  const [draft,setDraft]=React.useState(null),[words,setWords]=React.useState(''),[notice,setNotice]=React.useState(''),[pending,setPending]=React.useState(false);
  const epoch=React.useRef(0),live=React.useRef(null),mounted=React.useRef(true),flight=React.useRef(false);
  React.useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
- const identity=stableJson([s.ownerSession?.userId,s.cloudWorkspace,s.ownerWorkspaceScope===undefined,customer,record,s.screen]);
+ const identity=stableJson([s.ownerSession?.userId,s.cloudWorkspace,s.ownerWorkspaceScope===undefined,customer,customerId,record,s.screen]);
  const scope=s.ownerWorkspaceScope,owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;
  live.current={identity,scope,owner,business,record,words,view:s.screen,draft};
- const current=()=>mounted.current&&live.current.scope===scope&&live.current.identity===identity&&live.current.owner===owner&&live.current.business===business&&s.cloudWorkspace?.role==='owner';
- const editor=()=>({customerId:customer.id,engagementId:record.engagementId,view:live.current.view,typingEpoch:epoch.current,sourceStamp:live.current.identity,fields:{text:live.current.words}});
+ const contextCurrent=!accountContext||api.isEditContext(accountContext,'private_followup');
+ const current=()=>contextCurrent&&mounted.current&&live.current.scope===scope&&live.current.identity===identity&&live.current.owner===owner&&live.current.business===business&&s.cloudWorkspace?.role==='owner';
+ const editor=()=>({customerId:customerId,engagementId:record.engagementId,view:live.current.view,typingEpoch:epoch.current,sourceStamp:live.current.identity,fields:{text:live.current.words}});
  const report=useOwnerEditNavigation(s,{source:record,projectId:'canonical-private:'+record.engagementId,revision:record.revision},()=>{epoch.current++;live.current.words=draft?.text||'';setWords(draft?.text||'');return true;});
  const dirty=words!==(draft?.text||'');
  React.useEffect(()=>{report(dirty);},[dirty,record,draft,scope]);
@@ -25,9 +27,9 @@ export function CanonicalPrivateFollowUp({s,customer,record,api}){
  const inspect=async()=>{
   if(!current()||flight.current)return false;flight.current='read';setPending(true);const captured=epoch.current;
   try{
-   const fresh=await api.read(customer.id,record.engagementId);
+   const fresh=await api.read(customerId,record.engagementId);
    if(!current()||captured!==epoch.current||fresh.revision!==record.revision||fresh.recordHash!==record.recordHash){if(current())setNotice(captured!==epoch.current?'Newer typing was kept; inspection did not replace your wording.':'This engagement changed. Your wording is kept; reopen the current quote before reviewing a save.');return false;}
-   const observed=await api.privateRead(customer.id,record.engagementId,'followup');
+   const observed=await api.privateRead(customerId,record.engagementId,'followup');
    if(!current())return false;if(epoch.current!==captured){setNotice('Newer typing was kept. The account observation did not replace it.');return false;}
    return replace(()=>{epoch.current++;setDraft(observed);setWords(observed.text||'');live.current.words=observed.text||'';setNotice(observed.revision?'Current private account wording observed. This is not a receipt for an earlier save.':'No private follow-up is recorded. Prepare your own wording; nothing will be sent.');});
   }catch{if(current())setNotice('Private account inspection unavailable. Your words are kept; do not retry an uncertain save.');return false;}
@@ -46,7 +48,7 @@ export function CanonicalPrivateFollowUp({s,customer,record,api}){
      const result=await api.commit(ticket,editor);if(!current())return false;
      if(result.status!=='confirmed'){setNotice(result.status==='unknown'?'Save outcome uncertain. Your words are kept; no automatic retry. Matching account wording cannot recover the lost acknowledgement.':'Review expired. Keep your wording and inspect the current engagement.');return false;}
      acknowledged=true;setNotice('Exact private target receipt received. Other engagements, quote fields and customer records are unchanged.');
-     const observed=await api.privateRead(customer.id,record.engagementId,'followup');
+     const observed=await api.privateRead(customerId,record.engagementId,'followup');
      if(!current())return false;
      if(observed.revision!==result.receipt.revision||observed.engagementRevision!==record.revision||observed.text!==ticket.fields.text){setNotice('Exact receipt received, but current wording differs. Keep your words and review current account evidence.');return false;}
      setDraft(observed);if(epoch.current===captured){setWords(observed.text);live.current.words=observed.text;report(false);}else{setNotice('Earlier reviewed wording was saved and read back. Newer typing is kept and is not confirmed saved.');report(true);}return true;
@@ -55,9 +57,10 @@ export function CanonicalPrivateFollowUp({s,customer,record,api}){
    }}
   ]);return true;
  };
- return <Card eyebrow="Owner-private preparation" title="This engagement’s private follow-up" body={'Customer '+customer.id+' · Engagement '+record.engagementId+'. Prepared wording does not mean the quote was issued or delivered.'}>
+ return <Card eyebrow="Owner-private preparation" title="This engagement’s private follow-up" body={'Customer '+customerId+' · Engagement '+record.engagementId+'. Prepared wording does not mean the quote was issued or delivered.'}>
+  {!contextCurrent?<Text style={styles.cardBody}>The current account edit binding is unavailable. Your private wording is kept here read-only. Review a fresh current engagement before another save.</Text>:null}
   {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
-  <Button label="Inspect private follow-up" disabled={pending} onPress={inspect}/>
-  {draft?<><Text style={styles.workspaceMeta}>{'Private draft revision '+draft.revision+(draft.needsReview?' · Current engagement must be reviewed':'')+'. Account observation is separate from this editor.'}</Text><Field label="Private engagement follow-up wording" multiline value={words} editable={flight.current!=='save'} onChangeText={value=>{if(!current()||flight.current==='save')return false;epoch.current++;live.current.words=value;setWords(value);report(value!==(draft.text||''));}}/><Button label="Review private follow-up save" disabled={pending||!words.trim()||api.status().status==='unknown'} onPress={review}/></>:null}
+  <Button label="Inspect private follow-up" disabled={pending||!contextCurrent} onPress={inspect}/>
+  {draft?<><Text style={styles.workspaceMeta}>{'Private draft revision '+draft.revision+(draft.needsReview?' · Current engagement must be reviewed':'')+'. Account observation is separate from this editor.'}</Text><Field label="Private engagement follow-up wording" multiline value={words} editable={contextCurrent&&flight.current!=='save'} onChangeText={value=>{if(!current()||flight.current==='save')return false;epoch.current++;live.current.words=value;setWords(value);report(value!==(draft.text||''));}}/><Button label="Review private follow-up save" disabled={pending||!contextCurrent||!words.trim()||api.status().status==='unknown'} onPress={review}/></>:null}
  </Card>;
 }
