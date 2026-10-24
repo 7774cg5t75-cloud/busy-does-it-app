@@ -1479,6 +1479,23 @@ function QuoteFollowUp({ s }) {
   if (!customer || action?.type !== "quote") {
     return <Shell s={s} title="Quote follow-up" subtitle="The quote could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
   }
+  const captureDeviceReview=()=>{
+    const epoch=s.getQuoteFollowUpTypingEpoch?.(),scope=s.ownerWorkspaceScope,words=s.quoteFollowUpDraft,origin=s.quoteFollowUpOriginItem,originStamp=JSON.stringify(origin),stamp=JSON.stringify(action);
+    return ()=>{const now=live.current;return alive.current&&!!scope&&Number.isSafeInteger(epoch)&&now.ownerWorkspaceScope===scope&&now.screen===s.screen&&now.ownerSession?.userId===s.ownerSession?.userId&&now.cloudWorkspace?.businessId===s.cloudWorkspace?.businessId&&['owner','admin'].includes(now.cloudWorkspace?.role)&&now.selectedReplyCustomer===customer&&now.replyActions?.[customer.id]===action&&JSON.stringify(action)===stamp&&now.quoteFollowUpDraft===words&&now.getQuoteFollowUpTypingEpoch?.()===epoch&&now.quoteFollowUpSourceCurrent!==false&&now.quoteFollowUpOriginItem===origin&&JSON.stringify(now.quoteFollowUpOriginItem)===originStamp&&(!origin||now.inboxItems?.includes(origin)&&origin.status==='Filed'&&origin.filedCustomerId===customer.id);};
+  };
+  const reviewDeviceWording=async()=>{
+    const current=captureDeviceReview();if(!current()||typeof s.checkPrivateQuoteCopy!=='function')return false;
+    try{
+      const checked=await s.checkPrivateQuoteCopy({isCurrent:current,review:true});
+      if(!current())return false;
+      if(checked?.status!=='confirmed'||typeof checked.followUpText!=='string'){Alert.alert('Keep your current wording','A matching private follow-up was not verified on this device. Your words are kept; no account save or delivery is confirmed.');return false;}
+      const words=checked.followUpText;let used=false;
+      Alert.alert('Review checked private wording','Current wording:\n'+s.quoteFollowUpDraft+'\n\nChecked device wording:\n'+words+'\n\nOnly this editor wording will change. Amount, date, quote status and other work stay. Nothing is saved or sent.',[
+        {text:'Keep editing',style:'cancel',onPress:()=>{used=true;}},
+        {text:'Use checked private wording',onPress:async()=>{if(used||!current())return false;used=true;try{const fresh=await s.checkPrivateQuoteCopy({isCurrent:current,review:true});if(!current()||fresh?.status!=='confirmed'||fresh.followUpText!==words)return false;s.setQuoteFollowUpDraft(words);return true;}catch{return false;}}}
+      ]);return true;
+    }catch{return false;}
+  };
   return (
     <Shell
       s={s}
@@ -1513,11 +1530,8 @@ function QuoteFollowUp({ s }) {
       />
       {s.savePrivateQuoteFollowUp?<Button label="Review private wording save" disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.savePrivateQuoteFollowUp}/>:null}
       {s.quoteFollowUpPrivateRecorded?<Text accessibilityLiveRegion="polite" style={styles.helper}>This exact private wording was observed in the original workspace quote record. Device/account saving and customer delivery remain separate.</Text>:null}
-      <QuotePrivateSaveStatus s={s} record={action} dirty={s.quoteFollowUpDraft!==(action.details?.followUpMessage||'')} check={s.checkPrivateQuoteCopy&&s.getQuoteFollowUpTypingEpoch?()=>{
-        const epoch=s.getQuoteFollowUpTypingEpoch(),scope=s.ownerWorkspaceScope,words=s.quoteFollowUpDraft;
-        const current=()=>{const now=live.current;return alive.current&&now.ownerWorkspaceScope===scope&&now.screen===s.screen&&now.ownerSession?.userId===s.ownerSession?.userId&&now.cloudWorkspace?.businessId===s.cloudWorkspace?.businessId&&now.selectedReplyCustomer===customer&&now.replyActions?.[customer.id]===action&&now.quoteFollowUpDraft===words&&now.getQuoteFollowUpTypingEpoch?.()===epoch;};
-        return current()?s.checkPrivateQuoteCopy({isCurrent:current}):false;
-      }:null}/>
+      <QuotePrivateSaveStatus s={s} record={action} dirty={s.quoteFollowUpDraft!==(action.details?.followUpMessage||'')} check={s.checkPrivateQuoteCopy&&s.getQuoteFollowUpTypingEpoch?()=>{const current=captureDeviceReview();return current()?s.checkPrivateQuoteCopy({isCurrent:current}):false;}:null}/>
+      {typeof action.details?.followUpMessage==='string'&&s.checkPrivateQuoteCopy&&s.getQuoteFollowUpTypingEpoch?<Button label="Review checked private follow-up wording" onPress={reviewDeviceWording}/>:null}
       <Button label="Approve simulated send" primary disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.simulateQuoteFollowUpSend} />
       <Button label="Open original quote" onPress={() => s.openSavedReplyAction(customer.id)} />
       <Button label="Not now" onPress={s.back} />

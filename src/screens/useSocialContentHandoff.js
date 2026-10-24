@@ -170,7 +170,7 @@ export function useSocialContentHandoff(input){
   if(!valid())return false;
   const evidence=savedRecord?savedRecord.contentEvidence:live.current.sourceContext?.contentEvidence;
   let savedStamp;try{savedStamp=savedRecord?savedAnnouncementStamp(savedRecord):null;}catch{return false;}
-  const savedCurrent=()=>!savedRecord||savedRecord.id===live.current.selectedDraftId&&savedRecord.status==='Draft'&&!savedRecord.publishedAt&&evidence?.channel==='newsletter'&&recordCurrent(savedRecord,savedStamp);
+  const savedCurrent=()=>!savedRecord||savedRecord.id===live.current.selectedDraftId&&savedRecord.status==='Draft'&&!savedRecord.publishedAt&&['newsletter','social'].includes(evidence?.channel)&&recordCurrent(savedRecord,savedStamp);
   if(!evidence||!savedCurrent())return false;
   const ticket=capture();let result;
   try{
@@ -237,18 +237,20 @@ export function useSocialContentHandoff(input){
  };
  const reuseNewsletter=options=>reusePreparedDraft('newsletter',options);
  const reuseSocialDraft=options=>reusePreparedDraft('social',options);
- const resumeNewsletterWording=async()=>{
+ const resumePreparedWording=async(channel)=>{
   if(!valid()||epoch.current!==renderEpoch)return false;
   const record=live.current.records?.find(row=>row.id===live.current.selectedDraftId),evidence=live.current.sourceContext?.contentEvidence;
-  if(!record||!readNewsletterWording(record.text)||record.text.length>15000||record.status!=='Draft'||record.publishedAt||evidence!==record.contentEvidence||evidence?.channel!=='newsletter'||[record.ownerId,record.owner_id].some(id=>id&&id!==live.current.ownerId))return false;
+  if(!['newsletter','social'].includes(channel)||!record||typeof record.text!=='string'||!record.text.trim()||(channel==='newsletter'&&!readNewsletterWording(record.text))||record.text.length>15000||record.status!=='Draft'||record.publishedAt||evidence!==record.contentEvidence||evidence?.channel!==channel||[record.ownerId,record.owner_id].some(id=>id&&id!==live.current.ownerId))return false;
   const stamp=savedAnnouncementStamp(record),ticket=capture();
   if(!recordCurrent(record,stamp)||!await reviewSource(record)||!recordCurrent(record,stamp)||!fresh({...ticket,epoch:ticket.epoch+1}))return false;
   const checked=capture();let used=false;
-  input.confirm?.({keep:()=>{used=true;},actionLabel:'Use saved subject and body',message:'Current newsletter wording:\n'+live.current.text+'\n\nSaved workspace wording:\n'+record.text+'\n\nOnly subject and body will change. Your newer brief, photos and destination choices stay. Review your wording against the current facts. Device/account saving, recipient consent and delivery are not confirmed.',discard:()=>{
+  input.confirm?.({keep:()=>{used=true;},actionLabel:channel==='newsletter'?'Use saved subject and body':'Use saved social wording',message:'Current '+channel+' wording:\n'+live.current.text+'\n\nSaved workspace wording:\n'+record.text+'\n\nOnly '+(channel==='newsletter'?'subject and body':'draft wording')+' will change. Your newer brief, photos and destination choices stay. Review your wording against the current facts. Device/account saving, recipient consent and delivery are not confirmed.',discard:()=>{
    if(used||!fresh(checked)||!recordCurrent(record,stamp)||live.current.sourceContext?.contentEvidence!==evidence)return false;used=true;
    editText(record.text);return true;
   }});return true;
  };
+ const resumeNewsletterWording=()=>resumePreparedWording('newsletter');
+ const resumeSocialWording=()=>resumePreparedWording('social');
  const editNewsletterPart=(part,value)=>{
   if(!valid()||live.current.selectedDraftId!==input.selectedDraftId||live.current.sourceContext?.contentEvidence!==input.sourceContext?.contentEvidence||live.current.sourceContext?.contentEvidence?.channel!=='newsletter')return false;
   const changed=editNewsletterWording(live.current.text,part,value);if(changed===null)return false;
@@ -301,5 +303,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection,result.channel||'social');return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection,result.channel||'social')}:result;
  };
- return {canUpdatePrivateDraft:record=>valid()&&epoch.current===renderEpoch&&!!record&&live.current.selectedDraftId===record.id&&live.current.records?.filter(row=>row?.id===record.id).length===1&&live.current.records.includes(record)&&(record.status||'Draft')==='Draft'&&!record.publishedAt&&(!record.businessId||record.businessId===live.current.businessId)&&(!record.contentEvidence?.businessId||record.contentEvidence.businessId===live.current.businessId),pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource:()=>reviewSource(),reviewSavedSource:record=>reviewSource(record),reuseNewsletter,reuseSocialDraft,refreshNewsletterSource,resumeNewsletterWording,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {canUpdatePrivateDraft:record=>valid()&&epoch.current===renderEpoch&&!!record&&live.current.selectedDraftId===record.id&&live.current.records?.filter(row=>row?.id===record.id).length===1&&live.current.records.includes(record)&&(record.status||'Draft')==='Draft'&&!record.publishedAt&&(!record.businessId||record.businessId===live.current.businessId)&&(!record.contentEvidence?.businessId||record.contentEvidence.businessId===live.current.businessId),pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource:()=>reviewSource(),reviewSavedSource:record=>reviewSource(record),reuseNewsletter,reuseSocialDraft,refreshNewsletterSource,resumeNewsletterWording,resumeSocialWording,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }

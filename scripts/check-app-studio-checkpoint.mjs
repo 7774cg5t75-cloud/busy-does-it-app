@@ -26,8 +26,8 @@ assert.equal((await create({...scope,app:{...saved,draft_revision:6}})).snapshot
 recoveredUndo.discard();await tick();assert.equal((await create({...scope,app:saved})).snapshot().undo,null);
 const savedKey=key(scope);data.set(savedKey,JSON.stringify({v:1,ownerId:other.ownerId,businessId:scope.businessId,appId:scope.app.id,at:1000,state:{}}));const foreign=await create();assert.equal(foreign.snapshot().preview,null);assert.match(foreign.snapshot().recoveryError,/another workspace/);
 // Writes are serialized even if the native storage completes out of order.
-let release;const events=[];const queued=checkpoint({...storage,setItemAsync:async(k,v)=>{events.push(JSON.parse(v).state);if(events.length===1)await new Promise(r=>{release=r;});}},scope,{now:()=>1000});
-const one=queued.save({n:1}),two=queued.save({n:2});await tick();assert.deepEqual(events,[{n:1}]);release();await Promise.all([one,two]);assert.deepEqual(events,[{n:1},{n:2}]);
+let release;const events=[];const queued=checkpoint({...storage,setItemAsync:async(k,v)=>{events.push(JSON.parse(v).state);if(events.length===1)await new Promise(r=>{release=r;});data.set(k,v);}},scope,{now:()=>1000});
+const one=queued.save({n:1}),two=queued.save({n:2});await tick();assert.deepEqual(events,[{n:1}]);release();await Promise.all([one,two]);assert.deepEqual(events,[{n:1},{n:2}]);assert.deepEqual(await queued.load(),{n:2});
 await assert.rejects(checkpoint(storage,scope).save({large:'x'.repeat(60000)}),/too large/);
 parse(readFileSync('src/screens/usePrivateAppStudio.js','utf8'),{sourceType:'module',plugins:['jsx']});
 console.log('PASS: encrypted checkpoint contract, restart proposal/undo, exact revision/actor binding, durable-before-write intent, no replay, unavailable storage, bounded records and serialized native writes. Simulated storage/transport only.');

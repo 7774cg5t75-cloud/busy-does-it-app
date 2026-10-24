@@ -14,7 +14,7 @@ export async function readPrivateQuoteCopy({read,ownerId,businessId,revision,cus
   if(!saved||stableJson(saved)!==stableJson(record))return {status:'unknown'};
   const d=saved.details,date=d?.plannedSentDate,parsed=new Date(String(date)+'T12:00:00Z');
   const complete=d?.quoteStatus==='Prepared'&&['string','number'].includes(typeof d.quoteAmount)&&typeof d.message==='string'&&typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&Number.isFinite(parsed.getTime())&&parsed.toISOString().slice(0,10)===date;
-  return {status:'confirmed',...(complete?{form:{amount:String(d.quoteAmount),message:d.message,date}}:{})};
+  return {status:'confirmed',...(complete?{form:{amount:String(d.quoteAmount),message:d.message,date}}:{}),...(d?.quoteStatus==='Sent'&&!d.followUpSentAt&&typeof d.followUpMessage==='string'&&d.followUpMessage.trim()&&d.followUpMessage.length<=12000?{followUpText:d.followUpMessage}:{})};
  }catch{return {status:'unknown'};}
 }
 

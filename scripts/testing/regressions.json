@@ -2341,6 +2341,24 @@
       "args": [
         "scripts/check-mission15-returning-account-context.mjs"
       ]
+    },
+    {
+      "id": "mission15-followup-checked-reopen",
+      "args": [
+        "scripts/check-mission15-followup-checked-reopen.mjs"
+      ]
+    },
+    {
+      "id": "mission15-social-wording-continuation",
+      "args": [
+        "scripts/check-mission15-social-wording-continuation.mjs"
+      ]
+    },
+    {
+      "id": "mission15-builder-recovery-readback",
+      "args": [
+        "scripts/check-mission15-builder-recovery-readback.mjs"
+      ]
     }
   ]
 }

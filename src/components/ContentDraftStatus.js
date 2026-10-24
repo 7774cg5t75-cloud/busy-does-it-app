@@ -22,6 +22,7 @@ export function ContentDraftStatus({s}){
   'This draft is in memory. Device recovery has not yet been confirmed for this version.';
  return <><Text accessibilityLiveRegion="polite" style={styles.cardBody}>{message}</Text>
   {record.contentEvidence?.channel==='social'&&s.socialContentActions?.reuseSocialDraft?<Button label="Start a separate private content draft" onPress={s.socialContentActions.reuseSocialDraft}/>:null}
+  {newer&&record.contentEvidence?.channel==='social'&&s.socialContentActions?.resumeSocialWording?<Button label="Review saved social wording only" onPress={s.socialContentActions.resumeSocialWording}/>:null}
   {newer&&record.contentEvidence?.channel==='newsletter'&&s.socialContentActions?.resumeNewsletterWording?<Button label="Review saved newsletter wording only" onPress={s.socialContentActions.resumeNewsletterWording}/>:null}
   {exact&&receipt.status==='unknown'&&!newer&&!otherChanges&&s.checkPrivateContentCopy?<Button label="Check private device copy" onPress={s.checkPrivateContentCopy}/>:null}
  </>;
