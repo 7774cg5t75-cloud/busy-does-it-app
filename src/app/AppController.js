@@ -7,7 +7,7 @@ import {privateContentChannels,restoreContentDraft} from '../core/contentDraftCh
 import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails,reviewedFiledEnquiry} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource,quoteFormFields} from '../core/privateQuoteCopy.mjs';
-import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
+import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent,reviewPrivateQuoteFollowUp,continuePrivateQuoteFollowUp} from '../core/quoteDraftTransition.mjs';
 import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
 import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
@@ -4711,6 +4711,8 @@ function App() {
   };
 
   const quoteFollowUpSources=useRef(null);quoteFollowUpSources.current={customers,replyActions,lastSimulatedRecipients,inboxItems,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision};
+  quoteFollowUpScope.current=continuePrivateQuoteFollowUp(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,quoteFollowUpSources.current);
+  const savePrivateQuoteFollowUp=()=>reviewPrivateQuoteFollowUp({workspace:renderedBusinessWorkspaceScope,workspaceRef:businessWorkspaceScopeRef,draftRef:quoteFollowUpScope,epochRef:quoteFollowUpTypingEpoch,renderEpoch:quoteFollowUpRenderEpoch,getCurrent:()=>({...quoteFollowUpSources.current,selectedId:replyActionSources.current.selectedReplyActionId,view:navigationStateRef.current.screen}),confirm:Alert.alert,write:(id,before,next,isCurrent)=>setReplyActions(rows=>isCurrent()&&rows[id]===before?{...rows,[id]:next}:rows)});
   const prepareQuoteFollowUp = (customerId,originInboxId="") => {
     if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
     const authority=quoteFollowUpSources.current;
@@ -4723,7 +4725,7 @@ function App() {
     if (!customer || action?.type !== "quote" || action.details?.quoteStatus !== "Sent") return;
     const originItem=originInboxId?inboxItems.find(item=>item.id===originInboxId&&item.status==="Filed"&&item.filedCustomerId===customerId):action.details?.enquiryReference?resolveQuoteEnquiryReference(action.details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems,revision:cloudRevision}):null;
     const originStamp=originItem?JSON.stringify(originItem):'';
-    if(originInboxId&&!originItem)return false;
+    if((originInboxId||action.details?.enquiryReference)&&!originItem)return false;
     const quoteStamp=JSON.stringify([customer,action]);
     const sourceCurrent=()=>quoteFollowUpSources.current?.ownerId===sourceOwner&&quoteFollowUpSources.current?.businessId===sourceBusiness&&quoteFollowUpSources.current?.revision===sourceRevision&&['owner','admin'].includes(quoteFollowUpSources.current?.role)&&![customer.businessId,customer.business_id].some(id=>id&&id!==sourceBusiness)&&JSON.stringify([customer,action])===quoteStamp&&quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer))&&(!originItem||quoteFollowUpSources.current?.inboxItems?.includes(originItem)&&originItem.status==="Filed"&&originItem.filedCustomerId===customerId&&JSON.stringify(originItem)===originStamp);
     if(quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch||!sourceCurrent())return false;
@@ -17879,6 +17881,8 @@ function App() {
     getQuoteFollowUpTypingEpoch:()=>quoteFollowUpTypingEpoch.current,
     setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
+    savePrivateQuoteFollowUp,
+    quoteFollowUpPrivateRecorded:!!quoteFollowUpScope.current?.privateSave&&quoteFollowUpScope.current.privateSave.next===replyActions[selectedReplyActionId]&&quoteFollowUpScope.current?.words===replyActions[selectedReplyActionId]?.details?.followUpMessage,
     prepareQuoteDetails,
     quoteEnquiryLinkStatus:replyActions[selectedReplyActionId]?.details?.enquiryReference?resolveQuoteEnquiryReference(replyActions[selectedReplyActionId].details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId:selectedReplyActionId,inboxItems,revision:cloudRevision})?'linked':'needs-review':'',
     resumeCurrentEnquiry,

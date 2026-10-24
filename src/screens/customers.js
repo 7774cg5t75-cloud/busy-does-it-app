@@ -1508,6 +1508,8 @@ function QuoteFollowUp({ s }) {
         body="The prototype records the approval and outcome, but it does not actually message the customer."
         tone="blue"
       />
+      {s.savePrivateQuoteFollowUp?<Button label="Review private wording save" disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.savePrivateQuoteFollowUp}/>:null}
+      {s.quoteFollowUpPrivateRecorded?<Text accessibilityLiveRegion="polite" style={styles.helper}>This exact private wording was observed in the original workspace quote record. Device/account saving and customer delivery remain separate.</Text>:null}
       <Button label="Approve simulated send" primary disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.simulateQuoteFollowUpSend} />
       <Button label="Open original quote" onPress={() => s.openSavedReplyAction(customer.id)} />
       <Button label="Not now" onPress={s.back} />
