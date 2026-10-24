@@ -16,14 +16,16 @@ export function ContentDraftStatus({s}){
   changes.channels?'Your destination choices differ from this saved draft. Save privately to keep them; publishing still requires connected, approved channels.':
   otherChanges?'You have unsaved photo or brief changes. Save privately to include them.':
   exact&&receipt.status==='failed'?'The device save did not start. Your draft is still in memory; keep your changes and save privately again.':
+  exact&&receipt.status==='confirmed'&&receipt.observedOnly?'This exact saved draft was observed in this device copy. It does not reconstruct an earlier save acknowledgement or confirm newer edits, account saving or publication.':
   exact&&receipt.status==='confirmed'?'This wording was saved and read back from your private device copy. It is not published.':
   exact&&receipt.status==='saving'?'Saving this private device copy… Keep your wording until confirmation.':
+  exact&&receipt.status==='unknown'&&receipt.observedOnly?'This selected saved draft could not be verified in the device copy. Current editing is kept; no save was repeated.':
   exact&&receipt.status==='unknown'?'The device save could not be confirmed. Keep your wording; no cloud or publishing success is assumed.':
   'This draft is in memory. Device recovery has not yet been confirmed for this version.';
  return <><Text accessibilityLiveRegion="polite" style={styles.cardBody}>{message}</Text>
   {record.contentEvidence?.channel==='social'&&s.socialContentActions?.reuseSocialDraft?<Button label="Start a separate private content draft" onPress={s.socialContentActions.reuseSocialDraft}/>:null}
   {newer&&record.contentEvidence?.channel==='social'&&s.socialContentActions?.resumeSocialWording?<Button label="Review saved social wording only" onPress={s.socialContentActions.resumeSocialWording}/>:null}
   {newer&&record.contentEvidence?.channel==='newsletter'&&s.socialContentActions?.resumeNewsletterWording?<Button label="Review saved newsletter wording only" onPress={s.socialContentActions.resumeNewsletterWording}/>:null}
-  {exact&&receipt.status==='unknown'&&!newer&&!otherChanges&&s.checkPrivateContentCopy?<Button label="Check private device copy" onPress={s.checkPrivateContentCopy}/>:null}
+  {(!exact||receipt.status!=='saving')&&s.checkPrivateContentCopy?<Button label="Check private device copy" onPress={s.checkPrivateContentCopy}/>:null}
  </>;
 }

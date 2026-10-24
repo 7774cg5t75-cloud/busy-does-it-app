@@ -2359,6 +2359,30 @@
       "args": [
         "scripts/check-mission15-builder-recovery-readback.mjs"
       ]
+    },
+    {
+      "id": "mission15-enquiry-quote-work-entry",
+      "args": [
+        "scripts/check-mission15-enquiry-quote-work-entry.mjs"
+      ]
+    },
+    {
+      "id": "mission15-creator-independent-device-read",
+      "args": [
+        "scripts/check-mission15-creator-independent-device-read.mjs"
+      ]
+    },
+    {
+      "id": "mission15-service-selection-decisions",
+      "args": [
+        "scripts/check-mission15-service-selection-decisions.mjs"
+      ]
+    },
+    {
+      "id": "mission15-recorded-quote-work-draft",
+      "args": [
+        "scripts/check-mission15-recorded-quote-work-draft.mjs"
+      ]
     }
   ]
 }

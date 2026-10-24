@@ -443,7 +443,7 @@ function CustomerDetail({ s }) {
       brandCue="One customer. One clear history."
     >
       <SavedEnquiryReplyButton s={s} customer={customer}/>
-      {s.customerEnquiryOriginItem?<QuoteEnquiryContext s={s} customerId={customer.id} item={s.customerEnquiryOriginItem}/>:null}
+      {s.customerEnquiryOriginItem?<QuoteEnquiryContext s={s} customerId={customer.id} item={s.customerEnquiryOriginItem} openQuote/>:null}
       <Card
         eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}
         title={customer.service}

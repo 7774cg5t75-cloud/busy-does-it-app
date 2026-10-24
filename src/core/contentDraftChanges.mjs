@@ -1,3 +1,4 @@
+import {decodeBusinessCache} from './businessCache.mjs';
 import {stableJson} from './stableJson.mjs';
 // Finite private-draft comparison shared by original transition and status UI.
 const channels=[['facebook','Facebook'],['instagram','Instagram'],['googleBusiness','Google Business']];
@@ -31,4 +32,15 @@ export function contentDraftChanges(current,record){
   try{result.source=stableJson(evidence||null)!==stableJson(record?.contentEvidence||null);}catch{result.source=true;}
  }
  return {...result,dirty:Object.values(result).some(Boolean)};
+}
+
+// Exact selected private device record only. Observation is not an earlier write receipt.
+export async function readPrivateContentCopy({read,ownerId,businessId,revision,record}={}){
+ try{
+  if(!record?.id||record.status!=='Draft'||record.publishedAt||[record.businessId,record.business_id,record.contentEvidence?.businessId].some(id=>id&&id!==businessId)||[record.ownerId,record.owner_id].some(id=>id&&id!==ownerId))return {status:'unknown'};
+  const cache=decodeBusinessCache(await read(),{ownerId,businessId}),rows=cache?.payload?.socialDrafts;
+  if(cache?.revision!==revision||!Array.isArray(rows))return {status:'unknown'};
+  const matches=rows.filter(row=>row?.id===record.id);
+  return {status:matches.length===1&&stableJson(matches[0])===stableJson(record)?'confirmed':'unknown'};
+ }catch{return {status:'unknown'};}
 }

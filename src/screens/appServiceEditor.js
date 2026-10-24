@@ -6,8 +6,10 @@ import {validatePrivateAppServices} from '../core/appServiceCollection.mjs';
 import {proposeCoordinatedAppChanges} from '../core/appCoordinatedStudio.mjs';
 // Owns unsaved form presentation only. Original Studio owns review/save/Undo.
 function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraftChange}){
- const epoch=React.useRef(0),dirty=React.useRef(false);
- const [pending,setPending]=React.useState(null);
+ const epoch=React.useRef(0),dirty=React.useRef(false),alive=React.useRef(true);
+ React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ const [pending,updatePending]=React.useState(null),pendingRef=React.useRef(null);
+ const setPending=value=>{pendingRef.current=value;updatePending(value);};
  const rows=config?.publicProfile?.services||[];
  const stamp=JSON.stringify([revision,rows]);
  const live=React.useRef(null);live.current={stamp,config,rows,busy};
@@ -17,10 +19,11 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraft
  const [query,setQuery]=React.useState('');
  const valid=validatePrivateAppServices(rows),stale=source!==stamp;
  const clearPreview=()=>onPreview?.(null);
- const change=setter=>value=>{if(live.current.busy||live.current.config!==config)return;epoch.current++;dirty.current=true;onDraftChange?.(true);setter(value);setPending(null);clearPreview();};
+ const current=()=>alive.current&&live.current.config===config&&!live.current.busy&&JSON.stringify([revision,config?.publicProfile?.services||[]])===stamp&&live.current.stamp===stamp;
+ const change=setter=>value=>{if(!current())return;epoch.current++;dirty.current=true;onDraftChange?.(true);setter(value);setPending(null);clearPreview();};
  const pick=(row=null,discard=false)=>{
-  if(live.current.busy||live.current.config!==config)return;
-  if(dirty.current&&!discard){setPending({row,epoch:epoch.current,config});return;}
+  if(!current())return;
+  if(dirty.current&&!discard){setPending({row,rowStamp:JSON.stringify(row),epoch:epoch.current,config,stamp});return;}
   epoch.current++;dirty.current=false;onDraftChange?.(false);setPending(null);
   setSource(live.current.stamp);setSelected(row?{id:row.id||'',name:row.name}:null);
   setName(row?.name||'');setDescription(row?.description||'');setCategory(row?.category||'');setPrice(row?.priceLabel||'');setDuration(row?.durationLabel||'');clearPreview();
@@ -32,7 +35,7 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraft
  };
  const captured=epoch.current;
  const submit=kind=>{
-  if(captured!==epoch.current||live.current.config!==config||pending)return;
+  if(captured!==epoch.current||!current()||pendingRef.current)return;
   if(live.current.busy||source!==live.current.stamp){onNotice?.('The service list changed. Review the current version before preparing this edit.');return;}
   const index=locate();if(index===-2){onNotice?.('This service was removed or became ambiguous. Choose a current service.');return;}
   let value=live.current.rows.map(row=>({...row}));
@@ -51,9 +54,9 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraft
   onPreview?.(plan.ok?plan:null);onNotice?.(plan.ok?'Review the complete private service list before saving. Your live app is unchanged.':plan.reason);
  };
  const rebase=()=>{
-  if(live.current.busy)return;
+  if(!current())return;
   const index=locate();if(index===-2){onNotice?.('The selected service is no longer available. Choose a current service or add a new one.');return;}
-  setSource(live.current.stamp);clearPreview();onNotice?.('Current service list reviewed. Your typed wording is retained for a fresh preview.');
+  epoch.current++;setPending(null);setSource(live.current.stamp);clearPreview();onNotice?.('Current service list reviewed. Your typed wording is retained for a fresh preview.');
  };
  if(!valid.ok)return <Text accessibilityLiveRegion="polite" style={styles.cardBody}>{valid.reason}</Text>;
  return <View style={styles.inspectorGroup}>
@@ -67,8 +70,8 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraft
   {rows.length>4?<Field label="Find a service to edit" value={query} onChangeText={setQuery}/>:null}
   {pending?<View>
    <Text style={styles.cardBody}>Your service wording is not saved.</Text>
-   <Button label="Keep editing service wording" onPress={()=>{if(live.current.config===config)setPending(null);}}/>
-   <Button label="Discard service wording and continue" onPress={()=>{if(pending.config===live.current.config&&pending.epoch===epoch.current)pick(pending.row,true);}}/>
+   <Button label="Keep editing service wording" onPress={()=>{if(current()&&pendingRef.current===pending)setPending(null);}}/>
+   <Button label="Discard service wording and continue" onPress={()=>{if(current()&&pendingRef.current===pending&&pending.config===live.current.config&&pending.stamp===stamp&&pending.epoch===epoch.current&&JSON.stringify(pending.row)===pending.rowStamp&&(!pending.row||live.current.rows.includes(pending.row))){setPending(null);pick(pending.row,true);}}}/>
   </View>:null}
   <Button label="Cancel service wording" disabled={busy} onPress={()=>{if(captured===epoch.current&&live.current.config===config)pick(null,true);}}/>
   <Button label="Add a new service" disabled={busy} onPress={()=>pick()}/>

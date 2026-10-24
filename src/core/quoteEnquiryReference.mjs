@@ -33,3 +33,14 @@ export function reviewedFiledEnquiry({origin,workspace,customerId,inboxItems=[]}
  if(!origin||origin.workspace!==workspace||origin.customerId!==customerId||!item||!Array.isArray(inboxItems)||!inboxItems.includes(item)||inboxItems.filter(row=>row?.id===item.id).length!==1||item.status!=='Filed'||item.filedCustomerId!==customerId||JSON.stringify(item)!==origin.stamp)return null;
  return item;
 }
+
+// Original local action entry only. Not account restoration, matching or permission authority.
+export function customerQuoteEntry({businessId,customerId,customers=[],inboxItems=[],actions={},originInboxId='',revision}={}){
+ const matches=customers.filter(row=>row?.id===customerId);if(!businessId||matches.length!==1||!Number.isSafeInteger(revision)||revision<(originInboxId?1:0))return null;
+ const customer=matches[0];if([customer.businessId,customer.business_id].some(id=>id&&id!==businessId))return null;
+ const origins=originInboxId?inboxItems.filter(row=>row?.id===originInboxId):[];
+ if(originInboxId&&(origins.length!==1||origins[0].status!=='Filed'||origins[0].filedCustomerId!==customerId||[origins[0].businessId,origins[0].business_id].some(id=>id&&id!==businessId)))return null;
+ const item=origins[0]||null,previous=actions[customerId];
+ if(item&&previous?.details?.enquiryReference&&resolveQuoteEnquiryReference(previous.details.enquiryReference,{businessId,customerId,inboxItems,revision})!==item)return null;
+ return {customer,item,previous,reference:item?quoteEnquiryReference({businessId,customerId,item,revision}):null};
+}

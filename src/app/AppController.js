@@ -3,8 +3,8 @@ import {useFirstEnquiryFiling} from '../screens/useFirstEnquiryFiling';
 import {persistPrivateReply,privateReplyAccountBindings} from './privateEnquiryReplyPersistence.mjs';
 import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
 import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
-import {privateContentChannels,restoreContentDraft} from '../core/contentDraftChanges.mjs';
-import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails,reviewedFiledEnquiry} from '../core/quoteEnquiryReference.mjs';
+import {privateContentChannels,restoreContentDraft,readPrivateContentCopy} from '../core/contentDraftChanges.mjs';
+import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails,reviewedFiledEnquiry,customerQuoteEntry} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource,quoteFormFields} from '../core/privateQuoteCopy.mjs';
 import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent,reviewPrivateQuoteFollowUp,continuePrivateQuoteFollowUp,isPrivateQuoteFollowUpRecorded} from '../core/quoteDraftTransition.mjs';
@@ -1517,11 +1517,22 @@ function App() {
     return ownerEditNavigation.current.request(()=>go('busyInbox'),{isCurrent});
   };
 
-  const startDirectCustomerAction = (customerId, type) => {
-    const customer = customers.find((item) => item.id === customerId);
-    if (!customer || !["quote", "booking", "reminder"].includes(type)) return;
-    const previous=replyActions[customerId];
-    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.replyActions[customerId]===previous&&replyActionSources.current.customers.includes(customer);
+  const startDirectCustomerAction = (customerId, type, originInboxId="") => {
+    if(!["quote","booking","reminder"].includes(type))return false;
+    const source=replyActionSources.current,view=navigationStateRef.current.screen;
+    const reviewed=reviewedFiledEnquiry({origin:replyActionOrigin.current,workspace:renderedBusinessWorkspaceScope,customerId,inboxItems:source.inboxItems});
+    if(!originInboxId&&replyActionOrigin.current?.workspace===renderedBusinessWorkspaceScope&&replyActionOrigin.current.customerId===customerId&&!reviewed)return false;
+    originInboxId=originInboxId||reviewed?.id||"";
+    const entry=customerQuoteEntry({businessId:cloudWorkspace?.businessId,customerId,customers:source.customers,inboxItems:source.inboxItems,actions:source.replyActions,originInboxId,revision:source.cloudRevision});
+    if(!entry){Alert.alert("Review the current customer and enquiry","This business, customer or filing identity could not be checked. Current work was kept; no new action was created.");return false;}
+    const {customer,item,previous,reference}=entry,stamp=JSON.stringify([customer,item,previous]);
+    const sourceCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(source.role)&&replyActionSources.current.role===source.role&&replyActionSources.current.cloudRevision===source.cloudRevision&&replyActionSources.current.replyActions[customerId]===previous&&replyActionSources.current.customers.filter(row=>row.id===customerId).length===1&&replyActionSources.current.customers.includes(customer)&&JSON.stringify([customer,item,previous])===stamp&&(!item||replyActionSources.current.inboxItems.includes(item)&&replyActionSources.current.inboxItems.filter(row=>row.id===item.id).length===1);
+    const isCurrent=()=>navigationStateRef.current.screen===view&&sourceCurrent();
+    if(!isCurrent())return false;
+    if(previous){
+      if(previous.type===type)return openSavedReplyAction(customerId,originInboxId);
+      Alert.alert("Keep the existing Work record","This customer already has a different Work action. Open that record before starting another kind of work. Your quote, dates and booking details were not replaced.");return false;
+    }
     return ownerEditNavigation.current.request(()=>{
     const task =
       type === "quote"
@@ -1531,7 +1542,7 @@ function App() {
         : "Save a follow-up reminder";
 
     loadReplyActionForm(customerId, type);
-    setReplyActions((current) => ({
+    setReplyActions((current) => !sourceCurrent()||current[customerId]!==previous?current:({
       ...current,
       [customerId]: {
         task,
@@ -1539,9 +1550,10 @@ function App() {
         origin: "manual",
         createdAt: new Date().toISOString(),
         done: false,
-        details: {},
+        details: type==='quote'&&reference?{enquiryReference:reference}:{},
       },
     }));
+    replyActionOrigin.current=item?{workspace:renderedBusinessWorkspaceScope,customerId,item,stamp:JSON.stringify(item)}:null;
     setSelectedReplyActionId(customerId);
     appendCustomerActivity(customerId, {
       kind: type,
@@ -1644,30 +1656,38 @@ function App() {
     const action = replyActions[customerId];
     const customer = customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
-    if (!action || !customer) return;
-    const quoteAmount = action.details?.quoteAmount || customer.lastJobValue || "";
+    const source=replyActionSources.current,scope=renderedBusinessWorkspaceScope,view=navigationStateRef.current.screen;
+    const rows=[...source.customers,...source.lastSimulatedRecipients].filter(row=>row.id===customerId);
+    const origin=action?.details?.enquiryReference?resolveQuoteEnquiryReference(action.details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems:source.inboxItems,revision:source.cloudRevision}):null;
+    const stamp=JSON.stringify([customer,action,origin]);
+    const current=()=>businessWorkspaceScopeRef.current===scope&&['owner','admin'].includes(source.role)&&replyActionSources.current.role===source.role&&replyActionSources.current.cloudRevision===source.cloudRevision&&replyActionSources.current.replyActions[customerId]===action&&replyActionSources.current.customers.concat(replyActionSources.current.lastSimulatedRecipients).includes(customer)&&JSON.stringify([customer,action,origin])===stamp&&(!origin||replyActionSources.current.inboxItems.includes(origin));
+    if(!customer||rows.some(row=>row!==customer)||!current()||action?.type!=='quote'||action.done!==true||action.details?.quoteStatus!=='Accepted'||action.details?.sourceMiniAppRequestId||[customer.businessId,customer.business_id].some(id=>id&&id!==cloudWorkspace?.businessId)||action.details.enquiryReference&&!origin||!['string','number'].includes(typeof action.details.quoteAmount)||!String(action.details.quoteAmount).trim()||!Number.isFinite(Number(action.details.quoteAmount))||Number(action.details.quoteAmount)<0)return false;
+    const quoteAmount = action.details.quoteAmount;
+    return ownerEditNavigation.current.request(()=>{
+
     const bookingDate = nextDateForSlot(quietSlot);
     const bookingTime = defaultTimeForSlot(quietSlot);
-    setReplyActions((current) => ({
-      ...current,
+    setReplyActions((records) => !current()||records[customerId]!==action?records:({
+      ...records,
       [customerId]: {
         ...action,
         type: "booking",
         task: "Confirm the booking time",
         done: false,
         details: {
+          ...(action.details||{}),
           sourceQuoteAmount: quoteAmount,
           sourceQuoteStatus: "Accepted",
           bookingDate,
           bookingTime,
           bookingStatus: "Draft",
-          summary: `Accepted quote £${quoteAmount || "—"} ready to book`,
+          summary: `Accepted quote £${quoteAmount ?? "—"} ready to book`,
         },
       },
     }));
     setCustomers((list) =>
-      list.map((item) =>
-        item.id === customerId
+      !current()?list:list.map((item) =>
+        item === customer
           ? {
               ...item,
               lifecycleStatus: "Booking being arranged",
@@ -1680,13 +1700,15 @@ function App() {
     setSelectedReplyActionId(customerId);
     setActionBookingDate(bookingDate);
     setActionBookingTime(bookingTime);
-    setActionJobValue(String(quoteAmount || ""));
+    setActionJobValue(String(quoteAmount ?? ""));
     appendCustomerActivity(customerId, {
       kind: "booking",
       title: "Accepted quote moved to booking",
-      note: `Quote value £${quoteAmount || "—"} is ready to schedule.`,
-      value: quoteAmount || "",
+      note: `Quote value £${quoteAmount ?? "—"} is ready to schedule.`,
+      value: quoteAmount ?? "",
     });
+    return true;
+    },{isCurrent:()=>navigationStateRef.current.screen===view&&current()});
   };
 
   const prepareBookingStatus = async (customerId,bookingStatus,{isCurrent=()=>true,readOnly=false,association=false}={}) => {
@@ -3926,11 +3948,13 @@ function App() {
 
   const checkPrivateContentCopy=async()=>{
     if(businessWorkspaceScopeRef.current!==socialDraftScope)return false;
-    const receipt=privateContentWrite.current,ticket=socialContentActions.capture();
-    if(!receipt||receipt.scope!==socialDraftScope||!receipt.encoded||!receipt.cacheKey||receipt.record.id!==ticket.selectedId||!ticket.records?.includes(receipt.record))return false;
-    const result=await confirmBusinessCacheRead({read:()=>AsyncStorage.getItem(receipt.cacheKey),encoded:receipt.encoded,ownerId:receipt.ownerId,businessId:receipt.businessId});
-    if(privateContentWrite.current!==receipt||!socialContentActions.fresh(ticket))return false;
-    setPrivateContentSave({...receipt,status:result.status});return result.status==='confirmed';
+    const ticket=socialContentActions.capture(),matches=ticket.records?.filter(row=>row?.id===ticket.selectedId),record=matches?.length===1?matches[0]:null,receipt=privateContentWrite.current;
+    const key=businessCacheKey(storageKeyForUser(ownerSession?.userId),cloudWorkspace?.businessId),stamp=JSON.stringify(record);
+    const current=()=>businessWorkspaceScopeRef.current===socialDraftScope&&privateContentWrite.current===receipt&&snapshotContextRef.current?.revision===cloudRevision&&socialContentActions.capture().records===ticket.records&&socialContentActions.fresh(ticket)&&ticket.records?.filter(row=>row?.id===record?.id).length===1&&ticket.records.includes(record)&&JSON.stringify(record)===stamp;
+    if(!key||!record||!current())return false;
+    const result=await readPrivateContentCopy({read:()=>AsyncStorage.getItem(key),ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,record});
+    if(!current())return false;
+    setPrivateContentSave({scope:socialDraftScope,record,status:result.status,observedOnly:true});return result.status==='confirmed';
   };
 
   const saveGeneratedSocialDraft = () => {
@@ -17767,7 +17791,7 @@ function App() {
     socialSourceContext,
     privateQuoteSave:privateQuoteSave?.scope===businessWorkspaceScopeRef.current&&privateQuoteSave.revision===cloudRevision?{record:privateQuoteSave.record,customerId:privateQuoteSave.customerId,stamp:privateQuoteSave.stamp,status:privateQuoteSave.status}:null,
     checkPrivateQuoteCopy,
-    privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?{record:privateContentSave.record,status:privateContentSave.status}:null,
+    privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?{record:privateContentSave.record,status:privateContentSave.status,observedOnly:privateContentSave.observedOnly===true}:null,
     socialContentActions,
     readPrivateContentAccount,
     selectedSocialDraftId,
