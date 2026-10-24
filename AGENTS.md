@@ -1,3 +1,9 @@
+## Current private Product Master — V22.51 verified, 24 October2026
+
+The genuine owner attachment was opened in full: SHA-256 `9740b05c5e523ef881e50a03f3fd65b29c65667b2c874992712575db20aa2c3b`,2,198 paragraphs/19 tables, cover/footer V22.51. Ordered comparison preserves2,131 of2,132 V22.49 paragraphs unchanged (the cover version changes), with66 appended paragraphs covering Sections63–64. Complete originals/extractions stay private outside Git. V22.49/V22.50 are predecessors, not current substitutes.
+
+Section64 approves **individual authoritative Work engagement records** as the permanent direction: independent identities/revisions, multiple engagements per customer and separately scoped private wording. The nested-v2 replyActions container is historical session/compatibility evidence only, never the chosen permanent layout. Reuse original customer/source/request/booking-ledger authorities; no duplicate customer DB, ledger, generic JSON writer or dual-write active slot. Exact schema, migration, permissions and operational activation remain subject to technical review and separate hosted authority. Keep all fuses/hosted switches disabled, preserve complete original records and old-client fences, and distinguish local synthetic SQL/client evidence from real JWT/device/provider acceptance. No unrelated Section63 feature expansion is inferred from this security/persistence mission.
+
 ## Current private master — V22.49 verified in Phase68 (23 October 2026)
 
 The actual owner-supplied Word was opened and verified: SHA-256 `6107043b5470741cbc0bdb67ee52cf99917d1f9886f39a14d22fa290f2dfef11`, 2,132 body/table paragraphs and19 tables. Cover and footer identify V22.49. Complete ordered comparison with the genuinely accessible, fully reviewed V22.48 retains its requirements and adds the reviewed build-first policy reaffirmation. The earlier Phase67 missing-original note below is historical. Original and complete extraction stay private outside Git.

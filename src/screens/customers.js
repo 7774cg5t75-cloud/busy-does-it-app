@@ -1,3 +1,4 @@
+import {CanonicalWorkPanel} from '../components/CanonicalWorkPanel';
 import {CustomerEngagementReview} from '../components/CustomerEngagementReview';
 import {SavedEnquiryReplyChoices} from '../components/SavedEnquiryReplyChoices';
 import {SavedEnquiryReplyButton} from '../components/SavedEnquiryReplyButton';
@@ -445,6 +446,7 @@ function CustomerDetail({ s }) {
     >
       <SavedEnquiryReplyButton s={s} customer={customer}/>
       <CustomerEngagementReview s={s} customer={customer}/>
+      <CanonicalWorkPanel s={s} customer={customer}/>
       {s.customerEnquiryOriginItem?<QuoteEnquiryContext s={s} customerId={customer.id} item={s.customerEnquiryOriginItem} openQuote/>:null}
       <Card
         eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}

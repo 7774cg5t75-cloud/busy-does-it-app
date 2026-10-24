@@ -1,3 +1,4 @@
+import {canonicalWorkBindings,CANONICAL_WORK_ACCOUNT_ENABLED} from '../core/canonicalWorkSession.mjs';
 import {useAppearanceDevice} from "../theme/useAppearance";
 import {useFirstEnquiryFiling} from '../screens/useFirstEnquiryFiling';
 import {persistPrivateReply,privateReplyAccountBindings} from './privateEnquiryReplyPersistence.mjs';
@@ -17789,6 +17790,7 @@ function App() {
     socialScheduleTime,
     setSocialScheduleTime:value=>{socialContentActions.invalidate();setSocialScheduleTime(value);},
     socialSourceContext,
+    canonicalWork:canonicalWorkBindings({enabled:CANONICAL_WORK_ACCOUNT_ENABLED,sessionRef:snapshotSessionRef,getCurrent:()=>({...snapshotContextRef.current,scope:businessWorkspaceScopeRef.current,role:replyActionSources.current.role}),ownerAccessToken,request:busyDataRequest}),
     privateQuoteSave:privateQuoteSave?.scope===businessWorkspaceScopeRef.current&&privateQuoteSave.revision===cloudRevision?{record:privateQuoteSave.record,customerId:privateQuoteSave.customerId,stamp:privateQuoteSave.stamp,status:privateQuoteSave.status}:null,
     checkPrivateQuoteCopy,
     privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?{record:privateContentSave.record,status:privateContentSave.status,observedOnly:privateContentSave.observedOnly===true}:null,

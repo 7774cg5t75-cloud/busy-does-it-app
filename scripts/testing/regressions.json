@@ -2413,6 +2413,18 @@
       "args": [
         "scripts/check-mission15-work-engagement-parent.mjs"
       ]
+    },
+    {
+      "id": "mission15-canonical-work-client",
+      "args": [
+        "scripts/check-mission15-canonical-work-client.mjs"
+      ]
+    },
+    {
+      "id": "mission15-canonical-work-parent",
+      "args": [
+        "scripts/check-mission15-canonical-work-parent.mjs"
+      ]
     }
   ]
 }

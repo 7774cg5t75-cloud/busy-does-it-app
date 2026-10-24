@@ -2,8 +2,8 @@ import {stableJson} from './stableJson.mjs';
 import {quoteEnquiryReference,resolveQuoteEnquiryReference} from './quoteEnquiryReference.mjs';
 import {enquiryReplyCustomerSource} from './privateEnquiryReply.mjs';
 import {prepareEnquiryReplyText} from './enquiryReplyText.mjs';
-// Proposed v2 value for the ORIGINAL replyActions[customerId] slot. Until the
-// permanent model is approved it is a volatile review proposal, NEVER persisted.
+// Historical nested-v2 SESSION/compatibility prototype only, NEVER persisted.
+// V22.51 chooses individual canonical records as permanent Work authority.
 export const WORK_ENGAGEMENT_KIND='customer-work-engagements';
 export const isWorkEngagementModel=value=>value?.kind===WORK_ENGAGEMENT_KIND;
 const copy=value=>{
