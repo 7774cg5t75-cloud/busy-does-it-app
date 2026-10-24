@@ -16994,7 +16994,7 @@ function App() {
   };
 
   const openMiniAppLinkedBooking = requestId => continueLinkedWorkBooking({
-    requestId,getCurrent:()=>({view:navigationStateRef.current.screen,scope:businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope?renderedBusinessWorkspaceScope:null,actor:ownerSession?.userId,businessId:cloudWorkspace?.businessId,appId:miniAppsView?.app?.id,role:replyActionSources.current.role,source:{...replyActionSources.current,revision:replyActionSources.current.cloudRevision,link:miniAppsView?.linkByRequest?.get?.(requestId)||null}}),
+    requestId,getCurrent:()=>({selection:requestConversationContextRef.current.detail?.request?.id||'',view:navigationStateRef.current.screen,scope:businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope?renderedBusinessWorkspaceScope:null,actor:ownerSession?.userId,businessId:cloudWorkspace?.businessId,appId:miniAppsView?.app?.id,role:replyActionSources.current.role,source:{...replyActionSources.current,revision:replyActionSources.current.cloudRevision,link:miniAppsView?.linkByRequest?.get?.(requestId)||null}}),
     read:(id,isCurrent)=>miniAppsRequest('owner_booking_revision',{requestId:id,includeAssociation:true},{isCurrent}),
     transition:(run,options)=>ownerEditNavigation.current.request(run,options),
     open:id=>{setSelectedCustomerId(id);return openSavedReplyAction(id);},notice:setMiniAppsError
