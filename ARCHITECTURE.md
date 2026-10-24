@@ -1,3 +1,13 @@
+## Repeat customers, preserved Work and corrected private drafts — 24 October 2026
+
+Frozen functional GitHub `f8187c231580b816f2059d5ada67f9d94f433fde`, local `8129005219b4cb4c2f7223e43fab03554593886f`, identical tree `3878a12f36bda9c6a4ff4593b1c142087df01a99`. Genuine private V22.49 bytes reverified; private original/extraction remain outside Git.
+
+An eligible existing Filed enquiry can now enter the original private reply editor while keeping its customer's current Work action, full details/source and history unchanged. Original Work remains one current action; history holds summaries, not complete archives. This preparation binds captured Work/source/role/revision and refuses to overwrite another enquiry's saved private-reply slot. Original device readback is used only where that slot is eligible; no account fallback, new Work ledger or repeat-customer account filing is introduced. Simultaneous/archived complete engagements require a bounded original-domain storage decision before implementation.
+
+Creator reuses the original source-refresh/review path to start a separate private social preparation from corrected approved facts, preserving exact wording/media/brief/channels and the saved original. New facts do not automatically verify edited copy. Original FAQ/testimonial editing now has one-use Keep/Discard, source/typing/permission safeguards and actual MiniAppBuilder public-info dirty-part/exact-acknowledgement integration; no parallel editor or publishing authority.
+
+Fresh frozen application374/0/0/0, all children/runner0; production105,12-file syntax, native-source syntax, pinned dependency health and static architecture checks pass. Zero detected static cycles; no root-state/module/package growth. AppController remains18,285 lines with only existing hook wiring changed. Original SQL proposals/ACLs, session, rollout flags/fuses and Phase52 known-loss probe unchanged; no fresh SQL/hosted/device evidence. See [implementation and limitations](docs/REPEAT_CUSTOMER_WORK_2026_10_24.md) and [complete checks](docs/REPEAT_CUSTOMER_WORK_CHECKS_2026_10_24.json). £0; no hosted/provider/financial/booking/tax/publication/deployment/screenshots/workflow actions; draft21→23→24→25→26 preserved.
+
 ## Enquiry → quote → Work and connected private drafts — 24 October 2026
 
 Frozen functional GitHub `2af51b2d62ade003564ab67ac426d952ba63db08`, local `3fe17544e11878e622e508708f8e3250cec0ebef`, identical tree `cfc846e427c2725ca9dd0a8bee6a429f6e5b0cd7`. Genuine private V22.49 bytes reverified; private contents remain outside Git.
