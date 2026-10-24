@@ -165,6 +165,24 @@ def unattributed_wording():
  r=call(f"BEGIN;UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{{inboxItems,0}}',(payload->'inboxItems'->0)-'registeredBy') WHERE business_id='{B}';SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{S}';DO $t$ DECLARE v jsonb;BEGIN v:=public.busy_work_source_review_v1('{B}','{C}','first',100);IF v ? 'legacyQuote' OR v ? 'legacyHash' OR v::text LIKE '%Exact old owner wording%' OR v::text LIKE '%Legacy PRIVATE%' THEN RAISE EXCEPTION 'Unattributed private wording disclosed';END IF;END $t$;ROLLBACK;");assert r.returncode==0,r.stderr
  denied('SELECT public.busy_work_migrate_legacy_v1('+','.join(map(q,[B,C,'first',100,state['originalReview']['legacyHash'],state['originalReview']['sourceHash'],'no-owner-adoption']))+');')
 stage('unattributed-legacy-private-words-not-granted-by-membership',unattributed_wording)
+def historical_sources():
+ id=state['second'];original=row(id)
+ variants=[('corrected',"jsonb_set(payload,'{inboxItems,1,rawText}','\"Corrected current facts\"')",'changed'),('removed',"jsonb_set(payload,'{inboxItems}',(payload->'inboxItems')-1)",'unsupported'),('duplicate',"jsonb_set(payload,'{inboxItems}',(payload->'inboxItems')||jsonb_build_array(payload->'inboxItems'->1))",'unsupported'),('malformed',"jsonb_set(payload,'{customers}','{}')",'unsupported'),('foreign',"jsonb_set(payload,'{inboxItems,1,businessId}','\"foreign\"')",'restricted')]
+ for label,patch,status in variants:
+  sql=f"BEGIN;UPDATE public.busy_business_snapshots SET payload={patch} WHERE business_id='{B}';"+auth(f"DO $t$ DECLARE v jsonb;BEGIN v:=public.busy_work_history_v1('{B}','{C}','{id}');IF v->>'sourceState'<>'{status}' OR v->>'historicalOnly'<>'true' OR v->>'mutationAuthorised'<>'false' OR v->>'notOwnReceipt'<>'true' OR v->'record'->'details'->>'message' IS DISTINCT FROM {q(original['work_data']['details']['message'])} OR v::text LIKE '%secretSynthetic%' OR v::text LIKE '%unknownPrivate%' THEN RAISE EXCEPTION 'Bad retained historical projection';END IF;END $t$;")
+  # auth adds a nested BEGIN warning only; outer transaction remains read-only fixture rollback.
+  r=call(sql);assert r.returncode==0,(label,r.stderr)
+  assert row(id)==original
+stage('history-retains-corrected-removed-ambiguous-malformed-foreign-sources-readonly',historical_sources)
+for uid,label in [(S,'coowner'),(M,'member'),(D,'foreign')]:
+ stage(label+'-historical-private-quote-denied',lambda uid=uid:denied(f"SELECT public.busy_work_history_v1('{B}','{C}','{state['second']}');",uid=uid))
+def historical_revoked():
+ r=call(f"BEGIN;DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}';"+auth(f"SELECT public.busy_work_history_v1('{B}','{C}','{state['second']}');"));assert r.returncode!=0 and '42501' in r.stderr
+stage('revoked-owner-cannot-use-retained-history',historical_revoked)
+def historical_missing_snapshot():
+ other='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';id=state['foreign'];r=call(f"BEGIN;DELETE FROM public.busy_business_snapshots WHERE business_id='{other}';"+auth(f"DO $t$ DECLARE v jsonb;BEGIN v:=public.busy_work_history_v1('{other}','{C}','{id}');IF v->>'sourceState'<>'unavailable' OR v->'record'->'details'->>'message'<>'Foreign fictional words' THEN RAISE EXCEPTION 'Missing snapshot history';END IF;END $t$;",uid=D));assert r.returncode==0,r.stderr
+stage('missing-snapshot-retains-owned-history-without-repair',historical_missing_snapshot)
+stage('historical-observation-does-not-expose-private-draft',lambda:eq('private words' in json.dumps(rpc('history',[B,C,state['second']])),False))
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):

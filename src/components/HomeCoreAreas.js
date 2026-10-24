@@ -1,3 +1,4 @@
+import {CanonicalWorkEntry} from './CanonicalWorkEntry';
 import Svg,{Path} from 'react-native-svg';
 import {appColors as C} from '../theme/appearance.mjs';
 import React from 'react';
@@ -30,6 +31,7 @@ export function HomeCoreAreas({s}){
    <Text style={{color:C.ink,fontSize:16,marginTop:10,fontWeight:'700'}}>Get Paid · available now</Text>
    <Text style={{color:C.muted,fontSize:14,lineHeight:21,marginVertical:8}}>Open a saved business customer in Work to prepare and review a quote. Busy does not create an invoice, request payment or collect money from this shortcut.</Text>
    <Pressable accessibilityRole="button" accessibilityLabel="Open Work for quote assistance" onPress={run(state=>state.jump('workHub','Work'))} style={{paddingVertical:14}}><Text style={{color:C.ink,fontWeight:'700'}}>Open Work for quote assistance</Text></Pressable>
+   <CanonicalWorkEntry s={s}/>
    <Pressable accessibilityRole="button" accessibilityLabel="Close Get Paid explanation" onPress={run(()=>setPaidScope(null))} style={{paddingVertical:14}}><Text style={{color:C.muted}}>Close</Text></Pressable>
   </View>:null}
  </View>;

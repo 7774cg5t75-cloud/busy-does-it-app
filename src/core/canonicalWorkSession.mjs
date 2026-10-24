@@ -27,6 +27,7 @@ export function createCanonicalWorkSession(){
    if(!scoped(value,customerId,id)||value.schemaVersion!==1||!Number.isSafeInteger(value.revision)||value.revision<1||value.type!=='quote'||value.status!=='Prepared'||!hash(value.sourceHash)||!hash(value.recordHash)||value.notOwnReceipt!==true||value.record?.type!=='quote'||!value.record.details||Object.keys(value.record).some(k=>!['type','done','details'].includes(k))||Object.keys(value.record.details).some(k=>!['quoteStatus','quoteAmount','message','plannedSentDate'].includes(k)))throw Error('Unsupported or mismatched engagement read.');
    return observe(value,'record');
   };
+  const history=async(customerId,id)=>{if(!uuid(id))throw Error('Invalid engagement identity.');const value=await io('history',{p_customer_id:customerId,p_engagement_id:id});if(!scoped(value,customerId,id)||value.historicalOnly!==true||value.mutationAuthorised!==false||value.notOwnReceipt!==true||!['current','changed','restricted','unsupported','unavailable'].includes(value.sourceState)||value.originalSource?.enquiryId!==value.enquiryId||!hash(value.sourceHash)||!Number.isSafeInteger(value.revision)||value.revision<1)throw Error('Historical identity mismatch.');return value;};
   const privateRead=async(customerId,id,kind)=>{const value=await io('private_read',{p_customer_id:customerId,p_engagement_id:id,p_kind:kind});if(!scoped(value,customerId,id)||value.kind!==kind||!Number.isSafeInteger(value.revision)||value.revision<0||value.notOwnReceipt!==true)throw Error('Private draft identity mismatch.');return observe(value,'private');};
   const review=({operation,source:src,record,draft,fields,operationId,editor})=>{
    if(!valid()||!['create','edit','private'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
@@ -62,7 +63,7 @@ export function createCanonicalWorkSession(){
     const result={status:'confirmed',evidence,receipt,ticket};outcomes.set(scope,result);return result;
    }catch{const status=sent?'unknown':'reviewRequired';if(outcomes.get(scope)===pending)outcomes.set(scope,{status,ticket});return {status,ticket};}
   };
-  return {enabled:enabled===true,evidence,source,list,read,privateRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
+  return {enabled:enabled===true,evidence,source,list,read,history,privateRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
  }};
 }
 

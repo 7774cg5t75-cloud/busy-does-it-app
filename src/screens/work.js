@@ -1,3 +1,4 @@
+import {CanonicalWorkEntry} from '../components/CanonicalWorkEntry';
 import {PrivateQuoteFields} from '../components/PrivateQuoteFields';
 import {QuoteFollowUpChoices} from '../components/QuoteFollowUpChoices';
 import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
@@ -815,6 +816,7 @@ function WorkHub({ s }) {
       subtitle="See your bookings, look after customers and find more work when you need it."
       brandCue="Your jobs and diary, all in one place."
     >
+      <CanonicalWorkEntry s={s} />
       <QuoteFollowUpChoices s={s} />
       <View style={styles.workOverviewRow}>
         <Pressable accessibilityRole="button" accessibilityLabel={`View ${weekBookings.length} booked jobs this week`} onPress={() => s.go("workCalendar")} style={styles.workOverviewTile}>

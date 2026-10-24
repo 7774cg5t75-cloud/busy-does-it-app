@@ -2425,6 +2425,13 @@
       "args": [
         "scripts/check-mission15-canonical-work-parent.mjs"
       ]
+    },
+    {
+      "id": "mission15-canonical-work-continuation",
+      "args": [
+        "scripts/check-mission15-canonical-work-continuation.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

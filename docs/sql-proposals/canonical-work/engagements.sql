@@ -125,6 +125,23 @@ BEGIN
  SELECT EXISTS(SELECT 1 FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND created_by=actor AND id>cursor) INTO more;
  RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'ownerId',actor,'items',items,'nextCursor',CASE WHEN more THEN cursor ELSE NULL END,'readOnlyObservation',true,'notOwnReceipt',true);
 END $$;
+-- Retained history is not current source/mutation authority. No reassociation.
+CREATE FUNCTION public.busy_work_history_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE actor uuid:=busy_work_private.authorize(p_business_id);r public.business_work_engagements%ROWTYPE;x jsonb;state text:='current';
+BEGIN
+ -- Current source checks lock membership/snapshot before the retained row.
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND id=p_engagement_id;
+ IF NOT FOUND OR r.created_by<>actor THEN RAISE EXCEPTION 'Engagement unavailable' USING ERRCODE='42501';END IF;
+ BEGIN
+  x:=busy_work_private.source_context(p_business_id,p_customer_id,r.enquiry_id);
+  IF x->>'sourceHash' IS DISTINCT FROM r.source_hash OR x->>'customerHash' IS DISTINCT FROM r.customer_hash THEN state:='changed';END IF;
+ EXCEPTION WHEN SQLSTATE '42501' THEN state:='restricted'; WHEN SQLSTATE '22023' THEN state:='unsupported'; WHEN SQLSTATE '40001' THEN state:='unavailable';
+ END;
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND id=p_engagement_id FOR SHARE;
+ IF NOT FOUND OR r.created_by<>actor THEN RAISE EXCEPTION 'Engagement unavailable' USING ERRCODE='42501';END IF;
+ RETURN busy_work_private.project(r)||jsonb_build_object('historicalOnly',true,'sourceState',state,'mutationAuthorised',false,
+  'originalSource',jsonb_build_object('enquiryId',r.enquiry_id,'snapshotRevision',r.source_snapshot_revision,'sourceHash',r.source_hash,'reviewedAt',r.source_evidence->'enquiry'->'reviewedAt'));
+END $$;
 CREATE FUNCTION public.busy_work_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);
 BEGIN RETURN busy_work_private.project(r);END $$;
@@ -173,7 +190,7 @@ END $$;
 CREATE TRIGGER busy_canonical_legacy_readonly BEFORE UPDATE OR DELETE ON public.busy_business_snapshots FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_legacy();
 DO $$ DECLARE f record;r text;t regclass;
 BEGIN
- FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1') LOOP
+ FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1') LOOP
   EXECUTE format('ALTER FUNCTION %s OWNER TO postgres',f.signature);EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
   IF f.proname LIKE 'busy_work_%' AND f.proname<>'busy_work_migrate_legacy_v1' THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
  END LOOP;

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Actual JS original-parent/finite adapter -> local psql RPC bridge, no HTTP/TCP."""
-import argparse,json,pathlib,subprocess,sys,re,select,time
+import argparse,json,pathlib,subprocess,sys,re,select,time,hashlib
 p=argparse.ArgumentParser()
 for n in ['bin-dir','socket','sql-report','output']:p.add_argument('--'+n,required=True)
-p.add_argument('--run-tag',default='review2');a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]{1,24}',a.run_tag);first_id='client-'+a.run_tag+'-first';second_id='client-'+a.run_tag+'-second';root=pathlib.Path(__file__).resolve().parents[2];prior=json.loads(pathlib.Path(a.sql_report).read_text());assert prior['summary']['passed']>=44 and all(prior['summary'].get(k,0)==0 for k in ['failed','blocked','unexecuted'])
+p.add_argument('--run-tag',default='review2');a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]{1,24}',a.run_tag);first_id='client-'+a.run_tag+'-first';second_id='client-'+a.run_tag+'-second';root=pathlib.Path(__file__).resolve().parents[2];prior=json.loads(pathlib.Path(a.sql_report).read_text());assert prior['summary']['passed']==67 and all(prior['summary'].get(k,0)==0 for k in ['failed','blocked','unexecuted'])
+assert prior['candidateSha256']==hashlib.sha256((root/'docs/sql-proposals/canonical-work/engagements.sql').read_bytes()).hexdigest(),'SQL report does not match current candidate'
 B='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';O='cccccccc-cccc-4ccc-8ccc-cccccccccccc';C='repeat'
 base=[str(pathlib.Path(a.bin_dir)/'psql'),'-X','-h',a.socket,'-U','postgres','-d','busy_phase58_disposable','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-At']
 assert a.socket.startswith(('/workspace/','/tmp/'))
@@ -21,7 +22,7 @@ payload=json.loads(run(f"SELECT payload FROM public.busy_business_snapshots WHER
 args={
  'source_review':['p_business_id','p_customer_id','p_enquiry_id','p_expected_snapshot_revision'],
  'list':['p_business_id','p_customer_id','p_after','p_limit'],
- 'read':['p_business_id','p_customer_id','p_engagement_id'],
+ 'history':['p_business_id','p_customer_id','p_engagement_id'],'read':['p_business_id','p_customer_id','p_engagement_id'],
  'create_quote':['p_business_id','p_customer_id','p_enquiry_id','p_expected_snapshot_revision','p_customer_hash','p_source_hash','p_amount','p_text','p_date','p_operation_id'],
  'edit_quote':['p_business_id','p_customer_id','p_engagement_id','p_expected_revision','p_source_hash','p_amount','p_text','p_date','p_operation_id'],
  'private_read':['p_business_id','p_customer_id','p_engagement_id','p_kind'],
