@@ -155,3 +155,13 @@ export function prepareCanonicalQuoteWorkNotes({record,comparison}={}){
  if(text.length>10000||bytes>10000)return {ok:false,reason:'The complete preparation exceeds the private wording limit. Keep your existing words; no text was truncated.'};
  return {ok:true,text,engagementId:r.engagementId,revision:r.revision,status:'Prepared',acceptanceVerified:false,bookingAssociationVerified:false,diaryChanged:false,customerContacted:false,paymentExecuted:false,preparationOnly:true};
 }
+
+// Owner-supplied private preparation, never independent customer acceptance.
+export function prepareCanonicalOwnerAgreementNote({record,comparison,ownerAccount}={}){
+ const base=prepareCanonicalQuoteWorkNotes({record,comparison});
+ if(!base.ok||typeof ownerAccount!=='string'||!ownerAccount.trim()||ownerAccount.length>5000)return {ok:false,reason:'Review a current quote and supply your own bounded account; no customer evidence is inferred.'};
+ const text='OWNER-RECORDED AGREEMENT ACCOUNT — NOT INDEPENDENTLY VERIFIED\nProvenance: owner-supplied verbal/offline account; no externally verified confidence.\nEngagement: '+record.engagementId+'\nCustomer reference: '+record.customerId+'\nOriginal enquiry: '+record.enquiryId+'\nQuote version reviewed: '+record.revision+'\nPrepared amount: £'+record.record.details.quoteAmount+'\nQuote wording reviewed (not proof of agreement to these terms):\n'+record.record.details.message+'\n\nExact owner account:\n'+ownerAccount+'\n\nNo external response, delivery receipt, signature or acceptance date has been verified by this note. The quote remains Prepared. Booking/request/ledger linkage and diary conflicts require separate authority.';
+ let bytes;try{bytes=encodeURIComponent(text).replace(/%[A-F0-9]{2}/g,'x').length;}catch{return {ok:false,reason:'Unsupported text; keep your words.'};}
+ if(bytes>10000)return {ok:false,reason:'The complete note exceeds the private limit; no text was truncated.'};
+ return {...base,text,agreementProvenance:'owner_attested_verbal_offline',independentlyVerified:false};
+}

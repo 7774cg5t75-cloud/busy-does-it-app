@@ -27,7 +27,7 @@ CREATE INDEX business_work_customer_page ON public.business_work_engagements(bus
 CREATE INDEX business_work_owner_page ON public.business_work_engagements(business_id,created_by,id);
 CREATE TABLE public.business_work_private_drafts(
  business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,owner_id uuid NOT NULL,
- kind text NOT NULL CHECK(kind IN ('reply','followup')),revision bigint NOT NULL DEFAULT 1 CHECK(revision>0),
+ kind text NOT NULL CHECK(kind IN ('reply','followup','work_notes')),revision bigint NOT NULL DEFAULT 1 CHECK(revision>0),
  engagement_revision bigint NOT NULL,source_hash text NOT NULL,
  text text NOT NULL CHECK(octet_length(text) BETWEEN 1 AND 10000 AND btrim(text)<>''),
  extensions jsonb NOT NULL DEFAULT '{}' CHECK(jsonb_typeof(extensions)='object'),
@@ -191,14 +191,14 @@ END $$;
 CREATE FUNCTION public.busy_work_private_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_kind text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);d public.business_work_private_drafts%ROWTYPE;
 BEGIN
- IF p_kind IS NULL OR p_kind NOT IN ('reply','followup') THEN RAISE EXCEPTION 'Unsupported draft' USING ERRCODE='22023';END IF;
+ IF p_kind IS NULL OR p_kind NOT IN ('reply','followup','work_notes') THEN RAISE EXCEPTION 'Unsupported draft' USING ERRCODE='22023';END IF;
  SELECT * INTO d FROM public.business_work_private_drafts WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND owner_id=auth.uid() AND kind=p_kind;
  RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'kind',p_kind,'revision',coalesce(d.revision,0),'text',d.text,'engagementRevision',d.engagement_revision,'needsReview',d.engagement_revision IS DISTINCT FROM r.revision,'readOnlyObservation',true,'notOwnReceipt',true);
 END $$;
 CREATE FUNCTION public.busy_work_private_write_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_engagement_revision bigint,p_expected_draft_revision bigint,p_source_hash text,p_kind text,p_text text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_engagement_revision);d public.business_work_private_drafts%ROWTYPE;next_rev bigint;
 BEGIN
- IF p_kind IS NULL OR p_kind NOT IN ('reply','followup') OR p_text IS NULL OR btrim(p_text)='' OR octet_length(p_text)>10000 OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' OR p_expected_draft_revision IS NULL OR p_expected_draft_revision<0 THEN RAISE EXCEPTION 'Invalid private wording' USING ERRCODE='22023';END IF;
+ IF p_kind IS NULL OR p_kind NOT IN ('reply','followup','work_notes') OR p_text IS NULL OR btrim(p_text)='' OR octet_length(p_text)>10000 OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' OR p_expected_draft_revision IS NULL OR p_expected_draft_revision<0 THEN RAISE EXCEPTION 'Invalid private wording' USING ERRCODE='22023';END IF;
  IF p_engagement_revision IS NULL OR r.source_hash IS DISTINCT FROM p_source_hash THEN RAISE EXCEPTION 'Private source changed' USING ERRCODE='40001';END IF;
  SELECT * INTO d FROM public.business_work_private_drafts WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND owner_id=auth.uid() AND kind=p_kind FOR UPDATE;
  IF coalesce(d.revision,0)<>p_expected_draft_revision THEN RAISE EXCEPTION 'Private revision conflict' USING ERRCODE='40001';END IF;

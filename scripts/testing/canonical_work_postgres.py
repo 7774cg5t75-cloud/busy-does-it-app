@@ -232,8 +232,43 @@ def role_context(remove=False):
 stage('admin-edit-context-denied',role_context)
 stage('revoked-edit-context-denied',lambda:role_context(True))
 stage('anonymous-edit-context-denied',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',1);",role='anon',uid=''))
+# New finite purpose: separate owner-private Work notes, never migrated from followup.
+def notes_read():return rpc('private_read',[B,C,state['second'],'work_notes'])
+def notes_write(expected,words,op):
+ r=read(state['second']);return rpc('private_write',[B,C,state['second'],r['revision'],expected,r['sourceHash'],'work_notes',words,op],commit=True)
+stage('work-notes-independent-absence',lambda:eq(notes_read()['revision'],0))
+def notes_create():
+ state['notesFollowupBefore']=rpc('private_read',[B,C,state['second'],'followup']);state['notesQuoteBefore']=row(state['second']);v=notes_write(0,'Exact internal Work notes\nnot a message','notes-create-first');eq(v['kind'],'work_notes');eq(v['revision'],1);eq(notes_read()['text'],'Exact internal Work notes\nnot a message');eq(rpc('private_read',[B,C,state['second'],'followup']),state['notesFollowupBefore']);eq(row(state['second']),state['notesQuoteBefore'])
+stage('work-notes-create-preserves-followup-and-quote',notes_create)
+stage('work-notes-repeated-create-cas-denied',lambda:denied('SELECT public.busy_work_private_write_v1('+','.join(map(q,[B,C,state['second'],row(state['second'])['revision'],0,read(state['second'])['sourceHash'],'work_notes','No stale overwrite','notes-repeat-zero']))+');','40001'))
+def notes_extensions():
+ run(f"UPDATE public.business_work_private_drafts SET extensions='{{\"futureNotes\":{{\"keep\":true}}}}'::jsonb WHERE business_id='{B}' AND engagement_id='{state['second']}' AND kind='work_notes';")
+ r=read(state['second']);rpc('private_write',[B,C,state['second'],r['revision'],1,r['sourceHash'],'work_notes','Notes extensions preserved','notes-extension-edit']);v=run(f"SELECT extensions::text FROM public.business_work_private_drafts WHERE business_id='{B}' AND engagement_id='{state['second']}' AND kind='work_notes';");assert 'futureNotes' in v and 'futureNotes' not in json.dumps(notes_read())
+stage('work-notes-compatible-extensions-retained-not-disclosed',notes_extensions)
+stage('work-notes-own-revision-edit',lambda:eq(notes_write(1,'Revised internal notes','notes-edit-second')['revision'],2))
+def notes_competing():
+ id=state['second'];r=read(id);args=[B,C,id,r['revision'],2,r['sourceHash'],'work_notes','Writer A notes','notes-concurrent-a'];h=hold('SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+q(O)+';SELECT public.busy_work_private_write_v1('+','.join(map(q,args))+')');args[-1]='notes-concurrent-b';other=subprocess.Popen(base,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);other.stdin.write("SET statement_timeout='5s';"+auth('SELECT public.busy_work_private_write_v1('+','.join(map(q,args))+');',commit=True));other.stdin.close();time.sleep(.2);assert other.poll() is None;release(h);other.wait(timeout=8);output=other.stdout.read()+other.stderr.read();logs.append({'exitCode':other.returncode,'holderExitCode':h.returncode,'output':output});assert other.returncode!=0 and '40001' in output;eq(notes_read()['revision'],3)
+stage('work-notes-real-competing-cas-one-wins',notes_competing)
+for uid,label in [(M,'member'),(S,'coowner'),(D,'foreign')]:stage(label+'-work-notes-denied',lambda uid=uid:denied(f"SELECT public.busy_work_private_read_v1('{B}','{C}','{state['second']}','work_notes');",uid=uid))
+stage('anonymous-work-notes-denied',lambda:denied(f"SELECT public.busy_work_private_read_v1('{B}','{C}','{state['second']}','work_notes');",role='anon',uid=''))
+def notes_revoked():
+ r=call(f"BEGIN;DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}';"+auth(f"SELECT public.busy_work_private_read_v1('{B}','{C}','{state['second']}','work_notes');"));assert r.returncode!=0 and '42501' in r.stderr
+stage('revoked-work-notes-denied',notes_revoked)
+def notes_changed():
+ r=read(state['second']);args=[B,C,state['second'],r['revision'],3,r['sourceHash'],'work_notes','No changed-source write','notes-source-denied'];v=call(f"BEGIN;UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{{inboxItems,1,rawText}}','\"Changed source for notes\"') WHERE business_id='{B}';"+auth('SELECT public.busy_work_private_write_v1('+','.join(map(q,args))+');'));assert v.returncode!=0 and '40001' in v.stderr
+stage('changed-source-work-notes-write-denied',notes_changed)
+def notes_admin():
+ r=call(f"BEGIN;UPDATE public.busy_business_memberships SET role='admin' WHERE business_id='{B}' AND user_id='{O}';"+auth(f"SELECT public.busy_work_private_read_v1('{B}','{C}','{state['second']}','work_notes');"));assert r.returncode!=0 and '42501' in r.stderr
+stage('admin-work-notes-denied',notes_admin)
+stage('foreign-business-work-notes-denied',lambda:denied(f"SELECT public.busy_work_private_read_v1('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','{C}','{state['second']}','work_notes');"))
+def notes_lost_ack():
+ notes_write(3,'Writer A notes','notes-lost-ack');v=notes_read();eq(v['revision'],4);eq(v['notOwnReceipt'],True);assert 'operationId' not in v
+stage('work-notes-lost-ack-read-not-own-receipt',notes_lost_ack)
+stage('unknown-private-purpose-denied',lambda:denied(f"SELECT public.busy_work_private_read_v1('{B}','{C}','{state['second']}','arbitrary_notes');",'22023'))
+stage('work-notes-do-not-leak-through-work-projection',lambda:(eq('Writer A notes' in json.dumps(read(state['second'])),False),eq(row(state['second']),state['notesQuoteBefore']),eq(json.loads(run(f"SELECT extensions::text FROM public.business_work_private_drafts WHERE business_id='{B}' AND engagement_id='{state['second']}' AND kind='work_notes';"))['futureNotes']['keep'],True)))
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
 stage('rollback-denies-fresh-edit-context-without-reopening-writes',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"))
+stage('rollback-preserves-work-notes-and-denies-write',lambda:(eq(notes_read()['text'],'Writer A notes'),denied('SELECT public.busy_work_private_write_v1('+','.join(map(q,[B,C,state['second'],row(state['second'])['revision'],3,read(state['second'])['sourceHash'],'work_notes','Denied after rollback','notes-rollback-denied']))+');')))
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
  start=len(logs)
