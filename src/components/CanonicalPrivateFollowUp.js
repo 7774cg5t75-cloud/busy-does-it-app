@@ -23,12 +23,12 @@ export function CanonicalPrivateFollowUp({s,customer,record,api}){
   return s.requestOwnerEditTransition?s.requestOwnerEditTransition(apply,{isCurrent}):dirty?false:(apply(),true);
  };
  const inspect=async()=>{
-  if(!current()||flight.current)return false;flight.current=true;setPending(true);const captured=epoch.current;
+  if(!current()||flight.current)return false;flight.current='read';setPending(true);const captured=epoch.current;
   try{
    const fresh=await api.read(customer.id,record.engagementId);
-   if(!current()||captured!==epoch.current||fresh.revision!==record.revision||fresh.recordHash!==record.recordHash){if(current())setNotice('This engagement changed. Your wording is kept; reopen the current quote before reviewing a save.');return false;}
+   if(!current()||captured!==epoch.current||fresh.revision!==record.revision||fresh.recordHash!==record.recordHash){if(current())setNotice(captured!==epoch.current?'Newer typing was kept; inspection did not replace your wording.':'This engagement changed. Your wording is kept; reopen the current quote before reviewing a save.');return false;}
    const observed=await api.privateRead(customer.id,record.engagementId,'followup');
-   if(!current()||epoch.current!==captured)return false;
+   if(!current())return false;if(epoch.current!==captured){setNotice('Newer typing was kept. The account observation did not replace it.');return false;}
    return replace(()=>{epoch.current++;setDraft(observed);setWords(observed.text||'');live.current.words=observed.text||'';setNotice(observed.revision?'Current private account wording observed. This is not a receipt for an earlier save.':'No private follow-up is recorded. Prepare your own wording; nothing will be sent.');});
   }catch{if(current())setNotice('Private account inspection unavailable. Your words are kept; do not retry an uncertain save.');return false;}
   finally{flight.current=false;if(current())setPending(false);}
@@ -40,7 +40,7 @@ export function CanonicalPrivateFollowUp({s,customer,record,api}){
   Alert.alert('Review private engagement follow-up','Current account wording:\n'+(draft.text??'(none)')+'\n\nProposed exact wording:\n'+words+'\n\nOnly this owner’s private follow-up is saved. No message is sent.',[
    {text:'Keep editing',style:'cancel',onPress:()=>{used=true;api.cancel(ticket);}},
    {text:'Save reviewed private wording',onPress:async()=>{
-    if(used||!current()||epoch.current!==captured||flight.current)return false;used=true;flight.current=true;setPending(true);
+    if(used||!current()||epoch.current!==captured||flight.current)return false;used=true;flight.current='save';setPending(true);
     let acknowledged=false;
     try{
      const result=await api.commit(ticket,editor);if(!current())return false;
@@ -58,6 +58,6 @@ export function CanonicalPrivateFollowUp({s,customer,record,api}){
  return <Card eyebrow="Owner-private preparation" title="This engagement’s private follow-up" body={'Customer '+customer.id+' · Engagement '+record.engagementId+'. Prepared wording does not mean the quote was issued or delivered.'}>
   {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
   <Button label="Inspect private follow-up" disabled={pending} onPress={inspect}/>
-  {draft?<><Text style={styles.workspaceMeta}>{'Private draft revision '+draft.revision+(draft.needsReview?' · Current engagement must be reviewed':'')+'. Account observation is separate from this editor.'}</Text><Field label="Private engagement follow-up wording" multiline value={words} editable={!pending} onChangeText={value=>{if(!current()||flight.current)return false;epoch.current++;live.current.words=value;setWords(value);report(value!==(draft.text||''));}}/><Button label="Review private follow-up save" disabled={pending||!words.trim()||api.status().status==='unknown'} onPress={review}/></>:null}
+  {draft?<><Text style={styles.workspaceMeta}>{'Private draft revision '+draft.revision+(draft.needsReview?' · Current engagement must be reviewed':'')+'. Account observation is separate from this editor.'}</Text><Field label="Private engagement follow-up wording" multiline value={words} editable={flight.current!=='save'} onChangeText={value=>{if(!current()||flight.current==='save')return false;epoch.current++;live.current.words=value;setWords(value);report(value!==(draft.text||''));}}/><Button label="Review private follow-up save" disabled={pending||!words.trim()||api.status().status==='unknown'} onPress={review}/></>:null}
  </Card>;
 }

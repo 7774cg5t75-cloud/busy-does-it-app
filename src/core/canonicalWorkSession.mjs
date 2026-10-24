@@ -28,7 +28,9 @@ export function createCanonicalWorkSession(){
    return observe(value,'record');
   };
   const history=async(customerId,id)=>{if(!uuid(id))throw Error('Invalid engagement identity.');const value=await io('history',{p_customer_id:customerId,p_engagement_id:id});if(!scoped(value,customerId,id)||value.historicalOnly!==true||value.mutationAuthorised!==false||value.notOwnReceipt!==true||!['current','changed','restricted','unsupported','unavailable'].includes(value.sourceState)||value.originalSource?.enquiryId!==value.enquiryId||!hash(value.sourceHash)||!Number.isSafeInteger(value.revision)||value.revision<1)throw Error('Historical identity mismatch.');return value;};
-  const privateRead=async(customerId,id,kind)=>{const value=await io('private_read',{p_customer_id:customerId,p_engagement_id:id,p_kind:kind});if(!scoped(value,customerId,id)||value.kind!==kind||!Number.isSafeInteger(value.revision)||value.revision<0||value.notOwnReceipt!==true)throw Error('Private draft identity mismatch.');return observe(value,'private');};
+  const discover=async(after=null)=>{const value=await io('discover',{p_after:after,p_limit:20});if(value?.businessId!==start.businessId||value.ownerId!==start.ownerId||value.notOwnReceipt!==true||!Array.isArray(value.items)||value.items.length>20||value.nextCursor!==null&&!uuid(value.nextCursor)||value.items.some(x=>!uuid(x.engagementId)||typeof x.customerId!=='string'||typeof x.enquiryId!=='string'||x.type!=='quote'||x.status!=='Prepared'||!Number.isSafeInteger(x.revision)||x.revision<1||Object.keys(x).some(k=>!['engagementId','customerId','enquiryId','type','status','revision'].includes(k)))||new Set(value.items.map(x=>x.engagementId)).size!==value.items.length)throw Error('Unsupported account engagement page.');return value;};
+  const compare=async(customerId,id)=>{if(!uuid(id))throw Error('Invalid engagement identity.');const value=await io('compare',{p_customer_id:customerId,p_engagement_id:id});if(!scoped(value,customerId,id)||value.notOwnReceipt!==true||value.historicalOnly!==true||value.comparisonOnly!==true||value.mutationAuthorised!==false||!['current','changed','restricted','unsupported','unavailable'].includes(value.sourceState)||!value.originalContext||value.currentContext!==null&&typeof value.currentContext!=='object')throw Error('Unsupported source comparison.');return value;};
+  const privateRead=async(customerId,id,kind)=>{const value=await io('private_read',{p_customer_id:customerId,p_engagement_id:id,p_kind:kind});if(!scoped(value,customerId,id)||value.kind!==kind||!Number.isSafeInteger(value.revision)||value.revision<0||value.notOwnReceipt!==true||typeof value.needsReview!=='boolean'||value.revision===0&&value.text!==null||value.revision>0&&(typeof value.text!=='string'||!Number.isSafeInteger(value.engagementRevision)||value.engagementRevision<1))throw Error('Private draft identity mismatch.');return observe(value,'private');};
   const review=({operation,source:src,record,draft,fields,operationId,editor})=>{
    if(!valid()||!['create','edit','private'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
    const base=operation==='create'?src:record;
@@ -63,7 +65,7 @@ export function createCanonicalWorkSession(){
     const result={status:'confirmed',evidence,receipt,ticket};outcomes.set(scope,result);return result;
    }catch{const status=sent?'unknown':'reviewRequired';if(outcomes.get(scope)===pending)outcomes.set(scope,{status,ticket});return {status,ticket};}
   };
-  return {enabled:enabled===true,evidence,source,list,read,history,privateRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
+  return {enabled:enabled===true,evidence,source,list,read,history,discover,compare,privateRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
  }};
 }
 

@@ -2432,6 +2432,13 @@
         "scripts/check-mission15-canonical-work-continuation.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-account-engagement-continuity",
+      "args": [
+        "scripts/check-mission15-account-engagement-continuity.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

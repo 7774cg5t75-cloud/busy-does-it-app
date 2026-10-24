@@ -24,6 +24,7 @@ CREATE TABLE public.business_work_engagements(
  UNIQUE(business_id,customer_id,id),UNIQUE(business_id,customer_id,enquiry_id),UNIQUE(business_id,created_by,creation_operation_id)
 );
 CREATE INDEX business_work_customer_page ON public.business_work_engagements(business_id,customer_id,created_by,id);
+CREATE INDEX business_work_owner_page ON public.business_work_engagements(business_id,created_by,id);
 CREATE TABLE public.business_work_private_drafts(
  business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,owner_id uuid NOT NULL,
  kind text NOT NULL CHECK(kind IN ('reply','followup')),revision bigint NOT NULL DEFAULT 1 CHECK(revision>0),
@@ -142,6 +143,29 @@ BEGIN
  RETURN busy_work_private.project(r)||jsonb_build_object('historicalOnly',true,'sourceState',state,'mutationAuthorised',false,
   'originalSource',jsonb_build_object('enquiryId',r.enquiry_id,'snapshotRevision',r.source_snapshot_revision,'sourceHash',r.source_hash,'reviewedAt',r.source_evidence->'enquiry'->'reviewedAt'));
 END $$;
+-- Fresh owner entry without assuming a customer exists on this device.
+CREATE FUNCTION public.busy_work_discover_v1(p_business_id uuid,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE actor uuid:=busy_work_private.authorize(p_business_id);items jsonb;cursor uuid;more boolean;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 THEN RAISE EXCEPTION 'Invalid page' USING ERRCODE='22023';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('engagementId',id,'customerId',customer_id,'enquiryId',enquiry_id,'type',kind,'status',status,'revision',revision) ORDER BY id),'[]') INTO items FROM (SELECT * FROM public.business_work_engagements WHERE business_id=p_business_id AND created_by=actor AND (p_after IS NULL OR id>p_after) ORDER BY id LIMIT p_limit) a;
+ IF jsonb_array_length(items)>0 THEN cursor:=(items->(jsonb_array_length(items)-1)->>'engagementId')::uuid;END IF;
+ SELECT EXISTS(SELECT 1 FROM public.business_work_engagements WHERE business_id=p_business_id AND created_by=actor AND id>cursor) INTO more;
+ RETURN jsonb_build_object('businessId',p_business_id,'ownerId',actor,'items',items,'nextCursor',CASE WHEN more THEN cursor ELSE NULL END,'readOnlyObservation',true,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_compare_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE h jsonb:=public.busy_work_history_v1(p_business_id,p_customer_id,p_engagement_id);r public.business_work_engagements%ROWTYPE;x jsonb;original jsonb;current_source jsonb;state text:=h->>'sourceState';
+BEGIN
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND id=p_engagement_id FOR SHARE;
+ IF NOT FOUND OR r.created_by IS DISTINCT FROM auth.uid() THEN RAISE EXCEPTION 'Engagement unavailable' USING ERRCODE='42501';END IF;
+ original:=jsonb_build_object('customerName',CASE WHEN octet_length(r.source_evidence->'customer'->>'name')<=2000 THEN r.source_evidence->'customer'->'name' ELSE NULL END,'service',CASE WHEN octet_length(r.source_evidence->'customer'->>'service')<=2000 THEN r.source_evidence->'customer'->'service' ELSE NULL END,'enquiryText',r.source_evidence->'enquiry'->'rawText','reviewedAt',r.source_evidence->'enquiry'->'reviewedAt');
+ IF state IN ('current','changed') THEN
+  x:=busy_work_private.source_context(p_business_id,p_customer_id,r.enquiry_id);
+  IF octet_length(x->'customer'->>'name')>2000 OR octet_length(x->'customer'->>'service')>2000 THEN state:='unsupported';
+  ELSE current_source:=jsonb_build_object('customerName',x->'customer'->'name','service',x->'customer'->'service','enquiryText',x->'enquiry'->'rawText','reviewedAt',x->'enquiry'->'reviewedAt');END IF;
+ END IF;
+ RETURN h||jsonb_build_object('sourceState',state,'originalContext',original,'currentContext',current_source,'comparisonOnly',true,'currentSnapshotRevision',CASE WHEN current_source IS NOT NULL THEN x->'revision' ELSE NULL END,'customerEvidenceChanged',CASE WHEN current_source IS NOT NULL THEN r.customer_hash IS DISTINCT FROM x->>'customerHash' ELSE NULL END,'enquiryEvidenceChanged',CASE WHEN current_source IS NOT NULL THEN r.source_hash IS DISTINCT FROM x->>'sourceHash' ELSE NULL END);
+END $$;
 CREATE FUNCTION public.busy_work_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);
 BEGIN RETURN busy_work_private.project(r);END $$;
@@ -190,7 +214,7 @@ END $$;
 CREATE TRIGGER busy_canonical_legacy_readonly BEFORE UPDATE OR DELETE ON public.busy_business_snapshots FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_legacy();
 DO $$ DECLARE f record;r text;t regclass;
 BEGIN
- FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1') LOOP
+ FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1') LOOP
   EXECUTE format('ALTER FUNCTION %s OWNER TO postgres',f.signature);EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
   IF f.proname LIKE 'busy_work_%' AND f.proname<>'busy_work_migrate_legacy_v1' THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
  END LOOP;

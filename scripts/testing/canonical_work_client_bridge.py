@@ -3,7 +3,7 @@
 import argparse,json,pathlib,subprocess,sys,re,select,time,hashlib
 p=argparse.ArgumentParser()
 for n in ['bin-dir','socket','sql-report','output']:p.add_argument('--'+n,required=True)
-p.add_argument('--run-tag',default='review2');a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]{1,24}',a.run_tag);first_id='client-'+a.run_tag+'-first';second_id='client-'+a.run_tag+'-second';root=pathlib.Path(__file__).resolve().parents[2];prior=json.loads(pathlib.Path(a.sql_report).read_text());assert prior['summary']['passed']==67 and all(prior['summary'].get(k,0)==0 for k in ['failed','blocked','unexecuted'])
+p.add_argument('--run-tag',default='review2');a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]{1,24}',a.run_tag);first_id='client-'+a.run_tag+'-first';second_id='client-'+a.run_tag+'-second';root=pathlib.Path(__file__).resolve().parents[2];prior=json.loads(pathlib.Path(a.sql_report).read_text());assert prior['summary']['passed']==83 and all(prior['summary'].get(k,0)==0 for k in ['failed','blocked','unexecuted'])
 assert prior['candidateSha256']==hashlib.sha256((root/'docs/sql-proposals/canonical-work/engagements.sql').read_bytes()).hexdigest(),'SQL report does not match current candidate'
 B='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';O='cccccccc-cccc-4ccc-8ccc-cccccccccccc';C='repeat'
 base=[str(pathlib.Path(a.bin_dir)/'psql'),'-X','-h',a.socket,'-U','postgres','-d','busy_phase58_disposable','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-At']
@@ -22,6 +22,8 @@ payload=json.loads(run(f"SELECT payload FROM public.busy_business_snapshots WHER
 args={
  'source_review':['p_business_id','p_customer_id','p_enquiry_id','p_expected_snapshot_revision'],
  'list':['p_business_id','p_customer_id','p_after','p_limit'],
+ 'discover':['p_business_id','p_after','p_limit'],
+ 'compare':['p_business_id','p_customer_id','p_engagement_id'],
  'history':['p_business_id','p_customer_id','p_engagement_id'],'read':['p_business_id','p_customer_id','p_engagement_id'],
  'create_quote':['p_business_id','p_customer_id','p_enquiry_id','p_expected_snapshot_revision','p_customer_hash','p_source_hash','p_amount','p_text','p_date','p_operation_id'],
  'edit_quote':['p_business_id','p_customer_id','p_engagement_id','p_expected_revision','p_source_hash','p_amount','p_text','p_date','p_operation_id'],
@@ -38,7 +40,12 @@ try:
   if not line:break
   msg=json.loads(line)
   if msg.get('done'):result=msg;break
-  route=msg['route'];assert route.startswith('rpc/busy_work_') and route.endswith('_v1');name=route[len('rpc/busy_work_'):-3];assert name in args;body=msg['body'];assert set(body)==set(args[name]) and body['p_business_id']==B and body['p_customer_id']==C
+  if msg.get('fixture') in ('correct-source','restore-source'):
+   assert msg.get('enquiryId')==first_id
+   words='Fictional corrected current requirements' if msg['fixture']=='correct-source' else next(x['rawText'] for x in payload['inboxItems'] if x['id']==first_id)
+   run(f"UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,ARRAY['inboxItems',(SELECT (ordinality-1)::text FROM jsonb_array_elements(payload->'inboxItems') WITH ORDINALITY a WHERE a.value->>'id'={quote(first_id)}),'rawText'],to_jsonb({quote(words)}::text)) WHERE business_id='{B}';")
+   child.stdin.write(json.dumps({'fixtureDone':True})+'\n');child.stdin.flush();continue
+  route=msg['route'];assert route.startswith('rpc/busy_work_') and route.endswith('_v1');name=route[len('rpc/busy_work_'):-3];assert name in args;body=msg['body'];assert set(body)==set(args[name]) and body['p_business_id']==B and (name=='discover' or body['p_customer_id']==C)
   sql='BEGIN;SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+quote(O)+';SELECT public.busy_work_'+name+'_v1('+','.join(quote(body[k]) for k in args[name])+');COMMIT;';r=call(sql);calls.append({'route':route,'body':body,'exitCode':r.returncode,'output':r.stdout+r.stderr})
   value={'error':r.stderr} if r.returncode else {'value':json.loads(next(x for x in r.stdout.splitlines() if x.startswith('{')))}
   child.stdin.write(json.dumps(value)+'\n');child.stdin.flush()

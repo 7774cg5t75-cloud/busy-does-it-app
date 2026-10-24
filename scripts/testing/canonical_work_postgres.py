@@ -183,6 +183,37 @@ def historical_missing_snapshot():
  other='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';id=state['foreign'];r=call(f"BEGIN;DELETE FROM public.busy_business_snapshots WHERE business_id='{other}';"+auth(f"DO $t$ DECLARE v jsonb;BEGIN v:=public.busy_work_history_v1('{other}','{C}','{id}');IF v->>'sourceState'<>'unavailable' OR v->'record'->'details'->>'message'<>'Foreign fictional words' THEN RAISE EXCEPTION 'Missing snapshot history';END IF;END $t$;",uid=D));assert r.returncode==0,r.stderr
 stage('missing-snapshot-retains-owned-history-without-repair',historical_missing_snapshot)
 stage('historical-observation-does-not-expose-private-draft',lambda:eq('private words' in json.dumps(rpc('history',[B,C,state['second']])),False))
+def account_discovery():
+ seen=[];cursor=None
+ while True:
+  v=rpc('discover',[B,cursor,7]);assert v['notOwnReceipt'] and len(v['items'])<=7
+  for item in v['items']:eq(set(item),{'engagementId','customerId','enquiryId','type','status','revision'});eq(item['customerId'],C);seen.append(item['engagementId'])
+  cursor=v['nextCursor']
+  if cursor is None:break
+ eq(len(seen),27);eq(len(set(seen)),27)
+stage('fresh-owner-wide-account-discovery-paginated-without-local-customer',account_discovery)
+for uid,label in [(M,'member'),(D,'foreign')]:
+ stage(label+'-account-discovery-denied',lambda uid=uid:denied(f"SELECT public.busy_work_discover_v1('{B}');",uid=uid))
+stage('anonymous-account-discovery-denied',lambda:denied(f"SELECT public.busy_work_discover_v1('{B}');",role='anon',uid=''))
+stage('coowner-account-discovery-excludes-another-creators-records',lambda:eq(rpc('discover',[B],S)['items'],[]))
+def discovery_role(role):
+ r=call(f"BEGIN;UPDATE public.busy_business_memberships SET role='{role}' WHERE business_id='{B}' AND user_id='{O}';"+auth(f"SELECT public.busy_work_discover_v1('{B}');"));assert r.returncode!=0 and '42501' in r.stderr
+stage('admin-account-discovery-denied',lambda:discovery_role('admin'))
+stage('revoked-account-discovery-denied',lambda:discovery_role('member'))
+def compare_current():
+ v=rpc('compare',[B,C,state['second']]);eq(v['sourceState'],'current');eq(v['originalContext'],v['currentContext']);eq(v['mutationAuthorised'],False);assert 'secretSynthetic' not in json.dumps(v) and 'unknownPrivate' not in json.dumps(v);eq(set(v['originalContext']),{'customerName','service','enquiryText','reviewedAt'})
+stage('finite-original-current-context-comparison-no-contact-or-unknowns',compare_current)
+def comparison_variant(patch,state_name,expected_code):
+ id=state['second'];before=row(id);sql=f"BEGIN;UPDATE public.busy_business_snapshots SET payload={patch} WHERE business_id='{B}';"+auth(f"DO $t$ DECLARE v jsonb;BEGIN v:=public.busy_work_compare_v1('{B}','{C}','{id}');IF v->>'sourceState'<>'{state_name}' OR v->>'mutationAuthorised'<>'false' OR v->'originalContext'->>'enquiryText' LIKE '%NEW CURRENT%' OR v::text LIKE '%FOREIGN PRIVATE%' THEN RAISE EXCEPTION 'Wrong comparison';END IF;IF '{state_name}'='changed' THEN IF v->'currentContext'->>'enquiryText'<>'NEW CURRENT source facts' OR v->>'enquiryEvidenceChanged'<>'true' THEN RAISE EXCEPTION 'Missing correction';END IF;ELSIF v->'currentContext'<>'null' THEN RAISE EXCEPTION 'Unsafe current disclosure';END IF;BEGIN PERFORM public.busy_work_edit_quote_v1('{B}','{C}','{id}',{before['revision']},'{before['source_hash']}','1','No historical authority','2026-11-03','denied-history-rebase');RAISE EXCEPTION 'Mutation should deny';EXCEPTION WHEN SQLSTATE '{expected_code}' THEN NULL;END;END $t$;")
+ r=call(sql);assert r.returncode==0,r.stderr;eq(row(id),before)
+stage('corrected-source-comparison-does-not-authorise-rebase',lambda:comparison_variant("jsonb_set(payload,'{inboxItems,1,rawText}','\"NEW CURRENT source facts\"')",'changed','40001'))
+stage('removed-customer-comparison-does-not-recreate-customer',lambda:comparison_variant("jsonb_set(payload,'{customers}','[]')",'unsupported','22023'))
+stage('foreign-owner-source-comparison-suppresses-current-private-text',lambda:comparison_variant("jsonb_set(jsonb_set(payload,'{inboxItems,1,registeredBy}','\""+S+"\"'),'{inboxItems,1,rawText}','\"FOREIGN PRIVATE\"')",'restricted','42501'))
+stage('ambiguous-comparison-remains-readonly',lambda:comparison_variant("jsonb_set(payload,'{inboxItems}',(payload->'inboxItems')||jsonb_build_array(payload->'inboxItems'->1))",'unsupported','22023'))
+stage('malformed-comparison-remains-readonly',lambda:comparison_variant("jsonb_set(payload,'{inboxItems}','{}')",'unsupported','22023'))
+stage('coowner-original-current-comparison-denied',lambda:denied(f"SELECT public.busy_work_compare_v1('{B}','{C}','{state['second']}');",uid=S))
+stage('wrong-business-original-current-comparison-denied',lambda:denied(f"SELECT public.busy_work_compare_v1('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','{C}','{state['second']}');"))
+stage('service-account-discovery-denied',lambda:denied(f"SELECT public.busy_work_discover_v1('{B}');",role='service_role'))
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
