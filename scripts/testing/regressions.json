@@ -2544,6 +2544,13 @@
         "scripts/check-mission15-owner-opportunity.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-growth-account",
+      "args": [
+        "scripts/check-mission15-growth-account.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

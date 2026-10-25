@@ -1,3 +1,4 @@
+import {growthOpportunityBindings} from '../core/growthOpportunityAccount.mjs';
 import {canonicalWorkBindings,CANONICAL_WORK_ACCOUNT_ENABLED} from '../core/canonicalWorkSession.mjs';
 import {useAppearanceDevice} from "../theme/useAppearance";
 import {useFirstEnquiryFiling} from '../screens/useFirstEnquiryFiling';
@@ -17792,6 +17793,7 @@ function App() {
     socialScheduleTime,
     setSocialScheduleTime:value=>{socialContentActions.invalidate();setSocialScheduleTime(value);},
     socialSourceContext,
+    growthOpportunityAccount:growthOpportunityBindings({sessionRef:snapshotSessionRef,getCurrent:()=>({...snapshotContextRef.current,scope:businessWorkspaceScopeRef.current,role:replyActionSources.current.role}),ownerAccessToken,request:busyDataRequest}),
     canonicalWork:canonicalWorkBindings({enabled:CANONICAL_WORK_ACCOUNT_ENABLED,sessionRef:snapshotSessionRef,getCurrent:()=>({...snapshotContextRef.current,scope:businessWorkspaceScopeRef.current,role:replyActionSources.current.role}),ownerAccessToken,request:busyDataRequest}),
     privateQuoteSave:privateQuoteSave?.scope===businessWorkspaceScopeRef.current&&privateQuoteSave.revision===cloudRevision?{record:privateQuoteSave.record,customerId:privateQuoteSave.customerId,stamp:privateQuoteSave.stamp,status:privateQuoteSave.status}:null,
     checkPrivateQuoteCopy,
