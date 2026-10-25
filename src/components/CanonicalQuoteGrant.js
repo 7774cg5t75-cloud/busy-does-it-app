@@ -1,4 +1,5 @@
 import React from 'react';
+import {CanonicalQuoteAccessPolicy} from './CanonicalQuoteAccessPolicy';
 import {Alert,Text} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
@@ -6,7 +7,7 @@ import {stableJson} from '../core/stableJson.mjs';
 import {isQuoteGrantProjection} from '../core/quotePresentationContract.mjs';
 
 export function CanonicalQuoteGrant({s,customerId,record,reference,preparation,sourceBlocked=false,sourceReviewEpoch=0}){
- const api=s.canonicalWork,scope=s.ownerWorkspaceScope;
+ const api=s.canonicalWork,scope=s.ownerWorkspaceScope,selectedGrant=React.useRef(null);
  const [stored,setStored]=React.useState({}),[notice,setNotice]=React.useState(''),[busy,setBusy]=React.useState(false);
  const mounted=React.useRef(true),flight=React.useRef(false),choice=React.useRef(0),live=React.useRef(null);
  React.useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
@@ -18,7 +19,7 @@ export function CanonicalQuoteGrant({s,customerId,record,reference,preparation,s
  const free=()=>!flight.current&&!['pending','unknown'].includes(api.status().status);
  const run=async(task,epoch=choice.current)=>{if(!current(epoch)||flight.current)return false;flight.current=true;setBusy(true);try{return await task(epoch);}catch{if(current(epoch))setNotice('Current grant review unavailable. Existing receipts remain valid; no successful action is claimed.');return false;}finally{flight.current=false;if(mounted.current)setBusy(false);}};
  const list=after=>run(async epoch=>{const v=await api.grantList(customerId,record.engagementId,reference.referenceId,after);put(epoch,{list:v});});
- const open=id=>{if(flight.current)return false;const epoch=++choice.current;return run(async()=>{const v=await api.grantRead(customerId,record.engagementId,reference.referenceId,id);put(epoch,{observation:v});if(current(epoch))setNotice('Account observation only. No earlier save acknowledgement is reconstructed.');},epoch);};
+ const open=id=>{if(flight.current)return false;const captured=choice.current,apply=()=>{selectedGrant.current=id;const epoch=++choice.current;return run(async()=>{const v=await api.grantRead(customerId,record.engagementId,reference.referenceId,id);put(epoch,{observation:v});if(current(epoch))setNotice('Account observation only. No earlier save acknowledgement is reconstructed.');},epoch);};return s.requestOwnerEditTransition?s.requestOwnerEditTransition(apply,{isCurrent:()=>current(captured)}):apply();};
  const prepare=()=>run(async epoch=>{if(sourceBlocked||reference.termsChanged||preparation?.preparationState!=='prepared_disabled'||!freeForReview())return false;const v=await api.grantReview(customerId,record.engagementId,reference.referenceId,preparation.preparation.preparationId,preparation.preparation.bindingRevision);put(epoch,{review:v});});
  // run owns the flight lock; only the operation fence is checked inside a read.
  const freeForReview=()=>!['pending','unknown'].includes(api.status().status);
@@ -35,7 +36,7 @@ export function CanonicalQuoteGrant({s,customerId,record,reference,preparation,s
    {text:operation==='grantCreate'?'Record private candidate':'Revoke private candidate',onPress:()=>{if(used||!current(epoch)||!free())return false;used=true;return run(async()=>{
     const result=await api.commit(ticket,()=>({...editor(operation,base,choice.current),sourceStamp:live.current.stamp}));if(!current(epoch))return false;
     if(result.status!=='confirmed'){setNotice(result.status==='unknown'?'Outcome uncertain. Do not replay. A later observation cannot recover the acknowledgement.':'Review expired. Request fresh review.');return false;}
-    put(epoch,{receipt:result.receipt,review:null});setNotice('Exact private target receipt received. Customer access remains disabled.');
+    selectedGrant.current=result.receipt.grantId;put(epoch,{receipt:result.receipt,review:null});setNotice('Exact private target receipt received. Customer access remains disabled.');
     try{const v=await api.grantRead(customerId,record.engagementId,reference.referenceId,result.receipt.grantId);if(v.revision!==result.receipt.revision)throw Error('Readback differs');put(epoch,{observation:v});}catch{if(current(epoch))setNotice('Committed target receipt retained; independent readback unavailable. Do not replay.');}return true;
    },epoch);}}
   ]);return true;
@@ -56,6 +57,7 @@ export function CanonicalQuoteGrant({s,customerId,record,reference,preparation,s
   {state.observation?<Button label="Inspect recorded response candidates" disabled={busy} onPress={()=>responses(0)}/>:null}
   {state.responses?.items.map(x=><Text key={x.responseId} selectable style={styles.cardBody}>{'Technical candidate only · '+x.action+'\n'+x.question+'\nServer recorded '+x.recordedAt+'\nNo legal acceptance or booking established.'}</Text>)}
   {state.responses?.nextCursor?<Button label="More recorded response candidates" disabled={busy} onPress={()=>responses(state.responses.nextCursor)}/>:null}
+  {selectedGrant.current?<CanonicalQuoteAccessPolicy key={selectedGrant.current} s={s} customerId={customerId} record={record} reference={reference} grantId={selectedGrant.current} sourceBlocked={sourceBlocked||!state.observation} sourceReviewEpoch={sourceReviewEpoch}/>:null}
   {state.receipt?<Text style={styles.cardBody}>{'Own private receipt · '+state.receipt.grantId+' · revision '+state.receipt.revision}</Text>:null}
  </Card>;
 }

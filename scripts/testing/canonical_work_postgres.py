@@ -613,10 +613,12 @@ stage('retaining-management-rollback-closes-new-writes-and-consumer-access',mana
 
 from canonical_quote_grant_cases import register as register_quote_grants
 register_quote_grants(globals())
+from canonical_quote_policy_cases import register as register_quote_policy
+register_quote_policy(globals())
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
  start=len(logs)
  try:fn();results.append({'id':name,'status':'passed','calls':logs[start:]})
  except Exception as e:
   results.append({'id':name,'status':'failed','error':str(e),'calls':logs[start:]});results.extend({'id':n,'status':'unexecuted'} for n,_ in cases[i+1:]);break
-v={'grantSqlSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/quote-grants.sql').read_bytes()).hexdigest(),'upgradeSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/recipient-management.sql').read_bytes()).hexdigest(),'candidateSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/engagements.sql').read_bytes()).hexdigest(),'scope':'Actual disposable PostgreSQL17; fictional data and mock auth.uid, NOT hosted JWT/PostgREST','baselineReport':a.baseline_report,'baselineSummary':prior['summary'],'results':results,'summary':{k:sum(x['status']==s for x in results) for k,s in [('passed','passed'),('failed','failed'),('unexecuted','unexecuted')]},'receiptsAndIds':state,'hostedDatabaseQueries':0};v['summary']['blocked']=0;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(v,indent=2)+'\n');print(json.dumps(v['summary']));sys.exit(1 if v['summary']['failed'] else 0)
+v={'policySqlSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/quote-access-policy.sql').read_bytes()).hexdigest(),'grantSqlSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/quote-grants.sql').read_bytes()).hexdigest(),'upgradeSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/recipient-management.sql').read_bytes()).hexdigest(),'candidateSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/engagements.sql').read_bytes()).hexdigest(),'scope':'Actual disposable PostgreSQL17; fictional data and mock auth.uid, NOT hosted JWT/PostgREST','baselineReport':a.baseline_report,'baselineSummary':prior['summary'],'results':results,'summary':{k:sum(x['status']==s for x in results) for k,s in [('passed','passed'),('failed','failed'),('unexecuted','unexecuted')]},'receiptsAndIds':state,'hostedDatabaseQueries':0};v['summary']['blocked']=0;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(v,indent=2)+'\n');print(json.dumps(v['summary']));sys.exit(1 if v['summary']['failed'] else 0)

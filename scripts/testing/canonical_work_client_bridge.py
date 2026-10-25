@@ -3,10 +3,11 @@
 import argparse,json,pathlib,subprocess,sys,re,select,time,hashlib
 p=argparse.ArgumentParser()
 for n in ['bin-dir','socket','sql-report','output']:p.add_argument('--'+n,required=True)
-p.add_argument('--run-tag',default='review2');a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]{1,24}',a.run_tag);first_id='client-'+a.run_tag+'-first';second_id='client-'+a.run_tag+'-second';root=pathlib.Path(__file__).resolve().parents[2];prior=json.loads(pathlib.Path(a.sql_report).read_text());assert prior['summary']['passed']==317 and all(prior['summary'].get(k,0)==0 for k in ['failed','blocked','unexecuted'])
+p.add_argument('--run-tag',default='review2');a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]{1,24}',a.run_tag);first_id='client-'+a.run_tag+'-first';second_id='client-'+a.run_tag+'-second';root=pathlib.Path(__file__).resolve().parents[2];prior=json.loads(pathlib.Path(a.sql_report).read_text());assert prior['summary']['passed']==363 and all(prior['summary'].get(k,0)==0 for k in ['failed','blocked','unexecuted'])
 assert prior['candidateSha256']==hashlib.sha256((root/'docs/sql-proposals/canonical-work/engagements.sql').read_bytes()).hexdigest(),'SQL report does not match current candidate'
 assert prior['upgradeSha256']==hashlib.sha256((root/'docs/sql-proposals/canonical-work/recipient-management.sql').read_bytes()).hexdigest(),'Upgrade report does not match current candidate'
 assert prior['grantSqlSha256']==hashlib.sha256((root/'docs/sql-proposals/canonical-work/quote-grants.sql').read_bytes()).hexdigest(),'Grant report does not match current candidate'
+assert prior['policySqlSha256']==hashlib.sha256((root/'docs/sql-proposals/canonical-work/quote-access-policy.sql').read_bytes()).hexdigest(),'Policy report does not match source'
 B='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';O='cccccccc-cccc-4ccc-8ccc-cccccccccccc';C='repeat'
 base=[str(pathlib.Path(a.bin_dir)/'psql'),'-X','-h',a.socket,'-U','postgres','-d','busy_phase58_disposable','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-At']
 assert a.socket.startswith(('/workspace/','/tmp/'))
@@ -16,12 +17,18 @@ assert call('SHOW listen_addresses;').stdout.strip()==''
 def run(sql):
  r=call(sql);assert r.returncode==0,r.stderr;return r.stdout
 
-def quote(v):return 'NULL' if v is None else "'"+str(v).replace("'","''")+"'"
+def quote(v):return 'NULL' if v is None else "'"+(json.dumps(v) if isinstance(v,(dict,list)) else str(v)).replace("'","''")+"'"
 # Re-enable only the exact locally reviewed RPCs AFTER independently verified rollback.
-run("DO $x$ DECLARE f record;BEGIN FOR f IN SELECT oid::regprocedure AS sig FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN ('busy_work_create_quote_v1','busy_work_edit_quote_v1','busy_work_private_write_v1','busy_work_agreement_create_v1','busy_work_agreement_decide_v1','busy_work_quote_reference_create_v1','busy_work_quote_binding_write_v1','busy_work_quote_binding_decide_v1','busy_work_quote_presentation_prepare_v1','busy_work_quote_presentation_withdraw_v1','busy_work_quote_grant_create_v1','busy_work_quote_grant_revoke_v1') LOOP EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.sig);END LOOP;END $x$;")
+run("DO $x$ DECLARE f record;BEGIN FOR f IN SELECT oid::regprocedure AS sig FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN ('busy_work_create_quote_v1','busy_work_edit_quote_v1','busy_work_private_write_v1','busy_work_agreement_create_v1','busy_work_agreement_decide_v1','busy_work_quote_reference_create_v1','busy_work_quote_binding_write_v1','busy_work_quote_binding_decide_v1','busy_work_quote_presentation_prepare_v1','busy_work_quote_presentation_withdraw_v1','busy_work_quote_grant_create_v1','busy_work_quote_grant_revoke_v1','busy_work_quote_access_prepare_v1','busy_work_quote_access_revoke_v1') LOOP EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.sig);END LOOP;END $x$;")
 run(f"UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{{inboxItems}}',(payload->'inboxItems')||jsonb_build_array((payload->'inboxItems'->1)||jsonb_build_object('id',{quote(first_id)}),(payload->'inboxItems'->1)||jsonb_build_object('id',{quote(second_id)}))) WHERE business_id='{B}';")
 payload=json.loads(run(f"SELECT payload FROM public.busy_business_snapshots WHERE business_id='{B}';").splitlines()[0]);before=run(f"SELECT md5(payload::text) FROM public.busy_business_snapshots WHERE business_id='{B}';").strip()
 args={
+'quote_access_review':['p_business_id', 'p_customer_id', 'p_engagement_id', 'p_reference_id', 'p_grant_id', 'p_duration_days', 'p_calendar_zone', 'p_valid_until', 'p_fields'],
+'quote_access_prepare':['p_business_id', 'p_customer_id', 'p_engagement_id', 'p_reference_id', 'p_grant_id', 'p_duration_days', 'p_calendar_zone', 'p_valid_until', 'p_fields', 'p_review_hash', 'p_operation_id'],
+'quote_access_read':['p_business_id', 'p_customer_id', 'p_engagement_id', 'p_reference_id', 'p_grant_id'],
+'quote_access_revoke':['p_business_id', 'p_customer_id', 'p_engagement_id', 'p_reference_id', 'p_grant_id', 'p_presentation_id', 'p_expected_revision', 'p_projection_hash', 'p_operation_id'],
+'quote_access_decisions':['p_business_id', 'p_customer_id', 'p_engagement_id', 'p_reference_id', 'p_grant_id', 'p_after', 'p_limit'],
+
 'quote_grant_review':['p_business_id', 'p_customer_id', 'p_engagement_id', 'p_reference_id', 'p_preparation_id', 'p_expected_binding_revision', 'p_expected_generation'],
 'quote_grant_create':['p_business_id', 'p_customer_id', 'p_engagement_id', 'p_reference_id', 'p_preparation_id', 'p_expected_binding_revision', 'p_expected_generation', 'p_review_hash', 'p_operation_id'],
 'quote_grant_list':['p_business_id', 'p_customer_id', 'p_engagement_id', 'p_reference_id', 'p_after', 'p_limit'],
@@ -79,6 +86,16 @@ try:
    assert msg.get('enquiryId')==first_id
    words='Fictional corrected current requirements' if msg['fixture']=='correct-source' else next(x['rawText'] for x in payload['inboxItems'] if x['id']==first_id)
    run(f"UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,ARRAY['inboxItems',(SELECT (ordinality-1)::text FROM jsonb_array_elements(payload->'inboxItems') WITH ORDINALITY a WHERE a.value->>'id'={quote(first_id)}),'rawText'],to_jsonb({quote(words)}::text)) WHERE business_id='{B}';")
+   child.stdin.write(json.dumps({'fixtureDone':True})+'\n');child.stdin.flush();continue
+  if msg.get('fixture')=='policy-local-proceed':
+   pid=msg['presentationId'];assert re.fullmatch(r'[0-9a-f-]{36}',pid)
+   row=json.loads(run("SELECT row_to_json(p) FROM public.business_work_quote_presentations p WHERE id="+quote(pid)+" AND created_by="+quote(O)+" AND business_id="+quote(B)+";").splitlines()[0])
+   assert run("SELECT enquiry_id FROM public.business_work_engagements WHERE id="+quote(row['engagement_id'])+";").strip()==first_id
+   g=json.loads(run("SELECT row_to_json(g) FROM public.business_work_quote_grant_candidates g WHERE id="+quote(row['grant_candidate_id'])+";").splitlines()[0])
+   run("BEGIN;SET LOCAL request.jwt.claim.sub="+quote(O)+";SELECT busy_work_private.quote_activation_validation("+quote(pid)+");COMMIT;")
+   # Operator-only fictional session/decision validation; actual auth.uid still checked. No production session proof claimed.
+   r=call("BEGIN;SET LOCAL request.jwt.claim.sub="+quote(g['consumer_id'])+";DO $fixture$ DECLARE v jsonb;BEGIN v:=busy_work_private.quote_session_validation("+quote(pid)+",NULL);PERFORM busy_work_private.quote_decision_validation("+quote(pid)+",(v->>'sessionId')::uuid,'request_to_proceed','',0,'bridge-policy-proceed');END $fixture$;COMMIT;")
+   fixtureCalls.append({'kind':'isolated_nonbinding_proceed_session_validation','exitCode':r.returncode,'output':r.stdout+r.stderr});assert r.returncode==0,r.stderr
    child.stdin.write(json.dumps({'fixtureDone':True})+'\n');child.stdin.flush();continue
   if msg.get('fixture')=='grant-question-candidate':
    gid=msg.get('grantId');assert re.fullmatch(r'[0-9a-f-]{36}',gid or '')

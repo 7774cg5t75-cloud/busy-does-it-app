@@ -1,3 +1,9 @@
+## Current private Product Master — V22.53 verified,25 October2026
+
+Genuine attached original SHA-256 `fa9456077fd843f1f04ea450d9e2ec425077695b6b106b91bf7cee150b727f62` opened:2,254 paragraphs/19 tables. All2,223 non-cover V22.52 paragraphs preserved;30 appended paragraphs comprise Section66, read in full. Original and complete extracts remain private outside Git.
+
+Section66 formally approves the finite customer-facing whitelist/internal exclusions;14-calendar-day default with deliberate7/30 alternatives capped at offer validity;15-minute inactive viewing eligibility;immediate subsequent-read/response revocation;distinct non-binding Request to proceed and controlled Accept quote and agree to pay, plus Decline/Ask a question. This supersedes previous unresolved-policy notes for those product choices. It does not approve disclosure, hosting, activation, real contracts, execution or legal compliance. Binding acceptance still requires firm-offer/legal/consumer/B2B/durable-copy/JWT/rollout gates. Keep every operational fuse and switch closed. Never silently promote legacy accept candidates, private minute-expiry or an internal Prepared quote into these authorities.
+
 ## Current private Product Master — V22.52 verified, 25 October 2026
 
 Genuine owner attachment SHA-256 `863155d0d75c4ee7f627a6d670ce78eed128e2438eecfb7137b58f512443cb66` was opened and compared in full: 2,224 paragraphs/19 tables; all 2,197 non-cover V22.51 paragraphs preserved in order, cover updated and 26 paragraphs appended for Section65. Complete original/extract remain private outside Git. V22.51 and earlier are historical predecessors.
