@@ -1,3 +1,9 @@
+## Current private Product Master — V22.52 verified, 25 October 2026
+
+Genuine owner attachment SHA-256 `863155d0d75c4ee7f627a6d670ce78eed128e2438eecfb7137b58f512443cb66` was opened and compared in full: 2,224 paragraphs/19 tables; all 2,197 non-cover V22.51 paragraphs preserved in order, cover updated and 26 paragraphs appended for Section65. Complete original/extract remain private outside Git. V22.51 and earlier are historical predecessors.
+
+Owner-approved Section65 requires explicit review of one exact recipient/quote version, fresh trusted server verification through original Business App/request authority, and separately controlled customer-facing access. Owner-linked CRM/consumer provenance is not independently verified personhood. Private preparation, access, presentation, stored messages, delivery, response, acceptance and booking remain separate authorities. No private UUID is a bearer permission. This approves the design/security requirements and build-first local candidates, not disclosure, hosted changes, rollout, sending, provider actions, booking, payment, publishing or release. Expiry/revocation, disclosure policy, real JWT/device acceptance and retention/erasure remain separately gated. Preserve all earlier fuses, privacy boundaries and independent canonical engagements.
+
 ## Current private Product Master — V22.51 verified, 24 October2026
 
 The genuine owner attachment was opened in full: SHA-256 `9740b05c5e523ef881e50a03f3fd65b29c65667b2c874992712575db20aa2c3b`,2,198 paragraphs/19 tables, cover/footer V22.51. Ordered comparison preserves2,131 of2,132 V22.49 paragraphs unchanged (the cover version changes), with66 appended paragraphs covering Sections63–64. Complete originals/extractions stay private outside Git. V22.49/V22.50 are predecessors, not current substitutes.

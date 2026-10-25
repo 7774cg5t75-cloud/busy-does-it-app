@@ -455,12 +455,72 @@ stage('changed-canonical-source-denies-recipient-inspection',recipient_source)
 def recipient_unchanged():
  eq(row(state['second']),state['recipientWorkBefore']);eq(row(state['first']),state['recipientOtherBefore']);eq(run('SELECT row_to_json(x) FROM public.busy_mini_app_requests x;SELECT row_to_json(x) FROM public.busy_mini_app_request_links x;'),state['recipientRowsBefore']);eq(run('SELECT count(*) FROM public.busy_mini_app_work_bookings;').strip(),'0');assert 'owner_linked_signed_in_request' in str(recipient_review())
 stage('recipient-inspection-does-not-change-request-link-work-or-bookings',recipient_unchanged)
+# V22.52 private binding writes; consumer boundary is an independent hard denial.
+def binding_context(eng=None,ref=None,request=REQ):
+ eng=eng or state['second'];ref=ref or state['recipientRef'];return rpc('quote_binding_context',[B,C,eng,ref,request,row(eng)['revision']])
+def binding_args(context=None,op='private-binding-first'):
+ v=context or binding_context();return [B,C,v['engagementId'],v['referenceId'],REQ,v['quoteRevision'],0,v['reviewHash'],op]
+def binding_read(eng=None,ref=None):return rpc('quote_binding_read',[B,C,eng or state['second'],ref or state['recipientRef']])
+def binding_initial():
+ v=binding_context();state['bindingContext']=v;eq(v['bindingExists'],False);eq(v['consumerAccessAuthorised'],False);eq(v['recipientReview']['recipient']['consumerId'],U);eq(binding_read()['eligibility'],'absent');state['bindingWorkBefore']=row(state['second']);state['bindingOtherBefore']=row(state['first']);state['bindingPrivateBefore']=run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY kind;');state['bindingOriginalRowsBefore']=run('SELECT row_to_json(x) FROM public.busy_mini_app_requests x;SELECT row_to_json(x) FROM public.busy_mini_app_request_links x;');state['bindingSnapshotBefore']=run('SELECT payload::text FROM public.busy_business_snapshots WHERE business_id='+q(B)+';')
+stage('fresh-server-private-binding-context-and-explicit-absence',binding_initial)
+def binding_denied(args=None,code='40001',uid=O,role='authenticated'):
+ denied('SELECT public.busy_work_quote_binding_write_v1('+','.join(map(q,args or binding_args(state['bindingContext'])))+');',code,uid,role)
+stage('forged-private-binding-review-hash-denied',lambda:binding_denied(binding_args(state['bindingContext'])[:-2]+['0'*64,'forged-binding-context']))
+def binding_request_changed():
+ v=call(f"BEGIN;UPDATE public.busy_mini_app_requests SET updated_at=updated_at+interval '1 second' WHERE id='{REQ}';"+auth('SELECT public.busy_work_quote_binding_write_v1('+','.join(map(q,binding_args(state['bindingContext'])))+');'));assert v.returncode!=0 and '40001' in v.stderr;eq(binding_read()['eligibility'],'absent')
+stage('request-revision-changed-after-review-denies-private-write',binding_request_changed)
+def binding_link_changed():
+ v=call(f"BEGIN;UPDATE public.busy_mini_app_request_links SET updated_at=updated_at+interval '1 second' WHERE request_id='{REQ}';"+auth('SELECT public.busy_work_quote_binding_write_v1('+','.join(map(q,binding_args(state['bindingContext'])))+');'));assert v.returncode!=0 and '40001' in v.stderr
+stage('link-revision-changed-after-review-denies-private-write',binding_link_changed)
+def binding_bad_version():
+ v=call(f"BEGIN;UPDATE public.busy_mini_apps SET current_live_version_id=NULL WHERE id='{APP}';"+auth('SELECT public.busy_work_quote_binding_write_v1('+','.join(map(q,binding_args(state['bindingContext'])))+');'));assert v.returncode!=0 and '42501' in v.stderr
+stage('changed-app-version-after-review-denies-private-write',binding_bad_version)
+for uid,label in [(M,'member'),(S,'coowner'),(D,'foreign'),(U,'consumer')]:stage(label+'-private-binding-write-denied',lambda uid=uid:binding_denied(code='42501',uid=uid))
+def binding_owner_role(remove=False):
+ change=f"DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}'" if remove else f"UPDATE public.busy_business_memberships SET role='admin' WHERE business_id='{B}' AND user_id='{O}'";v=call('BEGIN;'+change+';'+auth('SELECT public.busy_work_quote_binding_write_v1('+','.join(map(q,binding_args(state['bindingContext'])))+');'));assert v.returncode!=0 and '42501' in v.stderr
+stage('revoked-owner-binding-write-denied',lambda:binding_owner_role(True))
+stage('admin-owner-binding-write-denied',binding_owner_role)
+def binding_wrong_ref():
+ args=binding_args(state['bindingContext']);args[3]=run(f"SELECT id FROM public.business_work_quote_references WHERE engagement_id='{state['first']}' LIMIT 1;").strip();binding_denied(args,'42501')
+stage('same-customer-wrong-quote-binding-denied',binding_wrong_ref)
+def binding_save():
+ r=rpc('quote_binding_write',binding_args(state['bindingContext']),commit=True);state['bindingReceipt']=r;eq(r['previousRevision'],0);eq(r['revision'],1);eq(r['referenceId'],state['recipientRef']);eq(r['consumerId'],U);eq(r['consumerAccessAuthorised'],False);eq(r['quoteRequestAssociated'],False);v=binding_read();eq(v['eligibility'],'current');eq(v['binding']['bindingId'],r['bindingId']);eq(v['notOwnReceipt'],True);assert 'operationId' not in str(v)
+stage('record-private-binding-and-independent-exact-readback',binding_save)
+stage('duplicate-private-binding-approval-denied',binding_denied)
+for role in ['authenticated','service_role']:stage(role+'-raw-private-binding-table-denied',lambda role=role:denied('SELECT * FROM public.business_work_quote_recipient_bindings;',role=role))
+stage('binding-recipient-cannot-be-mutated-even-privileged',lambda:denied(f"UPDATE public.business_work_quote_recipient_bindings SET consumer_id='{D}' WHERE id='{state['bindingReceipt']['bindingId']}';",role='postgres'))
+def binding_changed_read():
+ text=run(f"BEGIN;UPDATE public.busy_mini_app_request_links SET updated_at=updated_at+interval '1 second' WHERE request_id='{REQ}';"+auth('SELECT public.busy_work_quote_binding_read_v1('+','.join(map(q,[B,C,state['second'],state['recipientRef']]))+');'));v=json.loads(next(x for x in text.splitlines() if x.startswith('{')));eq(v['eligibility'],'changed_source_evidence');eq(v['recipient'],None)
+stage('saved-binding-read-flags-current-source-drift-without-disclosure',binding_changed_read)
+def binding_missing_read():
+ text=run(f"BEGIN;DELETE FROM public.busy_mini_app_requests WHERE id='{REQ}';"+auth('SELECT public.busy_work_quote_binding_read_v1('+','.join(map(q,[B,C,state['second'],state['recipientRef']]))+');'));v=json.loads(next(x for x in text.splitlines() if x.startswith('{')));eq(v['eligibility'],'unavailable_recipient');eq(v['recipient'],None)
+stage('request-erasure-not-blocked-by-binding-no-recipient-resurrection',binding_missing_read)
+def binding_compete():
+ ref=run(f"SELECT id FROM public.business_work_quote_references WHERE engagement_id='{state['first']}' LIMIT 1;").strip();state['bindingFirstRef']=ref;v=binding_context(state['first'],ref);args=binding_args(v,'binding-concurrent-a');h=hold('SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+q(O)+';SELECT public.busy_work_quote_binding_write_v1('+','.join(map(q,args))+')');args[-1]='binding-concurrent-b';other=subprocess.Popen(base,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);other.stdin.write("SET statement_timeout='5s';"+auth('SELECT public.busy_work_quote_binding_write_v1('+','.join(map(q,args))+');',commit=True));other.stdin.close();time.sleep(.2);assert other.poll() is None;release(h);other.wait(timeout=8);output=other.stdout.read()+other.stderr.read();logs.append({'exitCode':other.returncode,'output':output});assert other.returncode!=0 and '40001' in output;seen=binding_read(state['first'],ref);eq(seen['eligibility'],'current');eq(seen['notOwnReceipt'],True);assert 'operationId' not in str(seen)
+stage('two-quotes-independent-bindings-real-competing-approvals-one-wins',binding_compete)
+def binding_preserves():
+ eq(row(state['second']),state['bindingWorkBefore']);eq(row(state['first']),state['bindingOtherBefore']);eq(run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY kind;'),state['bindingPrivateBefore']);eq(run('SELECT row_to_json(x) FROM public.busy_mini_app_requests x;SELECT row_to_json(x) FROM public.busy_mini_app_request_links x;'),state['bindingOriginalRowsBefore']);eq(run('SELECT payload::text FROM public.busy_business_snapshots WHERE business_id='+q(B)+';'),state['bindingSnapshotBefore']);eq(run('SELECT count(*) FROM public.busy_mini_app_work_bookings;').strip(),'0')
+stage('binding-write-preserves-all-quotes-private-purpose-source-and-request-data',binding_preserves)
+for uid,label in [(O,'owner'),(U,'intended-consumer'),(D,'foreign-consumer'),(S,'coowner'),(M,'member')]:
+ stage(label+'-consumer-access-hard-denial',lambda uid=uid:denied('SELECT public.busy_work_consumer_quote_access_v1('+q(state['bindingReceipt']['bindingId'])+');',uid=uid))
+ stage(label+'-structured-response-hard-denial',lambda uid=uid:denied('SELECT public.busy_work_consumer_quote_response_v1('+','.join(map(q,[state['bindingReceipt']['bindingId'],'accept','response-key-fixture']))+');',uid=uid))
+stage('anonymous-consumer-access-denied',lambda:denied('SELECT public.busy_work_consumer_quote_access_v1('+q(state['bindingReceipt']['bindingId'])+');',uid='',role='anon'))
+def binding_access_no_reads():
+ text=run("SELECT pg_get_functiondef(oid) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN ('busy_work_consumer_quote_access_v1','busy_work_consumer_quote_response_v1');")
+ for forbidden in ['SELECT *','business_work_quote_recipient_bindings','business_work_engagements','INSERT INTO','UPDATE public.','busy_send_mini_app_message','busy_mark_mini_app_request_link']:assert forbidden not in text,forbidden
+ binding_preserves()
+stage('consumer-boundary-denies-before-private-lookup-or-domain-mutation',binding_access_no_reads)
+def binding_stale_quote():
+ r=row(state['second']);edit(state['second'],r['revision'],'quote-after-private-binding','Later quote does not inherit recipient intent','0');v=binding_read();eq(v['eligibility'],'stale_quote_version');eq(v['recipient'],None);eq(v['binding']['bindingId'],state['bindingReceipt']['bindingId']);eq(v['consumerAccessAuthorised'],False);eq(row(state['first']),state['bindingOtherBefore'])
+stage('new-quote-version-invalidates-binding-without-transfer',binding_stale_quote)
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
 stage('rollback-denies-fresh-edit-context-without-reopening-writes',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"))
 stage('rollback-preserves-work-notes-and-denies-write',lambda:(eq(notes_read()['text'],'Writer A notes'),denied('SELECT public.busy_work_private_write_v1('+','.join(map(q,[B,C,state['second'],row(state['second'])['revision'],3,read(state['second'])['sourceHash'],'work_notes','Denied after rollback','notes-rollback-denied']))+');')))
 stage('rollback-owner-report-data-readable-creation-and-review-denied',lambda:(eq(agreement_read(state['agreement1'])['verification'],'unverified'),denied(f"SELECT public.busy_work_agreement_review_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});")))
 stage('rollback-decision-read-preserved-review-and-mutation-denied',lambda:(eq(agreement_read(state['agreement1'])['reportState'],'withdrawn'),denied(f"SELECT public.busy_work_agreement_decision_review_v1('{B}','{C}','{state['second']}','{state['agreement1']}',{row(state['second'])['revision']});"),decision_deny([B,C,state['second'],state['agreement1'],row(state['second'])['revision'],3,state['agreementOriginal']['termsHash'],'correct','No rollback write','rollback-correction-denied'],'42501')))
 stage('rollback-reference-inspection-preserved-new-review-write-denied',lambda:(eq(ref_read()['presentationState'],'prepared_not_presented'),denied(f"SELECT public.busy_work_quote_reference_review_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"),denied(f"SELECT public.busy_work_quote_reference_create_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']},'no','rollback-ref-denied');")))
+stage('rollback-private-bindings-retained-write-context-denied-access-still-closed',lambda:(eq(binding_read(state['first'],state['bindingFirstRef'])['eligibility'],'current'),denied('SELECT public.busy_work_quote_binding_context_v1('+','.join(map(q,[B,C,state['first'],state['bindingFirstRef'],REQ,row(state['first'])['revision']]))+');'),binding_denied(binding_args(state['bindingContext']),'42501'),denied('SELECT public.busy_work_consumer_quote_access_v1('+q(state['bindingReceipt']['bindingId'])+');',uid=U)))
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
  start=len(logs)

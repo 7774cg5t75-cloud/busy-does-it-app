@@ -87,11 +87,26 @@ CREATE TABLE public.business_work_quote_references(
  state text NOT NULL DEFAULT 'prepared_not_presented' CHECK(state='prepared_not_presented'),
  operation_id text NOT NULL CHECK(operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
  FOREIGN KEY(business_id,customer_id,engagement_id) REFERENCES public.business_work_engagements(business_id,customer_id,id) ON DELETE RESTRICT,
- UNIQUE(business_id,engagement_id,created_by,quote_revision),UNIQUE(business_id,created_by,operation_id)
+ UNIQUE(business_id,engagement_id,created_by,quote_revision),UNIQUE(business_id,created_by,operation_id),
+ UNIQUE(business_id,customer_id,engagement_id,id,created_by,quote_revision,terms_hash)
 );
 CREATE INDEX busy_work_quote_reference_page ON public.business_work_quote_references(business_id,customer_id,engagement_id,created_by,id);
 ALTER TABLE public.business_work_quote_references ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.business_work_quote_references FROM PUBLIC,anon,authenticated,service_role;
+-- V22.52 owner-private intent. No foreign keys block erasure of original requests/users.
+CREATE TABLE public.business_work_quote_recipient_bindings(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,reference_id uuid NOT NULL,created_by uuid NOT NULL,
+ quote_revision bigint NOT NULL,terms_hash text NOT NULL,source_hash text NOT NULL,review_hash text NOT NULL,
+ consumer_id uuid NOT NULL,request_id uuid NOT NULL,link_id uuid NOT NULL,linking_owner_id uuid NOT NULL,app_id uuid NOT NULL,app_version_id uuid NOT NULL,
+ request_revision text NOT NULL,link_revision text NOT NULL,
+ provenance text NOT NULL CHECK(provenance='owner_linked_signed_in_request'),
+ revision bigint NOT NULL DEFAULT 1 CHECK(revision=1),state text NOT NULL DEFAULT 'owner_private_only' CHECK(state='owner_private_only'),
+ operation_id text NOT NULL CHECK(operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ FOREIGN KEY(business_id,customer_id,engagement_id,reference_id,created_by,quote_revision,terms_hash) REFERENCES public.business_work_quote_references(business_id,customer_id,engagement_id,id,created_by,quote_revision,terms_hash) ON DELETE RESTRICT,
+ UNIQUE(business_id,reference_id,created_by),UNIQUE(business_id,created_by,operation_id)
+);
+ALTER TABLE public.business_work_quote_recipient_bindings ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.business_work_quote_recipient_bindings FROM PUBLIC,anon,authenticated,service_role;
 CREATE FUNCTION busy_work_private.authorize(b uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE actor uuid:=auth.uid();r text;
 BEGIN
@@ -402,6 +417,48 @@ BEGIN
  END IF;
  RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'quoteRevision',v->'quoteRevision','termsHash',v->'termsHash','recipientIdentified',identified,'provenance',reason,'notOwnReceipt',true,'consumerAccessAuthorised',false,'quoteRequestAssociated',false,'customerResponseLinked',false,'executionAuthorised',false,'recipient',CASE WHEN identified THEN jsonb_build_object('consumerId',r.consumer_user_id,'requestId',r.id,'requestRevision',r.updated_at,'linkId',l.id,'linkRevision',l.updated_at,'appId',a.id,'appVersionId',version.id,'actionId',l.action_record_id) ELSE NULL END);
 END $$;
+CREATE FUNCTION public.busy_work_quote_binding_context_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_request_id uuid,p_expected_quote_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE q jsonb:=public.busy_work_quote_reference_read_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id);v jsonb;
+BEGIN
+ IF p_expected_quote_revision IS NULL OR (q->>'quoteRevision')::bigint<>p_expected_quote_revision OR q->>'termsChanged'='true' THEN RAISE EXCEPTION 'Quote version changed' USING ERRCODE='40001';END IF;
+ IF NOT has_function_privilege('authenticated',to_regprocedure('public.busy_work_quote_binding_write_v1(uuid,text,uuid,uuid,uuid,bigint,bigint,text,text)'),'EXECUTE') THEN RAISE EXCEPTION 'Private binding unavailable' USING ERRCODE='42501';END IF;
+ v:=public.busy_work_quote_recipient_review_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id,p_request_id);
+ IF v->>'recipientIdentified' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'Recipient unsupported; no private binding' USING ERRCODE='42501';END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'revision',p_expected_quote_revision,'quoteRevision',p_expected_quote_revision,'sourceHash',q->'sourceHash','recordHash',q->'terms'->'recordHash','termsHash',q->'termsHash','terms',q->'terms','recipientReview',v,'reviewHash',busy_work_private.hash(v),'currentBindingReview',true,'bindingExists',EXISTS(SELECT 1 FROM public.business_work_quote_recipient_bindings WHERE business_id=p_business_id AND reference_id=p_reference_id AND created_by=auth.uid()),'consumerAccessAuthorised',false,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_quote_binding_write_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_request_id uuid,p_expected_quote_revision bigint,p_expected_binding_revision bigint,p_review_hash text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE v jsonb;r jsonb;b public.business_work_quote_recipient_bindings%ROWTYPE;
+BEGIN
+ IF p_expected_binding_revision IS DISTINCT FROM 0 OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' THEN RAISE EXCEPTION 'Unsupported private binding revision' USING ERRCODE='40001';END IF;
+ v:=public.busy_work_quote_binding_context_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id,p_request_id,p_expected_quote_revision);
+ IF p_review_hash IS NULL OR v->>'reviewHash' IS DISTINCT FROM p_review_hash OR v->>'bindingExists'='true' THEN RAISE EXCEPTION 'Recipient evidence changed or binding already exists' USING ERRCODE='40001';END IF;
+ r:=v->'recipientReview'->'recipient';
+ INSERT INTO public.business_work_quote_recipient_bindings(business_id,customer_id,engagement_id,reference_id,created_by,quote_revision,terms_hash,source_hash,review_hash,consumer_id,request_id,link_id,linking_owner_id,app_id,app_version_id,request_revision,link_revision,provenance,operation_id)
+ VALUES(p_business_id,p_customer_id,p_engagement_id,p_reference_id,auth.uid(),p_expected_quote_revision,v->>'termsHash',v->>'sourceHash',p_review_hash,(r->>'consumerId')::uuid,p_request_id,(r->>'linkId')::uuid,auth.uid(),(r->>'appId')::uuid,(r->>'appVersionId')::uuid,r->>'requestRevision',r->>'linkRevision','owner_linked_signed_in_request',p_operation_id) RETURNING * INTO b;
+ RETURN jsonb_build_object('operation','quote_recipient_binding','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'bindingId',b.id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',0,'revision',1,'quoteRevision',b.quote_revision,'termsHash',b.terms_hash,'sourceHash',b.source_hash,'reviewHash',b.review_hash,'consumerId',b.consumer_id,'requestId',b.request_id,'recordedAt',b.recorded_at,'consumerAccessAuthorised',false,'quoteRequestAssociated',false,'executionAuthorised',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_binding_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE q jsonb:=public.busy_work_quote_reference_read_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id);b public.business_work_quote_recipient_bindings%ROWTYPE;v jsonb;eligibility text;recipient jsonb;
+BEGIN
+ SELECT * INTO b FROM public.business_work_quote_recipient_bindings WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND reference_id=p_reference_id AND created_by=auth.uid();
+ IF NOT FOUND THEN eligibility:='absent';
+ ELSIF q->>'termsChanged'='true' THEN eligibility:='stale_quote_version';
+ ELSE
+  v:=public.busy_work_quote_recipient_review_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id,b.request_id);
+  IF v->>'recipientIdentified' IS DISTINCT FROM 'true' THEN eligibility:='unavailable_recipient';
+  ELSIF busy_work_private.hash(v) IS DISTINCT FROM b.review_hash THEN eligibility:='changed_source_evidence';
+  ELSE eligibility:='current';recipient:=v->'recipient';END IF;
+ END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'binding',CASE WHEN b.id IS NULL THEN NULL ELSE jsonb_build_object('bindingId',b.id,'revision',b.revision,'quoteRevision',b.quote_revision,'termsHash',b.terms_hash,'reviewHash',b.review_hash,'recordedAt',b.recorded_at,'provenance',b.provenance) END,'eligibility',eligibility,'recipient',recipient,'notOwnReceipt',true,'consumerAccessAuthorised',false,'quoteRequestAssociated',false,'executionAuthorised',false);
+END $$;
+-- Separate public-facing boundary. Hard denial precedes any private data lookup.
+CREATE FUNCTION public.busy_work_consumer_quote_access_v1(p_binding_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Consumer quote access disabled pending separate disclosure approval' USING ERRCODE='42501';END $$;
+CREATE FUNCTION public.busy_work_consumer_quote_response_v1(p_binding_id uuid,p_action text,p_idempotency_key text) RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Consumer quote response disabled; no authorised access context' USING ERRCODE='42501';END $$;
+CREATE FUNCTION busy_work_private.protect_quote_binding() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Immutable private recipient binding; replacement/revocation requires a separate finite contract' USING ERRCODE='42501';END $$;
+CREATE TRIGGER busy_work_quote_binding_immutable BEFORE UPDATE ON public.business_work_quote_recipient_bindings FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_quote_binding();
 CREATE FUNCTION busy_work_private.protect_quote_reference() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
 BEGIN RAISE EXCEPTION 'Immutable private quote preparation; no presentation or acceptance inferred' USING ERRCODE='42501';END $$;
 CREATE TRIGGER busy_work_quote_reference_immutable BEFORE UPDATE ON public.business_work_quote_references FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_quote_reference();
@@ -427,12 +484,12 @@ END $$;
 CREATE TRIGGER busy_canonical_legacy_readonly BEFORE UPDATE OR DELETE ON public.busy_business_snapshots FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_legacy();
 DO $$ DECLARE f record;r text;t regclass;
 BEGIN
- FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1','busy_work_agreement_review_v1','busy_work_agreement_create_v1','busy_work_agreement_list_v1','busy_work_agreement_read_v1','busy_work_agreement_decision_review_v1','busy_work_agreement_decide_v1','busy_work_booking_readiness_v1','busy_work_quote_reference_review_v1','busy_work_quote_reference_create_v1','busy_work_quote_reference_list_v1','busy_work_quote_reference_read_v1','busy_work_quote_recipient_candidates_v1','busy_work_quote_recipient_review_v1') LOOP
+ FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1','busy_work_agreement_review_v1','busy_work_agreement_create_v1','busy_work_agreement_list_v1','busy_work_agreement_read_v1','busy_work_agreement_decision_review_v1','busy_work_agreement_decide_v1','busy_work_booking_readiness_v1','busy_work_quote_reference_review_v1','busy_work_quote_reference_create_v1','busy_work_quote_reference_list_v1','busy_work_quote_reference_read_v1','busy_work_quote_recipient_candidates_v1','busy_work_quote_recipient_review_v1','busy_work_quote_binding_context_v1','busy_work_quote_binding_write_v1','busy_work_quote_binding_read_v1','busy_work_consumer_quote_access_v1','busy_work_consumer_quote_response_v1') LOOP
   EXECUTE format('ALTER FUNCTION %s OWNER TO postgres',f.signature);EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
   IF f.proname LIKE 'busy_work_%' AND f.proname<>'busy_work_migrate_legacy_v1' THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
  END LOOP;
  FOREACH r IN ARRAY ARRAY['anon','authenticated','service_role'] LOOP
-  FOREACH t IN ARRAY ARRAY['public.business_work_engagements'::regclass,'public.business_work_private_drafts'::regclass,'public.business_work_agreement_evidence'::regclass,'public.business_work_agreement_decisions'::regclass,'public.business_work_quote_references'::regclass] LOOP
+  FOREACH t IN ARRAY ARRAY['public.business_work_engagements'::regclass,'public.business_work_private_drafts'::regclass,'public.business_work_agreement_evidence'::regclass,'public.business_work_agreement_decisions'::regclass,'public.business_work_quote_references'::regclass,'public.business_work_quote_recipient_bindings'::regclass] LOOP
    IF has_any_column_privilege(r,t,'SELECT,INSERT,UPDATE,REFERENCES') OR has_table_privilege(r,t,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN RAISE EXCEPTION 'Effective raw privilege remains for % on %',r,t;END IF;
   END LOOP;
   IF has_any_column_privilege(r,'public.busy_business_snapshots','UPDATE') OR has_table_privilege(r,'public.busy_business_snapshots','SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN RAISE EXCEPTION 'Snapshot fence missing';END IF;

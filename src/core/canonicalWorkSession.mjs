@@ -5,6 +5,7 @@ export const CANONICAL_OWNER_REPORT_ENABLED=false;
 export const CANONICAL_AGREEMENT_DECISIONS_ENABLED=false;
 export const CANONICAL_QUOTE_REFERENCE_ENABLED=false;
 export const CANONICAL_RECIPIENT_REVIEW_ENABLED=false;
+export const CANONICAL_RECIPIENT_BINDING_ENABLED=false;
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(v);
 const hash=v=>typeof v==='string'&&/^[0-9a-f]{64}$/.test(v);
 const same=(a,b)=>stableJson(a)===stableJson(b);
@@ -12,11 +13,11 @@ const ownerAccount=v=>{if(typeof v!=='string'||!v.trim())return false;try{return
 // Volatile finite-operation evidence only; canonical rows remain server authority.
 export function createCanonicalWorkSession(){
  const observations=new WeakMap(),tickets=new WeakMap(),outcomes=new WeakMap();
- return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,agreementEnabled=CANONICAL_OWNER_REPORT_ENABLED,decisionEnabled=CANONICAL_AGREEMENT_DECISIONS_ENABLED,quoteReferenceEnabled=CANONICAL_QUOTE_REFERENCE_ENABLED,recipientReviewEnabled=CANONICAL_RECIPIENT_REVIEW_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
+ return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,agreementEnabled=CANONICAL_OWNER_REPORT_ENABLED,decisionEnabled=CANONICAL_AGREEMENT_DECISIONS_ENABLED,quoteReferenceEnabled=CANONICAL_QUOTE_REFERENCE_ENABLED,recipientReviewEnabled=CANONICAL_RECIPIENT_REVIEW_ENABLED,bindingEnabled=CANONICAL_RECIPIENT_BINDING_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
   const initial=getCurrent(),scope=initial?.scope,start={ownerId:initial?.ownerId,businessId:initial?.businessId,role:initial?.role};
   const valid=()=>{const c=getCurrent();return enabled===true&&!!scope&&typeof scope==='object'&&c?.scope===scope&&c.ready===true&&c.ownerId===start.ownerId&&c.businessId===start.businessId&&c.role==='owner'&&start.role==='owner'&&!!c.ownerId&&uuid(c.businessId);};
   const observe=(value,kind)=>{observations.set(value,{scope,owner:start.ownerId,business:start.businessId,kind,localRevision:getCurrent().revision,stamp:stableJson(value)});return value;};
-  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(!['edit','agreement','decision','reference','recipient'].includes(kind)||getCurrent().revision===b.localRevision);};
+  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(!['edit','agreement','decision','reference','recipient','binding'].includes(kind)||getCurrent().revision===b.localRevision);};
   const io=async(name,body,beforeSend=()=>true)=>{if(!valid())throw Error('Canonical Work is disabled or the workspace changed.');const token=await ownerAccessToken();if(!valid()||!token||!beforeSend())throw Error('Current authentication or review unavailable.');const value=await request('rpc/busy_work_'+name+'_v1',{method:'POST',token,body:{p_business_id:start.businessId,...body}});if(!valid())throw Error('Workspace changed during the request. Keep local work.');return value;};
   const scoped=(v,c,id=null)=>v&&v.businessId===start.businessId&&v.customerId===c&&(v.ownerId===start.ownerId||v.actorId===start.ownerId)&&(!id||v.engagementId===id);
   const source=async(customerId,enquiryId,revision)=>{
@@ -65,6 +66,16 @@ export function createCanonicalWorkSession(){
    const v=await io('quote_recipient_review',{p_customer_id:customerId,p_engagement_id:id,p_reference_id:referenceId,p_request_id:requestId});
    if(!scoped(v,customerId,id)||v.referenceId!==referenceId||!Number.isSafeInteger(v.quoteRevision)||v.quoteRevision<1||!hash(v.termsHash)||typeof v.recipientIdentified!=='boolean'||typeof v.provenance!=='string'||v.notOwnReceipt!==true||v.consumerAccessAuthorised!==false||v.quoteRequestAssociated!==false||v.customerResponseLinked!==false||v.executionAuthorised!==false||!v.recipientIdentified&&v.recipient!==null||v.recipientIdentified&&(v.provenance!=='owner_linked_signed_in_request'||v.recipient?.requestId!==requestId||![v.recipient?.consumerId,v.recipient?.linkId,v.recipient?.appId,v.recipient?.appVersionId].every(uuid)||!Number.isFinite(Date.parse(v.recipient?.requestRevision))||!Number.isFinite(Date.parse(v.recipient?.linkRevision))))throw Error('Unsupported recipient review.');return observe(v,'recipient');
   };
+  const quoteBindingContext=async(customerId,id,referenceId,requestId,revision)=>{
+   if(!bindingEnabled||!recipientReviewEnabled||!quoteReferenceEnabled||![id,referenceId,requestId].every(uuid)||!Number.isSafeInteger(revision)||revision<1)throw Error('Private binding disabled or invalid.');
+   const v=await io('quote_binding_context',{p_customer_id:customerId,p_engagement_id:id,p_reference_id:referenceId,p_request_id:requestId,p_expected_quote_revision:revision});
+   if(!scoped(v,customerId,id)||v.referenceId!==referenceId||v.currentBindingReview!==true||v.revision!==revision||v.quoteRevision!==revision||!hash(v.sourceHash)||!hash(v.recordHash)||!hash(v.termsHash)||!hash(v.reviewHash)||v.terms?.engagementId!==id||v.terms?.quoteRevision!==revision||v.terms?.customerId!==customerId||v.recipientReview?.recipient?.requestId!==requestId||v.recipientReview?.recipientIdentified!==true||v.recipientReview?.consumerAccessAuthorised!==false||!uuid(v.recipientReview?.recipient?.consumerId)||v.consumerAccessAuthorised!==false||v.notOwnReceipt!==true||typeof v.bindingExists!=='boolean')throw Error('Unsupported fresh private binding context.');return observe(v,'binding');
+  };
+  const quoteBindingRead=async(customerId,id,referenceId)=>{
+   if(!bindingEnabled||!quoteReferenceEnabled||![id,referenceId].every(uuid))throw Error('Private binding inspection disabled.');
+   const v=await io('quote_binding_read',{p_customer_id:customerId,p_engagement_id:id,p_reference_id:referenceId});
+   if(!scoped(v,customerId,id)||v.referenceId!==referenceId||v.notOwnReceipt!==true||v.consumerAccessAuthorised!==false||v.quoteRequestAssociated!==false||v.executionAuthorised!==false||!['absent','current','stale_quote_version','changed_source_evidence','unavailable_recipient'].includes(v.eligibility)||v.eligibility==='absent'&&v.binding!==null||v.eligibility!=='absent'&&(!uuid(v.binding?.bindingId)||v.binding?.revision!==1||!Number.isSafeInteger(v.binding?.quoteRevision)||v.binding.quoteRevision<1||!hash(v.binding?.termsHash)||!hash(v.binding?.reviewHash))||v.eligibility==='current'&&!uuid(v.recipient?.consumerId)||v.eligibility!=='current'&&v.recipient!==null)throw Error('Unsupported private binding observation.');return v;
+  };
   const bookingReadiness=async(customerId,id,evidenceId)=>{
    if(!agreementEnabled||!decisionEnabled||!uuid(id)||!uuid(evidenceId))throw Error('Readiness proposal disabled.');
    const v=await io('booking_readiness',{p_customer_id:customerId,p_engagement_id:id,p_evidence_id:evidenceId});
@@ -78,18 +89,19 @@ export function createCanonicalWorkSession(){
    return observe(v,'decision');
   };
   const review=({operation,source:src,record,draft,fields,operationId,editor})=>{
-   if(!valid()||!['create','edit','private','agreement','decision','reference'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
+   if(!valid()||!['create','edit','private','agreement','decision','reference','binding'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
    const base=operation==='create'?src:record;
-   const sourceKind=operation==='reference'?'reference':operation==='decision'?'decision':operation==='agreement'?'agreement':operation==='create'?'source':observed(base,'edit')?'edit':'record';
+   const sourceKind=operation==='binding'?'binding':operation==='reference'?'reference':operation==='decision'?'decision':operation==='agreement'?'agreement':operation==='create'?'source':observed(base,'edit')?'edit':'record';
    if(!observed(base,sourceKind)||editor.customerId!==base.customerId||operation==='private'&&(!observed(draft,'private')||draft.engagementId!==record.engagementId||draft.customerId!==record.customerId))return null;
    if(sourceKind==='edit'&&!isEditContext(base,operation==='private'?'private_followup':'edit_quote'))return null;
    if(sourceKind==='edit'&&operation==='private'&&!['followup','work_notes'].includes(draft?.kind))return null;
-   if(['edit','private','agreement','decision','reference'].includes(operation)&&editor.engagementId!==record.engagementId)return null;
+   if(['edit','private','agreement','decision','reference','binding'].includes(operation)&&editor.engagementId!==record.engagementId)return null;
    if(operation==='create'&&editor.engagementId!==null)return null;
    if(['create','edit'].includes(operation)&&(!fields||typeof fields.text!=='string'||!fields.text.trim()||typeof fields.amount!=='string'||!/^\d+(?:\.\d{1,2})?$/.test(fields.amount)||typeof fields.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(fields.date)))return null;
    if(operation==='agreement'&&(!agreementEnabled||!ownerAccount(fields?.text)||editor.purpose!=='owner_reported_offline'||base.verification!=='unverified'||base.bookingEligible!==false))return null;
    if(operation==='decision'&&(!agreementEnabled||!decisionEnabled||base.reportState==='withdrawn'||!ownerAccount(fields?.text)||!['correct','withdraw'].includes(fields?.action)||editor.purpose!=='agreement_decision'||editor.evidenceId!==base.evidenceId))return null;
    if(operation==='reference'&&(!quoteReferenceEnabled||editor.purpose!=='quote_reference'||!fields||Object.keys(fields).length!==0))return null;
+   if(operation==='binding'&&(!bindingEnabled||base.bindingExists||editor.purpose!=='quote_recipient_binding'||editor.referenceId!==base.referenceId||editor.requestId!==base.recipientReview?.recipient?.requestId||!fields||Object.keys(fields).length))return null;
    if(!same(editor.fields,fields))return null;
    if(operation==='create'&&src.hasLegacyWork)return null;
    if(operation==='private'&&editor.purpose!==undefined&&editor.purpose!==draft?.kind)return null;
@@ -108,6 +120,8 @@ export function createCanonicalWorkSession(){
     Object.assign(body,{p_enquiry_id:base.enquiryId,p_expected_snapshot_revision:base.snapshotRevision,p_source_hash:base.sourceHash,p_customer_hash:base.customerHash,p_amount:fields.amount,p_text:fields.text,p_date:fields.date});
    }else if(ticket.operation==='edit'){
     name='edit_quote';operation='engagement_edit_quote';expected=base.revision;Object.assign(body,{p_engagement_id:base.engagementId,p_expected_revision:base.revision,p_source_hash:base.sourceHash,p_amount:fields.amount,p_text:fields.text,p_date:fields.date});
+   }else if(ticket.operation==='binding'){
+    name='quote_binding_write';operation='quote_recipient_binding';expected=0;Object.assign(body,{p_engagement_id:base.engagementId,p_reference_id:base.referenceId,p_request_id:base.recipientReview.recipient.requestId,p_expected_quote_revision:base.quoteRevision,p_expected_binding_revision:0,p_review_hash:base.reviewHash});
    }else if(ticket.operation==='reference'){
     name='quote_reference_create';operation='engagement_quote_reference';expected=0;Object.assign(body,{p_engagement_id:base.engagementId,p_expected_revision:base.revision,p_terms_hash:base.termsHash});
    }else if(ticket.operation==='decision'){
@@ -120,13 +134,14 @@ export function createCanonicalWorkSession(){
    let sent=false;
    try{
     const receipt=await io(name,body,()=>{if(!same(getEditor(),JSON.parse(t.editor))||!observed(t.source,t.sourceKind))return false;sent=true;return true;});
-    if(!scoped(receipt,ticket.customerId,ticket.engagementId)||receipt.operation!==operation||receipt.operationId!==ticket.operationId||receipt.schemaVersion!==1||receipt.previousRevision!==expected||receipt.revision!==expected+1||!uuid(receipt.engagementId)||!['private','agreement','decision','reference'].includes(ticket.operation)&&!hash(receipt.recordHash)||ticket.operation==='private'&&(receipt.kind!==t.draft.kind||receipt.engagementRevision!==base.revision||!hash(receipt.textHash))||ticket.operation==='create'&&receipt.enquiryId!==base.enquiryId||ticket.operation!=='private'&&receipt.sourceHash!==base.sourceHash||ticket.operation==='agreement'&&(!uuid(receipt.evidenceId)||receipt.quoteRevision!==base.revision||receipt.termsHash!==base.termsHash||receipt.verification!=='unverified'||receipt.evidenceClass!=='owner_reported_offline'||receipt.bookingEligible!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact operation receipt mismatch.');
+    if(!scoped(receipt,ticket.customerId,ticket.engagementId)||receipt.operation!==operation||receipt.operationId!==ticket.operationId||receipt.schemaVersion!==1||receipt.previousRevision!==expected||receipt.revision!==expected+1||!uuid(receipt.engagementId)||!['private','agreement','decision','reference','binding'].includes(ticket.operation)&&!hash(receipt.recordHash)||ticket.operation==='private'&&(receipt.kind!==t.draft.kind||receipt.engagementRevision!==base.revision||!hash(receipt.textHash))||ticket.operation==='create'&&receipt.enquiryId!==base.enquiryId||ticket.operation!=='private'&&receipt.sourceHash!==base.sourceHash||ticket.operation==='agreement'&&(!uuid(receipt.evidenceId)||receipt.quoteRevision!==base.revision||receipt.termsHash!==base.termsHash||receipt.verification!=='unverified'||receipt.evidenceClass!=='owner_reported_offline'||receipt.bookingEligible!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact operation receipt mismatch.');
     if(ticket.operation==='decision'&&(receipt.evidenceId!==base.evidenceId||!uuid(receipt.decisionId)||receipt.engagementRevision!==base.revision||receipt.quoteRevision!==base.quoteRevision||receipt.termsHash!==base.termsHash||receipt.action!==fields.action||receipt.verification!=='unverified'||receipt.bookingEligible!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact decision receipt mismatch.');
     if(ticket.operation==='reference'&&(!uuid(receipt.referenceId)||receipt.quoteRevision!==base.revision||receipt.termsHash!==base.termsHash||receipt.presentationState!=='prepared_not_presented'||receipt.executionAuthorised!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact quote reference receipt mismatch.');
+    if(ticket.operation==='binding'&&(!uuid(receipt.bindingId)||receipt.referenceId!==base.referenceId||receipt.requestId!==base.recipientReview.recipient.requestId||receipt.consumerId!==base.recipientReview.recipient.consumerId||receipt.quoteRevision!==base.quoteRevision||receipt.termsHash!==base.termsHash||receipt.reviewHash!==base.reviewHash||receipt.consumerAccessAuthorised!==false||receipt.quoteRequestAssociated!==false||receipt.executionAuthorised!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact private binding receipt mismatch.');
     const result={status:'confirmed',evidence,receipt,ticket};outcomes.set(scope,result);return result;
    }catch{const status=sent?'unknown':'reviewRequired';if(outcomes.get(scope)===pending)outcomes.set(scope,{status,ticket});return {status,ticket};}
   };
-  return {recipientReviewEnabled:recipientReviewEnabled===true,recipientCandidates,recipientReview,isRecipientReview:v=>recipientReviewEnabled&&observed(v,'recipient'),quoteReferenceEnabled:quoteReferenceEnabled===true,quoteReferenceContext,quoteReferenceList,quoteReferenceRead,isQuoteReferenceContext:v=>quoteReferenceEnabled&&observed(v,'reference'),enabled:enabled===true,agreementEnabled:agreementEnabled===true,decisionEnabled:agreementEnabled===true&&decisionEnabled===true,bookingReadiness,decisionContext,isDecisionContext:v=>decisionEnabled&&observed(v,'decision'),isAgreementContext:v=>agreementEnabled&&observed(v,'agreement'),evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,agreementContext,agreementList,agreementRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
+  return {bindingEnabled:bindingEnabled===true,quoteBindingContext,quoteBindingRead,isBindingContext:v=>bindingEnabled&&observed(v,'binding'),recipientReviewEnabled:recipientReviewEnabled===true,recipientCandidates,recipientReview,isRecipientReview:v=>recipientReviewEnabled&&observed(v,'recipient'),quoteReferenceEnabled:quoteReferenceEnabled===true,quoteReferenceContext,quoteReferenceList,quoteReferenceRead,isQuoteReferenceContext:v=>quoteReferenceEnabled&&observed(v,'reference'),enabled:enabled===true,agreementEnabled:agreementEnabled===true,decisionEnabled:agreementEnabled===true&&decisionEnabled===true,bookingReadiness,decisionContext,isDecisionContext:v=>decisionEnabled&&observed(v,'decision'),isAgreementContext:v=>agreementEnabled&&observed(v,'agreement'),evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,agreementContext,agreementList,agreementRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
  }};
 }
 

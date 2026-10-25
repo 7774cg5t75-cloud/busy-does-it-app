@@ -2474,6 +2474,13 @@
         "scripts/check-mission15-quote-recipient.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-quote-binding",
+      "args": [
+        "scripts/check-mission15-quote-binding.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

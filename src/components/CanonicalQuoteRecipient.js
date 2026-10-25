@@ -1,4 +1,5 @@
 import React from 'react';
+import {CanonicalQuoteBinding} from './CanonicalQuoteBinding';
 import {Alert,Text} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
@@ -35,5 +36,6 @@ export function CanonicalQuoteRecipient({s,customerId,record,reference,sourceBlo
   {observed?.recipientIdentified?<Text selectable style={styles.cardBody}>{'Consumer '+observed.recipient.consumerId+'\nOwner-linked request '+observed.recipient.requestId+'\nApp '+observed.recipient.appId+' · reviewed version '+observed.recipient.appVersionId+'\nRequest revision '+observed.recipient.requestRevision+'\nLink revision '+observed.recipient.linkRevision+'\nProvenance: owner-linked signed-in request. No customer response is linked to this quote version.'}</Text>:null}
   <Button label="Review intended recipient without disclosure" disabled={busy||sourceBlocked||!observed?.recipientIdentified||reference.termsChanged} onPress={review}/>
   {held?<Text style={styles.cardBody}>Session-only recipient review. Reinspect in a fresh session. Consumer access, presentation, customer-response and request association remain unauthorised.</Text>:null}
+  <CanonicalQuoteBinding key={reference.referenceId} s={s} customerId={customerId} record={record} reference={reference} selection={observed} sourceBlocked={sourceBlocked} sourceReviewEpoch={sourceReviewEpoch}/>
  </Card>;
 }
