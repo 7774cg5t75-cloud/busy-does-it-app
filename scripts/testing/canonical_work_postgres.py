@@ -44,6 +44,10 @@ def setup():
  run(f"UPDATE public.busy_business_snapshots SET payload={lit(payload)},revision=100 WHERE business_id={q(B)};INSERT INTO public.busy_business_memberships(business_id,user_id,role) VALUES({q(B)},{q(S)},'owner') ON CONFLICT DO NOTHING;")
  state['legacy']=old;state['originalPayload']=run('SELECT payload::text FROM public.busy_business_snapshots WHERE business_id='+q(B)+';').strip()
 
+def original_request_dependencies():
+ run("CREATE TABLE IF NOT EXISTS auth.users(id uuid PRIMARY KEY);INSERT INTO auth.users(id) VALUES('"+O+"'),('"+D+"'),('"+M+"'),('"+S+"'),('99999999-9999-4999-8999-999999999999') ON CONFLICT DO NOTHING;"+'\n'.join((root/f).read_text() for f in ['supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql','supabase/migrations/20261007101513_v3_40_mini_app_customer_journey_bridge.sql','supabase/migrations/20261007133000_v3_42_mini_app_notifications.sql','supabase/migrations/20261012183000_v3_180_atomic_business_app_handoff.sql','supabase/migrations/20261012193000_v3_181_durable_work_booking_ledger.sql']))
+stage('original-request-schema-and-atomic-link-dependencies',original_request_dependencies)
+
 def load():
  text=(root/'docs/sql-proposals/canonical-work/engagements.sql').read_text();fuse="DO $$ BEGIN RAISE EXCEPTION 'CANONICAL WORK REVIEW FUSE: separate hosted approval required'; END $$;";assert text.count(fuse)==1
  r=call(text);assert r.returncode!=0 and 'CANONICAL WORK REVIEW FUSE' in r.stderr
@@ -412,6 +416,45 @@ def ref_no_execution():
  for forbidden in ['busy_send_mini_app_message','busy_mark_mini_app_request_link','UPDATE public.business_work_engagements','INSERT INTO public.busy_mini_app','UPDATE public.busy_mini_app','DELETE FROM public.']:assert forbidden not in text,forbidden
  eq(row(state['second'])['status'],'Prepared');eq(row(state['first']),state['refOtherBefore']);eq(run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY kind;'),state['refPrivateBefore'])
 stage('private-reference-cannot-send-accept-bind-request-book-or-pay',ref_no_execution)
+# Recipient identity observation from ORIGINAL request/link schemas, never quote acceptance.
+APP='33333333-3333-4333-8333-333333333333';VER='44444444-4444-4444-8444-444444444444';REQ='55555555-5555-4555-8555-555555555555';U='99999999-9999-4999-8999-999999999999'
+def recipient_fixture():
+ run(f"INSERT INTO public.busy_mini_apps(id,business_id,public_slug,created_by) VALUES('{APP}','{B}','fictional-recipient','{O}');INSERT INTO public.busy_mini_app_versions(id,business_id,mini_app_id,version_no,state,created_by) VALUES('{VER}','{B}','{APP}',1,'live','{O}');UPDATE public.busy_mini_apps SET status='live',current_live_version_id='{VER}' WHERE id='{APP}';INSERT INTO public.busy_mini_app_requests(id,business_id,mini_app_id,version_id,consumer_user_id,module_key,request_type) VALUES('{REQ}','{B}','{APP}','{VER}','{U}','enquiry','enquiry');SELECT public.busy_mark_mini_app_request_link_v3181('{B}','{REQ}','{O}','{C}',NULL,'enquiry_linked',false,'{{}}');")
+ page=rpc('quote_reference_list',[B,C,state['second'],None,20]);state['recipientRef']=next(x['referenceId'] for x in page['items'] if x['quoteRevision']==row(state['second'])['revision']);state['recipientRowsBefore']=run('SELECT row_to_json(x) FROM public.busy_mini_app_requests x;SELECT row_to_json(x) FROM public.busy_mini_app_request_links x;');state['recipientWorkBefore']=row(state['second']);state['recipientOtherBefore']=row(state['first'])
+stage('original-signed-in-request-and-owner-atomic-enquiry-link',recipient_fixture)
+def recipient_review(request=REQ,ref=None,eng=None):return rpc('quote_recipient_review',[B,C,eng or state['second'],ref or state['recipientRef'],request])
+def recipient_valid():
+ v=recipient_review();eq(v['recipientIdentified'],True);eq(v['provenance'],'owner_linked_signed_in_request');eq(v['recipient']['consumerId'],U);assert v['customerId']!=U;eq(v['recipient']['requestId'],REQ);eq(v['recipient']['appVersionId'],VER);eq(v['referenceId'],state['recipientRef']);eq(v['quoteRequestAssociated'],False);eq(v['consumerAccessAuthorised'],False);eq(v['customerResponseLinked'],False);eq(v['executionAuthorised'],False);eq(v['notOwnReceipt'],True);assert not any(x in str(v) for x in ['secretSynthetic','ownerAccount','phone','email'])
+stage('owner-recipient-provenance-is-exact-owner-link-not-personhood-or-quote-response',recipient_valid)
+def recipient_candidates():
+ v=rpc('quote_recipient_candidates',[B,C,state['second'],state['recipientRef'],None,20]);eq(len(v['items']),1);eq(v['items'][0]['requestId'],REQ);eq(set(v['items'][0]),{'requestId','appId','requestRevision'});eq(v['candidateOnly'],True)
+stage('bounded-original-link-candidates-no-consumer-or-message-disclosure',recipient_candidates)
+for uid,label in [(M,'member'),(S,'coowner'),(D,'foreign'),(U,'consumer')]:stage(label+'-private-recipient-inspection-denied',lambda uid=uid:denied('SELECT public.busy_work_quote_recipient_review_v1('+','.join(map(q,[B,C,state['second'],state['recipientRef'],REQ]))+');',uid=uid))
+def recipient_role(remove=False):
+ change=f"DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}'" if remove else f"UPDATE public.busy_business_memberships SET role='admin' WHERE business_id='{B}' AND user_id='{O}'";v=call('BEGIN;'+change+';'+auth('SELECT public.busy_work_quote_recipient_review_v1('+','.join(map(q,[B,C,state['second'],state['recipientRef'],REQ]))+');'));assert v.returncode!=0 and '42501' in v.stderr
+stage('admin-private-recipient-denied',recipient_role)
+stage('revoked-private-recipient-denied',lambda:recipient_role(True))
+def recipient_patch(patch,reason):
+ v=run('BEGIN;'+patch+';'+auth('SELECT public.busy_work_quote_recipient_review_v1('+','.join(map(q,[B,C,state['second'],state['recipientRef'],REQ]))+');'));values=[json.loads(x) for x in v.splitlines() if x.startswith('{')];matches=[x for x in values if 'recipientIdentified' in x];eq(len(matches),1);r=matches[0];eq(r['recipientIdentified'],False);eq(r['recipient'],None);eq(r['provenance'],reason)
+stage('wrong-CRM-customer-link-is-unsupported-not-guessed',lambda:recipient_patch(f"UPDATE public.busy_mini_app_request_links SET customer_record_id='foreign-customer' WHERE request_id='{REQ}'",'missing_or_incompatible_owner_link'))
+stage('link-by-another-owner-does-not-grant-private-recipient',lambda:recipient_patch(f"UPDATE public.busy_mini_app_request_links SET linked_by='{S}' WHERE request_id='{REQ}'",'missing_or_incompatible_owner_link'))
+stage('mismatched-original-request-module-and-link-state-is-unsupported',lambda:recipient_patch(f"UPDATE public.busy_mini_app_requests SET request_type='booking_request' WHERE id='{REQ}'",'missing_or_incompatible_owner_link'))
+stage('stale-reviewed-app-version-is-unsupported',lambda:recipient_patch(f"UPDATE public.busy_mini_apps SET current_live_version_id=NULL WHERE id='{APP}'",'app_or_reviewed_version_unavailable'))
+stage('foreign-request-business-is-unsupported',lambda:recipient_patch(f"UPDATE public.busy_mini_app_requests SET business_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' WHERE id='{REQ}'",'missing_or_unsupported_request'))
+stage('missing-request-is-explicitly-unsupported',lambda:(eq(recipient_review('77777777-7777-4777-8777-777777777777')['recipientIdentified'],False),eq(recipient_review('77777777-7777-4777-8777-777777777777')['recipient'],None)))
+def recipient_ambiguous():
+ patch=f"INSERT INTO public.busy_mini_app_requests(id,business_id,mini_app_id,version_id,consumer_user_id,module_key,request_type) VALUES('77777777-7777-4777-8777-777777777777','{B}','{APP}','{VER}','{D}','enquiry','enquiry');SELECT public.busy_mark_mini_app_request_link_v3181('{B}','77777777-7777-4777-8777-777777777777','{O}','{C}',NULL,'enquiry_linked',false,'{{}}')";recipient_patch(patch,'ambiguous_consumer_associations')
+stage('two-consumers-for-one-CRM-customer-is-ambiguous',recipient_ambiguous)
+def recipient_two_quotes():
+ receipt=ref_create('recipient-other-quote-version',state['first']);v=recipient_review(ref=receipt['referenceId'],eng=state['first']);eq(v['recipientIdentified'],True);eq(v['engagementId'],state['first']);eq(v['referenceId'],receipt['referenceId']);eq(v['quoteRequestAssociated'],False);denied('SELECT public.busy_work_quote_recipient_review_v1('+','.join(map(q,[B,C,state['second'],receipt['referenceId'],REQ]))+');')
+stage('same-consumer-two-quotes-no-cross-reference-adoption',recipient_two_quotes)
+stage('old-quote-reference-not-current-recipient-authority',lambda:denied('SELECT public.busy_work_quote_recipient_review_v1('+','.join(map(q,[B,C,state['second'],state['ref1'],REQ]))+');','40001'))
+def recipient_source():
+ v=call(f"BEGIN;UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{{inboxItems,1,rawText}}','\"Changed recipient quote source\"') WHERE business_id='{B}';"+auth('SELECT public.busy_work_quote_recipient_review_v1('+','.join(map(q,[B,C,state['second'],state['recipientRef'],REQ]))+');'));assert v.returncode!=0 and '40001' in v.stderr
+stage('changed-canonical-source-denies-recipient-inspection',recipient_source)
+def recipient_unchanged():
+ eq(row(state['second']),state['recipientWorkBefore']);eq(row(state['first']),state['recipientOtherBefore']);eq(run('SELECT row_to_json(x) FROM public.busy_mini_app_requests x;SELECT row_to_json(x) FROM public.busy_mini_app_request_links x;'),state['recipientRowsBefore']);eq(run('SELECT count(*) FROM public.busy_mini_app_work_bookings;').strip(),'0');assert 'owner_linked_signed_in_request' in str(recipient_review())
+stage('recipient-inspection-does-not-change-request-link-work-or-bookings',recipient_unchanged)
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
 stage('rollback-denies-fresh-edit-context-without-reopening-writes',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"))
 stage('rollback-preserves-work-notes-and-denies-write',lambda:(eq(notes_read()['text'],'Writer A notes'),denied('SELECT public.busy_work_private_write_v1('+','.join(map(q,[B,C,state['second'],row(state['second'])['revision'],3,read(state['second'])['sourceHash'],'work_notes','Denied after rollback','notes-rollback-denied']))+');')))

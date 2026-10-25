@@ -4,6 +4,7 @@ export const CANONICAL_WORK_ACCOUNT_ENABLED=false;
 export const CANONICAL_OWNER_REPORT_ENABLED=false;
 export const CANONICAL_AGREEMENT_DECISIONS_ENABLED=false;
 export const CANONICAL_QUOTE_REFERENCE_ENABLED=false;
+export const CANONICAL_RECIPIENT_REVIEW_ENABLED=false;
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(v);
 const hash=v=>typeof v==='string'&&/^[0-9a-f]{64}$/.test(v);
 const same=(a,b)=>stableJson(a)===stableJson(b);
@@ -11,11 +12,11 @@ const ownerAccount=v=>{if(typeof v!=='string'||!v.trim())return false;try{return
 // Volatile finite-operation evidence only; canonical rows remain server authority.
 export function createCanonicalWorkSession(){
  const observations=new WeakMap(),tickets=new WeakMap(),outcomes=new WeakMap();
- return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,agreementEnabled=CANONICAL_OWNER_REPORT_ENABLED,decisionEnabled=CANONICAL_AGREEMENT_DECISIONS_ENABLED,quoteReferenceEnabled=CANONICAL_QUOTE_REFERENCE_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
+ return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,agreementEnabled=CANONICAL_OWNER_REPORT_ENABLED,decisionEnabled=CANONICAL_AGREEMENT_DECISIONS_ENABLED,quoteReferenceEnabled=CANONICAL_QUOTE_REFERENCE_ENABLED,recipientReviewEnabled=CANONICAL_RECIPIENT_REVIEW_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
   const initial=getCurrent(),scope=initial?.scope,start={ownerId:initial?.ownerId,businessId:initial?.businessId,role:initial?.role};
   const valid=()=>{const c=getCurrent();return enabled===true&&!!scope&&typeof scope==='object'&&c?.scope===scope&&c.ready===true&&c.ownerId===start.ownerId&&c.businessId===start.businessId&&c.role==='owner'&&start.role==='owner'&&!!c.ownerId&&uuid(c.businessId);};
   const observe=(value,kind)=>{observations.set(value,{scope,owner:start.ownerId,business:start.businessId,kind,localRevision:getCurrent().revision,stamp:stableJson(value)});return value;};
-  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(!['edit','agreement','decision','reference'].includes(kind)||getCurrent().revision===b.localRevision);};
+  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(!['edit','agreement','decision','reference','recipient'].includes(kind)||getCurrent().revision===b.localRevision);};
   const io=async(name,body,beforeSend=()=>true)=>{if(!valid())throw Error('Canonical Work is disabled or the workspace changed.');const token=await ownerAccessToken();if(!valid()||!token||!beforeSend())throw Error('Current authentication or review unavailable.');const value=await request('rpc/busy_work_'+name+'_v1',{method:'POST',token,body:{p_business_id:start.businessId,...body}});if(!valid())throw Error('Workspace changed during the request. Keep local work.');return value;};
   const scoped=(v,c,id=null)=>v&&v.businessId===start.businessId&&v.customerId===c&&(v.ownerId===start.ownerId||v.actorId===start.ownerId)&&(!id||v.engagementId===id);
   const source=async(customerId,enquiryId,revision)=>{
@@ -53,6 +54,16 @@ export function createCanonicalWorkSession(){
   const quoteReferenceRead=async(customerId,id,referenceId)=>{
    if(!quoteReferenceEnabled||!uuid(id)||!uuid(referenceId))throw Error('Quote references disabled or invalid.');const v=await io('quote_reference_read',{p_customer_id:customerId,p_engagement_id:id,p_reference_id:referenceId});
    if(!scoped(v,customerId,id)||v.referenceId!==referenceId||v.revision!==1||!Number.isSafeInteger(v.quoteRevision)||v.quoteRevision<1||!hash(v.termsHash)||v.terms?.engagementId!==id||v.terms?.customerId!==customerId||v.terms?.quoteRevision!==v.quoteRevision||v.presentationState!=='prepared_not_presented'||v.executionAuthorised!==false||v.notOwnReceipt!==true||typeof v.termsChanged!=='boolean'||v.providerEvidence!=='not_established_by_protocol'||v.customerResponseEvidence!=='no_exact_quote_reference_in_original_protocol'||v.requestAssociationState!=='not_established_by_protocol')throw Error('Unsupported quote reference read.');return v;
+  };
+  const recipientCandidates=async(customerId,id,referenceId,after=null)=>{
+   if(!recipientReviewEnabled||!quoteReferenceEnabled||!uuid(id)||!uuid(referenceId))throw Error('Recipient inspection disabled.');
+   const v=await io('quote_recipient_candidates',{p_customer_id:customerId,p_engagement_id:id,p_reference_id:referenceId,p_after:after,p_limit:20});
+   if(!scoped(v,customerId,id)||v.referenceId!==referenceId||v.candidateOnly!==true||v.notOwnReceipt!==true||v.consumerAccessAuthorised!==false||!Array.isArray(v.items)||v.items.length>20||v.nextCursor!==null&&!uuid(v.nextCursor)||new Set(v.items.map(x=>x.requestId)).size!==v.items.length||v.items.some(x=>!uuid(x.requestId)||!uuid(x.appId)||!Number.isFinite(Date.parse(x.requestRevision))||Object.keys(x).some(k=>!['requestId','appId','requestRevision'].includes(k))))throw Error('Unsupported recipient candidates.');return v;
+  };
+  const recipientReview=async(customerId,id,referenceId,requestId)=>{
+   if(!recipientReviewEnabled||!quoteReferenceEnabled||![id,referenceId,requestId].every(uuid))throw Error('Recipient inspection disabled or invalid.');
+   const v=await io('quote_recipient_review',{p_customer_id:customerId,p_engagement_id:id,p_reference_id:referenceId,p_request_id:requestId});
+   if(!scoped(v,customerId,id)||v.referenceId!==referenceId||!Number.isSafeInteger(v.quoteRevision)||v.quoteRevision<1||!hash(v.termsHash)||typeof v.recipientIdentified!=='boolean'||typeof v.provenance!=='string'||v.notOwnReceipt!==true||v.consumerAccessAuthorised!==false||v.quoteRequestAssociated!==false||v.customerResponseLinked!==false||v.executionAuthorised!==false||!v.recipientIdentified&&v.recipient!==null||v.recipientIdentified&&(v.provenance!=='owner_linked_signed_in_request'||v.recipient?.requestId!==requestId||![v.recipient?.consumerId,v.recipient?.linkId,v.recipient?.appId,v.recipient?.appVersionId].every(uuid)||!Number.isFinite(Date.parse(v.recipient?.requestRevision))||!Number.isFinite(Date.parse(v.recipient?.linkRevision))))throw Error('Unsupported recipient review.');return observe(v,'recipient');
   };
   const bookingReadiness=async(customerId,id,evidenceId)=>{
    if(!agreementEnabled||!decisionEnabled||!uuid(id)||!uuid(evidenceId))throw Error('Readiness proposal disabled.');
@@ -115,7 +126,7 @@ export function createCanonicalWorkSession(){
     const result={status:'confirmed',evidence,receipt,ticket};outcomes.set(scope,result);return result;
    }catch{const status=sent?'unknown':'reviewRequired';if(outcomes.get(scope)===pending)outcomes.set(scope,{status,ticket});return {status,ticket};}
   };
-  return {quoteReferenceEnabled:quoteReferenceEnabled===true,quoteReferenceContext,quoteReferenceList,quoteReferenceRead,isQuoteReferenceContext:v=>quoteReferenceEnabled&&observed(v,'reference'),enabled:enabled===true,agreementEnabled:agreementEnabled===true,decisionEnabled:agreementEnabled===true&&decisionEnabled===true,bookingReadiness,decisionContext,isDecisionContext:v=>decisionEnabled&&observed(v,'decision'),isAgreementContext:v=>agreementEnabled&&observed(v,'agreement'),evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,agreementContext,agreementList,agreementRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
+  return {recipientReviewEnabled:recipientReviewEnabled===true,recipientCandidates,recipientReview,isRecipientReview:v=>recipientReviewEnabled&&observed(v,'recipient'),quoteReferenceEnabled:quoteReferenceEnabled===true,quoteReferenceContext,quoteReferenceList,quoteReferenceRead,isQuoteReferenceContext:v=>quoteReferenceEnabled&&observed(v,'reference'),enabled:enabled===true,agreementEnabled:agreementEnabled===true,decisionEnabled:agreementEnabled===true&&decisionEnabled===true,bookingReadiness,decisionContext,isDecisionContext:v=>decisionEnabled&&observed(v,'decision'),isAgreementContext:v=>agreementEnabled&&observed(v,'agreement'),evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,agreementContext,agreementList,agreementRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
  }};
 }
 

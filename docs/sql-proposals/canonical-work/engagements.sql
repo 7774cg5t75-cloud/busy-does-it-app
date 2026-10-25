@@ -367,6 +367,41 @@ BEGIN
  t:=busy_work_private.quote_terms(r);
  RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'referenceId',q.id,'revision',1,'quoteRevision',q.quote_revision,'terms',q.terms,'termsHash',q.terms_hash,'sourceHash',q.source_hash,'recordedAt',q.recorded_at,'presentationState',q.state,'currentQuoteRevision',r.revision,'currentTerms',t,'termsChanged',busy_work_private.hash(t) IS DISTINCT FROM q.terms_hash,'notOwnReceipt',true,'executionAuthorised',false,'providerEvidence','not_established_by_protocol','customerResponseEvidence','no_exact_quote_reference_in_original_protocol','requestAssociationState','not_established_by_protocol');
 END $$;
+-- Original-link lookup only; no new identity store or permission grant.
+CREATE INDEX busy_quote_recipient_link_lookup ON public.busy_mini_app_request_links(business_id,customer_record_id,linked_by,request_id);
+-- Identity observation only. Owner-linked CRM/request provenance is not verified personhood.
+CREATE FUNCTION public.busy_work_quote_recipient_candidates_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE v jsonb:=public.busy_work_quote_reference_read_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id);items jsonb;cursor uuid;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 THEN RAISE EXCEPTION 'Invalid recipient page' USING ERRCODE='22023';END IF;
+ IF v->>'termsChanged'='true' THEN RAISE EXCEPTION 'Current exact quote reference required' USING ERRCODE='40001';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('requestId',id,'appId',mini_app_id,'requestRevision',updated_at) ORDER BY id),'[]') INTO items FROM (
+ SELECT r.id,r.mini_app_id,r.updated_at FROM public.busy_mini_app_requests r JOIN public.busy_mini_app_request_links l ON l.business_id=r.business_id AND l.request_id=r.id
+ WHERE r.business_id=p_business_id AND l.customer_record_id=p_customer_id AND l.linked_by=auth.uid() AND r.consumer_user_id IS NOT NULL AND r.status='reviewing' AND l.bridge_state IN ('enquiry_linked','booking_draft') AND (p_after IS NULL OR r.id>p_after) ORDER BY r.id LIMIT p_limit) x;
+ IF jsonb_array_length(items)=p_limit THEN cursor:=(items->(p_limit-1)->>'requestId')::uuid;END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'items',items,'nextCursor',cursor,'candidateOnly',true,'notOwnReceipt',true,'consumerAccessAuthorised',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_recipient_review_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_request_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE v jsonb:=public.busy_work_quote_reference_read_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id);r public.busy_mini_app_requests%ROWTYPE;l public.busy_mini_app_request_links%ROWTYPE;a public.busy_mini_apps%ROWTYPE;version public.busy_mini_app_versions%ROWTYPE;reason text:='missing_or_unsupported_request';identified boolean:=false;
+BEGIN
+ IF v->>'termsChanged'='true' THEN RAISE EXCEPTION 'Current exact quote reference required' USING ERRCODE='40001';END IF;
+ -- Shared original request/link/app locks stabilise this observation only; no future execution authority.
+ SELECT * INTO r FROM public.busy_mini_app_requests WHERE id=p_request_id AND business_id=p_business_id FOR SHARE;
+ IF FOUND THEN
+  SELECT * INTO l FROM public.busy_mini_app_request_links WHERE request_id=r.id AND business_id=p_business_id FOR SHARE;
+  IF FOUND AND l.customer_record_id=p_customer_id AND l.linked_by=auth.uid() AND r.status='reviewing' AND ((r.request_type='enquiry' AND r.module_key='enquiry' AND l.bridge_state='enquiry_linked') OR (r.request_type='booking_request' AND r.module_key='booking_request' AND l.bridge_state='booking_draft' AND l.action_record_id IS NOT NULL)) THEN
+   SELECT * INTO a FROM public.busy_mini_apps WHERE id=r.mini_app_id AND business_id=p_business_id FOR SHARE;
+   IF FOUND AND a.status IN ('live','update_pending') AND a.current_live_version_id IS NOT NULL AND a.current_live_version_id=r.version_id THEN
+    SELECT * INTO version FROM public.busy_mini_app_versions WHERE id=r.version_id AND mini_app_id=a.id AND business_id=p_business_id AND state='live' FOR SHARE;
+    IF FOUND AND r.consumer_user_id IS NOT NULL AND EXISTS(SELECT 1 FROM auth.users WHERE id=r.consumer_user_id) AND coalesce(to_jsonb(r)->>'request_origin','signed_in')='signed_in' THEN
+     IF EXISTS(SELECT 1 FROM public.busy_mini_app_request_links x JOIN public.busy_mini_app_requests y ON y.id=x.request_id AND y.business_id=x.business_id WHERE x.business_id=p_business_id AND x.customer_record_id=p_customer_id AND y.consumer_user_id IS DISTINCT FROM r.consumer_user_id) THEN reason:='ambiguous_consumer_associations';
+     ELSE identified:=true;reason:='owner_linked_signed_in_request';END IF;
+    ELSE reason:='unsupported_consumer_or_request_origin';END IF;
+   ELSE reason:='app_or_reviewed_version_unavailable';END IF;
+  ELSE reason:='missing_or_incompatible_owner_link';END IF;
+ END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'quoteRevision',v->'quoteRevision','termsHash',v->'termsHash','recipientIdentified',identified,'provenance',reason,'notOwnReceipt',true,'consumerAccessAuthorised',false,'quoteRequestAssociated',false,'customerResponseLinked',false,'executionAuthorised',false,'recipient',CASE WHEN identified THEN jsonb_build_object('consumerId',r.consumer_user_id,'requestId',r.id,'requestRevision',r.updated_at,'linkId',l.id,'linkRevision',l.updated_at,'appId',a.id,'appVersionId',version.id,'actionId',l.action_record_id) ELSE NULL END);
+END $$;
 CREATE FUNCTION busy_work_private.protect_quote_reference() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
 BEGIN RAISE EXCEPTION 'Immutable private quote preparation; no presentation or acceptance inferred' USING ERRCODE='42501';END $$;
 CREATE TRIGGER busy_work_quote_reference_immutable BEFORE UPDATE ON public.business_work_quote_references FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_quote_reference();
@@ -392,7 +427,7 @@ END $$;
 CREATE TRIGGER busy_canonical_legacy_readonly BEFORE UPDATE OR DELETE ON public.busy_business_snapshots FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_legacy();
 DO $$ DECLARE f record;r text;t regclass;
 BEGIN
- FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1','busy_work_agreement_review_v1','busy_work_agreement_create_v1','busy_work_agreement_list_v1','busy_work_agreement_read_v1','busy_work_agreement_decision_review_v1','busy_work_agreement_decide_v1','busy_work_booking_readiness_v1','busy_work_quote_reference_review_v1','busy_work_quote_reference_create_v1','busy_work_quote_reference_list_v1','busy_work_quote_reference_read_v1') LOOP
+ FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1','busy_work_agreement_review_v1','busy_work_agreement_create_v1','busy_work_agreement_list_v1','busy_work_agreement_read_v1','busy_work_agreement_decision_review_v1','busy_work_agreement_decide_v1','busy_work_booking_readiness_v1','busy_work_quote_reference_review_v1','busy_work_quote_reference_create_v1','busy_work_quote_reference_list_v1','busy_work_quote_reference_read_v1','busy_work_quote_recipient_candidates_v1','busy_work_quote_recipient_review_v1') LOOP
   EXECUTE format('ALTER FUNCTION %s OWNER TO postgres',f.signature);EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
   IF f.proname LIKE 'busy_work_%' AND f.proname<>'busy_work_migrate_legacy_v1' THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
  END LOOP;

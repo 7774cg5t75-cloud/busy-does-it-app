@@ -1,4 +1,5 @@
 import React from 'react';
+import {CanonicalQuoteRecipient} from './CanonicalQuoteRecipient';
 import {Text,Alert} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
@@ -40,5 +41,6 @@ export function CanonicalQuoteReference({s,customerId,record,sourceBlocked=false
   {page?.items.map(x=><Button key={x.referenceId} label={'Inspect quote reference '+x.referenceId+' · version '+x.quoteRevision} disabled={busy} onPress={()=>inspect('read',x.referenceId)}/>)}
   {page?.nextCursor?<Button label="Next quote reference page" disabled={busy} onPress={()=>inspect('list',page.nextCursor)}/>:null}
   {observed?<><Text selectable style={styles.cardBody}>{'Private reference '+observed.referenceId+' · PREPARED, NOT PRESENTED\nQuote version '+observed.quoteRevision+' · £'+observed.terms.amount+' · planned quote date '+observed.terms.plannedQuoteDate+'\n'+observed.terms.wording+'\nRecorded by server at '+observed.recordedAt+' (not a sending or conversation time)\nCurrent quote version '+observed.currentQuoteRevision+' · £'+observed.currentTerms.amount+'\n'+observed.currentTerms.wording}</Text><Text style={styles.cardBody}>{observed.termsChanged?'Current quote terms differ. This reference describes the earlier version.':'Matching internal terms do not prove presentation or customer acceptance.'} No provider evidence, exact customer-response link or canonical booking-request relationship is established by this protocol. Original request/link/ledger and diary authority remain required. This read is not an earlier save receipt.</Text></>:null}
+  {observed?<CanonicalQuoteRecipient key={observed.referenceId} s={s} customerId={customerId} record={record} reference={observed} sourceBlocked={sourceBlocked} sourceReviewEpoch={sourceReviewEpoch}/>:null}
  </Card>;
 }

@@ -3,7 +3,7 @@
 import argparse,json,pathlib,subprocess,sys,re,select,time,hashlib
 p=argparse.ArgumentParser()
 for n in ['bin-dir','socket','sql-report','output']:p.add_argument('--'+n,required=True)
-p.add_argument('--run-tag',default='review2');a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]{1,24}',a.run_tag);first_id='client-'+a.run_tag+'-first';second_id='client-'+a.run_tag+'-second';root=pathlib.Path(__file__).resolve().parents[2];prior=json.loads(pathlib.Path(a.sql_report).read_text());assert prior['summary']['passed']==185 and all(prior['summary'].get(k,0)==0 for k in ['failed','blocked','unexecuted'])
+p.add_argument('--run-tag',default='review2');a=p.parse_args();assert re.fullmatch(r'[A-Za-z0-9_-]{1,24}',a.run_tag);first_id='client-'+a.run_tag+'-first';second_id='client-'+a.run_tag+'-second';root=pathlib.Path(__file__).resolve().parents[2];prior=json.loads(pathlib.Path(a.sql_report).read_text());assert prior['summary']['passed']==206 and all(prior['summary'].get(k,0)==0 for k in ['failed','blocked','unexecuted'])
 assert prior['candidateSha256']==hashlib.sha256((root/'docs/sql-proposals/canonical-work/engagements.sql').read_bytes()).hexdigest(),'SQL report does not match current candidate'
 B='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';O='cccccccc-cccc-4ccc-8ccc-cccccccccccc';C='repeat'
 base=[str(pathlib.Path(a.bin_dir)/'psql'),'-X','-h',a.socket,'-U','postgres','-d','busy_phase58_disposable','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-At']
@@ -27,6 +27,8 @@ args={
  'quote_reference_create':['p_business_id','p_customer_id','p_engagement_id','p_expected_revision','p_terms_hash','p_operation_id'],
  'quote_reference_list':['p_business_id','p_customer_id','p_engagement_id','p_after','p_limit'],
  'quote_reference_read':['p_business_id','p_customer_id','p_engagement_id','p_reference_id'],
+ 'quote_recipient_candidates':['p_business_id','p_customer_id','p_engagement_id','p_reference_id','p_after','p_limit'],
+ 'quote_recipient_review':['p_business_id','p_customer_id','p_engagement_id','p_reference_id','p_request_id'],
  'agreement_review':['p_business_id','p_customer_id','p_engagement_id','p_expected_revision'],
  'agreement_create':['p_business_id','p_customer_id','p_engagement_id','p_expected_revision','p_terms_hash','p_owner_account','p_operation_id'],
  'agreement_list':['p_business_id','p_customer_id','p_engagement_id','p_after','p_limit'],
