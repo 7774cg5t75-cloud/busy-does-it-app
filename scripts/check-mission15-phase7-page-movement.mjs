@@ -21,3 +21,12 @@ const locked={...draft,theme:{...draft.theme,lockedSections:[second]}};
 assert.equal(applyWebsiteLayoutChange(locked,{action:'move-relative',pageId,sectionId:last,targetSectionId:first,position:'before'}).applied,false,'Displaced locked placement prevents the whole batch');
 assert.equal(applyWebsiteLayoutChange(draft,{action:'move-relative',pageId,sectionId:last,targetSectionId:'hero',position:'after'}).applied,false,'No cross-page drag');
 console.log('PASS actual owner-page relative movement reuses original page operations, source-bound selected plan, real HTML order, reload, independent home, locks and atomic rejection. Offline only.');
+
+for(const [direction,expected] of [['first',[last,first,second]],['last',[first,last,second]]]){
+ const id=direction==='first'?last:second;
+ const moved=applyWebsitePageChange(draft,{action:'move-page-section',pageId,sectionId:id,direction,expectedWebsiteId:draft.id,expectedGeneration:draft.generation});
+ assert.equal(moved.applied,true,moved.reason);assert.deepEqual(moved.draft.customPages[0].sectionIds,expected);
+ assert.equal(renderWebsiteHtml(moved.draft,'home'),home);assert.equal(JSON.stringify(draft),original);
+ assert.equal(applyWebsitePageChange(locked,{action:'move-page-section',pageId,sectionId:id,direction}).applied,false);
+}
+assert.equal(applyWebsitePageChange(draft,{action:'move-page-section',pageId,sectionId:last,direction:'first',expectedWebsiteId:draft.id,expectedGeneration:-99}).applied,false);

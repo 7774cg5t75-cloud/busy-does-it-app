@@ -125,10 +125,13 @@ function editWebsitePagesUnchecked(draft={},action={}){
  }
  if(action.action==="move-page-section"){
   const id=action.sectionId,at=page.sectionIds.indexOf(id);
-  const by=action.direction==="up"?-1:action.direction==="down"?1:0;
-  if(!by||at<0||at+by<0||at+by>=page.sectionIds.length)
-   return fail(draft,"Choose a page section that can move up or down.");
-  [page.sectionIds[at],page.sectionIds[at+by]]=[page.sectionIds[at+by],page.sectionIds[at]];
+  if(action.expectedWebsiteId!==undefined&&(action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation))
+   return fail(draft,"The website changed. Review the current section order first.");
+  if(page.sectionIds.filter(x=>x===id).length!==1||!sectionBy(id))return fail(draft,"Choose one unambiguous current page section.");
+  const target=action.direction==="up"?at-1:action.direction==="down"?at+1:action.direction==="first"?0:action.direction==="last"?page.sectionIds.length-1:-1;
+  if(at<0||target<0||target>=page.sectionIds.length||target===at)
+   return fail(draft,"Choose a page section that can move to another position.");
+  page.sectionIds.splice(at,1);page.sectionIds.splice(target,0,id);
   return change("Changed the order of sections on "+page.title+".");
  }
  if(action.action==="delete-page"){

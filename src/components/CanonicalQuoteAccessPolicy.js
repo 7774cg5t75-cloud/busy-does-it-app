@@ -11,6 +11,7 @@ import {useOwnerEditNavigation} from '../screens/useOwnerEditNavigation';
 export function CanonicalQuoteAccessPolicy({s,customerId,record,reference,grantId,sourceBlocked=false,sourceReviewEpoch=0}){
  const api=s.canonicalWork,scope=s.ownerWorkspaceScope;
  const [inputs,setInputs]=React.useState({durationDays:14,calendarZone:'Europe/London',validUntil:'',fields:{quoteIdentifier:''}}),[reviewed,setReviewed]=React.useState(null),[observed,setObserved]=React.useState(null),[decisions,setDecisions]=React.useState(null),[notice,setNotice]=React.useState(''),[busy,setBusy]=React.useState(false),[details,setDetails]=React.useState(false);
+ const observedNow=React.useRef(observed);observedNow.current=observed;
  const baseline=React.useRef({durationDays:14,calendarZone:'Europe/London',validUntil:'',fields:{quoteIdentifier:''}});
  const epoch=React.useRef(0),flight=React.useRef(false),mounted=React.useRef(true),live=React.useRef(null),original=React.useRef({scope,owner:s.ownerSession?.userId,business:s.cloudWorkspace?.businessId,grantId});
  React.useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
@@ -27,7 +28,20 @@ export function CanonicalQuoteAccessPolicy({s,customerId,record,reference,grantI
  const run=async(task,kind='read')=>{if(!current()||flight.current)return false;flight.current=kind;setBusy(true);try{return await task();}catch{if(current())setNotice('Current preparation unavailable. Your unfinished fields are kept; no successful action is claimed.');return false;}finally{flight.current=false;if(mounted.current)setBusy(false);}};
  const inspect=()=>run(async()=>{const e=epoch.current,v=await api.accessRead(customerId,record.engagementId,reference.referenceId,grantId);if(!current()||e!==epoch.current)return false;setObserved({identity,value:v});setNotice('Independent account observation · '+v.state+'. No earlier save receipt reconstructed.');return true;});
  const inspectDecisions=after=>run(async()=>{const v=await api.accessDecisions(customerId,record.engagementId,reference.referenceId,grantId,after);if(!current())return false;setDecisions({identity,value:v});return true;});
- const prepare=()=>run(async()=>{if(live.current.blocked||!itemsValid||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/.test(inputs.validUntil))return false;const e=epoch.current,v=await api.accessReview(customerId,record.engagementId,reference.referenceId,grantId,options());if(!current()||e!==epoch.current){if(current())setNotice('Newer typing kept. Obtain a fresh review for those fields.');return false;}setReviewed({identity,epoch:e,value:v});return true;});
+ const prepare=()=>run(async()=>{if(observedNow.current?.identity===identity&&observedNow.current?.value?.presentationId||live.current.blocked||!itemsValid||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/.test(inputs.validUntil))return false;const e=epoch.current,v=await api.accessReview(customerId,record.engagementId,reference.referenceId,grantId,options());if(!current()||e!==epoch.current){if(current())setNotice('Newer typing kept. Obtain a fresh review for those fields.');return false;}setReviewed({identity,epoch:e,value:v});return true;});
+ // Reuse an independently observed preparation as editor input only, never as a receipt or save authority.
+ const continueObserved=()=>{
+  const saved=observed?.identity===identity?observed.value:null;
+  if(!free()||sourceBlocked||saved?.state!=='prepared_disabled'||saved.revision!==1||!isApprovedQuoteProjection(saved.projection)||!QUOTE_ACCESS_DAYS.includes(saved.durationDays))return false;
+  const e=epoch.current;let used=false;
+  const fields=Object.fromEntries(QUOTE_PRESENTATION_TEXT_FIELDS.filter(k=>typeof saved.projection[k]==='string').map(k=>[k,saved.projection[k]]));
+  if(saved.projection.itemisedPrices)fields.itemisedPrices=saved.projection.itemisedPrices.map(row=>({...row}));
+  const next={durationDays:saved.durationDays,calendarZone:saved.calendarZone,validUntil:saved.validUntil,fields};
+  Alert.alert('Continue saved private quotation preparation',formatApprovedQuoteProjection(saved.projection)+'\n\n'+(dirty?'Replace only this editor’s unfinished presentation fields? Other quote and private wording stays unchanged.':'Load these saved fields for deliberate review?')+' This saved presentation is immutable. A replacement needs a newly reviewed grant; loading fields does not enable another save under this grant. Nothing is issued.',[
+   {text:'Keep current fields',style:'cancel',onPress:()=>{used=true;}},
+   {text:'Continue saved fields',onPress:()=>{if(used||!free()||sourceBlocked||e!==epoch.current||observedNow.current?.value!==saved)return false;used=true;epoch.current++;baseline.current=JSON.parse(stableJson(next));setInputs(next);setReviewed(null);report(false);setDetails(true);setNotice('Saved presentation fields loaded for review. No earlier operation receipt or customer access was restored.');return true;}}
+  ]);return true;
+ };
  const editor=operation=>({customerId,engagementId:record.engagementId,referenceId:reference.referenceId,grantId,view:live.current.view,typingEpoch:epoch.current,sourceStamp:live.current.identity,purpose:operation,inputs:live.current.inputs,fields:{}});
  const decide=operation=>{
   const base=operation==='accessPrepare'?reviewed?.value:observed?.value;
@@ -52,10 +66,12 @@ export function CanonicalQuoteAccessPolicy({s,customerId,record,reference,grantI
   {QUOTE_ACCESS_DAYS.map(days=><Button key={days} label={'Choose '+days+' days'+(inputs.durationDays===days?' · selected':'')} disabled={busy||sourceBlocked} onPress={()=>edit('durationDays',days)}/>)}
   <Text style={styles.cardBody}>Default 14 days; 7 or 30 by deliberate review. The earlier quote-validity deadline always wins. Lifetime starts only at authorised activation. Viewing eligibility expires after 15 minutes of inactivity; every later read/response must recheck current authority. Revocation cannot remove copies already viewed or captured.</Text>
   <Button label="Inspect saved private presentation" disabled={busy} onPress={inspect}/>
-  <Button label="Prepare exact V22.53 presentation review" disabled={busy||sourceBlocked||!free()||!inputs.fields.quoteIdentifier||!inputs.validUntil||!itemsValid} onPress={prepare}/>
+  <Button label="Prepare exact V22.53 presentation review" disabled={busy||sourceBlocked||!!v?.presentationId||!free()||!inputs.fields.quoteIdentifier||!inputs.validUntil||!itemsValid} onPress={prepare}/>
   {freshReview?<Button label="Review V22.53 private preparation save" disabled={busy||!free()} onPress={()=>decide('accessPrepare')}/>:null}
+  {v?.presentationId?<Text style={styles.cardBody}>This recorded presentation cannot be overwritten. Review or revoke it here. A replacement requires a new, explicitly reviewed grant and current source checks.</Text>:null}
   {v?<Text selectable style={styles.cardBody}>{'Private presentation: '+v.state+'\nActivation not recorded. No customer availability claimed.'}</Text>:null}
   {isApprovedQuoteProjection(v?.projection)?<Text selectable style={styles.cardBody}>{formatApprovedQuoteProjection(v.projection)}</Text>:null}
+  {v?.state==='prepared_disabled'&&isApprovedQuoteProjection(v.projection)?<Button label="Continue saved presentation fields" disabled={busy||sourceBlocked||!free()} onPress={continueObserved}/>:null}
   {v?.revision===1?<Button label="Review V22.53 presentation revocation" disabled={busy||!free()} onPress={()=>decide('accessRevoke')}/>:null}
   {v?.presentationId?<Button label="Inspect quote decision preparation history" disabled={busy} onPress={()=>inspectDecisions(0)}/>:null}
   {decisions?.identity===identity?<Text selectable style={styles.cardBody}>{'Quote '+(decisions.value.quoteIdentifier||'context unavailable')+' · version '+(decisions.value.quoteVersion||'unavailable')+'\nEvidence: '+(decisions.value.evidenceStatus||'context unavailable')+'\nOriginal request '+(decisions.value.requestId||'unavailable')+'\nOwner-linked account '+(decisions.value.consumerId||'unavailable')+'\nLocal validation only; review current source before preparing the next owner action.'}</Text>:null}

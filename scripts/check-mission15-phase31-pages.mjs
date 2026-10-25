@@ -27,3 +27,11 @@ const {WebsiteBuilder}=rt.load('src/screens/websiteBuilder.js');
 const parent=rt.render(WebsiteBuilder,{s:{...ownerState,websiteDraft:draft}});
 const wired=walk(parent).find(n=>n.type===Editor);assert.ok(wired);assert.equal(wired.props.ownerState.ownerSession.userId,'owner');
 console.log('PASS actual page/SEO editor dirty registration, independent fields, stale callbacks, explicit discard/keep, revision review and original parent wiring. Native controls/IO inert; no physical navigation acceptance.');
+
+// Native page controls use the same source-bound finite operation as the worker.
+const r2=createRuntime(),PageEditor=r2.load('src/screens/websitePagesEditor.js').WebsitePagesEditor;
+const pageDraft={id:'site-two',generation:7,pages:[{id:'page-work',title:'Work',path:'/pages/work'}],customPages:[{id:'page-work',title:'Work',slug:'work',sectionIds:['custom-a','custom-b','custom-c']}],sections:['a','b','c'].map(id=>({id:'custom-'+id,type:'text',title:id,body:'Exact '+id}))};
+const patches=[],render2=()=>r2.render(PageEditor,{draft:pageDraft,onApply:p=>{patches.push(p);return true;}});
+find(render2(),'Manage website pages').props.onPress();find(render2(),'Work • /pages/work').props.onPress();let tree2=render2();
+const firstMoves=walk(tree2).filter(n=>n.props?.label==='Move section to first');assert.equal(firstMoves[0].props.disabled,true);firstMoves[2].props.onPress();assert.equal(patches[0].sectionId,'custom-c');assert.equal(patches[0].expectedGeneration,7);assert.equal(patches[0].direction,'first');
+find(render2(),'Section heading').props.onChangeText('Unsaved section heading');tree2=render2();walk(tree2).filter(n=>n.props?.label==='Move section to first')[1].props.onPress();assert.equal(patches.length,1,'Reordering cannot discard independent unsaved section wording');assert.equal(find(render2(),'Section heading').props.value,'Unsaved section heading');

@@ -47,8 +47,8 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraft
   }else if(index<0)return;
   else if(kind==='remove')value.splice(index,1);
   else{
-   const to=index+(kind==='up'?-1:1);if(to<0||to>=value.length){onNotice?.('The service is already at that end of the list.');return;}
-   [value[index],value[to]]=[value[to],value[index]];
+   const to=kind==='first'?0:kind==='last'?value.length-1:index+(kind==='up'?-1:1);if(to<0||to>=value.length){onNotice?.('The service is already at that end of the list.');return;}
+   const [moving]=value.splice(index,1);value.splice(to,0,moving);
   }
   const plan=proposeCoordinatedAppChanges(live.current.config,[{kind:'services',value}]);
   onPreview?.(plan.ok?plan:null);onNotice?.(plan.ok?'Review the complete private service list before saving. Your live app is unchanged.':plan.reason);
@@ -87,6 +87,9 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraft
   <Text style={styles.cardBody}>These are public information labels, not payment, reserved appointments or promised availability.</Text>
   <Button primary label={selected?'Preview edited service':'Preview new service'} disabled={busy||stale||!name.trim()} onPress={()=>submit('save')}/>
   {selected?<View>
+   <Text style={styles.cardBody}>{locate()>=0?'Selected service '+(locate()+1)+' of '+rows.length:'Selected service unavailable'}</Text>
+   <Button label="Preview: Move this service to first" disabled={busy||stale||locate()<=0} onPress={()=>submit('first')}/>
+   <Button label="Preview: Move this service to last" disabled={busy||stale||locate()<0||locate()===rows.length-1} onPress={()=>submit('last')}/>
    <Button label="Preview: Move this service earlier" disabled={busy||stale} onPress={()=>submit('up')}/>
    <Button label="Preview: Move this service later" disabled={busy||stale} onPress={()=>submit('down')}/>
    <Button label="Preview removal of this service" disabled={busy||stale} onPress={()=>submit('remove')}/>

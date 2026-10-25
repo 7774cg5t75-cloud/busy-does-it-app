@@ -105,13 +105,14 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
        <Button primary label="Save page title" onPress={()=>
         apply({action:"rename-page",pageId:page.id,title:pageTitle})}/>
        <Text style={styles.sectionLabel}>Page sections</Text>
-       {page.sectionIds.map(id=>{
+       {page.sectionIds.map((id,index)=>{
         const section=sections.find(s=>s.id===id);
         return section?(
          <View key={id} style={styles.recordRow}>
-          <Text style={styles.cardBody}>{section.title||id}</Text>
-          <View style={styles.choiceGrid}><View style={styles.choiceCell}><Button compact label="Move section up" onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"up"})}/></View>
-          <View style={styles.choiceCell}><Button compact label="Move section down" onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"down"})}/></View></View>
+          <Text style={styles.cardBody}>{(index+1)+" of "+page.sectionIds.length+" · "+(section.title||id)}</Text>
+          <View style={styles.choiceGrid}><View style={styles.choiceCell}><Button compact label="Move section up" disabled={index===0} onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"up"})}/></View>
+          <View style={styles.choiceCell}><Button compact label="Move section down" disabled={index===page.sectionIds.length-1} onPress={()=>apply({action:"move-page-section",pageId:page.id,sectionId:id,direction:"down"})}/></View></View>
+          <View style={styles.choiceGrid}>{[['first','Move section to first'],['last','Move section to last']].map(([direction,label])=><View key={direction} style={styles.choiceCell}><Button compact label={label} disabled={direction==='first'?index===0:index===page.sectionIds.length-1} onPress={()=>apply({action:'move-page-section',pageId:page.id,sectionId:id,direction,expectedWebsiteId:draft.id,expectedGeneration:draft.generation})}/></View>)}</View>
           {page.sectionIds.length>1?(
            <Button label="Move section back to home page" onPress={()=>
             apply({action:"remove-page-section",pageId:page.id,sectionId:id})}/>
