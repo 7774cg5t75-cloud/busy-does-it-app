@@ -2488,6 +2488,13 @@
         "scripts/check-mission15-recipient-management.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-quote-grants",
+      "args": [
+        "scripts/check-mission15-quote-grants.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

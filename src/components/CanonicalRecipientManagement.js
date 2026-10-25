@@ -1,4 +1,5 @@
 import React from 'react';
+import {CanonicalQuoteGrant} from './CanonicalQuoteGrant';
 import {Alert,Text} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
@@ -72,6 +73,7 @@ export function CanonicalRecipientManagement({s,customerId,record,reference,sele
   <Button label="Inspect private access preparation" disabled={busy||!observed?.binding} onPress={inspectPreparation}/>
   {preparation?.preparation?<Text selectable style={styles.cardBody}>{'Private preparation '+preparation.preparation.preparationId+' · '+preparation.preparationState+'\nExpires '+preparation.preparation.expiresAt+'\nNot presentation, delivery, response or acceptance evidence.'}</Text>:null}
   {preparation?.preparation?.revision===1?<Button label="Review withdrawing private access preparation" disabled={busy||!free()} onPress={()=>review('presentationWithdrawal',preparation)}/>:null}
+  <CanonicalQuoteGrant s={s} customerId={customerId} record={record} reference={reference} preparation={preparation} sourceBlocked={sourceBlocked} sourceReviewEpoch={sourceReviewEpoch}/>
   <CanonicalQuotePresentationPreview projection={!sourceBlocked?preparation?.projection:null}/>
   <Text style={styles.cardBody}>Customer disclosure, responses, acceptance and booking remain unavailable. Owner-linked request provenance does not certify real-world identity or prove that this quote was requested.</Text>
  </Card>;
