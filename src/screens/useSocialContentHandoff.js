@@ -1,3 +1,4 @@
+import {currentGrowthContentOrigin,growthDraftOrigin} from '../domain/growthOpportunities.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 import {editNewsletterWording,readNewsletterWording} from '../core/newsletterWording.mjs';
 import {supportsContentTextFormat} from '../core/contentTextFormats.mjs';
@@ -12,14 +13,14 @@ export function useSocialContentHandoff(input){
  const live=React.useRef(input),epoch=React.useRef(0);live.current=input;
  const scope=input.workspaceScope,renderEpoch=epoch.current;
  const current=()=>live.current.workspaceScope===scope&&live.current.ownerId===input.ownerId&&live.current.businessId===input.businessId&&live.current.role===input.role;
- const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile});
+ const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile,ownerId:live.current.ownerId,role:live.current.role});
  const setContext=value=>{live.current={...live.current,sourceContext:value};input.setSourceContext(value);};
  const valid=()=>current()&&!!live.current.ownerId&&!!live.current.businessId&&['owner','admin'].includes(live.current.role);
  const reuseCurrent=reuse=>!reuse||reuse.ownerId===live.current.ownerId&&reuse.businessId===live.current.businessId&&reuse.scope===scope&&savedAnnouncementEligible(reuse.record,live.current.businessId,live.current.records)&&savedAnnouncementStamp(reuse.record)===reuse.stamp;
- const prepare=(serviceName='',platform='',sourceMode='',purpose='service',ownerFacts='',treatment='standard',requiresTreatmentSelection=false,channel='social',reuse=null)=>{
-  if(!valid()||!reuseCurrent(reuse))return false;
+ const prepare=(serviceName='',platform='',sourceMode='',purpose='service',ownerFacts='',treatment='standard',requiresTreatmentSelection=false,channel='social',reuse=null,growthOrigin=null)=>{
+  if(!valid()||!reuseCurrent(reuse)||growthOrigin&&(!currentGrowthContentOrigin(context(),growthOrigin)||growthOrigin.serviceName!==serviceName||sourceMode!=='approved-profile'||purpose!=='service'))return false;
   const evidence=purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...context(),sourceMode,ownerFacts,treatment,channel}):serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose,treatment,channel}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
-  const pending={reuse,evidence,serviceName,sourceMode,purpose,ownerFacts,treatment,channel,requiresTreatmentSelection,session:{},platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
+  const pending={reuse,growthOrigin,evidence,serviceName,sourceMode,purpose,ownerFacts,treatment,channel,requiresTreatmentSelection,session:{},platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
  };
@@ -53,7 +54,8 @@ export function useSocialContentHandoff(input){
    if(fresh(ticket)){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,evidence:{ok:false,reason:'Could not load approved records. Your draft is unchanged.'}}});}return false;
   }
  };
- const pendingCurrent=expected=>valid()&&expected?.scope===scope&&live.current.sourceContext?.pendingContentIdea===expected&&reuseCurrent(expected.reuse);
+ const growthCurrent=origin=>!origin||!!currentGrowthContentOrigin(context(),origin);
+ const pendingCurrent=expected=>valid()&&growthCurrent(expected?.growthOrigin)&&expected?.scope===scope&&live.current.sourceContext?.pendingContentIdea===expected&&reuseCurrent(expected.reuse);
  const pendingTreatment=expected=>expected?.treatment||expected?.evidence?.treatment||'standard';
  const selectService=(expected,serviceName)=>{
   if(!pendingCurrent(expected)||expected.purpose!=='service')return false;
@@ -68,7 +70,7 @@ export function useSocialContentHandoff(input){
    const hint=recordHint(expected);
    return loadRecords(expected.purpose,expected.platform,sourceMode,hint,treatment,expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social');
   }
-  return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment,expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social',expected.reuse);
+  return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment,expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social',expected.reuse,expected.growthOrigin);
  };
  const start=purpose=>{
   if(!valid()||epoch.current!==renderEpoch||!['service','business-introduction','product','event','owner-announcement'].includes(purpose))return false;
@@ -111,7 +113,7 @@ export function useSocialContentHandoff(input){
  const chooseFormat=(expected,channel)=>{
   if(!pendingCurrent(expected)||!['service','business-introduction','product','event','owner-announcement'].includes(expected.purpose)||!supportsContentTextFormat(channel)||!confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed:expected.feed}).ok)return false;
   if(['product','event'].includes(expected.purpose))return loadRecords(expected.purpose,expected.platform,expected.sourceMode,recordHint(expected),pendingTreatment(expected),expected.requiresTreatmentSelection,channel);
-  return prepare(expected.serviceName,expected.platform,expected.sourceMode,expected.purpose,expected.ownerFacts||'',pendingTreatment(expected),expected.requiresTreatmentSelection,channel,expected.reuse);
+  return prepare(expected.serviceName,expected.platform,expected.sourceMode,expected.purpose,expected.ownerFacts||'',pendingTreatment(expected),expected.requiresTreatmentSelection,channel,expected.reuse,expected.growthOrigin);
  };
  const editOwnerFacts=(expected,value)=>{
   const pending=live.current.sourceContext?.pendingContentIdea;
@@ -125,7 +127,7 @@ export function useSocialContentHandoff(input){
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy,selectedDraftId:null,aiResult:analysis};
   input.setSelectedDraftId(null);input.setAiResult(analysis);input.setAiStatus('idle');input.setCaptionId('');
   const record=['product','event'].includes(checked.purpose);
-  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.channel==='newsletter'?'Private newsletter wording · plain text only':['poster','advert'].includes(checked.channel)?(checked.purpose==='owner-announcement'?'Owner-supplied ':'Approved ')+checked.channel+' wording · text only':checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:expected.reuse?{...checked,reusedDraft:{id:expected.reuse.record.id,updatedAt:expected.reuse.record.updatedAt||'',businessId:live.current.businessId}}:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
+  setContext({...expected.growthOrigin?{growthOrigin:expected.growthOrigin}:{},type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.channel==='newsletter'?'Private newsletter wording · plain text only':['poster','advert'].includes(checked.channel)?(checked.purpose==='owner-announcement'?'Owner-supplied ':'Approved ')+checked.channel+' wording · text only':checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:expected.reuse?{...checked,reusedDraft:{id:expected.reuse.record.id,updatedAt:expected.reuse.record.updatedAt||'',businessId:live.current.businessId}}:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
  };
  const acceptRecord=async(expected,ticket)=>{
@@ -139,7 +141,7 @@ export function useSocialContentHandoff(input){
   }catch{return failPending(expected,'Could not confirm the current approved item. Your draft was kept; refresh before using the idea.');}
  };
  const accept=(expected,ticket)=>{
-  if(!fresh(ticket)||expected?.requiresTreatmentSelection||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
+  if(!growthCurrent(expected?.growthOrigin)||!fresh(ticket)||expected?.requiresTreatmentSelection||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
   if(['product','event'].includes(expected.purpose))return acceptRecord(expected,ticket);
   const checked=confirmSocialBrandHandoff({...context(),evidence:expected.evidence});
   if(!checked.ok)return false;
@@ -267,7 +269,7 @@ export function useSocialContentHandoff(input){
   return job?JSON.stringify({customerId:customer.id,jobId:job.id,service:job.service||customer.service||'',postDraft:job.postDraft||'',photos:(job.photos||[]).filter(photo=>photo.marketingOk).map(photo=>[photo.id,photo.uri,photo.storagePath,photo.marketingOk])}):'unavailable';
  };
  const capture=()=>({epoch:epoch.current,scope,jobStamp:sourceJobStamp(),records:live.current.records,website:live.current.website,app:live.current.app,profile:JSON.stringify(live.current.approvedProfile),aiResult:live.current.aiResult,text:live.current.text,selectedId:live.current.selectedDraftId,photos:live.current.photos,brief:live.current.brief,channels:JSON.stringify(live.current.channels),pending:live.current.sourceContext?.pendingContentIdea});
- const fresh=ticket=>valid()&&reuseCurrent(live.current.sourceContext?.pendingContentIdea?.reuse)&&sourceJobStamp()!=='unavailable'&&ticket?.jobStamp===sourceJobStamp()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.website===live.current.website&&ticket.app===live.current.app&&ticket.profile===JSON.stringify(live.current.approvedProfile)&&ticket.aiResult===live.current.aiResult&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.brief===live.current.brief&&ticket.channels===JSON.stringify(live.current.channels)&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
+ const fresh=ticket=>valid()&&growthCurrent(live.current.sourceContext?.pendingContentIdea?.growthOrigin)&&reuseCurrent(live.current.sourceContext?.pendingContentIdea?.reuse)&&sourceJobStamp()!=='unavailable'&&ticket?.jobStamp===sourceJobStamp()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.website===live.current.website&&ticket.app===live.current.app&&ticket.profile===JSON.stringify(live.current.approvedProfile)&&ticket.aiResult===live.current.aiResult&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.brief===live.current.brief&&ticket.channels===JSON.stringify(live.current.channels)&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
  const freshSave=(ticket,record)=>{
   const selectedId=live.current.selectedDraftId;
   return !!record?.id&&(live.current.records===ticket?.records||live.current.records?.includes(record))&&(selectedId===ticket?.selectedId||selectedId===record.id)&&fresh({...ticket,selectedId});
@@ -306,5 +308,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection,result.channel||'social');return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection,result.channel||'social')}:result;
  };
- return {canUpdatePrivateDraft:record=>valid()&&epoch.current===renderEpoch&&!!record&&live.current.selectedDraftId===record.id&&live.current.records?.filter(row=>row?.id===record.id).length===1&&live.current.records.includes(record)&&(record.status||'Draft')==='Draft'&&!record.publishedAt&&(!record.businessId||record.businessId===live.current.businessId)&&(!record.contentEvidence?.businessId||record.contentEvidence.businessId===live.current.businessId),pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource:()=>reviewSource(),reviewSavedSource:record=>reviewSource(record),reuseNewsletter,reuseSocialDraft,refreshNewsletterSource,reviewSocialVariation,resumeNewsletterWording,resumeSocialWording,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {growthDraftOrigin:()=>valid()?growthDraftOrigin(live.current.sourceContext?.growthOrigin):null,prepareGrowth:origin=>prepare(origin?.serviceName,'','approved-profile','service','','standard',false,'social',null,origin),canUpdatePrivateDraft:record=>valid()&&epoch.current===renderEpoch&&!!record&&live.current.selectedDraftId===record.id&&live.current.records?.filter(row=>row?.id===record.id).length===1&&live.current.records.includes(record)&&(record.status||'Draft')==='Draft'&&!record.publishedAt&&(!record.businessId||record.businessId===live.current.businessId)&&(!record.contentEvidence?.businessId||record.contentEvidence.businessId===live.current.businessId),pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource:()=>reviewSource(),reviewSavedSource:record=>reviewSource(record),reuseNewsletter,reuseSocialDraft,refreshNewsletterSource,reviewSocialVariation,resumeNewsletterWording,resumeSocialWording,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }

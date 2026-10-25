@@ -3862,6 +3862,7 @@ function App() {
       source: socialSourceContext.type,
       sourceLabel: socialSourceContext.label,
       contentEvidence:socialSourceContext.contentEvidence||null,
+      growthOrigin:socialContentActions.growthDraftOrigin?.()||null,
       suggestedPlatform:["Facebook","Instagram"].includes(socialSourceContext.suggestedPlatform)?socialSourceContext.suggestedPlatform:"",
       sourceCustomerId: socialSourceContext.customerId || "",
       sourceJobId: socialSourceContext.jobId || "",

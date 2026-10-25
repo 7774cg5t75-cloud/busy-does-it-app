@@ -1,3 +1,4 @@
+import {growthDraftOrigin} from '../domain/growthOpportunities.mjs';
 import {decodeBusinessCache} from './businessCache.mjs';
 import {stableJson} from './stableJson.mjs';
 // Finite private-draft comparison shared by original transition and status UI.
@@ -19,7 +20,7 @@ export function restoreContentDraft(draft,{today='',storyLabel=''}={}){
   channels:{facebook:(draft.channels||[]).includes('Facebook'),instagram:(draft.channels||[]).includes('Instagram'),googleBusiness:(draft.channels||[]).includes('Google Business')},
   date:draft.scheduleDate||today,time:draft.scheduleTime||'19:00',
   analysis:{restoredPrivateDraft:true,summary:draft.story?`${storyLabel} content`:'Saved social draft',detectedService:draft.service||'',story:draft.story||null,privacyWarnings:draft.privacyWarnings||[],captions:draft.captions||[]},
-  source:{type:draft.source||'phone',label:draft.sourceLabel||'Saved draft',contentEvidence:draft.contentEvidence||null,selection:draft.contentEvidence?.selection,customerId:draft.sourceCustomerId||'',jobId:draft.sourceJobId||'',service:draft.service||'',suggestedPlatform:['Facebook','Instagram'].includes(draft.suggestedPlatform)?draft.suggestedPlatform:''}};
+  source:{growthOrigin:growthDraftOrigin(draft.growthOrigin),type:draft.source||'phone',label:draft.sourceLabel||'Saved draft',contentEvidence:draft.contentEvidence||null,selection:draft.contentEvidence?.selection,customerId:draft.sourceCustomerId||'',jobId:draft.sourceJobId||'',service:draft.service||'',suggestedPlatform:['Facebook','Instagram'].includes(draft.suggestedPlatform)?draft.suggestedPlatform:''}};
 }
 export function contentDraftChanges(current,record){
  const savedPhotos=savedContentPhotos(record);
@@ -29,7 +30,7 @@ export function contentDraftChanges(current,record){
  const result={wording:(exact?wording:wording.trim())!==String(record?.text||''),media:media(current.photos)!==media(savedPhotos),brief:(exact?brief:brief.trim())!==String(record?.brief||''),channels:requested!==null&&JSON.stringify([...requested].sort())!==JSON.stringify([...(record?.channels||[])].sort())};
  if(Object.hasOwn(current,'contentEvidence')||Object.hasOwn(current,'sourceContext')){
   const evidence=Object.hasOwn(current,'contentEvidence')?current.contentEvidence:current.sourceContext?.contentEvidence;
-  try{result.source=stableJson(evidence||null)!==stableJson(record?.contentEvidence||null);}catch{result.source=true;}
+  try{result.source=stableJson(evidence||null)!==stableJson(record?.contentEvidence||null)||stableJson(growthDraftOrigin(current.sourceContext?.growthOrigin))!==stableJson(growthDraftOrigin(record?.growthOrigin));}catch{result.source=true;}
  }
  return {...result,dirty:Object.values(result).some(Boolean)};
 }

@@ -2516,6 +2516,13 @@
         "scripts/check-mission15-quote-itemisation.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-growth-opportunities",
+      "args": [
+        "scripts/check-mission15-growth-opportunities.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

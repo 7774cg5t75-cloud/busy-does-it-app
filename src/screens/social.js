@@ -1,3 +1,4 @@
+import {GrowthContentOrigin} from '../components/GrowthOpportunities';
 import {readNewsletterWording} from '../core/newsletterWording.mjs';
 import {NewsletterPreview} from '../components/NewsletterPreview';
 import {NewsletterAccountReadback} from '../components/NewsletterAccountReadback';
@@ -710,7 +711,7 @@ function SocialCreator({ s }) {
     }else apply();
   };
   const pendingIdea=s.socialSourceContext?.pendingContentIdea;
-  const pendingCheck=pendingIdea?.reuse&&s.socialContentActions?.pendingSourceCurrent?.(pendingIdea)===false?{ok:false,reason:'The saved announcement changed or is unavailable. Keep your current draft and choose its current saved record again.'}:pendingIdea?.evidence?.ok?confirmSocialBrandHandoff({...currentBrandInput(),evidence:pendingIdea.evidence,feed:pendingIdea.feed}):null;
+  const pendingCheck=(pendingIdea?.reuse||pendingIdea?.growthOrigin)&&s.socialContentActions?.pendingSourceCurrent?.(pendingIdea)===false?{ok:false,reason:pendingIdea.growthOrigin?'The opportunity source changed or is unavailable. Keep your current draft and inspect a current opportunity in Get More Customers.':'The saved announcement changed or is unavailable. Keep your current draft and choose its current saved record again.'}:pendingIdea?.evidence?.ok?confirmSocialBrandHandoff({...currentBrandInput(),evidence:pendingIdea.evidence,feed:pendingIdea.feed}):null;
   const ownerIdea=pendingIdea?.purpose==='owner-announcement';
   const recordIdea=['product','event'].includes(pendingIdea?.purpose);
   const incomingSnapshot=buildContentBrandSnapshot({...currentBrandInput(),sourceMode:pendingIdea?.sourceMode||""});
@@ -736,6 +737,7 @@ function SocialCreator({ s }) {
       subtitle={s.socialSourceContext?.label || "Selected photos"}
       brandCue="Your wording and selected photos stay private until separate publishing review."
     >
+      <GrowthContentOrigin s={s}/>
       {s.socialContentActions?<Card title="What would you like to create?" body="Choose a starting point. Your current words and photos stay until you deliberately use a new idea.">
         <Button label="Introduce my business" onPress={()=>s.socialContentActions.start('business-introduction')}/>
         <Button label="Explain a service" onPress={()=>s.socialContentActions.start('service')}/>
