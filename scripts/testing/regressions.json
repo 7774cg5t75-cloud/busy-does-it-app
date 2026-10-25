@@ -2502,6 +2502,20 @@
         "scripts/check-mission15-quote-access-policy.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-business-app-quotes",
+      "args": [
+        "scripts/check-mission15-business-app-quotes.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-quote-itemisation",
+      "args": [
+        "scripts/check-mission15-quote-itemisation.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

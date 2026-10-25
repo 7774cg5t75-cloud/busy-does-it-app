@@ -1,3 +1,4 @@
+import {quotationAccountReadiness} from './quoteAuthenticationBoundary.mjs';
 import {builderExploreRemoteGuard} from './builderExploreRemoteGuard.mjs';
 import {reviewAppEditingQuality} from "./appAppearanceEditing.mjs";
 import {checkReviewedCustomerVersion} from "./customerReviewedVersion.mjs";
@@ -627,6 +628,7 @@ async function customerRequestDetail(userId: string, body: any) {
   const detail = await requestConversationPage(updated.data, body);
   return {
     ...detail,
+    quotationAccess:quotationAccountReadiness({verifiedUserId:userId,request:updated.data}),
     loyaltyProgress: await loyaltyForRequest(updated.data),
   };
 }

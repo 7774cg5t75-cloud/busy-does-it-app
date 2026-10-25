@@ -1,4 +1,6 @@
 import React from 'react';
+import {inspectQuoteItemisation} from '../core/quoteItemisation.mjs';
+import {QuoteItemisationEditor} from './QuoteItemisationEditor';
 import {Alert,Text} from 'react-native';
 import {Card,Field,Button} from './ui';
 import {styles} from '../theme/styles';
@@ -16,15 +18,16 @@ export function CanonicalQuoteAccessPolicy({s,customerId,record,reference,grantI
  const visible=original.current.scope===scope&&original.current.owner===s.ownerSession?.userId&&original.current.business===s.cloudWorkspace?.businessId&&original.current.grantId===grantId;
  const current=()=>visible&&mounted.current&&live.current.identity===identity&&live.current.scope===scope&&live.current.role==='owner';
  const report=useOwnerEditNavigation(s,{source:record,projectId:'quote-presentation:'+grantId,revision:record.revision},()=>{epoch.current++;setInputs(JSON.parse(stableJson(baseline.current)));setReviewed(null);return true;});
+ const itemsValid=!inputs.fields.itemisedPrices?.length||inspectQuoteItemisation(inputs.fields.itemisedPrices,reference.terms?.amount??record.record?.details?.quoteAmount??'').ok;
  const dirty=stableJson(inputs)!==stableJson(baseline.current);
  React.useEffect(()=>{report(dirty);},[dirty,inputs,scope,record]);
  const edit=(key,value,field=false)=>{if(!current()||flight.current==='write')return false;epoch.current++;setReviewed(null);setInputs(old=>field?{...old,fields:{...old.fields,[key]:value}}:{...old,[key]:value});report(true);return true;};
  const free=()=>current()&&!flight.current&&!['pending','unknown'].includes(api.status().status);
- const options=()=>({...live.current.inputs,fields:Object.fromEntries(Object.entries(live.current.inputs.fields).filter(([,v])=>v!==''))});
+ const options=()=>({...live.current.inputs,fields:Object.fromEntries(Object.entries(live.current.inputs.fields).filter(([,v])=>v!==''&&(!Array.isArray(v)||v.length>0)))});
  const run=async(task,kind='read')=>{if(!current()||flight.current)return false;flight.current=kind;setBusy(true);try{return await task();}catch{if(current())setNotice('Current preparation unavailable. Your unfinished fields are kept; no successful action is claimed.');return false;}finally{flight.current=false;if(mounted.current)setBusy(false);}};
  const inspect=()=>run(async()=>{const e=epoch.current,v=await api.accessRead(customerId,record.engagementId,reference.referenceId,grantId);if(!current()||e!==epoch.current)return false;setObserved({identity,value:v});setNotice('Independent account observation · '+v.state+'. No earlier save receipt reconstructed.');return true;});
  const inspectDecisions=after=>run(async()=>{const v=await api.accessDecisions(customerId,record.engagementId,reference.referenceId,grantId,after);if(!current())return false;setDecisions({identity,value:v});return true;});
- const prepare=()=>run(async()=>{if(live.current.blocked||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/.test(inputs.validUntil))return false;const e=epoch.current,v=await api.accessReview(customerId,record.engagementId,reference.referenceId,grantId,options());if(!current()||e!==epoch.current){if(current())setNotice('Newer typing kept. Obtain a fresh review for those fields.');return false;}setReviewed({identity,epoch:e,value:v});return true;});
+ const prepare=()=>run(async()=>{if(live.current.blocked||!itemsValid||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/.test(inputs.validUntil))return false;const e=epoch.current,v=await api.accessReview(customerId,record.engagementId,reference.referenceId,grantId,options());if(!current()||e!==epoch.current){if(current())setNotice('Newer typing kept. Obtain a fresh review for those fields.');return false;}setReviewed({identity,epoch:e,value:v});return true;});
  const editor=operation=>({customerId,engagementId:record.engagementId,referenceId:reference.referenceId,grantId,view:live.current.view,typingEpoch:epoch.current,sourceStamp:live.current.identity,purpose:operation,inputs:live.current.inputs,fields:{}});
  const decide=operation=>{
   const base=operation==='accessPrepare'?reviewed?.value:observed?.value;
@@ -43,17 +46,19 @@ export function CanonicalQuoteAccessPolicy({s,customerId,record,reference,grantI
   {sourceBlocked?<Text style={styles.cardBody}>Current source review is required. Unfinished fields are kept; saving is disabled.</Text>:null}
   {QUOTE_PRESENTATION_TEXT_FIELDS.filter(key=>key==='quoteIdentifier'||details).map(key=><Field key={key} label={QUOTE_PRESENTATION_LABELS[key]} value={inputs.fields[key]||''} editable={!sourceBlocked&&!busy} onChangeText={v=>edit(key,v,true)}/>)}
   <Button label={details?"Hide optional quotation terms":"Edit optional customer-facing terms"} disabled={busy} onPress={()=>setDetails(!details)}/>
+  {details?<QuoteItemisationEditor rows={inputs.fields.itemisedPrices||[]} quoteTotal={reference.terms?.amount??record.record?.details?.quoteAmount??''} disabled={busy||sourceBlocked} onChange={rows=>edit('itemisedPrices',rows,true)}/>:null}
   <Field label="Quote validity deadline (UTC, YYYY-MM-DDTHH:mm:ssZ)" value={inputs.validUntil} editable={!sourceBlocked&&!busy} onChangeText={v=>edit('validUntil',v)}/>
   <Field label="Calendar time zone for grant review" value={inputs.calendarZone} editable={!sourceBlocked&&!busy} onChangeText={v=>edit('calendarZone',v)}/>
   {QUOTE_ACCESS_DAYS.map(days=><Button key={days} label={'Choose '+days+' days'+(inputs.durationDays===days?' · selected':'')} disabled={busy||sourceBlocked} onPress={()=>edit('durationDays',days)}/>)}
   <Text style={styles.cardBody}>Default 14 days; 7 or 30 by deliberate review. The earlier quote-validity deadline always wins. Lifetime starts only at authorised activation. Viewing eligibility expires after 15 minutes of inactivity; every later read/response must recheck current authority. Revocation cannot remove copies already viewed or captured.</Text>
   <Button label="Inspect saved private presentation" disabled={busy} onPress={inspect}/>
-  <Button label="Prepare exact V22.53 presentation review" disabled={busy||sourceBlocked||!free()||!inputs.fields.quoteIdentifier||!inputs.validUntil} onPress={prepare}/>
+  <Button label="Prepare exact V22.53 presentation review" disabled={busy||sourceBlocked||!free()||!inputs.fields.quoteIdentifier||!inputs.validUntil||!itemsValid} onPress={prepare}/>
   {freshReview?<Button label="Review V22.53 private preparation save" disabled={busy||!free()} onPress={()=>decide('accessPrepare')}/>:null}
   {v?<Text selectable style={styles.cardBody}>{'Private presentation: '+v.state+'\nActivation not recorded. No customer availability claimed.'}</Text>:null}
   {isApprovedQuoteProjection(v?.projection)?<Text selectable style={styles.cardBody}>{formatApprovedQuoteProjection(v.projection)}</Text>:null}
   {v?.revision===1?<Button label="Review V22.53 presentation revocation" disabled={busy||!free()} onPress={()=>decide('accessRevoke')}/>:null}
   {v?.presentationId?<Button label="Inspect quote decision preparation history" disabled={busy} onPress={()=>inspectDecisions(0)}/>:null}
+  {decisions?.identity===identity?<Text selectable style={styles.cardBody}>{'Quote '+(decisions.value.quoteIdentifier||'context unavailable')+' · version '+(decisions.value.quoteVersion||'unavailable')+'\nEvidence: '+(decisions.value.evidenceStatus||'context unavailable')+'\nOriginal request '+(decisions.value.requestId||'unavailable')+'\nOwner-linked account '+(decisions.value.consumerId||'unavailable')+'\nLocal validation only; review current source before preparing the next owner action.'}</Text>:null}
   {decisions?.identity===identity?decisions.value.items.map(x=><Text key={x.responseId} selectable style={styles.cardBody}>{QUOTE_DECISION_LABELS[x.action]+' · local validation only\n'+x.question+'\nRecorded '+x.recordedAt+'\nNo binding agreement, booking or payment. Owner review remains required.'}</Text>):null}
   {decisions?.identity===identity&&decisions.value.nextCursor?<Button label="More quote decision preparation history" disabled={busy} onPress={()=>inspectDecisions(decisions.value.nextCursor)}/>:null}
   <Text style={styles.cardBody}>Request to proceed: interest only, with owner confirmation still required. Decline and Ask a question are not acceptance. Accept quote and agree to pay requires a firm offer, legal checks and separate release authority; it is disabled. No action automatically books, reserves a slot, invoices or charges.</Text>

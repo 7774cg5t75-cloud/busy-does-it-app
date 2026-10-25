@@ -1,3 +1,4 @@
+import {BusinessAppQuotationEntry} from '../components/BusinessAppQuoteReview';
 import {accountBookingContext} from '../core/bookingCancelReadbackV3233.mjs';
 import {useServiceBrowseReturn} from '../../standalone/template/useServiceBrowseReturn';
 import {captureAppDraftAcknowledgement,acknowledgedAppDraftPart} from '../core/appDraftAcknowledgement.mjs';
@@ -5032,6 +5033,7 @@ function MiniAppRequestDetailForm({ s }) {
         <Card eyebrow="Conversation" title="Loading…" body="BUSY is loading the latest request activity." tone="blue" />
       ) : request ? (
         <>
+          {!ownerView?<BusinessAppQuotationEntry s={s} request={request} app={detail.app}/>:null}
           <Card
             eyebrow={request.request_type === "booking_request" ? "Booking request" : "Enquiry"}
             title={detail.app?.display_name || detail.app?.name || (ownerView ? request.contact_name || "Customer" : "BUSY business")}
