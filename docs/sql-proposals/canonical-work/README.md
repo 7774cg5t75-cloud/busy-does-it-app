@@ -70,3 +70,16 @@ Current runner prerequisites are **262 original +241 canonical PostgreSQL stages
 `CANONICAL_RECIPIENT_BINDING_ENABLED` is hard false. Separate consumer access/response SQL endpoints are SECURITY INVOKER and always deny before any private lookup; client access/response gates are hard false and return no data. No URL/token/public route, access entitlement, response persistence, send or booking authority was added. Separate disclosure, expiry/revocation, retention/erasure and typed response policies remain gates. No request/message/booking writer changed. Raw privileges/RLS, original explicit owner checks and production abort fuse remain. Rollback additionally revokes the private binding writer/fresh context while retaining scoped read observations and records. The CREATE-only package is not an upgrade migration or hosted activation authority.
 
 See `docs/TRUSTED_QUOTE_BINDING_2026_10_25.md` and its application/SQL CHECKS for source checkpoints, fresh results and retained interrupted/preflight failures. Use only the original isolated PG17 runner, explicit no-TCP startup and private Unix socket; synthetic roles/auth.uid do not establish real JWT/PostgREST acceptance.
+
+
+## Additive recipient management/private access preparation — 25 October
+
+Current tested selection: **262 original +275 canonical/upgrade PostgreSQL stages**, then **174 final original-component/actual-PG RPC children**, functional tree `0cb0b01ba4df19e02dc86748e22c28f25443740b`. Earlier counts above are historical.
+
+Install order for a separately approved rehearsal is original provisioning/privacy fences → exact canonical foundation → `recipient-management.sql`. Both foundation and additive upgrade stay production-abort-fused. The upgrade rejects changed installed authority fingerprints, repeated installation and effective inherited raw-table access. An injected failure rolls back schema/data changes atomically. It is not a hosted migration or permission to remove fuses.
+
+Owner-only finite binding manage-review/decide/history append revocation/replacement with independent CAS; original bindings remain intact. Owner-only presentation review/prepare/read/withdraw stores a version-bound minimal private projection and proposed15/60-minute expiry, never an active grant. Raw tables/helpers remain private; current quote/source/binding checks withhold stale/expired/revoked/superseded/withdrawn preparations. Consumer access/response stay hard-denied. Original request/message/booking writers are unchanged and exact quote/request association remains unsupported.
+
+Use `recipient-management-rollback.sql` or the updated retaining global rollback to revoke new writes while retaining records AND the managed reader. Do not restore the earlier reader or drop decision/preparation tables, which could resurrect revoked root state. Hard-false `CANONICAL_RECIPIENT_MANAGEMENT_ENABLED` is a client rollout gate, not server authority. Real JWT/PostgREST, policy, expiry/session design, lawful erasure, installed upgrade acceptance and actual customer disclosure remain separately gated.
+
+See `docs/RECIPIENT_MANAGEMENT_ACCESS_PREPARATION_2026_10_25.md` and its two CHECKS for actual owner tasks, policy proposals, retained failed candidates and security boundaries.
