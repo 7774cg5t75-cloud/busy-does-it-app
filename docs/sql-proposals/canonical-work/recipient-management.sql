@@ -8,6 +8,8 @@ DO $$ BEGIN
  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.busy_work_quote_recipient_review_v1(uuid,text,uuid,uuid,uuid)'::regprocedure AND encode(sha256(convert_to(prosrc,'UTF8')),'hex')='b270d76b5594d2cb76f6a7a198dcc097f9b6e4f2dda63ba72e7fb0480aff3af2') THEN RAISE EXCEPTION 'Unsupported installed authority; exact reviewed upgrade baseline required' USING ERRCODE='55000';END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.busy_work_quote_reference_read_v1(uuid,text,uuid,uuid)'::regprocedure AND encode(sha256(convert_to(prosrc,'UTF8')),'hex')='7c6efa971214537d1108f37562d40926306c7edbaec317fbc473b6d9a94c698f') THEN RAISE EXCEPTION 'Unsupported installed authority; exact reviewed upgrade baseline required' USING ERRCODE='55000';END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid='busy_work_private.authorize(uuid)'::regprocedure AND encode(sha256(convert_to(prosrc,'UTF8')),'hex')='5f70812ced4bcf486ccd42fe87b1ab14db12fd1b681c9fa5049cf69799b6ddf5') THEN RAISE EXCEPTION 'Unsupported installed authority; exact reviewed upgrade baseline required' USING ERRCODE='55000';END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.busy_work_consumer_quote_access_v1(uuid)'::regprocedure AND NOT prosecdef AND encode(sha256(convert_to(prosrc,'UTF8')),'hex')='8c4825fb06eb76dbb427eb14ce98e5cf9ccafd34b3b266a63a332dc94f968087') THEN RAISE EXCEPTION 'Closed consumer boundary required' USING ERRCODE='55000';END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.busy_work_consumer_quote_response_v1(uuid,text,text)'::regprocedure AND NOT prosecdef AND encode(sha256(convert_to(prosrc,'UTF8')),'hex')='dcfa170a164c97f34750d7e451404e7fe19421770ddc4cbb86c7f2601cd19e4c') THEN RAISE EXCEPTION 'Closed consumer boundary required' USING ERRCODE='55000';END IF;
 END $$;
 CREATE TABLE public.business_work_quote_binding_decisions(
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),binding_id uuid NOT NULL REFERENCES public.business_work_quote_recipient_bindings(id) ON DELETE RESTRICT,
@@ -89,7 +91,7 @@ BEGIN
  x:=public.busy_work_quote_binding_manage_review_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id,p_action,p_request_id,p_expected_revision);
  IF x->>'reviewHash' IS DISTINCT FROM p_review_hash OR p_review_hash IS NULL THEN RAISE EXCEPTION 'Review conflict' USING ERRCODE='40001';END IF;
  INSERT INTO public.business_work_quote_binding_decisions(binding_id,business_id,created_by,revision,action,recipient_review,review_hash,operation_id) VALUES((x->>'bindingId')::uuid,p_business_id,auth.uid(),p_expected_revision+1,p_action,NULLIF(x->'proposedRecipient','null'::jsonb),p_review_hash,p_operation_id) RETURNING * INTO d;
- RETURN x||jsonb_build_object('operation','quote_binding_decision','operationId',p_operation_id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',p_expected_revision,'revision',d.revision,'decisionId',d.id,'recordedAt',d.recorded_at,'state',CASE WHEN p_action='revoke' THEN 'revoked' ELSE 'active' END);
+ RETURN (x-'proposedRecipient'-'currentBindingDecision'-'notOwnReceipt')||jsonb_build_object('ownOperationReceipt',true,'operation','quote_binding_decision','operationId',p_operation_id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',p_expected_revision,'revision',d.revision,'decisionId',d.id,'recordedAt',d.recorded_at,'state',CASE WHEN p_action='revoke' THEN 'revoked' ELSE 'active' END);
 END $$;
 CREATE FUNCTION public.busy_work_quote_binding_history_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_before bigint DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE x jsonb:=busy_work_private.managed_binding(p_business_id,p_customer_id,p_engagement_id,p_reference_id);items jsonb;cursor bigint;more boolean;
@@ -125,7 +127,7 @@ BEGIN
  x:=public.busy_work_quote_presentation_review_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id,p_expected_revision,p_duration_minutes);
  IF p_review_hash IS NULL OR x->>'reviewHash' IS DISTINCT FROM p_review_hash THEN RAISE EXCEPTION 'Preparation review conflict' USING ERRCODE='40001';END IF;
  INSERT INTO public.business_work_quote_access_preparations(binding_id,business_id,created_by,binding_revision,quote_revision,terms_hash,review_hash,prepared_projection,expires_at,operation_id) VALUES((x->>'bindingId')::uuid,p_business_id,auth.uid(),p_expected_revision,(x->'projection'->>'quoteRevision')::bigint,x->'projection'->>'termsHash',p_review_hash,x->'projection',clock_timestamp()+make_interval(mins=>p_duration_minutes),p_operation_id) RETURNING * INTO p;
- RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'actorId',auth.uid(),'operation','quote_presentation_preparation','operationId',p_operation_id,'schemaVersion',1,'previousRevision',0,'revision',1,'preparationId',p.id,'bindingId',p.binding_id,'bindingRevision',p.binding_revision,'reviewHash',p.review_hash,'termsHash',p.terms_hash,'sourceHash',x->'sourceHash','recordedAt',p.recorded_at,'expiresAt',p.expires_at,'consumerAccessAuthorised',false,'executionAuthorised',false);
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'actorId',auth.uid(),'ownOperationReceipt',true,'operation','quote_presentation_preparation','operationId',p_operation_id,'schemaVersion',1,'previousRevision',0,'revision',1,'preparationId',p.id,'bindingId',p.binding_id,'bindingRevision',p.binding_revision,'reviewHash',p.review_hash,'termsHash',p.terms_hash,'sourceHash',x->'sourceHash','recordedAt',p.recorded_at,'expiresAt',p.expires_at,'consumerAccessAuthorised',false,'executionAuthorised',false);
 END $$;
 CREATE FUNCTION public.busy_work_quote_presentation_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE x jsonb:=busy_work_private.managed_binding(p_business_id,p_customer_id,p_engagement_id,p_reference_id);p public.business_work_quote_access_preparations%ROWTYPE;w public.business_work_quote_access_withdrawals%ROWTYPE;v jsonb;state text;projection jsonb;
@@ -145,7 +147,7 @@ BEGIN
  SELECT * INTO p FROM public.business_work_quote_access_preparations WHERE id=p_preparation_id AND binding_id=(x->>'bindingId')::uuid AND created_by=auth.uid();
  IF NOT FOUND THEN RAISE EXCEPTION 'Preparation unavailable' USING ERRCODE='42501';END IF;
  INSERT INTO public.business_work_quote_access_withdrawals(preparation_id,business_id,created_by,operation_id) VALUES(p.id,p_business_id,auth.uid(),p_operation_id) RETURNING * INTO w;
- RETURN x||jsonb_build_object('operation','quote_presentation_withdrawal','operationId',p_operation_id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',1,'revision',2,'preparationId',p.id,'withdrawalId',w.id,'recordedAt',w.recorded_at,'consumerAccessAuthorised',false,'executionAuthorised',false);
+ RETURN (x-'notOwnReceipt')||jsonb_build_object('ownOperationReceipt',true,'operation','quote_presentation_withdrawal','operationId',p_operation_id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',1,'revision',2,'preparationId',p.id,'withdrawalId',w.id,'recordedAt',w.recorded_at,'consumerAccessAuthorised',false,'executionAuthorised',false);
 END $$;
 DO $$ DECLARE f record;BEGIN
  FOR f IN SELECT oid::regprocedure AS signature,proname FROM pg_proc WHERE pronamespace='busy_work_private'::regnamespace OR pronamespace='public'::regnamespace AND proname IN ('busy_work_quote_binding_manage_review_v1','busy_work_quote_binding_decide_v1','busy_work_quote_binding_history_v1','busy_work_quote_presentation_review_v1','busy_work_quote_presentation_prepare_v1','busy_work_quote_presentation_read_v1','busy_work_quote_presentation_withdraw_v1') LOOP
@@ -156,4 +158,11 @@ END $$;
 DO $$ DECLARE f record;r record;BEGIN
  FOR f IN SELECT oid::regprocedure AS signature,proname FROM pg_proc WHERE pronamespace='busy_work_private'::regnamespace OR pronamespace='public'::regnamespace AND proname IN ('busy_work_quote_binding_manage_review_v1','busy_work_quote_binding_decide_v1','busy_work_quote_binding_history_v1','busy_work_quote_presentation_review_v1','busy_work_quote_presentation_prepare_v1','busy_work_quote_presentation_read_v1','busy_work_quote_presentation_withdraw_v1') LOOP
  FOR r IN SELECT rolname FROM pg_roles WHERE rolname<>'authenticated' AND NOT rolsuper LOOP EXECUTE format('REVOKE ALL ON FUNCTION %s FROM %I',f.signature,r.rolname);END LOOP;END LOOP;END $$;
+-- Default/inherited grants can defeat explicit direct-role revocation. Abort atomically.
+DO $$ DECLARE t text;r text;BEGIN
+ FOREACH t IN ARRAY ARRAY['business_work_quote_binding_decisions','business_work_quote_access_preparations','business_work_quote_access_withdrawals'] LOOP
+ FOREACH r IN ARRAY ARRAY['anon','authenticated','service_role'] LOOP
+ IF has_table_privilege(r,'public.'||t,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') THEN RAISE EXCEPTION 'Effective private table access detected: % / %',r,t USING ERRCODE='42501';END IF;
+ END LOOP;END LOOP;
+END $$;
 COMMIT;
