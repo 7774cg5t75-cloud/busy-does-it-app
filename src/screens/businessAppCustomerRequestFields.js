@@ -7,7 +7,7 @@ import {View,Text,ScrollView,Alert} from 'react-native';
 import {Card,Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
 // Presentation only. Parent retains original state, scoped sends and recovery.
-function BusinessAppCustomerRequestFields({s,form,onLayout}){
+function BusinessAppCustomerRequestFields({s,form,onLayout,previewOnly=false}){
  const {returnToInformation,bookingReview,cancelBookingReview,enquiryReview,cancelEnquiryReview,requirements=emptyEnquiryRequirements(),setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
  const fieldRefs=React.useRef({}),latest=React.useRef(null);
  const account=s.ownerSession?.userId,detail=s.selectedBusyAppDetail;
@@ -19,7 +19,7 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
       <View onLayout={onLayout}>
       <RequestDraftStatus busy={s.miniAppsAction===('request:'+(requestKind||'enquiry'))} reviewed={!!(requestKind==='booking_request'?bookingReview:enquiryReview)}/>
       {typeof returnToInformation==='function'?<Button label="Back to app information" disabled={!!s.miniAppsAction} onPress={returnToInformation}/>:null}
-      {typeof setRequestKind==='function'&&enabled.has('enquiry')&&enabled.has('booking_request')?<View>
+      {!previewOnly&&typeof setRequestKind==='function'&&enabled.has('enquiry')&&enabled.has('booking_request')?<View>
         <Text style={styles.sectionLabel}>What would you like to do?</Text>
         {['enquiry','booking_request'].map(type=><Button key={type}
           label={(requestKind===type?'✓ ':'')+(type==='enquiry'?'Ask a question':'Request a booking')}
@@ -27,12 +27,12 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
         <Text style={styles.cardBody}>A booking request needs the business to accept it. Sending this form does not reserve a time or confirm availability.</Text>
         {contentInterest?<Text style={styles.cardBody}>Your selected product or event is attached to an enquiry. Remove the selection before changing request type.</Text>:null}
       </View>:null}
-      {typeof s.checkBusyAppRequestRecovery==="function"?<Card title="Earlier request interrupted?" body="Check your saved reference without sending another request. Your contact details are not stored in this recovery reference.">
+      {!previewOnly&&typeof s.checkBusyAppRequestRecovery==="function"?<Card title="Earlier request interrupted?" body="Check your saved reference without sending another request. Your contact details are not stored in this recovery reference.">
         {['enquiry','booking_request'].filter(type=>enabled.has(type)).map(type=><Button key={type}
           label={type==='enquiry'?'Check earlier enquiry':'Check earlier booking request'} disabled={!!s.miniAppsAction}
           onPress={()=>s.checkBusyAppRequestRecovery(type)}/>)}
       </Card>:null}
-      {enabled.has('enquiry')&&(!requestKind||requestKind==='enquiry')?<Card title="Keep a private enquiry draft"
+      {!previewOnly&&enabled.has('enquiry')&&(!requestKind||requestKind==='enquiry')?<Card title="Keep a private enquiry draft"
         body="Optional: save your name, contact details, message and selected item in encrypted storage on this device for this account. Restorable for 24 hours; expired drafts are deleted on next access. Nothing is sent or synced. Restore replaces the open enquiry fields; booking fields are not saved.">
         <Button label="Save private enquiry on this device" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.save}/>
         <Button label="Restore saved enquiry" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={()=>Alert.alert('Restore this device draft?','This replaces the current enquiry fields. Nothing will be submitted.',[{text:'Keep current form',style:'cancel'},{text:'Restore draft',onPress:privateRecovery.restore}])}/>
@@ -71,7 +71,7 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
         {ENQUIRY_REQUIREMENTS.map(field=><Field key={field.key} label={field.label} value={requirements[field.key]} maxLength={field.max} onChangeText={value=>setRequirements(current=>({...current,[field.key]:value}))}/>)}
       </View>:null}
 
-      {enabled.has("booking_request")&&(!requestKind||requestKind==='booking_request') ? (
+      {!previewOnly&&enabled.has("booking_request")&&(!requestKind||requestKind==='booking_request') ? (
         <>
           <Text style={styles.sectionLabel}>Request a booking</Text>
           <Text style={styles.cardBody}>Choose a listed service or describe what you need. The business will review your request.</Text>
@@ -106,7 +106,7 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
 
       {enabled.has("enquiry")&&(!requestKind||requestKind==='enquiry') ? (
         <>
-          <Text style={styles.sectionLabel}>Send an enquiry</Text>
+          <Text style={styles.sectionLabel}>{previewOnly?"Example enquiry fields — nothing is submitted":"Send an enquiry"}</Text>
           {contentNotice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{contentNotice}</Text>:null}
           <SelectedListingSummary feed={s.selectedBusyAppDetail?.businessContent} businessId={s.selectedBusyAppDetail?.app?.business_id} selection={contentInterest}/>
           {contentInterest?<Button label="Remove selected listing from this enquiry" disabled={!!s.miniAppsAction} onPress={()=>{if(s.miniAppsAction)return;setContentInterest(null);setService('');setContentNotice('Listing attachment removed. Your message and requirements were kept; review any item wording before sending.');}}/>:null}
@@ -114,19 +114,19 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
 
           <Field inputRef={node=>{fieldRefs.current.message=node;}} label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
           {problem(enquiryReady)}
-          {enquiryReview?<View accessibilityLiveRegion="polite">
+          {!previewOnly&&enquiryReview?<View accessibilityLiveRegion="polite">
             <Text style={styles.sectionLabel}>Review exactly what will be sent</Text>
             {Object.entries(enquiryReview.payload).map(([key,value])=><Text key={key} selectable style={styles.cardBody}>{key+': '+(value||'(not supplied)')}</Text>)}
             <Text style={styles.cardBody}>Confirm to share these details with this business so it can respond. This is an enquiry, not a booking, order or payment. Editing any field requires a new review.</Text>
             <Button label="Correct my enquiry" disabled={!!s.miniAppsAction} onPress={cancelEnquiryReview}/>
           </View>:null}
           <Button
-            label={s.miniAppsAction === "request:enquiry" ? "Sending…" : enquiryReview?"Confirm and send enquiry":"Review enquiry"}
+            label={previewOnly?"Inspect example enquiry payload":s.miniAppsAction === "request:enquiry" ? "Sending…" : enquiryReview?"Confirm and send enquiry":"Review enquiry"}
             disabled={
               !enquiryReady.ok ||
               !!s.miniAppsAction
             }
-            onPress={submitEnquiry}
+            onPress={previewOnly?form.reviewExample:submitEnquiry}
           />
         </>
       ) : null}

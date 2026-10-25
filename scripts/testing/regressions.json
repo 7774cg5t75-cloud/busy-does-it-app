@@ -2530,6 +2530,20 @@
         "scripts/check-mission15-returning-growth.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-connected-service-enquiry",
+      "args": [
+        "scripts/check-mission15-connected-service-enquiry.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission15-owner-opportunity",
+      "args": [
+        "scripts/check-mission15-owner-opportunity.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

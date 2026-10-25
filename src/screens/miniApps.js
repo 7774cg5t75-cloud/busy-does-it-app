@@ -1,3 +1,4 @@
+import {AppServiceEnquiryEditor} from './appServiceEnquiryEditor';
 import {BusinessAppQuotationEntry} from '../components/BusinessAppQuoteReview';
 import {accountBookingContext} from '../core/bookingCancelReadbackV3233.mjs';
 import {useServiceBrowseReturn} from '../../standalone/template/useServiceBrowseReturn';
@@ -2500,6 +2501,9 @@ function MiniAppBuilder({ s }) {
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
           </View>
+          <AppServiceEnquiryEditor key={['service-enquiry',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['service-enquiry']||0].join(':')}
+            ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog} approvedProfile={s.businessCreationIntelligence?.sharedProfile} Surface={MiniAppSurface}
+            busy={!!s.miniAppsAction||studio.pending||studio.uncertain} onDraftChange={value=>markOwnerDirty('service-enquiry',value)} onPreview={proposal=>setStudioPreview(proposal,'service-enquiry')} onNotice={setStudioNotice}/>
           {view.draftConfig.modules?.some(m=>m.key==='services'&&m.enabled===true)?(
             <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts.services||0].join(':')}
               onDraftChange={value=>markOwnerDirty('services',value)} requestTransition={s.requestOwnerEditTransition}
