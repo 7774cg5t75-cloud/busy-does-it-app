@@ -521,10 +521,96 @@ stage('rollback-owner-report-data-readable-creation-and-review-denied',lambda:(e
 stage('rollback-decision-read-preserved-review-and-mutation-denied',lambda:(eq(agreement_read(state['agreement1'])['reportState'],'withdrawn'),denied(f"SELECT public.busy_work_agreement_decision_review_v1('{B}','{C}','{state['second']}','{state['agreement1']}',{row(state['second'])['revision']});"),decision_deny([B,C,state['second'],state['agreement1'],row(state['second'])['revision'],3,state['agreementOriginal']['termsHash'],'correct','No rollback write','rollback-correction-denied'],'42501')))
 stage('rollback-reference-inspection-preserved-new-review-write-denied',lambda:(eq(ref_read()['presentationState'],'prepared_not_presented'),denied(f"SELECT public.busy_work_quote_reference_review_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"),denied(f"SELECT public.busy_work_quote_reference_create_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']},'no','rollback-ref-denied');")))
 stage('rollback-private-bindings-retained-write-context-denied-access-still-closed',lambda:(eq(binding_read(state['first'],state['bindingFirstRef'])['eligibility'],'current'),denied('SELECT public.busy_work_quote_binding_context_v1('+','.join(map(q,[B,C,state['first'],state['bindingFirstRef'],REQ,row(state['first'])['revision']]))+');'),binding_denied(binding_args(state['bindingContext']),'42501'),denied('SELECT public.busy_work_consumer_quote_access_v1('+q(state['bindingReceipt']['bindingId'])+');',uid=U)))
+# Executed as part of the original canonical PostgreSQL runner/scaffolding.
+def mql(v):return 'NULL' if v is None else q(v)
+UPGRADE_FUSE="DO $$ BEGIN RAISE EXCEPTION 'RECIPIENT MANAGEMENT REVIEW FUSE: separate hosted approval required'; END $$;"
+def management_scope():return [B,C,state['first'],state['bindingFirstRef']]
+def mg_review(action='revoke',request=None,revision=None):return rpc('quote_binding_manage_review',management_scope()+[action,request,revision or mg_read()['binding']['revision']])
+def mg_read():return rpc('quote_binding_read',management_scope())
+def mg_decide(v,op):return rpc('quote_binding_decide',management_scope()+[v['action'],v.get('requestId'),v['revision'],v['reviewHash'],op],commit=True)
+def mg_deny(v,op,uid=O,code='40001'):return denied('SELECT public.busy_work_quote_binding_decide_v1('+','.join(map(mql,management_scope()+[v['action'],v.get('requestId'),v['revision'],v['reviewHash'],op]))+');',uid=uid,code=code)
+def upgrade_load():
+ run(f"INSERT INTO public.busy_mini_app_requests(id,business_id,mini_app_id,version_id,consumer_user_id,module_key,request_type) VALUES('77777777-7777-4777-8777-777777777777','{B}','{APP}','{VER}','{U}','enquiry','enquiry');SELECT public.busy_mark_mini_app_request_link_v3181('{B}','77777777-7777-4777-8777-777777777777','{O}','{C}',NULL,'enquiry_linked',false,'{{}}');")
+ state['upgradeBaseRows']=run('SELECT row_to_json(x) FROM public.business_work_quote_recipient_bindings x ORDER BY id;');state['upgradeWork']=run('SELECT row_to_json(x) FROM public.business_work_engagements x ORDER BY id;');state['upgradePrivate']=run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY engagement_id,owner_id,kind;');state['upgradeRequests']=run('SELECT row_to_json(x) FROM public.busy_mini_app_requests x;SELECT row_to_json(x) FROM public.busy_mini_app_request_links x;');state['upgradeSnapshot']=run('SELECT payload FROM public.busy_business_snapshots;')
+ text=(root/'docs/sql-proposals/canonical-work/recipient-management.sql').read_text();assert text.count(UPGRADE_FUSE)==1
+ r=call(text);assert r.returncode!=0 and 'RECIPIENT MANAGEMENT REVIEW FUSE' in r.stderr
+ eq(run("SELECT to_regclass('public.business_work_quote_binding_decisions') IS NULL;").strip(),'t')
+ transactional=call(text.replace(UPGRADE_FUSE,'').replace('COMMIT;','SELECT 1/0;COMMIT;'));assert transactional.returncode!=0 and 'division by zero' in transactional.stderr
+ eq(run("SELECT to_regclass('public.business_work_quote_binding_decisions') IS NULL;").strip(),'t')
+ run(text.replace(UPGRADE_FUSE,''));eq(mg_read()['eligibility'],'current');eq(mg_read()['binding']['revision'],1)
+ eq(run('SELECT row_to_json(x) FROM public.business_work_quote_recipient_bindings x ORDER BY id;'),state['upgradeBaseRows'])
+stage('additive-upgrade-fuse-atomic-original-records-and-owner-read-preserved',upgrade_load)
+def upgrade_repeat():
+ text=(root/'docs/sql-proposals/canonical-work/recipient-management.sql').read_text().replace(UPGRADE_FUSE,'');r=call(text);assert r.returncode!=0 and 'upgrade already installed or missing' in r.stderr;eq(mg_read()['binding']['revision'],1)
+stage('repeated-upgrade-denied-without-partial-schema-change',upgrade_repeat)
+def revoke_positive():
+ state['revokeReview']=mg_review();v=mg_decide(state['revokeReview'],'management-revoke-first');state['revokeReceipt']=v;eq(v['revision'],2);eq(v['state'],'revoked');eq(v['consumerAccessAuthorised'],False);r=mg_read();eq(r['eligibility'],'revoked');eq(r['recipient'],None);eq(r['binding']['revision'],2);eq(r['notOwnReceipt'],True)
+stage('fresh-owner-review-revoke-independent-status-no-recipient-resurrection',revoke_positive)
+stage('repeated-and-stale-revocation-denied',lambda:mg_deny(state['revokeReview'],'management-revoke-replay'))
+for uid,label in [(M,'member'),(D,'foreign'),(S,'coowner'),(U,'consumer')]:stage(label+'-binding-management-review-and-history-denied',lambda uid=uid:(denied('SELECT public.busy_work_quote_binding_manage_review_v1('+','.join(map(mql,management_scope()+['replace',REQ,2]))+');',uid=uid),denied('SELECT public.busy_work_quote_binding_history_v1('+','.join(map(mql,management_scope()+[None,20]))+');',uid=uid)))
+def replace_positive():
+ state['replaceReview']=mg_review('replace','77777777-7777-4777-8777-777777777777');v=mg_decide(state['replaceReview'],'management-replace-fresh');state['replaceReceipt']=v;eq(v['revision'],3);eq(v['state'],'active');eq(mg_read()['recipient']['consumerId'],U);eq(mg_read()['recipient']['requestId'],'77777777-7777-4777-8777-777777777777');eq(mg_read()['binding']['bindingId'],state['revokeReceipt']['bindingId']);eq(mg_read()['binding']['revision'],3)
+stage('explicit-fresh-replacement-retains-root-quote-and-independent-revision',replace_positive)
+stage('old-replacement-callback-denied',lambda:mg_deny(state['replaceReview'],'management-replace-old'))
+def changed_request_management():
+ v=mg_review('replace',REQ);r=call('BEGIN;'+f"UPDATE public.busy_mini_app_requests SET updated_at=updated_at+interval '1 second' WHERE id='{REQ}';"+f"SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{O}';SELECT public.busy_work_quote_binding_decide_v1("+','.join(map(mql,management_scope()+['replace',REQ,3,v['reviewHash'],'management-stale-source']))+');ROLLBACK;');assert r.returncode!=0 and '40001' in r.stderr;eq(mg_read()['binding']['revision'],3)
+stage('replacement-rechecks-original-request-revision-after-review',changed_request_management)
+def history_pages():
+ v=rpc('quote_binding_history',management_scope()+[None,1]);eq(len(v['items']),1);eq(v['items'][0]['revision'],3);eq(v['items'][0]['state'],'active');eq(v['nextCursor'],3);w=rpc('quote_binding_history',management_scope()+[3,1]);eq(w['items'][0]['revision'],2);eq(w['items'][0]['state'],'superseded');assert 'consumerId' not in str(v['items'])
+stage('bounded-immutable-management-history-and-superseded-state',history_pages)
+def presentation_review(minutes=15):return rpc('quote_presentation_review',management_scope()+[mg_read()['binding']['revision'],minutes])
+def presentation_read():return rpc('quote_presentation_read',management_scope())
+def presentation_positive():
+ v=presentation_review();state['presentationReview']=v;p=rpc('quote_presentation_prepare',management_scope()+[v['revision'],15,v['reviewHash'],'presentation-private-first'],commit=True);state['presentationReceipt']=p;eq(p['consumerAccessAuthorised'],False);eq(p['bindingRevision'],3);r=presentation_read();eq(r['preparationState'],'prepared_disabled');eq(r['preparation']['preparationId'],p['preparationId']);eq(r['notOwnReceipt'],True);eq(set(r['projection']),{'engagementId','referenceId','quoteRevision','termsHash','amount','plannedQuoteDate','wording','status','presented'});assert 'secretSynthetic' not in str(r['projection']) and 'followup' not in str(r['projection']);eq(r['projection']['wording'],rpc('quote_reference_read',management_scope())['terms']['wording'])
+stage('private-presentation-expiry-review-save-and-finite-projection-readback',presentation_positive)
+stage('unsupported-expiry-and-duplicate-presentation-denied',lambda:(denied('SELECT public.busy_work_quote_presentation_review_v1('+','.join(map(mql,management_scope()+[3,1440]))+');',code='22023'),denied('SELECT public.busy_work_quote_presentation_prepare_v1('+','.join(map(mql,management_scope()+[3,15,state['presentationReview']['reviewHash'],'presentation-private-again']))+');',code='23505')))
+def mg_roles_and_helpers():
+ for change in [f"UPDATE public.busy_business_memberships SET role='admin' WHERE business_id='{B}' AND user_id='{O}';",f"DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}';"]:
+  r=call('BEGIN;'+change+f"SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{O}';SELECT public.busy_work_quote_binding_manage_review_v1("+','.join(map(mql,management_scope()+['revoke',None,3]))+');ROLLBACK;');assert r.returncode!=0 and '42501' in r.stderr
+ eq(run("SELECT has_function_privilege('authenticated','busy_work_private.quote_safe_projection(uuid,text,uuid,uuid)','EXECUTE');").strip(),'f')
+stage('admin-revoked-owner-and-inherited-helper-permissions-denied',mg_roles_and_helpers)
+def mg_source_after_review():
+ v=mg_review();patch=f"UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{{inboxItems,0,rawText}}',to_jsonb('Corrected source in synthetic transaction'::text)) WHERE business_id='{B}';"
+ r=call('BEGIN;'+patch+f"SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{O}';SELECT public.busy_work_quote_binding_decide_v1("+','.join(map(mql,management_scope()+['revoke',None,3,v['reviewHash'],'revoke-source-changed']))+');ROLLBACK;');assert r.returncode!=0 and '40001' in r.stderr;eq(mg_read()['binding']['revision'],3)
+stage('source-change-expires-approved-revocation-without-changing-wording',mg_source_after_review)
+def mg_wrong_quote():
+ denied('SELECT public.busy_work_quote_binding_manage_review_v1('+','.join(map(mql,[B,C,state['first'],state['recipientRef'],'replace',REQ,3]))+');')
+stage('same-customer-different-quote-cannot-adopt-binding-history',mg_wrong_quote)
+def mg_edited_quote_preview():
+ x=read(state['first']);run_sql="BEGIN;GRANT EXECUTE ON FUNCTION public.busy_work_edit_quote_v1(uuid,text,uuid,bigint,text,text,text,text,text) TO authenticated;"+f"SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{O}';SELECT public.busy_work_edit_quote_v1("+','.join(map(mql,[B,C,state['first'],x['revision'],x['sourceHash'],'0','Independent changed quote\nexact','2026-11-03','preview-source-edit']))+');SELECT public.busy_work_quote_presentation_read_v1('+','.join(map(mql,management_scope()))+');ROLLBACK;'
+ r=run(run_sql);values=[json.loads(z) for z in r.splitlines() if z.startswith('{')];eq(values[-1]['preparationState'],'unavailable');eq(values[-1]['projection'],None);eq(presentation_read()['preparationState'],'prepared_disabled')
+stage('real-finite-quote-edit-invalidates-prepared-projection-without-transfer',mg_edited_quote_preview)
+
+def expire_private_preparation():
+ # Server clock seam only inside a rolled-back privileged synthetic transaction;
+ # production rows stay immutable. Verify the actual reader against expired source.
+ id=state['presentationReceipt']['preparationId'];sql=f"BEGIN;ALTER TABLE public.business_work_quote_access_preparations DISABLE TRIGGER immutable_preparation;UPDATE public.business_work_quote_access_preparations SET recorded_at=clock_timestamp()-interval '2 hours',expires_at=clock_timestamp()-interval '1 hour' WHERE id='{id}';SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{O}';SELECT public.busy_work_quote_presentation_read_v1("+','.join(map(mql,management_scope()))+');ROLLBACK;';r=run(sql);v=json.loads(next(x for x in r.splitlines() if x.startswith('{')));eq(v['preparationState'],'expired');eq(v['projection'],None)
+stage('server-clock-expiry-withholds-private-preview-no-access',expire_private_preparation)
+def withdrawal_positive():
+ p=state['presentationReceipt'];v=rpc('quote_presentation_withdraw',management_scope()+[p['preparationId'],1,'presentation-withdraw-first'],commit=True);state['withdrawReceipt']=v;eq(v['revision'],2);eq(presentation_read()['preparationState'],'withdrawn');eq(presentation_read()['projection'],None)
+stage('reviewed-private-presentation-withdrawal-append-only-readback',withdrawal_positive)
+stage('duplicate-withdrawal-denied',lambda:denied('SELECT public.busy_work_quote_presentation_withdraw_v1('+','.join(map(mql,management_scope()+[state['presentationReceipt']['preparationId'],1,'presentation-withdraw-again']))+');',code='23505'))
+for uid,label in [(M,'member'),(D,'foreign'),(S,'coowner'),(U,'consumer')]:stage(label+'-presentation-review-read-and-withdraw-denied',lambda uid=uid:(denied('SELECT public.busy_work_quote_presentation_review_v1('+','.join(map(mql,management_scope()+[3,15]))+');',uid=uid),denied('SELECT public.busy_work_quote_presentation_read_v1('+','.join(map(mql,management_scope()))+');',uid=uid)))
+for table in ['business_work_quote_binding_decisions','business_work_quote_access_preparations','business_work_quote_access_withdrawals']:
+ stage(table+'-raw-and-inherited-default-grants-denied',lambda table=table:(denied('SELECT * FROM public.'+table+';'),denied('SELECT * FROM public.'+table+';',role='service_role')))
+def management_preserves():
+ eq(run('SELECT row_to_json(x) FROM public.business_work_quote_recipient_bindings x ORDER BY id;'),state['upgradeBaseRows']);eq(run('SELECT row_to_json(x) FROM public.business_work_engagements x ORDER BY id;'),state['upgradeWork']);eq(run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY engagement_id,owner_id,kind;'),state['upgradePrivate']);eq(run('SELECT payload FROM public.busy_business_snapshots;'),state['upgradeSnapshot']);eq(run('SELECT row_to_json(x) FROM public.busy_mini_app_requests x;SELECT row_to_json(x) FROM public.busy_mini_app_request_links x;'),state['upgradeRequests']);eq(run('SELECT count(*) FROM public.busy_mini_app_work_bookings;').strip(),'0')
+stage('upgrade-decisions-and-preparation-preserve-all-original-data-and-no-booking',management_preserves)
+for action in ['accept','decline','question']:
+ stage('typed-'+action+'-consumer-response-remains-denied',lambda action=action:denied('SELECT public.busy_work_consumer_quote_response_v1('+','.join(map(mql,[state['revokeReceipt']['bindingId'],action,'typed-response-disabled']))+');',uid=U))
+def concurrent_decisions():
+ v=mg_review();sql=f"BEGIN;SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{O}';SELECT public.busy_work_quote_binding_decide_v1("+','.join(map(mql,management_scope()+['revoke',None,3,v['reviewHash'],'management-competing-A']))+");SELECT pg_sleep(0.1);COMMIT;"
+ proc=subprocess.Popen(base,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);proc.stdin.write(sql);proc.stdin.close()
+ r=call(f"BEGIN;SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{O}';SELECT public.busy_work_quote_binding_decide_v1("+','.join(map(mql,management_scope()+['revoke',None,3,v['reviewHash'],'management-competing-B']))+');COMMIT;');out=proc.stdout.read();err=proc.stderr.read();proc.wait();assert (proc.returncode==0)+(r.returncode==0)==1;assert '40001' in err+r.stderr;eq(mg_read()['binding']['revision'],4)
+stage('actual-competing-management-writers-one-exact-revision-wins',concurrent_decisions)
+def management_rollback():
+ run((root/'docs/sql-proposals/canonical-work/recipient-management-rollback.sql').read_text());eq(mg_read()['eligibility'],'revoked');eq(presentation_read()['preparationState'],'withdrawn');denied('SELECT public.busy_work_quote_binding_manage_review_v1('+','.join(map(mql,management_scope()+['replace',REQ,4]))+');');denied('SELECT public.busy_work_quote_presentation_review_v1('+','.join(map(mql,management_scope()+[4,15]))+');');denied('SELECT public.busy_work_consumer_quote_access_v1('+q(state['revokeReceipt']['bindingId'])+');',uid=U);management_preserves()
+stage('retaining-management-rollback-closes-new-writes-and-consumer-access',management_rollback)
+
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
  start=len(logs)
  try:fn();results.append({'id':name,'status':'passed','calls':logs[start:]})
  except Exception as e:
   results.append({'id':name,'status':'failed','error':str(e),'calls':logs[start:]});results.extend({'id':n,'status':'unexecuted'} for n,_ in cases[i+1:]);break
-v={'candidateSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/engagements.sql').read_bytes()).hexdigest(),'scope':'Actual disposable PostgreSQL17; fictional data and mock auth.uid, NOT hosted JWT/PostgREST','baselineReport':a.baseline_report,'baselineSummary':prior['summary'],'results':results,'summary':{k:sum(x['status']==s for x in results) for k,s in [('passed','passed'),('failed','failed'),('unexecuted','unexecuted')]},'receiptsAndIds':state,'hostedDatabaseQueries':0};v['summary']['blocked']=0;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(v,indent=2)+'\n');print(json.dumps(v['summary']));sys.exit(1 if v['summary']['failed'] else 0)
+v={'upgradeSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/recipient-management.sql').read_bytes()).hexdigest(),'candidateSha256':hashlib.sha256((root/'docs/sql-proposals/canonical-work/engagements.sql').read_bytes()).hexdigest(),'scope':'Actual disposable PostgreSQL17; fictional data and mock auth.uid, NOT hosted JWT/PostgREST','baselineReport':a.baseline_report,'baselineSummary':prior['summary'],'results':results,'summary':{k:sum(x['status']==s for x in results) for k,s in [('passed','passed'),('failed','failed'),('unexecuted','unexecuted')]},'receiptsAndIds':state,'hostedDatabaseQueries':0};v['summary']['blocked']=0;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(v,indent=2)+'\n');print(json.dumps(v['summary']));sys.exit(1 if v['summary']['failed'] else 0)

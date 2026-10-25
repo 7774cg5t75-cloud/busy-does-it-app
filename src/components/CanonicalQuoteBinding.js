@@ -2,6 +2,7 @@ import React from 'react';
 import {Alert,Text} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
+import {CanonicalRecipientManagement} from './CanonicalRecipientManagement';
 import {stableJson} from '../core/stableJson.mjs';
 
 export function CanonicalQuoteBinding({s,customerId,record,reference,selection,sourceBlocked=false,sourceReviewEpoch=0}){
@@ -35,11 +36,12 @@ export function CanonicalQuoteBinding({s,customerId,record,reference,selection,s
   ]);return true;
  };
  if(!api?.bindingEnabled||!visible||s.cloudWorkspace?.role!=='owner')return null;
- return <Card eyebrow="V22.52 · private preparation" title="Save this exact recipient and quote version" body="Select a candidate first, then request fresh server checks and review exact saved terms. One immutable private binding is supported per reference. It is separate from consumer access and quote presentation.">
+ return <Card eyebrow="V22.52 · private preparation" title="Save this exact recipient and quote version" body="Select a candidate first, then request fresh server checks and review exact saved terms. Original private bindings remain immutable; separate reviewed decisions manage their effective recipient. It is separate from consumer access and quote presentation.">
   {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
   <Button label="Recheck selected recipient and exact quote" disabled={busy||sourceBlocked||reference.termsChanged||!selection?.recipientIdentified} onPress={()=>inspect('context')}/>
   <Button label="Review private recipient binding" disabled={busy||!eligible()} onPress={review}/>
   <Button label="Inspect saved private recipient binding" disabled={busy||sourceBlocked} onPress={()=>inspect('saved')}/>
-  {saved?.binding?<Text selectable style={styles.cardBody}>{'Private binding '+saved.binding.bindingId+' · version '+saved.binding.quoteRevision+' · '+saved.eligibility+'\nServer recorded '+saved.binding.recordedAt+' (not presentation or acceptance time)\n'+(saved.eligibility==='current'&&!sourceBlocked?'Owner-linked account '+saved.recipient.consumerId+' · identity-evidence request '+saved.recipient.requestId:'Current recipient details are unavailable for this observation.')+'\nNo consumer access, quote/request association, customer response or booking authority.'}</Text>:null}
+  {saved?.binding&&!api.managementEnabled?<Text selectable style={styles.cardBody}>{'Private binding '+saved.binding.bindingId+' · version '+saved.binding.quoteRevision+' · '+saved.eligibility+'\nServer recorded '+saved.binding.recordedAt+' (not presentation or acceptance time)\n'+(saved.eligibility==='current'&&!sourceBlocked?'Owner-linked account '+saved.recipient.consumerId+' · identity-evidence request '+saved.recipient.requestId:'Current recipient details are unavailable for this observation.')+'\nNo consumer access, quote/request association, customer response or booking authority.'}</Text>:null}
+  <CanonicalRecipientManagement key={reference.referenceId} s={s} customerId={customerId} record={record} reference={reference} selection={selection} sourceBlocked={sourceBlocked} sourceReviewEpoch={sourceReviewEpoch}/>
  </Card>;
 }
