@@ -310,10 +310,66 @@ stage('changed-source-owner-report-read-fails-closed',agreement_source_change)
 def agreement_competing():
  r=row(state['second']);edit(state['second'],r['revision'],'next-report-quote-version','Terms for concurrent owner reports','0');v=agreement_context();args=[B,C,state['second'],v['revision'],v['termsHash'],'Owner report A','owner-report-concurrent-a'];h=hold('SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+q(O)+';SELECT public.busy_work_agreement_create_v1('+','.join(map(q,args))+')');args[-1]='owner-report-concurrent-b';other=subprocess.Popen(base,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);other.stdin.write("SET statement_timeout='5s';"+auth('SELECT public.busy_work_agreement_create_v1('+','.join(map(q,args))+');',commit=True));other.stdin.close();time.sleep(.2);assert other.poll() is None;release(h);other.wait(timeout=8);output=other.stdout.read()+other.stderr.read();logs.append({'exitCode':other.returncode,'holderExitCode':h.returncode,'output':output});assert other.returncode!=0 and '40001' in output;items=rpc('agreement_list',[B,C,state['second'],None,20]);eq(len(items['items']),3);e=next(x for x in items['items'] if x['quoteRevision']==v['revision']);seen=agreement_read(e['evidenceId']);eq(seen['notOwnReceipt'],True);assert 'operationId' not in seen
 stage('real-competing-owner-reports-one-immutable-winner',agreement_competing)
+# Append-only correction/withdrawal proposal: exact original report, current eligibility.
+def decision_context():return rpc('agreement_decision_review',[B,C,state['second'],state['agreement1'],row(state['second'])['revision']])
+def decision_args(expected=0,action='correct',words='  Corrected owner account\nnot independently verified  ',op='report-correction-first'):
+ v=decision_context();return [B,C,state['second'],state['agreement1'],v['revision'],expected,v['termsHash'],action,words,op]
+def decision_first():
+ v=decision_context();eq(v['decisionRevision'],0);eq(v['reportState'],'original');eq(v['quoteRevision'],state['agreementOriginal']['quoteRevision']);assert v['revision']>v['quoteRevision'];state['decisionWorkBefore']=row(state['second']);state['decisionOtherBefore']=row(state['first']);state['decisionPrivateBefore']=run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY kind;');state['decisionPayloadBefore']=run('SELECT payload::text FROM public.busy_business_snapshots WHERE business_id='+q(B)+';');state['decisionReceipt']=rpc('agreement_decide',decision_args(),commit=True);eq(state['decisionReceipt']['revision'],1);eq(state['decisionReceipt']['verification'],'unverified');eq(state['decisionReceipt']['bookingEligible'],False)
+stage('append-only-correction-old-quote-version-current-source-review',decision_first)
+def decision_readback():
+ v=agreement_read(state['agreement1']);eq(v['ownerAccount'],state['agreementOriginal']['ownerAccount']);eq(v['terms'],state['agreementOriginal']['terms']);eq(v['termsHash'],state['agreementOriginal']['termsHash']);eq(v['decisionRevision'],1);eq(v['reportState'],'corrected');eq(v['currentOwnerAccount'],'  Corrected owner account\nnot independently verified  ');eq(v['termsChanged'],True);eq(v['notOwnReceipt'],True);assert 'operationId' not in v;eq(v['decisionId'],state['decisionReceipt']['decisionId'])
+stage('correction-independent-read-keeps-original-terms-and-words',decision_readback)
+def decision_deny(args=None,code='40001',uid=O,role='authenticated'):
+ denied('SELECT public.busy_work_agreement_decide_v1('+','.join(map(q,args or decision_args()))+');',code,uid,role)
+stage('duplicate-correction-cas-denied',decision_deny)
+def decision_wrong_terms():
+ args=decision_args(1);args[6]='0'*64;decision_deny(args)
+stage('correction-forged-original-terms-denied',decision_wrong_terms)
+def decision_wrong_engagement():
+ args=decision_args(1);args[2]=state['first'];args[4]=row(state['first'])['revision'];decision_deny(args,'42501')
+stage('same-customer-wrong-engagement-report-denied',decision_wrong_engagement)
+def decision_stale_quote():
+ args=decision_args(1);args[4]=1;decision_deny(args)
+stage('correction-stale-current-work-revision-denied',decision_stale_quote)
+for uid,label in [(M,'member'),(S,'coowner'),(D,'foreign')]:stage(label+'-correction-mutation-denied',lambda uid=uid:decision_deny(decision_args(1),'42501',uid))
+stage('anonymous-correction-denied',lambda:decision_deny(decision_args(1),'42501','',role='anon'))
+def decision_role(remove=False):
+ args=decision_args(1);change=f"DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}'" if remove else f"UPDATE public.busy_business_memberships SET role='admin' WHERE business_id='{B}' AND user_id='{O}'";v=call('BEGIN;'+change+';'+auth('SELECT public.busy_work_agreement_decide_v1('+','.join(map(q,args))+');'));assert v.returncode!=0 and '42501' in v.stderr
+stage('admin-correction-denied',decision_role)
+stage('revoked-correction-denied',lambda:decision_role(True))
+def decision_source_changed():
+ args=decision_args(1);v=call(f"BEGIN;UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{{inboxItems,1,rawText}}','\"Changed evidence source\"') WHERE business_id='{B}';"+auth('SELECT public.busy_work_agreement_decide_v1('+','.join(map(q,args))+');'));assert v.returncode!=0 and '40001' in v.stderr
+stage('source-changed-correction-denied-keeps-original',decision_source_changed)
+for role in ['authenticated','service_role']:stage(role+'-raw-correction-read-denied',lambda role=role:denied('SELECT * FROM public.business_work_agreement_decisions;',role=role))
+stage('decision-immutable-even-privileged-update-denied',lambda:denied("UPDATE public.business_work_agreement_decisions SET statement='rewrite' WHERE evidence_id="+q(state['agreement1'])+';','42501',role='postgres'))
+def decision_competing():
+ args=decision_args(1,words='Writer A correction',op='report-decision-compete-a');h=hold('SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+q(O)+';SELECT public.busy_work_agreement_decide_v1('+','.join(map(q,args))+')');args[-1]='report-decision-compete-b';other=subprocess.Popen(base,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);other.stdin.write("SET statement_timeout='5s';"+auth('SELECT public.busy_work_agreement_decide_v1('+','.join(map(q,args))+');',commit=True));other.stdin.close();time.sleep(.2);assert other.poll() is None;release(h);other.wait(timeout=8);output=other.stdout.read()+other.stderr.read();logs.append({'exitCode':other.returncode,'output':output});assert other.returncode!=0 and '40001' in output;eq(agreement_read(state['agreement1'])['decisionRevision'],2)
+stage('real-competing-corrections-one-cas-winner',decision_competing)
+def decision_withdraw():
+ receipt=rpc('agreement_decide',decision_args(2,'withdraw','No longer able to support my account','report-withdrawal-first'),commit=True);v=agreement_read(state['agreement1']);eq(v['reportState'],'withdrawn');eq(v['decisionRevision'],3);eq(v['currentOwnerAccount'],None);eq(v['ownerAccount'],state['agreementOriginal']['ownerAccount']);eq(v['quoteRevision'],state['agreementOriginal']['quoteRevision']);eq(receipt['bookingEligible'],False);state['withdrawalReceipt']=receipt
+stage('withdrawal-is-append-only-not-deletion-or-acceptance',decision_withdraw)
+stage('withdrawn-report-cannot-be-reactivated',lambda:decision_deny(decision_args(3,op='withdrawn-report-replay')))
+def decision_preserve():
+ eq(row(state['second']),state['decisionWorkBefore']);eq(row(state['first']),state['decisionOtherBefore']);eq(run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY kind;'),state['decisionPrivateBefore']);eq(run('SELECT payload::text FROM public.busy_business_snapshots WHERE business_id='+q(B)+';'),state['decisionPayloadBefore']);eq(run("SELECT count(*) FROM public.business_work_agreement_decisions WHERE evidence_id="+q(state['agreement1'])+';').strip(),'3');eq(row(state['second'])['status'],'Prepared');eq(agreement_read(state['agreement2'])['decisionRevision'],0)
+stage('decisions-cannot-change-quotes-private-work-snapshot-or-other-reports',decision_preserve)
+def readiness():
+ v=rpc('booking_readiness',[B,C,state['second'],state['agreement1']]);eq(v['reportState'],'withdrawn');eq(v['executionAuthorised'],False);eq(v['bookingEligible'],False);eq(v['customerResponseEvidence'],'not_established_by_protocol');eq(v['requestAssociationState'],'unsupported_missing_canonical_request_contract');eq(v['terms'],state['agreementOriginal']['terms']);eq(len(v['requirements']),4);assert 'ownerAccount' not in v;decision_preserve()
+stage('booking-readiness-does-not-invent-request-or-acceptance',readiness)
+def decision_fk():
+ denied("INSERT INTO public.business_work_agreement_decisions(evidence_id,business_id,customer_id,engagement_id,created_by,decision_revision,action,statement,quote_revision,terms_hash,reviewed_engagement_revision,reviewed_source_hash,operation_id) SELECT evidence_id,business_id,customer_id,engagement_id,'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',99,'correct','Forged attribution',quote_revision,terms_hash,reviewed_engagement_revision,reviewed_source_hash,'forged-correction-parent' FROM public.business_work_agreement_decisions LIMIT 1;",'23503',role='postgres')
+stage('correction-parent-fk-binds-author-business-customer-and-terms',decision_fk)
+def finite_no_booking_mutation():
+ v=run("SELECT pg_get_functiondef(oid) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN ('busy_work_agreement_decide_v1','busy_work_booking_readiness_v1');")
+ assert 'INSERT INTO public.business_work_agreement_decisions' in v
+ for forbidden in ['UPDATE public.business_work_engagements','UPDATE public.busy_business_snapshots','busy_mark_mini_app_request_link','INSERT INTO public.busy_mini_app','UPDATE public.busy_mini_app','DELETE FROM public.']:assert forbidden not in v,forbidden
+ decision_preserve()
+stage('finite-evidence-definitions-cannot-accept-book-message-or-pay',finite_no_booking_mutation)
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
 stage('rollback-denies-fresh-edit-context-without-reopening-writes',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"))
 stage('rollback-preserves-work-notes-and-denies-write',lambda:(eq(notes_read()['text'],'Writer A notes'),denied('SELECT public.busy_work_private_write_v1('+','.join(map(q,[B,C,state['second'],row(state['second'])['revision'],3,read(state['second'])['sourceHash'],'work_notes','Denied after rollback','notes-rollback-denied']))+');')))
 stage('rollback-owner-report-data-readable-creation-and-review-denied',lambda:(eq(agreement_read(state['agreement1'])['verification'],'unverified'),denied(f"SELECT public.busy_work_agreement_review_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});")))
+stage('rollback-decision-read-preserved-review-and-mutation-denied',lambda:(eq(agreement_read(state['agreement1'])['reportState'],'withdrawn'),denied(f"SELECT public.busy_work_agreement_decision_review_v1('{B}','{C}','{state['second']}','{state['agreement1']}',{row(state['second'])['revision']});"),decision_deny([B,C,state['second'],state['agreement1'],row(state['second'])['revision'],3,state['agreementOriginal']['termsHash'],'correct','No rollback write','rollback-correction-denied'],'42501')))
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
  start=len(logs)

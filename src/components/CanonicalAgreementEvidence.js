@@ -1,4 +1,5 @@
 import React from 'react';
+import {CanonicalAgreementDecision} from './CanonicalAgreementDecision';
 import {Text,Alert} from 'react-native';
 import {Card,Field,Button} from './ui';
 import {styles} from '../theme/styles';
@@ -60,6 +61,7 @@ export function CanonicalAgreementEvidence({s,customerId,record,sourceBlocked=fa
   <Button label="Inspect recorded owner reports" disabled={busy} onPress={()=>inspect('list')}/>
   {page?.items.map(row=><Button key={row.evidenceId} label={'Inspect owner report '+row.evidenceId+' · quote version '+row.quoteRevision} disabled={busy} onPress={()=>inspect('read',row.evidenceId)}/>)}
   {page?.nextCursor?<Button label="Next owner report page" disabled={busy} onPress={()=>inspect('list',page.nextCursor)}/>:null}
-  {observed?<><Text selectable style={styles.cardBody}>{'Owner report '+observed.evidenceId+' · UNVERIFIED · quote version '+observed.quoteRevision+'\nRecorded by server at '+observed.recordedAt+' (not an external agreement time)\nCaptured amount £'+observed.terms.amount+'\n'+observed.terms.wording+'\nOwner account:\n'+observed.ownerAccount}</Text><Text selectable style={styles.cardBody}>{'Current quote version '+observed.currentQuoteRevision+' · £'+observed.currentTerms.amount+'\n'+observed.currentTerms.wording}</Text><Text style={styles.cardBody}>{observed.termsChanged?'Quote version/terms differ. This old report cannot establish agreement to the current quote.':'Matching internal terms do not prove customer acceptance.'} No canonical booking association is established by this protocol; original request/link/diary authority remains required. This read is not a receipt for a prior session.</Text></>:null}
+  {observed?<><Text selectable style={styles.cardBody}>{'Owner report '+observed.evidenceId+' · '+(observed.reportState||'original')+' · UNVERIFIED · quote version '+observed.quoteRevision+'\nRecorded by server at '+observed.recordedAt+' (not an external agreement time)\nCaptured amount £'+observed.terms.amount+'\n'+observed.terms.wording+'\nOwner account:\n'+observed.ownerAccount}</Text><Text selectable style={styles.cardBody}>{'Current quote version '+observed.currentQuoteRevision+' · £'+observed.currentTerms.amount+'\n'+observed.currentTerms.wording}</Text><Text style={styles.cardBody}>{observed.termsChanged?'Quote version/terms differ. This old report cannot establish agreement to the current quote.':'Matching internal terms do not prove customer acceptance.'} No canonical booking association is established by this protocol; original request/link/diary authority remains required. This read is not a receipt for a prior session.</Text></>:null}
+  {observed?<CanonicalAgreementDecision key={observed.evidenceId} s={s} customerId={customerId} record={record} evidence={observed} sourceBlocked={sourceBlocked} sourceReviewEpoch={sourceReviewEpoch}/>:null}
  </Card>;
 }

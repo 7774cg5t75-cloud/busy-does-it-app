@@ -2453,6 +2453,13 @@
         "scripts/check-mission15-agreement-evidence.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-agreement-decisions",
+      "args": [
+        "scripts/check-mission15-agreement-decisions.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
