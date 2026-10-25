@@ -39,6 +39,26 @@ ALTER TABLE public.business_work_engagements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.business_work_private_drafts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.business_work_engagements,public.business_work_private_drafts FROM PUBLIC,anon,authenticated,service_role;
 
+-- Local-only owner-report evidence. No lifecycle/booking permission follows creation.
+CREATE TABLE public.business_work_agreement_evidence(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,
+ created_by uuid NOT NULL,quote_revision bigint NOT NULL CHECK(quote_revision>0),
+ evidence_class text NOT NULL CHECK(evidence_class='owner_reported_offline'),
+ verification text NOT NULL CHECK(verification='unverified'),
+ quote_terms jsonb NOT NULL CHECK(jsonb_typeof(quote_terms)='object'),
+ terms_hash text NOT NULL CHECK(terms_hash ~ '^[0-9a-f]{64}$'),
+ source_hash text NOT NULL CHECK(source_hash ~ '^[0-9a-f]{64}$'),
+ owner_account text NOT NULL CHECK(btrim(owner_account)<>'' AND octet_length(owner_account)<=5000),
+ revision bigint NOT NULL DEFAULT 1 CHECK(revision=1),
+ recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ creation_operation_id text NOT NULL CHECK(creation_operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),
+ FOREIGN KEY(business_id,customer_id,engagement_id) REFERENCES public.business_work_engagements(business_id,customer_id,id) ON DELETE RESTRICT,
+ UNIQUE(business_id,engagement_id,created_by,quote_revision),UNIQUE(business_id,created_by,creation_operation_id)
+);
+CREATE INDEX busy_work_agreement_page ON public.business_work_agreement_evidence(business_id,customer_id,engagement_id,created_by,id);
+ALTER TABLE public.business_work_agreement_evidence ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.business_work_agreement_evidence FROM PUBLIC,anon,authenticated,service_role;
 CREATE FUNCTION busy_work_private.authorize(b uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE actor uuid:=auth.uid();r text;
 BEGIN
@@ -207,6 +227,48 @@ BEGIN
  ELSE UPDATE public.business_work_private_drafts SET text=p_text,engagement_revision=r.revision,source_hash=p_source_hash,revision=next_rev,operation_id=p_operation_id,updated_at=clock_timestamp() WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND owner_id=auth.uid() AND kind=p_kind;END IF;
  RETURN jsonb_build_object('operation','engagement_private_wording','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'actorId',auth.uid(),'kind',p_kind,'previousRevision',p_expected_draft_revision,'revision',next_rev,'engagementRevision',r.revision,'schemaVersion',1,'textHash',busy_work_private.hash(to_jsonb(p_text)));
 END $$;
+CREATE FUNCTION busy_work_private.quote_terms(r public.business_work_engagements) RETURNS jsonb LANGUAGE sql STABLE SET search_path=pg_catalog,pg_temp AS $$
+ SELECT jsonb_build_object('engagementId',r.id,'customerId',r.customer_id,'enquiryId',r.enquiry_id,'quoteRevision',r.revision,'termsSchemaVersion',1,'recordHash',busy_work_private.hash(r.work_data),'sourceHash',r.source_hash,'presentation','internal_prepared_quote','amount',r.work_data->'details'->'quoteAmount','plannedQuoteDate',r.work_data->'details'->'plannedSentDate','wording',r.work_data->'details'->'message','service',r.source_evidence->'customer'->'service')
+$$;
+CREATE FUNCTION public.busy_work_agreement_review_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;terms jsonb;
+BEGIN
+ IF p_expected_revision IS NULL OR p_expected_revision<1 THEN RAISE EXCEPTION 'Exact quote revision required' USING ERRCODE='22023';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);
+ IF NOT has_function_privilege('authenticated',to_regprocedure('public.busy_work_agreement_create_v1(uuid,text,uuid,bigint,text,text,text)'),'EXECUTE') THEN RAISE EXCEPTION 'Evidence recording unavailable' USING ERRCODE='42501';END IF;
+ terms:=busy_work_private.quote_terms(r);
+ RETURN busy_work_private.project(r)||jsonb_build_object('currentAgreementReview',true,'terms',terms,'termsHash',busy_work_private.hash(terms),'evidenceClass','owner_reported_offline','verification','unverified','bookingEligible',false);
+END $$;
+CREATE FUNCTION public.busy_work_agreement_create_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint,p_terms_hash text,p_owner_account text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;terms jsonb;e public.business_work_agreement_evidence%ROWTYPE;
+BEGIN
+ IF p_expected_revision IS NULL OR p_expected_revision<1 OR p_owner_account IS NULL OR btrim(p_owner_account)='' OR octet_length(p_owner_account)>5000 OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' THEN RAISE EXCEPTION 'Invalid owner report' USING ERRCODE='22023';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);terms:=busy_work_private.quote_terms(r);
+ IF p_terms_hash IS NULL OR p_terms_hash IS DISTINCT FROM busy_work_private.hash(terms) THEN RAISE EXCEPTION 'Quote terms changed' USING ERRCODE='40001';END IF;
+ IF EXISTS(SELECT 1 FROM public.business_work_agreement_evidence WHERE business_id=p_business_id AND engagement_id=p_engagement_id AND created_by=auth.uid() AND quote_revision=r.revision) THEN RAISE EXCEPTION 'Owner report already recorded for this version; inspect without replay' USING ERRCODE='40001';END IF;
+ INSERT INTO public.business_work_agreement_evidence(business_id,customer_id,engagement_id,created_by,quote_revision,evidence_class,verification,quote_terms,terms_hash,source_hash,owner_account,creation_operation_id)
+ VALUES(p_business_id,p_customer_id,p_engagement_id,auth.uid(),r.revision,'owner_reported_offline','unverified',terms,p_terms_hash,r.source_hash,p_owner_account,p_operation_id) RETURNING * INTO e;
+ RETURN jsonb_build_object('operation','engagement_owner_report','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'evidenceId',e.id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',0,'revision',1,'quoteRevision',r.revision,'termsHash',e.terms_hash,'sourceHash',r.source_hash,'evidenceClass',e.evidence_class,'verification',e.verification,'recordedAt',e.recorded_at,'bookingEligible',false);
+END $$;
+CREATE FUNCTION public.busy_work_agreement_list_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);items jsonb;cursor uuid;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 THEN RAISE EXCEPTION 'Invalid page size' USING ERRCODE='22023';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('evidenceId',id,'quoteRevision',quote_revision,'evidenceClass',evidence_class,'verification',verification) ORDER BY id),'[]') INTO items FROM (SELECT * FROM public.business_work_agreement_evidence WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND created_by=auth.uid() AND (p_after IS NULL OR id>p_after) ORDER BY id LIMIT p_limit) x;
+ IF jsonb_array_length(items)=p_limit THEN cursor:=(items->(p_limit-1)->>'evidenceId')::uuid;END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'items',items,'nextCursor',cursor,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_agreement_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_evidence_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);e public.business_work_agreement_evidence%ROWTYPE;current_terms jsonb;
+BEGIN
+ SELECT * INTO e FROM public.business_work_agreement_evidence WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND id=p_evidence_id AND created_by=auth.uid();
+ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence unavailable' USING ERRCODE='42501';END IF;
+ current_terms:=busy_work_private.quote_terms(r);
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'evidenceId',e.id,'revision',e.revision,'quoteRevision',e.quote_revision,'terms',e.quote_terms,'termsHash',e.terms_hash,'ownerAccount',e.owner_account,'evidenceClass',e.evidence_class,'verification',e.verification,'recordedAt',e.recorded_at,'recordedTimeMeaning','server_recorded_owner_report_not_external_event','currentQuoteRevision',r.revision,'currentTerms',current_terms,'termsChanged',busy_work_private.hash(current_terms) IS DISTINCT FROM e.terms_hash,'bookingEligible',false,'notOwnReceipt',true,'requestAssociationState','not_established_by_protocol');
+END $$;
+CREATE FUNCTION busy_work_private.protect_agreement() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Immutable owner report; record a later quote version separately' USING ERRCODE='42501';END $$;
+CREATE TRIGGER busy_work_agreement_immutable BEFORE UPDATE ON public.business_work_agreement_evidence FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_agreement();
 CREATE FUNCTION busy_work_private.protect_identity() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
 BEGIN
  IF ROW(NEW.id,NEW.business_id,NEW.customer_id,NEW.enquiry_id,NEW.created_by,NEW.creation_operation_id,NEW.created_at,NEW.legacy_record_hash,NEW.source_hash,NEW.customer_hash,NEW.source_evidence,NEW.kind,NEW.status,NEW.schema_version) IS DISTINCT FROM ROW(OLD.id,OLD.business_id,OLD.customer_id,OLD.enquiry_id,OLD.created_by,OLD.creation_operation_id,OLD.created_at,OLD.legacy_record_hash,OLD.source_hash,OLD.customer_hash,OLD.source_evidence,OLD.kind,OLD.status,OLD.schema_version) THEN RAISE EXCEPTION 'Immutable engagement/source identity' USING ERRCODE='42501';END IF;
@@ -225,12 +287,12 @@ END $$;
 CREATE TRIGGER busy_canonical_legacy_readonly BEFORE UPDATE OR DELETE ON public.busy_business_snapshots FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_legacy();
 DO $$ DECLARE f record;r text;t regclass;
 BEGIN
- FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1') LOOP
+ FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1','busy_work_agreement_review_v1','busy_work_agreement_create_v1','busy_work_agreement_list_v1','busy_work_agreement_read_v1') LOOP
   EXECUTE format('ALTER FUNCTION %s OWNER TO postgres',f.signature);EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
   IF f.proname LIKE 'busy_work_%' AND f.proname<>'busy_work_migrate_legacy_v1' THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
  END LOOP;
  FOREACH r IN ARRAY ARRAY['anon','authenticated','service_role'] LOOP
-  FOREACH t IN ARRAY ARRAY['public.business_work_engagements'::regclass,'public.business_work_private_drafts'::regclass] LOOP
+  FOREACH t IN ARRAY ARRAY['public.business_work_engagements'::regclass,'public.business_work_private_drafts'::regclass,'public.business_work_agreement_evidence'::regclass] LOOP
    IF has_any_column_privilege(r,t,'SELECT,INSERT,UPDATE,REFERENCES') OR has_table_privilege(r,t,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN RAISE EXCEPTION 'Effective raw privilege remains for % on %',r,t;END IF;
   END LOOP;
   IF has_any_column_privilege(r,'public.busy_business_snapshots','UPDATE') OR has_table_privilege(r,'public.busy_business_snapshots','SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN RAISE EXCEPTION 'Snapshot fence missing';END IF;

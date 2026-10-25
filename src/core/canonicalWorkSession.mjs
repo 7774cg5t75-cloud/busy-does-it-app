@@ -1,17 +1,19 @@
 import {stableJson} from './stableJson.mjs';
 // V22.51 canonical individual records. Rollout is NOT authorization.
 export const CANONICAL_WORK_ACCOUNT_ENABLED=false;
+export const CANONICAL_OWNER_REPORT_ENABLED=false;
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(v);
 const hash=v=>typeof v==='string'&&/^[0-9a-f]{64}$/.test(v);
 const same=(a,b)=>stableJson(a)===stableJson(b);
+const ownerAccount=v=>{if(typeof v!=='string'||!v.trim())return false;try{return encodeURIComponent(v).replace(/%[A-F0-9]{2}/g,'x').length<=5000;}catch{return false;}};
 // Volatile finite-operation evidence only; canonical rows remain server authority.
 export function createCanonicalWorkSession(){
  const observations=new WeakMap(),tickets=new WeakMap(),outcomes=new WeakMap();
- return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
+ return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,agreementEnabled=CANONICAL_OWNER_REPORT_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
   const initial=getCurrent(),scope=initial?.scope,start={ownerId:initial?.ownerId,businessId:initial?.businessId,role:initial?.role};
   const valid=()=>{const c=getCurrent();return enabled===true&&!!scope&&typeof scope==='object'&&c?.scope===scope&&c.ready===true&&c.ownerId===start.ownerId&&c.businessId===start.businessId&&c.role==='owner'&&start.role==='owner'&&!!c.ownerId&&uuid(c.businessId);};
   const observe=(value,kind)=>{observations.set(value,{scope,owner:start.ownerId,business:start.businessId,kind,localRevision:getCurrent().revision,stamp:stableJson(value)});return value;};
-  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(kind!=='edit'||getCurrent().revision===b.localRevision);};
+  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(!['edit','agreement'].includes(kind)||getCurrent().revision===b.localRevision);};
   const io=async(name,body,beforeSend=()=>true)=>{if(!valid())throw Error('Canonical Work is disabled or the workspace changed.');const token=await ownerAccessToken();if(!valid()||!token||!beforeSend())throw Error('Current authentication or review unavailable.');const value=await request('rpc/busy_work_'+name+'_v1',{method:'POST',token,body:{p_business_id:start.businessId,...body}});if(!valid())throw Error('Workspace changed during the request. Keep local work.');return value;};
   const scoped=(v,c,id=null)=>v&&v.businessId===start.businessId&&v.customerId===c&&(v.ownerId===start.ownerId||v.actorId===start.ownerId)&&(!id||v.engagementId===id);
   const source=async(customerId,enquiryId,revision)=>{
@@ -33,16 +35,20 @@ export function createCanonicalWorkSession(){
   const editContext=async(customerId,id,revision)=>{if(!uuid(id)||!Number.isSafeInteger(revision)||revision<1)throw Error('Current engagement revision required.');const value=await io('edit_context',{p_customer_id:customerId,p_engagement_id:id,p_expected_revision:revision});if(!scoped(value,customerId,id)||value.currentEditContext!==true||value.schemaVersion!==1||value.revision!==revision||value.type!=='quote'||value.status!=='Prepared'||!hash(value.sourceHash)||!hash(value.recordHash)||!Number.isSafeInteger(value.contextSnapshotRevision)||value.contextSnapshotRevision<1||value.notOwnReceipt!==true||!Array.isArray(value.allowedOperations)||!value.allowedOperations.includes('edit_quote')||value.allowedOperations.some(x=>!['edit_quote','private_followup'].includes(x))||value.record?.type!=='quote'||!value.record.details||Object.keys(value.record.details).some(k=>!['quoteStatus','quoteAmount','message','plannedSentDate'].includes(k)))throw Error('Current edit context unavailable.');return observe(value,'edit');};
   const isEditContext=(value,operation='edit_quote')=>observed(value,'edit')&&value.currentEditContext===true&&value.allowedOperations.includes(operation);
   const privateRead=async(customerId,id,kind)=>{if(!['reply','followup','work_notes'].includes(kind))throw Error('Unsupported private purpose.');const value=await io('private_read',{p_customer_id:customerId,p_engagement_id:id,p_kind:kind});if(!scoped(value,customerId,id)||value.kind!==kind||!Number.isSafeInteger(value.revision)||value.revision<0||value.notOwnReceipt!==true||typeof value.needsReview!=='boolean'||value.revision===0&&value.text!==null||value.revision>0&&(typeof value.text!=='string'||!Number.isSafeInteger(value.engagementRevision)||value.engagementRevision<1))throw Error('Private draft identity mismatch.');return observe(value,'private');};
+  const agreementContext=async(customerId,id,revision)=>{if(!uuid(id)||!Number.isSafeInteger(revision)||revision<1)throw Error('Exact quote version required.');if(!agreementEnabled)throw Error('Owner-report evidence is disabled.');const v=await io('agreement_review',{p_customer_id:customerId,p_engagement_id:id,p_expected_revision:revision});if(!scoped(v,customerId,id)||v.revision!==revision||v.currentAgreementReview!==true||v.schemaVersion!==1||v.type!=='quote'||v.status!=='Prepared'||v.notOwnReceipt!==true||v.evidenceClass!=='owner_reported_offline'||v.verification!=='unverified'||v.bookingEligible!==false||!hash(v.termsHash)||!hash(v.sourceHash)||v.terms?.quoteRevision!==revision||v.terms?.customerId!==customerId||v.terms?.enquiryId!==v.enquiryId||v.terms?.engagementId!==id||v.terms?.presentation!=='internal_prepared_quote')throw Error('Agreement review unavailable.');return observe(v,'agreement');};
+  const agreementList=async(customerId,id,after=null)=>{if(!agreementEnabled)throw Error('Owner-report evidence is disabled.');const v=await io('agreement_list',{p_customer_id:customerId,p_engagement_id:id,p_after:after,p_limit:20});if(!scoped(v,customerId,id)||v.notOwnReceipt!==true||!Array.isArray(v.items)||v.items.length>20||v.nextCursor!==null&&!uuid(v.nextCursor)||new Set(v.items.map(x=>x.evidenceId)).size!==v.items.length||v.items.some(x=>!uuid(x.evidenceId)||!Number.isSafeInteger(x.quoteRevision)||x.quoteRevision<1||x.evidenceClass!=='owner_reported_offline'||x.verification!=='unverified'||Object.keys(x).some(k=>!['evidenceId','quoteRevision','evidenceClass','verification'].includes(k))))throw Error('Unsupported evidence page.');return v;};
+  const agreementRead=async(customerId,id,evidenceId)=>{if(!agreementEnabled)throw Error('Owner-report evidence is disabled.');const v=await io('agreement_read',{p_customer_id:customerId,p_engagement_id:id,p_evidence_id:evidenceId});if(!scoped(v,customerId,id)||v.evidenceId!==evidenceId||v.revision!==1||v.notOwnReceipt!==true||v.bookingEligible!==false||v.evidenceClass!=='owner_reported_offline'||v.verification!=='unverified'||typeof v.ownerAccount!=='string'||!hash(v.termsHash)||v.terms?.engagementId!==id||v.terms?.quoteRevision!==v.quoteRevision||typeof v.termsChanged!=='boolean')throw Error('Unsupported evidence read.');return v;};
   const review=({operation,source:src,record,draft,fields,operationId,editor})=>{
-   if(!valid()||!['create','edit','private'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
+   if(!valid()||!['create','edit','private','agreement'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
    const base=operation==='create'?src:record;
-   const sourceKind=operation==='create'?'source':observed(base,'edit')?'edit':'record';
+   const sourceKind=operation==='agreement'?'agreement':operation==='create'?'source':observed(base,'edit')?'edit':'record';
    if(!observed(base,sourceKind)||editor.customerId!==base.customerId||operation==='private'&&(!observed(draft,'private')||draft.engagementId!==record.engagementId||draft.customerId!==record.customerId))return null;
    if(sourceKind==='edit'&&!isEditContext(base,operation==='private'?'private_followup':'edit_quote'))return null;
    if(sourceKind==='edit'&&operation==='private'&&!['followup','work_notes'].includes(draft?.kind))return null;
-   if(['edit','private'].includes(operation)&&editor.engagementId!==record.engagementId)return null;
+   if(['edit','private','agreement'].includes(operation)&&editor.engagementId!==record.engagementId)return null;
    if(operation==='create'&&editor.engagementId!==null)return null;
    if(['create','edit'].includes(operation)&&(!fields||typeof fields.text!=='string'||!fields.text.trim()||typeof fields.amount!=='string'||!/^\d+(?:\.\d{1,2})?$/.test(fields.amount)||typeof fields.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(fields.date)))return null;
+   if(operation==='agreement'&&(!agreementEnabled||!ownerAccount(fields?.text)||editor.purpose!=='owner_reported_offline'||base.verification!=='unverified'||base.bookingEligible!==false))return null;
    if(!same(editor.fields,fields))return null;
    if(operation==='create'&&src.hasLegacyWork)return null;
    if(operation==='private'&&editor.purpose!==undefined&&editor.purpose!==draft?.kind)return null;
@@ -61,17 +67,19 @@ export function createCanonicalWorkSession(){
     Object.assign(body,{p_enquiry_id:base.enquiryId,p_expected_snapshot_revision:base.snapshotRevision,p_source_hash:base.sourceHash,p_customer_hash:base.customerHash,p_amount:fields.amount,p_text:fields.text,p_date:fields.date});
    }else if(ticket.operation==='edit'){
     name='edit_quote';operation='engagement_edit_quote';expected=base.revision;Object.assign(body,{p_engagement_id:base.engagementId,p_expected_revision:base.revision,p_source_hash:base.sourceHash,p_amount:fields.amount,p_text:fields.text,p_date:fields.date});
+   }else if(ticket.operation==='agreement'){
+    name='agreement_create';operation='engagement_owner_report';expected=0;Object.assign(body,{p_engagement_id:base.engagementId,p_expected_revision:base.revision,p_terms_hash:base.termsHash,p_owner_account:fields.text});
    }else{
     name='private_write';operation='engagement_private_wording';expected=t.draft.revision;Object.assign(body,{p_engagement_id:base.engagementId,p_engagement_revision:base.revision,p_expected_draft_revision:expected,p_source_hash:base.sourceHash,p_kind:t.draft.kind,p_text:fields.text});
    }
    let sent=false;
    try{
     const receipt=await io(name,body,()=>{if(!same(getEditor(),JSON.parse(t.editor))||!observed(t.source,t.sourceKind))return false;sent=true;return true;});
-    if(!scoped(receipt,ticket.customerId,ticket.engagementId)||receipt.operation!==operation||receipt.operationId!==ticket.operationId||receipt.schemaVersion!==1||receipt.previousRevision!==expected||receipt.revision!==expected+1||!uuid(receipt.engagementId)||ticket.operation!=='private'&&!hash(receipt.recordHash)||ticket.operation==='private'&&(receipt.kind!==t.draft.kind||receipt.engagementRevision!==base.revision||!hash(receipt.textHash))||ticket.operation==='create'&&receipt.enquiryId!==base.enquiryId||ticket.operation!=='private'&&receipt.sourceHash!==base.sourceHash)throw Error('Exact operation receipt mismatch.');
+    if(!scoped(receipt,ticket.customerId,ticket.engagementId)||receipt.operation!==operation||receipt.operationId!==ticket.operationId||receipt.schemaVersion!==1||receipt.previousRevision!==expected||receipt.revision!==expected+1||!uuid(receipt.engagementId)||!['private','agreement'].includes(ticket.operation)&&!hash(receipt.recordHash)||ticket.operation==='private'&&(receipt.kind!==t.draft.kind||receipt.engagementRevision!==base.revision||!hash(receipt.textHash))||ticket.operation==='create'&&receipt.enquiryId!==base.enquiryId||ticket.operation!=='private'&&receipt.sourceHash!==base.sourceHash||ticket.operation==='agreement'&&(!uuid(receipt.evidenceId)||receipt.quoteRevision!==base.revision||receipt.termsHash!==base.termsHash||receipt.verification!=='unverified'||receipt.evidenceClass!=='owner_reported_offline'||receipt.bookingEligible!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact operation receipt mismatch.');
     const result={status:'confirmed',evidence,receipt,ticket};outcomes.set(scope,result);return result;
    }catch{const status=sent?'unknown':'reviewRequired';if(outcomes.get(scope)===pending)outcomes.set(scope,{status,ticket});return {status,ticket};}
   };
-  return {enabled:enabled===true,evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
+  return {enabled:enabled===true,agreementEnabled:agreementEnabled===true,isAgreementContext:v=>agreementEnabled&&observed(v,'agreement'),evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,agreementContext,agreementList,agreementRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
  }};
 }
 

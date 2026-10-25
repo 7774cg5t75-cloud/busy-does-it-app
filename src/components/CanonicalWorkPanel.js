@@ -1,3 +1,4 @@
+import {CanonicalAgreementEvidence} from './CanonicalAgreementEvidence';
 import {CanonicalPrivateFollowUp,CanonicalWorkNotes} from './CanonicalPrivateFollowUp';
 import React from 'react';
 import {Text,View,Alert} from 'react-native';
@@ -127,5 +128,6 @@ export function CanonicalWorkPanel({s,customer,accountContext=null}){
   {record||source?<View><Text style={styles.workspaceMeta}>{id?'Selected engagement: '+id+' · Revision '+record.revision:'New quote preparation, not yet saved'}</Text><PrivateQuoteFields s={quoteState} review={{...review,conflict:busy||unsupportedContext||sourceBlocked||review.conflict}} customerId={customerId} status={record?.status||'Private preparation'}/><Field label="Planned quote sent date" value={form.date} editable={!busy&&!unsupportedContext&&!sourceBlocked&&!review.conflict} onChangeText={v=>review.edit('actionQuoteSentDate',v)}/><Button label="Review engagement save" primary disabled={busy||checkingSource||unsupportedContext||sourceBlocked||review.conflict||!review.validDate||!record&&!!source?.hasLegacyWork} onPress={()=>authorise(record?'edit':'create')}/></View>:null}
   {record&&(!accountMode||record.allowedOperations?.includes('private_followup'))?<CanonicalPrivateFollowUp sourceReviewEpoch={sourceReviewEpoch.current} sourceBlocked={sourceBlocked} key={record.engagementId} s={s} customer={customer} customerId={customerId} record={record} accountContext={accountMode?record:null} api={api}/>:null}
   {record&&(!accountMode||record.allowedOperations?.includes('private_followup'))?<CanonicalWorkNotes sourceReviewEpoch={sourceReviewEpoch.current} sourceBlocked={sourceBlocked} key={record.engagementId+':work_notes'} s={s} customer={customer} customerId={customerId} record={record} accountContext={accountMode?record:null} api={api}/>:null}
+  {record&&api.agreementEnabled?<CanonicalAgreementEvidence key={record.engagementId+':agreement'} s={s} customerId={customerId} record={record} sourceBlocked={sourceBlocked} sourceReviewEpoch={sourceReviewEpoch.current}/>:null}
  </Card></View>;
 }

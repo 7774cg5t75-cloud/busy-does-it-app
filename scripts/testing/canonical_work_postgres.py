@@ -266,9 +266,54 @@ def notes_lost_ack():
 stage('work-notes-lost-ack-read-not-own-receipt',notes_lost_ack)
 stage('unknown-private-purpose-denied',lambda:denied(f"SELECT public.busy_work_private_read_v1('{B}','{C}','{state['second']}','arbitrary_notes');",'22023'))
 stage('work-notes-do-not-leak-through-work-projection',lambda:(eq('Writer A notes' in json.dumps(read(state['second'])),False),eq(row(state['second']),state['notesQuoteBefore']),eq(json.loads(run(f"SELECT extensions::text FROM public.business_work_private_drafts WHERE business_id='{B}' AND engagement_id='{state['second']}' AND kind='work_notes';"))['futureNotes']['keep'],True)))
+# Immutable owner-reported evidence of exact INTERNAL quote terms, never acceptance.
+def agreement_context():return rpc('agreement_review',[B,C,state['second'],row(state['second'])['revision']])
+def agreement_create(op,words='Owner reports a verbal discussion; no independently verified receipt'):
+ v=agreement_context();return rpc('agreement_create',[B,C,state['second'],v['revision'],v['termsHash'],words,op],commit=True)
+def agreement_read(id):return rpc('agreement_read',[B,C,state['second'],id])
+def agreement_first():
+ v=agreement_context();eq(v['evidenceClass'],'owner_reported_offline');eq(v['verification'],'unverified');eq(v['bookingEligible'],False);eq(v['terms']['presentation'],'internal_prepared_quote');assert 'secretSynthetic' not in json.dumps(v);state['agreementQuoteBefore']=row(state['second']);state['agreementNotesBefore']=notes_read();state['agreementFollowupBefore']=rpc('private_read',[B,C,state['second'],'followup']);state['agreement1']=agreement_create('owner-report-first')['evidenceId']
+def agreement_full_hash():
+ before=agreement_context();id=state['second'];sql=f"BEGIN;UPDATE public.business_work_engagements SET work_data=jsonb_set(work_data,'{{futureTerms}}','{{\"privateHashMarker\":true}}'::jsonb) WHERE id='{id}';SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='{O}';SELECT public.busy_work_agreement_review_v1('{B}','{C}','{id}',{row(id)['revision']});ROLLBACK;";value=json.loads(next(x for x in run(sql).splitlines() if x.startswith('{')));assert value['termsHash']!=before['termsHash'];assert 'privateHashMarker' not in json.dumps(value);eq(value['revision'],before['revision'])
+stage('agreement-fingerprint-binds-whole-work-without-disclosing-extensions',agreement_full_hash)
+stage('owner-report-review-server-derived-internal-terms',agreement_first)
+def agreement_snapshot():
+ v=agreement_read(state['agreement1']);eq(v['quoteRevision'],state['agreementQuoteBefore']['revision']);eq(v['termsChanged'],False);eq(v['notOwnReceipt'],True);eq(v['verification'],'unverified');eq(v['recordedTimeMeaning'],'server_recorded_owner_report_not_external_event');eq(v['requestAssociationState'],'not_established_by_protocol');assert 'operationId' not in v;state['agreementOriginal']=v;eq(row(state['second']),state['agreementQuoteBefore']);eq(notes_read(),state['agreementNotesBefore']);eq(rpc('private_read',[B,C,state['second'],'followup']),state['agreementFollowupBefore'])
+stage('owner-report-exact-read-preserves-work-private-and-legacy',agreement_snapshot)
+def agreement_deny_patch(revision=None,terms=None):
+ v=agreement_context();denied('SELECT public.busy_work_agreement_create_v1('+','.join(map(q,[B,C,state['second'],v['revision'] if revision is None else revision,v['termsHash'] if terms is None else terms,'No unsupported assertion','rejected-owner-report']))+');','40001')
+stage('owner-report-duplicate-quote-version-denied',agreement_deny_patch)
+stage('owner-report-forged-terms-fingerprint-denied',lambda:agreement_deny_patch(terms='0'*64))
+stage('owner-report-stale-quote-version-denied',lambda:agreement_deny_patch(revision=1))
+for uid,label in [(M,'member'),(S,'coowner'),(D,'foreign')]:stage(label+'-owner-report-denied',lambda uid=uid:denied(f"SELECT public.busy_work_agreement_read_v1('{B}','{C}','{state['second']}','{state['agreement1']}');",uid=uid))
+stage('anonymous-owner-report-denied',lambda:denied(f"SELECT public.busy_work_agreement_read_v1('{B}','{C}','{state['second']}','{state['agreement1']}');",uid='',role='anon'))
+def agreement_role(remove=False):
+ change=f"DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}'" if remove else f"UPDATE public.busy_business_memberships SET role='admin' WHERE business_id='{B}' AND user_id='{O}'";v=call('BEGIN;'+change+';'+auth(f"SELECT public.busy_work_agreement_read_v1('{B}','{C}','{state['second']}','{state['agreement1']}');"));assert v.returncode!=0 and '42501' in v.stderr
+stage('admin-owner-report-denied',agreement_role);stage('revoked-owner-report-denied',lambda:agreement_role(True))
+stage('foreign-business-owner-report-denied',lambda:denied(f"SELECT public.busy_work_agreement_read_v1('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','{C}','{state['second']}','{state['agreement1']}');"))
+stage('wrong-engagement-evidence-adoption-denied',lambda:denied(f"SELECT public.busy_work_agreement_read_v1('{B}','{C}','{state['first']}','{state['agreement1']}');"))
+for role in ['authenticated','service_role']:stage(role+'-raw-agreement-table-denied',lambda role=role:denied('SELECT * FROM public.business_work_agreement_evidence;',role=role))
+stage('owner-report-immutable-terms-update-denied',lambda:denied(f"UPDATE public.business_work_agreement_evidence SET owner_account='Rewrite' WHERE id='{state['agreement1']}';",role='postgres'))
+def verified_rejected():
+ denied(f"INSERT INTO public.business_work_agreement_evidence(business_id,customer_id,engagement_id,created_by,quote_revision,evidence_class,verification,quote_terms,terms_hash,source_hash,owner_account,creation_operation_id) SELECT business_id,customer_id,engagement_id,created_by,quote_revision+100,'owner_reported_offline','verified',quote_terms,terms_hash,source_hash,owner_account,'unsupported-verified-proof' FROM public.business_work_agreement_evidence WHERE id='{state['agreement1']}';",'23514',role='postgres')
+stage('verified-class-is-not-owner-report-upgrade',verified_rejected)
+def agreement_changed_quote():
+ id=state['second'];r=row(id);edit(id,r['revision'],'change-quote-after-report','  Changed quoted terms\nnot inherited  ','0');v=agreement_read(state['agreement1']);eq(v['termsHash'],state['agreementOriginal']['termsHash']);eq(v['terms'],state['agreementOriginal']['terms']);eq(v['termsChanged'],True);eq(v['currentQuoteRevision'],r['revision']+1);eq(v['currentTerms']['amount'],'0');eq(v['bookingEligible'],False);eq(row(id)['status'],'Prepared');state['agreement2']=agreement_create('owner-report-new-quote-version')['evidenceId'];assert state['agreement1']!=state['agreement2']
+stage('changed-quote-keeps-old-report-without-inheriting-agreement',agreement_changed_quote)
+def agreement_pages():
+ a=rpc('agreement_list',[B,C,state['second'],None,1]);eq(len(a['items']),1);assert a['nextCursor'];b=rpc('agreement_list',[B,C,state['second'],a['nextCursor'],1]);eq(len(b['items']),1);assert a['items'][0]['evidenceId']!=b['items'][0]['evidenceId'];assert all(set(x)=={'evidenceId','quoteRevision','evidenceClass','verification'} for x in a['items']+b['items'])
+stage('agreement-keyset-summaries-no-owner-text',agreement_pages)
+stage('agreement-page-size-bounded',lambda:denied(f"SELECT public.busy_work_agreement_list_v1('{B}','{C}','{state['second']}',NULL,51);",'22023'))
+def agreement_source_change():
+ v=call(f"BEGIN;UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{{inboxItems,1,rawText}}','\"Source changed after report\"') WHERE business_id='{B}';"+auth(f"SELECT public.busy_work_agreement_read_v1('{B}','{C}','{state['second']}','{state['agreement1']}');"));assert v.returncode!=0 and '40001' in v.stderr
+stage('changed-source-owner-report-read-fails-closed',agreement_source_change)
+def agreement_competing():
+ r=row(state['second']);edit(state['second'],r['revision'],'next-report-quote-version','Terms for concurrent owner reports','0');v=agreement_context();args=[B,C,state['second'],v['revision'],v['termsHash'],'Owner report A','owner-report-concurrent-a'];h=hold('SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+q(O)+';SELECT public.busy_work_agreement_create_v1('+','.join(map(q,args))+')');args[-1]='owner-report-concurrent-b';other=subprocess.Popen(base,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);other.stdin.write("SET statement_timeout='5s';"+auth('SELECT public.busy_work_agreement_create_v1('+','.join(map(q,args))+');',commit=True));other.stdin.close();time.sleep(.2);assert other.poll() is None;release(h);other.wait(timeout=8);output=other.stdout.read()+other.stderr.read();logs.append({'exitCode':other.returncode,'holderExitCode':h.returncode,'output':output});assert other.returncode!=0 and '40001' in output;items=rpc('agreement_list',[B,C,state['second'],None,20]);eq(len(items['items']),3);e=next(x for x in items['items'] if x['quoteRevision']==v['revision']);seen=agreement_read(e['evidenceId']);eq(seen['notOwnReceipt'],True);assert 'operationId' not in seen
+stage('real-competing-owner-reports-one-immutable-winner',agreement_competing)
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
 stage('rollback-denies-fresh-edit-context-without-reopening-writes',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"))
 stage('rollback-preserves-work-notes-and-denies-write',lambda:(eq(notes_read()['text'],'Writer A notes'),denied('SELECT public.busy_work_private_write_v1('+','.join(map(q,[B,C,state['second'],row(state['second'])['revision'],3,read(state['second'])['sourceHash'],'work_notes','Denied after rollback','notes-rollback-denied']))+');')))
+stage('rollback-owner-report-data-readable-creation-and-review-denied',lambda:(eq(agreement_read(state['agreement1'])['verification'],'unverified'),denied(f"SELECT public.busy_work_agreement_review_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});")))
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
  start=len(logs)

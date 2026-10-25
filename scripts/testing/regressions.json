@@ -2446,6 +2446,13 @@
         "scripts/check-mission15-returning-account-editor.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-agreement-evidence",
+      "args": [
+        "scripts/check-mission15-agreement-evidence.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
