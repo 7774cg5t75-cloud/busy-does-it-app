@@ -718,10 +718,11 @@ function SocialCreator({ s }) {
   const handoffTicket=s.socialContentActions?.capture();
   const applyIncomingIdea=()=>{
     if(!s.socialContentActions?.fresh(handoffTicket))return;
-    const apply=()=>{if(s.socialContentActions.fresh(handoffTicket))s.socialContentActions.accept(pendingIdea,handoffTicket);};
+    let used=false;
+    const apply=()=>{if(used||!s.socialContentActions.fresh(handoffTicket))return false;used=true;return s.socialContentActions.accept(pendingIdea,handoffTicket);};
     if(s.socialDraftText.trim()||s.selectedSocialDraftId){
       Alert.alert('Keep your current draft?', 'Using this new idea starts a separate private draft. Your selected photos stay; existing saved content is not replaced.',[
-        {text:'Keep my current draft',style:'cancel'}, {text:'Use this new idea',onPress:apply}
+        {text:'Keep my current draft',style:'cancel',onPress:()=>{used=true;}}, {text:'Use this new idea',onPress:apply}
       ]);
     }else apply();
   };

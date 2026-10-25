@@ -3856,13 +3856,14 @@ function App() {
       storagePath: photo.storagePath || "",
       contentType: photo.contentType || photo.mimeType || "image/jpeg",
     }));
+    const growthSource=socialContentActions.growthDraftOrigin?.();
     const record = {
       ...(existing || {}),
       id,
       source: socialSourceContext.type,
       sourceLabel: socialSourceContext.label,
       contentEvidence:socialSourceContext.contentEvidence||null,
-      growthOrigin:socialContentActions.growthDraftOrigin?.()||null,
+      ...(growthSource?{growthOrigin:growthSource}:{}),
       suggestedPlatform:["Facebook","Instagram"].includes(socialSourceContext.suggestedPlatform)?socialSourceContext.suggestedPlatform:"",
       sourceCustomerId: socialSourceContext.customerId || "",
       sourceJobId: socialSourceContext.jobId || "",

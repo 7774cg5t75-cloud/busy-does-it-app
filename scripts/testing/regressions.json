@@ -2523,6 +2523,13 @@
         "scripts/check-mission15-growth-opportunities.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-returning-growth",
+      "args": [
+        "scripts/check-mission15-returning-growth.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

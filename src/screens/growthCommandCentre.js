@@ -1,3 +1,5 @@
+import {GrowthServicesReview} from '../components/GrowthServicesReview';
+import {GrowthRequestHistory} from '../components/GrowthRequestHistory';
 import {GrowthOpportunities} from '../components/GrowthOpportunities';
 import {GrowthSavedAnnouncements} from '../components/GrowthSavedAnnouncements';
 import {GrowthCatalogueIdeas} from '../components/GrowthCatalogueIdeas';
@@ -76,8 +78,8 @@ function GrowthCommandCentre({s}){
     <Shell s={s} title="Get More Customers"
       subtitle="Your saved business growth projects, their last private review stage and what needs attention next."
       brandCue="Review your saved projects before anything goes public.">
-      <GrowthOpportunities s={s}/><GrowthSavedAnnouncements s={s}/><GrowthContentIdeas s={s}/><GrowthCatalogueIdeas s={s}/>
-      <GrowthWebsiteOpportunities s={s}/>
+      <GrowthOpportunities s={s}/><GrowthRequestHistory s={s}/><GrowthSavedAnnouncements s={s}/><GrowthContentIdeas s={s}/><GrowthCatalogueIdeas s={s}/>
+      <GrowthWebsiteOpportunities s={s}/><GrowthServicesReview s={s}/>
       <Card eyebrow="Project overview"
         title={busy?"Checking your private projects…":centre.counts.projects+" saved growth project"+(centre.counts.projects===1?"":"s")}
         body={centre.notice}

@@ -30,7 +30,7 @@ export function buildGrowthOpportunities({ownerId,businessId,role,revision,custo
    const section=sections[0],rows=section?.enabled===false?[]:section?.items||[];
    for(const service of services){
     if(rows.some(row=>text(row.title||row.name).toLocaleLowerCase('en')===service.name.toLocaleLowerCase('en')))continue;
-    result.push({id:'website-service:'+JSON.stringify([website.id,service.id||service.name]),stamp:stableJson([scope,website,profile.source]),kind:'website_service_gap',businessId,ownerId,sourceId:website.id,serviceName:service.name,title:'Explain '+service.name,priority:'preparation',why:'This approved service has no matching entry in the current private website Services section. A factual explanation could help visitors understand your business; no demand or conversion benefit is verified.',known:['Current approved service: '+service.name,'Private website draft '+website.id+' · generation '+website.generation],uncertain:['This is not a live-site inspection, search-ranking result or discovered customer.','The service may be described elsewhere; review the page before changing it.','Business capacity and audience demand are not established.'],contact:'no_recipient_or_contact_permission',observedAt:null,observationMeaning:'Current source inspection; no external observation timestamp',next:'creator_service',outcomes:{enquiry:'not_established',quotation:'not_established',outreach:'not_established',response:'not_established',wonWork:'not_established',payment:'not_established'}});
+    result.push({id:'website-service:'+JSON.stringify([website.id,service.id||service.name]),stamp:stableJson([scope,website,profile.source]),kind:'website_service_gap',businessId,ownerId,sourceId:website.id,sourceRevision:{websiteGeneration:website.generation,profileFingerprint:approvedProfile.fingerprint},serviceName:service.name,title:'Explain '+service.name,priority:'preparation',why:'This approved service has no matching entry in the current private website Services section. A factual explanation could help visitors understand your business; no demand or conversion benefit is verified.',known:['Current approved service: '+service.name,'Private website draft '+website.id+' · generation '+website.generation],uncertain:['This is not a live-site inspection, search-ranking result or discovered customer.','The service may be described elsewhere; review the page before changing it.','Business capacity and audience demand are not established.'],contact:'no_recipient_or_contact_permission',observedAt:null,observationMeaning:'Current source inspection; no external observation timestamp',next:'creator_service',outcomes:{enquiry:'not_established',quotation:'not_established',outreach:'not_established',response:'not_established',wonWork:'not_established',payment:'not_established'}});
    }
   }
  }
@@ -46,8 +46,13 @@ export function currentGrowthContentOrigin(context,origin){
 
 // Optional provenance on the original Creator record. It is not current source authority.
 export function growthDraftOrigin(value){
- if(!value||value.kind!=='website_service_gap'||!text(value.ownerId,180)||!text(value.businessId,180)||!text(value.id,400)||!text(value.sourceId,180)||!text(value.serviceName,120))return null;
- return {version:1,kind:'website_service_gap',ownerId:value.ownerId,businessId:value.businessId,id:value.id,sourceId:value.sourceId,serviceName:value.serviceName,referenceOnly:true};
+ if(!value||value.version!==undefined&&![1,2].includes(value.version)||value.kind!=='website_service_gap'||!text(value.ownerId,180)||!text(value.businessId,180)||!text(value.id,400)||!text(value.sourceId,180)||!text(value.serviceName,120))return null;
+ const versioned=Number.isSafeInteger(value.sourceRevision?.websiteGeneration)&&value.sourceRevision.websiteGeneration>=1&&text(value.sourceRevision.profileFingerprint,128);
+ if(value.version===2&&!versioned)return null;
+ const sourceRevision=versioned?{websiteGeneration:value.sourceRevision.websiteGeneration,profileFingerprint:value.sourceRevision.profileFingerprint}:null;
+ const feedback=value.feedback;
+ const validFeedback=versioned&&feedback?.purpose==='opportunity_relevance'&&['useful','irrelevant','later','clear'].includes(feedback.choice)&&Number.isSafeInteger(feedback.revision)&&feedback.revision>=1&&feedback.sourceRevision&&stableJson(feedback.sourceRevision)===stableJson(sourceRevision);
+ return {version:versioned?2:1,kind:'website_service_gap',ownerId:value.ownerId,businessId:value.businessId,id:value.id,sourceId:value.sourceId,serviceName:value.serviceName,referenceOnly:true,...versioned?{sourceRevision}:{},...validFeedback?{feedback:{purpose:'opportunity_relevance',choice:feedback.choice,revision:feedback.revision,sourceRevision}}:{}};
 }
 
 // Exact approved copy -> original Website Builder finite edit; no inferred SEO claim.
@@ -58,4 +63,14 @@ export function prepareGrowthWebsiteChange(input,evidence){
  const sections=input.website.sections.filter(s=>s.id==='services'||s.type==='services');
  if(sections.length===1&&(sections[0].id!=='services'||sections[0].type!=='services'||sections[0].enabled===false))return null;
  return {action:sections.length?'add-item':'create-collection',sectionId:'services',title:service.name,body:service.description};
+}
+
+// Shared finite website-source inspection for current suggestions and saved references.
+export function growthWebsiteEvidence({website,businessId,approvedProfile}={}){
+ const profile=buildContentBrandSnapshot({businessId,approvedProfile,sourceMode:'approved-profile'});
+ if(!profile.ok||!website||website.id==null||!own(website,businessId)||![website.businessId,website.business_id].includes(businessId)||!Number.isSafeInteger(website.generation)||website.generation<1||!Array.isArray(website.sections)||website.sections.some(s=>!s||typeof s!=='object'||Array.isArray(s)||!text(s.id,180)||!text(s.type,180)))return {state:'unavailable'};
+ const sections=website.sections.filter(s=>s.id==='services'||s.type==='services');
+ if(sections.length>1)return {state:'ambiguous'};
+ const section=sections[0];if(section&&(!Array.isArray(section.items)||section.items.some(r=>!r||typeof r!=='object'||Array.isArray(r)||!text(r.title||r.name,140))))return {state:'unavailable'};
+ return {state:section?.enabled===false?'restricted':'supported',profile,section,rows:section?.items||[],website};
 }
