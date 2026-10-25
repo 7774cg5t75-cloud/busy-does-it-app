@@ -2460,6 +2460,13 @@
         "scripts/check-mission15-agreement-decisions.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-quote-reference",
+      "args": [
+        "scripts/check-mission15-quote-reference.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -79,6 +79,19 @@ CREATE TABLE public.business_work_agreement_decisions(
 CREATE INDEX busy_work_agreement_decision_latest ON public.business_work_agreement_decisions(evidence_id,decision_revision DESC);
 ALTER TABLE public.business_work_agreement_decisions ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.business_work_agreement_decisions FROM PUBLIC,anon,authenticated,service_role;
+-- Private quote-version preparation only; never a sent offer or customer token.
+CREATE TABLE public.business_work_quote_references(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,
+ created_by uuid NOT NULL,quote_revision bigint NOT NULL CHECK(quote_revision>0),
+ terms jsonb NOT NULL CHECK(jsonb_typeof(terms)='object'),terms_hash text NOT NULL CHECK(terms_hash ~ '^[0-9a-f]{64}$'),source_hash text NOT NULL,
+ state text NOT NULL DEFAULT 'prepared_not_presented' CHECK(state='prepared_not_presented'),
+ operation_id text NOT NULL CHECK(operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ FOREIGN KEY(business_id,customer_id,engagement_id) REFERENCES public.business_work_engagements(business_id,customer_id,id) ON DELETE RESTRICT,
+ UNIQUE(business_id,engagement_id,created_by,quote_revision),UNIQUE(business_id,created_by,operation_id)
+);
+CREATE INDEX busy_work_quote_reference_page ON public.business_work_quote_references(business_id,customer_id,engagement_id,created_by,id);
+ALTER TABLE public.business_work_quote_references ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.business_work_quote_references FROM PUBLIC,anon,authenticated,service_role;
 CREATE FUNCTION busy_work_private.authorize(b uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE actor uuid:=auth.uid();r text;
 BEGIN
@@ -321,6 +334,42 @@ BEGIN
  VALUES(e.id,p_business_id,p_customer_id,p_engagement_id,auth.uid(),p_expected_decision_revision+1,p_action,p_statement,e.quote_revision,e.terms_hash,r.revision,r.source_hash,p_operation_id) RETURNING * INTO d;
  RETURN jsonb_build_object('operation','engagement_owner_report_decision','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',r.id,'evidenceId',e.id,'decisionId',d.id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',p_expected_decision_revision,'revision',d.decision_revision,'engagementRevision',r.revision,'quoteRevision',e.quote_revision,'termsHash',e.terms_hash,'sourceHash',r.source_hash,'action',p_action,'verification','unverified','recordedAt',d.recorded_at,'bookingEligible',false);
 END $$;
+CREATE FUNCTION public.busy_work_quote_reference_review_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;terms jsonb;
+BEGIN
+ IF p_expected_revision IS NULL OR NOT has_function_privilege('authenticated',to_regprocedure('public.busy_work_quote_reference_create_v1(uuid,text,uuid,bigint,text,text)'),'EXECUTE') THEN RAISE EXCEPTION 'Quote preparation unavailable' USING ERRCODE='42501';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);terms:=busy_work_private.quote_terms(r);
+ RETURN busy_work_private.project(r)||jsonb_build_object('currentQuoteReferenceReview',true,'terms',terms,'termsHash',busy_work_private.hash(terms),'presentationState','prepared_not_presented','executionAuthorised',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_reference_create_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint,p_terms_hash text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;t jsonb;q public.business_work_quote_references%ROWTYPE;
+BEGIN
+ IF p_expected_revision IS NULL OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' THEN RAISE EXCEPTION 'Invalid preparation' USING ERRCODE='22023';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);t:=busy_work_private.quote_terms(r);
+ IF p_terms_hash IS NULL OR p_terms_hash IS DISTINCT FROM busy_work_private.hash(t) THEN RAISE EXCEPTION 'Quote terms changed' USING ERRCODE='40001';END IF;
+ INSERT INTO public.business_work_quote_references(business_id,customer_id,engagement_id,created_by,quote_revision,terms,terms_hash,source_hash,operation_id)
+ VALUES(p_business_id,p_customer_id,r.id,auth.uid(),r.revision,t,p_terms_hash,r.source_hash,p_operation_id) RETURNING * INTO q;
+ RETURN jsonb_build_object('operation','engagement_quote_reference','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',r.id,'actorId',auth.uid(),'referenceId',q.id,'schemaVersion',1,'previousRevision',0,'revision',1,'quoteRevision',r.revision,'termsHash',q.terms_hash,'sourceHash',r.source_hash,'presentationState',q.state,'recordedAt',q.recorded_at,'executionAuthorised',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_reference_list_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);items jsonb;cursor uuid;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 THEN RAISE EXCEPTION 'Invalid page size' USING ERRCODE='22023';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('referenceId',id,'quoteRevision',quote_revision,'presentationState',state) ORDER BY id),'[]') INTO items FROM (SELECT * FROM public.business_work_quote_references WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND created_by=auth.uid() AND (p_after IS NULL OR id>p_after) ORDER BY id LIMIT p_limit) x;
+ IF jsonb_array_length(items)=p_limit THEN cursor:=(items->(p_limit-1)->>'referenceId')::uuid;END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'items',items,'nextCursor',cursor,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_quote_reference_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);q public.business_work_quote_references%ROWTYPE;t jsonb;
+BEGIN
+ SELECT * INTO q FROM public.business_work_quote_references WHERE id=p_reference_id AND business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND created_by=auth.uid();
+ IF NOT FOUND THEN RAISE EXCEPTION 'Quote reference unavailable' USING ERRCODE='42501';END IF;
+ t:=busy_work_private.quote_terms(r);
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'referenceId',q.id,'revision',1,'quoteRevision',q.quote_revision,'terms',q.terms,'termsHash',q.terms_hash,'sourceHash',q.source_hash,'recordedAt',q.recorded_at,'presentationState',q.state,'currentQuoteRevision',r.revision,'currentTerms',t,'termsChanged',busy_work_private.hash(t) IS DISTINCT FROM q.terms_hash,'notOwnReceipt',true,'executionAuthorised',false,'providerEvidence','not_established_by_protocol','customerResponseEvidence','no_exact_quote_reference_in_original_protocol','requestAssociationState','not_established_by_protocol');
+END $$;
+CREATE FUNCTION busy_work_private.protect_quote_reference() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Immutable private quote preparation; no presentation or acceptance inferred' USING ERRCODE='42501';END $$;
+CREATE TRIGGER busy_work_quote_reference_immutable BEFORE UPDATE ON public.business_work_quote_references FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_quote_reference();
 CREATE FUNCTION busy_work_private.protect_agreement() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
 BEGIN RAISE EXCEPTION 'Immutable evidence; use a separately reviewed append-only decision' USING ERRCODE='42501';END $$;
 CREATE TRIGGER busy_work_agreement_immutable BEFORE UPDATE ON public.business_work_agreement_evidence FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_agreement();
@@ -343,12 +392,12 @@ END $$;
 CREATE TRIGGER busy_canonical_legacy_readonly BEFORE UPDATE OR DELETE ON public.busy_business_snapshots FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_legacy();
 DO $$ DECLARE f record;r text;t regclass;
 BEGIN
- FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1','busy_work_agreement_review_v1','busy_work_agreement_create_v1','busy_work_agreement_list_v1','busy_work_agreement_read_v1','busy_work_agreement_decision_review_v1','busy_work_agreement_decide_v1','busy_work_booking_readiness_v1') LOOP
+ FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1','busy_work_agreement_review_v1','busy_work_agreement_create_v1','busy_work_agreement_list_v1','busy_work_agreement_read_v1','busy_work_agreement_decision_review_v1','busy_work_agreement_decide_v1','busy_work_booking_readiness_v1','busy_work_quote_reference_review_v1','busy_work_quote_reference_create_v1','busy_work_quote_reference_list_v1','busy_work_quote_reference_read_v1') LOOP
   EXECUTE format('ALTER FUNCTION %s OWNER TO postgres',f.signature);EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
   IF f.proname LIKE 'busy_work_%' AND f.proname<>'busy_work_migrate_legacy_v1' THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
  END LOOP;
  FOREACH r IN ARRAY ARRAY['anon','authenticated','service_role'] LOOP
-  FOREACH t IN ARRAY ARRAY['public.business_work_engagements'::regclass,'public.business_work_private_drafts'::regclass,'public.business_work_agreement_evidence'::regclass,'public.business_work_agreement_decisions'::regclass] LOOP
+  FOREACH t IN ARRAY ARRAY['public.business_work_engagements'::regclass,'public.business_work_private_drafts'::regclass,'public.business_work_agreement_evidence'::regclass,'public.business_work_agreement_decisions'::regclass,'public.business_work_quote_references'::regclass] LOOP
    IF has_any_column_privilege(r,t,'SELECT,INSERT,UPDATE,REFERENCES') OR has_table_privilege(r,t,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN RAISE EXCEPTION 'Effective raw privilege remains for % on %',r,t;END IF;
   END LOOP;
   IF has_any_column_privilege(r,'public.busy_business_snapshots','UPDATE') OR has_table_privilege(r,'public.busy_business_snapshots','SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN RAISE EXCEPTION 'Snapshot fence missing';END IF;

@@ -3,6 +3,7 @@ import {stableJson} from './stableJson.mjs';
 export const CANONICAL_WORK_ACCOUNT_ENABLED=false;
 export const CANONICAL_OWNER_REPORT_ENABLED=false;
 export const CANONICAL_AGREEMENT_DECISIONS_ENABLED=false;
+export const CANONICAL_QUOTE_REFERENCE_ENABLED=false;
 const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(v);
 const hash=v=>typeof v==='string'&&/^[0-9a-f]{64}$/.test(v);
 const same=(a,b)=>stableJson(a)===stableJson(b);
@@ -10,11 +11,11 @@ const ownerAccount=v=>{if(typeof v!=='string'||!v.trim())return false;try{return
 // Volatile finite-operation evidence only; canonical rows remain server authority.
 export function createCanonicalWorkSession(){
  const observations=new WeakMap(),tickets=new WeakMap(),outcomes=new WeakMap();
- return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,agreementEnabled=CANONICAL_OWNER_REPORT_ENABLED,decisionEnabled=CANONICAL_AGREEMENT_DECISIONS_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
+ return {bind({enabled=CANONICAL_WORK_ACCOUNT_ENABLED,agreementEnabled=CANONICAL_OWNER_REPORT_ENABLED,decisionEnabled=CANONICAL_AGREEMENT_DECISIONS_ENABLED,quoteReferenceEnabled=CANONICAL_QUOTE_REFERENCE_ENABLED,getCurrent,ownerAccessToken,request,evidence='account'}){
   const initial=getCurrent(),scope=initial?.scope,start={ownerId:initial?.ownerId,businessId:initial?.businessId,role:initial?.role};
   const valid=()=>{const c=getCurrent();return enabled===true&&!!scope&&typeof scope==='object'&&c?.scope===scope&&c.ready===true&&c.ownerId===start.ownerId&&c.businessId===start.businessId&&c.role==='owner'&&start.role==='owner'&&!!c.ownerId&&uuid(c.businessId);};
   const observe=(value,kind)=>{observations.set(value,{scope,owner:start.ownerId,business:start.businessId,kind,localRevision:getCurrent().revision,stamp:stableJson(value)});return value;};
-  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(!['edit','agreement','decision'].includes(kind)||getCurrent().revision===b.localRevision);};
+  const observed=(value,kind)=>{const b=value&&observations.get(value);return valid()&&b?.scope===scope&&b.owner===start.ownerId&&b.business===start.businessId&&b.kind===kind&&b.stamp===stableJson(value)&&(kind!=='source'||getCurrent().revision===value.snapshotRevision)&&(!['edit','agreement','decision','reference'].includes(kind)||getCurrent().revision===b.localRevision);};
   const io=async(name,body,beforeSend=()=>true)=>{if(!valid())throw Error('Canonical Work is disabled or the workspace changed.');const token=await ownerAccessToken();if(!valid()||!token||!beforeSend())throw Error('Current authentication or review unavailable.');const value=await request('rpc/busy_work_'+name+'_v1',{method:'POST',token,body:{p_business_id:start.businessId,...body}});if(!valid())throw Error('Workspace changed during the request. Keep local work.');return value;};
   const scoped=(v,c,id=null)=>v&&v.businessId===start.businessId&&v.customerId===c&&(v.ownerId===start.ownerId||v.actorId===start.ownerId)&&(!id||v.engagementId===id);
   const source=async(customerId,enquiryId,revision)=>{
@@ -39,6 +40,20 @@ export function createCanonicalWorkSession(){
   const agreementContext=async(customerId,id,revision)=>{if(!uuid(id)||!Number.isSafeInteger(revision)||revision<1)throw Error('Exact quote version required.');if(!agreementEnabled)throw Error('Owner-report evidence is disabled.');const v=await io('agreement_review',{p_customer_id:customerId,p_engagement_id:id,p_expected_revision:revision});if(!scoped(v,customerId,id)||v.revision!==revision||v.currentAgreementReview!==true||v.schemaVersion!==1||v.type!=='quote'||v.status!=='Prepared'||v.notOwnReceipt!==true||v.evidenceClass!=='owner_reported_offline'||v.verification!=='unverified'||v.bookingEligible!==false||!hash(v.termsHash)||!hash(v.sourceHash)||v.terms?.quoteRevision!==revision||v.terms?.customerId!==customerId||v.terms?.enquiryId!==v.enquiryId||v.terms?.engagementId!==id||v.terms?.presentation!=='internal_prepared_quote')throw Error('Agreement review unavailable.');return observe(v,'agreement');};
   const agreementList=async(customerId,id,after=null)=>{if(!agreementEnabled)throw Error('Owner-report evidence is disabled.');const v=await io('agreement_list',{p_customer_id:customerId,p_engagement_id:id,p_after:after,p_limit:20});if(!scoped(v,customerId,id)||v.notOwnReceipt!==true||!Array.isArray(v.items)||v.items.length>20||v.nextCursor!==null&&!uuid(v.nextCursor)||new Set(v.items.map(x=>x.evidenceId)).size!==v.items.length||v.items.some(x=>!uuid(x.evidenceId)||!Number.isSafeInteger(x.quoteRevision)||x.quoteRevision<1||x.evidenceClass!=='owner_reported_offline'||x.verification!=='unverified'||Object.keys(x).some(k=>!['evidenceId','quoteRevision','evidenceClass','verification'].includes(k))))throw Error('Unsupported evidence page.');return v;};
   const agreementRead=async(customerId,id,evidenceId)=>{if(!agreementEnabled)throw Error('Owner-report evidence is disabled.');const v=await io('agreement_read',{p_customer_id:customerId,p_engagement_id:id,p_evidence_id:evidenceId});if(!scoped(v,customerId,id)||v.evidenceId!==evidenceId||v.revision!==1||v.notOwnReceipt!==true||v.bookingEligible!==false||v.evidenceClass!=='owner_reported_offline'||v.verification!=='unverified'||typeof v.ownerAccount!=='string'||!hash(v.termsHash)||v.terms?.engagementId!==id||v.terms?.quoteRevision!==v.quoteRevision||typeof v.termsChanged!=='boolean')throw Error('Unsupported evidence read.');if(decisionEnabled&&(!Number.isSafeInteger(v.decisionRevision)||v.decisionRevision<0||!['original','corrected','withdrawn'].includes(v.reportState)||v.decisionRevision>0&&(!uuid(v.decisionId)||typeof v.decisionStatement!=='string'||!Number.isFinite(Date.parse(v.decisionRecordedAt)))||v.reportState==='withdrawn'&&v.currentOwnerAccount!==null||v.reportState!=='withdrawn'&&typeof v.currentOwnerAccount!=='string'))throw Error('Unsupported evidence decision status.');return v;};
+  const quoteReferenceContext=async(customerId,id,revision)=>{
+   if(!quoteReferenceEnabled||!uuid(id)||!Number.isSafeInteger(revision)||revision<1)throw Error('Quote references disabled or invalid.');
+   const v=await io('quote_reference_review',{p_customer_id:customerId,p_engagement_id:id,p_expected_revision:revision});
+   if(!scoped(v,customerId,id)||v.currentQuoteReferenceReview!==true||v.revision!==revision||v.status!=='Prepared'||!hash(v.sourceHash)||!hash(v.recordHash)||!hash(v.termsHash)||v.terms?.engagementId!==id||v.terms?.customerId!==customerId||v.terms?.quoteRevision!==revision||v.terms?.presentation!=='internal_prepared_quote'||v.presentationState!=='prepared_not_presented'||v.executionAuthorised!==false||v.notOwnReceipt!==true)throw Error('Unsupported quote reference review.');
+   return observe(v,'reference');
+  };
+  const quoteReferenceList=async(customerId,id,after=null)=>{
+   if(!quoteReferenceEnabled||!uuid(id))throw Error('Quote references disabled or invalid.');const v=await io('quote_reference_list',{p_customer_id:customerId,p_engagement_id:id,p_after:after,p_limit:20});
+   if(!scoped(v,customerId,id)||v.notOwnReceipt!==true||!Array.isArray(v.items)||v.items.length>20||v.nextCursor!==null&&!uuid(v.nextCursor)||new Set(v.items.map(x=>x.referenceId)).size!==v.items.length||v.items.some(x=>!uuid(x.referenceId)||!Number.isSafeInteger(x.quoteRevision)||x.quoteRevision<1||x.presentationState!=='prepared_not_presented'||Object.keys(x).some(k=>!['referenceId','quoteRevision','presentationState'].includes(k))))throw Error('Unsupported quote reference page.');return v;
+  };
+  const quoteReferenceRead=async(customerId,id,referenceId)=>{
+   if(!quoteReferenceEnabled||!uuid(id)||!uuid(referenceId))throw Error('Quote references disabled or invalid.');const v=await io('quote_reference_read',{p_customer_id:customerId,p_engagement_id:id,p_reference_id:referenceId});
+   if(!scoped(v,customerId,id)||v.referenceId!==referenceId||v.revision!==1||!Number.isSafeInteger(v.quoteRevision)||v.quoteRevision<1||!hash(v.termsHash)||v.terms?.engagementId!==id||v.terms?.customerId!==customerId||v.terms?.quoteRevision!==v.quoteRevision||v.presentationState!=='prepared_not_presented'||v.executionAuthorised!==false||v.notOwnReceipt!==true||typeof v.termsChanged!=='boolean'||v.providerEvidence!=='not_established_by_protocol'||v.customerResponseEvidence!=='no_exact_quote_reference_in_original_protocol'||v.requestAssociationState!=='not_established_by_protocol')throw Error('Unsupported quote reference read.');return v;
+  };
   const bookingReadiness=async(customerId,id,evidenceId)=>{
    if(!agreementEnabled||!decisionEnabled||!uuid(id)||!uuid(evidenceId))throw Error('Readiness proposal disabled.');
    const v=await io('booking_readiness',{p_customer_id:customerId,p_engagement_id:id,p_evidence_id:evidenceId});
@@ -52,17 +67,18 @@ export function createCanonicalWorkSession(){
    return observe(v,'decision');
   };
   const review=({operation,source:src,record,draft,fields,operationId,editor})=>{
-   if(!valid()||!['create','edit','private','agreement','decision'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
+   if(!valid()||!['create','edit','private','agreement','decision','reference'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
    const base=operation==='create'?src:record;
-   const sourceKind=operation==='decision'?'decision':operation==='agreement'?'agreement':operation==='create'?'source':observed(base,'edit')?'edit':'record';
+   const sourceKind=operation==='reference'?'reference':operation==='decision'?'decision':operation==='agreement'?'agreement':operation==='create'?'source':observed(base,'edit')?'edit':'record';
    if(!observed(base,sourceKind)||editor.customerId!==base.customerId||operation==='private'&&(!observed(draft,'private')||draft.engagementId!==record.engagementId||draft.customerId!==record.customerId))return null;
    if(sourceKind==='edit'&&!isEditContext(base,operation==='private'?'private_followup':'edit_quote'))return null;
    if(sourceKind==='edit'&&operation==='private'&&!['followup','work_notes'].includes(draft?.kind))return null;
-   if(['edit','private','agreement','decision'].includes(operation)&&editor.engagementId!==record.engagementId)return null;
+   if(['edit','private','agreement','decision','reference'].includes(operation)&&editor.engagementId!==record.engagementId)return null;
    if(operation==='create'&&editor.engagementId!==null)return null;
    if(['create','edit'].includes(operation)&&(!fields||typeof fields.text!=='string'||!fields.text.trim()||typeof fields.amount!=='string'||!/^\d+(?:\.\d{1,2})?$/.test(fields.amount)||typeof fields.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(fields.date)))return null;
    if(operation==='agreement'&&(!agreementEnabled||!ownerAccount(fields?.text)||editor.purpose!=='owner_reported_offline'||base.verification!=='unverified'||base.bookingEligible!==false))return null;
    if(operation==='decision'&&(!agreementEnabled||!decisionEnabled||base.reportState==='withdrawn'||!ownerAccount(fields?.text)||!['correct','withdraw'].includes(fields?.action)||editor.purpose!=='agreement_decision'||editor.evidenceId!==base.evidenceId))return null;
+   if(operation==='reference'&&(!quoteReferenceEnabled||editor.purpose!=='quote_reference'||!fields||Object.keys(fields).length!==0))return null;
    if(!same(editor.fields,fields))return null;
    if(operation==='create'&&src.hasLegacyWork)return null;
    if(operation==='private'&&editor.purpose!==undefined&&editor.purpose!==draft?.kind)return null;
@@ -81,6 +97,8 @@ export function createCanonicalWorkSession(){
     Object.assign(body,{p_enquiry_id:base.enquiryId,p_expected_snapshot_revision:base.snapshotRevision,p_source_hash:base.sourceHash,p_customer_hash:base.customerHash,p_amount:fields.amount,p_text:fields.text,p_date:fields.date});
    }else if(ticket.operation==='edit'){
     name='edit_quote';operation='engagement_edit_quote';expected=base.revision;Object.assign(body,{p_engagement_id:base.engagementId,p_expected_revision:base.revision,p_source_hash:base.sourceHash,p_amount:fields.amount,p_text:fields.text,p_date:fields.date});
+   }else if(ticket.operation==='reference'){
+    name='quote_reference_create';operation='engagement_quote_reference';expected=0;Object.assign(body,{p_engagement_id:base.engagementId,p_expected_revision:base.revision,p_terms_hash:base.termsHash});
    }else if(ticket.operation==='decision'){
     name='agreement_decide';operation='engagement_owner_report_decision';expected=base.decisionRevision;Object.assign(body,{p_engagement_id:base.engagementId,p_evidence_id:base.evidenceId,p_expected_revision:base.revision,p_expected_decision_revision:expected,p_terms_hash:base.termsHash,p_action:fields.action,p_statement:fields.text});
    }else if(ticket.operation==='agreement'){
@@ -91,12 +109,13 @@ export function createCanonicalWorkSession(){
    let sent=false;
    try{
     const receipt=await io(name,body,()=>{if(!same(getEditor(),JSON.parse(t.editor))||!observed(t.source,t.sourceKind))return false;sent=true;return true;});
-    if(!scoped(receipt,ticket.customerId,ticket.engagementId)||receipt.operation!==operation||receipt.operationId!==ticket.operationId||receipt.schemaVersion!==1||receipt.previousRevision!==expected||receipt.revision!==expected+1||!uuid(receipt.engagementId)||!['private','agreement','decision'].includes(ticket.operation)&&!hash(receipt.recordHash)||ticket.operation==='private'&&(receipt.kind!==t.draft.kind||receipt.engagementRevision!==base.revision||!hash(receipt.textHash))||ticket.operation==='create'&&receipt.enquiryId!==base.enquiryId||ticket.operation!=='private'&&receipt.sourceHash!==base.sourceHash||ticket.operation==='agreement'&&(!uuid(receipt.evidenceId)||receipt.quoteRevision!==base.revision||receipt.termsHash!==base.termsHash||receipt.verification!=='unverified'||receipt.evidenceClass!=='owner_reported_offline'||receipt.bookingEligible!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact operation receipt mismatch.');
+    if(!scoped(receipt,ticket.customerId,ticket.engagementId)||receipt.operation!==operation||receipt.operationId!==ticket.operationId||receipt.schemaVersion!==1||receipt.previousRevision!==expected||receipt.revision!==expected+1||!uuid(receipt.engagementId)||!['private','agreement','decision','reference'].includes(ticket.operation)&&!hash(receipt.recordHash)||ticket.operation==='private'&&(receipt.kind!==t.draft.kind||receipt.engagementRevision!==base.revision||!hash(receipt.textHash))||ticket.operation==='create'&&receipt.enquiryId!==base.enquiryId||ticket.operation!=='private'&&receipt.sourceHash!==base.sourceHash||ticket.operation==='agreement'&&(!uuid(receipt.evidenceId)||receipt.quoteRevision!==base.revision||receipt.termsHash!==base.termsHash||receipt.verification!=='unverified'||receipt.evidenceClass!=='owner_reported_offline'||receipt.bookingEligible!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact operation receipt mismatch.');
     if(ticket.operation==='decision'&&(receipt.evidenceId!==base.evidenceId||!uuid(receipt.decisionId)||receipt.engagementRevision!==base.revision||receipt.quoteRevision!==base.quoteRevision||receipt.termsHash!==base.termsHash||receipt.action!==fields.action||receipt.verification!=='unverified'||receipt.bookingEligible!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact decision receipt mismatch.');
+    if(ticket.operation==='reference'&&(!uuid(receipt.referenceId)||receipt.quoteRevision!==base.revision||receipt.termsHash!==base.termsHash||receipt.presentationState!=='prepared_not_presented'||receipt.executionAuthorised!==false||!Number.isFinite(Date.parse(receipt.recordedAt))))throw Error('Exact quote reference receipt mismatch.');
     const result={status:'confirmed',evidence,receipt,ticket};outcomes.set(scope,result);return result;
    }catch{const status=sent?'unknown':'reviewRequired';if(outcomes.get(scope)===pending)outcomes.set(scope,{status,ticket});return {status,ticket};}
   };
-  return {enabled:enabled===true,agreementEnabled:agreementEnabled===true,decisionEnabled:agreementEnabled===true&&decisionEnabled===true,bookingReadiness,decisionContext,isDecisionContext:v=>decisionEnabled&&observed(v,'decision'),isAgreementContext:v=>agreementEnabled&&observed(v,'agreement'),evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,agreementContext,agreementList,agreementRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
+  return {quoteReferenceEnabled:quoteReferenceEnabled===true,quoteReferenceContext,quoteReferenceList,quoteReferenceRead,isQuoteReferenceContext:v=>quoteReferenceEnabled&&observed(v,'reference'),enabled:enabled===true,agreementEnabled:agreementEnabled===true,decisionEnabled:agreementEnabled===true&&decisionEnabled===true,bookingReadiness,decisionContext,isDecisionContext:v=>decisionEnabled&&observed(v,'decision'),isAgreementContext:v=>agreementEnabled&&observed(v,'agreement'),evidence,source,list,read,history,discover,compare,editContext,isEditContext,privateRead,agreementContext,agreementList,agreementRead,review,cancel,commit,status:()=>outcomes.get(scope)||{status:'idle'}};
  }};
 }
 

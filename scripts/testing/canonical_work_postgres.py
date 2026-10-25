@@ -365,11 +365,59 @@ def finite_no_booking_mutation():
  for forbidden in ['UPDATE public.business_work_engagements','UPDATE public.busy_business_snapshots','busy_mark_mini_app_request_link','INSERT INTO public.busy_mini_app','UPDATE public.busy_mini_app','DELETE FROM public.']:assert forbidden not in v,forbidden
  decision_preserve()
 stage('finite-evidence-definitions-cannot-accept-book-message-or-pay',finite_no_booking_mutation)
+# Private immutable quote version reference: intentionally no presentation or request mutation.
+def ref_context(id=None):
+ id=id or state['second'];return rpc('quote_reference_review',[B,C,id,row(id)['revision']])
+def ref_create(op,id=None):
+ id=id or state['second'];v=ref_context(id);return rpc('quote_reference_create',[B,C,id,v['revision'],v['termsHash'],op],commit=True)
+def ref_read(id=None,eng=None):return rpc('quote_reference_read',[B,C,eng or state['second'],id or state['ref1']])
+def ref_first():
+ v=ref_context();eq(v['presentationState'],'prepared_not_presented');eq(v['executionAuthorised'],False);state['refWorkBefore']=row(state['second']);state['refOtherBefore']=row(state['first']);state['refPrivateBefore']=run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY kind;');state['refAgreementBefore']=agreement_read(state['agreement1']);state['refPayloadBefore']=run('SELECT payload::text FROM public.busy_business_snapshots WHERE business_id='+q(B)+';');r=ref_create('private-quote-reference-first');state['ref1']=r['referenceId'];eq(r['quoteRevision'],v['revision']);eq(r['termsHash'],v['termsHash']);eq(r['presentationState'],'prepared_not_presented');eq(r['executionAuthorised'],False)
+stage('quote-reference-server-minted-exact-internal-version',ref_first)
+def ref_exact():
+ v=ref_read();state['refOriginal']=v;eq(v['termsHash'],ref_context()['termsHash']);eq(v['termsChanged'],False);eq(v['notOwnReceipt'],True);eq(v['providerEvidence'],'not_established_by_protocol');eq(v['customerResponseEvidence'],'no_exact_quote_reference_in_original_protocol');eq(v['requestAssociationState'],'not_established_by_protocol');assert 'operationId' not in v and 'secretSynthetic' not in str(v)
+stage('quote-reference-independent-read-is-not-presentation-or-own-receipt',ref_exact)
+def ref_deny(args=None,code='23505',uid=O,role='authenticated'):
+ v=ref_context();args=args or [B,C,state['second'],v['revision'],v['termsHash'],'duplicate-quote-ref'];denied('SELECT public.busy_work_quote_reference_create_v1('+','.join(map(q,args))+');',code,uid,role)
+stage('duplicate-private-reference-for-same-quote-version-denied',ref_deny)
+stage('forged-reference-terms-denied',lambda:ref_deny([B,C,state['second'],row(state['second'])['revision'],'0'*64,'forged-ref-terms'],'40001'))
+stage('stale-reference-revision-denied',lambda:ref_deny([B,C,state['second'],1,state['refOriginal']['termsHash'],'stale-ref-version'],'40001'))
+for uid,label in [(M,'member'),(S,'coowner'),(D,'foreign')]:stage(label+'-quote-reference-denied',lambda uid=uid:ref_deny(code='42501',uid=uid))
+stage('anonymous-quote-reference-denied',lambda:ref_deny(code='42501',uid='',role='anon'))
+def ref_role(remove=False):
+ v=ref_context();change=f"DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}'" if remove else f"UPDATE public.busy_business_memberships SET role='admin' WHERE business_id='{B}' AND user_id='{O}'";r=call('BEGIN;'+change+';'+auth(f"SELECT public.busy_work_quote_reference_read_v1('{B}','{C}','{state['second']}','{state['ref1']}');"));assert r.returncode!=0 and '42501' in r.stderr
+stage('admin-quote-reference-read-denied',ref_role)
+stage('revoked-quote-reference-read-denied',lambda:ref_role(True))
+for role in ['authenticated','service_role']:stage(role+'-raw-quote-reference-denied',lambda role=role:denied('SELECT * FROM public.business_work_quote_references;',role=role))
+stage('immutable-reference-update-denied',lambda:denied(f"UPDATE public.business_work_quote_references SET state='sent' WHERE id='{state['ref1']}';",role='postgres'))
+stage('same-customer-different-engagement-reference-denied',lambda:denied(f"SELECT public.busy_work_quote_reference_read_v1('{B}','{C}','{state['first']}','{state['ref1']}');"))
+stage('foreign-business-reference-denied',lambda:denied(f"SELECT public.busy_work_quote_reference_read_v1('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','{C}','{state['second']}','{state['ref1']}');"))
+def ref_preserved():
+ eq(row(state['second']),state['refWorkBefore']);eq(row(state['first']),state['refOtherBefore']);eq(run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY kind;'),state['refPrivateBefore']);eq(agreement_read(state['agreement1']),state['refAgreementBefore']);eq(run('SELECT payload::text FROM public.busy_business_snapshots WHERE business_id='+q(B)+';'),state['refPayloadBefore'])
+stage('reference-preparation-preserves-work-private-evidence-and-snapshot',ref_preserved)
+def ref_changed():
+ r=row(state['second']);edit(state['second'],r['revision'],'quote-edited-after-private-reference','  New quote wording\nnot inherited  ','0');v=ref_read();eq(v['terms'],state['refOriginal']['terms']);eq(v['termsHash'],state['refOriginal']['termsHash']);eq(v['termsChanged'],True);eq(v['presentationState'],'prepared_not_presented');state['ref2']=ref_create('private-quote-reference-second-version')['referenceId'];assert state['ref1']!=state['ref2']
+stage('new-quote-version-does-not-inherit-old-preparation',ref_changed)
+def ref_page():
+ a=rpc('quote_reference_list',[B,C,state['second'],None,1]);b=rpc('quote_reference_list',[B,C,state['second'],a['nextCursor'],1]);eq(len(a['items']),1);eq(len(b['items']),1);assert a['items'][0]['referenceId']!=b['items'][0]['referenceId'];eq(set(a['items'][0]),{'referenceId','quoteRevision','presentationState'})
+stage('quote-reference-keyset-page-has-no-terms-or-private-wording',ref_page)
+def ref_source():
+ v=call(f"BEGIN;UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{{inboxItems,1,rawText}}','\"Corrected original source\"') WHERE business_id='{B}';"+auth(f"SELECT public.busy_work_quote_reference_read_v1('{B}','{C}','{state['second']}','{state['ref1']}');"));assert v.returncode!=0 and '40001' in v.stderr
+stage('source-corrected-reference-read-denied',ref_source)
+def ref_compete():
+ id=state['second'];r=row(id);edit(id,r['revision'],'quote-for-competing-preparations','Terms for preparation competition','0');v=ref_context();args=[B,C,id,v['revision'],v['termsHash'],'quote-reference-compete-a'];h=hold('SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+q(O)+';SELECT public.busy_work_quote_reference_create_v1('+','.join(map(q,args))+')');args[-1]='quote-reference-compete-b';other=subprocess.Popen(base,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);other.stdin.write("SET statement_timeout='5s';"+auth('SELECT public.busy_work_quote_reference_create_v1('+','.join(map(q,args))+');',commit=True));other.stdin.close();time.sleep(.2);assert other.poll() is None;release(h);other.wait(timeout=8);output=other.stdout.read()+other.stderr.read();logs.append({'exitCode':other.returncode,'output':output});assert other.returncode!=0 and '23505' in output;eq(len(rpc('quote_reference_list',[B,C,id,None,20])['items']),3)
+stage('real-competing-reference-creation-one-wins',ref_compete)
+def ref_no_execution():
+ text=run("SELECT pg_get_functiondef(oid) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname LIKE 'busy_work_quote_reference_%';")
+ for forbidden in ['busy_send_mini_app_message','busy_mark_mini_app_request_link','UPDATE public.business_work_engagements','INSERT INTO public.busy_mini_app','UPDATE public.busy_mini_app','DELETE FROM public.']:assert forbidden not in text,forbidden
+ eq(row(state['second'])['status'],'Prepared');eq(row(state['first']),state['refOtherBefore']);eq(run('SELECT row_to_json(x) FROM public.business_work_private_drafts x ORDER BY kind;'),state['refPrivateBefore'])
+stage('private-reference-cannot-send-accept-bind-request-book-or-pay',ref_no_execution)
 stage('rollback-retains-records-readonly-fences-and-data',rollback)
 stage('rollback-denies-fresh-edit-context-without-reopening-writes',lambda:denied(f"SELECT public.busy_work_edit_context_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"))
 stage('rollback-preserves-work-notes-and-denies-write',lambda:(eq(notes_read()['text'],'Writer A notes'),denied('SELECT public.busy_work_private_write_v1('+','.join(map(q,[B,C,state['second'],row(state['second'])['revision'],3,read(state['second'])['sourceHash'],'work_notes','Denied after rollback','notes-rollback-denied']))+');')))
 stage('rollback-owner-report-data-readable-creation-and-review-denied',lambda:(eq(agreement_read(state['agreement1'])['verification'],'unverified'),denied(f"SELECT public.busy_work_agreement_review_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});")))
 stage('rollback-decision-read-preserved-review-and-mutation-denied',lambda:(eq(agreement_read(state['agreement1'])['reportState'],'withdrawn'),denied(f"SELECT public.busy_work_agreement_decision_review_v1('{B}','{C}','{state['second']}','{state['agreement1']}',{row(state['second'])['revision']});"),decision_deny([B,C,state['second'],state['agreement1'],row(state['second'])['revision'],3,state['agreementOriginal']['termsHash'],'correct','No rollback write','rollback-correction-denied'],'42501')))
+stage('rollback-reference-inspection-preserved-new-review-write-denied',lambda:(eq(ref_read()['presentationState'],'prepared_not_presented'),denied(f"SELECT public.busy_work_quote_reference_review_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']});"),denied(f"SELECT public.busy_work_quote_reference_create_v1('{B}','{C}','{state['second']}',{row(state['second'])['revision']},'no','rollback-ref-denied');")))
 assert len({name for name,_ in cases})==len(cases),'Stage identities must be unique'
 for i,(name,fn) in enumerate(cases):
  start=len(logs)
