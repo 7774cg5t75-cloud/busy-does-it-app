@@ -26,6 +26,11 @@ try:
  stage('production-fuse',lambda: (_ for _ in ()).throw(AssertionError('Fuse did not abort')) if call(sql).returncode==0 else None)
  g=(root/'docs/sql-proposals/growth/opportunities.sql').read_text().replace("DO $$ BEGIN RAISE EXCEPTION 'GROWTH OPPORTUNITY REVIEW FUSE: separate hosted approval required'; END $$;",'');run(g)
  stage('install-private-creator-candidate',lambda:run(local))
+ def actual_upgrade():
+  prior=subprocess.check_output(['git','show','7b9a64a365e4bc9b9fbc66bf5af413cff8dc340e:docs/sql-proposals/creator/private-drafts.sql'],cwd=root,text=True).replace(fuse,'')
+  run(prior);before=write('upgrade-v1-'+str(time.time_ns()));run(local);after=rpc('read',[B,before['draftId'],None]);assert after['content']==content and after['revision']==1 and after['content']['schemaVersion']==1
+  operation=rpc('operation',[B,before['requestKey']]);assert operation['operationId']==before['operationId'] and operation['notOwnReceipt'] is True
+ stage('actual-v1-package-upgrade-retains-draft-and-operation',actual_upgrade)
  run('TRUNCATE public.busy_creator_draft_versions,public.busy_creator_draft_heads') # disposable new-purpose fixtures only
  old=run('SELECT md5(payload::text) FROM public.busy_business_snapshots ORDER BY business_id')
  first=write();stage('server-operation-and-exact-read',lambda: (_ for _ in ()).throw(AssertionError()) if not first['ownOperationReceipt'] or rpc('read',[B,first['draftId'],None])['content']!=content else None)
@@ -70,15 +75,43 @@ try:
   r=call('BEGIN;CREATE ROLE creator_privilege_fixture;GRANT SELECT ON public.busy_creator_draft_versions TO creator_privilege_fixture;GRANT creator_privilege_fixture TO authenticated;'+local);assert r.returncode!=0 and '42501' in r.stderr
  stage('inherited-raw-privilege-upgrade-denial',inherited)
  def queue():
-  exists=run("SELECT to_regclass('public.busy_social_posts') IS NOT NULL").strip()=='t'
-  if exists:return # Real original table may exist; never replace its schema.
-  run('CREATE TABLE public.busy_social_posts(client_draft_id text,status text);INSERT INTO public.busy_social_posts VALUES(\'historical-published\',\'Published\'),(\'historical-scheduled\',\'Scheduled\')')
+  original=(root/'supabase/migrations/20261001173000_v3_5_social_publishing.sql').read_text();table=original[original.index('create table if not exists public.busy_social_posts ('):original.index('create index if not exists busy_social_posts_due_idx')];run(table) # Original table DDL only; no cron/extensions/provider services.
+  run("ALTER TABLE public.busy_social_posts ENABLE ROW LEVEL SECURITY;REVOKE ALL ON public.busy_social_posts FROM PUBLIC,anon,authenticated;INSERT INTO public.busy_social_posts(client_draft_id,caption,status)VALUES('historical-published','Original wording','Published'),('historical-scheduled','Original scheduled words','Scheduled')ON CONFLICT(workspace_key,client_draft_id)DO NOTHING")
+  before=run('SELECT md5(row_to_json(p)::text) FROM public.busy_social_posts p ORDER BY id')
   for id in ['historical-published','historical-scheduled']:deny('write',[B,id,0,json.dumps(content),None,None,None,'queue_'+id],'42501')
-  assert run('SELECT count(*) FROM public.busy_social_posts').strip()=='2';run('DROP TABLE public.busy_social_posts') # fictional identity-only fixture, not original deployment schema
+  assert before==run('SELECT md5(row_to_json(p)::text) FROM public.busy_social_posts p ORDER BY id')
  stage('published-scheduled-identity-denial',queue)
  def revocation():
   run(f"DELETE FROM public.busy_business_memberships WHERE business_id='{B}' AND user_id='{O}'");deny('list',[B,None,None,10],'42501');run(f"INSERT INTO public.busy_business_memberships(business_id,user_id,role)VALUES('{B}','{O}','owner')")
  stage('live-owner-revocation',revocation)
+
+ def media():
+  import hashlib,base64,struct,zlib
+  # Minimal local Storage/auth fixtures, not a running Supabase Storage service.
+  run("CREATE SCHEMA IF NOT EXISTS storage;CREATE TABLE IF NOT EXISTS auth.users(id uuid PRIMARY KEY);CREATE TABLE IF NOT EXISTS storage.buckets(id text PRIMARY KEY,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);CREATE TABLE IF NOT EXISTS storage.objects(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),bucket_id text,name text,UNIQUE(bucket_id,name));INSERT INTO auth.users(id)VALUES('"+O+"'),('"+M+"')ON CONFLICT DO NOTHING")
+  run((root/'supabase/migrations/20261011000000_busy_website_original_media.sql').read_text())
+  image=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=')
+  def chunk(tag,data):return struct.pack('>I',len(data))+tag+data+struct.pack('>I',zlib.crc32(tag+data)&0xffffffff)
+  image2=b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',1,1,8,2,0,0,0))+chunk(b'IDAT',zlib.compress(b'\0\xff\0\0'))+chunk(b'IEND',b'')
+  digest=hashlib.sha256(image).hexdigest();digest2=hashlib.sha256(image2).hexdigest();ids=['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333'];paths=[]
+  for i,asset in enumerate(ids):
+   owner=M if i==2 else O;path=B+'/'+owner+'/'+asset+'.png';paths.append(path)
+   run('INSERT INTO public.busy_website_original_media(id,business_id,uploaded_by,storage_path,content_type,byte_length,sha256)VALUES('+','.join(q(x)for x in [asset,B,owner,path,'image/png',len(image2) if i==1 else len(image),digest if i==0 else digest2 if i==1 else 'c'*64])+')ON CONFLICT(id)DO UPDATE SET storage_path=excluded.storage_path,sha256=excluded.sha256,byte_length=excluded.byte_length,uploaded_by=excluded.uploaded_by;INSERT INTO storage.objects(bucket_id,name)VALUES('+q('busy-website-originals')+','+q(path)+')ON CONFLICT DO NOTHING')
+  refs=[{'kind':'website_original','assetId':asset,'sha256':digest if i==0 else digest2,'id':'selected-'+str(i),'width':1,'height':1,'fileName':'approved-'+str(i)+'.png','privateUseReviewed':True} for i,asset in enumerate(ids[:2])]
+  fixture=out.with_name('media-assets.json');fixture.write_text(json.dumps({ids[0]:{'base64':base64.b64encode(image).decode(),'sha256':digest},ids[1]:{'base64':base64.b64encode(image2).decode(),'sha256':digest2}},indent=2))
+  body={**content,'schemaVersion':2,'media':refs,'editor':{'captions':[{'id':'alternative','text':'  Exact caption\n'}],'selectedCaptionId':'alternative','privacyWarnings':['Owner review remains required'],'story':None}}
+  own=write('media-private',body=body);opened=rpc('read',[B,'media-private',None]);assert opened['content']==body and [x['assetId']for x in opened['mediaProjection']]==ids[:2];assert all(x['state']=='eligible'for x in opened['mediaProjection'])
+  deny('write',[B,'foreign-media',0,json.dumps({**body,'media':[{**refs[0],'assetId':ids[2],'sha256':'c'*64}]}),None,None,None,'foreign_media_request'],'42501')
+  deny('write',[B,'unreviewed-media',0,json.dumps({**body,'media':[{**refs[0],'privateUseReviewed':False}]}),None,None,None,'unreviewed_media'],'22023')
+  deny('write',[B,'url-media',0,json.dumps({**body,'media':[{'uri':'https://unowned.invalid/a.png'}]}),None,None,None,'url_media_request'],'22023')
+  run("DELETE FROM storage.objects WHERE name="+q(paths[0]));missing=rpc('read',[B,'media-private',None]);assert missing['content']==body and missing['mediaProjection'][0]['state']=='unavailable' and 'storagePath'not in missing['mediaProjection'][0]
+  deny('write',[B,'media-private',1,json.dumps(body),None,None,None,'missing_media_edit'],'42501');assert rpc('read',[B,'media-private',None])['revision']==1
+  run("INSERT INTO storage.objects(bucket_id,name)VALUES('busy-website-originals',"+q(paths[0])+")")
+  reversed_body={**body,'media':list(reversed(refs)),'text':'Owner revision with reordered images'};updated=write('media-private',1,reversed_body);assert rpc('read',[B,'media-private',None])['content']==reversed_body and rpc('read',[B,'media-private',1])['content']==body
+  deny('write',[B,'media-private',2,json.dumps(content),None,None,None,'old_serializer_media_loss'],'22023')
+  run('UPDATE public.busy_website_original_media SET uploaded_by='+q(M)+' WHERE id='+q(ids[0]));assert rpc('read',[B,'media-private',None])['mediaProjection'][1]['state']=='unavailable';run('UPDATE public.busy_website_original_media SET uploaded_by='+q(O)+' WHERE id='+q(ids[0]))
+  assert rpc('read',[B,first['draftId'],1])['content']['schemaVersion']==1
+ stage('owned-media-order-caption-history-and-revocation',media)
  stage('upgrade-retains-original-revision-history',lambda:run(local))
  stage('legacy-snapshot-unchanged',lambda: (_ for _ in ()).throw(AssertionError()) if run('SELECT md5(payload::text) FROM public.busy_business_snapshots ORDER BY business_id')!=old else None)
  rollback=(root/'docs/sql-proposals/creator/rollback-readonly.sql').read_text().replace("DO $$ BEGIN RAISE EXCEPTION 'CREATOR ROLLBACK FUSE: separate hosted approval required'; END $$;",'')

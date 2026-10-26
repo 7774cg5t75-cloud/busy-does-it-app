@@ -1,3 +1,4 @@
+import {AppEnquiryRequestPreview} from './appEnquiryRequestPreview';
 import React from 'react';
 import {Text,Alert} from 'react-native';
 import {Card,Button,Field} from '../components/ui';
@@ -33,7 +34,7 @@ export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,busy=fal
    </React.Fragment>)}
    <Text style={styles.cardBody}>Customers provide their name, email or phone, and a message. The original optional requirements below are customer-entered preferences; they do not confirm timing, prices or bookings.</Text>
    {ENQUIRY_REQUIREMENTS.map(field=><Text key={field.key} style={styles.cardBody}>{field.label+' — up to '+field.max+' characters'}</Text>)}
-   {plan?.ok&&Surface?<Surface config={plan.nextConfig} interactive={false} catalogueContextKey={'enquiry-journey:'+app.id+':'+app.draft_revision}/>:null}
+   {plan?.ok&&Surface?<AppEnquiryRequestPreview key={ownerId+':'+businessId+':'+app.id} ownerId={ownerId} businessId={businessId} app={app} catalog={catalog} config={plan.nextConfig} Surface={Surface}/>:null}
    {!plan?.ok&&plan?.reason?<Text style={styles.cardBody}>{plan.reason}</Text>:null}
    <Button label="Review complete enquiry journey in Studio" disabled={busy||stale||!plan?.ok} onPress={()=>{if(!current()||capture!==epoch.current||stale||!plan?.ok)return false;setNotice('Prepared for Studio review only. Nothing is saved or sent.');return onPreview?.(plan)!==false;}}/>
   </>:null}

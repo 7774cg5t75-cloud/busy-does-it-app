@@ -783,7 +783,7 @@ function SocialCreator({ s }) {
         <View style={styles.photoGrid}>
           {photos.map((photo,index) => (
             <View key={photo.id || photo.uri} style={styles.photoTile}>
-              <Image accessibilityLabel={"Selected photo "+(index+1)} source={{ uri: photo.uri }} style={styles.photoImage} />
+              <>{photo.mediaUnavailable?<Text accessibilityLabel={"Selected photo "+(index+1)+" unavailable"} style={styles.cardBody}>Private original unavailable · selection kept</Text>:<Image accessibilityLabel={"Selected photo "+(index+1)} source={{ uri: photo.uri }} style={styles.photoImage} />}</>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={"Remove selected photo "+(index+1)}

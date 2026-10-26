@@ -15,6 +15,7 @@ const MAX=9*1024*1024;
 const supabase=createClient(URL,KEY,{auth:{persistSession:false}});
 const cors={"Access-Control-Allow-Origin":"*",
  "Access-Control-Allow-Methods":"POST, OPTIONS",
+ "Access-Control-Expose-Headers":"X-Busy-Original-Sha256,Content-Length,Content-Type",
  "Access-Control-Allow-Headers":"authorization, apikey, content-type, x-busy-request-id"};
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const fail=(status:number,message:string)=>new Response(JSON.stringify({ok:false,error:message}),{
@@ -102,7 +103,7 @@ async function download(raw:any,userId:string,businessId:string){
  const path=typeof raw?.storagePath==="string"?raw.storagePath:"";
  if(!pathAllowed(path,businessId))return fail(403,"This is not a verified original from the selected business.");
  await rateGate(userId,businessId,"download");
- const record=await supabase.from(TABLE).select("content_type,byte_length")
+ const record=await supabase.from(TABLE).select("content_type,byte_length,sha256")
   .eq("business_id",businessId).eq("storage_path",path).maybeSingle();
  if(record.error)throw record.error;
  if(!record.data||record.data.byte_length>MAX)return fail(404,"Approved cloud original was not found.");
@@ -111,10 +112,12 @@ async function download(raw:any,userId:string,businessId:string){
  const bytes=new Uint8Array(await result.data.arrayBuffer());
  if(bytes.length!==record.data.byte_length||inspect(bytes)!==record.data.content_type)
   return fail(409,"The backed-up original did not pass the integrity checks.");
+ const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('');
+ if(sha!==record.data.sha256||raw.expectedSha256!==undefined&&raw.expectedSha256!==sha)return fail(409,"The original digest did not match the reviewed asset.");
  await audit(userId,businessId,path,"download",bytes.length);
  return new Response(bytes,{status:200,headers:{...cors,
   "Content-Type":record.data.content_type,"Content-Length":String(bytes.length),
-  "Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"}});
+  "Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff","X-Busy-Original-Sha256":sha}});
 }
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});

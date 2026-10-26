@@ -1,4 +1,5 @@
-import {creatorDraftAccountBindings} from '../core/creatorDraftAccount.mjs';
+import {creatorPublisherBlockReason} from '../core/creatorDraftMedia.mjs';
+import {creatorDraftAccountBindings,creatorMediaReference} from '../core/creatorDraftAccount.mjs';
 import {growthOpportunityBindings} from '../core/growthOpportunityAccount.mjs';
 import {canonicalWorkBindings,CANONICAL_WORK_ACCOUNT_ENABLED} from '../core/canonicalWorkSession.mjs';
 import {useAppearanceDevice} from "../theme/useAppearance";
@@ -3854,6 +3855,7 @@ function App() {
       fileName: photo.fileName || "",
       width: photo.width || 0,
       height: photo.height || 0,
+      ...(creatorMediaReference(photo.creatorOriginalRef)?{creatorOriginalRef:photo.creatorOriginalRef,exportOriginalPath:photo.exportOriginalPath||""}:{}),
       mimeType: photo.mimeType || "image/jpeg",
       storagePath: photo.storagePath || "",
       contentType: photo.contentType || photo.mimeType || "image/jpeg",
@@ -3968,6 +3970,7 @@ function App() {
   };
 
   const buildSocialPublishPayload = async (record, ownerApproved = false) => {
+    const privateBlock=creatorPublisherBlockReason(record,socialCreatePhotos);if(privateBlock)throw Error(privateBlock);
     if(record?.contentEvidence?.channel==='newsletter')throw Error('Newsletter wording is private preparation. Email sending and social publication are not available for this draft.');
     if(!socialCreatePhotos.length)throw Error("This is a private text draft. Add approved photos before using the publishing queue.");
     const photos = [];
@@ -17794,7 +17797,8 @@ function App() {
     socialScheduleTime,
     setSocialScheduleTime:value=>{socialContentActions.invalidate();setSocialScheduleTime(value);},
     socialSourceContext,
-    creatorDraftAccount:creatorDraftAccountBindings({sessionRef:snapshotSessionRef,getCurrent:()=>({...snapshotContextRef.current,scope:businessWorkspaceScopeRef.current,role:replyActionSources.current.role}),ownerAccessToken,request:busyDataRequest}),
+    installCreatorMediaSelection:photos=>{socialContentActions.invalidate();setSocialCreatePhotos(photos);},
+    creatorDraftAccount:creatorDraftAccountBindings({originalBaseUrl:BUSY_SUPABASE_URL,originalApiKey:BUSY_AI_TOKEN,fetchOriginal:fetchWithTimeout,sessionRef:snapshotSessionRef,getCurrent:()=>({...snapshotContextRef.current,scope:businessWorkspaceScopeRef.current,role:replyActionSources.current.role}),ownerAccessToken,request:busyDataRequest}),
     installCreatorAccountRecord:(record,restored)=>{setSocialDrafts(list=>list.some(r=>r.id===record.id)?list:[...list,record]);setSelectedSocialDraftId(record.id);setSocialCreatePhotos(restored.photos);setSocialBrief(restored.brief);setSocialDraftText(restored.text);setSocialDraftChannels(restored.channels);setSocialSourceContext(restored.source);setSocialAiResult(restored.analysis);setSocialAiStatus('ready');setSocialAiError('');setSocialCaptionId(restored.captionId);setSocialScheduleDate(restored.date);setSocialScheduleTime(restored.time);go('socialDraftReview');},
     growthOpportunityAccount:growthOpportunityBindings({sessionRef:snapshotSessionRef,getCurrent:()=>({...snapshotContextRef.current,scope:businessWorkspaceScopeRef.current,role:replyActionSources.current.role}),ownerAccessToken,request:busyDataRequest}),
     canonicalWork:canonicalWorkBindings({enabled:CANONICAL_WORK_ACCOUNT_ENABLED,sessionRef:snapshotSessionRef,getCurrent:()=>({...snapshotContextRef.current,scope:businessWorkspaceScopeRef.current,role:replyActionSources.current.role}),ownerAccessToken,request:busyDataRequest}),

@@ -2607,6 +2607,20 @@
         "scripts/check-mission15-creator-account-continuity.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-creator-media-state",
+      "args": [
+        "scripts/check-mission15-creator-media-state.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-app-enquiry-rehearsal",
+      "args": [
+        "scripts/check-mission15-app-enquiry-rehearsal.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
