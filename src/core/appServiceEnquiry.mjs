@@ -39,3 +39,25 @@ export function prepareApprovedAppServices({businessId,app,catalog,approvedProfi
  const services=[...context.services,...added.map(r=>({id:r.id,name:r.name,description:r.description||''}))];
  const plan=proposeCoordinatedAppChanges(context.config,[{kind:'services',value:services}]);return plan.ok?bindPrivateAppProposal(plan,{businessId,app}):plan;
 }
+
+// Review several existing service/enquiry edits as one original Studio batch.
+// Six rows plus the original services and navigation operations fit its eight-change bound.
+export function prepareAppEnquiryJourney({businessId,app,catalog,rows,navigationLabel}={}){
+ const context=serviceEnquiryContext({businessId,app,catalog});
+ if(!context||!Array.isArray(rows)||!rows.length||rows.length>6||new Set(rows.map(r=>r?.id)).size!==rows.length)return {ok:false,reason:'Review one to six distinct existing services together.'};
+ let working=app;const labelOperations=[];
+ for(const row of rows){
+  if(!row||Object.keys(row).some(k=>!['id','fields','label'].includes(k)))return {ok:false,reason:'Use only the original service fields and enquiry action.'};
+  const existing=context.services.find(s=>s.id===row.id);if(!existing)return {ok:false,reason:'A selected service is no longer in this app.'};
+  // Validate even unchanged rows through the original service contract.
+  const part=prepareServiceEnquiry({businessId,app:working,catalog,serviceId:row.id,fields:row.fields,label:row.label});
+  if(!part.ok&&part.reason!=='This service and enquiry button already match the draft.')return part;
+  if(part.ok){working={...working,draft_config:part.nextConfig};for(const op of part.operations)if(op.kind==='service_presentation')labelOperations.push(op);}
+ }
+ const operations=[];
+ if(JSON.stringify(context.services)!==JSON.stringify(working.draft_config.publicProfile.services))operations.push({kind:'services',value:working.draft_config.publicProfile.services});
+ operations.push(...labelOperations);
+ if(navigationLabel!==undefined&&navigationLabel!==context.config.modules.find(m=>m.key==='services')?.label)operations.push({kind:'navigation_label',moduleKey:'services',value:navigationLabel});
+ if(!operations.length)return {ok:false,reason:'The reviewed service journey already matches the app.'};
+ const plan=proposeCoordinatedAppChanges(context.config,operations);return plan.ok?bindPrivateAppProposal(plan,{businessId,app}):plan;
+}

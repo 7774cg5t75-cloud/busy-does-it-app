@@ -2586,6 +2586,20 @@
         "scripts/check-mission15-returning-builder-work.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-complete-enquiry-journey",
+      "args": [
+        "scripts/check-mission15-complete-enquiry-journey.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-website-evidence-quality",
+      "args": [
+        "scripts/check-mission15-website-evidence-quality.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

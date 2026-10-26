@@ -65,6 +65,15 @@ function websiteSourceServices(brief={}){
  return rows.filter(row=>names.get(clean(row.name).toLocaleLowerCase('en'))===1&&ids.get(clean(row.id)||slugify(row.name))===1);
 }
 
+// Evidence sections must have usable original wording and one unambiguous identity.
+// All conflicting rows are omitted; no arbitrary winner or invented answer/review.
+function websiteEvidenceItems(brief,key){
+ const faq=key==='faqs',rows=safeArray(brief[key]).filter(row=>row&&typeof row==='object'&&!Array.isArray(row)&&(row.id===undefined||typeof row.id==='string')&&typeof (faq?row.question:row.text)==='string'&&clean(faq?row.question:row.text)&&(faq?typeof row.answer==='string'&&clean(row.answer):row.attribution===undefined||typeof row.attribution==='string'));
+ const names=new Map(),ids=new Map();
+ for(const row of rows){const text=clean(faq?row.question:row.text).toLocaleLowerCase('en'),id=clean(row.id)||slugify(faq?row.question:row.attribution||row.text);names.set(text,(names.get(text)||0)+1);ids.set(id,(ids.get(id)||0)+1);}
+ return rows.filter(row=>names.get(clean(faq?row.question:row.text).toLocaleLowerCase('en'))===1&&ids.get(clean(row.id)||slugify(faq?row.question:row.attribution||row.text))===1);
+}
+
 function buildSections(brief = {}) {
   const sections = [];
   const sourceServices=websiteSourceServices(brief);
@@ -136,14 +145,14 @@ function buildSections(brief = {}) {
     });
   }
 
-  if (safeArray(brief.testimonials).length) {
+  if (websiteEvidenceItems(brief,'testimonials').length) {
     sections.push({
       id: "testimonials",
       type: "testimonials",
       enabled: true,
       title: "What customers say",
       body: "",
-      items: safeArray(brief.testimonials).map((item) => ({
+      items: websiteEvidenceItems(brief,'testimonials').map((item) => ({
         id: item.id || slugify(item.attribution || item.text),
         title: clean(item.attribution),
         body: clean(item.text),
@@ -151,14 +160,14 @@ function buildSections(brief = {}) {
     });
   }
 
-  if (safeArray(brief.faqs).length) {
+  if (websiteEvidenceItems(brief,'faqs').length) {
     sections.push({
       id: "faq",
       type: "faq",
       enabled: true,
       title: "Frequently asked questions",
       body: "",
-      items: safeArray(brief.faqs).map((item) => ({
+      items: websiteEvidenceItems(brief,'faqs').map((item) => ({
         id: item.id || slugify(item.question),
         title: clean(item.question),
         body: clean(item.answer),
@@ -333,6 +342,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     sourceSummary: {
       serviceCount: safeArray(brief.services).length,
       omittedServiceCount:safeArray(brief.services).length-websiteSourceServices(brief).length,
+      omittedEvidenceCount:['faqs','testimonials'].reduce((n,key)=>n+safeArray(brief[key]).length-websiteEvidenceItems(brief,key).length,0),
       photoCount: safeArray(brief.photos).length,
       faqCount: safeArray(brief.faqs).length,
       testimonialCount: safeArray(brief.testimonials).length,

@@ -1,3 +1,4 @@
+import {AppEnquiryJourneyEditor} from './appEnquiryJourneyEditor';
 import {AppEnquirySetup} from './appEnquirySetup';
 import {AppServiceEnquiryEditor} from './appServiceEnquiryEditor';
 import {BusinessAppQuotationEntry} from '../components/BusinessAppQuoteReview';
@@ -2502,6 +2503,7 @@ function MiniAppBuilder({ s }) {
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
           </View>
+          <AppEnquiryJourneyEditor key={['enquiry-journey',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['enquiry-journey']||0].join(':')} businessId={s.cloudWorkspace?.businessId} ownerId={s.ownerSession?.userId} app={app} catalog={view.catalog} busy={!!s.miniAppsAction||studio.pending||studio.uncertain} onPreview={plan=>setStudioPreview(plan,'enquiry-journey')} onDraftChange={value=>markOwnerDirty('enquiry-journey',value)} Surface={MiniAppSurface}/>
           <AppEnquirySetup key={['enquiry-setup',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['service-selection']||0].join(':')} businessId={s.cloudWorkspace?.businessId} ownerId={s.ownerSession?.userId} app={app} catalog={view.catalog} busy={!!s.miniAppsAction||studio.pending||studio.uncertain} onEnable={key=>replaceOwnerSource(()=>s.toggleMiniAppModule(key,true))} approvedProfile={s.businessCreationIntelligence?.sharedProfile} onPreview={plan=>setStudioPreview(plan,'service-selection')} onDraftChange={value=>markOwnerDirty('service-selection',value)} Surface={MiniAppSurface}/>
           <AppServiceEnquiryEditor key={['service-enquiry',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['service-enquiry']||0].join(':')}
             ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog} approvedProfile={s.businessCreationIntelligence?.sharedProfile} Surface={MiniAppSurface}
