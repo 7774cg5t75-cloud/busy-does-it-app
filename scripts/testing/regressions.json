@@ -2551,6 +2551,27 @@
         "scripts/check-mission15-growth-account.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-opportunity-creator-continuity",
+      "args": [
+        "scripts/check-mission15-opportunity-creator-continuity.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission15-app-enquiry-setup",
+      "args": [
+        "scripts/check-mission15-app-enquiry-setup.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission15-growth-activity-evidence",
+      "args": [
+        "scripts/check-mission15-growth-activity-evidence.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -23,9 +23,10 @@ def main():
  manifest=ROOT/'scripts/testing/regressions.json';selection=json.loads(manifest.read_text())['checks'];rows=[]
  for row in selection:validate(row)
  def git(*argv):return subprocess.check_output(['git',*argv],cwd=ROOT,text=True).strip()
- report={'sourceSha':git('rev-parse','HEAD'),'workingTreeChanged':bool(git('status','--porcelain','--untracked-files=normal')),'testToolModulePath':TEST_ENV['NODE_PATH'],'selectionSha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'evidence':'Offline original code with inert boundaries; not hosted/native/browser acceptance.','results':rows}
+ report={'sourceSha':git('rev-parse','HEAD'),'sourceTree':git('rev-parse','HEAD^{tree}'),'workingTreeEntries':git('status','--porcelain','--untracked-files=normal').splitlines(),'workingTreeChanged':bool(git('status','--porcelain','--untracked-files=normal')),'testToolModulePath':TEST_ENV['NODE_PATH'],'selectionSha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'evidence':'Offline original code with inert boundaries; not hosted/native/browser acceptance.','results':rows}
  output=pathlib.Path(args.output).resolve();output.parent.mkdir(parents=True,exist_ok=True)
  def save():
+  report['finalSourceSha']=git('rev-parse','HEAD');report['finalWorkingTreeEntries']=git('status','--porcelain','--untracked-files=normal').splitlines()
   report['summary']={key:sum(r['status']==key for r in rows) for key in ['passed','failed','blocked','unexecuted']}
   temporary=output.with_suffix(output.suffix+'.tmp');temporary.write_text(json.dumps(report,indent=2)+'\n');temporary.replace(output)
  stopped=False

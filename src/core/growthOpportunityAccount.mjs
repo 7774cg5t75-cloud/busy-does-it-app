@@ -14,6 +14,7 @@ export function createGrowthOpportunityAccount({enabled=GROWTH_OPPORTUNITY_ACCOU
  const observe=v=>{observations.set(v,stableJson(v));return v;};
  const observed=v=>valid()&&observations.get(v)===stableJson(v)&&v.historical===false;
  return {enabled:enabled===true,
+  reference(v){return observed(v)&&v.state==='active'&&v.record.permission==='permitted'&&v.reviewedSourceHash===v.sourceHash?{version:1,type:'owner_reported_opportunity',ownerId:owner,businessId:business,opportunityId:v.opportunityId,revision:v.revision,sourceHash:v.sourceHash,sourceAccount:v.record.source,provenance:'owner_reported',referenceOnly:true}:null;},
   async list(after=null){if(after!==null&&!uuid(after))throw Error('Exact page cursor required.');const v=await io('list',{p_after:after,p_limit:20});if(!scoped(v)||v.notOwnReceipt!==true||!Array.isArray(v.items)||v.items.length>20||v.items.some(x=>!uuid(x.opportunityId)||!Number.isSafeInteger(x.revision)||x.revision<1||typeof x.title!=='string'||x.title.length>100||!['active','retired'].includes(x.state))||v.nextAfter!==null&&!uuid(v.nextAfter))throw Error('Invalid private Growth page.');return v;},
   async read(id,revision=null){if(!uuid(id)||revision!==null&&(!Number.isSafeInteger(revision)||revision<1))throw Error('Exact record required.');const v=await io('read',{p_opportunity_id:id,p_revision:revision});if(!record(v)||v.opportunityId!==id||v.notOwnReceipt!==true||!Number.isSafeInteger(v.currentRevision)||v.currentRevision<v.revision||v.historical!==(v.currentRevision!==v.revision)||revision!==null&&v.revision!==revision||'operationId'in v)throw Error('Invalid independent Growth read.');return observe(v);},
   async recover(){
@@ -33,7 +34,13 @@ export function createGrowthOpportunityAccount({enabled=GROWTH_OPPORTUNITY_ACCOU
     const expectedState=ticket.action==='retire'?'retired':ticket.action==='reopen'||ticket.action==='create'?'active':ticket.base.state;
     if(v.state!==expectedState||ticket.base&&!ticket.fields&&(stableJson(v.record)!==stableJson(ticket.base.record)||v.sourceHash!==ticket.base.sourceHash)||ticket.action==='feedback'&&(v.feedback!==ticket.feedback||v.feedbackReason!==(ticket.feedback==='clear'?'':ticket.reason))||ticket.action==='reinspect'&&v.reviewedSourceHash!==v.sourceHash||['create','edit','retire','reopen'].includes(ticket.action)&&v.reviewedSourceHash!==null)throw Error('Action-specific receipt mismatch.');
     return {ok:true,status:'committed',receipt:v};
-   }catch{uncertain=ticket.operationId;return {ok:false,status:'unknown',mayReplay:false};}
+   }catch(error){
+    // Original busyDataRequest preserves HTTP status and PostgREST payload. Only
+    // exact atomic PostgreSQL rejection classes can establish a rejected RPC.
+    const code=error?.payload?.code,status=error?.status;
+    if(status===409&&['40001','23505'].includes(code)||status===403&&code==='42501'||status===400&&code==='22023'){observations.delete(ticket.base);return {ok:false,status:'rejected',reason:code==='42501'?'restricted':status===409?'conflict':'invalid',mayReplay:false};}
+    uncertain=ticket.operationId;return {ok:false,status:'unknown',mayReplay:false};}
+
   }
  };
 }

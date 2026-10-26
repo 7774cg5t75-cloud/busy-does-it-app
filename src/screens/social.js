@@ -1,3 +1,4 @@
+import {OpportunityDraftContinuity} from '../components/OpportunityDraftContinuity';
 import {GrowthContentOrigin} from '../components/GrowthOpportunities';
 import {readNewsletterWording} from '../core/newsletterWording.mjs';
 import {NewsletterPreview} from '../components/NewsletterPreview';
@@ -738,7 +739,7 @@ function SocialCreator({ s }) {
       subtitle={s.socialSourceContext?.label || "Selected photos"}
       brandCue="Your wording and selected photos stay private until separate publishing review."
     >
-      <GrowthContentOrigin s={s}/>
+      <GrowthContentOrigin s={s}/><OpportunityDraftContinuity s={s}/>
       {s.socialContentActions?<Card title="What would you like to create?" body="Choose a starting point. Your current words and photos stay until you deliberately use a new idea.">
         <Button label="Introduce my business" onPress={()=>s.socialContentActions.start('business-introduction')}/>
         <Button label="Explain a service" onPress={()=>s.socialContentActions.start('service')}/>

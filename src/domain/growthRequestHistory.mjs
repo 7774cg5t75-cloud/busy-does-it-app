@@ -24,3 +24,16 @@ export function growthRequestHistory({ownerId,businessId,role,remote,customers=[
  }
  return rows;
 }
+
+// Exact original V3.184 message -> V3.185 delivery-intent relation, never campaign attribution.
+export function growthRequestActivity(input,row){
+ const current=growthRequestHistory(input).find(x=>x.requestId===row?.requestId&&x.stamp===row.stamp);if(!current)return null;
+ const feed=input.remote.messageCheckpoints,raw=feed?.rows;
+ if(!Array.isArray(raw)||raw.length>150)return null;
+ const messages=raw.filter(x=>x.request_id===row.requestId);
+ if(messages.some(x=>!uuid(x.id)||x.business_id!==input.businessId||x.mini_app_id!==row.appId||!['business','customer'].includes(x.sender_role)||!Number.isFinite(Date.parse(x.created_at))||raw.filter(y=>y?.id===x.id).length!==1))return null;
+ const intents=input.remote.messageDeliveryOutbox?.rows;
+ const validIntents=Array.isArray(intents)&&intents.length<=100&&intents.every(x=>x.business_id===input.businessId&&x.mini_app_id===row.appId&&uuid(x.id)&&uuid(x.message_id)&&uuid(x.request_id)&&['business','customer'].includes(x.recipient_role)&&['pending','submitted_unverified','no_submission_evidence'].includes(x.state)&&intents.filter(y=>y?.id===x.id).length===1);
+ const items=messages.map(m=>{const linked=validIntents?intents.filter(x=>x.message_id===m.id):[];const intent=linked.length===1&&linked[0].request_id===m.request_id&&linked[0].recipient_role===(m.sender_role==='business'?'customer':'business')?linked[0]:null;return {messageId:m.id,role:m.sender_role,recordedAt:m.created_at,meaning:m.sender_role==='business'?'Business message stored on exact request':current.customerReplyStored?'Signed-in customer-role response stored on exact request':'Customer-role message; authenticated consumer relationship not established',notificationIntentId:intent?.id||null,notificationState:intent?.state||'not_established',delivery:'not_established',acceptance:'not_established'};});
+ return {requestId:row.requestId,sourceId:row.sourceId,items,complete:feed.truncated===false,stamp:stableJson([row.stamp,items]),marketingAttribution:'not_established',filedInbox:'not_established',quote:'not_established',wonWork:'not_established',payment:'not_established'};
+}

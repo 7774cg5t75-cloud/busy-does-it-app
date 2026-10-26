@@ -1,3 +1,4 @@
+import {opportunityDraftReference} from './opportunityDraftReference.mjs';
 /**
  * V3.199: prepare and revalidate a private Brand DNA caption handoff.
  * Owner controls any replacement of edited text and still has to save/review
@@ -49,7 +50,8 @@ function prepareSocialRecordHandoff({website,app,businessId,approvedProfile,sour
  if(channel==='newsletter')copy=newsletterWording({name,subject:data.name,treatment:appliedTreatment,sections:[option?'Selected option: '+option.label:'',data.description,price,schedule?'Listed dates: '+schedule:'',location?'Venue: '+location:'',link?'Event information: '+link:''],callToAction:appliedTreatment==='concise'?'':'Ask '+name+' for current details; availability is not confirmed.'});
  return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:row.kind,channel,treatment,appliedTreatment,ownerChosenTone:snapshot.voice?.ownerChosenTone||null,businessId,copy,source:{...snapshot.source},sourceMode:snapshot.source.approvedProfileSource?'approved-profile':'builders',selection:{...interest.selection},recordStamp:JSON.stringify(row),brandColour:snapshot.design?.primaryColour||null,serviceId:null,serviceName:'',privateOnly:true,requiresOwnerApproval:true,noMediaAttached:true,notAutomaticallySaved:true,ownerMustReviewBeforeDraftSave:true,providerCallsMade:false};
 }
-function prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode='',ownerFacts='',treatment='standard',channel='social'}={}){
+function prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode='',ownerFacts='',treatment='standard',channel='social',ownerId,opportunityReference=null}={}){
+ if(opportunityReference&&(!ownerId||!opportunityDraftReference(opportunityReference,{ownerId,businessId})))return {ok:false,reason:'Review the exact historical opportunity reference.'};
  if(!SUPPORTED.includes(channel))return {ok:false,reason:'Choose supported social, poster or advert wording.'};
  if(!businessId||typeof ownerFacts!=='string'||!ownerFacts.trim()||ownerFacts.length>3000||/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(ownerFacts))return {ok:false,reason:'Add the exact announcement or offer details. Busy will not invent missing terms, dates or prices.'};
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourceMode});
@@ -60,15 +62,15 @@ function prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile
  if(channel==='advert')copy=[appliedTreatment==='welcoming'?'An update for our customers':snapshot.ok?snapshot.identity?.name:'Business update',facts,appliedTreatment==='detailed'?'Please ask us about the full terms and details before making plans.':''].filter(Boolean).join('\n\n');
  if(channel==='newsletter')copy=['Subject: '+(snapshot.ok?snapshot.identity.name+' — ':'')+'Business update',appliedTreatment==='welcoming'?'Hello,':'',facts,appliedTreatment==='concise'?'':'Please contact us if you have questions.',snapshot.ok?snapshot.identity.name:''].filter(Boolean).join('\n\n');
  // Owner-supplied words remain useful without a complete business profile.
- return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:'owner-announcement',channel,treatment,appliedTreatment,businessId,source:snapshot.ok?{...snapshot.source}:{businessId,ownerSuppliedOnly:true},sourceMode:snapshot.source?.approvedProfileSource?'approved-profile':sourceMode,ownerFacts,copy,serviceName:'',serviceId:null,privateOnly:true,requiresOwnerApproval:true,ownerSuppliedNotIndependentlyVerified:true,noMediaAttached:true,providerCallsMade:false};
+ return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:'owner-announcement',...opportunityReference?{opportunityReference:{...opportunityReference}}:{},channel,treatment,appliedTreatment,businessId,source:snapshot.ok?{...snapshot.source}:{businessId,ownerSuppliedOnly:true},sourceMode:snapshot.source?.approvedProfileSource?'approved-profile':sourceMode,ownerFacts,copy,serviceName:'',serviceId:null,privateOnly:true,requiresOwnerApproval:true,ownerSuppliedNotIndependentlyVerified:true,noMediaAttached:true,providerCallsMade:false};
 }
-function confirmSocialBrandHandoff({website,app,businessId,evidence,approvedProfile,feed}={}){
+function confirmSocialBrandHandoff({website,app,businessId,ownerId,evidence,approvedProfile,feed}={}){
  if(!evidence||evidence.ok!==true||
     evidence.kind!=="private_social_brand_handoff_v3199"||
     evidence.businessId!==businessId)
   return {ok:false,reason:"Prepare a current private branded caption first."};
  if(evidence.purpose==='owner-announcement'){
-  const fresh=prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode:evidence.sourceMode,ownerFacts:evidence.ownerFacts,treatment:evidence.treatment||"standard",channel:evidence.channel||"social"});
+  const fresh=prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode:evidence.sourceMode,ownerId,opportunityReference:evidence.opportunityReference||null,ownerFacts:evidence.ownerFacts,treatment:evidence.treatment||"standard",channel:evidence.channel||"social"});
   return fresh.ok&&JSON.stringify(fresh.source)===JSON.stringify(evidence.source)&&fresh.copy===evidence.copy?fresh:{ok:false,reason:'Review this owner-supplied announcement again.'};
  }
  if(['product','event'].includes(evidence.purpose)){
