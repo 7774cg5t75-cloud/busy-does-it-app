@@ -1,4 +1,5 @@
-import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {stripTypeScriptTypes} from 'node:module';import {webcrypto,createHash} from 'node:crypto';
+import {contentDraftChanges} from '../src/core/contentDraftChanges.mjs';
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {stripTypeScriptTypes,createRequire} from 'node:module';import {webcrypto,createHash} from 'node:crypto';
 import {creatorMediaReference,creatorImageDataUri,readCreatorOriginal,materializeCreatorMedia,creatorPublisherPreparation,creatorPublisherBlockReason} from '../src/core/creatorDraftMedia.mjs';
 import {finiteCreatorContent,creatorAccountRecord,creatorContentFromEditor} from '../src/core/creatorDraftAccount.mjs';
 const B='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',O='cccccccc-cccc-4ccc-8ccc-cccccccccccc',A='11111111-1111-4111-8111-111111111111';
@@ -17,3 +18,19 @@ let stored=bytes,audits=0;const db={from:()=>({select:()=>({eq(){return this;},m
 const downloadCode=source.slice(source.indexOf('async function download('),source.indexOf('Deno.serve(')),download=Function('pathAllowed','rateGate','supabase','TABLE','BUCKET','MAX','inspect','fail','audit','cors','crypto',stripTypeScriptTypes(downloadCode)+';return download;')(pathAllowed,async()=>{},db,'original-registry','private-originals',9437184,inspect,(status,error)=>new Response(error,{status}),async()=>audits++,{},webcrypto);
 let response=await download({storagePath:path,expectedSha256:sha},O,B);assert.equal(response.status,200);assert.equal(response.headers.get('x-busy-original-sha256'),sha);assert.equal(audits,1);stored=Buffer.from(bytes);stored[25]^=1;response=await download({storagePath:path,expectedSha256:sha},O,B);assert.equal(response.status,409);assert.equal(audits,1);assert.equal((await download({storagePath:'https://unowned.invalid'},O,B)).status,403);
 console.log('PASS schema2 caption/warning/media ordering and exact whitespace; owned-reference transport, digest-checked original gateway, late removal preserves words/selections, explicit caption clear and publisher-denying preparation. Storage/auth boundaries inert; gateway body and crypto actual.');
+
+// Account-backed wording and briefs remain exact during original Keep/Use navigation.
+const exactRecord={id:'account-exact',creatorAccountRevision:1,creatorContentVersion:2,text:'Owner words',brief:'Owner brief',photos:[],channels:[]};
+assert.equal(contentDraftChanges({text:'Owner words\n',brief:'Owner brief',photos:[],channels:{}},exactRecord).wording,true);
+assert.equal(contentDraftChanges({text:'Owner words',brief:'Owner brief\n',photos:[],channels:{}},exactRecord).brief,true);
+assert.equal(contentDraftChanges({text:'Owner words',brief:'Owner brief',photos:[],channels:{}},exactRecord).dirty,false);
+assert.equal(contentDraftChanges({text:'Owner words\n',brief:'Owner brief',photos:[],channels:{}},{...exactRecord,creatorAccountRevision:undefined,creatorContentVersion:undefined}).wording,false,'Legacy local trimming contract is unchanged');
+console.log('PASS exact account draft newline-only wording/brief edits remain dirty through original navigation.');
+
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs'),dirtyRuntime=createRuntime(),{useSocialContentHandoff}=dirtyRuntime.load('src/screens/useSocialContentHandoff.js');
+const dirtyScope={},dirtyPhotos=[],dirtyRecords=[{...exactRecord,status:'Draft',ownerId:O,businessId:B}],dirtyChannels={};let dirtyPrompt,opened=0;
+function DirtyAccountOwner(){return useSocialContentHandoff({workspaceScope:dirtyScope,ownerId:O,businessId:B,role:'owner',text:'Owner words\n',brief:'Owner brief',photos:dirtyPhotos,channels:dirtyChannels,records:dirtyRecords,selectedDraftId:'account-exact',sourceContext:{},confirm:p=>dirtyPrompt=p});}
+const dirtyActions=dirtyRuntime.render(DirtyAccountOwner,{});
+assert.equal(dirtyActions.replaceDraft(()=>{opened++;return true;}),false);assert.equal(opened,0);assert.ok(dirtyPrompt);dirtyPrompt.keep();assert.equal(opened,0);
+assert.equal(dirtyActions.replaceDraft(()=>{opened++;return true;}),false);assert.equal(opened,0);assert.equal(dirtyPrompt.discard(),true);assert.equal(opened,1);
+console.log('PASS actual original Keep/Use transition protects account newline-only edits until deliberate discard.');

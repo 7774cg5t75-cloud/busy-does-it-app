@@ -25,7 +25,7 @@ export function restoreContentDraft(draft,{today='',storyLabel=''}={}){
 export function contentDraftChanges(current,record){
  const savedPhotos=savedContentPhotos(record);
  const requested=privateContentChannels(current.channels);
- const exact=record?.contentEvidence?.channel==='newsletter';
+ const exact=!!record?.creatorAccountRevision||!!record?.creatorContentVersion||record?.contentEvidence?.channel==='newsletter';
  const wording=String(current.text||''),brief=String(current.brief||'');
  const result={wording:(exact?wording:wording.trim())!==String(record?.text||''),media:media(current.photos)!==media(savedPhotos),brief:(exact?brief:brief.trim())!==String(record?.brief||''),channels:requested!==null&&JSON.stringify([...requested].sort())!==JSON.stringify([...(record?.channels||[])].sort())};
  if(Object.hasOwn(current,'contentEvidence')||Object.hasOwn(current,'sourceContext')){
