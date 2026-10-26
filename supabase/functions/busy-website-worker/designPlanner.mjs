@@ -29,6 +29,7 @@ const SECTOR_PATTERNS=[
 ];
 function deriveSector(type){
  const text=clean(type).toLowerCase();
+ if(/(?:exterior|outdoor|pressure|driveway|patio|window|roof).*clean|pressure wash|jet wash/.test(text))return "trades";
  return SECTOR_PATTERNS.find(([_,pattern])=>pattern.test(text))?.[0]||"neutral";
 }
 // A stable, non-secret design seed prevents random redesigns on every render.
@@ -139,7 +140,18 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   const eventCateringWithPhotos=sector==="hospitality"&&
     /cater|festival|hog roast|food truck|street food|food stall|mobile food/i.test(clean(businessType))&&
     services.length>=2&&photos>=2;
-  const sectionOrder=eventCateringWithPhotos
+  const exteriorCleaning=sector==='trades'&&/(?:exterior|outdoor|pressure|driveway|patio|window|roof).*clean|pressure wash|jet wash/.test(clean(businessType).toLowerCase());
+  const composition=sector==='nature'?'garden-maintenance':exteriorCleaning?'exterior-cleaning':sector;
+  const defaults={services:{serviceLayout:sector==='wellness'?'directory':sector==='retail'?'cards':exteriorCleaning&&services.length>=3?'index':sector==='trades'?'directory':'cards'},about:{readingLayout:sector==='hospitality'?'editorial':sector==='wellness'?'column':'column'},contact:{ctaSize:'spacious'},...(faqCount>=2?{faq:{faqLayout:'questions'}}:{})};
+  if(photos>=2)defaults.gallery={gallerySize:sector==='nature'||exteriorCleaning?'large':'compact'};
+  if(sector==='wellness')defaults.services.sectionSpacing='generous';
+  const sectionOrder=exteriorCleaning&&photos>=2
+    ? ['hero','services','gallery','faq','about','testimonials','contact']
+    : sector==='trades'&&faqCount>=2
+    ? ['hero','services','faq','about','gallery','testimonials','contact']
+    : sector==='wellness'&&aboutWords>=15
+    ? ['hero','about','services','gallery','faq','testimonials','contact']
+    : eventCateringWithPhotos
     ? ["hero","services","gallery","about","testimonials","faq","contact"]
     : sector==="hospitality"&&aboutWords>=15
     ? ["hero","about","services","gallery","testimonials","faq","contact"]
@@ -169,9 +181,9 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   const homeSectionIds=architecture==="focused-landing" ? visibleOrder :
     visibleOrder.filter(id=>active.some(x=>x.id===id&&["text","photo-feature"].includes(x.type)&&id.startsWith("custom-"))||
       ["hero","services","contact","products","events"].includes(id)||
-      (id==="gallery"&&(family==="portfolio"||eventCateringWithPhotos))||
+      (id==="gallery"&&(family==="portfolio"||eventCateringWithPhotos||photos>=2&&["nature","trades","wellness","retail"].includes(sector)))||
       (id==="about"&&["artisan","editorial","boutique"].includes(family))||
-      (id==="testimonials"&&reviewCount>0));
+      (id==="testimonials"&&reviewCount>0)||(id==="faq"&&faqCount>=2&&["trades","wellness"].includes(sector)));
   const gaps=[];
   if(!clean(businessName))gaps.push("business-name");
   if(!services.length)gaps.push("services");
@@ -180,6 +192,7 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   if(!descriptionWords&&aboutWords===0)gaps.push("business-description");
   // All statements below describe design decisions, NOT marketing claims.
   return {
+    composition:{kind:composition,sectionDefaults:defaults,reason:"Section hierarchy and finite presentation follow the recorded business type and available content; no business claims are generated."},
     version:2,architecture,contentTier,sector,family,heroTreatment,
     visualIdentity,
     sectionOrder:visibleOrder,homeSectionIds,

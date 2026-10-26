@@ -195,7 +195,7 @@ function renderSectionHtml(
     if(!image)return "";
     const picture=`<img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}">`;
     const copy=`<div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div>`;
-    return `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></div></section>`;
+    return `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></section>`;
   }
   if (section.type === "gallery") {
     const imageNodes = safeArray(section.items)

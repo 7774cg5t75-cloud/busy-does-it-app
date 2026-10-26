@@ -29,3 +29,13 @@ export function prepareServiceEnquiry({businessId,app,catalog,serviceId,fields,l
  const plan=proposeCoordinatedAppChanges(context.config,operations);
  return plan.ok?bindPrivateAppProposal(plan,{businessId,app}):plan;
 }
+
+// One original services operation. No new fields, modules, prices or request authority.
+export function prepareApprovedAppServices({businessId,app,catalog,approvedProfile,selectedIds}={}){
+ const context=serviceEnquiryContext({businessId,app,catalog});
+ if(!context||!Array.isArray(selectedIds)||!selectedIds.length||new Set(selectedIds).size!==selectedIds.length)return {ok:false,reason:'Choose distinct approved services to add.'};
+ const candidates=approvedServiceChoices(approvedProfile,businessId).filter(r=>!context.services.some(s=>s.id===r.id||s.name.trim().toLocaleLowerCase('en')===r.name.trim().toLocaleLowerCase('en')));
+ const added=selectedIds.map(id=>candidates.find(r=>r.id===id));if(added.some(x=>!x))return {ok:false,reason:'An approved service changed or already exists. Review its current identity.'};
+ const services=[...context.services,...added.map(r=>({id:r.id,name:r.name,description:r.description||''}))];
+ const plan=proposeCoordinatedAppChanges(context.config,[{kind:'services',value:services}]);return plan.ok?bindPrivateAppProposal(plan,{businessId,app}):plan;
+}

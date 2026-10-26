@@ -2572,6 +2572,20 @@
         "scripts/check-mission15-growth-activity-evidence.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-professional-website-generation",
+      "args": [
+        "scripts/check-mission15-professional-website-generation.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission15-returning-builder-work",
+      "args": [
+        "scripts/check-mission15-returning-builder-work.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

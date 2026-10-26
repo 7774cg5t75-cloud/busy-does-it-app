@@ -92,7 +92,8 @@ const PALETTE_ALTERNATIVES={
  }
 };
 function designForWebsite({businessType="",theme={},plan=null}={}){
-  const sector=SECTORS.find(([,pattern])=>pattern.test(clean(businessType).toLowerCase()))?.[0]||"neutral";
+  const exterior=/(?:exterior|outdoor|pressure|driveway|patio|window|roof).*clean|pressure wash|jet wash/.test(clean(businessType).toLowerCase());
+  const sector=exterior?"trades":SECTORS.find(([,pattern])=>pattern.test(clean(businessType).toLowerCase()))?.[0]||"neutral";
   const mood=["clean","warm","bold","premium"].includes(clean(theme?.mood).toLowerCase())
     ? clean(theme.mood).toLowerCase() : "clean";
   const variant=["a","b","c"].includes(plan?.visualIdentity?.paletteVariant)?plan.visualIdentity.paletteVariant:"a";
@@ -121,6 +122,11 @@ function designCss(design){
 :root{--ink:${d.ink};--accent:${d.accent};--soft:${d.soft};--line:${d.line};--glow:${d.glow};--paper:${d.paper};--accent-soft:${d.secondary};--content:1120px}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:border-box}
+img{max-width:100%}
+main,section,article,.wrap,.hero-content{min-width:0}
+:where(h1,h2,h3,p,a){overflow-wrap:anywhere}
+:where(.grid,.gallery)>*{min-width:0}
 body{margin:0;color:var(--ink);background:var(--paper);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit}a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
 .wrap{width:min(100% - 48px,var(--content));margin-inline:auto}

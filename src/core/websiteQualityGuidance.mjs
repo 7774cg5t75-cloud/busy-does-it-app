@@ -38,6 +38,7 @@ function websiteQualityGuidance({ brandBrain = {}, draft = null } = {}) {
       "Real photos of your work can make the website feel personal. Only use photos you have permission to publish.",
       "visual");
   }
+  if(Number(draft?.sourceSummary?.omittedServiceCount)>0)add('ambiguous-services','Review incomplete or repeated service details','Some source services have no name or share a name/identifier. Busy did not choose between conflicting entries; correct the original service information.','important');
   const described = services.filter(s => clean(s?.description));
   if (services.length && described.length < Math.min(services.length, 3)) {
     add("services", "Explain your main services",

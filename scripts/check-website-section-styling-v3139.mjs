@@ -25,13 +25,16 @@ const brief={websiteReady:true,websiteBrief:{
  photos:[photo,photo2],heroAsset:photo,
  faqs:[{id:"one",question:"Where do you work?",answer:"Across Devon."}]
 }};
-const first=buildWebsiteDraft({brandBrain:brief});
+const generated=buildWebsiteDraft({brandBrain:brief});
+// Exercise explicit edits from an uncustomised section, independently of sector defaults.
+const first={...generated,sections:generated.sections.map(s=>({...s,appearance:undefined}))};
 const old=JSON.stringify(first);
 const style=(draft,sectionId,field,value)=>applyWebsiteLayoutChange(draft,
  {action:"section-style",sectionId,field,value});
 const heading=style(first,"services","headingScale","large");
 assert.ok(heading.applied,"Independent service heading scale applied");
-assert.ok(heading.draft.html.includes('id="services" class="owner-heading-large"'));
+const serviceClasses=draft=>draft.html.match(/id="services" class="([^"]*)"/)?.[1].split(/\s+/)||[];
+assert.ok(serviceClasses(heading.draft).includes('owner-heading-large'));
 assert.ok(!heading.draft.html.includes('<script>'));
 assert.equal(JSON.stringify(first),old,"Old draft never mutated");
 assert.equal(heading.draft.publicStatus,"Not published");
@@ -39,7 +42,7 @@ assert.equal(heading.draft.generation,first.generation+1);
 assert.equal(heading.draft.sections.find(s=>s.id==="hero").appearance,undefined);
 const centered=style(heading.draft,"services","textAlign","center");
 assert.ok(centered.applied);
-assert.ok(centered.draft.html.includes('class="owner-heading-large owner-align-center"'));
+assert.ok(['owner-heading-large','owner-align-center'].every(c=>serviceClasses(centered.draft).includes(c)));
 const spaced=style(centered.draft,"services","sectionSpacing","generous");
 assert.ok(spaced.applied&&spaced.draft.html.includes("owner-space-generous"));
 const cropped=style(spaced.draft,"hero","photoCrop","top");
