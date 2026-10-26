@@ -1,3 +1,4 @@
+import {CreatorAccountDrafts} from './CreatorAccountDrafts';
 import {savedOpportunityDrafts} from '../core/opportunityDraftReference.mjs';
 import React from 'react';
 import {Text,View,Alert} from 'react-native';
@@ -56,5 +57,5 @@ export function GrowthAccountOpportunities({s}){
   </View>:null}
   {view?<View><Text style={styles.cardBody}>Original private Creator drafts loaded for this exact opportunity. These are saved-record associations, not account completeness, send receipts or conversion evidence.</Text>{savedOpportunityDrafts(s.socialDrafts,{ownerId:owner,businessId:business,opportunityId:view.opportunityId}).slice(0,20).map(link=><View key={link.draftId}><Text style={styles.cardBody}>{'Creator draft '+link.draftId+' · source revision '+link.reference.revision+(link.reference.sourceHash===view.sourceHash?' · same report facts':' · historical changed report')}</Text><Button label={'Open original opportunity draft: '+link.draftId} disabled={busy||typeof s.openSocialDraft!=='function'} onPress={()=>change(()=>{const now=savedOpportunityDrafts(live.current.socialDrafts,{ownerId:owner,businessId:business,opportunityId:view.opportunityId}).find(x=>x.draftId===link.draftId&&x.stamp===link.stamp);return now?live.current.openSocialDraft(link.draftId):false;})}/></View>)}</View>:null}
   {!view||view.state==='active'&&!view.historical?<OwnerGrowthOpportunity key={view?view.opportunityId+':'+view.revision+':'+editorGeneration:'new:'+editorGeneration} s={s} initialRecord={view} allowPrepare={!busy&&!uncertain&&(!view||sourceCurrent)} onDraftChange={()=>{epoch.current++;dirty.current=true;approval.current=null;}} onSave={uncertain?null:args=>write({...args,action:view?'edit':'create'})}/>:null}
- </Card>;
+ {view?<CreatorAccountDrafts s={s} opportunityId={view.opportunityId}/>:null}</Card>;
 }

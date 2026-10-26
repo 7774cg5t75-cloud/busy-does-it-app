@@ -2600,6 +2600,13 @@
         "scripts/check-mission15-website-evidence-quality.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-creator-account-continuity",
+      "args": [
+        "scripts/check-mission15-creator-account-continuity.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
