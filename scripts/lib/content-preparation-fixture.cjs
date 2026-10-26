@@ -17,6 +17,7 @@ module.exports.parent=function originalParent(name,env){
   function visit(n){if(!n||typeof n!=='object')return;if(n.type==='VariableDeclarator'&&n.id?.type==='Identifier'&&n.init)initializers.set(n.id.name,source.slice(n.init.start,n.init.end));for(const v of Object.values(n)){if(Array.isArray(v))v.forEach(visit);else if(v&&typeof v==='object')visit(v);}}
   visit(parse(source,{sourceType:'module',plugins:['jsx']}));module.exports.initializers=initializers;
  }
+ const helpers=createRuntime().load('src/core/creatorDraftMedia.mjs');env={creatorMediaReference:helpers.creatorMediaReference,creatorPublisherBlockReason:helpers.creatorPublisherBlockReason,...env};
  const code=module.exports.initializers.get(name);if(!code)throw Error('Missing original parent '+name);
  return Function(...Object.keys(env),'return '+code)(...Object.values(env));
 };
