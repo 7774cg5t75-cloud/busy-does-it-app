@@ -1,3 +1,4 @@
+import {heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
 // Execute actual checked-in section renderer; signed asset URL resolution is
 // an inert map boundary. No Deno entrypoint, HTTP, provider or hosted execution.
@@ -16,5 +17,5 @@ export function originalWebsiteSectionRuntime(){
   return body;
  }).join('\n');
  const js=stripTypeScriptTypes(code);
- return Function('sectionAppearanceClasses','itemTypographyClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(sectionAppearanceClasses,itemTypographyClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
+ return Function('heroServiceOverview','sectionAppearanceClasses','itemTypographyClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(heroServiceOverview,sectionAppearanceClasses,itemTypographyClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
 }

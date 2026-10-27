@@ -16,7 +16,7 @@ export function prepareGoalToPrivateApp({ownerId,businessId,app,profile,catalog,
  const services=profile.services;
  if(!Array.isArray(selectedIds)||!selectedIds.length||selectedIds.length>6||selectedIds.some(id=>typeof id!=='string'||!/^[A-Za-z0-9_-]{1,80}$/.test(id))||new Set(selectedIds).size!==selectedIds.length)return fail('Choose one to six genuine services for this first app. You can add more later.');
  const chosen=selectedIds.map(id=>services.find(r=>r.id===id));
- if(chosen.some(r=>!r||services.filter(s=>s.id===r.id).length!==1||!r.name||!r.description)||new Set(chosen.map(r=>r.name.trim().toLowerCase())).size!==chosen.length)return fail('Review distinct services with approved descriptions. Ambiguous facts cannot be chosen automatically.');
+ if(chosen.some(r=>!r||services.filter(s=>s.id===r.id).length!==1||typeof r.name!=='string'||!r.name.trim()||typeof r.description!=='string'||!r.description.trim())||new Set(chosen.map(r=>r.name.trim().toLowerCase())).size!==chosen.length)return fail('Review distinct services with approved descriptions. Ambiguous facts cannot be chosen automatically.');
  const intent=inspectCapabilityIntent(goal);
  if(!intent.valid||intent.conflicts.length||intent.requested.includes('booking_request'))return fail('This private creation journey supports service information, photos, contact and enquiries. Booking requests need their separate review.');
  const profileDraft=JSON.parse(JSON.stringify({...profile,services:chosen}));
