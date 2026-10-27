@@ -2683,6 +2683,24 @@
       "args": [
         "scripts/check-mission15-website-service-contact.mjs"
       ]
+    },
+    {
+      "id": "mission15-owner-app-goals",
+      "args": [
+        "scripts/check-mission15-owner-app-goals.mjs"
+      ]
+    },
+    {
+      "id": "mission15-premium-homepage-sample",
+      "args": [
+        "scripts/check-mission15-premium-homepage-sample.mjs"
+      ]
+    },
+    {
+      "id": "mission15-creator-device-intent",
+      "args": [
+        "scripts/check-mission15-creator-device-intent.mjs"
+      ]
     }
   ]
 }

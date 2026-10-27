@@ -1,3 +1,4 @@
+import {prepareOwnerEnquiryGoal} from '../core/appOwnerEnquiryGoal.mjs';
 import {prepareAppServiceAnswers} from '../core/appServiceAnswers.mjs';
 import {prepareCompleteAppEnquiry,prepareAppEnquiryStages} from '../core/appCompleteEnquiry.mjs';
 import {SERVICE_QUESTION_TOPICS} from '../../standalone/template/nativeCustomerActions.mjs';
@@ -10,14 +11,14 @@ import {approvedServiceChoices,serviceEnquiryContext} from '../core/appServiceEn
 import {ENQUIRY_REQUIREMENTS} from '../core/customerEnquiryRequirements.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 // One original coordinated proposal; the parent Studio owns save, receipts and Undo.
-export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,approvedProfile,busy=false,onPreview,onDraftChange,Surface}){
- const [rows,setRows]=React.useState([]),[baseline,setBaseline]=React.useState(null),[heading,setHeading]=React.useState(''),[notice,setNotice]=React.useState(''),[continuation,setContinuation]=React.useState(null);
+export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,approvedProfile,busy=false,onPreview,onDraftChange,Surface,ownerGoal=''}){
+ const [rows,setRows]=React.useState([]),[baseline,setBaseline]=React.useState(null),[heading,setHeading]=React.useState(''),[notice,setNotice]=React.useState(''),[continuation,setContinuation]=React.useState(null),[goal,setGoal]=React.useState(ownerGoal);
  const initial=React.useRef([ownerId,businessId,app?.id]);
  const visible=initial.current[0]===ownerId&&initial.current[1]===businessId&&initial.current[2]===app?.id;
  const decision=React.useRef(null),live=React.useRef(null),epoch=React.useRef(0),alive=React.useRef(true);
  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const context=serviceEnquiryContext({businessId,app,catalog}),stamp=stableJson([ownerId,businessId,context?.source,catalog,approvedProfile]);
- live.current={stamp,busy,rows,heading,app,businessId,ownerId,catalog,approvedProfile};
+ live.current={stamp,busy,rows,heading,goal,app,businessId,ownerId,catalog,approvedProfile};
  const current=()=>alive.current&&visible&&!!ownerId&&!live.current.busy&&live.current.stamp===stamp&&stableJson([live.current.ownerId,live.current.businessId,serviceEnquiryContext(live.current)?.source,live.current.catalog,live.current.approvedProfile])===stamp;
  const change=run=>{if(!current())return false;epoch.current++;onPreview?.(null);onDraftChange?.(true);run();return true;};
  const capture=epoch.current,stale=baseline!==null&&baseline!==stamp;
@@ -29,6 +30,8 @@ export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,approved
  const plan=!stale&&rows.length?prepareCompleteAppEnquiry({businessId,app,catalog,rows,navigationLabel:heading,approvedProfile}):null;
  if(!visible||!ownerId||!context)return null;
  return <Card eyebrow="Guided App Builder" title="Review the complete service enquiry journey" body="Add approved business services and configure the enquiry journey together, compare the customer view, then approve one Studio change. Original required customer fields stay unchanged.">
+  <Field label="What should customers be able to do?" value={goal} maxLength={600} editable={!busy&&!stale} onChangeText={value=>change(()=>setGoal(value))}/>
+  <Button label="Prepare my service and enquiry outline" disabled={busy||stale||!goal.trim()} onPress={()=>{if(!current()||capture!==epoch.current)return false;const prepared=prepareOwnerEnquiryGoal({businessId,app,catalog,approvedProfile,goal});if(!prepared.ok){setNotice(prepared.reason);return false;}const token={},e=epoch.current;decision.current=token;let used=false;Alert.alert('Use this outline from your business information?',prepared.explanation+' Existing saved app information stays unchanged.',[{text:'Keep my current review',style:'cancel',onPress:()=>{used=true;}},{text:'Use reviewed outline',onPress:()=>{if(used||decision.current!==token||!current()||epoch.current!==e||live.current.goal!==goal)return false;used=true;return change(()=>{setRows(prepared.rows);setHeading(prepared.navigationLabel);setBaseline(stamp);setNotice(prepared.explanation);});}}]);return true;}}/>
   {available.map(row=><Button key={row.id} label={(rows.some(r=>r.id===row.id)?'Remove from unsaved review: ':row.importApproved?'Add approved service: ':'Include service: ')+row.name} disabled={busy||stale||rows.length>=6&&!rows.some(r=>r.id===row.id)} onPress={()=>choose(row)}/>)}
   {rows.length?<>
    {stale?<Text style={styles.cardBody}>The app source changed. Your words are kept; clear this unsaved review before selecting current services.</Text>:null}
