@@ -2647,6 +2647,24 @@
       "args": [
         "scripts/check-mission15-app-service-answers.mjs"
       ]
+    },
+    {
+      "id": "mission15-creator-reconciliation",
+      "args": [
+        "scripts/check-mission15-creator-reconciliation.mjs"
+      ]
+    },
+    {
+      "id": "mission15-connected-app-enquiry",
+      "args": [
+        "scripts/check-mission15-connected-app-enquiry.mjs"
+      ]
+    },
+    {
+      "id": "mission15-website-page-headings",
+      "args": [
+        "scripts/check-mission15-website-page-headings.mjs"
+      ]
     }
   ]
 }

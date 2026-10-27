@@ -1,9 +1,11 @@
+import {prepareCompleteAppEnquiry} from '../core/appCompleteEnquiry.mjs';
+import {SERVICE_QUESTION_TOPICS} from '../../standalone/template/nativeCustomerActions.mjs';
 import {AppEnquiryRequestPreview} from './appEnquiryRequestPreview';
 import React from 'react';
 import {Text,Alert} from 'react-native';
 import {Card,Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
-import {approvedServiceChoices,serviceEnquiryContext,prepareAppEnquiryJourney} from '../core/appServiceEnquiry.mjs';
+import {approvedServiceChoices,serviceEnquiryContext} from '../core/appServiceEnquiry.mjs';
 import {ENQUIRY_REQUIREMENTS} from '../core/customerEnquiryRequirements.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 // One original coordinated proposal; the parent Studio owns save, receipts and Undo.
@@ -20,7 +22,7 @@ export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,approved
  const capture=epoch.current,stale=baseline!==null&&baseline!==stamp;
  const available=context?[...context.services,...approvedServiceChoices(approvedProfile,businessId).filter(r=>!context.services.some(s=>s.id===r.id||s.name.trim().toLocaleLowerCase('en')===r.name.trim().toLocaleLowerCase('en'))).map(r=>({...r,importApproved:true}))]:[];
  const choose=row=>{if(!current()||stale)return false;if(rows.some(r=>r.id===row.id)){const ticket={},e=epoch.current;decision.current=ticket;let used=false;Alert.alert('Keep this service wording?','Removing this service from the unsaved review discards only its current proposed edits. Saved app services stay unchanged.',[{text:'Keep my wording',style:'cancel',onPress:()=>{used=true;}},{text:'Remove unsaved service',onPress:()=>{if(used||decision.current!==ticket||!current()||epoch.current!==e)return false;used=true;return change(()=>setRows(old=>old.filter(r=>r.id!==row.id)));}}]);return false;}return change(()=>{setBaseline(stamp);setHeading(heading||context.config.modules.find(m=>m.key==='services')?.label||'Services');setRows(old=>old.some(r=>r.id===row.id)?old.filter(r=>r.id!==row.id):old.length<6?[...old,{id:row.id,...row.importApproved?{importApproved:true}:{},fields:{name:row.name,description:row.description||'',...Object.fromEntries(['category','priceLabel','durationLabel'].filter(k=>Object.hasOwn(row,k)).map(k=>[k,row[k]]))},label:context.config.presentation?.servicePresentation?.[row.id]?.enquiryLabel||'Ask about this service'}]:old);});};
- const plan=!stale&&rows.length?prepareAppEnquiryJourney({businessId,app,catalog,rows,navigationLabel:heading,approvedProfile}):null;
+ const plan=!stale&&rows.length?prepareCompleteAppEnquiry({businessId,app,catalog,rows,navigationLabel:heading,approvedProfile}):null;
  if(!visible||!ownerId||!context)return null;
  return <Card eyebrow="Guided App Builder" title="Review the complete service enquiry journey" body="Add approved business services and configure the enquiry journey together, compare the customer view, then approve one Studio change. Original required customer fields stay unchanged.">
   {available.map(row=><Button key={row.id} label={(rows.some(r=>r.id===row.id)?'Remove from unsaved review: ':row.importApproved?'Add approved service: ':'Include service: ')+row.name} disabled={busy||stale||rows.length>=6&&!rows.some(r=>r.id===row.id)} onPress={()=>choose(row)}/>)}
@@ -31,6 +33,8 @@ export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,approved
     <Field label={'Service heading: '+available.find(s=>s.id===row.id)?.name} value={row.fields.name} editable={!busy&&!stale} onChangeText={value=>change(()=>setRows(old=>old.map(r=>r.id===row.id?{...r,fields:{...r.fields,name:value}}:r)))}/>
     <Field label={'Enquiry information: '+available.find(s=>s.id===row.id)?.name} value={row.fields.description} multiline editable={!busy&&!stale} onChangeText={value=>change(()=>setRows(old=>old.map(r=>r.id===row.id?{...r,fields:{...r.fields,description:value}}:r)))}/>
     {[['category','Service category',80],['priceLabel','Informational price wording',120],['durationLabel','Informational duration wording',80]].map(([key,title,max])=><Field key={key} label={title+': '+available.find(s=>s.id===row.id)?.name} value={row.fields[key]||''} maxLength={max} editable={!busy&&!stale} onChangeText={value=>change(()=>setRows(old=>old.map(r=>r.id===row.id?{...r,fields:{...r.fields,[key]:value}}:r)))}/>)}
+    <Text style={styles.cardBody}>Optional public answers help customers understand this service before enquiring. Write approved facts only; blank answers are not published.</Text>
+    {SERVICE_QUESTION_TOPICS.map(topic=><Field key={topic.key} label={'Public answer ('+topic.label+'): '+row.fields.name} value={row.answers?.[topic.key]||''} maxLength={1200} multiline editable={!busy&&!stale} onChangeText={answer=>change(()=>setRows(old=>old.map(r=>r.id===row.id?{...r,answers:{...r.answers,[topic.key]:answer}}:r)))}/>)}
     {['Ask about this service','Request a quote','Request more information','Contact us'].map(label=><Button key={label} label={row.fields.name+': '+label+(row.label===label?' · selected':'')} disabled={busy||stale} onPress={()=>change(()=>setRows(old=>old.map(r=>r.id===row.id?{...r,label}:r)))}/>)}
    </React.Fragment>)}
    <Text style={styles.cardBody}>Customers provide their name, email or phone, and a message. The original optional requirements below are customer-entered preferences; they do not confirm timing, prices or bookings.</Text>

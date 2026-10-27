@@ -29,13 +29,13 @@ export function creatorAccountRecord(v){
  if(!finiteCreatorContent(v?.content))return null;
  const c=v.content;return {id:v.draftId,businessId:v.businessId,ownerId:v.ownerId,status:'Draft',text:c.text,brief:c.brief,photos:c.media.length?(Array.isArray(v.resolvedPhotos)&&v.resolvedPhotos.length===c.media.length?v.resolvedPhotos:c.media.map(r=>({id:r.id,uri:'',fileName:r.fileName,width:r.width,height:r.height,creatorOriginalRef:{...r},mediaUnavailable:true}))):[],captions:c.editor?.captions||[],selectedCaptionId:c.editor?.selectedCaptionId||'',privacyWarnings:c.editor?.privacyWarnings||[],story:c.editor?.story||null,...c.schemaVersion===3?{creatorAnalysisSummary:c.editor.summary,service:c.editor.detectedService,scheduleDate:c.editor.proposedScheduleDate,scheduleTime:c.editor.proposedScheduleTime}:{},channels:c.channels,source:'owner-announcement',sourceLabel:'Private account Creator draft',contentEvidence:{businessId:v.businessId,purpose:'owner-announcement',channel:c.format,treatment:c.treatment,ownerFacts:c.ownerFacts,copy:c.preparedCopy,ownerSuppliedNotIndependentlyVerified:true,accountBrandFingerprint:c.brandFingerprint,...v.opportunityReference?{opportunityReference:v.opportunityReference}:{}},creatorAccountRevision:v.revision,creatorContentVersion:c.schemaVersion};
 }
-export function openCreatorAccountRecord(s,v){
+export function openCreatorAccountRecord(s,v,{replaceExpected=null}={}){
  const record=creatorAccountRecord(v),actions=s.socialContentActions;
- if(!record||record.businessId!==s.cloudWorkspace?.businessId||record.ownerId!==s.ownerSession?.userId||s.socialDrafts?.some(r=>r.id===record.id))return false;
+ if(!record||record.businessId!==s.cloudWorkspace?.businessId||record.ownerId!==s.ownerSession?.userId||s.socialDrafts?.some(r=>r.id===record.id)&&(s.socialDrafts.filter(r=>r.id===record.id).length!==1||s.socialDrafts.find(r=>r.id===record.id)!==replaceExpected||s.selectedSocialDraftId!==record.id||!creatorContentFromEditor(s)))return false;
  // Original replaceDraft validates its ticket, consumes Keep/Use and advances its epoch.
  return actions.replaceDraft(()=>{
   const restored=restoreContentDraft(record);
-  s.installCreatorAccountRecord(record,restored);return true;
+  s.installCreatorAccountRecord(record,restored,replaceExpected);return true;
  });
 }
 export function createCreatorDraftAccount({enabled=CREATOR_DRAFT_ACCOUNT_ENABLED,getCurrent,ownerAccessToken,request,originalBaseUrl,originalApiKey,fetchOriginal}){

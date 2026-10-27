@@ -1,5 +1,5 @@
 import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
-import {websitePageGuide} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
+import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
 import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
@@ -724,7 +724,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const itemHeadingClass=item=>item?.appearance?.headingScale==="large"
     ?' class="owner-item-heading-large"':
     item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
-  const sectionHtml = orderedSections.map(section=>{
+  const rawSectionHtml = orderedSections.map(section=>{
     const sectionClasses=sectionAppearanceClasses(section);
     const sectionAttrs=(sectionClasses?` class="${sectionClasses}"`:"")+editAttrs(section,"section");
     if(['products','events'].includes(section.type))return businessContentSectionHtml(section,{sectionClasses});
@@ -806,6 +806,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
       : "";
   }).join("");
+  const sectionHtml=websitePageHeadingHierarchy(rawSectionHtml);
   const business=escapeHtml(draft.businessName||"Business website");
   const area=clean(draft.serviceArea);
   const nav=safeArray(draft.navigation)

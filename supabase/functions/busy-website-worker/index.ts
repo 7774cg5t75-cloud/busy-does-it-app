@@ -1,5 +1,5 @@
 import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
-import {websitePageGuide} from './websitePageGuide.mjs';
+import {websitePageGuide,websitePageHeadingHierarchy} from './websitePageGuide.mjs';
 import {serviceIndexHtml} from './websiteServiceIndex.mjs';
 import {faqDisclosureItems} from './websiteFaqPresentation.mjs';
 import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
@@ -331,7 +331,7 @@ function renderWebsiteHtml(
     : "";
 
   const renderedOrder=(page?.id==="home"?plan.sectionOrder:safeArray(page?.sectionIds));
-  const sectionHtml = renderedOrder
+  const rawSectionHtml = renderedOrder
     .map((id:string)=>sections.find((section:any)=>section.id===id))
     .filter(Boolean)
     .filter((section: any) => {
@@ -351,6 +351,7 @@ function renderWebsiteHtml(
 
   const contact: any =
     allSections.find((section: any) => section.id === "contact") || {};
+  const sectionHtml=websitePageHeadingHierarchy(rawSectionHtml);
   const sameAs = Object.values(contact?.social || {})
     .map((value) => clean(value, 1000))
     .filter((value) => /^https?:\/\//i.test(value));

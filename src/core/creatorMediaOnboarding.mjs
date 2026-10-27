@@ -4,7 +4,7 @@ import {stableJson} from './stableJson.mjs';
 // byte-ingestion authority. No client action can enable this release gate.
 export const CREATOR_MEDIA_ONBOARDING_ENABLED=false;
 export function createCreatorMediaOnboarding({enabled=CREATOR_MEDIA_ONBOARDING_ENABLED,getCurrent,inspectLocal,readBytes,upload,reviewMedia,downloadMedia}){
- const origin=getCurrent(),tickets=new WeakMap();let pending=false,blocked=false,last=null;
+ const origin=getCurrent(),tickets=new WeakMap();let pending=false,blocked=false,last=null,attempt=null;
  const scoped=()=>{const c=getCurrent();return !!origin.scope&&c.scope===origin.scope&&c.ownerId===origin.ownerId&&c.businessId===origin.businessId&&c.role==='owner'&&c.ready===true;};
  const view=()=>scoped()&&last?JSON.parse(stableJson(last)):null;
  return {enabled:enabled===true,
@@ -18,15 +18,45 @@ export function createCreatorMediaOnboarding({enabled=CREATOR_MEDIA_ONBOARDING_E
    const ticket={files:value.files,photos:photos.map(p=>({...p})),privateOnly:true};
    tickets.set(ticket,{stamp:stableJson(ticket),current,originals});return ticket;
   },
+  // Independent known-path inspection, never proof of a missing upload receipt.
+  // Current words may change; only the deliberately selected original bytes bind
+  // this read. The caller separately reviews installing verified references.
+  async reconcile(photos,isCurrent=()=>true){
+   if(!scoped()||pending||!last||!attempt||!isCurrent())return null;
+   pending=true;let observations=0;const selection=stableJson(photos),current=()=>scoped()&&isCurrent()&&stableJson(photos)===selection;
+   try{
+    for(const row of last.files){
+     if(!current())return null;
+     if(!row.storagePath)continue;
+     const index=attempt.ticket.photos.findIndex(p=>p.id===row.id),old=attempt.ticket.photos[index],matches=photos.filter(p=>p?.id===row.id);
+     delete row.ref;row.state='unavailable_or_restricted';
+     if(matches.length!==1||['uri','mimeType','fileName','width','height'].some(k=>matches[0][k]!==old[k])){row.state='selection_changed';continue;}
+     try{
+      const bytes=await readBytes(matches[0]);
+      if(!current())return null;
+      if(!(bytes instanceof Uint8Array)||bytes.length!==attempt.originals[index].length||bytes.some((b,j)=>b!==attempt.originals[index][j])){row.state='selection_changed';continue;}
+      observations++;const reviewed=await reviewMedia({...matches[0],exportOriginalPath:row.storagePath}),actual=await downloadMedia(reviewed.projection,current),again=await reviewMedia({...matches[0],exportOriginalPath:row.storagePath});
+      if(!current())return null;
+      if(!creatorMediaReference(reviewed.ref)||reviewed.ref.id!==row.id||stableJson(reviewed)!==stableJson(again)||actual.length!==bytes.length||actual.some((b,j)=>b!==bytes[j]))throw Error('Original unavailable');
+      if(last.files.some(r=>r!==row&&r.ref?.assetId===reviewed.ref.assetId)){row.state='duplicate_asset';continue;}
+      row.ref=reviewed.ref;row.state='verified_private_original';
+     }catch{row.state='unavailable_or_restricted';}
+    }
+    if(!current())return null;
+    blocked=last.files.some(r=>['unknown','dispatched','stored_unverified','unavailable_or_restricted','selection_changed'].includes(r.state));
+    last.status=last.files.some(r=>r.state==='unknown')?'unknown':last.files.some(r=>!['verified_private_original','rejected'].includes(r.state))?'partial':'reconciled';
+    return {...view(),independentObservation:observations>0,uploadReceiptRecovered:false};
+   }finally{pending=false;}
+  },
   async commit(ticket){
    const t=tickets.get(ticket);
    if(!enabled)return {status:'disabled',mayReplay:false,files:[]};
    if(!t||pending||blocked||!scoped()||!t.current()||t.stamp!==stableJson(ticket))return {status:'not_sent',mayReplay:false,files:[]};
-   tickets.delete(ticket);pending=true;
-   last={status:'preparing',files:[],draftSaved:false,publicationAuthorised:false,mayReplay:false};
+   tickets.delete(ticket);pending=true;attempt={ticket,originals:t.originals};
+   last={status:'preparing',files:ticket.photos.map(p=>({id:p.id,state:'not_sent'})),draftSaved:false,publicationAuthorised:false,mayReplay:false};
    try{
     for(let i=0;i<ticket.photos.length;i++){
-     const photo=ticket.photos[i],row={id:photo.id,state:'not_sent'};last.files.push(row);
+     const photo=ticket.photos[i],row=last.files[i];
      if(!t.current()){last.status='interrupted';return view();}
      let bytes;
      try{bytes=await readBytes(photo);if(!(bytes instanceof Uint8Array)||bytes.length!==ticket.files[i].bytes||bytes.some((b,j)=>b!==t.originals[i][j]))throw Error('Local bytes changed');}
@@ -38,7 +68,7 @@ export function createCreatorMediaOnboarding({enabled=CREATOR_MEDIA_ONBOARDING_E
      row.state='dispatched';blocked=true;
      try{result=await upload({photoBase64:creatorImageDataUri(bytes,photo.mimeType).split(',')[1]},t.current);}
      catch{row.state='unknown';last.status='unknown';return view();}
-     if(result?.rejected===true){row.state='rejected';last.status='rejected';return view();}
+     if(result?.rejected===true){row.state='rejected';last.status='rejected';blocked=last.files.some(r=>['unknown','dispatched','stored_unverified'].includes(r.state));return view();}
      if(!result?.ok||typeof result.storagePath!=='string'||result.bytes!==bytes.length||result.contentType!==photo.mimeType){row.state='unknown';last.status='unknown';return view();}
      row.storagePath=result.storagePath;row.reused=result.reused===true;row.state='stored_unverified';
      if(!t.current()){last.status='interrupted';return view();}
