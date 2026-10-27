@@ -2701,6 +2701,18 @@
       "args": [
         "scripts/check-mission15-creator-device-intent.mjs"
       ]
+    },
+    {
+      "id": "mission15-goal-new-private-app",
+      "args": [
+        "scripts/check-mission15-goal-new-app.mjs"
+      ]
+    },
+    {
+      "id": "mission15-premium-sample-revisions",
+      "args": [
+        "scripts/check-mission15-premium-sample-revision.mjs"
+      ]
     }
   ]
 }

@@ -155,6 +155,16 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .hero .wrap{padding-block:clamp(76px,10vw,140px)}
 .hero-content{position:relative;z-index:2;max-width:775px}
 .hero .kicker{color:var(--glow)}
+/* Same service orientation and readable rhythm in paid and private samples. */
+.hero-service-overview{max-width:64ch;margin-top:clamp(28px,4vw,48px);padding-top:20px;border-top:1px solid currentColor}
+.hero .hero-services-label{font-size:.8rem;letter-spacing:.09em;text-transform:uppercase;margin:0 0 12px;color:inherit}
+.hero-service-overview ul{display:flex;flex-wrap:wrap;gap:8px 24px;padding:0;margin:0;list-style:none}
+.hero-service-overview li{max-width:100%;font-size:clamp(.9rem,1.2vw,1rem);line-height:1.5;overflow-wrap:anywhere}
+.hero-service-overview li::before{content:'— ';opacity:.65}
+.hero h1,h2{text-wrap:balance}
+.hero .lead{text-wrap:pretty}
+@media(max-width:480px){.hero-service-overview ul{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.hero-service-overview{margin-top:28px}}
+
 .hero h1{font-weight:850;letter-spacing:-.065em}
 .hero .lead{font-size:clamp(1.05rem,1.9vw,1.36rem);line-height:1.65;color:#E5EEF0;max-width:610px}
 .hero::before{content:"";pointer-events:none;position:absolute;width:min(74vw,760px);height:min(74vw,760px);border:1px solid rgba(255,255,255,.13);border-radius:50%;right:-16%;top:-45%}

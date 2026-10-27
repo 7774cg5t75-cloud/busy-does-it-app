@@ -16,3 +16,12 @@ export function serviceContactAction(item,href,escapeHtml){
  if(href!=='#contact'||typeof item?.title!=='string'||!item.title.trim()||typeof escapeHtml!=='function')return '';
  return `<a class="service-enquiry-link" href="#contact">${escapeHtml('Discuss '+item.title)}</a>`;
 }
+
+// Shared hero orientation: exact current service names, never fabricated proof.
+// A short selection is labelled honestly; complete details stay in Services.
+export function heroServiceOverview(section,escapeHtml){
+ if(section?.enabled===false||section?.type!=='services'||!Array.isArray(section.items)||typeof escapeHtml!=='function')return '';
+ const names=section.items.map(r=>typeof r?.title==='string'?r.title.trim():'').filter(Boolean);
+ if(!names.length||new Set(names.map(n=>n.toLowerCase())).size!==names.length)return '';
+ return `<div class="hero-service-overview"><p class="hero-services-label">Services include</p><ul>${names.slice(0,3).map(name=>`<li>${escapeHtml(name)}</li>`).join('')}</ul></div>`;
+}

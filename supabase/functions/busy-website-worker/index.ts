@@ -1,6 +1,6 @@
 import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from './websitePageGuide.mjs';
-import {serviceIndexHtml,serviceContactAction} from './websiteServiceIndex.mjs';
+import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from './websiteServiceIndex.mjs';
 import {faqDisclosureItems} from './websiteFaqPresentation.mjs';
 import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
 import {itemTypographyClasses} from "./websiteTextTypography.mjs";
@@ -169,7 +169,7 @@ function renderSectionHtml(
     const action=clean(section.cta,120)&&clean(section.ctaHref,500)
       ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>`
       : "";
-    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>${imageMarkup}</div></section>`;
+    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div></section>`;
   }
 
   const headingTag = isFirstSection ? "h1" : "h2";

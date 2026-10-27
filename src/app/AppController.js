@@ -1,3 +1,4 @@
+import {executeGoalToPrivateApp} from '../core/goalToPrivateApp.mjs';
 import {creatorPublisherBlockReason} from '../core/creatorDraftMedia.mjs';
 import {creatorDraftAccountBindings,creatorMediaReference} from '../core/creatorDraftAccount.mjs';
 import {growthOpportunityBindings} from '../core/growthOpportunityAccount.mjs';
@@ -400,6 +401,7 @@ function App() {
   const [ownerQueueBusy,setOwnerQueueBusy]=useState(false);
   const miniAppVoiceScopeRef=useRef({});
   const firstAppFromWebsiteInFlightRef=useRef(false);
+  const goalAppSourceRef=useRef(null);
   const privateAppEditInFlightRef=useRef(false);
   const appDesignFeedbackActionsRef=useRef(null);
   const privateAppEditScopeRef=useRef(null);
@@ -8586,6 +8588,7 @@ function App() {
     brandBrain,
     businessCreationIntelligence
   );
+  goalAppSourceRef.current={ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||"",app:miniAppsView.app,profile:miniAppProfileDraft,catalog:miniAppsStatus?.catalog||[]};
   const miniAppShareLinks = (() => {
     const slug = String(miniAppsView?.publicSlug || "").trim();
     if (!slug) return { native: "", qr: "", share: "" };
@@ -15160,6 +15163,23 @@ function App() {
     finally{privateAppEditInFlightRef.current=false;}
   };
 
+  const createPrivateAppFromGoal=async review=>{
+    if(privateAppEditInFlightRef.current)return {ok:false,reason:"An app action is already being checked."};
+    const captured=privateAppEditScopeRef.current;
+    const current=()=>goalAppSourceRef.current;
+    const isCurrent=()=>privateAppEditScopeRef.current?.userId===captured?.userId&&privateAppEditScopeRef.current?.businessId===captured?.businessId&&!privateAppEditScopeRef.current?.app;
+    privateAppEditInFlightRef.current=true;setMiniAppsAction("goal-to-private-app");
+    try{
+      const result=await executeGoalToPrivateApp({review,current,isCurrent,send:miniAppsRequest});
+      if(isCurrent()){
+        if(result.status)applyMiniAppsStatus(result.status);
+        if(result.ok){setMiniAppBuildBrief(review.goal);setMiniAppBuilderPlan(review.plan);setMiniAppsNotice("Your private app is ready for customer-preview review. Nothing was published.");}
+        else setMiniAppsError(result.reason);
+      }
+      return result;
+    }finally{privateAppEditInFlightRef.current=false;setMiniAppsAction("");}
+  };
+
   const buildMiniAppFromBrandBrain = async () => {
     setMiniAppsAction("build");
     setMiniAppsError("");
@@ -17542,6 +17562,7 @@ function App() {
     awardMiniAppLoyaltyStamp,
     buildMiniAppFromBrandBrain,
     createPrivateAppFromWebsite,
+    createPrivateAppFromGoal,
     checkStandaloneEligibility,
     planMiniAppFromBrief,
     answerMiniAppMissingFacts,

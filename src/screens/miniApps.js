@@ -1,3 +1,4 @@
+import {GoalToPrivateApp} from './goalToPrivateApp';
 import {AppServiceAnswersEditor} from './appServiceAnswersEditor';
 import {AppEnquiryJourneyEditor} from './appEnquiryJourneyEditor';
 import {AppEnquirySetup} from './appEnquirySetup';
@@ -1250,6 +1251,10 @@ function MiniAppBuilder({ s }) {
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
         onApprovedRecords={approvedRecords.onApprovedRecords}
         onCompose={(_,choice)=>{const old=validContentLayout(view.draftConfig?.contentLayout)?view.draftConfig.contentLayout:[],block={kind:choice.kind,layout:choice.layout,featuredId:choice.featuredId,title:choice.kind==='product'?'Products':'Upcoming events'};const value=choice.remove?old.filter(x=>x.kind!==choice.kind):old.some(x=>x.kind===choice.kind)?old.map(x=>x.kind===choice.kind?block:x):[...old,block];const proposal=proposeContentComposition(view.draftConfig,[{kind:'content_layout',value}]);if(proposal.ok)proposal.businessContentPreview=choice.previewFeed;setStudioPreview(proposal.ok?proposal:null);setStudioNotice(proposal.ok?'Review the real content composition in Studio. Approved records are loaded separately.':proposal.reason);}}/>
+      <GoalToPrivateApp key={['new-goal',s.ownerSession?.userId,s.cloudWorkspace?.businessId,ownerEditorEpoch].join(':')}
+        ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId}
+        app={app} profile={s.miniAppProfileDraft} catalog={view.catalog||[]}
+        initialGoal={s.miniAppBuildBrief||''} onDraftChange={value=>markOwnerDirty('new-goal',value)} onCreate={review=>reportOwnerDraft.commit(()=>s.createPrivateAppFromGoal(review))} busy={s.miniAppsAction}/>
       <FirstAppFromWebsite website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}
         businessType={s.trade} services={s.miniAppProfileDraft?.services||s.services}
@@ -1285,7 +1290,7 @@ function MiniAppBuilder({ s }) {
         initialGoal={s.miniAppBuildBrief||plan?.ownerRequest||""}
         onSaveAppChanges={s.saveCoordinatedAppChanges}
         busy={!!s.miniAppsAction}/>
-      <WebsiteToAppDesignTransfer key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.websiteDraft?.id,app.id].join(':')} website={s.websiteDraft} app={app}
+      <WebsiteToAppDesignTransfer key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.websiteDraft?.id,app?.id].join(':')} website={s.websiteDraft} app={app}
         businessId={s.cloudWorkspace?.businessId}
         onPreview={setStudioPreview} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}/>
       <Card

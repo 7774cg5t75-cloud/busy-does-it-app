@@ -1,6 +1,6 @@
 import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
-import {serviceIndexHtml,serviceContactAction} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
 import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
@@ -747,7 +747,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const actionText=missingTarget?"Explore our services":clean(section.cta);
       const action=actionText&&actualHref
         ? `<a class="cta"${editAttrs(section,"cta")} href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
-      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
+      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div></section>`;
     }
     if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
       const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass,contactHref:renderedAnchors.has('contact')?'#contact':''});
