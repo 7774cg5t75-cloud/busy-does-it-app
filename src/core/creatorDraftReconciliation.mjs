@@ -15,3 +15,14 @@ export function copyCreatorDeviceDraft(s,newId){
  delete record.creatorAccountRevision;record.sourceLabel='Separate device Creator draft — not saved to account';
  return s.socialContentActions.replaceDraft(()=>{s.installCreatorAccountRecord(record,restoreContentDraft(record));return true;});
 }
+
+// Select another supported original local draft through the same dirty guard.
+// This restores device evidence only; account/source authority is re-read later.
+export function selectLoadedCreatorDraft(s,draftId){
+ const matches=s.socialDrafts?.filter(r=>r?.id===draftId);
+ if(s.cloudWorkspace?.role!=='owner'||matches?.length!==1)return false;
+ const target=matches[0];if(target.businessId!==s.cloudWorkspace.businessId||target.ownerId!==s.ownerSession?.userId)return false;
+ const view=restoreContentDraft(target),candidate={...s,selectedSocialDraftId:draftId,socialDraftText:view.text,socialBrief:view.brief,socialCreatePhotos:view.photos,socialDraftChannels:view.channels,socialAiResult:view.analysis,socialSourceContext:view.source,socialCaptionId:view.captionId,socialScheduleDate:view.date,socialScheduleTime:view.time};
+ if(!creatorContentFromEditor(candidate))return false;
+ return s.socialContentActions.replaceDraft(()=>{s.installCreatorAccountRecord(target,view,target);return true;});
+}

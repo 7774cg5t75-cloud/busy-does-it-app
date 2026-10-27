@@ -24,3 +24,15 @@ export function prepareCompleteAppEnquiry(input){
  const plan=proposeCoordinatedAppChanges(input.app.draft_config,operations);
  return plan.ok?bindPrivateAppProposal(plan,{businessId:input.businessId,app:input.app}):plan;
 }
+
+// Two explicit original Studio reviews when the complete finite plan exceeds
+// eight operations. Remaining answers are local preparation, never dropped.
+export function prepareAppEnquiryStages(input){
+ const complete=prepareCompleteAppEnquiry(input);if(complete.ok)return {ok:true,first:complete,remainingAnswers:[]};
+ if(!Array.isArray(input.rows))return complete;
+ const rows=input.rows.map(({answers,...row})=>row),first=prepareAppEnquiryJourney({...input,rows});if(!first.ok)return complete;
+ const answers=input.rows.flatMap(row=>Object.entries(row.answers||{}).filter(([,answer])=>typeof answer==='string'&&answer.trim()).map(([topic,answer])=>({serviceId:row.id,topic,answer})));
+ if(!answers.length)return complete;
+ const second=prepareAppServiceAnswers({...input,app:{...input.app,draft_config:first.nextConfig},rows:answers});if(!second.ok)return second;
+ return {ok:true,first,remainingAnswers:answers,expectedConfig:first.nextConfig,firstRevision:input.app.draft_revision,notAWriteReceipt:true};
+}

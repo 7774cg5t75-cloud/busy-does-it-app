@@ -1,6 +1,6 @@
 import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from './websitePageGuide.mjs';
-import {serviceIndexHtml} from './websiteServiceIndex.mjs';
+import {serviceIndexHtml,serviceContactAction} from './websiteServiceIndex.mjs';
 import {faqDisclosureItems} from './websiteFaqPresentation.mjs';
 import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
 import {itemTypographyClasses} from "./websiteTextTypography.mjs";
@@ -148,7 +148,8 @@ function renderSectionHtml(
   draft: any,
   section: any,
   urls: Record<string, string>,
-  isFirstSection: boolean
+  isFirstSection: boolean,
+  contactHref: string = ""
 ) {
   const theme = draft?.theme || {};
   const sectionClasses=sectionAppearanceClasses(section);
@@ -174,7 +175,7 @@ function renderSectionHtml(
   const headingTag = isFirstSection ? "h1" : "h2";
 
   if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
-    const indexed=serviceIndexHtml(section,{escapeHtml,itemHeadingClass});
+    const indexed=serviceIndexHtml(section,{escapeHtml,itemHeadingClass,contactHref});
     if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
   }
   if (section.type === "services") {
@@ -185,7 +186,7 @@ function renderSectionHtml(
         (item: any) =>
           `<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
             item.body
-          )}</p></article>`
+          )}</p>${contactHref?serviceContactAction(item,contactHref,escapeHtml):''}</article>`
       )
       .join("")}</div></div></section>`;
   }
@@ -234,7 +235,7 @@ function renderSectionHtml(
         (item: any) =>
           `<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
             item.body
-          )}</p></article>`
+          )}</p>${contactHref?serviceContactAction(item,contactHref,escapeHtml):''}</article>`
       )
       .join("")}</div></section>`;
   }
@@ -345,7 +346,7 @@ function renderWebsiteHtml(
       return true;
     })
     .map((section: any, index: number) =>
-      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0)
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'')
     )
     .join("");
 

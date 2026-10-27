@@ -15,7 +15,7 @@ export function createCreatorMediaOnboarding({enabled=CREATOR_MEDIA_ONBOARDING_E
    const value=await prepareCreatorLocalOriginals({businessId:origin.businessId,ownerId:origin.ownerId,photos,inspectLocal,isCurrent:current});
    if(!current())return null;
    const originals=[];for(let i=0;i<photos.length;i++){const bytes=await readBytes(photos[i]);if(!current()||!(bytes instanceof Uint8Array)||bytes.length!==value.files[i].bytes)throw Error('Local original changed during review');originals.push(new Uint8Array(bytes));}
-   const ticket={files:value.files,photos:photos.map(p=>({...p})),privateOnly:true};
+   const ticket={files:value.files.map(f=>({...f,requestKey:'original_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)})),photos:photos.map(p=>({...p})),privateOnly:true};
    tickets.set(ticket,{stamp:stableJson(ticket),current,originals});return ticket;
   },
   // Independent known-path inspection, never proof of a missing upload receipt.
@@ -53,7 +53,7 @@ export function createCreatorMediaOnboarding({enabled=CREATOR_MEDIA_ONBOARDING_E
    if(!enabled)return {status:'disabled',mayReplay:false,files:[]};
    if(!t||pending||blocked||!scoped()||!t.current()||t.stamp!==stableJson(ticket))return {status:'not_sent',mayReplay:false,files:[]};
    tickets.delete(ticket);pending=true;attempt={ticket,originals:t.originals};
-   last={status:'preparing',files:ticket.photos.map(p=>({id:p.id,state:'not_sent'})),draftSaved:false,publicationAuthorised:false,mayReplay:false};
+   last={status:'preparing',files:ticket.photos.map((p,i)=>({id:p.id,requestKey:ticket.files[i].requestKey,state:'not_sent'})),draftSaved:false,publicationAuthorised:false,mayReplay:false};
    try{
     for(let i=0;i<ticket.photos.length;i++){
      const photo=ticket.photos[i],row=last.files[i];
@@ -66,7 +66,7 @@ export function createCreatorMediaOnboarding({enabled=CREATOR_MEDIA_ONBOARDING_E
      // Once dispatched, transport loss is unknown. The original gateway has no
      // exact operation reader: never invent a receipt or retry a missing path.
      row.state='dispatched';blocked=true;
-     try{result=await upload({photoBase64:creatorImageDataUri(bytes,photo.mimeType).split(',')[1]},t.current);}
+     try{result=await upload({photoBase64:creatorImageDataUri(bytes,photo.mimeType).split(',')[1],requestKey:row.requestKey,selectionId:photo.id},t.current);}
      catch{row.state='unknown';last.status='unknown';return view();}
      if(result?.rejected===true){row.state='rejected';last.status='rejected';blocked=last.files.some(r=>['unknown','dispatched','stored_unverified'].includes(r.state));return view();}
      if(!result?.ok||typeof result.storagePath!=='string'||result.bytes!==bytes.length||result.contentType!==photo.mimeType){row.state='unknown';last.status='unknown';return view();}

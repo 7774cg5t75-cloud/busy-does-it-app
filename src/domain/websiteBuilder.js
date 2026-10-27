@@ -1,6 +1,6 @@
 import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
-import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {serviceIndexHtml,serviceContactAction} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
 import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
@@ -750,7 +750,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
     }
     if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
-      const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass});
+      const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass,contactHref:renderedAnchors.has('contact')?'#contact':''});
       const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
       if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
     }
@@ -766,7 +766,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
-      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
+      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}${serviceContactAction(item,section.type==="services"&&renderedAnchors.has("contact")?"#contact":"",escapeHtml)}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="photo-feature"){
       const image=approvedImage(section.asset);

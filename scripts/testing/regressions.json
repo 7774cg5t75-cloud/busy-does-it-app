@@ -2665,6 +2665,24 @@
       "args": [
         "scripts/check-mission15-website-page-headings.mjs"
       ]
+    },
+    {
+      "id": "mission15-upload-operation-client",
+      "args": [
+        "scripts/check-mission15-upload-operation-client.mjs"
+      ]
+    },
+    {
+      "id": "mission15-complete-enquiry-stages",
+      "args": [
+        "scripts/check-mission15-complete-enquiry-stages.mjs"
+      ]
+    },
+    {
+      "id": "mission15-website-service-contact",
+      "args": [
+        "scripts/check-mission15-website-service-contact.mjs"
+      ]
     }
   ]
 }

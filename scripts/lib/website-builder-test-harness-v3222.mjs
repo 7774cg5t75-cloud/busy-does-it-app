@@ -1,6 +1,6 @@
 import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
-import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {serviceIndexHtml,serviceContactAction} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
 import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
@@ -34,7 +34,7 @@ const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
  "import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';",
  "import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';",
- "import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';",
+ "import {serviceIndexHtml,serviceContactAction} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';",
  "import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';",
  'import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";',
  "import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';",
@@ -64,7 +64,7 @@ const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
  "\nreturn {syncWebsitePageModel};")();
 const deps=Object.freeze({
  testimonialSpotlightItems,
- websitePageGuide,websitePageHeadingHierarchy,serviceIndexHtml,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
+ websitePageGuide,websitePageHeadingHierarchy,serviceIndexHtml,serviceContactAction,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,
  planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,
  editWebsiteDraftField,protectWebsiteOwnerLocks,businessContentSectionHtml

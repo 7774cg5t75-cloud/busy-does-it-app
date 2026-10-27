@@ -1,4 +1,5 @@
-import {prepareCompleteAppEnquiry} from '../core/appCompleteEnquiry.mjs';
+import {prepareAppServiceAnswers} from '../core/appServiceAnswers.mjs';
+import {prepareCompleteAppEnquiry,prepareAppEnquiryStages} from '../core/appCompleteEnquiry.mjs';
 import {SERVICE_QUESTION_TOPICS} from '../../standalone/template/nativeCustomerActions.mjs';
 import {AppEnquiryRequestPreview} from './appEnquiryRequestPreview';
 import React from 'react';
@@ -10,7 +11,7 @@ import {ENQUIRY_REQUIREMENTS} from '../core/customerEnquiryRequirements.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 // One original coordinated proposal; the parent Studio owns save, receipts and Undo.
 export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,approvedProfile,busy=false,onPreview,onDraftChange,Surface}){
- const [rows,setRows]=React.useState([]),[baseline,setBaseline]=React.useState(null),[heading,setHeading]=React.useState(''),[notice,setNotice]=React.useState('');
+ const [rows,setRows]=React.useState([]),[baseline,setBaseline]=React.useState(null),[heading,setHeading]=React.useState(''),[notice,setNotice]=React.useState(''),[continuation,setContinuation]=React.useState(null);
  const initial=React.useRef([ownerId,businessId,app?.id]);
  const visible=initial.current[0]===ownerId&&initial.current[1]===businessId&&initial.current[2]===app?.id;
  const decision=React.useRef(null),live=React.useRef(null),epoch=React.useRef(0),alive=React.useRef(true);
@@ -22,6 +23,9 @@ export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,approved
  const capture=epoch.current,stale=baseline!==null&&baseline!==stamp;
  const available=context?[...context.services,...approvedServiceChoices(approvedProfile,businessId).filter(r=>!context.services.some(s=>s.id===r.id||s.name.trim().toLocaleLowerCase('en')===r.name.trim().toLocaleLowerCase('en'))).map(r=>({...r,importApproved:true}))]:[];
  const choose=row=>{if(!current()||stale)return false;if(rows.some(r=>r.id===row.id)){const ticket={},e=epoch.current;decision.current=ticket;let used=false;Alert.alert('Keep this service wording?','Removing this service from the unsaved review discards only its current proposed edits. Saved app services stay unchanged.',[{text:'Keep my wording',style:'cancel',onPress:()=>{used=true;}},{text:'Remove unsaved service',onPress:()=>{if(used||decision.current!==ticket||!current()||epoch.current!==e)return false;used=true;return change(()=>setRows(old=>old.filter(r=>r.id!==row.id)));}}]);return false;}return change(()=>{setBaseline(stamp);setHeading(heading||context.config.modules.find(m=>m.key==='services')?.label||'Services');setRows(old=>old.some(r=>r.id===row.id)?old.filter(r=>r.id!==row.id):old.length<6?[...old,{id:row.id,...row.importApproved?{importApproved:true}:{},fields:{name:row.name,description:row.description||'',...Object.fromEntries(['category','priceLabel','durationLabel'].filter(k=>Object.hasOwn(row,k)).map(k=>[k,row[k]]))},label:context.config.presentation?.servicePresentation?.[row.id]?.enquiryLabel||'Ask about this service'}]:old);});};
+ const stages=!stale&&rows.length?prepareAppEnquiryStages({businessId,app,catalog,rows,navigationLabel:heading,approvedProfile}):null;
+ const canContinue=continuation&&app.draft_revision>continuation.firstRevision&&stableJson(app.draft_config)===stableJson(continuation.expectedConfig);
+ React.useEffect(()=>{if(canContinue&&current())onDraftChange?.(true);},[canContinue,stamp,busy]);
  const plan=!stale&&rows.length?prepareCompleteAppEnquiry({businessId,app,catalog,rows,navigationLabel:heading,approvedProfile}):null;
  if(!visible||!ownerId||!context)return null;
  return <Card eyebrow="Guided App Builder" title="Review the complete service enquiry journey" body="Add approved business services and configure the enquiry journey together, compare the customer view, then approve one Studio change. Original required customer fields stay unchanged.">
@@ -41,9 +45,14 @@ export function AppEnquiryJourneyEditor({businessId,ownerId,app,catalog,approved
    {ENQUIRY_REQUIREMENTS.map(field=><Text key={field.key} style={styles.cardBody}>{field.label+' — up to '+field.max+' characters'}</Text>)}
    {plan?.ok&&Surface?<AppEnquiryRequestPreview key={ownerId+':'+businessId+':'+app.id} ownerId={ownerId} businessId={businessId} app={app} catalog={catalog} config={plan.nextConfig} Surface={Surface}/>:null}
    {!plan?.ok&&plan?.reason?<Text style={styles.cardBody}>{plan.reason}</Text>:null}
+   {!plan?.ok&&stages?.ok&&stages.remainingAnswers.length?<Button label="Review service setup first; keep public answers for next review" disabled={busy||stale} onPress={()=>{if(!current()||capture!==epoch.current)return false;setContinuation(stages);setNotice('Two original Studio reviews are required. Retained answers are not saved by the first stage.');return onPreview?.(stages.first)!==false;}}/>:null}
+   {canContinue?<>
+    <Text style={styles.cardBody}>Current app configuration matches the reviewed service stage. This independent state is not a recovered write receipt. Your public answers are retained for a separate review.</Text>
+    <Button label="Review retained public answers against current app" disabled={busy} onPress={()=>{if(!current()||capture!==epoch.current)return false;const next=prepareAppServiceAnswers({businessId,app,catalog,rows:continuation.remainingAnswers});if(!next.ok){setNotice(next.reason);return false;}onDraftChange?.(true);return onPreview?.(next)!==false;}}/>
+   </>:null}
    <Button label="Review complete enquiry journey in Studio" disabled={busy||stale||!plan?.ok} onPress={()=>{if(!current()||capture!==epoch.current||stale||!plan?.ok)return false;setNotice('Prepared for Studio review only. Nothing is saved or sent.');return onPreview?.(plan)!==false;}}/>
   </>:null}
-  {rows.length||baseline!==null?<Button label="Clear unsaved enquiry journey" disabled={busy} onPress={()=>{if(!current())return false;epoch.current++;setRows([]);setHeading('');setBaseline(null);setNotice('Unsaved review cleared. Saved services were not changed.');onPreview?.(null);onDraftChange?.(false);return true;}}/>:null}
+  {rows.length||baseline!==null?<Button label="Clear unsaved enquiry journey" disabled={busy} onPress={()=>{if(!current())return false;epoch.current++;setRows([]);setHeading('');setBaseline(null);setContinuation(null);setNotice('Unsaved review cleared. Saved services were not changed.');onPreview?.(null);onDraftChange?.(false);return true;}}/>:null}
   {notice?<Text style={styles.cardBody}>{notice}</Text>:null}
  </Card>;
 }

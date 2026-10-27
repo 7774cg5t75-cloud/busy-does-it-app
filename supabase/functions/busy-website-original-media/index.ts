@@ -1,3 +1,4 @@
+import {originalUploadOperations} from './uploadOperations.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "jsr:@supabase/supabase-js@2";
 
@@ -12,6 +13,7 @@ const BUCKET="busy-website-originals";
 const TABLE="busy_website_original_media";
 const AUDIT="busy_website_original_media_audit";
 const MAX=9*1024*1024;
+const UPLOAD_OPERATIONS_ENABLED=false;
 const supabase=createClient(URL,KEY,{auth:{persistSession:false}});
 const cors={"Access-Control-Allow-Origin":"*",
  "Access-Control-Allow-Methods":"POST, OPTIONS",
@@ -66,6 +68,7 @@ async function audit(userId:string,businessId:string,path:string,action:string,b
   storage_path:path,action,byte_length:bytes});
  if(r.error)throw r.error;
 }
+const uploadOperations=originalUploadOperations({supabase,inspect,rateGate,audit,digest:async(bytes:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('')});
 async function upload(req:Request,raw:any,userId:string,businessId:string){
  const encoded=raw?.photoBase64;
  if(typeof encoded!=="string"||encoded.length<28||encoded.length>12_600_000||
@@ -131,6 +134,10 @@ Deno.serve(async req=>{
   const raw=JSON.parse(text);
   const businessId=typeof raw?.businessId==="string"?raw.businessId:"";
   const userId=await auth(req,businessId);
+  if(['creator_upload','creator_upload_inspect','creator_upload_list'].includes(raw?.action)){
+   if(!UPLOAD_OPERATIONS_ENABLED)return fail(503,'Creator upload operations are not activated.');
+   const value=raw.action==='creator_upload'?await uploadOperations.upload(raw,userId,businessId):raw.action==='creator_upload_inspect'?await uploadOperations.inspect(raw,userId,businessId):await uploadOperations.list(raw,userId,businessId);return success(value);
+  }
   if(raw?.action==="upload")return await upload(req,raw,userId,businessId);
   if(raw?.action==="download")return await download(raw,userId,businessId);
   return fail(400,"Unknown photo transfer action.");
