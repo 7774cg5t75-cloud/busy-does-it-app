@@ -2635,6 +2635,18 @@
         "scripts/check-mission15-approved-enquiry-creation.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission15-creator-onboarding",
+      "args": [
+        "scripts/check-mission15-creator-onboarding.mjs"
+      ]
+    },
+    {
+      "id": "mission15-app-service-answers",
+      "args": [
+        "scripts/check-mission15-app-service-answers.mjs"
+      ]
     }
   ]
 }
