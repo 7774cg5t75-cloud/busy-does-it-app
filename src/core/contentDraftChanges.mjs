@@ -18,8 +18,8 @@ export function savedContentPhotos(record){
 export function restoreContentDraft(draft,{today='',storyLabel=''}={}){
  return {photos:savedContentPhotos(draft),brief:draft.brief||'',text:draft.text||'',captionId:draft.selectedCaptionId||'',
   channels:{facebook:(draft.channels||[]).includes('Facebook'),instagram:(draft.channels||[]).includes('Instagram'),googleBusiness:(draft.channels||[]).includes('Google Business')},
-  date:draft.scheduleDate||today,time:draft.scheduleTime||'19:00',
-  analysis:{restoredPrivateDraft:true,summary:draft.story?`${storyLabel} content`:'Saved social draft',detectedService:draft.service||'',story:draft.story||null,privacyWarnings:draft.privacyWarnings||[],captions:draft.captions||[]},
+  date:draft.creatorContentVersion===3?draft.scheduleDate:draft.scheduleDate||today,time:draft.creatorContentVersion===3?draft.scheduleTime:draft.scheduleTime||'19:00',
+  analysis:{restoredPrivateDraft:true,summary:Object.hasOwn(draft,'creatorAnalysisSummary')?draft.creatorAnalysisSummary:draft.story?`${storyLabel} content`:'Saved social draft',detectedService:draft.service||'',story:draft.story||null,privacyWarnings:draft.privacyWarnings||[],captions:draft.captions||[]},
   source:{growthOrigin:growthDraftOrigin(draft.growthOrigin),type:draft.source||'phone',label:draft.sourceLabel||'Saved draft',contentEvidence:draft.contentEvidence||null,selection:draft.contentEvidence?.selection,customerId:draft.sourceCustomerId||'',jobId:draft.sourceJobId||'',service:draft.service||'',suggestedPlatform:['Facebook','Instagram'].includes(draft.suggestedPlatform)?draft.suggestedPlatform:''}};
 }
 export function contentDraftChanges(current,record){
@@ -32,6 +32,11 @@ export function contentDraftChanges(current,record){
   const evidence=Object.hasOwn(current,'contentEvidence')?current.contentEvidence:current.sourceContext?.contentEvidence;
   try{result.source=stableJson(evidence||null)!==stableJson(record?.contentEvidence||null)||stableJson(growthDraftOrigin(current.sourceContext?.growthOrigin))!==stableJson(growthDraftOrigin(record?.growthOrigin));}catch{result.source=true;}
  }
+ if(record?.creatorContentVersion===3&&Object.hasOwn(current,'aiResult')){
+  const a=current.aiResult;result.analysis=stableJson({summary:a?.summary??record.creatorAnalysisSummary??'',service:a?.detectedService??record.service??'',captions:a?.captions??record.captions??[],story:a&&Object.hasOwn(a,'story')?a.story:record.story??null,warnings:a?.privacyWarnings??record.privacyWarnings??[]})!==stableJson({summary:record.creatorAnalysisSummary||'',service:record.service||'',captions:record.captions||[],story:record.story||null,warnings:record.privacyWarnings||[]});
+ }
+ if(record?.creatorContentVersion===3&&Object.hasOwn(current,'captionId'))result.captionSelection=current.captionId!==(record.selectedCaptionId||'');
+ if(record?.creatorContentVersion===3&&Object.hasOwn(current,'scheduleDate'))result.privateTiming=current.scheduleDate!==(record.scheduleDate||'')||current.scheduleTime!==(record.scheduleTime||'');
  return {...result,dirty:Object.values(result).some(Boolean)};
 }
 

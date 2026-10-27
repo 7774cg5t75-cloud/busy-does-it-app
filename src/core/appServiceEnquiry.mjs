@@ -42,15 +42,17 @@ export function prepareApprovedAppServices({businessId,app,catalog,approvedProfi
 
 // Review several existing service/enquiry edits as one original Studio batch.
 // Six rows plus the original services and navigation operations fit its eight-change bound.
-export function prepareAppEnquiryJourney({businessId,app,catalog,rows,navigationLabel}={}){
+export function prepareAppEnquiryJourney({businessId,app,catalog,rows,navigationLabel,approvedProfile}={}){
  const context=serviceEnquiryContext({businessId,app,catalog});
  if(!context||!Array.isArray(rows)||!rows.length||rows.length>6||new Set(rows.map(r=>r?.id)).size!==rows.length)return {ok:false,reason:'Review one to six distinct existing services together.'};
  let working=app;const labelOperations=[];
  for(const row of rows){
-  if(!row||Object.keys(row).some(k=>!['id','fields','label'].includes(k)))return {ok:false,reason:'Use only the original service fields and enquiry action.'};
-  const existing=context.services.find(s=>s.id===row.id);if(!existing)return {ok:false,reason:'A selected service is no longer in this app.'};
+  if(!row||Object.keys(row).some(k=>!['id','fields','label','importApproved'].includes(k)))return {ok:false,reason:'Use only the original service fields and enquiry action.'};
+  const existing=context.services.find(s=>s.id===row.id),importing=row.importApproved===true;
+  if(Object.hasOwn(row,'importApproved')&&typeof row.importApproved!=='boolean')return {ok:false,reason:'Review a deliberate approved-service import.'};
+  if(!existing&&!importing)return {ok:false,reason:'A selected service is no longer in this app.'};
   // Validate even unchanged rows through the original service contract.
-  const part=prepareServiceEnquiry({businessId,app:working,catalog,serviceId:row.id,fields:row.fields,label:row.label});
+  const part=prepareServiceEnquiry({businessId,app:working,catalog,serviceId:row.id,fields:row.fields,label:row.label,importApproved:importing,approvedProfile});
   if(!part.ok&&part.reason!=='This service and enquiry button already match the draft.')return part;
   if(part.ok){working={...working,draft_config:part.nextConfig};for(const op of part.operations)if(op.kind==='service_presentation')labelOperations.push(op);}
  }

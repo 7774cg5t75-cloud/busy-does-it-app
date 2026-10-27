@@ -67,10 +67,40 @@ BEGIN
  RETURN jsonb_build_object('businessId',p_business_id,'ownerId',a,'assetId',asset.id,'sha256',asset.sha256,'notOwnReceipt',true,'privateUseReviewed',true,'publicUseAuthorised',false,'mediaProjection',projection);
 END $$;
 
+CREATE OR REPLACE FUNCTION busy_creator_private.valid_editor_v3(e jsonb,media jsonb) RETURNS boolean LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $$
+DECLARE c jsonb;s jsonb;k text;shape text[];
+BEGIN
+ IF jsonb_typeof(e) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(e) key) IS DISTINCT FROM ARRAY['captions','detectedService','privacyWarnings','proposedScheduleDate','proposedScheduleTime','selectedCaptionId','story','summary'] OR jsonb_typeof(media) IS DISTINCT FROM 'array' THEN RETURN false;END IF;
+ IF jsonb_typeof(e->'summary') IS DISTINCT FROM 'string' OR length(e->>'summary')>700 OR (e->>'summary')~'[<>]' OR jsonb_typeof(e->'detectedService') IS DISTINCT FROM 'string' OR length(e->>'detectedService')>180 OR (e->>'detectedService')~'[<>]' OR jsonb_typeof(e->'captions') IS DISTINCT FROM 'array' THEN RETURN false;END IF;
+ IF jsonb_typeof(e->'proposedScheduleDate') IS DISTINCT FROM 'string' OR jsonb_typeof(e->'proposedScheduleTime') IS DISTINCT FROM 'string' THEN RETURN false;END IF;
+ IF (e->>'proposedScheduleTime')<>'' AND (e->>'proposedScheduleTime')!~'^([01][0-9]|2[0-3]):[0-5][0-9]$' THEN RETURN false;END IF;
+ IF (e->>'proposedScheduleDate')<>'' THEN
+  IF (e->>'proposedScheduleDate')!~'^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN RETURN false;END IF;
+  BEGIN PERFORM make_date(substring(e->>'proposedScheduleDate',1,4)::integer,substring(e->>'proposedScheduleDate',6,2)::integer,substring(e->>'proposedScheduleDate',9,2)::integer);EXCEPTION WHEN datetime_field_overflow OR invalid_datetime_format THEN RETURN false;END;
+ END IF;
+ FOR c IN SELECT value FROM jsonb_array_elements(e->'captions') LOOP
+  IF jsonb_typeof(c) IS DISTINCT FROM 'object' THEN RETURN false;END IF;
+  SELECT array_agg(key ORDER BY key) INTO shape FROM jsonb_object_keys(c) key;
+  IF shape=ARRAY['id','text'] THEN CONTINUE;END IF;
+  IF shape IS DISTINCT FROM ARRAY['id','label','reason','recommendedChannels','text','tone'] THEN RETURN false;END IF;
+  FOREACH k IN ARRAY ARRAY['label','tone','reason'] LOOP IF jsonb_typeof(c->k) IS DISTINCT FROM 'string' OR length(c->>k)>(CASE k WHEN 'reason' THEN 600 ELSE 120 END) OR (c->>k)~'[<>]' THEN RETURN false;END IF;END LOOP;
+  IF jsonb_typeof(c->'recommendedChannels') IS DISTINCT FROM 'array' OR jsonb_array_length(c->'recommendedChannels')>3 OR EXISTS(SELECT 1 FROM jsonb_array_elements(c->'recommendedChannels') ch WHERE ch NOT IN ('"Facebook"'::jsonb,'"Instagram"'::jsonb,'"Google Business"'::jsonb)) OR (SELECT count(*) FROM jsonb_array_elements(c->'recommendedChannels'))<>(SELECT count(DISTINCT value) FROM jsonb_array_elements(c->'recommendedChannels')) THEN RETURN false;END IF;
+ END LOOP;
+ s:=e->'story';IF s='null'::jsonb THEN RETURN true;END IF;
+ IF jsonb_typeof(s) IS DISTINCT FROM 'object' OR (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(s) key) IS DISTINCT FROM ARRAY['afterImageId','beforeImageId','confidence','reason','type'] OR coalesce(s->>'type' NOT IN ('before_after','finished_result','process','equipment','general','unclear'),true) OR coalesce(s->>'confidence' NOT IN ('High','Medium','Low'),true) OR jsonb_typeof(s->'reason') IS DISTINCT FROM 'string' OR length(s->>'reason')>700 OR (s->>'reason')~'[<>]' THEN RETURN false;END IF;
+ FOREACH k IN ARRAY ARRAY['beforeImageId','afterImageId'] LOOP IF jsonb_typeof(s->k) IS DISTINCT FROM 'string' OR (s->>k)<>'' AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(media) m WHERE m->>'id'=s->>k) THEN RETURN false;END IF;END LOOP;
+ RETURN s->>'type'<>'before_after' OR (s->>'beforeImageId'<>'' AND s->>'afterImageId'<>'' AND s->>'beforeImageId'<>s->>'afterImageId');
+END $$;
 CREATE OR REPLACE FUNCTION busy_creator_private.valid_content(v jsonb) RETURNS boolean LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $$
-DECLARE k text;x jsonb;
+DECLARE k text;x jsonb;shadow jsonb;stripped jsonb;
 BEGIN
  IF jsonb_typeof(v) IS DISTINCT FROM 'object' THEN RETURN false;END IF;
+ IF v->'schemaVersion'='3'::jsonb THEN
+  IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(v) key) IS DISTINCT FROM ARRAY['brandFingerprint','brief','channels','editor','format','media','ownerFacts','preparedCopy','schemaVersion','text','treatment'] OR NOT busy_creator_private.valid_editor_v3(v->'editor',v->'media') THEN RETURN false;END IF;
+  SELECT coalesce(jsonb_agg(jsonb_build_object('id',caption->'id','text',caption->'text') ORDER BY ordinal),'[]') INTO stripped FROM jsonb_array_elements(v->'editor'->'captions') WITH ORDINALITY AS captions(caption,ordinal);
+  shadow:=jsonb_set(v,'{schemaVersion}','2'::jsonb);shadow:=jsonb_set(shadow,'{editor}',jsonb_build_object('captions',stripped,'selectedCaptionId',v->'editor'->'selectedCaptionId','privacyWarnings',v->'editor'->'privacyWarnings','story',NULL));
+  RETURN busy_creator_private.valid_content(shadow);
+ END IF;
  IF v->'schemaVersion'='1'::jsonb THEN
   IF (SELECT array_agg(key ORDER BY key) FROM jsonb_object_keys(v) key) IS DISTINCT FROM ARRAY['brandFingerprint','brief','channels','format','media','ownerFacts','preparedCopy','schemaVersion','text','treatment'] OR v->'media' IS DISTINCT FROM '[]'::jsonb THEN RETURN false;END IF;
  ELSIF v->'schemaVersion'='2'::jsonb THEN
@@ -141,7 +171,7 @@ BEGIN
  IF NOT FOUND OR p_expected_revision>0 AND head.revision<>p_expected_revision THEN RAISE EXCEPTION 'Draft revision changed' USING ERRCODE='40001';END IF;
  IF p_expected_revision>0 THEN
   SELECT * INTO old FROM public.busy_creator_draft_versions WHERE business_id=p_business_id AND owner_id=a AND draft_id=p_draft_id AND revision=head.revision;
-  IF old.content->'schemaVersion'='2'::jsonb AND p_content->'schemaVersion'='1'::jsonb THEN RAISE EXCEPTION 'Older Creator serializers cannot replace supported media/editor state' USING ERRCODE='22023';END IF;
+  IF (old.content->>'schemaVersion')::integer>(p_content->>'schemaVersion')::integer THEN RAISE EXCEPTION 'Older Creator serializers cannot replace supported media/editor state' USING ERRCODE='22023';END IF;
   IF ROW(old.opportunity_id,old.opportunity_revision,old.source_hash) IS DISTINCT FROM ROW(p_opportunity_id,p_opportunity_revision,p_source_hash) THEN RAISE EXCEPTION 'Original source cannot be rebound' USING ERRCODE='22023';END IF;
  END IF;
  INSERT INTO public.busy_creator_draft_versions(business_id,owner_id,draft_id,revision,content,opportunity_id,opportunity_revision,source_hash,request_key) VALUES(p_business_id,a,p_draft_id,p_expected_revision+1,p_content,p_opportunity_id,p_opportunity_revision,p_source_hash,p_request_key) RETURNING * INTO v;

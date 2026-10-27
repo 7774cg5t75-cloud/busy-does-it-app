@@ -24,6 +24,26 @@ export async function materializeCreatorMedia(api,value,isCurrent=()=>true){
  return {...final,resolvedPhotos:photos};
 }
 // Review preparation only. No provider eligibility, scheduling or publication authority.
-export function creatorPublisherPreparation(v){if(!v||v.status!=='Draft'||v.historical||v.sourceState==='retired')return null;return {draftId:v.draftId,revision:v.revision,text:v.content.text,format:v.content.format,treatment:v.content.treatment,channels:[...v.content.channels],media:v.content.media.map(r=>({id:r.id,assetId:r.assetId,sha256:r.sha256})),providerEligibility:'not_established',publicMediaPermission:'not_established',originalQueueAssociation:'not_established',executionAuthorised:false};}
+export function creatorPublisherPreparation(v){if(!v||v.status!=='Draft'||v.historical||v.sourceState==='retired')return null;const checks=[
+ {key:'copy',satisfied:v.content.text===v.content.text.trim()&&v.content.text.length<=5000,detail:'Original publisher trims copy and caps it at 5,000 characters. Your saved wording is never changed here.'},
+ {key:'format',satisfied:v.content.format==='social',detail:'The original photo-post queue does not establish a poster, advert or newsletter transaction.'},
+ {key:'channels',satisfied:v.content.channels.length>0,detail:'Choose at least one supported destination; selection does not establish a connected provider account.'},
+ {key:'private_media',satisfied:v.content.media.length>0&&v.mediaProjection?.length===v.content.media.length&&v.mediaProjection.every(m=>m.state==='eligible'),detail:'Original publisher requires photos. Private access is separate from public marketing permission.'},
+ {key:'source',satisfied:['current','not_linked'].includes(v.sourceState),detail:'Historical source evidence cannot authorise a renewed activity.'}
+ ];return {draftId:v.draftId,revision:v.revision,text:v.content.text,format:v.content.format,treatment:v.content.treatment,channels:[...v.content.channels],media:v.content.media.map(r=>({id:r.id,assetId:r.assetId,sha256:r.sha256,fileName:r.fileName})),privateTiming:v.content.schemaVersion===3?{date:v.content.editor.proposedScheduleDate,time:v.content.editor.proposedScheduleTime}:null,checks,privatePreparationSupported:checks.every(c=>c.satisfied),publisherScopeBinding:'unsupported_original_email_only_workspace',copyright:'not_established',promotionalConsent:'not_established',providerEligibility:'not_established',publicMediaPermission:'not_established',originalQueueAssociation:'not_established',executionAuthorised:false};}
 
 export function creatorPublisherBlockReason(record,photos=[]){return record?.creatorAccountRevision||record?.creatorContentVersion||photos.some(p=>p.creatorOriginalRef)?'Private Creator account work needs a separately authorised original publisher handoff. Private media review is not public-use permission.':'';}
+
+// Read-only local selection review. Only the original authenticated upload gateway
+// may mint the real asset/digest later; this function cannot upload or mint either.
+export async function prepareCreatorLocalOriginals({businessId,ownerId,photos,inspectLocal,isCurrent=()=>true}){
+ if(!uuid(businessId)||!uuid(ownerId)||!Array.isArray(photos)||!photos.length||photos.length>6||typeof inspectLocal!=='function'||new Set(photos.map(p=>p?.id)).size!==photos.length)throw Error('Review one to six distinct local selections');
+ const selection=JSON.stringify(photos.map(p=>[p?.id,p?.uri,p?.mimeType,p?.fileName]));const unchanged=()=>isCurrent()&&selection===JSON.stringify(photos.map(p=>[p?.id,p?.uri,p?.mimeType,p?.fileName]));
+ const files=[];let total=0;
+ for(const photo of photos){
+  if(!unchanged()||!photo||photo.creatorOriginalRef||typeof photo.id!=='string'||!/^[A-Za-z0-9_-]{1,120}$/.test(photo.id)||typeof photo.uri!=='string'||photo.uri.length>2048||! /^(file|content):\/\//i.test(photo.uri))throw Error('Only explicitly selected local originals can be prepared');
+  const meta=await inspectLocal(photo);if(!unchanged()||meta?.exists!==true||!Number.isSafeInteger(meta.size)||meta.size<20||meta.size>9437184||total+meta.size>25*1024*1024||!['image/jpeg','image/png','image/webp'].includes(photo.mimeType))throw Error('Review the local file size and claimed image type');
+  total+=meta.size;files.push({id:photo.id,fileName:typeof photo.fileName==='string'?photo.fileName.slice(0,200):'',bytes:meta.size,claimedContentType:photo.mimeType});
+ }
+ return {businessId,ownerId,files,totalBytes:total,source:'owner_selected_local_files',state:'awaiting_original_gateway_validation',serverIdentityVerified:false,assetIdentityEstablished:false,privateAccess:'not_established',copyright:'not_established',promotionalConsent:'not_established',publicUsePermission:'not_established',providerEligibility:'not_established',uploadAuthorised:false,executionAuthorised:false};
+}

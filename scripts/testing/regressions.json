@@ -2621,6 +2621,20 @@
         "scripts/check-mission15-app-enquiry-rehearsal.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-creator-rich-variants",
+      "args": [
+        "scripts/check-mission15-creator-rich-variants.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-approved-enquiry-creation",
+      "args": [
+        "scripts/check-mission15-approved-enquiry-creation.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

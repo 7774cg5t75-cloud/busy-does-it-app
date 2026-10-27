@@ -110,6 +110,19 @@ try:
   reversed_body={**body,'media':list(reversed(refs)),'text':'Owner revision with reordered images'};updated=write('media-private',1,reversed_body);assert rpc('read',[B,'media-private',None])['content']==reversed_body and rpc('read',[B,'media-private',1])['content']==body
   deny('write',[B,'media-private',2,json.dumps(content),None,None,None,'old_serializer_media_loss'],'22023')
   run('UPDATE public.busy_website_original_media SET uploaded_by='+q(M)+' WHERE id='+q(ids[0]));assert rpc('read',[B,'media-private',None])['mediaProjection'][1]['state']=='unavailable';run('UPDATE public.busy_website_original_media SET uploaded_by='+q(O)+' WHERE id='+q(ids[0]))
+  # Upgrade the genuine preceding schema-v2 package without rewriting its rows.
+  prior_v2=subprocess.check_output(['git','show','f408c2a2a766da1fb3cb19f203e2193fd670c1d0:docs/sql-proposals/creator/private-drafts.sql'],cwd=root,text=True).replace(fuse,'')
+  run(prior_v2);v2copy=write('v2-upgrade-original',body=body);run(local)
+  assert rpc('read',[B,'v2-upgrade-original',1])['content']==body and rpc('operation',[B,v2copy['requestKey']])['operationId']==v2copy['operationId']
+  results.append({'id':'actual-v2-package-upgrade-retains-media-and-operation','passed':True})
+  rich={**body,'schemaVersion':3,'editor':{**body['editor'],'summary':'Original analysis, not verified','detectedService':'Garden care','proposedScheduleDate':'2026-11-05','proposedScheduleTime':'09:30','story':{'type':'before_after','confidence':'Medium','beforeImageId':refs[0]['id'],'afterImageId':refs[1]['id'],'reason':'Owner must review proposed pairing'},'captions':[{'id':'rich-'+str(n),'label':'Option '+str(n),'tone':'Informative','text':'  Exact wording '+str(n)+'\n','recommendedChannels':['Instagram'],'reason':'Original reason '+str(n)} for n in range(3)],'selectedCaptionId':'rich-1'}}
+  bad_date={**rich,'editor':{**rich['editor'],'proposedScheduleDate':'2026-02-30'}};deny('write',[B,'rich-v3-bad-date',0,json.dumps(bad_date),None,None,None,'v3_bad_date'],'22023')
+  saved=write('rich-v3-original',body=rich);assert rpc('read',[B,'rich-v3-original',None])['content']==rich
+  for version,older in [(1,content),(2,body)]:deny('write',[B,'rich-v3-original',1,json.dumps(older),None,None,None,'v3_downgrade_'+str(version)],'22023')
+  bad={**rich,'editor':{**rich['editor'],'story':{**rich['editor']['story'],'beforeImageId':'foreign-id'}}};deny('write',[B,'rich-v3-original',1,json.dumps(bad),None,None,None,'v3_wrong_story'],'22023')
+  bad={**rich,'editor':{**rich['editor'],'captions':[{**rich['editor']['captions'][0],'unknown':True}]}};deny('write',[B,'rich-v3-original',1,json.dumps(bad),None,None,None,'v3_unknown_caption'],'22023')
+  assert rpc('read',[B,'rich-v3-original',None])['revision']==1 and rpc('read',[B,'media-private',1])['content']==body
+  results.append({'id':'rich-caption-story-fidelity-and-older-client-denial','passed':True})
   assert rpc('read',[B,first['draftId'],1])['content']['schemaVersion']==1
  stage('owned-media-order-caption-history-and-revocation',media)
  stage('upgrade-retains-original-revision-history',lambda:run(local))
