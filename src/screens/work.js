@@ -819,11 +819,11 @@ function WorkHub({ s }) {
       <CanonicalWorkEntry s={s} />
       <QuoteFollowUpChoices s={s} />
       <View style={styles.workOverviewRow}>
-        <Pressable accessibilityRole="button" accessibilityLabel={`View ${weekBookings.length} booked jobs this week`} onPress={() => s.go("workCalendar")} style={styles.workOverviewTile}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`View ${weekBookings.length} booked jobs this week`} onPress={() => s.go("workCalendar")} style={({pressed})=>[styles.workOverviewTile,pressed&&styles.pressed]}>
           <Text style={styles.workOverviewNumber}>{weekBookings.length}</Text>
           <Text style={styles.workOverviewLabel}>Booked jobs this week</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Review ${weeklyOperationalCount} items needing attention`} onPress={() => s.go("dailyCommandCentre")} style={styles.workOverviewTile}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Review ${weeklyOperationalCount} items needing attention`} onPress={() => s.go("dailyCommandCentre")} style={({pressed})=>[styles.workOverviewTile,pressed&&styles.pressed]}>
           <Text style={styles.workOverviewNumber}>{weeklyOperationalCount}</Text>
           <Text style={styles.workOverviewLabel}>Need attention</Text>
         </Pressable>
@@ -839,7 +839,7 @@ function WorkHub({ s }) {
         </Card>
       ) : null}
       {nextBooking ? (
-        <Pressable accessibilityRole="button" onPress={() => openBooking(nextBooking)} style={styles.workOverviewUpcoming}>
+        <Pressable accessibilityRole="button" onPress={() => openBooking(nextBooking)} style={({pressed})=>[styles.workOverviewUpcoming,pressed&&styles.pressed]}>
           <Text style={styles.workOverviewEyebrow}>YOUR NEXT BOOKING</Text>
           <Text style={styles.workOverviewUpcomingTitle}>{nextBooking.customer.name}</Text>
           <Text style={styles.workOverviewHint}>

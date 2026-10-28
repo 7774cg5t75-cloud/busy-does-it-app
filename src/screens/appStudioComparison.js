@@ -2,7 +2,7 @@ import {BuilderQualityNotice} from "../components/builderQualityNotice";
 import {reviewAppEditingQuality} from "../core/appAppearanceEditing.mjs";
 import {reviewAppContentChanges} from '../core/appContentChangeReview.mjs';
 import React from "react";
-import {Text,View,ScrollView} from "react-native";
+import {Text,View,ScrollView,useWindowDimensions} from "react-native";
 import {Button,MetricRow} from "../components/ui";
 import {styles} from "../theme/styles";
 import {compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
@@ -15,9 +15,12 @@ function AppStudioComparison({original,proposed,renderSurface,onQualityRepair}){
  const [side,setSide]=React.useState("proposed");
  const [widthId,setWidthId]=React.useState("phone");
  const [contentLimit,setContentLimit]=React.useState(12);
+ const dimensions=useWindowDimensions();
+ const [viewport,setViewport]=React.useState(null),[fit,setFit]=React.useState(true);
  const contentReview=reviewAppContentChanges(original,proposed);
  const comparison=compareBusinessAppDesign(original,proposed);
  const width=SAMPLE_WIDTHS.find(x=>x.id===widthId)||SAMPLE_WIDTHS[1];
+ const previewWidth=fit?Math.min(width.width,viewport||Math.max(240,dimensions.width-80)):width.width;
  if(!comparison.ok)return <Text style={styles.cardBody}>{comparison.reason}</Text>;
  const quality=comparison.designOnly?compareAppScreenQuality(original,proposed):null;
  return <>
@@ -42,21 +45,22 @@ function AppStudioComparison({original,proposed,renderSurface,onQualityRepair}){
   <Text style={styles.sectionLabel}>Cross-screen quality checks</Text>
   <Text style={styles.cardBody}>Rules compare the proposed configurations at three sample widths; the preview below lets you inspect each supported width.</Text>
   <Text style={styles.sectionLabel}>Choose a preview width</Text>
+  <Button label={fit?"✓ Fit preview to this screen":"Fit preview to this screen"} selected={fit} onPress={()=>setFit(true)}/>
   {SAMPLE_WIDTHS.map(sample=><Button key={sample.id}
-   label={(sample.id===widthId?"✓ ":"")+sample.label+" ("+sample.width+" pt)"}
-   onPress={()=>setWidthId(sample.id)}/>)}
+   label={(!fit&&sample.id===widthId?"✓ ":"")+sample.label+" ("+sample.width+" pt)"}
+   onPress={()=>{setWidthId(sample.id);setFit(false);}}/>)}
   <Button label={side==="original"?"✓ Original design":"Show original design"}
    onPress={()=>setSide("original")}/>
   <Button label={side==="proposed"?"✓ Proposed design":"Show proposed design"}
    onPress={()=>setSide("proposed")}/>
-  <ScrollView horizontal showsHorizontalScrollIndicator
+  <ScrollView horizontal={!fit} showsHorizontalScrollIndicator={!fit} onLayout={event=>{const size=event.nativeEvent.layout.width;if(Number.isFinite(size)&&size>=200)setViewport(size);}}
    accessibilityLabel="Private app design preview; scroll horizontally for wider layouts">
-   <View style={{width:width.width}} key={width.id+":"+side}>
+   <View style={{width:previewWidth}} key={width.id+":"+side}>
     {renderSurface(side==="original"?original:proposed)}
    </View>
   </ScrollView>
   <Text style={styles.cardBody}>{"Showing "+(side==="original"?"your original":"the proposed")+
-   " at "+width.width+" layout points. Wider layouts scroll horizontally. This uses the shared app renderer, not a native device screenshot or a tested customer journey."}</Text>
+   " at "+previewWidth+" layout points. Wider layouts scroll horizontally. This uses the shared app renderer, not a native device screenshot or a tested customer journey."}</Text>
  </>;
 }
 export {AppStudioComparison};

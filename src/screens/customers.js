@@ -365,13 +365,13 @@ function CustomerRecords({ s }) {
               </Text>
             ) : null}
             <View style={styles.customerActionsRow}>
-              <Pressable onPress={() => s.openCustomer(customer.id)} style={styles.customerOpenWrap}>
+              <Pressable accessibilityRole="button" accessibilityLabel={"Open customer "+customer.name} onPress={() => s.openCustomer(customer.id)} style={({pressed})=>[styles.customerOpenWrap,pressed&&styles.pressed]}>
                 <Text style={styles.customerOpenText}>Open customer</Text>
               </Pressable>
-              <Pressable onPress={() => s.startEditCustomer(customer)} style={styles.customerEditWrap}>
+              <Pressable accessibilityRole="button" accessibilityLabel={"Edit customer "+customer.name} onPress={() => s.startEditCustomer(customer)} style={({pressed})=>[styles.customerEditWrap,pressed&&styles.pressed]}>
                 <Text style={styles.customerEditText}>Edit</Text>
               </Pressable>
-              <Pressable onPress={() => s.requestRemoveCustomer(customer.id)} style={styles.removeCustomerWrap}>
+              <Pressable accessibilityRole="button" accessibilityLabel={"Review removing customer "+customer.name} onPress={() => s.requestRemoveCustomer(customer.id)} style={({pressed})=>[styles.removeCustomerWrap,pressed&&styles.pressed]}>
                 <Text style={styles.removeCustomerText}>Remove</Text>
               </Pressable>
             </View>

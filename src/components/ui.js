@@ -1,3 +1,5 @@
+import {MotionReveal} from '../theme/motion';
+import {chromeLabel,workspaceDensity} from '../theme/interaction.mjs';
 import {BusyMiniOrb} from "./BusyOrb";
 import {moodForScreen} from "../theme/appearance.mjs";
 import React, { useEffect, useState } from "react";
@@ -18,6 +20,8 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -295,25 +299,26 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          automaticallyAdjustKeyboardInsets={false}
         >
-        <View style={[styles.topRow, dark && styles.homeDarkTopRow]}>
+        <MotionReveal identity={s.screen}><View style={[styles.topRow, dark && styles.homeDarkTopRow]}>
           <View style={{ flex: 1, paddingRight: 12 }}>
             <BusyBrandLockup size={36} inverse={dark} />
             <Text style={[styles.tagline, dark && styles.homeDarkMuted]}>More work. Less fuss.</Text>
             {!hideDevBadge ? <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text> : null}
           </View>
           {!noBack && s.history?.length > 0 ? (
-            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={s.back} style={styles.backPill}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={s.back} style={({pressed})=>[styles.backPill,pressed&&styles.pressed]}>
               <Text style={styles.backText}>Back</Text>
             </Pressable>
           ) : null}
         </View>
 
-        {brandCue ? <Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{brandCue}</Text> : null}
+        {brandCue ? <Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{chromeLabel(brandCue)}</Text> : null}
         {title ? <Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading]}>{title}</Text> : null}
         {subtitle ? <Text style={[styles.subtitle, dark && styles.homeDarkMuted]}>{subtitle}</Text> : null}
 
+        </MotionReveal>
         {children}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -356,12 +361,12 @@ function BottomNav({ s, dark = true }) {
 
 function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
   const toneStyle =
-    tone === "green"
+    tone === "red" ? styles.cardRed : tone === "green"
       ? styles.cardGreen
       : tone === "amber"
       ? styles.cardAmber
       : styles.cardBlue;
-  const eyebrowText = eyebrow ? String(eyebrow).toUpperCase() : "";
+  const eyebrowText = eyebrow ? String(chromeLabel(eyebrow)).toUpperCase() : "";
   const showBusyMark = eyebrowText.startsWith("BUSY");
   return (
     <View style={[styles.card, toneStyle]}>
@@ -383,11 +388,14 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
   );
 }
 
-function Button({ label, onPress, primary = false, danger = false, disabled = false, selected, compact = false }) {
+function Button({ label, onPress, primary = false, danger = false, disabled = false, selected, compact = false, loading = false, accessibilityHint }) {
+  disabled=disabled||loading;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{disabled,...(selected===undefined?{}:{selected})}}
+      accessibilityLabel={typeof label==="string"?label:undefined}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{disabled,busy:loading,...(selected===undefined?{}:{selected})}}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
@@ -400,38 +408,42 @@ function Button({ label, onPress, primary = false, danger = false, disabled = fa
         pressed && !disabled && styles.pressed,
       ]}
     >
-      <Text
+      <View style={styles.actionContent}>{loading?<ActivityIndicator accessibilityElementsHidden color={C.blueText} size="small"/>:null}<Text
         style={[
           styles.buttonText,
           compact && styles.buttonTextCompact,
           selected && styles.buttonTextSelected,
           primary && styles.buttonTextPrimary,
           danger && styles.buttonTextPrimary,
+          disabled && styles.buttonTextDisabled,
         ]}
       >
         {label}
-      </Text>
+      </Text></View>
     </Pressable>
   );
 }
 
 function SmallLink({ label, onPress }) {
   return (
-    <Pressable onPress={onPress} style={styles.smallLinkWrap}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({pressed})=>[styles.smallLinkWrap,pressed&&styles.pressed]}>
       <Text style={styles.smallLink}>{label}</Text>
     </Pressable>
   );
 }
 
-function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength, editable = true }) {
+function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength, editable = true, hint, error, onSubmitEditing, returnKeyType }) {
   const [focused,setFocused]=useState(false);
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={[styles.fieldBox, multiline && styles.fieldBoxMultiline, focused && editable && styles.fieldBoxFocused, !editable && styles.fieldBoxReadOnly]}>
+      <View style={[styles.fieldBox, multiline && styles.fieldBoxMultiline, focused && editable && styles.fieldBoxFocused, !editable && styles.fieldBoxReadOnly,error && styles.fieldBoxError]}>
         {prefix ? <Text style={styles.fieldPrefix}>{prefix}</Text> : null}
         <TextInput
           ref={inputRef}
+          onSubmitEditing={onSubmitEditing}
+          returnKeyType={returnKeyType}
+          accessibilityHint={error||hint}
           onFocus={()=>{if(editable)setFocused(true);}}
           onBlur={()=>setFocused(false)}
           selectionColor={C.blueText}
@@ -451,6 +463,7 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
           placeholderTextColor={C.muted}
         />
       </View>
+      {error?<Text accessibilityLiveRegion="polite" style={styles.fieldError}>{error}</Text>:hint?<Text style={styles.fieldHint}>{hint}</Text>:null}
     </View>
   );
 }
@@ -585,13 +598,13 @@ function Details({ label, children }) {
       <Text style={styles.detailsLabel}>{label}</Text>
       <Text accessibilityElementsHidden importantForAccessibility="no" style={styles.detailsIndicator}>{expanded?"−":"+"}</Text>
     </Pressable>
-    {expanded?<View style={styles.detailsBody}>{children}</View>:null}
+    {expanded?<MotionReveal identity={expanded} style={styles.detailsBody}>{children}</MotionReveal>:null}
   </View>;
 }
 
 function Choice({ label, selected, onPress, sub }) {
   return (
-    <Pressable accessibilityRole="radio" accessibilityState={{selected:!!selected}} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected]}>
+    <Pressable accessibilityRole="radio" accessibilityState={{checked:!!selected,selected:!!selected}} accessibilityLabel={label} accessibilityHint={sub} onPress={onPress} style={({pressed})=>[styles.choice, selected && styles.choiceSelected,pressed&&styles.pressed]}>
       <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected ? <View style={styles.radioCore} /> : null}
       </View>
@@ -624,21 +637,22 @@ function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
 }
 
 function MetricRow({ left, right, strong = false, onPress = null }) {
+  const dimensions=useWindowDimensions(),stack=workspaceDensity(dimensions).metricStack;
   const content = (
     <>
       <Text style={[styles.metricLeft, strong && styles.metricStrong, onPress && styles.metricClickable]}>{left}</Text>
-      <View style={styles.metricRightWrap}>
-        <Text style={[styles.metricRight, strong && styles.metricStrong, onPress && styles.metricClickable]}>{right}</Text>
+      <View style={[styles.metricRightWrap,stack&&styles.metricRightStack]}>
+        <Text style={[styles.metricRight,stack&&styles.metricTextStack, strong && styles.metricStrong, onPress && styles.metricClickable]}>{right}</Text>
         {onPress ? <Text style={styles.metricChevron}>›</Text> : null}
       </View>
     </>
   );
   return onPress ? (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.metricRow, styles.metricRowClickable, pressed && styles.metricRowPressed]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.metricRow,stack&&styles.metricRowStack, styles.metricRowClickable, pressed && styles.metricRowPressed]}>
       {content}
     </Pressable>
   ) : (
-    <View style={styles.metricRow}>{content}</View>
+    <View style={[styles.metricRow,stack&&styles.metricRowStack]}>{content}</View>
   );
 }
 

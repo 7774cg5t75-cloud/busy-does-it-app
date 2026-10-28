@@ -1,3 +1,5 @@
+import {appColors as C} from '../theme/appearance.mjs';
+import {useMotionPolicy} from '../theme/motion';
 import {currentBuilderExplore} from '../core/builderExplore.mjs';
 import {BuilderTalkExplore} from './builderTalkExplore';
 import {selectedWebsiteComparisons} from '../core/websiteSelectedComparisons.mjs';
@@ -164,12 +166,13 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
       ?{action:"image-style",sectionId:section?.id,photoIndex,field,value}
       :{action:"section-style",sectionId:section?.id,field,value})}/>;
  };
+ const motion=useMotionPolicy();
  return (
   <Modal visible={!!selection} onRequestClose={requestClose}
-   animationType="slide" presentationStyle="pageSheet">
-   <SafeAreaView style={{flex:1,backgroundColor:"#0D131E"}}>
+   animationType={motion.enabled?"slide":"none"} presentationStyle="pageSheet" allowSwipeDismissal={false}>
+   <SafeAreaView style={{flex:1,backgroundColor:C.bg}}>
     <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==="ios"?"padding":undefined}>
-     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:18,paddingBottom:40}}>
+     <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS==="ios"?"interactive":"on-drag"} contentContainerStyle={{padding:18,paddingBottom:40}}>
       {exploring&&exploreContext?<BuilderTalkExplore context={exploreContext} onExit={()=>setExploring(false)} onHandoff={handoff=>{
        if(!current()||editorLive.current.contextRequest!==contextRequest||!currentBuilderExplore({ok:true,source:handoff.source},exploreContext)||!handoff.source.selection||wordingEdited.current)return false;
        const outcome=onPreviewInstruction?.({selection,instruction:handoff.instruction});
@@ -177,8 +180,8 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
        setContextDraft(handoff.instruction);setSelectedInstructionPreview(outcome);setShowContextHelp(true);setExploring(false);return true;
       }}/>:null}
       {exploreContext&&!exploring?<Button label="Talk & Explore about this part" onPress={()=>{if(!current())return;if(wordingEdited.current){setShowContextHelp(true);setContextNote('Save or cancel your wording before opening Talk & Explore. Your words are kept.');return;}setExploring(true);}}/>:null}
-      <Text style={{color:"#F4F7FE",fontSize:24,fontWeight:"800",marginBottom:6}}>Edit this part</Text>
-      <Text style={{color:"#B4C0D2",marginBottom:14}}>
+      <Text accessibilityRole="header" style={{color:C.ink,fontSize:24,lineHeight:32,fontWeight:"700",marginBottom:6}}>Edit this part</Text>
+      <Text style={{color:C.muted,lineHeight:22,marginBottom:14}}>
        {title+" • "+(names[field]||"Selected element")}
       </Text>
       {closeRequested?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>Your wording is not saved. Save it below or choose whether to discard it.</Text><Button label="Keep editing this wording" onPress={()=>setCloseRequested(false)}/><Button label="Discard wording and close" onPress={()=>{if(!current()||editorLive.current.value!==value)return;cancelOwnerWording();setCloseRequested(false);onClose?.();}}/></View>:null}
@@ -191,9 +194,9 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           <View style={styles.fieldWrap}>
            <Text style={styles.fieldLabel}>Your new wording</Text>
            <View style={styles.fieldBox}>
-            <TextInput value={value} onChangeText={next=>{if(current())setOwnerWording(next);}}
+            <TextInput accessibilityLabel="Your new wording" selectionColor={C.blueText} value={value} onChangeText={next=>{if(current())setOwnerWording(next);}}
              style={[styles.fieldInput,{minHeight:135,textAlignVertical:"top"}]}
-             placeholderTextColor="#9AA3B2"
+             placeholderTextColor={C.muted}
              placeholder="Type the exact wording you want" multiline
              textAlignVertical="top"/>
            </View>
@@ -218,7 +221,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
          {selectedPhotoSource?(
           <Image source={selectedPhotoSource} resizeMode="contain"
            accessibilityLabel={String(selectedPhoto?.alt||"Your selected business photograph").slice(0,120)}
-           style={{height:190,width:"100%",backgroundColor:"#202D40",borderRadius:12,marginBottom:10}}/>
+           style={{height:190,width:"100%",backgroundColor:C.surface,borderRadius:12,marginBottom:10}}/>
          ):(
           <Text style={styles.cardBody}>A local thumbnail is not available for this approved photo. You can still view the exact framing in your website preview.</Text>
          )}
@@ -253,7 +256,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
                {photoPreviewSource(photo)?(
                 <Image source={photoPreviewSource(photo)} resizeMode="cover"
                  accessibilityLabel={String(photo.alt||"Approved photograph "+(i+1)).slice(0,120)}
-                 style={{width:92,height:74,borderRadius:9,backgroundColor:"#202D40"}}/>
+                 style={{width:92,height:74,borderRadius:9,backgroundColor:C.surface}}/>
                ):null}
                <Button label={"Use photo "+(i+1)+(photo.alt?" • "+String(photo.alt).slice(0,35):"")}
                 onPress={()=>apply({action:section?.type==="hero"?"choose-hero-photo":"choose-feature-photo",

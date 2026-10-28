@@ -249,8 +249,9 @@ function SocialMediaCentre({ s }) {
     return (
       <Pressable
         key={draft.id}
+        accessibilityRole="button" accessibilityLabel={"Open content: "+(draft.service||draft.sourceLabel||"Saved content")}
         onPress={() => s.openSocialDraft(draft.id)}
-        style={styles.activityCard}
+        style={({pressed})=>[styles.activityCard,pressed&&styles.pressed]}
       >
         <View style={styles.activityTopRow}>
           <View style={{ flex: 1, paddingRight: 10 }}>
@@ -491,7 +492,7 @@ function SocialMediaCentre({ s }) {
               <Pressable
                 key={`${customer.id}-${job.id}`}
                 onPress={() => s.startSocialFromJob(customer.id, job.id)}
-                style={styles.activityCard}
+                style={({pressed})=>[styles.activityCard,pressed&&styles.pressed]}
               >
                 <View style={styles.activityTopRow}>
                   <View style={{ flex: 1, paddingRight: 10 }}>
@@ -620,7 +621,7 @@ function SocialMediaCentre({ s }) {
             <Pressable
               key={`social-outcome-${customer.id}-${job.id}`}
               onPress={() => s.openJobPostOutcome(customer.id, job.id)}
-              style={styles.activityCard}
+              style={({pressed})=>[styles.activityCard,pressed&&styles.pressed]}
             >
               <View style={styles.activityTopRow}>
                 <View style={{ flex: 1, paddingRight: 10 }}>
@@ -791,7 +792,7 @@ function SocialCreator({ s }) {
                 accessibilityState={{disabled:analysing}}
                 disabled={analysing}
                 onPress={() => s.removeSocialPhoto(photo.id)}
-                style={styles.photoRemove}
+                style={({pressed})=>[styles.photoRemove,pressed&&styles.pressed]}
               >
                 <Text style={styles.photoRemoveText}>Remove</Text>
               </Pressable>
@@ -803,6 +804,7 @@ function SocialCreator({ s }) {
       <View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Your preparation brief</Text>
       <Text style={styles.fieldLabel}>Anything BUSY should know? (optional)</Text>
       <TextInput
+        accessibilityLabel="Your Creator preparation brief"
         multiline
         value={s.socialBrief}
         onChangeText={s.setSocialBrief}
@@ -1041,6 +1043,7 @@ function SocialDraftReview({ s }) {
         editable={!recordLocked}
         style={[styles.messageInput, recordLocked && { opacity: 0.7 }]}
         accessibilityLabel="Post caption"
+        accessibilityState={{disabled:recordLocked}}
         placeholder="Post wording"
         placeholderTextColor={C.muted}
         textAlignVertical="top"
@@ -1627,7 +1630,7 @@ function BusinessBrain({ s }) {
             </Text>
             <Pressable
               onPress={() => s.removeBusinessBrainRule(rule.id)}
-              style={styles.removeCustomerWrap}
+              accessibilityRole="button" accessibilityLabel="Remove this owner rule" style={({pressed})=>[styles.removeCustomerWrap,pressed&&styles.pressed]}
             >
               <Text style={styles.removeCustomerText}>Remove rule</Text>
             </Pressable>

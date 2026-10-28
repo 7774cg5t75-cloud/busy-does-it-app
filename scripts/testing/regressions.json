@@ -2713,6 +2713,24 @@
       "args": [
         "scripts/check-mission15-premium-sample-revision.mjs"
       ]
+    },
+    {
+      "id": "premium-motion-lifecycle",
+      "args": [
+        "scripts/check-premium-motion-lifecycle.mjs"
+      ]
+    },
+    {
+      "id": "premium-workspace-interactions",
+      "args": [
+        "scripts/check-premium-workspace-interactions.mjs"
+      ]
+    },
+    {
+      "id": "premium-builder-sheets",
+      "args": [
+        "scripts/check-premium-builder-sheets.mjs"
+      ]
     }
   ]
 }
