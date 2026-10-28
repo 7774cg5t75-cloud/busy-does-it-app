@@ -1030,12 +1030,12 @@ function HomeScreen({ s }) {
         <HomeCoreAreas s={s}/>
 <View style={{marginTop:10,padding:10,borderRadius:16,borderWidth:1,borderColor:C.border,backgroundColor:C.card}}>
       <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}><Text style={[homeDark.sectionHeading,{fontSize:14,marginTop:0}]}>Your day at a glance</Text><Pressable accessibilityRole="button" accessibilityLabel="View detailed results" onPress={() => s.jump("results", "Results")} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:C.cyan,fontSize:12,fontWeight:"700"}}>View results →</Text></Pressable></View>
-      <View style={homeDark.statRow}>
-        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={[homeDark.stat,dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
+      <View style={[homeDark.statRow,{marginBottom:0}]}>
+        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={[homeDark.stat,{backgroundColor:"transparent",borderWidth:0,padding:6},dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
           <Text style={homeDark.statValue}>{homeWeekBookings.length}</Text>
           <Text style={homeDark.statLabel}>Confirmed bookings · next 7 days</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={[homeDark.stat,dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
+        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={[homeDark.stat,{backgroundColor:"transparent",borderWidth:0,padding:6},dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
           <Text style={homeDark.statValue}>{attentionCount}</Text>
           <Text style={homeDark.statLabel}>Items needing review</Text>
         </Pressable>

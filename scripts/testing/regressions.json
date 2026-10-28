@@ -2759,6 +2759,13 @@
         "scripts/check-home-orbital-fidelity.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-home-final-composition",
+      "args": [
+        "scripts/check-home-final-composition.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

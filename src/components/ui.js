@@ -2,8 +2,8 @@ import {FloatingOrbContext,useFloatingOrbLayout,useFloatingOrbAvoidance,OrbSafeR
 import {MotionReveal} from '../theme/motion';
 import {chromeLabel,workspaceDensity} from '../theme/interaction.mjs';
 import {BusyMiniOrb,BusyOrb} from "./BusyOrb";
-import {PremiumAtmosphere,ChromeIcon} from "./PremiumAtmosphere";
-import {moodForScreen,orbState} from "../theme/appearance.mjs";
+import {PremiumAtmosphere,ChromeIcon,BusyBrandStar} from "./PremiumAtmosphere";
+import {moodForScreen,orbState,getAppearance} from "../theme/appearance.mjs";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -255,8 +255,8 @@ function BusyAssistantMark({ size = 38 }) {
 
 function BusyBrandLockup({ size = 38, centered = false, inverse = false }) {
  return <View accessibilityLabel="Busy Does It" style={[styles.busyBrandLockup,centered&&styles.busyBrandLockupCentered]}>
-  <View style={{width:30,height:30,alignItems:'center',justifyContent:'center',marginRight:7}}><ChromeIcon name="spark" size={25} color={C.cyan}/></View>
-  <Text style={{color:C.ink,fontSize:18,lineHeight:25,fontWeight:'700',letterSpacing:-.5}}>Busy Does It</Text>
+  <View style={{width:32,height:32,alignItems:'center',justifyContent:'center',marginRight:7}}><BusyBrandStar size={32}/></View>
+  <Text style={{color:C.ink,fontSize:18,lineHeight:25,fontWeight:'700',letterSpacing:-.35,flexShrink:1,minWidth:0,textShadowColor:C.cyan,textShadowOffset:{width:0,height:0},textShadowRadius:getAppearance().resolved==='midnight'?3:0}}>Busy Does It</Text>
  </View>;
 }
 
@@ -294,7 +294,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         <ScrollView
           ref={scrollRef}
           onScrollBeginDrag={overlay.startScroll} onMomentumScrollBegin={overlay.startScroll} onScrollEndDrag={overlay.endScroll} onMomentumScrollEnd={overlay.endScroll}
-          style={[styles.scroll, dark && styles.homeDarkShell]}
+          style={[styles.scroll, dark && styles.homeDarkShell,home&&{backgroundColor:"transparent"}]}
           contentContainerStyle={[
             styles.scrollContent,
             dark && styles.homeDarkContent,
@@ -306,7 +306,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           automaticallyAdjustKeyboardInsets={false}
         >
-        <MotionReveal identity={s.screen}><View style={[styles.topRow, dark && styles.homeDarkTopRow,home&&{marginBottom:8}]}>
+        <MotionReveal identity={s.screen}><View style={[styles.topRow, dark && styles.homeDarkTopRow,home&&{marginBottom:0}]}>
           <View style={{ flex: 1, paddingRight: 12 }}>
             <OrbSafeRegion style={{alignSelf:"flex-start"}}><BusyBrandLockup size={36} inverse={dark} /></OrbSafeRegion>
             <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.tagline, dark && styles.homeDarkMuted]}>Your business. A little more freedom.</Text></OrbSafeRegion>
