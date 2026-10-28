@@ -3,7 +3,7 @@ import {View,Text,SafeAreaView} from 'react-native';
 import {useAppearance} from '../theme/useAppearance';
 import {palette} from '../theme/appearance.mjs';
 // Install transport denial before evaluating original application modules.
-require('./policy.cjs').install();
+require('./policy.js').install();
 const Application=require('../../BusyDoesItApp').default;
 export default function OwnerPreview(){
  useAppearance();const c=palette();

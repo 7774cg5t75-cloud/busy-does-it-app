@@ -1,4 +1,4 @@
-import {blocked} from './policy.cjs';
+import {blocked} from './policy.js';
 export const setNotificationHandler=()=>{};
 export const addNotificationResponseReceivedListener=()=>({remove(){}});
 export const getLastNotificationResponseAsync=async()=>null;

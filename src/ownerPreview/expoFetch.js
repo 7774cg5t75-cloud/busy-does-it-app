@@ -1,1 +1,1 @@
-export {blocked as fetch} from './policy.cjs';
+export {blocked as fetch} from './policy.js';
