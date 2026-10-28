@@ -5,7 +5,9 @@
  * This prevents eager production-module side effects before the mode switch.
  */
 const isStaging=process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="isolated-staging";
-const SelectedApp=isStaging
+const SelectedApp=process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview"
+ ? require("./src/ownerPreview/OwnerPreview").default
+ : isStaging
  ? require("./src/staging/StagingSignInScreen").default
  : require("./BusyDoesItApp").default;
 export default SelectedApp;

@@ -3,7 +3,7 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),babel=require('@babel/core');
 // Compilation only is shared; exports, React state and IO remain per runtime.
 const compiledModules=new Map();
-function createRuntime({width=390,states=new Map()}={}){
+function createRuntime({width=390,states=new Map(),environment="isolated-staging"}={}){
  const statistics={transforms:0,compileCacheHits:0,preloads:0,vmRuns:0,controllerVmMs:null,timeoutMs:10000};
  const root=path.resolve(__dirname,'../..'),cache=new Map(),effects=[];let index=0,slots=[],captured=null;const componentSlots=new Map();
  const React={createElement:(type,props,...children)=>({type,props:{...props,children}}),Fragment:'Fragment',
@@ -29,7 +29,7 @@ function createRuntime({width=390,states=new Map()}={}){
   for(const id of dependencies)if(id.startsWith('.')){statistics.preloads++;load(path.resolve(path.dirname(resolved),id));}
 
   const requireLocal=id=>{if(id.startsWith('.'))return load(path.resolve(path.dirname(resolved),id));if(Object.hasOwn(external,id))return external[id];throw Error('Unmodelled external boundary '+id+' in '+resolved);};
-  const context={__captureContext:value=>captured=value,module,exports:module.exports,require:requireLocal,console,URL,URLSearchParams,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,Date,Math,JSON,Promise,Set,Map,WeakMap,WeakSet,process:{env:{EXPO_PUBLIC_BUSY_ENVIRONMENT:'isolated-staging'}},fetch:noIO,setTimeout:noIO,clearTimeout:()=>{},setInterval:noIO,clearInterval:()=>{},__DEV__:true};
+  const context={__captureContext:value=>captured=value,module,exports:module.exports,require:requireLocal,console,URL,URLSearchParams,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,Date,Math,JSON,Promise,Set,Map,WeakMap,WeakSet,process:{env:{EXPO_PUBLIC_BUSY_ENVIRONMENT:environment}},fetch:noIO,setTimeout:noIO,clearTimeout:()=>{},setInterval:noIO,clearInterval:()=>{},__DEV__:true};
   const started=Date.now();vm.runInNewContext(code,context,{filename:resolved,timeout:10000});statistics.vmRuns++;if(resolved.endsWith('/src/app/AppController.js'))statistics.controllerVmMs=Date.now()-started;return module.exports;
  }
  return {statistics,native,load:relative=>load(path.resolve(root,relative)),render(Component,props){index=0;if(!componentSlots.has(Component))componentSlots.set(Component,[]);slots=componentSlots.get(Component);return Component(props);},get appState(){return captured;},effects,get modules(){return cache.size;}};

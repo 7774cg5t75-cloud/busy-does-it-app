@@ -34,7 +34,7 @@ const BUSY_CALENDAR_OAUTH_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-calendar-o
 const BUSY_CALENDAR_SYNC_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-calendar-sync";
 const BUSY_PRODUCTION_WATCH_URL =
   BUSY_SUPABASE_URL+"/functions/v1/busy-production-watch";
-const OWNER_SESSION_KEY = IS_STAGING_BUILD
+const OWNER_SESSION_KEY = process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview" ? "busy-owner-preview-no-account" : IS_STAGING_BUILD
   ? "busy-owner-session-v3.128-isolated-staging"
   : "busy-owner-session-v3.6";
 const DEFAULT_OWNER_EMAIL = IS_STAGING_BUILD ? "" : "busydoesitapp@gmail.com";

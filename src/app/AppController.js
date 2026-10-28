@@ -325,12 +325,14 @@ const BRAND_PROFILE_TEXT_FIELDS = new Set([
 ]);
 
 function App() {
+  // Offline UI exploration only: no synthetic account, token, role or cloud context.
+  const ownerPreview=process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview";
   const [hydrated, setHydrated] = useState(false);
-  const [onboardingComplete, setOnboardingComplete] = useState(false);
-  const [screen, setScreen] = useState("welcome");
+  const [onboardingComplete, setOnboardingComplete] = useState(ownerPreview);
+  const [screen, setScreen] = useState(ownerPreview?"home":"welcome");
   const [history, setHistory] = useState([]);
   const [tab, setTab] = useState("Home");
-  const [businessName, setBusinessName] = useState("Dave's Exterior Cleaning");
+  const [businessName, setBusinessName] = useState(ownerPreview?"Fictional Exterior Studio":"Dave's Exterior Cleaning");
   const [trade, setTrade] = useState("Exterior cleaning");
   const [verticalId, setVerticalId] = useState("exterior-cleaning");
   const [postcode, setPostcode] = useState("EX17");
@@ -18285,7 +18287,7 @@ function App() {
     );
   }
 
-  if (!ownerSession?.accessToken) {
+  if (!ownerSession?.accessToken && !ownerPreview) {
     return (
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle={appearance.resolved==="daylight"?"dark-content":"light-content"} />
@@ -18294,7 +18296,7 @@ function App() {
     );
   }
 
-  if (!cloudAttempted || cloudInitialising) {
+  if ((!cloudAttempted || cloudInitialising) && !ownerPreview) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingWrap}>

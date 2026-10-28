@@ -2731,6 +2731,13 @@
       "args": [
         "scripts/check-premium-builder-sheets.mjs"
       ]
+    },
+    {
+      "id": "check-owner-preview",
+      "args": [
+        "scripts/check-owner-preview.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
