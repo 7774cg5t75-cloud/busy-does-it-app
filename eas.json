@@ -51,7 +51,8 @@
         "EXPO_PUBLIC_BUSY_ENVIRONMENT": "owner-preview"
       },
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "image": "latest"
       }
     }
   },
