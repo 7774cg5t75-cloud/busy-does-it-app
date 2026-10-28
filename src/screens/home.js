@@ -1022,13 +1022,25 @@ function HomeScreen({ s }) {
       noBack
       dark
       hideDevBadge
-      title={s.homeCommandCentre?.greeting || "Hello"}
-      subtitle="What can I help you with today?"
+
     >
       <BusyHomeEntry s={s}/>
 
       <View style={{marginBottom:12}}>
         <HomeCoreAreas s={s}/>
+<View style={{marginTop:10,padding:10,borderRadius:16,borderWidth:1,borderColor:C.border,backgroundColor:C.card}}>
+      <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}><Text style={[homeDark.sectionHeading,{fontSize:14,marginTop:0}]}>Your day at a glance</Text><Pressable accessibilityRole="button" accessibilityLabel="View detailed results" onPress={() => s.jump("results", "Results")} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:C.cyan,fontSize:12,fontWeight:"700"}}>View results →</Text></Pressable></View>
+      <View style={homeDark.statRow}>
+        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={[homeDark.stat,dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
+          <Text style={homeDark.statValue}>{homeWeekBookings.length}</Text>
+          <Text style={homeDark.statLabel}>Confirmed bookings · next 7 days</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={[homeDark.stat,dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
+          <Text style={homeDark.statValue}>{attentionCount}</Text>
+          <Text style={homeDark.statLabel}>Items needing review</Text>
+        </Pressable>
+      </View>
+</View>
         <View style={homeDark.smallActionRow}>
           <Pressable accessibilityRole="button" accessibilityLabel="Diary" onPress={() => s.go("bookings")} style={homeDark.smallAction}><Text style={homeDark.smallActionText}>Diary</Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Inbox" onPress={s.openBusyInbox} style={homeDark.smallAction}><Text style={homeDark.smallActionText}>Inbox</Text></Pressable>
@@ -1089,17 +1101,7 @@ function HomeScreen({ s }) {
         ) : null}
       </View>
 
-      <Text style={homeDark.sectionHeading}>Your day at a glance</Text>
-      <View style={homeDark.statRow}>
-        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={[homeDark.stat,dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
-          <Text style={homeDark.statValue}>{homeWeekBookings.length}</Text>
-          <Text style={homeDark.statLabel}>Confirmed bookings · next 7 days</Text>
-        </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={[homeDark.stat,dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
-          <Text style={homeDark.statValue}>{attentionCount}</Text>
-          <Text style={homeDark.statLabel}>Items needing review</Text>
-        </Pressable>
-      </View>
+
 
       {needsAttention || bestMove || s.activeWorkGoal || homeProactiveNotice ? (
         <View style={homeDark.panel}>

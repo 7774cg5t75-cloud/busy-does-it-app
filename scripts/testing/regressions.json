@@ -2752,6 +2752,13 @@
         "scripts/check-floating-owner-ui-v3.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-home-orbital-fidelity",
+      "args": [
+        "scripts/check-home-orbital-fidelity.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
