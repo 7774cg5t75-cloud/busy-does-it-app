@@ -2780,6 +2780,20 @@
         "scripts/check-living-home-motion.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-four-edge-results",
+      "args": [
+        "scripts/check-four-edge-results.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-four-edge-retention-motion",
+      "args": [
+        "scripts/check-four-edge-retention-motion.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

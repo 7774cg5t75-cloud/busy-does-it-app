@@ -11,4 +11,4 @@ export function useAppearance(){
 export function useAppearanceDevice(){const value=useAppearance();React.useEffect(()=>{setDeviceScheme(Appearance?.getColorScheme?.());const subscription=Appearance?.addChangeListener?.(({colorScheme})=>setDeviceScheme(colorScheme));hydrateAppearance(AsyncStorage.getItem);return()=>subscription?.remove();},[]);return value;}
 export const retainOrbEdge=edge=>updateAppearance({orbEdge:edge},AsyncStorage.setItem);
 
-export const retainOrbPosition=({edge,orbY})=>updateAppearance({orbEdge:edge,orbY},AsyncStorage.setItem);
+export const retainOrbPosition=({edge,position,orbY})=>updateAppearance({orbPlacement:{version:1,edge,position:position??orbY},...(['left','right'].includes(edge)?{orbEdge:edge,orbY:position??orbY}:{})},AsyncStorage.setItem);

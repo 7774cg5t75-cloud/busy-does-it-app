@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 // Shell-local layout observation only. No account state, persistence or actions.
 export const FloatingOrbContext=React.createContext(null);
-export function useFloatingOrbAvoidance(){
- const context=React.useContext(FloatingOrbContext),ref=React.useRef(null),key=React.useRef({});
+export function useFloatingOrbAvoidance(enabled=true){
+ const provided=React.useContext(FloatingOrbContext),context=enabled?provided:null,ref=React.useRef(null),key=React.useRef({});
  const read=React.useCallback(()=>{
   if(!context)return;
   const revision=context.version(),sequence=context.pending(key.current);

@@ -5,7 +5,7 @@ export function workspaceDensity({width=390,fontScale=1}={}){
 }
 export function orbMotion(state,{enabled=false,ambient=true,small=false}={}){
  if(!enabled)return null;
- if(state==='idle')return ambient?{duration:small?4600:3600,scale:small?1.008:1.018,baseOpacity:small?.86:.87,opacity:small?.93:.99,repeat:-1}:null;
+ if(state==='idle')return ambient?{duration:small?4600:3600,scale:small?1.008:1.024,baseOpacity:small?.86:.83,opacity:small?.93:1,repeat:-1}:null;
  if(['listening','speaking','processing'].includes(state))return {duration:state==='processing'?1400:1100,scale:small?1.02:1.035,baseOpacity:.86,opacity:1,repeat:-1};
  return null;
 }

@@ -1,13 +1,14 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View,Animated} from 'react-native';
 import Svg,{Defs,RadialGradient,LinearGradient,Stop,Path,Circle,Ellipse} from 'react-native-svg';
 import {getAppearance} from '../theme/appearance.mjs';
 let sequence=0;
-// A deliberate, static orbital composition. No particles, timers, hit targets or
-// implied processing; the original orb owns the single native breathing loop.
-export function BusyOrbConstellation(){
+// Original orbital composition. Optional light phase comes from the Home orb
+// clock; no independent loop, particles, timers, hit targets or implied activity.
+export function BusyOrbConstellation({phase}={}){
  const identity=React.useRef(null);if(!identity.current)identity.current='busy-orbit-'+(++sequence);
  const id=identity.current,night=getAppearance().resolved==='midnight';
+ const Surface=Animated?.View||View;
  const nodes=[[28,88,2,'#36DCFF'],[55,142,1.7,'#6B8FFF'],[92,46,1.8,'#32EDFF'],[265,43,1.7,'#6D9FFF'],[310,107,2.5,'#FF59D5'],[279,145,1.8,'#796BFF'],[211,157,1.5,'#20DFFF']];
  return <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{position:'absolute',inset:0}}><Svg width="100%" height="100%" viewBox="0 0 340 184">
   <Defs>
@@ -19,5 +20,7 @@ export function BusyOrbConstellation(){
   <Path d="M28 88C53 20 256 17 310 107C330 170 91 184 55 142C15 113 37 76 92 46" fill="none" stroke={'url(#'+id+'track)'} strokeWidth="1"/>
   <Path d="M55 142C106 156 262 8 296 65C336 122 185 167 92 46M28 88C99 46 248 39 279 145" fill="none" stroke={'url(#'+id+'track)'} strokeWidth=".75" opacity=".8"/>
   {nodes.map(([cx,cy,r,color],i)=><React.Fragment key={i}><Circle cx={cx} cy={cy} r={r*6} fill={'url(#'+id+'node'+i+')'}/><Circle cx={cx} cy={cy} r={r} fill={color}/><Circle cx={cx} cy={cy} r={r*.4} fill={night?'#F1FCFF':'#284A81'}/></React.Fragment>)}
- </Svg></View>;
+ </Svg>
+ {phase?[0,4,5].map((index,j)=>{const [cx,cy,r,color]=nodes[index],ranges=[[.15,.9,.15],[.85,.2,.85],[.3,.85,.3]][j];return <Surface key={index} pointerEvents="none" accessibilityElementsHidden style={{position:'absolute',inset:0,opacity:phase.interpolate(j===2?{inputRange:[0,.25,.5,.75,1],outputRange:[.2,.8,.2,.7,.2]}:{inputRange:[0,.5,1],outputRange:ranges})}}><Svg width="100%" height="100%" viewBox="0 0 340 184"><Defs><RadialGradient id={id+'pulse'+index}><Stop offset="0" stopColor={color} stopOpacity="1"/><Stop offset=".3" stopColor={color} stopOpacity=".5"/><Stop offset="1" stopColor={color} stopOpacity="0"/></RadialGradient></Defs><Circle cx={cx} cy={cy} r={r*7} fill={'url(#'+id+'pulse'+index+')'}/><Circle cx={cx} cy={cy} r={r*.6} fill="#E9FFFF"/>{j===0?<Path d="M28 88C53 20 256 17 310 107" stroke="#47BFFF" strokeWidth=".6" opacity=".5" fill="none"/>:null}</Svg></Surface>;}):null}
+ </View>;
 }

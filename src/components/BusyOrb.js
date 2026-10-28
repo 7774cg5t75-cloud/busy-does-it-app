@@ -4,17 +4,21 @@ import {orbMotion} from '../theme/interaction.mjs';
 import React from 'react';
 import {View,Pressable,PanResponder,Animated,Easing} from 'react-native';
 import Svg,{Circle,Rect,Path,Defs,RadialGradient,LinearGradient,Stop,Ellipse} from 'react-native-svg';
-import {appColors as C,getAppearance,orbState} from '../theme/appearance.mjs';
+import {appColors as C,getAppearance,getOrbPlacement,orbState} from '../theme/appearance.mjs';
 import {retainOrbPosition} from '../theme/useAppearance';
 const labels={idle:'Tap to talk to BUSY',listening:'BUSY is listening',speaking:'BUSY is speaking',processing:'BUSY is working on your request',error:'BUSY needs attention',approval:'Your review is needed'};
 export function MicrophoneIcon({size=24,color=C.ink,stop=false}){return <Svg width={size} height={size} viewBox="0 0 32 32" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{stop?<Rect x="10" y="10" width="12" height="12" rx="2" fill={color}/>:<><Rect x="12" y="4" width="8" height="15" rx="4" fill="none" stroke={color} strokeWidth="2"/><Path d="M8 14v2a8 8 0 0 0 16 0v-2M16 24v4m-5 0h10" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/></>}</Svg>;}
 let orbSequence=0;
+export function useBusyOrbMotion(current,{size=144,disabled=false,ambient=true,external=null}={}){
+ const policy=useMotionPolicy(),halo=useMotionValue(0),spec=orbMotion(current,{enabled:policy.enabled&&!disabled&&!external,ambient,small:size<=70});
+ React.useEffect(()=>{if(!halo)return;halo.stopAnimation();halo.setValue(0);if(!spec)return;const cycle=Animated.sequence([Animated.timing(halo,{toValue:1,duration:spec.duration,useNativeDriver:true,isInteraction:false,easing:Easing?.inOut&&Easing?.sin?Easing.inOut(Easing.sin):undefined}),Animated.timing(halo,{toValue:0,duration:spec.duration,useNativeDriver:true,isInteraction:false})]),animation=Animated.loop(cycle,{iterations:spec.repeat,resetBeforeIteration:true});animation.start();return()=>{animation.stop();halo.stopAnimation();halo.setValue(0);};},[current,policy.enabled,disabled,ambient,size,halo,!!external]);
+ return external||{policy,halo,spec};
+}
 // Genuine SVG light layers; native motion remains bounded by the original OS policy.
-export function BusyOrb({size=144,state='idle',onPress,disabled=false,label,accessibilityActions,onAccessibilityAction,ambient=true,luminous=false}){
+export function BusyOrb({size=144,state='idle',onPress,disabled=false,label,accessibilityActions,onAccessibilityAction,ambient=true,luminous=false,motion=null}){
  const identity=React.useRef(null);if(!identity.current)identity.current='busy-light-'+(++orbSequence);const id=identity.current;
  const current=labels[state]?state:'idle',accent=current==='error'?C.red:current==='approval'?C.amber:current==='listening'?C.red:C.violet;
- const policy=useMotionPolicy(),halo=useMotionValue(0),spec=orbMotion(current,{enabled:policy.enabled&&!disabled,ambient,small:size<=70});
- React.useEffect(()=>{if(!halo)return;halo.stopAnimation();halo.setValue(0);if(!spec)return;const cycle=Animated.sequence([Animated.timing(halo,{toValue:1,duration:spec.duration,useNativeDriver:true,isInteraction:false,easing:Easing?.inOut&&Easing?.sin?Easing.inOut(Easing.sin):undefined}),Animated.timing(halo,{toValue:0,duration:spec.duration,useNativeDriver:true,isInteraction:false})]),animation=Animated.loop(cycle,{iterations:spec.repeat,resetBeforeIteration:true});animation.start();return()=>{animation.stop();halo.stopAnimation();halo.setValue(0);};},[current,policy.enabled,disabled,ambient,size,halo]);
+ const {policy,halo,spec}=useBusyOrbMotion(current,{size,disabled,ambient,external:motion});
  const Halo=Animated?.View||View;
  return <Pressable accessibilityRole="button" accessibilityLabel={label||labels[current]} accessibilityValue={{text:labels[current]}} accessibilityLiveRegion="polite" accessibilityHint="Opens the original BUSY conversation. Microphone permission is requested there." accessibilityState={{disabled}} accessibilityActions={accessibilityActions} onAccessibilityAction={onAccessibilityAction} disabled={disabled} onPress={onPress} style={({pressed})=>({width:size,height:size,borderRadius:size/2,alignItems:'center',justifyContent:'center',opacity:disabled?.6:pressed?.88:1,transform:pressed&&!policy.reduceMotion?[{scale:.97}]:[{scale:1}]})}>
   <Halo pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{position:'absolute',inset:0,borderRadius:size/2,opacity:halo?halo.interpolate({inputRange:[0,1],outputRange:[spec?.baseOpacity||.88,spec?.opacity||.88]}):.88,transform:[{scale:halo?halo.interpolate({inputRange:[0,1],outputRange:[1,spec?.scale||1]}):1}]}}>
@@ -46,7 +50,7 @@ export function BusyOrb({size=144,state='idle',onPress,disabled=false,label,acce
     {['listening','error','approval'].includes(current)?<Circle cx="100" cy="100" r="69" fill="none" stroke={accent} strokeWidth="3"/>:null}
    </Svg>
   </Halo>
-  {luminous&&current==='idle'?<Halo pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{position:'absolute',inset:0,opacity:halo&&spec?halo.interpolate({inputRange:[0,1],outputRange:[.25,.88]}):.62,transform:[{translateX:halo&&spec?halo.interpolate({inputRange:[0,1],outputRange:[-2.5,2.5]}):0},{translateY:halo&&spec?halo.interpolate({inputRange:[0,1],outputRange:[1.5,-1.5]}):0}]}}>
+  {luminous&&current==='idle'?<Halo pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{position:'absolute',inset:0,opacity:halo&&spec?halo.interpolate({inputRange:[0,1],outputRange:[.25,.88]}):.62,transform:[{rotate:halo&&spec?halo.interpolate({inputRange:[0,1],outputRange:['-24deg','24deg']}):'0deg'}]}}>
    <Svg width={size} height={size} viewBox="0 0 200 200">
     <Defs>
      <RadialGradient id={id+'livingCyan'}><Stop offset="0" stopColor="#DBFFFF"/><Stop offset=".16" stopColor="#27ECFF" stopOpacity=".95"/><Stop offset=".48" stopColor="#158AFF" stopOpacity=".45"/><Stop offset="1" stopColor="#158AFF" stopOpacity="0"/></RadialGradient>
@@ -67,7 +71,7 @@ export function BusyMiniOrb({s,bounds,obstacles=[],ready=true,layoutVersion=0}){
  const policy=useMotionPolicy(),x=useMotionValue(0),y=useMotionValue(0),live=React.useRef(null),last=React.useRef(null),start=React.useRef(null),drag=React.useRef(false),alive=React.useRef(true),snap=React.useRef(null);
  const dismissed=React.useRef(null),previousScope=React.useRef(null),snapOwner=React.useRef(null),previousReset=React.useRef(null);
  const scope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.screen]),geometry=JSON.stringify([bounds?.width,bounds?.height]);
- const edge=getAppearance().orbEdge,orbY=getAppearance().orbY??1,reset=getAppearance().orbReset||0,stamp=scope+geometry+String(layoutVersion)+':'+reset;
+ const placement=getOrbPlacement(),edge=placement.edge,orbY=placement.position,reset=getAppearance().orbReset||0,stamp=scope+geometry+String(layoutVersion)+':'+reset;
  live.current={scope,stamp,s,bounds,obstacles,ready};
  const current=()=>alive.current&&live.current.stamp===stamp&&live.current.ready;
  const stop=()=>{snap.current?.stop?.();x?.stopAnimation?.();y?.stopAnimation?.();};
@@ -80,7 +84,7 @@ export function BusyMiniOrb({s,bounds,obstacles=[],ready=true,layoutVersion=0}){
  };
  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;stop();};},[]);
  React.useEffect(()=>{
-  const owner=snapOwner.current;if(owner&&owner.stamp===stamp&&owner.edge===edge&&owner.orbY===orbY&&owner.obstacles===obstacles&&owner.enabled===policy.enabled&&ready){snapOwner.current=null;return;}snapOwner.current=null;
+  const owner=snapOwner.current;if(owner&&owner.stamp===stamp&&owner.edge===edge&&owner.position===orbY&&owner.obstacles===obstacles&&owner.enabled===policy.enabled&&ready){snapOwner.current=null;return;}snapOwner.current=null;
   stop();drag.current=drag.current||!!start.current;start.current=null;setEngaged(false);
   if(previousReset.current!==reset){previousReset.current=reset;last.current=null;dismissed.current=null;}
   if(previousScope.current!==scope){previousScope.current=scope;last.current=null;}
@@ -98,13 +102,17 @@ export function BusyMiniOrb({s,bounds,obstacles=[],ready=true,layoutVersion=0}){
    onPanResponderMove:(_,g)=>{if(!current()||![g.dx,g.dy].every(Number.isFinite)||!start.current)return;drag.current=true;start.current.moved=true;move(clampFloatingOrb({x:start.current.x+g.dx,y:start.current.y+g.dy},live.current.bounds));},
    onPanResponderRelease:(_,g)=>{if(!current())return;const point=start.current?clampFloatingOrb({x:start.current.x+(Number.isFinite(g.dx)?g.dx:0),y:start.current.y+(Number.isFinite(g.dy)?g.dy:0)},live.current.bounds):last.current;const intent=floatingIntent(point,live.current.bounds),next=parkFloatingOrb(point,live.current.bounds,live.current.obstacles,intent?.edge);if(intent){snapOwner.current={stamp,...intent,obstacles:live.current.obstacles,enabled:policy.enabled};retainOrbPosition(intent);}settle(next);start.current=null;setEngaged(false);},
    onPanResponderTerminationRequest:()=>true,
-   onPanResponderTerminate:()=>{if(!current())return;drag.current=true;start.current=null;setEngaged(false);settle(parkFloatingOrb(preferredFloatingOrb(live.current.bounds,getAppearance().orbEdge,getAppearance().orbY),live.current.bounds,live.current.obstacles,getAppearance().orbEdge));}
+   onPanResponderTerminate:()=>{if(!current())return;drag.current=true;start.current=null;setEngaged(false);settle(parkFloatingOrb(preferredFloatingOrb(live.current.bounds,getOrbPlacement().edge,getOrbPlacement().position),live.current.bounds,live.current.obstacles,getOrbPlacement().edge));}
   })?.panHandlers||{};
  },[stamp,policy.enabled,x,y]);
- const action=event=>{if(!current())return;const name=event.nativeEvent.actionName,b=floatingBounds(live.current.bounds);if(!b||!['moveLeft','moveRight','moveUp','moveDown','reset','dismiss'].includes(name))return;if(name==='dismiss'){dismissed.current=scope;stop();setHidden(true);return;}drag.current=false;start.current=null;setEngaged(false);const p=last.current||{x:b.right,y:b.bottom},desired={x:name==='reset'?b.right:name==='moveLeft'?b.left:name==='moveRight'?b.right:p.x,y:name==='moveUp'?p.y-72:name==='moveDown'?p.y+72:name==='reset'?b.bottom:p.y};const next=parkFloatingOrb(desired,live.current.bounds,live.current.obstacles,name==='moveLeft'?'left':name==='moveRight'?'right':undefined);const intent=floatingIntent(desired,live.current.bounds);if(intent){snapOwner.current={stamp,...intent,obstacles:live.current.obstacles,enabled:policy.enabled};retainOrbPosition(intent);}settle(next);};
+ const action=event=>{if(!current())return;const name=event.nativeEvent.actionName,b=floatingBounds(live.current.bounds);if(!b)return;if(name==='dismiss'){dismissed.current=scope;stop();setHidden(true);return;}
+ const chosen=getOrbPlacement(),p=last.current||preferredFloatingOrb(live.current.bounds,chosen.edge,chosen.position);let target=chosen.edge,desired={...p};
+ if(name==='moveLeft'){target='left';desired.x=b.left;}else if(name==='moveRight'){target='right';desired.x=b.right;}else if(name==='moveTop'){target='top';desired.y=b.top;}else if(name==='moveBottom'){target='bottom';desired.y=b.bottom;}else if(name==='moveUp'){desired.y-=72;target=chosen.edge==='left'?'left':'right';}else if(name==='moveDown'){desired.y+=72;target=chosen.edge==='left'?'left':'right';}else if(name==='earlier'||name==='later'){const sign=name==='earlier'?-1:1;if(target==='top'||target==='bottom')desired.x+=sign*48;else desired.y+=sign*48;}else if(name==='reset'){target='right';desired={x:b.right,y:b.bottom};}else return;
+ drag.current=false;start.current=null;setEngaged(false);const intent=floatingIntent(desired,live.current.bounds,target),next=parkFloatingOrb(desired,live.current.bounds,live.current.obstacles,target);if(intent){snapOwner.current={stamp,...intent,obstacles:live.current.obstacles,enabled:policy.enabled};retainOrbPosition(intent);}settle(next);
+ };
  if(!ready||hidden||!floatingBounds(bounds)||!last.current)return null;
  const Surface=Animated?.View||View;
- return <Surface {...responder} onTouchStart={()=>{if(current()&&!start.current){drag.current=false;setEngaged(true);}}} onTouchEnd={()=>{if(current())setEngaged(false);}} onTouchCancel={()=>{if(current()){drag.current=true;start.current=null;setEngaged(false);settle(parkFloatingOrb(preferredFloatingOrb(live.current.bounds,getAppearance().orbEdge,getAppearance().orbY),live.current.bounds,live.current.obstacles,getAppearance().orbEdge));}}} style={{position:'absolute',width:48,height:48,left:x?0:fallback?.x??last.current.x,top:y?0:fallback?.y??last.current.y,zIndex:20,opacity:engaged?1:.64,...x&&y?{transform:[{translateX:x},{translateY:y}]}:{}}}>
-  <BusyOrb size={48} ambient accessibilityActions={[{name:'moveLeft',label:'Move BUSY left'},{name:'moveRight',label:'Move BUSY right'},{name:'moveUp',label:'Move BUSY up'},{name:'moveDown',label:'Move BUSY down'},{name:'reset',label:'Move BUSY to a safe bottom corner'},{name:'dismiss',label:'Hide floating BUSY on this screen'}]} onAccessibilityAction={action} state={orbState({status:s.busyCommandStatus,error:s.busyCommandError})} onPress={()=>{if(current()&&!drag.current)live.current.s.openTalkToBusy(true);}}/>
+ return <Surface {...responder} onTouchStart={()=>{if(current()&&!start.current){drag.current=false;setEngaged(true);}}} onTouchEnd={()=>{if(current())setEngaged(false);}} onTouchCancel={()=>{if(current()){drag.current=true;start.current=null;setEngaged(false);settle(parkFloatingOrb(preferredFloatingOrb(live.current.bounds,getOrbPlacement().edge,getOrbPlacement().position),live.current.bounds,live.current.obstacles,getOrbPlacement().edge));}}} style={{position:'absolute',width:48,height:48,left:x?0:fallback?.x??last.current.x,top:y?0:fallback?.y??last.current.y,zIndex:20,opacity:engaged?1:.64,...x&&y?{transform:[{translateX:x},{translateY:y}]}:{}}}>
+  <BusyOrb size={48} ambient accessibilityActions={[{name:'moveTop',label:'Move BUSY to top edge'},{name:'moveBottom',label:'Move BUSY to bottom edge'},{name:'earlier',label:'Move BUSY earlier along this edge'},{name:'later',label:'Move BUSY later along this edge'},{name:'moveLeft',label:'Move BUSY left'},{name:'moveRight',label:'Move BUSY right'},{name:'moveUp',label:'Move BUSY up'},{name:'moveDown',label:'Move BUSY down'},{name:'reset',label:'Move BUSY to a safe bottom corner'},{name:'dismiss',label:'Hide floating BUSY on this screen'}]} onAccessibilityAction={action} state={orbState({status:s.busyCommandStatus,error:s.busyCommandError})} onPress={()=>{if(current()&&!drag.current)live.current.s.openTalkToBusy(true);}}/>
  </Surface>;
 }

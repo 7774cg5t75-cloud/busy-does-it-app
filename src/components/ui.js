@@ -634,7 +634,7 @@ function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
 }
 
 function MetricRow({ left, right, strong = false, onPress = null }) {
-  const avoidance=useFloatingOrbAvoidance();
+  const avoidance=useFloatingOrbAvoidance(!!onPress);
   const dimensions=useWindowDimensions(),stack=workspaceDensity(dimensions).metricStack;
   const content = (
     <>
@@ -650,7 +650,7 @@ function MetricRow({ left, right, strong = false, onPress = null }) {
       {content}
     </Pressable>
   ) : (
-    <View {...avoidance} style={[styles.metricRow,stack&&styles.metricRowStack]}>{content}</View>
+    <View style={[styles.metricRow,stack&&styles.metricRowStack]}>{content}</View>
   );
 }
 
