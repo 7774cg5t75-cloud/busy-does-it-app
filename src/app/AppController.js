@@ -18314,7 +18314,7 @@ function App() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle={appearance.resolved==="daylight"?"dark-content":"light-content"} />
-      {ownerPreview?<OwnerPreviewNotice/>:null}
+      {ownerPreview&&screen!=="home"?<OwnerPreviewNotice/>:null}
       {React.createElement(component, { s: appState })}
     </SafeAreaView>
   );

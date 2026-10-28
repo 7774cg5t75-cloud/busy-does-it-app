@@ -1,3 +1,4 @@
+import {OwnerPreviewNotice} from '../ownerPreview/OwnerPreviewNotice';
 import {FloatingOrbContext,useFloatingOrbLayout,useFloatingOrbAvoidance,OrbSafeRegion} from './FloatingOrbAvoidance';
 import {MotionReveal} from '../theme/motion';
 import {chromeLabel,workspaceDensity} from '../theme/interaction.mjs';
@@ -298,7 +299,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           contentContainerStyle={[
             styles.scrollContent,
             dark && styles.homeDarkContent,
-            home && {paddingTop:6,paddingHorizontal:16,paddingBottom:24},
+            home && {paddingTop:2,paddingHorizontal:16,paddingBottom:24},
             eligible&&{paddingBottom:76},
             keyboardVisible && styles.scrollContentKeyboard,
           ]}
@@ -308,7 +309,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         >
         <MotionReveal identity={s.screen}><View style={[styles.topRow, dark && styles.homeDarkTopRow,home&&{marginBottom:0}]}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <OrbSafeRegion style={{alignSelf:"flex-start"}}><BusyBrandLockup size={36} inverse={dark} /></OrbSafeRegion>
+            <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:4}}><OrbSafeRegion style={{alignSelf:"flex-start"}}><BusyBrandLockup size={36} inverse={dark} /></OrbSafeRegion>{home&&process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview"?<OwnerPreviewNotice compact/>:null}</View>
             <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.tagline, dark && styles.homeDarkMuted]}>Your business. A little more freedom.</Text></OrbSafeRegion>
             {!hideDevBadge ? <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text> : null}
           </View>
@@ -345,7 +346,7 @@ function BottomNav({ s, dark = true }) {
  </Pressable>;
  return <View accessibilityRole="tablist" style={[styles.nav,dark&&styles.homeDarkNav]}>
   {items.slice(0,2).map(tab)}
-  <View style={{flex:1,alignItems:'center',minWidth:0,paddingVertical:3}}><BusyOrb size={48} ambient={false} state={orbState({status:s.busyCommandStatus,error:s.busyCommandError})} label="Talk to BUSY" onPress={run(state=>state.openTalkToBusy?.(true))}/><Text style={{color:C.blueText,fontSize:10,lineHeight:14,textAlign:'center'}}>Talk to BUSY</Text></View>
+  <View style={{flex:1,alignItems:'center',minWidth:0,paddingVertical:2}}><BusyOrb size={48} ambient={false} state={orbState({status:s.busyCommandStatus,error:s.busyCommandError})} label="Talk to BUSY" onPress={run(state=>state.openTalkToBusy?.(true))}/><Text style={{color:C.blueText,fontSize:10,lineHeight:12,textAlign:'center'}} accessibilityElementsHidden>Talk</Text></View>
   {items.slice(2).map(tab)}
  </View>;
 }

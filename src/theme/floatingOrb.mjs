@@ -19,3 +19,7 @@ export function parkFloatingOrb(point,bounds,obstacles=[],edge){
  for(const x of xs)for(const y of ordered){const next={x,y};if(clearFloatingSlot(next,obstacles))return next;}
  return null;
 }
+
+// Device intent is independent of the currently safe (possibly displaced) slot.
+export function floatingIntent(point,bounds){const b=floatingBounds(bounds),p=clampFloatingOrb(point,bounds);if(!b||!p)return null;return {edge:p.x+ORB_SIZE/2<bounds.width/2?'left':'right',orbY:(p.y-b.top)/(b.bottom-b.top)};}
+export function preferredFloatingOrb(bounds,edge='right',orbY=1){const b=floatingBounds(bounds);if(!b)return null;const y=Number.isFinite(orbY)?Math.max(0,Math.min(1,orbY)):1;return {x:edge==='left'?b.left:b.right,y:b.top+(b.bottom-b.top)*y};}

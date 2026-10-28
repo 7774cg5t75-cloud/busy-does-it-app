@@ -559,7 +559,7 @@ const createStyles=()=>StyleSheet.create({
   releaseCheckLabel: { flex: 1, color: C.ink, fontSize: 14, fontWeight: "800" },
   productionReadinessDetail: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 4 },
   nav: {
-    minHeight: 72,
+    minHeight: 64,
     flexShrink: 0,
     flexDirection: "row",
     backgroundColor: C.card,
@@ -567,7 +567,7 @@ const createStyles=()=>StyleSheet.create({
     borderTopColor: C.border,
     alignItems: "center",
     justifyContent: "space-around",
-    paddingBottom: 5,
+    paddingBottom: 4,
   },
   navItem: { flex:1,minWidth:0, alignItems: "center", justifyContent: "center", minHeight:56, paddingHorizontal:3, paddingVertical:6 },
   navDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "transparent", marginBottom: 5 },

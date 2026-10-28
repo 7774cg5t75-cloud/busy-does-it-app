@@ -5,14 +5,14 @@ const midnight={bg:'#080F20',card:'#111E34',ink:'#F2F5FC',muted:'#B2BED2',blue:'
 const daylight={bg:'#F3F5FA',card:'#FFFFFF',ink:'#17243A',muted:'#4D5D76',blue:'#2856B3',blueText:'#2354A8',blueSoft:'#E7EFFC',green:'#206447',greenAction:'#237A53',greenSoft:'#E5F3EC',amber:'#754C12',amberAction:'#805016',amberSoft:'#FFF2DB',red:'#A12742',redAction:'#A33249',border:'#B8C5D8',controlBorder:'#7F8DA5',shadow:'#17243A',surface:'#E8EEF7',cyan:'#176C80',violet:'#6950AA',rose:'#9B4A72',onAction:'#FFFFFF',input:'#FFFFFF',nav:'#FFFFFF'};
 export const palettes=Object.freeze({midnight:Object.freeze(midnight),daylight:Object.freeze(daylight)});
 export const design=Object.freeze({space:{xs:4,sm:8,md:12,lg:20,xl:28,hero:36},radius:{control:16,card:22,pill:999},type:{title:30,heading:21,body:16,caption:13},touch:48});
-let snapshot=Object.freeze({mode:'midnight',scheme:'dark',resolved:'midnight',orbEdge:'right',orbReset:0,chosen:false,persistence:'local'}),epoch=0,queue=Promise.resolve();const listeners=new Set();
+let snapshot=Object.freeze({mode:'midnight',scheme:'dark',resolved:'midnight',orbEdge:'right',orbY:1,orbReset:0,chosen:false,persistence:'local'}),epoch=0,queue=Promise.resolve();const listeners=new Set();
 export const getAppearance=()=>snapshot;
 export const palette=()=>palettes[snapshot.resolved];
 export const subscribeAppearance=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 function publish(next){const resolved=next.mode==='automatic'?(next.scheme==='light'?'daylight':'midnight'):next.mode;snapshot=Object.freeze({...next,resolved});for(const fn of listeners)fn(snapshot);}
 export function setDeviceScheme(scheme){const next=scheme==='light'?'light':'dark';if(next!==snapshot.scheme)publish({...snapshot,scheme:next});}
-export async function hydrateAppearance(read){const started=epoch;try{const raw=await read(APPEARANCE_KEY);if(started!==epoch||!raw)return;const v=JSON.parse(raw);if(v.version!==1||!appearanceModes.includes(v.mode)||!['left','right'].includes(v.orbEdge)||typeof v.chosen!=='boolean')return;publish({...snapshot,mode:v.mode,orbEdge:v.orbEdge,chosen:v.chosen,persistence:'saved'});}catch{/* A preference read must never block authentication/tasks. */}}
-export function updateAppearance(change,write){if(change.mode!==undefined&&!appearanceModes.includes(change.mode)||change.orbEdge!==undefined&&!['left','right'].includes(change.orbEdge))return Promise.resolve(false);const ticket=++epoch;publish({...snapshot,...change,persistence:'saving'});const encoded=JSON.stringify({version:1,mode:snapshot.mode,orbEdge:snapshot.orbEdge,chosen:snapshot.chosen});queue=queue.catch(()=>{}).then(()=>write(APPEARANCE_KEY,encoded));return queue.then(()=>{if(ticket===epoch)publish({...snapshot,persistence:'saved'});return true;},()=>{if(ticket===epoch)publish({...snapshot,persistence:'unconfirmed'});return false;});}
+export async function hydrateAppearance(read){const started=epoch;try{const raw=await read(APPEARANCE_KEY);if(started!==epoch||!raw)return;const v=JSON.parse(raw);if(v.version!==1||!appearanceModes.includes(v.mode)||!['left','right'].includes(v.orbEdge)||typeof v.chosen!=='boolean')return;publish({...snapshot,mode:v.mode,orbEdge:v.orbEdge,orbY:Number.isFinite(v.orbY)&&v.orbY>=0&&v.orbY<=1?v.orbY:1,chosen:v.chosen,persistence:'saved'});}catch{/* A preference read must never block authentication/tasks. */}}
+export function updateAppearance(change,write){if(change.mode!==undefined&&!appearanceModes.includes(change.mode)||change.orbEdge!==undefined&&!['left','right'].includes(change.orbEdge)||change.orbY!==undefined&&(!Number.isFinite(change.orbY)||change.orbY<0||change.orbY>1))return Promise.resolve(false);const ticket=++epoch;publish({...snapshot,...change,persistence:'saving'});const encoded=JSON.stringify({version:1,mode:snapshot.mode,orbEdge:snapshot.orbEdge,orbY:snapshot.orbY,chosen:snapshot.chosen});queue=queue.catch(()=>{}).then(()=>write(APPEARANCE_KEY,encoded));return queue.then(()=>{if(ticket===epoch)publish({...snapshot,persistence:'saved'});return true;},()=>{if(ticket===epoch)publish({...snapshot,persistence:'unconfirmed'});return false;});}
 // Compatibility for existing screen imports: values resolve during rendering;
 // no business palette is read or changed. Cached styles are keyed by appearance.
 export const appColors=new Proxy({},{get:(_,key)=>palette()[key],ownKeys:()=>Reflect.ownKeys(midnight),getOwnPropertyDescriptor:()=>({enumerable:true,configurable:true})});
@@ -21,5 +21,6 @@ export function orbState({recording=false,speaking=false,status='',error='',appr
 export const snapOrbEdge=(x,width)=>x+24<width/2?'left':'right';
 export const clampOrbX=(x,width)=>Math.min(Math.max(12,x),Math.max(12,width-60));
 
-// Ephemeral device intent; the reviewed v1 saved preference schema is unchanged.
+// Reset is ephemeral. Optional orbY extends the existing v1 chrome record;
+// old records default to bottom and no owner/business identifiers are stored.
 export function requestOrbReset(){publish({...snapshot,orbReset:(snapshot.orbReset||0)+1});}

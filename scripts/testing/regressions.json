@@ -2766,6 +2766,20 @@
         "scripts/check-home-final-composition.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-orb-position-retention",
+      "args": [
+        "scripts/check-orb-position-retention.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-living-home-motion",
+      "args": [
+        "scripts/check-living-home-motion.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

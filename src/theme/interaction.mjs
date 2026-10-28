@@ -16,5 +16,5 @@ export function chromeLabel(text){return typeof text==='string'?text.replace(/^V
 export function homeHeroGeometry({width=390}={}){
  const available=Math.max(48,Math.min(960,Number.isFinite(width)?width:390)-32);
  const orbSize=Math.round(Math.min(204,Math.max(196,available*.55),available/1.05));
- return {orbSize,heroHeight:Math.ceil(orbSize*1.04)+8,available};
+ return {orbSize,heroHeight:Math.ceil(orbSize*1.04)+4,available};
 }
