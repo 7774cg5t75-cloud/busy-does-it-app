@@ -1,3 +1,4 @@
+import {OwnerPreviewNotice} from '../ownerPreview/OwnerPreviewNotice';
 import {executeGoalToPrivateApp} from '../core/goalToPrivateApp.mjs';
 import {creatorPublisherBlockReason} from '../core/creatorDraftMedia.mjs';
 import {creatorDraftAccountBindings,creatorMediaReference} from '../core/creatorDraftAccount.mjs';
@@ -18313,6 +18314,7 @@ function App() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle={appearance.resolved==="daylight"?"dark-content":"light-content"} />
+      {ownerPreview?<OwnerPreviewNotice/>:null}
       {React.createElement(component, { s: appState })}
     </SafeAreaView>
   );

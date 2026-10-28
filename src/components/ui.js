@@ -1,7 +1,8 @@
 import {MotionReveal} from '../theme/motion';
 import {chromeLabel,workspaceDensity} from '../theme/interaction.mjs';
-import {BusyMiniOrb} from "./BusyOrb";
-import {moodForScreen} from "../theme/appearance.mjs";
+import {BusyMiniOrb,BusyOrb} from "./BusyOrb";
+import {PremiumAtmosphere,ChromeIcon} from "./PremiumAtmosphere";
+import {moodForScreen,orbState} from "../theme/appearance.mjs";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -252,19 +253,15 @@ function BusyAssistantMark({ size = 38 }) {
 }
 
 function BusyBrandLockup({ size = 38, centered = false, inverse = false }) {
-  return (
-    <View style={[styles.busyBrandLockup, centered && styles.busyBrandLockupCentered]}>
-      <BusyAssistantMark size={size} />
-      <View style={styles.busyWordmarkWrap}>
-        <Text style={[styles.busyWordmarkBusy, inverse && styles.homeDarkText, { fontSize: Math.max(17, Math.round(size * 0.48)) }]}>BUSY</Text>
-        <Text style={[styles.busyWordmarkDoes, { fontSize: Math.max(13, Math.round(size * 0.34)) }]}>DOES IT</Text>
-      </View>
-    </View>
-  );
+ return <View accessibilityLabel="Busy Does It" style={[styles.busyBrandLockup,centered&&styles.busyBrandLockupCentered]}>
+  <View style={{width:30,height:30,alignItems:'center',justifyContent:'center',marginRight:7}}><ChromeIcon name="spark" size={25} color={C.cyan}/></View>
+  <Text style={{color:C.ink,fontSize:18,lineHeight:25,fontWeight:'700',letterSpacing:-.5}}>Busy Does It</Text>
+ </View>;
 }
 
 function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = true, hideDevBadge = true, scrollRef }) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const home=s.screen==='home';
 
   useEffect(() => {
     const show = Keyboard.addListener(
@@ -283,7 +280,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
 
   return (
     <View style={[styles.shell, dark && styles.homeDarkShell]}>
-      <View pointerEvents="none" accessibilityElementsHidden style={{position:"absolute",top:0,right:0,width:190,height:220,borderRadius:160,backgroundColor:C[moodForScreen(s.screen)],opacity:.045}}/>
+      <PremiumAtmosphere screen={s.screen}/>
       <KeyboardAvoidingView
         style={styles.keyboardAvoider}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -295,16 +292,17 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           contentContainerStyle={[
             styles.scrollContent,
             dark && styles.homeDarkContent,
+            home && {paddingTop:6,paddingHorizontal:16,paddingBottom:24},
             keyboardVisible && styles.scrollContentKeyboard,
           ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           automaticallyAdjustKeyboardInsets={false}
         >
-        <MotionReveal identity={s.screen}><View style={[styles.topRow, dark && styles.homeDarkTopRow]}>
+        <MotionReveal identity={s.screen}><View style={[styles.topRow, dark && styles.homeDarkTopRow,home&&{marginBottom:8}]}>
           <View style={{ flex: 1, paddingRight: 12 }}>
             <BusyBrandLockup size={36} inverse={dark} />
-            <Text style={[styles.tagline, dark && styles.homeDarkMuted]}>More work. Less fuss.</Text>
+            <Text style={[styles.tagline, dark && styles.homeDarkMuted]}>Your business. A little more freedom.</Text>
             {!hideDevBadge ? <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text> : null}
           </View>
           {!noBack && s.history?.length > 0 ? (
@@ -315,8 +313,8 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         </View>
 
         {brandCue ? <Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{chromeLabel(brandCue)}</Text> : null}
-        {title ? <Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading]}>{title}</Text> : null}
-        {subtitle ? <Text style={[styles.subtitle, dark && styles.homeDarkMuted]}>{subtitle}</Text> : null}
+        {title ? <Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading,home&&{fontSize:21,lineHeight:28,letterSpacing:-.35}]}>{title}</Text> : null}
+        {subtitle ? <Text style={[styles.subtitle, dark && styles.homeDarkMuted,home&&{fontSize:13,lineHeight:19,marginTop:3,marginBottom:0}]}>{subtitle}</Text> : null}
 
         </MotionReveal>
         {children}
@@ -329,34 +327,19 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
 }
 
 function BottomNav({ s, dark = true }) {
-  const items = [
-    ["Home", "home"],
-    ["Work", "workHub"],
-    ["Results", "results"],
-    ["Settings", "settings"],
-  ];
-  return (
-    <View style={[styles.nav, dark && styles.homeDarkNav]}>
-      {items.map(([label, target]) => {
-        const active = s.tab === label;
-        return (
-          <Pressable
-            key={label}
-            accessibilityRole="tab"
-            accessibilityLabel={label}
-            accessibilityState={{selected:active}}
-            style={[styles.navItem, active && styles.navItemSelected]}
-            onPress={() => {
-              s.jump(target, label);
-            }}
-          >
-            <View style={[styles.navDot, active && styles.navDotActive]} />
-            <Text style={[styles.navText, dark && styles.homeDarkNavText, active && styles.navTextActive, dark && active && styles.homeDarkNavActive]}>{label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
+ const items=[['Home','home','home'],['Work','workHub','work'],['Results','results','results'],['Settings','settings','settings']];
+ const scope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.screen]);
+ const live=React.useRef(null);live.current={s,scope};
+ const run=fn=>()=>{if(live.current.scope===scope)fn(live.current.s);};
+ const tab=([label,target,icon])=><Pressable key={label} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:s.tab===label}} onPress={run(state=>state.jump(target,label))} style={({pressed})=>[styles.navItem,pressed&&{backgroundColor:C.surface}]}>
+  <ChromeIcon name={icon} size={20} color={s.tab===label?C.cyan:C.muted}/><Text style={[styles.navText,s.tab===label&&{color:C.cyan}]}>{label}</Text>
+  <View style={{height:2,width:14,borderRadius:2,backgroundColor:s.tab===label?C.cyan:'transparent',marginTop:3}}/>
+ </Pressable>;
+ return <View accessibilityRole="tablist" style={[styles.nav,dark&&styles.homeDarkNav]}>
+  {items.slice(0,2).map(tab)}
+  <View style={{flex:1,alignItems:'center',minWidth:0,paddingVertical:3}}><BusyOrb size={48} ambient={false} state={orbState({status:s.busyCommandStatus,error:s.busyCommandError})} label="Talk to BUSY" onPress={run(state=>state.openTalkToBusy?.(true))}/><Text style={{color:C.blueText,fontSize:10,lineHeight:14,textAlign:'center'}}>Talk to BUSY</Text></View>
+  {items.slice(2).map(tab)}
+ </View>;
 }
 
 function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
@@ -373,7 +356,7 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
       {eyebrow ? (
         showBusyMark ? (
           <View style={styles.busyEyebrowRow}>
-            <BusyAppMark size={21} />
+            <ChromeIcon name="spark" size={18} color={C.cyan}/>
             <Text style={[styles.eyebrow, styles.busyEyebrowText]}>{eyebrowText}</Text>
           </View>
         ) : (

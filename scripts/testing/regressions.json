@@ -2738,6 +2738,13 @@
         "scripts/check-owner-preview.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-approved-design-fidelity",
+      "args": [
+        "scripts/check-approved-design-fidelity.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

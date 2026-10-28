@@ -1020,15 +1020,11 @@ function HomeScreen({ s }) {
       dark
       hideDevBadge
       title={s.homeCommandCentre?.greeting || "Hello"}
-      subtitle="Your business. A little more freedom."
+      subtitle="What can I help you with today?"
     >
       <BusyHomeEntry s={s}/>
 
-      <View style={homeDark.panel}>
-        <View style={homeDark.inlineRow}>
-          <Text style={homeDark.heading}>Your business, connected</Text>
-          <Text style={homeDark.badge}>Your tools</Text>
-        </View>
+      <View style={{marginBottom:12}}>
         <HomeCoreAreas s={s}/>
         <View style={homeDark.smallActionRow}>
           <Pressable accessibilityRole="button" accessibilityLabel="Diary" onPress={() => s.go("bookings")} style={homeDark.smallAction}><Text style={homeDark.smallActionText}>Diary</Text></Pressable>

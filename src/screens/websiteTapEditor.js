@@ -172,6 +172,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
    animationType={motion.enabled?"slide":"none"} presentationStyle="pageSheet" allowSwipeDismissal={false}>
    <SafeAreaView style={{flex:1,backgroundColor:C.bg}}>
     <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==="ios"?"padding":undefined}>
+     <View style={styles.editorChromeHeader}><View style={{width:3,alignSelf:'stretch',backgroundColor:C.cyan,borderRadius:2,marginRight:10}}/><View style={{flex:1,minWidth:0}}><Text accessibilityRole="header" style={styles.editorChromeTitle}>Edit this part</Text><Text style={styles.workspaceMeta}>{title+" · "+(names[field]||"Selected element")}</Text></View></View>
      <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS==="ios"?"interactive":"on-drag"} contentContainerStyle={{padding:18,paddingBottom:40}}>
       {exploring&&exploreContext?<BuilderTalkExplore context={exploreContext} onExit={()=>setExploring(false)} onHandoff={handoff=>{
        if(!current()||editorLive.current.contextRequest!==contextRequest||!currentBuilderExplore({ok:true,source:handoff.source},exploreContext)||!handoff.source.selection||wordingEdited.current)return false;
@@ -180,10 +181,6 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
        setContextDraft(handoff.instruction);setSelectedInstructionPreview(outcome);setShowContextHelp(true);setExploring(false);return true;
       }}/>:null}
       {exploreContext&&!exploring?<Button label="Talk & Explore about this part" onPress={()=>{if(!current())return;if(wordingEdited.current){setShowContextHelp(true);setContextNote('Save or cancel your wording before opening Talk & Explore. Your words are kept.');return;}setExploring(true);}}/>:null}
-      <Text accessibilityRole="header" style={{color:C.ink,fontSize:24,lineHeight:32,fontWeight:"700",marginBottom:6}}>Edit this part</Text>
-      <Text style={{color:C.muted,lineHeight:22,marginBottom:14}}>
-       {title+" • "+(names[field]||"Selected element")}
-      </Text>
       {closeRequested?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>Your wording is not saved. Save it below or choose whether to discard it.</Text><Button label="Keep editing this wording" onPress={()=>setCloseRequested(false)}/><Button label="Discard wording and close" onPress={()=>{if(!current()||editorLive.current.value!==value)return;cancelOwnerWording();setCloseRequested(false);onClose?.();}}/></View>:null}
       {!exploring?<Card eyebrow="Private website change" title={initialMode==="voice"?"Talk to BUSY about this part":initialMode==="more"?"More ways to adjust this part":field==="section"?"Adjust this section":field==="photo"?"Replace this picture":"Change the exact wording"}
        body="Your edits stay in your private draft. Nothing is published automatically, and you can undo a saved change."

@@ -2,22 +2,40 @@ import {useMotionPolicy,useMotionValue} from '../theme/motion';
 import {orbMotion,horizontalOrbDrag} from '../theme/interaction.mjs';
 import React from 'react';
 import {View,Text,Pressable,PanResponder,Animated,useWindowDimensions} from 'react-native';
-import Svg,{Circle,Rect,Path} from 'react-native-svg';
+import Svg,{Circle,Rect,Path,Defs,RadialGradient,LinearGradient,Stop,Ellipse} from 'react-native-svg';
 import {appColors as C,getAppearance,orbState,clampOrbX,snapOrbEdge} from '../theme/appearance.mjs';
 import {retainOrbEdge} from '../theme/useAppearance';
 const labels={idle:'Tap to talk to BUSY',listening:'BUSY is listening',speaking:'BUSY is speaking',processing:'BUSY is working on your request',error:'BUSY needs attention',approval:'Your review is needed'};
 export function MicrophoneIcon({size=24,color=C.ink,stop=false}){return <Svg width={size} height={size} viewBox="0 0 32 32" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{stop?<Rect x="10" y="10" width="12" height="12" rx="2" fill={color}/>:<><Rect x="12" y="4" width="8" height="15" rx="4" fill="none" stroke={color} strokeWidth="2"/><Path d="M8 14v2a8 8 0 0 0 16 0v-2M16 24v4m-5 0h10" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/></>}</Svg>;}
-// Static layered light: no timer, pretend progress, GPU blur or perpetual animation.
+let orbSequence=0;
+// Genuine SVG light layers; native motion remains bounded by the original OS policy.
 export function BusyOrb({size=144,state='idle',onPress,disabled=false,label,accessibilityActions,onAccessibilityAction,ambient=true}){
+ const identity=React.useRef(null);if(!identity.current)identity.current='busy-light-'+(++orbSequence);const id=identity.current;
  const current=labels[state]?state:'idle',accent=current==='error'?C.red:current==='approval'?C.amber:current==='listening'?C.red:C.violet;
  const policy=useMotionPolicy(),halo=useMotionValue(0),spec=orbMotion(current,{enabled:policy.enabled&&!disabled,ambient:ambient&&size>70});
  React.useEffect(()=>{if(!halo)return;halo.stopAnimation();halo.setValue(0);if(!spec)return;const cycle=Animated.sequence([Animated.timing(halo,{toValue:1,duration:spec.duration,useNativeDriver:true,isInteraction:false}),Animated.timing(halo,{toValue:0,duration:spec.duration,useNativeDriver:true,isInteraction:false})]),animation=Animated.loop(cycle,{iterations:spec.repeat,resetBeforeIteration:true});animation.start();return()=>{animation.stop();halo.stopAnimation();halo.setValue(0);};},[current,policy.enabled,disabled,ambient,size,halo]);
  const Halo=Animated?.View||View;
  return <Pressable accessibilityRole="button" accessibilityLabel={label||labels[current]} accessibilityValue={{text:labels[current]}} accessibilityLiveRegion="polite" accessibilityHint="Opens the original BUSY conversation. Microphone permission is requested there." accessibilityState={{disabled}} accessibilityActions={accessibilityActions} onAccessibilityAction={onAccessibilityAction} disabled={disabled} onPress={onPress} style={({pressed})=>({width:size,height:size,borderRadius:size/2,alignItems:'center',justifyContent:'center',opacity:disabled?.6:pressed?.88:1,transform:pressed&&!policy.reduceMotion?[{scale:.97}]:[{scale:1}]})}>
-  <Halo pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{position:'absolute',inset:0,borderRadius:size/2,backgroundColor:C.blueSoft,opacity:halo?halo.interpolate({inputRange:[0,1],outputRange:[.4,spec?.opacity||.4]}):.4,transform:[{scale:halo?halo.interpolate({inputRange:[0,1],outputRange:[1,spec?.scale||1]}):1}]}}/>
-  <View pointerEvents="none" style={{position:'absolute',inset:size*.07,borderRadius:size/2,borderWidth:1,borderColor:accent,opacity:.32}}/>
-  <View pointerEvents="none" style={{position:'absolute',inset:size*.15,borderRadius:size/2,borderWidth:2,borderColor:accent,backgroundColor:C.card,transform:[{rotate:'-18deg'}]}}/>
-  <View pointerEvents="none" style={{position:'absolute',top:size*.16,left:size*.43,width:size*.2,height:2,borderRadius:2,backgroundColor:C.cyan}}/>
+  <Halo pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{position:'absolute',inset:0,borderRadius:size/2,opacity:halo?halo.interpolate({inputRange:[0,1],outputRange:[.88,spec?.opacity?1:.88]}):.88,transform:[{scale:halo?halo.interpolate({inputRange:[0,1],outputRange:[1,spec?.scale||1]}):1}]}}>
+   <Svg width={size} height={size} viewBox="0 0 200 200">
+    <Defs>
+     <RadialGradient id={id+'halo'}><Stop offset=".34" stopColor="#536AFF" stopOpacity="0"/><Stop offset=".64" stopColor="#6D44E9" stopOpacity=".32"/><Stop offset=".8" stopColor="#246DFF" stopOpacity=".12"/><Stop offset="1" stopColor="#246DFF" stopOpacity="0"/></RadialGradient>
+     <RadialGradient id={id+'core'} cx=".4" cy=".35"><Stop offset="0" stopColor={C.surface}/><Stop offset="1" stopColor={C.bg}/></RadialGradient>
+     <LinearGradient id={id+'ring'} x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor="#42E7FF"/><Stop offset=".28" stopColor="#4385FF"/><Stop offset=".58" stopColor="#9172FF"/><Stop offset=".78" stopColor="#F05DDD"/><Stop offset="1" stopColor="#6E8CFF"/></LinearGradient>
+     <RadialGradient id={id+'cyan'}><Stop offset="0" stopColor="#65F1FF" stopOpacity=".8"/><Stop offset="1" stopColor="#1C95FF" stopOpacity="0"/></RadialGradient>
+     <RadialGradient id={id+'pink'}><Stop offset="0" stopColor="#FF75E7" stopOpacity=".75"/><Stop offset="1" stopColor="#B847FF" stopOpacity="0"/></RadialGradient>
+    </Defs>
+    <Circle cx="100" cy="100" r="99" fill={'url(#'+id+'halo)'}/>
+    <Circle cx="100" cy="100" r="65" fill={'url(#'+id+'core)'}/>
+    <Circle cx="100" cy="100" r="68" fill="none" stroke={'url(#'+id+'ring)'} strokeWidth="16" opacity=".13"/>
+    <Circle cx="100" cy="100" r="68" fill="none" stroke={'url(#'+id+'ring)'} strokeWidth="8" opacity=".35"/>
+    <Circle cx="100" cy="100" r="68" fill="none" stroke={'url(#'+id+'ring)'} strokeWidth="3.5"/>
+    <Ellipse cx="46" cy="64" rx="32" ry="40" fill={'url(#'+id+'cyan)'}/><Ellipse cx="157" cy="130" rx="33" ry="40" fill={'url(#'+id+'pink)'}/>
+    <Path d="M38 77A67 67 0 0 1 115 34M163 122a67 67 0 0 1-45 43" fill="none" stroke="#E0F7FF" strokeWidth="1.2" strokeLinecap="round" opacity=".9"/>
+    <Circle cx="100" cy="100" r="59" fill="none" stroke={C.blueText} strokeWidth=".7" opacity=".26"/>
+    {['listening','error','approval'].includes(current)?<Circle cx="100" cy="100" r="69" fill="none" stroke={accent} strokeWidth="3"/>:null}
+   </Svg>
+  </Halo>
   <MicrophoneIcon size={size>70?32:21} color={current==='listening'?accent:C.ink} stop={current==='listening'}/>
  </Pressable>;
 }
