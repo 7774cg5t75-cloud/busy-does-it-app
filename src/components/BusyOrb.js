@@ -79,7 +79,7 @@ export function BusyMiniOrb({s,bounds,obstacles=[],ready=true,layoutVersion=0}){
  const settle=point=>{
   if(!current())return null;stop();last.current=point;
   if(!point){setHidden(true);return null;}setHidden(false);
-  if(x&&y&&policy.enabled){const jobs=[Animated.timing(x,{toValue:point.x,duration:200,useNativeDriver:true,isInteraction:false}),Animated.timing(y,{toValue:point.y,duration:200,useNativeDriver:true,isInteraction:false})];const job={start:()=>jobs.forEach(j=>j.start()),stop:()=>jobs.forEach(j=>j.stop())};snap.current=job;job.start();return job;}
+  if(x&&y&&policy.enabled){const jobs=[Animated.timing(x,{toValue:point.x,duration:200,useNativeDriver:true,isInteraction:false}),Animated.timing(y,{toValue:point.y,duration:200,useNativeDriver:true,isInteraction:false})];const job={start:()=>jobs.forEach(j=>j.start()),stop:()=>{if(snap.current!==job)return;jobs.forEach(j=>j.stop());snap.current=null;}};snap.current=job;job.start();return job;}
   move(point);return null;
  };
  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;stop();};},[]);
