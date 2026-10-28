@@ -1,3 +1,4 @@
+import {OrbSafeRegion} from '../components/FloatingOrbAvoidance';
 import {CanonicalWorkPanel} from '../components/CanonicalWorkPanel';
 import {CustomerEngagementReview} from '../components/CustomerEngagementReview';
 import {SavedEnquiryReplyChoices} from '../components/SavedEnquiryReplyChoices';
@@ -364,7 +365,7 @@ function CustomerRecords({ s }) {
                 Next: {journey.nextAction.title}
               </Text>
             ) : null}
-            <View style={styles.customerActionsRow}>
+            <OrbSafeRegion style={styles.customerActionsRow}>
               <Pressable accessibilityRole="button" accessibilityLabel={"Open customer "+customer.name} onPress={() => s.openCustomer(customer.id)} style={({pressed})=>[styles.customerOpenWrap,pressed&&styles.pressed]}>
                 <Text style={styles.customerOpenText}>Open customer</Text>
               </Pressable>
@@ -374,7 +375,7 @@ function CustomerRecords({ s }) {
               <Pressable accessibilityRole="button" accessibilityLabel={"Review removing customer "+customer.name} onPress={() => s.requestRemoveCustomer(customer.id)} style={({pressed})=>[styles.removeCustomerWrap,pressed&&styles.pressed]}>
                 <Text style={styles.removeCustomerText}>Remove</Text>
               </Pressable>
-            </View>
+            </OrbSafeRegion>
           </View>
         );
       })}

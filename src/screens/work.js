@@ -1,3 +1,4 @@
+import {OrbSafeRegion} from '../components/FloatingOrbAvoidance';
 import {CanonicalWorkEntry} from '../components/CanonicalWorkEntry';
 import {PrivateQuoteFields} from '../components/PrivateQuoteFields';
 import {QuoteFollowUpChoices} from '../components/QuoteFollowUpChoices';
@@ -813,12 +814,12 @@ function WorkHub({ s }) {
       s={s}
       noBack
       title="Work"
-      subtitle="See your bookings, look after customers and find more work when you need it."
-      brandCue="Your jobs and diary, all in one place."
+      subtitle="Bookings, customers and next steps."
+      brandCue=""
     >
       <CanonicalWorkEntry s={s} />
       <QuoteFollowUpChoices s={s} />
-      <View style={styles.workOverviewRow}>
+      <OrbSafeRegion style={styles.workOverviewRow}>
         <Pressable accessibilityRole="button" accessibilityLabel={`View ${weekBookings.length} booked jobs this week`} onPress={() => s.go("workCalendar")} style={({pressed})=>[styles.workOverviewTile,pressed&&styles.pressed]}>
           <Text style={styles.workOverviewNumber}>{weekBookings.length}</Text>
           <Text style={styles.workOverviewLabel}>Booked jobs this week</Text>
@@ -827,7 +828,7 @@ function WorkHub({ s }) {
           <Text style={styles.workOverviewNumber}>{weeklyOperationalCount}</Text>
           <Text style={styles.workOverviewLabel}>Need attention</Text>
         </Pressable>
-      </View>
+      </OrbSafeRegion>
       {weeklyOperationalCount > 0 && weeklyPlan.length ? (
         <Card
           eyebrow="Needs attention"
@@ -839,18 +840,18 @@ function WorkHub({ s }) {
         </Card>
       ) : null}
       {nextBooking ? (
-        <Pressable accessibilityRole="button" onPress={() => openBooking(nextBooking)} style={({pressed})=>[styles.workOverviewUpcoming,pressed&&styles.pressed]}>
+       <OrbSafeRegion><Pressable accessibilityRole="button" onPress={() => openBooking(nextBooking)} style={({pressed})=>[styles.workOverviewUpcoming,pressed&&styles.pressed]}>
           <Text style={styles.workOverviewEyebrow}>YOUR NEXT BOOKING</Text>
           <Text style={styles.workOverviewUpcomingTitle}>{nextBooking.customer.name}</Text>
           <Text style={styles.workOverviewHint}>
             {nextBooking.customer.service} • {formatUKDate(nextBooking.action.details.bookingDate)} • {nextBooking.action.details.bookingTime || "Time not set"}
           </Text>
           <Text style={styles.workOverviewLink}>View booking ›</Text>
-        </Pressable>
+        </Pressable></OrbSafeRegion>
       ) : null}
 
       <Text style={styles.sectionLabel}>Your calendar</Text>
-      <Card
+      <OrbSafeRegion>      <Card
         eyebrow="Select a day to see your work"
         title={workMonthTitle}
         tone="blue"
@@ -883,7 +884,7 @@ function WorkHub({ s }) {
             {workMonthBookings.length} job{workMonthBookings.length === 1 ? "" : "s"} booked this month
           </Text>
         ) : null}
-      </Card>
+      </Card></OrbSafeRegion>
 
       <View style={styles.workCalendarGrid}>
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => (

@@ -16,12 +16,12 @@ const createStyles=()=>StyleSheet.create({
   homeDarkNavActive: { color: C.blueText },
   // V3.86: compact, high-contrast Work overview and next booking.
   workOverviewRow: { flexDirection: "row", flexWrap:"wrap", gap: 10, marginBottom: 12 },
-  workOverviewTile: { flex: 1, minWidth: 120, minHeight: 92, backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, justifyContent: "center" },
-  workOverviewNumber: { fontSize: 24, lineHeight: 30, fontWeight: "700", color: C.ink, marginBottom: 3 },
+  workOverviewTile: { flex: 1, minWidth: 120, minHeight: 76, backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 16, paddingHorizontal: 11, paddingVertical: 10, justifyContent: "center" },
+  workOverviewNumber: { fontSize: 21, lineHeight: 28, fontWeight: "700", color: C.ink, marginBottom: 3 },
   workOverviewLabel: { fontSize: 13, lineHeight: 18, fontWeight: "700", color: C.muted },
   workOverviewUpcoming: { backgroundColor: C.blueSoft, borderColor: C.border, borderWidth: 1, borderRadius: 17, padding: 14, marginBottom: 15 },
   workOverviewEyebrow: { fontSize: 12, fontWeight: "900", letterSpacing: 0.8, color: C.blueText, marginBottom: 5 },
-  workOverviewUpcomingTitle: { color: C.ink, fontSize: 18, lineHeight: 24, fontWeight: "800" },
+  workOverviewUpcomingTitle: { color: C.ink, fontSize: 16, lineHeight: 24, fontWeight: "800" },
   workOverviewHint: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 8, marginBottom: 8 },
   workOverviewLink: { color: C.blueText, fontSize: 14, fontWeight: "800", marginTop: 8 },
   // V3.87: compact Social Media summary, post filters and empty states.
@@ -547,7 +547,7 @@ const createStyles=()=>StyleSheet.create({
   operatorPlanTitle: { color: C.ink, fontSize: 15, fontWeight: "900" },
   operatorPlanReason: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 4 },
   operatorPlanSafety: { color: C.amber, fontSize: 11, fontWeight: "800", marginTop: 5 },
-  autopilotRuleInput: { minHeight: 92, borderWidth: 1, borderColor: C.border, borderRadius: 14, backgroundColor: C.card, color: C.ink, fontSize: 15, lineHeight: 21, padding: 13, textAlignVertical: "top", marginTop: 10, marginBottom: 10 },
+  autopilotRuleInput: { minHeight: 76, borderWidth: 1, borderColor: C.border, borderRadius: 14, backgroundColor: C.card, color: C.ink, fontSize: 15, lineHeight: 21, padding: 13, textAlignVertical: "top", marginTop: 10, marginBottom: 10 },
   autopilotRuleExamples: { color: C.muted, fontSize: 12, lineHeight: 18, marginTop: 10 },
   autopilotRuleCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.blueSoft, borderRadius: 16, padding: 14, marginBottom: 10, gap: 10 },
   autopilotRuleText: { color: C.ink, fontSize: 14, lineHeight: 20, fontWeight: "800" },
@@ -555,7 +555,7 @@ const createStyles=()=>StyleSheet.create({
   proactiveFieldLabel: { color: C.muted, fontSize: 11, fontWeight: "800", letterSpacing: 0.3, marginTop: 10, marginBottom: 5 },
   proactiveCompactInput: { borderWidth: 1, borderColor: C.border, borderRadius: 12, backgroundColor: C.card, color: C.ink, fontSize: 15, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 4 },
   proactiveChoiceRow: { gap: 8, marginTop: 4 },
-  releaseCheckRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 8 },
+  releaseCheckRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 14, paddingHorizontal: 11, paddingVertical: 10, marginBottom: 8 },
   releaseCheckLabel: { flex: 1, color: C.ink, fontSize: 14, fontWeight: "800" },
   productionReadinessDetail: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 4 },
   nav: {

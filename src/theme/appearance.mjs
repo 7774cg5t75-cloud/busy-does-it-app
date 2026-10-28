@@ -5,7 +5,7 @@ const midnight={bg:'#080F20',card:'#111E34',ink:'#F2F5FC',muted:'#B2BED2',blue:'
 const daylight={bg:'#F3F5FA',card:'#FFFFFF',ink:'#17243A',muted:'#4D5D76',blue:'#2856B3',blueText:'#2354A8',blueSoft:'#E7EFFC',green:'#206447',greenAction:'#237A53',greenSoft:'#E5F3EC',amber:'#754C12',amberAction:'#805016',amberSoft:'#FFF2DB',red:'#A12742',redAction:'#A33249',border:'#B8C5D8',controlBorder:'#7F8DA5',shadow:'#17243A',surface:'#E8EEF7',cyan:'#176C80',violet:'#6950AA',rose:'#9B4A72',onAction:'#FFFFFF',input:'#FFFFFF',nav:'#FFFFFF'};
 export const palettes=Object.freeze({midnight:Object.freeze(midnight),daylight:Object.freeze(daylight)});
 export const design=Object.freeze({space:{xs:4,sm:8,md:12,lg:20,xl:28,hero:36},radius:{control:16,card:22,pill:999},type:{title:30,heading:21,body:16,caption:13},touch:48});
-let snapshot=Object.freeze({mode:'midnight',scheme:'dark',resolved:'midnight',orbEdge:'right',chosen:false,persistence:'local'}),epoch=0,queue=Promise.resolve();const listeners=new Set();
+let snapshot=Object.freeze({mode:'midnight',scheme:'dark',resolved:'midnight',orbEdge:'right',orbReset:0,chosen:false,persistence:'local'}),epoch=0,queue=Promise.resolve();const listeners=new Set();
 export const getAppearance=()=>snapshot;
 export const palette=()=>palettes[snapshot.resolved];
 export const subscribeAppearance=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
@@ -20,3 +20,6 @@ export function moodForScreen(screen=''){if(/website/i.test(screen))return 'cyan
 export function orbState({recording=false,speaking=false,status='',error='',approval=false}={}){if(error)return 'error';if(recording)return 'listening';if(speaking)return 'speaking';if(['thinking','processing','transcribing','interpreting','sending','loading'].includes(status))return 'processing';if(approval)return 'approval';return 'idle';}
 export const snapOrbEdge=(x,width)=>x+24<width/2?'left':'right';
 export const clampOrbX=(x,width)=>Math.min(Math.max(12,x),Math.max(12,width-60));
+
+// Ephemeral device intent; the reviewed v1 saved preference schema is unchanged.
+export function requestOrbReset(){publish({...snapshot,orbReset:(snapshot.orbReset||0)+1});}

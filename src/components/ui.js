@@ -1,3 +1,4 @@
+import {FloatingOrbContext,useFloatingOrbLayout,useFloatingOrbAvoidance,OrbSafeRegion} from './FloatingOrbAvoidance';
 import {MotionReveal} from '../theme/motion';
 import {chromeLabel,workspaceDensity} from '../theme/interaction.mjs';
 import {BusyMiniOrb,BusyOrb} from "./BusyOrb";
@@ -261,7 +262,10 @@ function BusyBrandLockup({ size = 38, centered = false, inverse = false }) {
 
 function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = true, hideDevBadge = true, scrollRef }) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const home=s.screen==='home';
+  const home=s.screen==='home',dashboard=home||['results','workHub'].includes(s.screen);
+  const overlay=useFloatingOrbLayout(JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.screen]));
+  const eligible=!noNav&&!keyboardVisible&&!s.busyMiniOrbHidden&&['workHub','customerRecords','growthCommandCentre','socialMedia','settings','results'].includes(s.screen)&&typeof s.openTalkToBusy==='function';
+  const orbObstacles=React.useMemo(()=>[...overlay.obstacles,...(Array.isArray(s.busyOrbAvoidRects)?s.busyOrbAvoidRects:[])],[overlay.obstacles,s.busyOrbAvoidRects]);
 
   useEffect(() => {
     const show = Keyboard.addListener(
@@ -286,13 +290,16 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
       >
+       <FloatingOrbContext.Provider value={eligible?overlay.context:null}><View ref={overlay.root} onLayout={overlay.onLayout} collapsable={false} style={{flex:1}}>
         <ScrollView
           ref={scrollRef}
+          onScrollBeginDrag={overlay.startScroll} onMomentumScrollBegin={overlay.startScroll} onScrollEndDrag={overlay.endScroll} onMomentumScrollEnd={overlay.endScroll}
           style={[styles.scroll, dark && styles.homeDarkShell]}
           contentContainerStyle={[
             styles.scrollContent,
             dark && styles.homeDarkContent,
             home && {paddingTop:6,paddingHorizontal:16,paddingBottom:24},
+            eligible&&{paddingBottom:76},
             keyboardVisible && styles.scrollContentKeyboard,
           ]}
           keyboardShouldPersistTaps="handled"
@@ -301,26 +308,27 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         >
         <MotionReveal identity={s.screen}><View style={[styles.topRow, dark && styles.homeDarkTopRow,home&&{marginBottom:8}]}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <BusyBrandLockup size={36} inverse={dark} />
-            <Text style={[styles.tagline, dark && styles.homeDarkMuted]}>Your business. A little more freedom.</Text>
+            <OrbSafeRegion style={{alignSelf:"flex-start"}}><BusyBrandLockup size={36} inverse={dark} /></OrbSafeRegion>
+            <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.tagline, dark && styles.homeDarkMuted]}>Your business. A little more freedom.</Text></OrbSafeRegion>
             {!hideDevBadge ? <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text> : null}
           </View>
           {!noBack && s.history?.length > 0 ? (
-            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={s.back} style={({pressed})=>[styles.backPill,pressed&&styles.pressed]}>
+           <OrbSafeRegion><Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={s.back} style={({pressed})=>[styles.backPill,pressed&&styles.pressed]}>
               <Text style={styles.backText}>Back</Text>
-            </Pressable>
+            </Pressable></OrbSafeRegion>
           ) : null}
         </View>
 
-        {brandCue ? <Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{chromeLabel(brandCue)}</Text> : null}
-        {title ? <Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading,home&&{fontSize:21,lineHeight:28,letterSpacing:-.35}]}>{title}</Text> : null}
-        {subtitle ? <Text style={[styles.subtitle, dark && styles.homeDarkMuted,home&&{fontSize:13,lineHeight:19,marginTop:3,marginBottom:0}]}>{subtitle}</Text> : null}
+        {brandCue ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{chromeLabel(brandCue)}</Text></OrbSafeRegion> : null}
+        {title ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading,dashboard&&{fontSize:home?21:22,lineHeight:home?28:29,letterSpacing:-.35}]}>{title}</Text></OrbSafeRegion> : null}
+        {subtitle ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.subtitle, dark && styles.homeDarkMuted,dashboard&&{fontSize:13,lineHeight:19,marginTop:3,marginBottom:home?0:12}]}>{subtitle}</Text></OrbSafeRegion> : null}
 
         </MotionReveal>
         {children}
         </ScrollView>
+        {eligible?<BusyMiniOrb key={s.screen} s={s} ready={overlay.ready} layoutVersion={overlay.version} bounds={overlay.bounds} obstacles={orbObstacles}/>:null}
+       </View></FloatingOrbContext.Provider>
       </KeyboardAvoidingView>
-      {!noNav&&!keyboardVisible&&!s.busyMiniOrbHidden&&['workHub','customerRecords','growthCommandCentre','socialMedia','settings','results'].includes(s.screen)&&typeof s.openTalkToBusy==='function'?<BusyMiniOrb s={s}/>:null}
       {!noNav && !keyboardVisible ? <BottomNav s={s} dark={dark} /> : null}
     </View>
   );
@@ -363,8 +371,8 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
           <Text style={styles.eyebrow}>{eyebrowText}</Text>
         )
       ) : null}
-      {title ? <Text accessibilityRole="header" style={styles.cardTitle}>{title}</Text> : null}
-      {body ? <Text style={styles.cardBody}>{body}</Text> : null}
+      {title ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text accessibilityRole="header" style={styles.cardTitle}>{title}</Text></OrbSafeRegion> : null}
+      {body ? <OrbSafeRegion><Text style={styles.cardBody}>{body}</Text></OrbSafeRegion> : null}
       {children ? <View style={styles.cardContent}>{children}</View> : null}
       {footer ? <Text style={styles.cardFooter}>{footer}</Text> : null}
     </View>
@@ -372,9 +380,10 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
 }
 
 function Button({ label, onPress, primary = false, danger = false, disabled = false, selected, compact = false, loading = false, accessibilityHint }) {
+  const avoidance=useFloatingOrbAvoidance();
   disabled=disabled||loading;
   return (
-    <Pressable
+    <Pressable {...avoidance}
       accessibilityRole="button"
       accessibilityLabel={typeof label==="string"?label:undefined}
       accessibilityHint={accessibilityHint}
@@ -408,17 +417,19 @@ function Button({ label, onPress, primary = false, danger = false, disabled = fa
 }
 
 function SmallLink({ label, onPress }) {
+  const avoidance=useFloatingOrbAvoidance();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({pressed})=>[styles.smallLinkWrap,pressed&&styles.pressed]}>
+    <Pressable {...avoidance} accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({pressed})=>[styles.smallLinkWrap,pressed&&styles.pressed]}>
       <Text style={styles.smallLink}>{label}</Text>
     </Pressable>
   );
 }
 
 function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength, editable = true, hint, error, onSubmitEditing, returnKeyType }) {
+  const avoidance=useFloatingOrbAvoidance();
   const [focused,setFocused]=useState(false);
   return (
-    <View style={styles.fieldWrap}>
+    <View {...avoidance} style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={[styles.fieldBox, multiline && styles.fieldBoxMultiline, focused && editable && styles.fieldBoxFocused, !editable && styles.fieldBoxReadOnly,error && styles.fieldBoxError]}>
         {prefix ? <Text style={styles.fieldPrefix}>{prefix}</Text> : null}
@@ -486,7 +497,7 @@ function DatePickerField({ label, value, onChange, allowFuture = false, minimumD
   };
 
   return (
-    <View style={styles.fieldWrap}>
+    <View {...avoidance} style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <Pressable
         onPress={() => {
@@ -586,8 +597,9 @@ function Details({ label, children }) {
 }
 
 function Choice({ label, selected, onPress, sub }) {
+  const avoidance=useFloatingOrbAvoidance();
   return (
-    <Pressable accessibilityRole="radio" accessibilityState={{checked:!!selected,selected:!!selected}} accessibilityLabel={label} accessibilityHint={sub} onPress={onPress} style={({pressed})=>[styles.choice, selected && styles.choiceSelected,pressed&&styles.pressed]}>
+    <Pressable {...avoidance} accessibilityRole="radio" accessibilityState={{checked:!!selected,selected:!!selected}} accessibilityLabel={label} accessibilityHint={sub} onPress={onPress} style={({pressed})=>[styles.choice, selected && styles.choiceSelected,pressed&&styles.pressed]}>
       <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected ? <View style={styles.radioCore} /> : null}
       </View>
@@ -600,8 +612,9 @@ function Choice({ label, selected, onPress, sub }) {
 }
 
 function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
+  const avoidance=useFloatingOrbAvoidance();
   return (
-    <View style={[styles.toggleRow, disabled && { opacity: 0.55 }]}>
+    <View {...avoidance} style={[styles.toggleRow, disabled && { opacity: 0.55 }]}>
       <View style={{ flex: 1, paddingRight: 12 }}>
         <Text style={styles.toggleTitle}>{title}</Text>
         {body ? <Text style={styles.toggleBody}>{body}</Text> : null}
@@ -620,6 +633,7 @@ function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
 }
 
 function MetricRow({ left, right, strong = false, onPress = null }) {
+  const avoidance=useFloatingOrbAvoidance();
   const dimensions=useWindowDimensions(),stack=workspaceDensity(dimensions).metricStack;
   const content = (
     <>
@@ -631,11 +645,11 @@ function MetricRow({ left, right, strong = false, onPress = null }) {
     </>
   );
   return onPress ? (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.metricRow,stack&&styles.metricRowStack, styles.metricRowClickable, pressed && styles.metricRowPressed]}>
+    <Pressable {...avoidance} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.metricRow,stack&&styles.metricRowStack, styles.metricRowClickable, pressed && styles.metricRowPressed]}>
       {content}
     </Pressable>
   ) : (
-    <View style={[styles.metricRow,stack&&styles.metricRowStack]}>{content}</View>
+    <View {...avoidance} style={[styles.metricRow,stack&&styles.metricRowStack]}>{content}</View>
   );
 }
 

@@ -1,3 +1,4 @@
+import {workspaceDensity} from '../theme/interaction.mjs';
 import {BusyHomeEntry} from "../components/BusyHomeEntry";
 import {homeEnquiryReview,homeEnquiryReplyReview,homeSavedEnquiryReplyReview} from '../core/homeEnquiryReview.mjs';
 import {homeQuoteReview,homePreparedQuoteReview,homeFollowUpQuoteReview,homeQuoteSelectionReview} from '../core/homeQuoteReview.mjs';
@@ -21,6 +22,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -152,11 +154,11 @@ import {
 
 
 const makeHomeStyles=()=>StyleSheet.create({
-  panel: { backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 20, padding: 17, marginBottom: 12 },
+  panel: { backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 20, padding: 13, marginBottom: 10 },
   hero: { backgroundColor: C.blueSoft, borderColor: C.border },
   kicker: { color: C.blueText, fontSize: 12, fontWeight: "800", letterSpacing: 0.7, marginBottom: 7, flexShrink: 1 },
-  heading: { color: C.ink, fontSize: 21, lineHeight: 28, fontWeight: "900", marginBottom: 6 },
-  description: { color: C.muted, fontSize: 14, lineHeight: 21 },
+  heading: { color: C.ink, fontSize: 17, lineHeight: 24, fontWeight: "700", marginBottom: 6 },
+  description: { color: C.muted, fontSize: 13, lineHeight: 19 },
   micro: { color: C.muted, fontSize: 12, lineHeight: 18, marginTop: 9 },
   micRow: { flexDirection: "row", alignItems: "center", gap: 13, marginTop: 16 },
   micCircle: { width: 58, height: 58, borderRadius: 29, backgroundColor: C.blue, alignItems: "center", justifyContent: "center" },
@@ -168,10 +170,10 @@ const makeHomeStyles=()=>StyleSheet.create({
   outlineText: { color: C.ink, fontSize: 15, fontWeight: "800", textAlign: "center" },
   actionButton: { marginTop: 13, minHeight: 48, borderRadius: 13, backgroundColor: C.blue, alignItems: "center", justifyContent: "center", paddingHorizontal: 13 },
   actionText: { color: C.ink, fontSize: 15, fontWeight: "900", textAlign: "center" },
-  sectionHeading: { color: C.ink, fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 10 },
-  statRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
-  stat: { flex: 1, minWidth: 0, backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 16, padding: 15 },
-  statValue: { color: C.ink, fontSize: 24, fontWeight: "900", marginBottom: 4 },
+  sectionHeading: { color: C.ink, fontSize: 16, fontWeight: "700", marginTop: 6, marginBottom: 8 },
+  statRow: { flexDirection: "row", flexWrap:"wrap", gap: 8, marginBottom: 10 },
+  stat: { flex: 1, minWidth: 0, backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 16, padding: 10 },
+  statValue: { color: C.ink, fontSize: 21, fontWeight: "700", marginBottom: 4 },
   statLabel: { color: C.muted, fontSize: 12, fontWeight: "700", lineHeight: 17 },
   inlineRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   badge: { color: C.green, fontSize: 12, fontWeight: "800", flexShrink: 1, maxWidth: "35%", textAlign: "right" },
@@ -188,6 +190,7 @@ const homeStylesCache=new Map();
 const homeDark=new Proxy({}, {get:(_,key)=>{if(!homeStylesCache.has(C.bg))homeStylesCache.set(C.bg,makeHomeStyles());return homeStylesCache.get(C.bg)[key];}});
 
 function HomeScreen({ s }) {
+  const dashboardLayout=workspaceDensity(useWindowDimensions());
   const currentHomeSource=React.useRef(s);currentHomeSource.current=s;
   const [showOtherMoves, setShowOtherMoves] = useState(false);
   const [verifiedAppBenefit,setVerifiedAppBenefit]=useState(null);
@@ -1088,11 +1091,11 @@ function HomeScreen({ s }) {
 
       <Text style={homeDark.sectionHeading}>Your day at a glance</Text>
       <View style={homeDark.statRow}>
-        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={homeDark.stat}>
+        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={[homeDark.stat,dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
           <Text style={homeDark.statValue}>{homeWeekBookings.length}</Text>
           <Text style={homeDark.statLabel}>Confirmed bookings · next 7 days</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={homeDark.stat}>
+        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={[homeDark.stat,dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
           <Text style={homeDark.statValue}>{attentionCount}</Text>
           <Text style={homeDark.statLabel}>Items needing review</Text>
         </Pressable>

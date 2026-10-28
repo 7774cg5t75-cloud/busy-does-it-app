@@ -2745,6 +2745,13 @@
         "scripts/check-approved-design-fidelity.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-floating-owner-ui-v3",
+      "args": [
+        "scripts/check-floating-owner-ui-v3.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

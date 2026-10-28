@@ -1,12 +1,12 @@
 // BUSY chrome only. No business branding, task state, persistence or actions.
 export function workspaceDensity({width=390,fontScale=1}={}){
- const narrow=!Number.isFinite(width)||width<370||fontScale>=1.3;
- return {stack:narrow,gutter:width<350?16:20,tileWidth:narrow?'100%':'48%',metricStack:narrow};
+ const narrow=!Number.isFinite(width)||width<350||fontScale>=1.6;
+ return {stack:narrow,gutter:width<350?16:20,tileWidth:narrow?'100%':'48%',metricStack:width<330||fontScale>=1.6};
 }
-export function orbMotion(state,{enabled=false,ambient=true}={}){
+export function orbMotion(state,{enabled=false,ambient=true,small=false}={}){
  if(!enabled)return null;
- if(state==='idle')return ambient?{duration:1600,scale:1.035,opacity:.7,repeat:2}:null;
- if(['listening','speaking','processing'].includes(state))return {duration:state==='processing'?1400:1100,scale:1.045,opacity:.8,repeat:-1};
+ if(state==='idle')return ambient?{duration:small?4600:3600,scale:small?1.008:1.018,baseOpacity:small?.86:.87,opacity:small?.93:.99,repeat:-1}:null;
+ if(['listening','speaking','processing'].includes(state))return {duration:state==='processing'?1400:1100,scale:small?1.02:1.035,baseOpacity:.86,opacity:1,repeat:-1};
  return null;
 }
 export function horizontalOrbDrag(dx,dy){return Number.isFinite(dx)&&Number.isFinite(dy)&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.25;}
