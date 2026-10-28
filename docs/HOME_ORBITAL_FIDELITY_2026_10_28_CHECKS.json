@@ -1,0 +1,137 @@
+{
+  "mission": "Home orbital fidelity \u2014 source only",
+  "authority": {
+    "master": "V22.53 genuine original reopened",
+    "sha256": "fa9456077fd843f1f04ea450d9e2ec425077695b6b106b91bf7cee150b727f62"
+  },
+  "source": {
+    "startingLocal": "f0dcc7154786e80bb1f818a277591170f1bcf66e",
+    "startingGitHub": "dd8c71f1c76bcde7aa8d8175bcb1d63cbb1d7a08",
+    "functionalLocal": "81a2e2931eada1b9ad4a3d63d58434d46b8328e7",
+    "functionalGitHub": "d82851ba0b445620b7f50c8f29204502d8285d10",
+    "functionalTree": "51ced33e959c65b80332ea88b6deeb937e578ef7",
+    "startClean": true,
+    "endClean": true
+  },
+  "application": {
+    "summary": {
+      "passed": 428,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "outerExit": 0,
+    "childExits": [
+      0
+    ],
+    "selectionSha256": "eb13daa49291dd841b79c9ec482d2df92af21df4d9bf515a894eaed81f5f1aa1"
+  },
+  "foundation": {
+    "passed": 105,
+    "exit": 0
+  },
+  "syntax": {
+    "files": 7,
+    "exit": 0
+  },
+  "architecture": {
+    "staticRelativeCycles": 0,
+    "exit": 0
+  },
+  "expo": {
+    "dependenciesExit": 0,
+    "introspectionExit": 0,
+    "iosHermesExportExit": 0,
+    "signedBuildExistsForThisSource": false
+  },
+  "snack": {
+    "exit": 1,
+    "distinctDiagnostics": 27,
+    "unchangedFromV3": true
+  },
+  "ownerPreview": {
+    "version": "3.105.0",
+    "build": "27",
+    "bundle": "com.busydoesit.app.ownerpreview",
+    "ota": false,
+    "cloudBuildStarted": false,
+    "productionBuildUnchanged": "25"
+  },
+  "artifacts": [
+    {
+      "path": ".test-artifacts/home-orbital/application.json",
+      "sha256": "feb7d8518da7d85087275f6c347edaaa6af03e94025f203ef4ca883d737ae5a5"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/application-outer.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/ios-export.log",
+      "sha256": "e201d9ed18714be47e81bf90c6a7670db859b72141ba14a810e48ec7a911f75b"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/ios-export-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/quality-exits.json",
+      "sha256": "97e26d429ab0723aa5fd7481da97eb5886194b3d190687e8b5ccf05106f2b128"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/foundation.log",
+      "sha256": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/architecture.log",
+      "sha256": "7ba23cfd8414ec1767ed276b57595f512d1dfcfeeccf3e5619ae83be3d4cb89b"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/syntax.log",
+      "sha256": "52cd69fcb10948df4b06149c2147bf4b30dc88423274d48f8b35cb2219335dee"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/dependencies.log",
+      "sha256": "28adcc05dfc4b32af564b8765a9b02b663448cfb9640eefa9b9a48494f703f91"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/dependencies-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/config.log",
+      "sha256": "563305bcd347c352de963b286d46798a0e5204d7353136d81246b593597ac0b3"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/config-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/snack.log",
+      "sha256": "18fd2e069125d1bec56369b323ba4b7ee2da3bdb56bc05aec167d2f5376d6228"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/snack-exit.json",
+      "sha256": "3fcf365c70bf262b9592ec1998f4c4609c36c75d846b67c5e86d7c9f03f07176"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/snack-comparison.json",
+      "sha256": "0b5f0a630742a016a3fd0c9825448ff672e1cba4f74944fa8c06e32befa72c07"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/failed-candidates.json",
+      "sha256": "de7efa869752786f64afc7dde5d3d6e4d1ffb9397830720101c432861ab422f9"
+    },
+    {
+      "path": ".test-artifacts/home-orbital/home-render.json",
+      "sha256": "7c3fc730834fefd92208fbb7eff19009e3850fe44da8d9773a66200ce784b75a"
+    }
+  ],
+  "limits": [
+    "No new rendered/device acceptance",
+    "No PostgreSQL contracts changed or fresh database test credit",
+    "No hosted/provider action",
+    "No signing, OTA, distribution or EAS build",
+    "Original PRs remain open/draft/unmerged"
+  ]
+}
