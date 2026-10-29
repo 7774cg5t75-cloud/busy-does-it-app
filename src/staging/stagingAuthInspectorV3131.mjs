@@ -174,7 +174,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
       const apps=['owner_status','build_draft','apply_app_plan','apply_coordinated_edits','set_module','move_section','set_appearance'];
       const account={app_enquiry_state:['busy_connected_app_enquiry_state_v1',['businessId','requestId']],app_enquiry_review:['busy_connected_app_enquiry_review_v1',['businessId','requestId']],app_enquiry_import:['busy_connected_app_enquiry_import_v1',['businessId','requestId','requestHash','expectedRevision']],app_enquiry_file:['busy_connected_app_enquiry_file_v1',['businessId','expectedRevision','capture']],pending_review:['busy_owner_pending_review_v1',['businessId','expectedRevision','enquiryId']],filed_review:['busy_owner_first_reply_review_v1',['businessId','expectedRevision','customerId','enquiryId']],...connectedJourneyRoutes};
 
-      if(!['workspaces','builder_read','website_create','website_edit_text',...apps,...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
+      if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design',...apps,...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
       try{
         const id=await checkIdentity(bearer,FIXTURES[key].email);
         if(!current()||id!==userId)throw Error("staging-account-changed");

@@ -2825,6 +2825,12 @@
       "args": [
         "scripts/check-durable-journeys.mjs"
       ]
+    },
+    {
+      "id": "premium-interiors",
+      "args": [
+        "scripts/check-premium-interiors.mjs"
+      ]
     }
   ]
 }

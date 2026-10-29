@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {createConnectedBuilderSession} from '../src/staging/connectedBuilderSession.mjs';
 import {privateWebsiteDraftAction} from '../supabase/functions/busy-website-publish/privateDraftService.mjs';
@@ -8,7 +9,7 @@ let basis={actorId:O,businessId:B,revision:1,websiteDraft:null,profileRevision:4
 let writes=0,lost=false;
 const request=async(action,payload)=>{
  if(action==='builder_read')return structuredClone(basis);
- return privateWebsiteDraftAction({action,body:payload,userId:O,read:async()=>structuredClone(basis),commit:async p=>{writes++;assert.equal(p.p_expected_revision,basis.revision);basis={...basis,websiteDraft:p.p_candidate,revision:basis.revision+1};if(lost)throw Error('Acknowledgement lost');return {ok:true,actorId:O,businessId:B,previousRevision:p.p_expected_revision,revision:basis.revision,draftId:basis.websiteDraft.id,generation:basis.websiteDraft.generation,privateOnly:true};}});
+ return privateWebsiteDraftAction({action,body:payload,userId:O,read:async()=>structuredClone(basis),commit:async p=>{writes++;assert.equal(p.p_expected_revision,basis.revision);basis={...basis,websiteDraft:p.p_candidate,websiteDraftHash:createHash('sha256').update(JSON.stringify(p.p_candidate)).digest('hex'),revision:basis.revision+1};if(lost)throw Error('Acknowledgement lost');return {ok:true,actorId:O,businessId:B,previousRevision:p.p_expected_revision,revision:basis.revision,draftId:basis.websiteDraft.id,generation:basis.websiteDraft.generation,recordHash:basis.websiteDraftHash,privateOnly:true};}});
 };
 const session=createConnectedBuilderSession({request});let opened=await session.open(B);
 const created=await session.website({basis:opened,action:'create',sourceRevision:4,ownerApproved:true});assert.equal(created.ok,true);assert.equal(created.observed.websiteDraft.businessName,'Fictional Garden');assert.ok(created.observed.websiteDraft.sections.some(s=>s.id==='services'));assert.equal(created.observed.websiteDraft.html,undefined);

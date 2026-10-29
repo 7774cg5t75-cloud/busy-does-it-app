@@ -19,15 +19,15 @@ export function createConnectedBuilderSession({request,onInvalidated=()=>{}}){
   if(captured!==epoch||packet.actorId!==s.ownerId)throw Error('Workspace changed');return packet;
  }
  async function website({basis,action,patch,sourceRevision,ownerApproved=false}){
-  if(!scope||pending||unknown||!ownerApproved||!['create','edit_text'].includes(action)||basis?.actorId!==scope.ownerId||basis.businessId!==scope.businessId)throw Error('Review this business and draft before saving');
+  if(!scope||pending||unknown||!ownerApproved||!['create','edit_text','edit_design'].includes(action)||basis?.actorId!==scope.ownerId||basis.businessId!==scope.businessId)throw Error('Review this business and draft before saving');
   const captured=epoch,s=scope;pending=true;
   const current=()=>captured===epoch&&scope===s;
   try{
    const result=await request('website_'+action,{businessId:s.businessId,expectedRevision:basis.revision,expectedDraft:basis.websiteDraft||null,sourceRevision,patch,ownerApproved:true});
    if(!current())throw Error('Workspace changed');
-   if(!result?.ok||result.actorId!==s.ownerId||result.businessId!==s.businessId||result.previousRevision!==basis.revision||result.revision!==basis.revision+1||result.privateOnly!==true)throw Error('Save receipt unavailable');
+   if(!result?.ok||result.actorId!==s.ownerId||result.businessId!==s.businessId||result.previousRevision!==basis.revision||result.revision!==basis.revision+1||result.privateOnly!==true||!(/^[a-f0-9]{64}$/.test(result.recordHash||'')))throw Error('Save receipt unavailable');
    const observed=await read();
-   if(observed.revision!==result.revision||observed.websiteDraft?.id!==result.draftId||observed.websiteDraft?.generation!==result.generation)throw Error('Saved target changed before readback');
+   if(observed.revision!==result.revision||observed.websiteDraft?.id!==result.draftId||observed.websiteDraft?.generation!==result.generation||observed.websiteDraftHash!==result.recordHash)throw Error('Saved target changed before readback');
    return {ok:true,receipt:result,observed,independentlyOpened:true};
   }catch(error){
    if(!current())return {ok:false,stale:true};

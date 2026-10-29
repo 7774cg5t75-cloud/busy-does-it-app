@@ -1,8 +1,7 @@
 import {connectedStagingAction} from '../_shared/connectedStagingActions.mjs';
 import {privateWebsiteDraftAction} from './privateDraftService.mjs';
 import {builderExploreRemoteGuard} from '../_shared/builderExploreRemoteGuard.mjs';
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import {createClient} from "../_shared/supabaseClient.ts";
 import {evaluateLaunchPreflight} from "./launchPreflight.mjs";
 import {validatedLeadInput,validTransition,buildLeadDigest} from "./leadWorkflow.mjs";
 import {isVerifiedDomainTxtAnswer} from "./domainOwnership.mjs";
@@ -1061,7 +1060,7 @@ async function inspectDomainDns(businessId: string, domainId: string) {
   if(result.error)throw result.error;
   if(!result.data)throw Error("This domain does not belong to the selected business.");
   const records=requestedDnsRecords(result.data);
-  const checks=await Promise.all(records.map(async record=>{
+  const checks=await Promise.all(records.map(async (record:{name:string,type:string})=>{
     let evidence;
     try{
       const url="https://cloudflare-dns.com/dns-query?name="+
@@ -1306,7 +1305,7 @@ async function listWebsiteLeads(businessId:string){
 }
 async function addWebsiteLead(userId:string,businessId:string,body:any){
   const checked=validatedLeadInput(body);
-  if(!checked.ok)throw new Error(checked.error);
+  if(!checked.ok||!checked.record)throw new Error(checked.error||"Reviewed record unavailable");
   const website=await websiteForBusiness(businessId);
   const values={...checked.record,created_by:userId,business_id:businessId,
     website_id:website?.id||null};
@@ -1383,7 +1382,7 @@ Deno.serve(async (request: Request) => {
       cleanText(request.headers.get("x-busy-request-id"), 180) ||
       cleanText(body?.idempotencyKey, 180);
 
-    if(action==="website_create"||action==="website_edit_text"){
+    if(action==="website_create"||action==="website_edit_text"||action==="website_edit_design"){
       if(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co"||Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED")!=="true")
         return json(403,{ok:false,error:"Connected staging builders are not activated"});
       const reader=createClient(SUPABASE_URL,SERVICE_ROLE_KEY,{auth:{persistSession:false},global:{headers:{Authorization:request.headers.get("Authorization")||""}}});
@@ -1450,7 +1449,7 @@ Deno.serve(async (request: Request) => {
     }
     if(action==="design_feedback_record"){
       const checked=validateDesignFeedback(body);
-      if(!checked.ok)throw Error(checked.error);
+      if(!checked.ok||!checked.record)throw Error(checked.error||"Reviewed record unavailable");
       const {data,error}=await supabase.from("busy_website_design_feedback")
         .insert({...checked.record,business_id:businessId,created_by:user.id})
         .select("id").single();

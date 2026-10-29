@@ -23,7 +23,7 @@ BEGIN
  SELECT * INTO profile FROM public.busy_public_business_profiles WHERE business_id=p_business_id AND status<>'disabled' FOR SHARE;
  -- Only original website and finite public business facts. Never CRM/snapshot restoration.
  RETURN jsonb_build_object('actorId',actor,'businessId',p_business_id,'revision',snap.revision,
- 'websiteDraft',snap.payload->'websiteDraft','profileRevision',profile.revision,
+ 'websiteDraft',snap.payload->'websiteDraft','websiteDraftHash',CASE WHEN snap.payload->'websiteDraft' IS NOT NULL AND snap.payload->'websiteDraft'<>'null' THEN encode(sha256(convert_to((snap.payload->'websiteDraft')::text,'UTF8')),'hex') ELSE NULL END,'profileRevision',profile.revision,
  'profile',CASE WHEN profile.business_id IS NULL THEN NULL ELSE jsonb_build_object(
  'businessName',profile.profile->>'businessName','businessType',profile.profile->>'businessType',
  'serviceArea',profile.profile->>'serviceArea','description',profile.profile->>'description',
@@ -61,7 +61,7 @@ BEGIN
  -- jsonb_set preserves every unrelated original key, including unknown extensions.
  UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{websiteDraft}',p_candidate,true),revision=revision+1,updated_at=now() WHERE business_id=p_business_id;
  RETURN jsonb_build_object('ok',true,'businessId',p_business_id,'actorId',p_actor_id,'previousRevision',snap.revision,
- 'revision',snap.revision+1,'draftId',p_candidate->>'id','generation',p_candidate->'generation','privateOnly',true);
+ 'revision',snap.revision+1,'draftId',p_candidate->>'id','generation',p_candidate->'generation','recordHash',encode(sha256(convert_to(p_candidate::text,'UTF8')),'hex'),'privateOnly',true);
 END $$;
 
 ALTER FUNCTION public.busy_connected_workspaces_v1() OWNER TO postgres;

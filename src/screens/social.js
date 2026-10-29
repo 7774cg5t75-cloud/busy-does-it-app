@@ -1,3 +1,4 @@
+import {SegmentedControl,EmptyState} from '../components/InteriorChrome';
 import {CreatorDeviceRecovery} from '../components/CreatorDeviceRecovery';
 import {CreatorAccountDrafts} from '../components/CreatorAccountDrafts';
 import {OpportunityDraftContinuity} from '../components/OpportunityDraftContinuity';
@@ -148,6 +149,7 @@ import {
   Card,
   Button,
   SmallLink,
+  Details,
   Field,
   DatePickerField,
   Choice,
@@ -323,7 +325,7 @@ function SocialMediaCentre({ s }) {
     <Shell
       s={s}
       title="Content Creator"
-      subtitle="Prepare social posts, review drafts and manage supported publishing."
+      subtitle="Create something useful. Review your words and photos before sharing."
     >
       <Button label="+ Create a new post" primary onPress={s.startSocialFromPhone} />
 
@@ -356,7 +358,7 @@ function SocialMediaCentre({ s }) {
         </Card>
       ) : null}
 
-      <Card eyebrow="Your accounts" title="Connected accounts" tone="blue">
+      <Details label="Accounts and publishing setup"><Card eyebrow="Your accounts" title="Connected accounts" tone="blue">
         <MetricRow
           left="Facebook / Instagram"
           right={providerLabel(meta, "Facebook / Instagram")}
@@ -370,40 +372,10 @@ function SocialMediaCentre({ s }) {
         <Button label="Manage accounts" onPress={() => s.go("connectedAccounts")} />
       </Card>
 
+      </Details>
       <Text style={styles.sectionLabel}>Your posts</Text>
-      <View style={styles.socialFilterRow}>
-        {socialGroups.map((group) => (
-          <Pressable
-            key={group.key}
-            accessibilityRole="button"
-            accessibilityState={{ selected: socialList === group.key }}
-            onPress={() => {
-              setSocialList(group.key);
-              setShowAllPosts(false);
-            }}
-            style={[styles.socialFilterButton, socialList === group.key && styles.socialFilterSelected]}
-          >
-            <Text style={[styles.socialFilterText, socialList === group.key && styles.socialFilterTextSelected]}>
-              {group.key}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
-      {visibleSocialPosts.length ? visibleSocialPosts.map(renderDraftCard) : (
-        <View style={styles.socialEmptyState}>
-          <Text style={styles.socialEmptyTitle}>
-            {socialList === "Drafts" ? "No drafts yet" : socialList === "Scheduled" ? "Nothing scheduled" : "No published posts yet"}
-          </Text>
-          <Text style={styles.socialEmptyDetail}>
-            {socialList === "Drafts"
-              ? "Create a post from your photos to get started."
-              : socialList === "Scheduled"
-              ? "Posts you approve and schedule will appear here."
-              : "Once a post is published, you can find it here."}
-          </Text>
-        </View>
-      )}
+      <SegmentedControl items={socialGroups.map(group=>group.key)} value={socialList} onChange={value=>{setSocialList(value);setShowAllPosts(false);}} label="Your posts"/>
+      {visibleSocialPosts.length?visibleSocialPosts.map(renderDraftCard):<EmptyState title={socialList==='Drafts'?'What shall we create?':socialList==='Scheduled'?'Nothing scheduled':'No published posts yet'} body={socialList==='Drafts'?'Start with your selected photos or an idea. You review the words before any separate publishing action.':socialList==='Scheduled'?'Only posts you approve and schedule appear here. Account and provider setup may still be required.':'Published results appear here only when their original status is available.'} actionLabel={socialList==='Drafts'?'Create a post':undefined} onAction={socialList==='Drafts'?s.startSocialFromPhone:undefined}/>}
       {currentGroup.items.length > 3 ? (
         <Button
           label={showAllPosts ? "Show fewer posts" : `See all ${currentGroup.items.length} ${socialList.toLowerCase()} posts`}

@@ -19,7 +19,7 @@ export function PremiumAtmosphere({screen='home'}){
  </Svg></View>;
 }
 export function ChromeIcon({name='home',size=22,color=C.muted}){
- const paths={home:'M3 11 12 3l9 8M6 10v11h12V10M10 21v-7h4v7',work:'M3 7h18v14H3zM8 7V3h8v4M3 12h18M10 11v4h4v-4',results:'M4 21V12h4v9M10 21V7h4v14M16 21V3h4v18',settings:'M12 3v3m0 12v3M3 12h3m12 0h3M6 6l2 2m8 8 2 2M6 18l2-2M16 8l2-2',back:'M15 5l-7 7 7 7',spark:'M12 1l3 8 8 3-8 3-3 8-3-8-8-3 8-3z'};
+ const paths={website:'M3 4h18v16H3zM3 8h18',app:'M7 2h10v20H7zM10 18h4',content:'M4 3h16v18H4zM7 16l4-5 3 3 3-4M8 7h1',growth:'M4 18l5-6 4 2 7-10M15 4h5v5',paid:'M4 20v-6h3v6M10 20V9h3v11M16 20V3h3v17',home:'M3 11 12 3l9 8M6 10v11h12V10M10 21v-7h4v7',work:'M3 7h18v14H3zM8 7V3h8v4M3 12h18M10 11v4h4v-4',results:'M4 21V12h4v9M10 21V7h4v14M16 21V3h4v18',settings:'M12 3v3m0 12v3M3 12h3m12 0h3M6 6l2 2m8 8 2 2M6 18l2-2M16 8l2-2',back:'M15 5l-7 7 7 7',spark:'M12 1l3 8 8 3-8 3-3 8-3-8-8-3 8-3z'};
  return <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden><Path d={paths[name]||paths.home} fill={name==='spark'?color:'none'} stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>{name==='settings'?<Circle cx="12" cy="12" r="5" stroke={color} strokeWidth="1.6" fill="none"/>:null}</Svg>;
 }
 

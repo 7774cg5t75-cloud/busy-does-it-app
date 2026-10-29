@@ -1,3 +1,4 @@
+import {scopedOwnerStatus} from './scopedOwnerStatus.mjs';
 import {commitPrivateDraft} from './commitPrivateDraft.mjs';
 import {connectedStagingAction} from '../_shared/connectedStagingActions.mjs';
 import {createOwnerStatusReader} from './ownerStatusReader.mjs';
@@ -11,8 +12,7 @@ import {manageBusinessContent,readBusinessContent} from '../_shared/businessCont
 import {publicServiceDetails} from './publicServiceDetails.mjs';
 import {publicCollection} from './appPublicCollections.mjs';
 import {appConfigLockReason,retainAppDraftDesign,proposeAppModuleToggle} from "./appDraftComposition.mjs";
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import {createClient} from "../_shared/supabaseClient.ts";
 import { decideStandaloneEligibility } from "./standaloneEligibility.mjs";
 import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
 import { proposeAppSectionMove } from "./appSectionOrder.mjs";
@@ -543,7 +543,7 @@ async function ownerQueueSummaryV3225(businessId:string){
    .select("id",{head:true,count:"exact"})
    .eq("business_id",businessId).eq("mini_app_id",app.id)
    .eq("status",status);
-  if(r.error||!Number.isSafeInteger(r.count)||r.count<0)
+  if(r.error||typeof r.count!=="number"||!Number.isSafeInteger(r.count)||r.count<0)
    throw r.error||Error("The current inbox count is unavailable.");
   return r.count;
  };
@@ -574,7 +574,7 @@ async function ownerQueueSummaryV3225(businessId:string){
     .select("id",{head:true,count:"exact"})
     .eq("business_id",businessId).eq("mini_app_id",app.id)
     .eq("state",state);
-  if(result.error||!Number.isSafeInteger(result.count)||result.count<0)
+  if(result.error||typeof result.count!=="number"||!Number.isSafeInteger(result.count)||result.count<0)
    throw result.error||Error("Guest notification queue is unavailable.");
   return result.count;
  };
@@ -4199,6 +4199,10 @@ Deno.serve(async (request: Request) => {
       writeActions.has(action)
     );
     const resolvedBusinessId = member.business_id;
+    const connectedProject=SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co";
+    if(connectedProject&&member.role!=='owner')return json(403,{ok:false,error:'Current owner access is required in connected staging'});
+    const readCurrentStatus=()=>connectedProject?scopedOwnerStatus({read:()=>ownerStatus(resolvedBusinessId),verify:async()=>{const current=await membership(user.id,resolvedBusinessId,true);if(current.role!=='owner')throw Error('Current owner access changed');}}):ownerStatus(resolvedBusinessId);
+
     if(['content_list','content_save','content_publish','content_undo'].includes(action)){
       return json(200,await manageBusinessContent(supabase,{businessId:resolvedBusinessId,actorId:user.id,role:member.role},body));
     }
@@ -4311,21 +4315,21 @@ Deno.serve(async (request: Request) => {
         ok: true,
         businessId: resolvedBusinessId,
         role: member.role,
-        ...(await ownerStatus(resolvedBusinessId)),
+        ...(await readCurrentStatus()),
       });
     }
     if (action === "build_draft") {
       return json(200, {
         ok: true,
         ...(await buildDraft(user.id, resolvedBusinessId, body, SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "plan_app") {
       return json(200, {
         ok: true,
         plan: await planBusinessApp(resolvedBusinessId, body),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "apply_app_plan") {
@@ -4336,23 +4340,23 @@ Deno.serve(async (request: Request) => {
           resolvedBusinessId,
           body, SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined
         )),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "move_section") {
       return json(200,{ok:true,
         ...(await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
-        status:await ownerStatus(resolvedBusinessId)});
+        status:await readCurrentStatus()});
     }
     if (action === "apply_coordinated_edits") {
       return json(200,{ok:true,
         ...(await applyCoordinatedPrivateAppEdits(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
-        status:await ownerStatus(resolvedBusinessId)});
+        status:await readCurrentStatus()});
     }
     if (action === "set_appearance") {
       return json(200,{ok:true,
         ...(await setPrivateAppAppearance(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
-        status:await ownerStatus(resolvedBusinessId)});
+        status:await readCurrentStatus()});
     }
     if (action === "set_module") {
       const app = await setModule(
@@ -4364,35 +4368,35 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         app,
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "prepare_preview") {
       return json(200, {
         ok: true,
         ...(await preparePreview(user.id, resolvedBusinessId)),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "publish") {
       return json(200, {
         ok: true,
         ...(await publishVersion(user.id, resolvedBusinessId, body)),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "rollback") {
       return json(200, {
         ok: true,
         ...(await rollbackVersion(user.id, resolvedBusinessId, body)),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "set_discoverable") {
       return json(200, {
         ok: true,
         app: await setDiscoverable(resolvedBusinessId, body),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "owner_message_receipt") {
@@ -4447,7 +4451,7 @@ Deno.serve(async (request: Request) => {
       }catch{ /* Message saved; readback availability is separate. */ }
       try{
         return json(200,{ok:true,...saved,postSendEvidence,
-          status:await ownerStatus(resolvedBusinessId),statusRefreshRequired:false});
+          status:await readCurrentStatus(),statusRefreshRequired:false});
       }catch(error){
         console.warn("Saved owner reply; refreshing owner list later.");
         return json(200,{ok:true,...saved,postSendEvidence,statusRefreshRequired:true});
@@ -4457,7 +4461,7 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         detail: await ownerRequestDetail(resolvedBusinessId, body),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "request_bridge_plan") {
@@ -4478,7 +4482,7 @@ Deno.serve(async (request: Request) => {
           body,
           requestId
         )),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "mark_request_linked") {
@@ -4487,7 +4491,7 @@ Deno.serve(async (request: Request) => {
       // apparent failed write or encourage duplicate customer actions.
       const link=await markRequestLinked(user.id,resolvedBusinessId,body);
       try {
-        const status=await ownerStatus(resolvedBusinessId);
+        const status=await readCurrentStatus();
         return json(200,{ok:true,link,status,statusRefreshRequired:false});
       } catch (readError) {
         console.warn("Work handoff saved; owner snapshot refresh pending.");
@@ -4501,7 +4505,7 @@ Deno.serve(async (request: Request) => {
        user.id,resolvedBusinessId,body);
       try{
        return json(200,{ok:true,request,
-        status:await ownerStatus(resolvedBusinessId),
+        status:await readCurrentStatus(),
         statusRefreshRequired:false});
       }catch{
        console.warn("Request status saved; dashboard refresh pending.");

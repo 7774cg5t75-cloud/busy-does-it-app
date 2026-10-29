@@ -26,8 +26,8 @@ const createStyles=()=>StyleSheet.create({
   workOverviewLink: { color: C.blueText, fontSize: 14, fontWeight: "800", marginTop: 8 },
   // V3.87: compact Social Media summary, post filters and empty states.
   socialSummaryRow: { flexDirection: "row", flexWrap:"wrap", gap: 9, marginBottom: 10, marginTop: 1 },
-  socialSummaryTile: { flex: 1, minWidth: 88, backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 9, alignItems: "center" },
-  socialSummaryNumber: { color: C.ink, fontSize: 23, lineHeight: 29, fontWeight: "700" },
+  socialSummaryTile: { flex: 1, minWidth: 88, backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 9, alignItems: "center" },
+  socialSummaryNumber: { color: C.ink, fontSize: 20, lineHeight: 26, fontWeight: "700" },
   socialSummaryLabel: { color: C.muted, fontSize: 12, fontWeight: "700", marginTop: 2 },
   socialFilterRow: { flexDirection: "row", flexWrap:"wrap", gap: 7, marginBottom: 13 },
   socialFilterButton: { flexGrow:1, flexBasis:100, minWidth: 0, borderRadius: 12, borderWidth: 1, borderColor: C.border, backgroundColor: C.card, minHeight: 48, paddingVertical:10, paddingHorizontal: 10, alignItems: "center", justifyContent: "center" },

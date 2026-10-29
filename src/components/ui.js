@@ -1,3 +1,5 @@
+import {InteriorContext,InteriorHeader} from './InteriorChrome';
+import {interiorMood,interiorType} from '../theme/interior.mjs';
 import {OwnerPreviewNotice} from '../ownerPreview/OwnerPreviewNotice';
 import {FloatingOrbContext,useFloatingOrbLayout,useFloatingOrbAvoidance,OrbSafeRegion} from './FloatingOrbAvoidance';
 import {MotionReveal} from '../theme/motion';
@@ -264,6 +266,7 @@ function BusyBrandLockup({ size = 38, centered = false, inverse = false }) {
 function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = true, hideDevBadge = true, scrollRef }) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const home=s.screen==='home',dashboard=home||['results','workHub'].includes(s.screen);
+  const atmosphereVisible=home||['socialMedia','socialCreator','growthCommandCentre','websiteBuilder','miniAppBuilder'].includes(s.screen);
   const overlay=useFloatingOrbLayout(JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.screen]));
   const eligible=!noNav&&!keyboardVisible&&!s.busyMiniOrbHidden&&['workHub','customerRecords','growthCommandCentre','socialMedia','settings','results'].includes(s.screen)&&typeof s.openTalkToBusy==='function';
   const orbObstacles=React.useMemo(()=>[...overlay.obstacles,...(Array.isArray(s.busyOrbAvoidRects)?s.busyOrbAvoidRects:[])],[overlay.obstacles,s.busyOrbAvoidRects]);
@@ -284,7 +287,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
   }, []);
 
   return (
-    <View style={[styles.shell, dark && styles.homeDarkShell]}>
+    <View style={[styles.shell, dark && styles.homeDarkShell]}><InteriorContext.Provider value={home?null:interiorMood(s.screen)}>
       <PremiumAtmosphere screen={s.screen}/>
       <KeyboardAvoidingView
         style={styles.keyboardAvoider}
@@ -295,7 +298,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         <ScrollView
           ref={scrollRef}
           onScrollBeginDrag={overlay.startScroll} onMomentumScrollBegin={overlay.startScroll} onScrollEndDrag={overlay.endScroll} onMomentumScrollEnd={overlay.endScroll}
-          style={[styles.scroll, dark && styles.homeDarkShell,home&&{backgroundColor:"transparent"}]}
+          style={[styles.scroll, dark && styles.homeDarkShell,atmosphereVisible&&{backgroundColor:"transparent"}]}
           contentContainerStyle={[
             styles.scrollContent,
             dark && styles.homeDarkContent,
@@ -307,7 +310,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           automaticallyAdjustKeyboardInsets={false}
         >
-        <MotionReveal identity={s.screen}><View style={[styles.topRow, dark && styles.homeDarkTopRow,home&&{marginBottom:0}]}>
+        <MotionReveal identity={s.screen}>{!home?<InteriorHeader s={s} title={title} subtitle={subtitle} brandCue={brandCue?chromeLabel(brandCue):null} noBack={noBack}/>:<><View style={[styles.topRow, dark && styles.homeDarkTopRow,home&&{marginBottom:0}]}>
           <View style={{ flex: 1, paddingRight: 12 }}>
             <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:4}}><OrbSafeRegion style={{alignSelf:"flex-start"}}><BusyBrandLockup size={36} inverse={dark} /></OrbSafeRegion>{home&&process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview"?<OwnerPreviewNotice compact/>:null}</View>
             <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.tagline, dark && styles.homeDarkMuted]}>Your business. A little more freedom.</Text></OrbSafeRegion>
@@ -324,14 +327,14 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         {title ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading,dashboard&&{fontSize:home?21:22,lineHeight:home?28:29,letterSpacing:-.35}]}>{title}</Text></OrbSafeRegion> : null}
         {subtitle ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.subtitle, dark && styles.homeDarkMuted,dashboard&&{fontSize:13,lineHeight:19,marginTop:3,marginBottom:home?0:12}]}>{subtitle}</Text></OrbSafeRegion> : null}
 
-        </MotionReveal>
+        </>}</MotionReveal>
         {children}
         </ScrollView>
         {eligible?<BusyMiniOrb key={s.screen} s={s} ready={overlay.ready} layoutVersion={overlay.version} bounds={overlay.bounds} obstacles={orbObstacles}/>:null}
        </View></FloatingOrbContext.Provider>
       </KeyboardAvoidingView>
       {!noNav && !keyboardVisible ? <BottomNav s={s} dark={dark} /> : null}
-    </View>
+    </InteriorContext.Provider></View>
   );
 }
 
@@ -352,6 +355,7 @@ function BottomNav({ s, dark = true }) {
 }
 
 function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
+  const interior=React.useContext(InteriorContext);
   const toneStyle =
     tone === "red" ? styles.cardRed : tone === "green"
       ? styles.cardGreen
@@ -361,7 +365,7 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
   const eyebrowText = eyebrow ? String(chromeLabel(eyebrow)).toUpperCase() : "";
   const showBusyMark = eyebrowText.startsWith("BUSY");
   return (
-    <View style={[styles.card, toneStyle]}>
+    <View style={[styles.card, toneStyle,interior&&{padding:16,borderRadius:20,borderTopColor:C[interior.accent]}]}>
       {eyebrow ? (
         showBusyMark ? (
           <View style={styles.busyEyebrowRow}>
@@ -372,8 +376,8 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
           <Text style={styles.eyebrow}>{eyebrowText}</Text>
         )
       ) : null}
-      {title ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text accessibilityRole="header" style={styles.cardTitle}>{title}</Text></OrbSafeRegion> : null}
-      {body ? <OrbSafeRegion><Text style={styles.cardBody}>{body}</Text></OrbSafeRegion> : null}
+      {title ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text accessibilityRole="header" style={[styles.cardTitle,interior&&{fontSize:interiorType.cardTitle,lineHeight:interiorType.cardTitleLine,marginBottom:5}]}>{title}</Text></OrbSafeRegion> : null}
+      {body ? <OrbSafeRegion><Text style={[styles.cardBody,interior&&{fontSize:14,lineHeight:21}]}>{body}</Text></OrbSafeRegion> : null}
       {children ? <View style={styles.cardContent}>{children}</View> : null}
       {footer ? <Text style={styles.cardFooter}>{footer}</Text> : null}
     </View>
@@ -381,7 +385,7 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
 }
 
 function Button({ label, onPress, primary = false, danger = false, disabled = false, selected, compact = false, loading = false, accessibilityHint }) {
-  const avoidance=useFloatingOrbAvoidance();
+  const avoidance=useFloatingOrbAvoidance(),interior=React.useContext(InteriorContext);
   disabled=disabled||loading;
   return (
     <Pressable {...avoidance}
@@ -397,11 +401,13 @@ function Button({ label, onPress, primary = false, danger = false, disabled = fa
         selected && styles.buttonSelected,
         primary && styles.buttonPrimary,
         danger && styles.buttonDanger,
+        interior&&{borderRadius:18,paddingVertical:11,borderColor:selected?C[interior.accent]:C.border},
+        interior&&primary&&!danger&&{backgroundColor:C.blue,borderColor:C.blueText,shadowColor:C[interior.accent],shadowOpacity:.18,shadowRadius:9,shadowOffset:{width:0,height:3}},
         disabled && styles.buttonDisabled,
         pressed && !disabled && styles.pressed,
       ]}
     >
-      <View style={styles.actionContent}>{loading?<ActivityIndicator accessibilityElementsHidden color={C.blueText} size="small"/>:null}<Text
+      <View pointerEvents="none" style={styles.actionContent}>{interior&&primary?<View accessibilityElementsHidden style={{width:4,height:18,borderRadius:2,backgroundColor:C.onAction,opacity:.6}}/>:null}{loading?<ActivityIndicator accessibilityElementsHidden color={C.blueText} size="small"/>:null}<Text
         style={[
           styles.buttonText,
           compact && styles.buttonTextCompact,

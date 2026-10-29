@@ -1,10 +1,10 @@
-import {buildWebsiteDraft,applyStructuredWebsiteEdit} from '../../../src/domain/websiteBuilder.js';
+import {buildWebsiteDraft,applyStructuredWebsiteEdit,applyWebsiteLayoutChange} from '../../../src/domain/websiteBuilder.js';
 import {stableJson} from '../../../src/core/stableJson.mjs';
 // Purpose-specific extension of the ORIGINAL website gateway. No hosted write
 // is enabled by this module. The endpoint requires a separately provisioned,
 // exact staging environment AND an explicit server-side activation switch.
 export async function privateWebsiteDraftAction({action,body,userId,read,commit}){
- if(!['website_create','website_edit_text'].includes(action)||body?.ownerApproved!==true)throw Error('Review this private website operation');
+ if(!['website_create','website_edit_text','website_edit_design'].includes(action)||body?.ownerApproved!==true)throw Error('Review this private website operation');
  const basis=await read(body.businessId);
  if(basis?.actorId!==userId||basis.businessId!==body.businessId||basis.revision!==body.expectedRevision||stableJson(basis.websiteDraft||null)!==stableJson(body.expectedDraft||null))throw Error('Website or workspace changed');
  let candidate;
@@ -13,6 +13,10 @@ export async function privateWebsiteDraftAction({action,body,userId,read,commit}
   if(basis.websiteDraft||basis.profileRevision!==body.sourceRevision||!profile?.businessName||!Array.isArray(profile.services)||!profile.services.length||profile.services.length>30)throw Error('Review saved business facts before creating a website');
   const brief={...profile,phone:profile.contact?.phone||'',email:profile.contact?.email||''};
   candidate=buildWebsiteDraft({brandBrain:{websiteBrief:brief},businessId:body.businessId});
+ }else if(action==='website_edit_design'){
+  const patch=body.patch,keys=patch?.action==='brand-colour'?['action','value']:patch?.action==='move'?['action','sectionId','direction']:['action','field','value'];
+  if(!basis.websiteDraft||!patch||!['style','brand-colour','move'].includes(patch.action)||Object.keys(patch).some(k=>!keys.includes(k)))throw Error('Review a supported private design change');
+  const edited=applyWebsiteLayoutChange(basis.websiteDraft,patch);if(!edited.applied)throw Error(edited.reason||'Design change unavailable');candidate=edited.draft;
  }else{
   const patch=body.patch;
   if(!basis.websiteDraft||!patch||Object.keys(patch).some(k=>!['sectionId','field','value','itemId'].includes(k))||!['title','body','name','description'].includes(patch.field)||typeof patch.value!=='string'||patch.value.length>6000)throw Error('Choose supported private wording');
