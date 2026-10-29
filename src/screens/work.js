@@ -1,3 +1,4 @@
+import {ConnectedEnquiryReview} from '../staging/ConnectedEnquiryReview';
 import {OrbSafeRegion} from '../components/FloatingOrbAvoidance';
 import {CanonicalWorkEntry} from '../components/CanonicalWorkEntry';
 import {PrivateQuoteFields} from '../components/PrivateQuoteFields';
@@ -817,6 +818,7 @@ function WorkHub({ s }) {
       subtitle="Bookings, customers and next steps."
       brandCue=""
     >
+      {s.connectedRuntime?<ConnectedEnquiryReview s={s}/>:null}
       <CanonicalWorkEntry s={s} />
       <QuoteFollowUpChoices s={s} />
       <OrbSafeRegion style={styles.workOverviewRow}>

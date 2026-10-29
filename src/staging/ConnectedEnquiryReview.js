@@ -1,0 +1,25 @@
+import React from 'react';import {Text,Alert} from 'react-native';
+import {Card,Button,Field} from '../components/ui';import {styles} from '../theme/styles';
+import {useOwnerEditNavigation} from '../screens/useOwnerEditNavigation';
+import {createConnectedEnquiryJourney} from './connectedEnquiryJourney.mjs';
+const localDate=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');};
+export function ConnectedEnquiryReview({s}){
+ const [review,setReview]=React.useState(null),[fields,setFields]=React.useState(null),[busy,setBusy]=React.useState(false),[notice,setNotice]=React.useState(''),[filed,setFiled]=React.useState(null);
+ const live=React.useRef(null),alive=React.useRef(true),epoch=React.useRef(0),client=React.useRef(null);live.current={s,review,fields};
+ const current=()=>alive.current&&s.connectedRuntime?.active&&live.current.s.connectedRuntime===s.connectedRuntime;
+ if(!client.current)client.current=createConnectedEnquiryJourney({request:s.connectedRequest,businessId:s.cloudWorkspace.businessId,ownerId:s.ownerSession.userId,isCurrent:current});
+ React.useEffect(()=>()=>{alive.current=false;},[]);
+ const dirty=useOwnerEditNavigation(s,{source:review,projectId:review?.source.requestId,revision:review?.revision},()=>{epoch.current++;setReview(null);setFields(null);});
+ const run=async fn=>{if(busy||!current())return;setBusy(true);const e=epoch.current;try{await fn(()=>current()&&epoch.current===e);}catch{if(current())setNotice('This enquiry changed or could not be checked. Your current work is kept.');}finally{if(current())setBusy(false);}};
+ return <Card title="Your next enquiry" body="Review a saved app enquiry, check the customer details, then prepare private work. Nothing is sent or booked.">
+  {(s.miniAppsStatus?.requests||[]).filter(r=>r.request_type==='enquiry'&&['received','reviewing'].includes(r.status)).map(r=><Button key={r.id} label={'Review enquiry'+(r.service_name?' · '+r.service_name:'')} disabled={busy} onPress={()=>s.requestOwnerEditTransition(()=>run(async fresh=>{const saved=await s.connectedRequest('app_enquiry_state',{requestId:r.id});if(!fresh())return;if(saved.state==='Filed'){if(s.connectedInstallEnquiry(saved.record)){setFiled(saved.record);setNotice('The saved customer and enquiry were reopened. No receipt was reconstructed.');}return;}const value=await client.current.review(r.id);if(!fresh())return;setReview(value);setFields({name:value.source.name,phone:value.source.phone,email:value.source.email,address:'',service:value.source.service,eventDate:new Date().toISOString().slice(0,10),eventTime:new Date().toISOString().slice(11,16),note:'',confidence:'High'});setNotice('Check the original request below. Customer-supplied contact details are not verified identity.');}))}/>)}
+  {review?<><Text style={styles.cardBody}>{review.source.message}</Text>
+   {!review.pending?<Button label="Keep this enquiry in my Inbox" disabled={busy} onPress={()=>run(async fresh=>{const result=await client.current.importSource(review);if(fresh()&&result.ok){setReview(result.review);setNotice('Private Inbox source independently checked. Review contact details before filing.');}else if(fresh())setNotice('The outcome is uncertain. Inspect the account before another deliberate review; nothing will be replayed.');})}/>:<>
+    {['name','phone','email','address','service','eventDate','eventTime','note'].map(k=><Field key={k} label={k==='eventDate'?'Enquiry date':k==='eventTime'?'Enquiry time':k[0].toUpperCase()+k.slice(1)} value={fields[k]} editable={!busy} onChangeText={value=>{epoch.current++;setFields(old=>({...old,[k]:value}));dirty(true);}}/>)}
+    <Button label="Review and file customer enquiry" disabled={busy||!fields.name.trim()} onPress={()=>{const captured=fields,e=epoch.current;Alert.alert('File this private enquiry?', 'Use the contact details you reviewed. This first-enquiry route preserves existing records and will refuse an incompatible intake. No contact, booking or payment follows.',[{text:'Keep editing',style:'cancel'},{text:'File reviewed enquiry',onPress:()=>{if(!current()||epoch.current!==e||live.current.fields!==captured)return;run(async fresh=>{const result=await client.current.file(review,captured);if(fresh()&&result.ok&&s.connectedInstallEnquiry(result.observed)){setFiled(result.observed);dirty(false);setReview(null);setNotice('Customer and original source reopened. You can now prepare a private quote.');}else if(fresh())setNotice('Filing was not confirmed. Current words are kept; no operation was replayed.');});}}]);}}/>
+   </>}
+  </>:null}
+  {filed?<Button label="Prepare a private quote" onPress={()=>s.startDirectCustomerAction(filed.customer.id,'quote',filed.enquiry.id)}/>:null}
+  {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
+ </Card>;
+}

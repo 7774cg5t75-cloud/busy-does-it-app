@@ -228,6 +228,7 @@ function Settings({ s }) {
     <Shell s={s} noBack title="Settings" subtitle="Your business details, connected accounts and approval rules, all in one place.">
       <AppearanceChoices/>
       <AppAbout/>
+      {s.connectedRuntime?<Card title="Your staging business" body={s.businessName+" · Private test workspace. No sending, publishing, booking or payments."}><Button label="Return to security inspector" onPress={()=>s.requestOwnerEditTransition(()=>s.connectedReturnToInspector())}/></Card>:null}
       <Card
         eyebrow="Your everyday settings"
         title="What would you like to manage?"

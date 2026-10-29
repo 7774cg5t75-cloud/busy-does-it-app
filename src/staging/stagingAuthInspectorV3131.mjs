@@ -105,6 +105,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
   return {
     get configured(){return enabled;},
     get signedIn(){return !!token&&!!verifiedKey;},
+    get sessionVersion(){return generation;},
     async signIn(email,password){
       assertConfigured();
       // Clear previous account, including on failed attempts.
@@ -169,8 +170,10 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
       if(!token||!verifiedKey)throw Error("staging-no-session");
       const active=generation,bearer=token,userId=verifiedUser,key=verifiedKey;
       const current=()=>generation===active&&token===bearer;
-      const apps=['owner_status','build_draft','apply_app_plan','apply_coordinated_edits'];
-      if(!['workspaces','builder_read','website_create','website_edit_text',...apps].includes(action))throw Error("Unsupported staging operation");
+      const apps=['owner_status','build_draft','apply_app_plan','apply_coordinated_edits','set_module','move_section','set_appearance'];
+      const account={app_enquiry_state:['busy_connected_app_enquiry_state_v1',['businessId','requestId']],app_enquiry_review:['busy_connected_app_enquiry_review_v1',['businessId','requestId']],app_enquiry_import:['busy_connected_app_enquiry_import_v1',['businessId','requestId','requestHash','expectedRevision']],app_enquiry_file:['busy_connected_app_enquiry_file_v1',['businessId','expectedRevision','capture']],pending_review:['busy_owner_pending_review_v1',['businessId','expectedRevision','enquiryId']],filed_review:['busy_owner_first_reply_review_v1',['businessId','expectedRevision','customerId','enquiryId']]};
+
+      if(!['workspaces','builder_read','website_create','website_edit_text',...apps,...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
       try{
         const id=await checkIdentity(bearer,FIXTURES[key].email);
         if(!current()||id!==userId)throw Error("staging-account-changed");
@@ -184,7 +187,10 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
           const basis=await call('/rest/v1/rpc/busy_connected_builder_read_v1',{method:'POST',bearer,body:{p_business_id:payload.businessId}});
           if(!current())throw Error('staging-session-cancelled');
           if(basis.status!==200||basis.json?.actorId!==userId||basis.json?.businessId!==payload.businessId)throw Error('staging-business-unavailable');
-          if(action==='builder_read')response=basis;
+          if(account[action]){
+            const [rpc,keys]=account[action],names={businessId:'p_business_id',requestId:'p_request_id',requestHash:'p_request_hash',expectedRevision:'p_expected_revision',enquiryId:'p_enquiry_id',customerId:'p_customer_id',capture:'p_capture'};
+            response=await call('/rest/v1/rpc/'+rpc,{method:'POST',bearer,body:Object.fromEntries(keys.map(k=>[names[k],payload[k]]))});
+          }else if(action==='builder_read')response=basis;
           else {
           if(apps.includes(action)&&action!=='owner_status'&&payload.expectedProfileRevision!==basis.json.profileRevision)throw Error('staging-source-changed');
           response=await call('/functions/v1/'+(apps.includes(action)?'busy-mini-apps':'busy-website-publish'),{method:'POST',bearer,body:{...payload,action,connectedStaging:true}});

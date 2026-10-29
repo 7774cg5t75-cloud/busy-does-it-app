@@ -1,3 +1,5 @@
+import {ConnectedApplicationEntry} from './ConnectedApplicationEntry';
+import {createConnectedApplicationRuntime} from './connectedApplicationRuntime.mjs';
 import React from 'react';
 import {ScrollView,Text,View,Alert,AppState} from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -15,7 +17,7 @@ import {createOwnerEditNavigation} from '../core/ownerEditNavigation.mjs';
 // Integration workbench mounts ORIGINAL editors/planner/surface. It is deliberately
 // a bounded staging slice, not another Home, CRM, builder or persistence engine.
 export function ConnectedBuilderWorkspace({inspector,onClose}){
- const [spaces,setSpaces]=React.useState([]),[basis,setBasis]=React.useState(null),[appStatus,setAppStatus]=React.useState(null),[busy,setBusy]=React.useState(false),[notice,setNotice]=React.useState(''),[goal,setGoal]=React.useState(''),[review,setReview]=React.useState(null),[proposal,setProposal]=React.useState(null),[undo,setUndo]=React.useState(null),[suspended,setSuspended]=React.useState(false),[selectedIds,setSelectedIds]=React.useState([]);
+ const [spaces,setSpaces]=React.useState([]),[basis,setBasis]=React.useState(null),[appStatus,setAppStatus]=React.useState(null),[busy,setBusy]=React.useState(false),[notice,setNotice]=React.useState(''),[goal,setGoal]=React.useState(''),[review,setReview]=React.useState(null),[proposal,setProposal]=React.useState(null),[undo,setUndo]=React.useState(null),[suspended,setSuspended]=React.useState(false),[selectedIds,setSelectedIds]=React.useState([]),[application,setApplication]=React.useState(null);
  const generation=React.useRef(0),alive=React.useRef(true),live=React.useRef(null),session=React.useRef(null),navigation=React.useRef(null),typing=React.useRef(0),inFlight=React.useRef(false),appDirty=React.useRef({}),foreground=React.useRef(true);
  if(!session.current)session.current=createConnectedBuilderSession({request:(a,p)=>inspector.requestConnected(a,p)});
  live.current={basis,appStatus,goal,busy,proposal,review,suspended};
@@ -28,6 +30,7 @@ export function ConnectedBuilderWorkspace({inspector,onClose}){
  const open=id=>navigation.current.request(()=>run(async current=>{setBasis(null);setAppStatus(null);setReview(null);setProposal(null);setUndo(null);setSelectedIds([]);const found=await session.current.open(id);if(!current())return;setBasis(found);live.current={...live.current,basis:found};const status=await send('owner_status');if(current())setAppStatus(status);return 'Business opened from its current account records. Nothing published.';}));
  const ownerState={ownerSession:{userId:basis?.actorId},cloudWorkspace:{businessId:basis?.businessId},setOwnerEditDirty:r=>navigation.current.report({...r,scope:scope()}),requestOwnerEditTransition:navigation.current.request,releaseOwnerEdit:navigation.current.release,withOwnerEditCommit:navigation.current.withCommit};
  const facts=basis?.profile,app=appStatus?.app,catalog=appStatus?.catalog||appStatus?.moduleCatalog||[];
+ if(application)return <ConnectedApplicationEntry key={application.ownerId+application.businessId} runtime={application} onExit={()=>{application.dispose();setApplication(null);}}/>;
  return <ScrollView style={{flex:1,backgroundColor:C.bg}} contentContainerStyle={{padding:16,paddingTop:55,paddingBottom:60}} keyboardShouldPersistTaps="handled">
   <Card eyebrow="Isolated staging" title="Connected business drafts" body="Original website and app editors. Account operations require provisioned staging contracts. Publishing, payments and customer communication remain unavailable."/>
   <Button label="Back to security inspector" disabled={busy} onPress={()=>navigation.current.request(onClose)}/>
@@ -36,6 +39,7 @@ export function ConnectedBuilderWorkspace({inspector,onClose}){
   {suspended?<Card title="Recheck business access" body="The app paused. Verify the current session and membership before viewing or changing private work."><Button label="Verify current workspace" onPress={()=>run(async current=>{if(session.current.scope)await session.current.read();if(alive.current){foreground.current=true;setSuspended(false);}})}/></Card>:null}
   <View style={suspended?{display:'none'}:null}>
   {basis?<>
+   <Button label="Open Busy" disabled={busy||!basis.profile||!appStatus} onPress={()=>navigation.current.request(()=>run(async current=>{const fresh=await inspector.requestConnected('builder_read',{businessId:basis.businessId});const status=await inspector.requestConnected('owner_status',{businessId:basis.businessId});if(current())setApplication(createConnectedApplicationRuntime({environment:'isolated-staging',inspector,basis:fresh,appStatus:status,onExit:()=>{setApplication(null);onClose();}}));}))}/>
    <Card title="Saved business information" body={facts?.businessName||'No saved public business profile. Provision and review fictional business facts before generation.'}>
     <Text style={styles.cardBody}>{facts?.services?.map(s=>s.name).join(' • ')}</Text>
     <Button label="Recheck account drafts" disabled={busy} onPress={()=>navigation.current.request(()=>run(async current=>{const r=await session.current.reconcile();const a=await send('owner_status');if(current()){setBasis(r.observed);setAppStatus(a);setReview(null);setProposal(null);}return 'Current account versions inspected. This is not a recovered own-write receipt.';}))}/>

@@ -1,3 +1,4 @@
+import {connectedStagingAction} from '../_shared/connectedStagingActions.mjs';
 import {privateWebsiteDraftAction} from './privateDraftService.mjs';
 import {builderExploreRemoteGuard} from '../_shared/builderExploreRemoteGuard.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -1348,6 +1349,7 @@ Deno.serve(async (request: Request) => {
     const exploreGate=builderExploreRemoteGuard(body);
     if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
     const action = cleanText(body?.action, 80);
+    if(!connectedStagingAction({projectUrl:SUPABASE_URL,enabled:Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED"),domain:"website",action}).allowed)return json(403,{ok:false,error:"This action is not enabled in connected staging"});
     const requestedBusinessId = cleanText(body?.businessId, 80);
     const writeActions = new Set([
       "prepare",

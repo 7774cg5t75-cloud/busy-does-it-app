@@ -71,7 +71,7 @@ export default function StagingSignInScreen(){
   if(busy||inspector.current.signedIn)return;
   setSelected(key);setPassword("");setNotice("");setResult(null);
  };
- if(connected&&inspector.current.signedIn)return <ConnectedBuilderWorkspace inspector={inspector.current} onClose={()=>setConnected(false)}/>;
+ if(connected&&inspector.current.signedIn)return <ConnectedBuilderWorkspace inspector={inspector.current} onClose={()=>{setConnected(false);if(!inspector.current.signedIn){setResult(null);setStatus("Signed out of this test device");}}}/>;
  return <KeyboardAvoidingView style={styles.fill}
    behavior={Platform.OS==="ios"?"padding":undefined}>
   <ScrollView contentContainerStyle={styles.content}

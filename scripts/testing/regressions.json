@@ -2807,6 +2807,18 @@
       "args": [
         "scripts/check-connected-builders.mjs"
       ]
+    },
+    {
+      "id": "connected-six-area",
+      "args": [
+        "scripts/check-connected-six-area.mjs"
+      ]
+    },
+    {
+      "id": "owner-status-closure",
+      "args": [
+        "scripts/check-owner-status-closure.mjs"
+      ]
     }
   ]
 }

@@ -1,3 +1,4 @@
+import {connectedTransportRestricted} from './connectedTransportBoundary.mjs';
 import {appColors} from "../theme/appearance.mjs";
 export const TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED = false; // Separate read/write cutover approval required.
 export const TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED = false; // Separate reviewed server/client cutover required.
@@ -45,6 +46,7 @@ function busyRequestId(prefix = "req") {
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 15000, fetchImpl = fetch) {
+  if(connectedTransportRestricted())throw Error("This action is not connected in isolated staging. Nothing was sent.");
   if (IS_STAGING_BUILD && !CLOUD_CONFIG.configured) {
     const error=new Error("Staging cloud setup is incomplete. BUSY has not contacted a live service.");
     error.stageGuard=true;

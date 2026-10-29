@@ -1,3 +1,4 @@
+import {isConnectedApplicationRuntime} from '../staging/connectedApplicationRuntime.mjs';
 import {OwnerPreviewNotice} from '../ownerPreview/OwnerPreviewNotice';
 import {executeGoalToPrivateApp} from '../core/goalToPrivateApp.mjs';
 import {creatorPublisherBlockReason} from '../core/creatorDraftMedia.mjs';
@@ -325,30 +326,31 @@ const BRAND_PROFILE_TEXT_FIELDS = new Set([
   "logoLabel",
 ]);
 
-function App() {
+function App({connectedRuntime=null}={}) {
+  const connected=process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="isolated-staging"&&isConnectedApplicationRuntime(connectedRuntime)?connectedRuntime:null;
   // Offline UI exploration only: no synthetic account, token, role or cloud context.
   const ownerPreview=process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview";
   const [hydrated, setHydrated] = useState(false);
-  const [onboardingComplete, setOnboardingComplete] = useState(ownerPreview);
-  const [screen, setScreen] = useState(ownerPreview?"home":"welcome");
+  const [onboardingComplete, setOnboardingComplete] = useState(ownerPreview||!!connected);
+  const [screen, setScreen] = useState(ownerPreview||connected?"home":"welcome");
   const [history, setHistory] = useState([]);
   const [tab, setTab] = useState("Home");
-  const [businessName, setBusinessName] = useState(ownerPreview?"Fictional Exterior Studio":"Dave's Exterior Cleaning");
-  const [trade, setTrade] = useState("Exterior cleaning");
+  const [businessName, setBusinessName] = useState(connected?connected.profile.businessName:ownerPreview?"Fictional Exterior Studio":"Dave's Exterior Cleaning");
+  const [trade, setTrade] = useState(connected?connected.profile.businessType||"":"Exterior cleaning");
   const [verticalId, setVerticalId] = useState("exterior-cleaning");
-  const [postcode, setPostcode] = useState("EX17");
+  const [postcode, setPostcode] = useState(connected?"":"EX17");
   const [radius, setRadius] = useState("15");
   const [brandProfile, setBrandProfile] = useState(() => ({
     ...BRAND_PROFILE_SEED,
-    serviceDescriptions: {},
-    faqs: [],
-    testimonials: [],
+    serviceDescriptions: Object.fromEntries((connected?.profile.services||[]).map(r=>[r.id,r.description||''])),
+    publicDescription:connected?.profile.description||'',serviceAreaText:connected?.profile.serviceArea||'',phone:connected?.profile.contact?.phone||'',email:connected?.profile.contact?.email||'',
+    faqs: [],testimonials: [],
   }));
   const [newBrandFaqQuestion, setNewBrandFaqQuestion] = useState("");
   const [newBrandFaqAnswer, setNewBrandFaqAnswer] = useState("");
   const [newBrandTestimonialText, setNewBrandTestimonialText] = useState("");
   const [newBrandTestimonialAttribution, setNewBrandTestimonialAttribution] = useState("");
-  const [websiteDraft, setWebsiteDraft] = useState(null);
+  const [websiteDraft, setWebsiteDraft] = useState(connected?.websiteDraft||null);
   // Keep asynchronous voice transcription attached to the LATEST private
   // draft, not a stale callback closure captured before recording.
   const websiteDraftRef=useRef(null);
@@ -399,6 +401,7 @@ function App() {
     entrySummary: [],
     catalog: [],
     publicProfile: null,
+    ...(connected?{...connected.appStatus,loaded:true}:{}),
   });
   const [ownerQueueSummary,setOwnerQueueSummary]=useState(null);
   const [ownerQueueBusy,setOwnerQueueBusy]=useState(false);
@@ -466,7 +469,7 @@ function App() {
   const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
   const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
   const [recentPhotoCountNeeded, setRecentPhotoCountNeeded] = useState("2");
-  const [customers, setCustomers] = useState(customerSeed);
+  const [customers, setCustomers] = useState(connected?[]:customerSeed);
   const [newCustomerName, setNewCustomerName] = useState("");
   const [newCustomerPhone, setNewCustomerPhone] = useState("");
   const [newCustomerAddress, setNewCustomerAddress] = useState("");
@@ -483,7 +486,7 @@ function App() {
   const [newEnquiryNote, setNewEnquiryNote] = useState("");
   const [newEnquiryDate, setNewEnquiryDate] = useState(dateToISO(new Date()));
   const [customerNoteText, setCustomerNoteText] = useState("");
-  const [services, setServices] = useState(servicesSeed);
+  const [services, setServices] = useState(connected?connected.profile.services||[]:servicesSeed);
   const [newServiceName, setNewServiceName] = useState("");
   const [newServiceValue, setNewServiceValue] = useState("");
   const [newServiceDuration, setNewServiceDuration] = useState("2");
@@ -575,8 +578,8 @@ function App() {
   const [socialPublishingLoading, setSocialPublishingLoading] = useState(false);
   const [socialPublishingError, setSocialPublishingError] = useState("");
   const [socialPublishingAction, setSocialPublishingAction] = useState("");
-  const [cloudWorkspace, setCloudWorkspace] = useState(null);
-  const [ownerSession, setOwnerSession] = useState(null);
+  const [cloudWorkspace, setCloudWorkspace] = useState(connected?{businessId:connected.businessId,role:"owner"}:null);
+  const [ownerSession, setOwnerSession] = useState(connected?{userId:connected.ownerId}:null);
   const liveOwnerFollowupScopeRef=useRef("");
   liveOwnerFollowupScopeRef.current=[
     ownerSession?.userId||"",cloudWorkspace?.businessId||"",
@@ -602,7 +605,7 @@ function App() {
     customerRequestInFlightRef.current=false;
     setLatestCustomerRequestOutcome(null);
   },[ownerSession?.userId]);
-  const [ownerEmail, setOwnerEmail] = useState(DEFAULT_OWNER_EMAIL);
+  const [ownerEmail, setOwnerEmail] = useState(connected?"":DEFAULT_OWNER_EMAIL);
   const [ownerPassword, setOwnerPassword] = useState("");
   const [ownerAuthLoading, setOwnerAuthLoading] = useState(false);
   const [ownerAuthError, setOwnerAuthError] = useState("");
@@ -793,6 +796,7 @@ function App() {
 
   useEffect(() => {
     let active = true;
+    if(connected){setOwnerAuthReady(true);return()=>{active=false;};}
     (async () => {
       try {
         const rawSession = await SecureStore.getItemAsync(OWNER_SESSION_KEY);
@@ -14931,6 +14935,7 @@ function App() {
     payload = {},
     { includeBusiness = true, requestKey = "", isCurrent = null } = {}
   ) => {
+    if(connected)return connected.requestApp(action,payload,{includeBusiness,isCurrent});
     const token = await ownerAccessToken();
     if (!token) throw new Error("Sign in again before using BUSY Apps.");
     const businessId = cloudWorkspace?.businessId || "";
@@ -15003,7 +15008,7 @@ function App() {
     const scope=businessWorkspaceScopeRef.current,role=replyActionSources.current.role,approvedCurrent=isCurrent;
     isCurrent=()=>businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&replyActionSources.current.role===role&&approvedCurrent();
     if(!isCurrent())return false;
-    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
+    if ((!ownerSession?.accessToken&&!connected) || !cloudWorkspace?.businessId) {
       if (!quiet) setMiniAppsError("Sign in and connect the BUSY cloud workspace first.");
       return false;
     }
@@ -18276,6 +18281,8 @@ function App() {
     resetPrototype,
   };
 
+  if(connected)Object.assign(appState,connected.project({...appState,setWebsiteDraft,setMiniAppsStatus,setWebsiteBuilderNotice,setInboxItems,setCloudRevision}));
+
   if (!hydrated || !ownerAuthReady) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -18288,7 +18295,7 @@ function App() {
     );
   }
 
-  if (!ownerSession?.accessToken && !ownerPreview) {
+  if (!ownerSession?.accessToken && !ownerPreview && !connected) {
     return (
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle={appearance.resolved==="daylight"?"dark-content":"light-content"} />
@@ -18297,7 +18304,7 @@ function App() {
     );
   }
 
-  if ((!cloudAttempted || cloudInitialising) && !ownerPreview) {
+  if ((!cloudAttempted || cloudInitialising) && !ownerPreview && !connected) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingWrap}>
