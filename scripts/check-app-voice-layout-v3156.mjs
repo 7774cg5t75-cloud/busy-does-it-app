@@ -109,7 +109,7 @@ assert.equal(await moveAdapter({moduleKey:'services',direction:'down',appId:'fix
 receipt={...receipt,app:{id:'fixture-app',draft_revision:4}};assert.equal(await moveAdapter({moduleKey:'services',direction:'down',appId:'fixture-app',expectedRevision:4}),false);assert.equal(applied,1);
 const server=read("supabase/functions/busy-mini-apps/index.ts");
 for(const token of ['if (action === "move_section")',
- 'await movePrivateAppModule(resolvedBusinessId,body)',
+ 'await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)',
  '.eq("draft_revision",expected).select("*").maybeSingle()',
  'neverPublishes:true','"move_section"'])
  assert.ok(server.includes(token),"Server move permission "+token);

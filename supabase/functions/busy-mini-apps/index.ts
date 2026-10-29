@@ -1,3 +1,4 @@
+import {commitPrivateDraft} from './commitPrivateDraft.mjs';
 import {connectedStagingAction} from '../_shared/connectedStagingActions.mjs';
 import {createOwnerStatusReader} from './ownerStatusReader.mjs';
 import {quotationAccountReadiness} from './quoteAuthenticationBoundary.mjs';
@@ -1609,7 +1610,8 @@ async function planBusinessApp(
 async function applyBusinessAppPlan(
   userId: string,
   businessId: string,
-  body: any
+  body: any,
+  stagingActor?:string
 ) {
   const [catalog, storedProfile, existingApp] = await Promise.all([
     moduleCatalog(),
@@ -1644,6 +1646,7 @@ async function applyBusinessAppPlan(
     safeArray(existingApp?.draft_config?.offers),
     existingApp?.draft_config?.loyalty || null
   );
+  if(stagingActor&&!existingApp)throw Error("Create the reviewed private App first; planning cannot create a partial staging project.");
   const app = existingApp || (await ensureApp(businessId, userId, profile,{requireNew:true}));
   if(existingApp)requireAppDraftRevision(app,body);
   const base = buildConfig(
@@ -1690,9 +1693,17 @@ async function applyBusinessAppPlan(
 
   const lockReason=appConfigLockReason(app.draft_config,config);
   if(lockReason)throw Error(lockReason);
-  const updated = await supabase
-    .from("busy_mini_apps")
-    .update({
+  const updated = stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+      display_name: profile.businessName,
+      category: profile.businessType,
+      tagline: profile.tagline,
+      status: app.current_live_version_id ? "update_pending" : "draft",
+      draft_revision: Number(app.draft_revision || 1) + 1,
+      draft_profile_revision: Number(storedProfile?.revision || 0),
+      draft_config: config,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
       display_name: profile.businessName,
       category: profile.businessType,
       tagline: profile.tagline,
@@ -1830,7 +1841,8 @@ const ownerStatus=createOwnerStatusReader({supabase,appForBusiness,moduleCatalog
 async function buildDraft(
   userId: string,
   businessId: string,
-  body: any
+  body: any,
+  stagingActor?:string
 ) {
   const catalog = await moduleCatalog();
   const storedProfile = await publicProfileForBusiness(businessId);
@@ -1858,7 +1870,8 @@ async function buildDraft(
     const base=slugify(profile.businessName||"business");
     const suffix=businessId.replaceAll("-","").slice(0,8);
     const publicSlug=`${base}-${suffix}`.slice(0,80);
-    const result=await supabase.rpc("busy_create_first_mini_app_draft_v3199",{
+    if(stagingActor&&Number(body?.expectedProfileRevision)!==revision)throw Error("Business facts changed before first App creation.");
+    const result=await supabase.rpc(stagingActor?"busy_connected_first_app_v1":"busy_create_first_mini_app_draft_v3199",{
       p_business_id:businessId,p_actor_user_id:userId,
       p_public_slug:publicSlug,
       p_display_name:profile.businessName,
@@ -1882,7 +1895,8 @@ async function buildDraft(
     return {app,source:"atomic_first_private_app_v3199",
       atomicFirstCreate:true,privateOnly:true,neverPublishes:true};
   }
-  const app = await ensureApp(businessId, userId, profile);
+  const app = stagingActor?await appForBusiness(businessId):await ensureApp(businessId, userId, profile);
+  if(!app)throw Error("Create the reviewed private App first.");
   requireAppDraftRevision(app,body);
   const config = buildConfig(
     profile,
@@ -1890,9 +1904,17 @@ async function buildDraft(
     Number(storedProfile?.revision || 0),
     app.draft_config
   );
-  const updated = await supabase
-    .from("busy_mini_apps")
-    .update({
+  const updated = stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+      display_name: profile.businessName,
+      category: profile.businessType,
+      tagline: profile.tagline,
+      status: app.current_live_version_id ? "update_pending" : "draft",
+      draft_revision: Number(app.draft_revision || 1) + 1,
+      draft_profile_revision: Number(storedProfile?.revision || 0),
+      draft_config: config,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
       display_name: profile.businessName,
       category: profile.businessType,
       tagline: profile.tagline,
@@ -1924,7 +1946,8 @@ async function setModule(
   businessId: string,
   moduleKey: string,
   enabled: boolean,
-  body: any
+  body: any,
+  stagingActor?:string
 ) {
   const [app, catalog] = await Promise.all([
     appForBusiness(businessId),
@@ -1959,9 +1982,12 @@ async function setModule(
   if(!proposal.ok)throw Error(proposal.reason);
   const config=proposal.nextConfig;
 
-  const updated = await supabase
-    .from("busy_mini_apps")
-    .update({
+  const updated = stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+      draft_config: config,
+      draft_revision: Number(app.draft_revision || 1) + 1,
+      status: app.current_live_version_id ? "update_pending" : "draft",
+      updated_at: new Date().toISOString(),
+    },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
       draft_config: config,
       draft_revision: Number(app.draft_revision || 1) + 1,
       status: app.current_live_version_id ? "update_pending" : "draft",
@@ -1977,7 +2003,7 @@ async function setModule(
   return updated.data;
 }
 
-async function movePrivateAppModule(businessId:string,body:any){
+async function movePrivateAppModule(businessId:string,body:any,stagingActor?:string){
  const app=await appForBusiness(businessId);
  if(!app)throw new Error("Build your Business App draft first.");
  const expected=Number(body?.expectedRevision);
@@ -1988,7 +2014,11 @@ async function movePrivateAppModule(businessId:string,body:any){
    moduleKey:body?.moduleKey,direction:body?.direction
  });
  if(!proposal.ok)throw new Error(proposal.reason);
- const update=await supabase.from("busy_mini_apps").update({
+ const update=stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+   draft_config:proposal.nextConfig,draft_revision:expected+1,
+   status:app.current_live_version_id?"update_pending":"draft",
+   updated_at:new Date().toISOString()
+ },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
    draft_config:proposal.nextConfig,draft_revision:expected+1,
    status:app.current_live_version_id?"update_pending":"draft",
    updated_at:new Date().toISOString()
@@ -2004,7 +2034,7 @@ async function movePrivateAppModule(businessId:string,body:any){
  * One owner-approved edit transaction = one revision, for marketplace and
  * standalone alike. Optimistic concurrency rejects stale approval/replay.
  */
-async function applyCoordinatedPrivateAppEdits(businessId:string,body:any){
+async function applyCoordinatedPrivateAppEdits(businessId:string,body:any,stagingActor?:string){
  const app=await appForBusiness(businessId);
  if(!app)throw new Error("Build your Business App draft first.");
  const expected=Number(body?.expectedRevision);
@@ -2014,7 +2044,11 @@ async function applyCoordinatedPrivateAppEdits(businessId:string,body:any){
   throw new Error("Approve the current private draft before saving a coordinated edit.");
  const plan=proposeCoordinatedAppChanges(app.draft_config,body?.operations);
  if(!plan.ok)throw new Error(plan.reason);
- const saved=await supabase.from("busy_mini_apps").update({
+ const saved=stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+   draft_config:plan.nextConfig,draft_revision:expected+1,
+   status:app.current_live_version_id?"update_pending":"draft",
+   updated_at:new Date().toISOString()
+ },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
    draft_config:plan.nextConfig,draft_revision:expected+1,
    status:app.current_live_version_id?"update_pending":"draft",
    updated_at:new Date().toISOString()
@@ -2028,7 +2062,7 @@ async function applyCoordinatedPrivateAppEdits(businessId:string,body:any){
    affectsLiveBookings:false,sharedConfigForStandalone:true};
 }
 
-async function setPrivateAppAppearance(businessId:string,body:any){
+async function setPrivateAppAppearance(businessId:string,body:any,stagingActor?:string){
  const app=await appForBusiness(businessId);
  if(!app)throw new Error("Build the Business App draft first.");
  const expected=Number(body?.expectedRevision);
@@ -2039,7 +2073,12 @@ async function setPrivateAppAppearance(businessId:string,body:any){
  const candidate=previewPrivateAppAppearance(app.draft_config,{
   field:body?.field,value:body?.value});
  if(!candidate.ok)throw new Error(candidate.reason);
- const update=await supabase.from("busy_mini_apps").update({
+ const update=stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+   draft_config:candidate.nextConfig,
+   draft_revision:expected+1,
+   status:app.current_live_version_id?"update_pending":"draft",
+   updated_at:new Date().toISOString()
+  },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
    draft_config:candidate.nextConfig,
    draft_revision:expected+1,
    status:app.current_live_version_id?"update_pending":"draft",
@@ -4278,7 +4317,7 @@ Deno.serve(async (request: Request) => {
     if (action === "build_draft") {
       return json(200, {
         ok: true,
-        ...(await buildDraft(user.id, resolvedBusinessId, body)),
+        ...(await buildDraft(user.id, resolvedBusinessId, body, SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
         status: await ownerStatus(resolvedBusinessId),
       });
     }
@@ -4295,24 +4334,24 @@ Deno.serve(async (request: Request) => {
         ...(await applyBusinessAppPlan(
           user.id,
           resolvedBusinessId,
-          body
+          body, SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined
         )),
         status: await ownerStatus(resolvedBusinessId),
       });
     }
     if (action === "move_section") {
       return json(200,{ok:true,
-        ...(await movePrivateAppModule(resolvedBusinessId,body)),
+        ...(await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
         status:await ownerStatus(resolvedBusinessId)});
     }
     if (action === "apply_coordinated_edits") {
       return json(200,{ok:true,
-        ...(await applyCoordinatedPrivateAppEdits(resolvedBusinessId,body)),
+        ...(await applyCoordinatedPrivateAppEdits(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
         status:await ownerStatus(resolvedBusinessId)});
     }
     if (action === "set_appearance") {
       return json(200,{ok:true,
-        ...(await setPrivateAppAppearance(resolvedBusinessId,body)),
+        ...(await setPrivateAppAppearance(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
         status:await ownerStatus(resolvedBusinessId)});
     }
     if (action === "set_module") {
@@ -4320,7 +4359,7 @@ Deno.serve(async (request: Request) => {
         resolvedBusinessId,
         clean(body?.moduleKey, 80),
         body?.enabled === true,
-        body
+        body, SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined
       );
       return json(200, {
         ok: true,

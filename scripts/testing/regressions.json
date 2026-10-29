@@ -2819,6 +2819,12 @@
       "args": [
         "scripts/check-owner-status-closure.mjs"
       ]
+    },
+    {
+      "id": "durable-journeys",
+      "args": [
+        "scripts/check-durable-journeys.mjs"
+      ]
     }
   ]
 }
