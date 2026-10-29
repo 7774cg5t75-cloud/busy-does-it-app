@@ -340,7 +340,7 @@ function BottomNav({ s, dark = true }) {
  const scope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.screen]);
  const live=React.useRef(null);live.current={s,scope};
  const run=fn=>()=>{if(live.current.scope===scope)fn(live.current.s);};
- const tab=([label,target,icon])=><Pressable key={label} accessibilityIdentifier={"busy-nav-"+target} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:s.tab===label}} onPress={run(state=>state.jump(target,label))} style={({pressed})=>[styles.navItem,pressed&&{backgroundColor:C.surface}]}>
+ const tab=([label,target,icon])=><Pressable key={label} testID={"busy-nav-"+target} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:s.tab===label}} onPress={run(state=>state.jump(target,label))} style={({pressed})=>[styles.navItem,pressed&&{backgroundColor:C.surface}]}>
   <ChromeIcon name={icon} size={20} color={s.tab===label?C.cyan:C.muted}/><Text style={[styles.navText,s.tab===label&&{color:C.cyan}]}>{label}</Text>
   <View style={{height:2,width:14,borderRadius:2,backgroundColor:s.tab===label?C.cyan:'transparent',marginTop:3}}/>
  </Pressable>;
