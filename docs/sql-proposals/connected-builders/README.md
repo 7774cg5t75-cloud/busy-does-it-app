@@ -1,0 +1,27 @@
+# Connected builders — review candidate, not hosted installation
+
+Target: **pnjdlogwegnqbsfpcofw only**. Read-only inspection on 29 October 2026 found the project healthy with only the two-row RLS canary. No operational schema, users, functions or switches were installed by this mission.
+
+This slice reuses `busy_businesses`, `busy_business_memberships`, `busy_business_snapshots.websiteDraft`, `busy_public_business_profiles` and the original Mini App tables. It does not introduce a second draft store or generic snapshot writer. The new website commit is service-only, accepts the server-verified actor, locks current owner membership and the exact snapshot revision/website target, and changes only `websiteDraft`. Private website edits do not publish or set a live status. Generated HTML is reconstructed by the original renderer. Snapshot revisions provide CAS, **not an immutable website-version archive or an exact operation receipt**.
+
+`contracts.sql` intentionally aborts. It is a proposal outside the migration directory. The disposable test removes only that named fuse in its owned local database. It runs the original Phase58 write fence unchanged apart from its own explicitly documented disposable fuse. Existing failure counterexamples remain in their original files.
+
+## Dependencies and later activation order
+
+1. Reinspect the exact staging identity, schema, migration ledger, effective grants/default privileges, triggers, functions and original schema fingerprints. Confirm a recoverable backup and retaining rollback.
+2. Review a staging-only business/membership baseline against the canonical intended contracts. The existing `staging/ISOLATED_ONLY_business_core_v3180.sql` is a compatibility baseline, **not a production schema export**. Bind only separately approved fictional Auth users to fictional businesses; no email, metadata or client UUID grants membership.
+3. Review the original snapshot DDL and Phase58 finite-writer lock/fence dependencies. Do not restore broad snapshot writes. Review the original public-profile DDL and its website/deployment foreign keys. Provision reviewed fictional public business facts. No broad production migration sweep or live data copying.
+4. Review these three functions and their fixed ownership/search paths/effective grants, then rehearse the retaining rollback. Obtain explicit approval for the exact staging SQL before generating/installing a normal migration with the available CLI. No migration history is claimed by this proposal.
+5. The original Mini App endpoint needs more than its four foundation tables: `owner_status` also reads request links, counters, guest requests, Work booking and message/outbox evidence. Complete the original dependency closure and audit those functions. Local first-app/Studio tests do **not** prove that the full endpoint is provisioned. In particular, original multi-request App writes need hosted membership/revocation race acceptance before cutover; the website transaction does not establish that guarantee for App Studio.
+6. Separately approve deployment of the original website/Mini App gateways and staging-only client configuration. `BUSY_CONNECTED_BUILDERS_ENABLED` remains unset/false. Both connected gateways reject activation until the exact staging URL and explicit server flag are present. No service key belongs in the mobile app.
+7. Run two-tenant real Auth/JWT/PostgREST tests, expiry, revocation, CAS, dropped acknowledgements, fresh-client reopening and negative transport checks before approving that switch. Native/internal builds and spending remain separate approvals.
+
+The staging inspector is retained. After verified fictional login, **Open connected business drafts** mounts a bounded integration workbench using original website wording editing, the shared HTML renderer, original App goal planner, Enquiry Journey editor, Studio batch/save/Undo and MiniAppSurface. This is **not yet the complete signed-in six-area application**. No canary row is treated as business membership. Missing dependencies show unavailable states. Tokens remain ephemeral inside the original inspector; relaunch requires sign-in again.
+
+Only explicit owner service choices are used for new app planning (up to the original six-service bound). The server-read profile revision is rechecked before app dispatch. Newer profile data never automatically replaces an existing draft or its unfinished wording. A successful website receipt is followed by independent exact-target readback. Lost acknowledgement remains uncertain: readback is an observation, never a fabricated own-write receipt, and the request is not replayed. Reinspection requires a fresh deliberate review and CAS.
+
+## Retaining rollback
+
+`rollback-readonly.sql` revokes only the new write function. It retains data and scoped readers. Unset the server activation switch and return to the retained inspector. No snapshot, draft, profile, customer, request or original function is dropped. Revocation is not erasure or a retention policy.
+
+No customer acquisition/enquiry-to-Inbox, CRM/Work, financial, Creator account or Growth cutover is enabled by this slice. Those original authorities remain independent. The next development slice should complete the Mini App dependency closure and genuine signed-in application adapter, then connect original request provenance to Inbox/Work. No owner end-to-end session is requested yet.

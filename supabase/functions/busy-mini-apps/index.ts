@@ -4188,6 +4188,8 @@ Deno.serve(async (request: Request) => {
     const body = await request.json().catch(() => ({}));
     const exploreGate=builderExploreRemoteGuard(body);
     if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
+    if(body?.connectedStaging===true&&(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co"||Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED")!=="true"))
+      return json(403,{ok:false,error:"Connected staging builders are not activated"});
     const action = clean(body?.action, 80);
     const businessId = clean(body?.businessId, 80);
     const requestId =

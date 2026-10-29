@@ -1,3 +1,4 @@
+import {privateWebsiteDraftAction} from './privateDraftService.mjs';
 import {builderExploreRemoteGuard} from '../_shared/builderExploreRemoteGuard.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -1380,6 +1381,15 @@ Deno.serve(async (request: Request) => {
       cleanText(request.headers.get("x-busy-request-id"), 180) ||
       cleanText(body?.idempotencyKey, 180);
 
+    if(action==="website_create"||action==="website_edit_text"){
+      if(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co"||Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED")!=="true")
+        return json(403,{ok:false,error:"Connected staging builders are not activated"});
+      const reader=createClient(SUPABASE_URL,SERVICE_ROLE_KEY,{auth:{persistSession:false},global:{headers:{Authorization:request.headers.get("Authorization")||""}}});
+      const value=await privateWebsiteDraftAction({action,body:{...body,businessId},userId:user.id,
+        read:async(id:string)=>{const r=await reader.rpc("busy_connected_builder_read_v1",{p_business_id:id});if(r.error)throw r.error;return r.data;},
+        commit:async(args:any)=>{const r=await supabase.rpc("busy_connected_website_commit_v1",args);if(r.error)throw r.error;return r.data;}});
+      return json(200,value);
+    }
     if(action==="lead_list"){
       return json(200,{ok:true,leads:await listWebsiteLeads(businessId)});
     }

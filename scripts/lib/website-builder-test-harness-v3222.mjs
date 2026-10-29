@@ -40,7 +40,7 @@ const EXPECTED=Object.freeze([
  "import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';",
  "import {businessContentSectionHtml} from '../core/businessContentHtml.mjs';",
  'import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";',
- 'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import { syncWebsitePageModel } from "./websiteManagement.js";',
  'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',

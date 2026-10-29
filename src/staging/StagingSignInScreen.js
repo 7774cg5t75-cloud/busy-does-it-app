@@ -1,3 +1,4 @@
+import {ConnectedBuilderWorkspace} from './ConnectedBuilderWorkspace';
 import React,{useEffect,useRef,useState} from "react";
 import {ActivityIndicator,KeyboardAvoidingView,Platform,Pressable,ScrollView,StyleSheet,Text,TextInput,View} from "react-native";
 import {createStagingAuthInspector,FIXTURES}
@@ -36,6 +37,7 @@ function TestButton({title,onPress,disabled=false,secondary=false}){
 export default function StagingSignInScreen(){
  const inspector=useRef(null);
  if(!inspector.current)inspector.current=createStagingAuthInspector({config:SETTINGS});
+ const [connected,setConnected]=useState(false);
  const [selected,setSelected]=useState("a");
  const [password,setPassword]=useState("");
  const [busy,setBusy]=useState(false);
@@ -69,6 +71,7 @@ export default function StagingSignInScreen(){
   if(busy||inspector.current.signedIn)return;
   setSelected(key);setPassword("");setNotice("");setResult(null);
  };
+ if(connected&&inspector.current.signedIn)return <ConnectedBuilderWorkspace inspector={inspector.current} onClose={()=>setConnected(false)}/>;
  return <KeyboardAvoidingView style={styles.fill}
    behavior={Platform.OS==="ios"?"padding":undefined}>
   <ScrollView contentContainerStyle={styles.content}
@@ -121,6 +124,7 @@ export default function StagingSignInScreen(){
       <Text style={styles.info}>Hosted HTTPS preview: not yet verified</Text>
     </View>:null}
     {notice?<Text style={styles.warning}>{notice}</Text>:null}
+    <TestButton title="Open connected business drafts" disabled={busy||!inspector.current.signedIn} onPress={()=>setConnected(true)}/>
     <TestButton title="Recheck access" secondary
       disabled={busy||!inspector.current.signedIn}
       onPress={()=>run("recheck")}/>

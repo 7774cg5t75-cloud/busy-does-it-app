@@ -2801,6 +2801,12 @@
         "scripts/check-app-build-identity.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "connected-builders",
+      "args": [
+        "scripts/check-connected-builders.mjs"
+      ]
     }
   ]
 }
