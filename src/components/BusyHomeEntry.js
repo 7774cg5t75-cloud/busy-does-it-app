@@ -17,7 +17,7 @@ export function BusyHomeEntry({s}){
  const send=()=>{if(!current()||live.current.text!==text||!text.trim()||live.current.working||sent.current)return false;sent.current={scope,text};const result=live.current.s.sendBusyEntry(text);if(result===false)sent.current=null;return result;};
  const voice=()=>{if(current())return live.current.s.openTalkToBusy(true);return false;};
  return <View style={{paddingTop:0,paddingBottom:6,alignItems:'center'}}>
-  <View style={{width:'100%',height:geometry.heroHeight,alignItems:'center',justifyContent:'center'}}><BusyOrbConstellation phase={state==='idle'&&motion.spec?motion.halo:undefined}/><BusyOrb motion={motion} size={geometry.orbSize} luminous onPress={voice} state={state} label="Talk to BUSY"/></View>
+  <View style={{width:'100%',height:geometry.heroHeight,alignItems:'center',justifyContent:'center'}}><BusyOrbConstellation phase={state==='idle'&&motion.spec?motion.halo:undefined}/><BusyOrb identifier="busy-home-assistant" motion={motion} size={geometry.orbSize} luminous onPress={voice} state={state} label="Talk to BUSY"/></View>
   <Text accessibilityRole="header" style={{color:C.ink,fontSize:18,lineHeight:24,fontWeight:'700',textAlign:'center',marginTop:0}}>{s.homeCommandCentre?.greeting||'Hello'}</Text>
   <Text style={{color:C.muted,fontSize:12,lineHeight:17,textAlign:'center',marginBottom:6}}>What can I help you with today?</Text>
   <View style={{width:'100%',flexDirection:'row',alignItems:'center',backgroundColor:C.input,borderColor:focused?C.cyan:C.controlBorder,borderWidth:1,borderRadius:18,padding:2,shadowColor:C.violet,shadowOpacity:focused?.22:0,shadowRadius:12,shadowOffset:{width:0,height:2}}}>

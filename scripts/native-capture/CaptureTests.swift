@@ -33,11 +33,39 @@ final class CaptureTests: XCTestCase {
   print("CAPTURE phase=home-ready")
  }
  func testMidnightHome() {
-  signInToOriginalHome()
-  XCTAssertTrue(app.textFields["Ask BUSY"].isHittable,"Home must be visibly ready")
-  XCTAssertEqual(app.alerts.count,0,"Do not capture a blocking application alert")
+  continueAfterFailure=false
+  XCTAssertEqual(captureSourceCommit.count,40)
+  print("CAPTURE phase=offline-owner-preview-launch")
+  app.launch()
+  XCTAssertTrue(app.textFields["Ask BUSY"].waitForExistence(timeout:60),"Original offline Owner Preview Home did not launch")
+  XCTAssertTrue(app.textFields["Ask BUSY"].isHittable)
+  XCTAssertEqual(app.alerts.count,0)
   capture("home-midnight")
+  tap("Results")
+  let mini=app.descendants(matching:.any).matching(identifier:"busy-floating-assistant").firstMatch
+  XCTAssertTrue(mini.waitForExistence(timeout:30),"Actual floating control must exist separately from dock")
+  let dock=app.descendants(matching:.any).matching(identifier:"busy-dock-assistant").firstMatch
+  XCTAssertTrue(dock.exists)
+  XCTAssertLessThan(mini.frame.maxY,dock.frame.maxY,"Floating and fixed assistant controls must be separate")
+  capture("results-before-drag")
+  let metric=element("Enquiries to follow up")
+  XCTAssertTrue(metric.waitForExistence(timeout:10))
+  let target=app.coordinate(withNormalizedOffset:CGVector(dx:0,dy:0)).withOffset(CGVector(dx:app.frame.maxX-36,dy:metric.frame.midY))
+  mini.press(forDuration:0.2,thenDragTo:target)
+  sleep(2)
+  let selected=mini.frame.midY
+  XCTAssertLessThan(abs(selected-metric.frame.midY),12,"Downward edge placement must remain at the noninteractive metric")
+  capture("results-after-drag")
+  tap("Settings")
+  tap("About Busy Does It")
+  XCTAssertTrue(element("Source commit").waitForExistence(timeout:10))
+  capture("about-build")
+  tap("Results")
+  XCTAssertTrue(mini.waitForExistence(timeout:20))
+  sleep(2)
+  XCTAssertLessThan(abs(mini.frame.midY-selected),12,"Returning to Results must retain the preferred height")
  }
+
  func testHomeAppearances() {
   signInToOriginalHome()
   capture("home-midnight")

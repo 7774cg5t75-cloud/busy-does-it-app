@@ -20,7 +20,7 @@ config=work/'app.config.js'
 if config.exists():config.rename(work/'app.config.capture-original.cjs')
 else:(work/'app.config.capture-original.cjs').write_text('module.exports=({config})=>config;')
 config.write_text('''const original=require('./app.config.capture-original.cjs');
-module.exports=args=>{const c=typeof original==='function'?original(args):original;return {...c,name:'Busy Screenshot Fixture',scheme:'busy-capture',updates:{enabled:false},extra:{busyCapture:true},ios:{...c.ios,bundleIdentifier:'com.busydoesit.capture'},android:{...c.android,package:'com.busydoesit.capture'}};};
+module.exports=args=>{const c=typeof original==='function'?original(args):original;return {...c,name:'Busy Screenshot Fixture',scheme:'busy-capture',updates:{enabled:false},extra:{...c.extra,eas:undefined,busyCapture:true},ios:{...c.ios,bundleIdentifier:'com.busydoesit.capture'},android:{...c.android,package:'com.busydoesit.capture'}};};
 ''')
 manifest={'sourceCommit':source,'harnessCommit':os.environ['GITHUB_SHA'],'entryOriginalSha256':hashlib.sha256(before).hexdigest(),'entryInstrumentedSha256':hashlib.sha256(entry.read_bytes()).hexdigest(),'platform':'iOS Simulator','fixture':'fictional in-memory transport; no hosted authentication/security proof','tool':'Apple XCTest screenshot attachment / xcresulttool export attachments','expectedScreen':'Home','appearance':'Midnight','fixtureTransportSha256':hashlib.sha256((ROOT/'scripts/native-capture/transport.cjs').read_bytes()).hexdigest(),'uiTestCompiledSha256':hashlib.sha256(ui_test.read_bytes()).hexdigest(),'productionUIAndControllerUnmodified':True}
 art=ROOT/'artifacts/native-screenshots';art.mkdir(parents=True,exist_ok=True);(art/'manifest.json').write_text(json.dumps(manifest,indent=2))

@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]
 TEST_ID = 'CaptureTests/testMidnightHome()'
 FIXTURE = 'fictional in-memory transport; no hosted authentication/security proof'
 TOOL = 'Apple XCTest screenshot attachment / xcresulttool export attachments'
+CAPTURES = ('home-midnight', 'results-before-drag', 'results-after-drag', 'about-build')
 MAX_PNG = 20 * 1024 * 1024
 
 
@@ -68,7 +69,7 @@ def png_dimensions(data):
     return width, height
 
 
-def select_attachment(exported, source):
+def select_attachment(exported, source, capture='home-midnight'):
     require(re.fullmatch('[0-9a-f]{40}', source) is not None, 'Expected exact source commit')
     manifest_file = exported / 'manifest.json'
     require(not manifest_file.is_symlink() and manifest_file.stat().st_size < 1024*1024, 'Invalid attachment inventory')
@@ -83,7 +84,8 @@ def select_attachment(exported, source):
     # --test-id scopes export even on tool versions omitting testIdentifier.
     attachments = group.get('attachments')
     require(isinstance(attachments, list) and len(attachments) <= 1000, 'Invalid attachment list')
-    expected = 'busy-home-midnight-' + source
+    require(capture in CAPTURES, 'Unsupported screenshot name')
+    expected = 'busy-' + capture + '-' + source
     uuid = r'[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}'
     name_pattern = re.compile(re.escape(expected) + r'(?:\.png|_[0-9]+_'+uuid+r'\.png)?')
     selected = [a for a in attachments if isinstance(a, dict) and
@@ -110,7 +112,7 @@ def validate_provenance(manifest, root, work, source, harness):
             'Fictional unchanged-UI capture required')
     require(manifest.get('platform') == 'iOS Simulator' and manifest.get('tool') == TOOL and
             manifest.get('expectedScreen') == 'Home' and manifest.get('appearance') == 'Midnight' and
-            manifest.get('captureScope') == 'Midnight Home only', 'Unsupported capture scope')
+            manifest.get('captureScope') == 'Owner Preview Home, Results and About', 'Unsupported capture scope')
     for stage in ('build', 'test'):
         result = manifest.get('nativeStages', {}).get(stage, {})
         require(result.get('exit') == 0 and result.get('timedOut') is False and result.get('stage') == stage,
@@ -158,7 +160,7 @@ def main():
         exported = Path(directory) / 'attachments'
         subprocess.run(['xcrun', 'xcresulttool', 'export', 'attachments', '--path', str(bundle),
                         '--output-path', str(exported), '--test-id', TEST_ID], check=True, timeout=60)
-        data, (width, height), attachment_name = select_attachment(exported, source)
+        selected = {name: select_attachment(exported, source, name) for name in CAPTURES}
     # Deliberate output allowlist: do not copy xcresult, raw inventory, logs or other attachments.
     public_keys = ('sourceCommit', 'harnessCommit', 'entryOriginalSha256', 'entryInstrumentedSha256',
                    'platform', 'fixture', 'tool', 'expectedScreen', 'appearance', 'fixtureTransportSha256',
@@ -168,14 +170,14 @@ def main():
     public['nativeStages'] = {stage: {key: manifest['nativeStages'][stage][key]
                              for key in ('stage', 'exit', 'timedOut', 'elapsedSeconds', 'deadlineSeconds')}
                              for stage in ('build', 'test')}
-    public['captures'] = {'home-midnight': {'sha256': digest(data), 'bytes': len(data),
-                          'width': width, 'height': height, 'attachmentName': attachment_name, 'testIdentifier': TEST_ID}}
+    public['captures'] = {name: {'sha256': digest(data), 'bytes': len(data), 'width': dims[0], 'height': dims[1], 'attachmentName': attachment_name, 'testIdentifier': TEST_ID} for name, (data, dims, attachment_name) in selected.items()}
     public['visualInspection'] = 'Pending actual PNG retrieval and inspection; source checks are not visual acceptance'
-    (artifact / 'home-midnight.png').write_bytes(data)
+    for name, (data, _, _) in selected.items():
+        (artifact / (name+'.png')).write_bytes(data)
     (artifact / 'manifest.json').write_text(json.dumps(public, indent=2))
     with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
         output.write('safe=true\n')
-    print(f'Validated source-bound Apple Home attachment: {width}x{height}, {len(data)} bytes, SHA256 {digest(data)}')
+    print('Validated source-bound Apple attachments:', ', '.join(selected))
 
 
 if __name__ == '__main__':

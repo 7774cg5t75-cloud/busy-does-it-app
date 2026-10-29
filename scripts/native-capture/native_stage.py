@@ -76,7 +76,7 @@ def execute(stage):
     manifest_path = Path('artifacts/native-screenshots/manifest.json')
     manifest = json.loads(manifest_path.read_text())
     manifest.setdefault('nativeStages', {})[stage] = result
-    manifest['captureScope'] = 'Midnight Home only'
+    manifest['captureScope'] = 'Owner Preview Home, Results and About'
     manifest['nativeBuild'] = 'Release, embedded JS, x86_64 only, compiler optimisations disabled'
     manifest_path.write_text(json.dumps(manifest, indent=2))
     print('NATIVE result:', json.dumps(result), flush=True)

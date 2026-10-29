@@ -150,7 +150,7 @@ class ProvenanceTests(unittest.TestCase):
         (self.work/'App.js').write_bytes(self.entry)
         self.manifest = {'sourceCommit': SOURCE, 'harnessCommit': HARNESS, 'fixture': module.FIXTURE,
                          'productionUIAndControllerUnmodified': True, 'platform': 'iOS Simulator', 'tool': module.TOOL,
-                         'expectedScreen': 'Home', 'appearance': 'Midnight', 'captureScope': 'Midnight Home only',
+                         'expectedScreen': 'Home', 'appearance': 'Midnight', 'captureScope': 'Owner Preview Home, Results and About',
                          'fixtureTransportSha256': module.digest(transport), 'uiTestCompiledSha256': module.digest(self.compiled),
                          'entryInstrumentedSha256': module.digest(self.entry), 'entryOriginalSha256': module.digest(self.original),
                          'nativeStages': {stage: {'stage': stage, 'exit': 0, 'timedOut': False,
@@ -205,8 +205,12 @@ class ProvenanceTests(unittest.TestCase):
             exported.mkdir()
             (exported/'fixture.png').write_bytes(unit_png())
             (exported/'private.txt').write_text('Synthetic unrelated diagnostic, never publish')
-            (exported/'manifest.json').write_text(json.dumps([{'testIdentifier': module.TEST_ID, 'attachments': [
-                {'suggestedHumanReadableName': NAME, 'exportedFileName': 'fixture.png', 'isAssociatedWithFailure': False}]}]))
+            items=[]
+            for capture in module.CAPTURES:
+                filename=capture+'.png'
+                (exported/filename).write_bytes(unit_png())
+                items.append({'suggestedHumanReadableName':'busy-'+capture+'-'+SOURCE,'exportedFileName':filename,'isAssociatedWithFailure':False})
+            (exported/'manifest.json').write_text(json.dumps([{'testIdentifier':module.TEST_ID,'attachments':items}]))
         return subprocess.CompletedProcess(args, 0)
 
     def run_main(self, runner=None):
@@ -220,12 +224,27 @@ class ProvenanceTests(unittest.TestCase):
     def test_export_orchestration_upload_allowlist_and_no_private_extensions(self):
         self.setup_main()
         self.run_main()
-        self.assertEqual({p.name for p in self.artifact.iterdir()}, {'home-midnight.png', 'manifest.json'})
+        self.assertEqual({p.name for p in self.artifact.iterdir()}, {name+'.png' for name in module.CAPTURES}|{'manifest.json'})
         public = json.loads((self.artifact/'manifest.json').read_text())
         self.assertNotIn('unreviewedExtension', public)
         self.assertEqual(public['captures']['home-midnight']['sha256'], module.digest(unit_png()))
         self.assertEqual(self.output.read_text(), 'safe=true\n')
         self.assertTrue(any(args[:3] == ['git', 'merge-base', '--is-ancestor'] for args, _ in self.calls))
+
+    def test_missing_required_owner_screen_denies_upload(self):
+        self.setup_main()
+        def missing(args, **kwargs):
+            result = self.fake_command(args, **kwargs)
+            if args[:4] == ['xcrun', 'xcresulttool', 'export', 'attachments']:
+                path=Path(args[args.index('--output-path')+1])/'manifest.json'
+                data=json.loads(path.read_text())
+                data[0]['attachments'].pop()
+                path.write_text(json.dumps(data))
+            return result
+        with self.assertRaises(ValueError):
+            self.run_main(missing)
+        self.assertFalse(self.output.exists())
+        self.assertFalse((self.artifact/'home-midnight.png').exists())
 
     def test_cli_failure_does_not_enable_upload(self):
         self.setup_main()

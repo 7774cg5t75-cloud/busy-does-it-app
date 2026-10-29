@@ -2794,6 +2794,13 @@
         "scripts/check-four-edge-retention-motion.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-app-build-identity",
+      "args": [
+        "scripts/check-app-build-identity.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

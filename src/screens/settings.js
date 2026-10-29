@@ -1,3 +1,4 @@
+import {AppAbout} from "../components/AppAbout";
 import {AppearanceChoices} from "../components/AppearanceChoices";
 import React, { useEffect, useState } from "react";
 import {
@@ -226,6 +227,7 @@ function Settings({ s }) {
   return (
     <Shell s={s} noBack title="Settings" subtitle="Your business details, connected accounts and approval rules, all in one place.">
       <AppearanceChoices/>
+      <AppAbout/>
       <Card
         eyebrow="Your everyday settings"
         title="What would you like to manage?"

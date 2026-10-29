@@ -340,13 +340,13 @@ function BottomNav({ s, dark = true }) {
  const scope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.screen]);
  const live=React.useRef(null);live.current={s,scope};
  const run=fn=>()=>{if(live.current.scope===scope)fn(live.current.s);};
- const tab=([label,target,icon])=><Pressable key={label} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:s.tab===label}} onPress={run(state=>state.jump(target,label))} style={({pressed})=>[styles.navItem,pressed&&{backgroundColor:C.surface}]}>
+ const tab=([label,target,icon])=><Pressable key={label} accessibilityIdentifier={"busy-nav-"+target} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:s.tab===label}} onPress={run(state=>state.jump(target,label))} style={({pressed})=>[styles.navItem,pressed&&{backgroundColor:C.surface}]}>
   <ChromeIcon name={icon} size={20} color={s.tab===label?C.cyan:C.muted}/><Text style={[styles.navText,s.tab===label&&{color:C.cyan}]}>{label}</Text>
   <View style={{height:2,width:14,borderRadius:2,backgroundColor:s.tab===label?C.cyan:'transparent',marginTop:3}}/>
  </Pressable>;
  return <View accessibilityRole="tablist" style={[styles.nav,dark&&styles.homeDarkNav]}>
   {items.slice(0,2).map(tab)}
-  <View style={{flex:1,alignItems:'center',minWidth:0,paddingVertical:2}}><BusyOrb size={48} ambient={false} state={orbState({status:s.busyCommandStatus,error:s.busyCommandError})} label="Talk to BUSY" onPress={run(state=>state.openTalkToBusy?.(true))}/><Text style={{color:C.blueText,fontSize:10,lineHeight:12,textAlign:'center'}} accessibilityElementsHidden>Talk</Text></View>
+  <View style={{flex:1,alignItems:'center',minWidth:0,paddingVertical:2}}><BusyOrb size={48} identifier="busy-dock-assistant" accessibilityHint="Fixed navigation control. Opens the original BUSY voice conversation." ambient={false} state={orbState({status:s.busyCommandStatus,error:s.busyCommandError})} label="Talk to BUSY" onPress={run(state=>state.openTalkToBusy?.(true))}/><Text style={{color:C.blueText,fontSize:10,lineHeight:12,textAlign:'center'}} accessibilityElementsHidden>Talk</Text></View>
   {items.slice(2).map(tab)}
  </View>;
 }

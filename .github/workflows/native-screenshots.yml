@@ -24,6 +24,8 @@ jobs:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
       EXPO_NO_DOTENV: '1'
+      EXPO_PUBLIC_BUSY_ENVIRONMENT: owner-preview
+      BUSY_BUILD_PROFILE: owner-preview
       LANG: en_US.UTF-8
       LC_ALL: en_US.UTF-8
       CAPTURE_SOURCE: ${{ inputs.source_sha || '' }}

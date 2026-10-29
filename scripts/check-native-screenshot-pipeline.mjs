@@ -37,3 +37,12 @@ assert.ok(workflow.includes('- scripts/native-capture/request.json'));assert.ok(
 for(const required of ["'xcresulttool', 'export', 'attachments'","'--test-id', TEST_ID",'timeout=60','fixtureTransportSha256','uiTestCompiledSha256','png_dimensions','isAssociatedWithFailure','safe=true'])assert.ok(exporter.includes(required),required);
 assert.ok(fs.existsSync('scripts/native-capture/check_attachments.py'));assert.ok(workflow.includes('run: python3 scripts/native-capture/check_attachments.py'));
 console.log('PASS source-bound retained XCTest PNG, scoped Apple export, exact original UI/fictional guards, fail-closed upload allowlist and request-only trigger. No native run executed.');
+
+assert.ok(workflow.includes('EXPO_PUBLIC_BUSY_ENVIRONMENT: owner-preview'));
+assert.ok(workflow.includes('BUSY_BUILD_PROFILE: owner-preview'));
+const selected=swift.slice(swift.indexOf('func testMidnightHome()'),swift.indexOf('func testHomeAppearances()'));
+assert.ok(selected.includes('offline-owner-preview-launch'));assert.ok(!selected.includes('signInToOriginalHome()'));
+for(const name of ['home-midnight','results-before-drag','results-after-drag','about-build'])assert.ok(exporter.includes(name));
+for(const name of ['busy-floating-assistant','busy-dock-assistant','About Busy Does It'])assert.ok(selected.includes(name));
+assert.ok(selected.includes('thenDragTo:target'));assert.ok(selected.includes('Returning to Results must retain'));
+console.log('PASS actual offline Owner Preview capture route, explicit floating/dock separation and finite source-bound four-image allowlist. Native execution still required.');
