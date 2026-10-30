@@ -1,3 +1,5 @@
+import {BusyOwnerCorrection} from '../components/BusyOwnerCorrection';
+import {BusyGoalRecords} from '../components/BusyGoalRecords';
 import {WebsiteRequestRecovery} from '../components/WebsiteRequestRecovery';
 import {planBusyGoal} from '../core/busyGoalPlan.mjs';
 import {WebsiteGroupedReview} from '../components/WebsiteGroupedReview';
@@ -1022,6 +1024,7 @@ function WebsitePreview({ s }) {
   const [pagePlanPreview,setPagePlanPreview]=React.useState(null);
   const [pageRequest,setPageRequest]=React.useState(null);
   const [pageGoal,setPageGoal]=React.useState(null);
+  const goalInputEpoch=React.useRef(0),livePageGoal=React.useRef(pageGoal);livePageGoal.current=pageGoal;
   const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
   const [pageSaveBusy,setPageSaveBusy]=React.useState(false);const pageSaveFlight=React.useRef(false);
@@ -1055,6 +1058,7 @@ function WebsitePreview({ s }) {
   React.useEffect(()=>{const key=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,selectedPageId]);
     setPageGoal(null);setPagePlanPreview(null);setPagePlanNotice('');if(instructionIdentity.current!==key){setPageInstruction('');setPageRequest(null);}instructionIdentity.current=key;
     setPageConversation(null);setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
+  const requestPageInstruction=(value,after=()=>{})=>{const epoch=++goalInputEpoch.current,identity=instructionIdentity.current,owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;const isCurrent=()=>pageSaveAlive.current&&goalInputEpoch.current===epoch&&instructionIdentity.current===identity&&pageSaveCurrent.current.owner===owner&&pageSaveCurrent.current.business===business;const apply=()=>{if(!isCurrent())return false;setPageInstruction(value);setPageGoal(null);setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice('');after();return true;};if(livePageGoal.current?.contextKind==='enquiries'){if(typeof s.requestOwnerEditTransition!=='function')return false;return s.requestOwnerEditTransition(apply,{isCurrent});}return apply();};
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
@@ -1371,7 +1375,7 @@ function WebsitePreview({ s }) {
         <Text style={styles.cardBody}>Try: Change the hero heading to "Welcome to our workshop"; move the about section above services. Or add question "Do you travel?" answer "Ask us about your location." For phone reading: make the whole page easier to read only on phones. For a calmer mobile layout: give the whole page less space on phones. For composition: make the hero centred; or move the hero photo left when an approved hero image exists. Shared theme changes affect all pages; always preview first.</Text>
         </Details>
         <TextInput value={pageInstruction}
-          onChangeText={value=>{setPageInstruction(value);setPageGoal(null);setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice("");}}
+          onChangeText={value=>requestPageInstruction(value)}
           multiline maxLength={6000}
           accessibilityLabel="Describe your website page changes"
           placeholder="Move the services section up; make the hero heading smaller on phones"
@@ -1386,7 +1390,7 @@ function WebsitePreview({ s }) {
             selection={{draftId:draft.id,generation:draft.generation,pageId:activePage?.id||"home"}}
             onTranscribe={s.transcribeWebsitePageAudio}
             onTranscript={words=>{
-              setPageInstruction(String(words||"").slice(0,400));
+              requestPageInstruction(String(words||"").slice(0,400));
               setPagePlanPreview(null);
               setPagePlanNotice("Please read the transcript, then preview the proposed edits. No website changes were made.");
             }}/>
@@ -1414,7 +1418,7 @@ function WebsitePreview({ s }) {
                 instruction:pageInstruction,conversationContext:context
               });
               if(result?.ok){
-                setPageInstruction(result.canonical);
+                requestPageInstruction(result.canonical);
                 setPageConversation(addWebsiteConversationTurn(asked,scope,{
                   role:"busy",text:"Here is a safe draft plan to preview. Shall we try this design?"
                 }));
@@ -1428,7 +1432,7 @@ function WebsitePreview({ s }) {
                 setPagePlanNotice(response);
                 // Keep the response visible. The next typed or spoken
                 // message becomes a follow-up with this scoped context.
-                if(result?.clarification)setPageInstruction("");
+                if(result?.clarification)requestPageInstruction("");
               }
             }finally{setPageInterpretBusy(false);}
           }}/>
@@ -1457,7 +1461,7 @@ function WebsitePreview({ s }) {
         <Button label="Preview changes — do not save"
           onPress={()=>{
             setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);
-            const goal=planBusyGoal({request:pageInstruction,website:draft,businessId:s.cloudWorkspace?.businessId,pageId:activePage?.id||"home",profile:s.connectedRuntime?.profile},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
+            const goal=planBusyGoal({request:pageInstruction,surface:'website',website:draft,businessId:s.cloudWorkspace?.businessId,pageId:activePage?.id||"home",profile:s.connectedRuntime?.profile},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
             setPageGoal(goal.recognised?goal:null);
             if(goal.recognised&&!goal.ready){setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice(goal.question||goal.nextAction);return;}
             const reviewedWords=goal.ready?goal.instruction:pageInstruction;
@@ -1470,8 +1474,10 @@ function WebsitePreview({ s }) {
             setShowPagePlanOriginal(false);
           }}/>
         {pageGoal?.recognised&&pageGoal.ownerWording===pageInstruction?<WorkflowStatus title="Here’s how I can help" body={[...(pageGoal.findings||pageGoal.steps||[]),pageGoal.question,...(pageGoal.limitations||[])].filter(Boolean).join(' ')}/>:null}
+        {pageGoal?.contextKind==='correction'&&pageGoal.ownerWording===pageInstruction?<BusyOwnerCorrection key={['correction',s.ownerSession?.userId,s.cloudWorkspace?.businessId,pageInstruction].join(':')} s={s} inputText={pageInstruction}/>:null}
+        {pageGoal?.contextKind&&pageGoal.ownerWording===pageInstruction?<BusyGoalRecords key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,pageGoal.goal,pageInstruction].join(':')} s={s} goal={pageGoal} inputText={pageInstruction}/>:null}
         {pageGoal?.route&&pageGoal.ownerWording===pageInstruction?<Button label={pageGoal.nextAction} onPress={()=>s.go(pageGoal.route)}/>:null}
-        <WebsiteRequestRecovery key={['request-recovery',s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id].join(':')} s={s} plan={pageRequest} inputText={pageInstruction} onRestore={plan=>{setPageInstruction(plan.instruction);setPagePlanPreview(null);setPageGoal(null);setPageRequest({...plan,ownerId:s.ownerSession?.userId,ownerScope:s.ownerWorkspaceScope});}}/>
+        <WebsiteRequestRecovery key={['request-recovery',s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id].join(':')} s={s} plan={pageRequest} inputText={pageInstruction} onRestore={plan=>requestPageInstruction(plan.instruction,()=>setPageRequest({...plan,ownerId:s.ownerSession?.userId,ownerScope:s.ownerWorkspaceScope}))}/>
         {pageRequest?.ok&&pageRequest.ownerId===s.ownerSession?.userId&&pageRequest.ownerScope===s.ownerWorkspaceScope&&pageRequest.businessId===s.websiteDraft?.businessId&&pageRequest.instruction===pageInstruction?<WebsiteGroupedReview key={pageRequest.generation+':'+pageRequest.instruction} s={s} plan={pageRequest} onDiscard={()=>setPageRequest(null)}/>:null}
         {pagePlanPreview?.ok&&pagePlanPreview.draftId===draft.id&&
          pagePlanPreview.generation===draft.generation&&

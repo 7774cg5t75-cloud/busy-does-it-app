@@ -1,3 +1,7 @@
+## Latest original reopened — V22.66,30 October2026
+
+Owner attachment identifies V22.66; original SHA256 `11f7b3069894b40d4467d90ba6883eeb3e3584057ace5b37c511187c883a483a`,2,684 paragraphs/19 tables. Ordered comparison with genuine V22.63 retains all non-cover content, updates the version line and appends130 paragraphs covering Sections74–76; all additions reviewed. Complete original/extraction remain private outside this repository. V22.64's separate original was not supplied; its Section74 requirements are now directly reviewed within the newer authentic V22.66. No original was rewritten, no private Library upload is claimed, and future model/provider/build ambitions do not grant spending or deployment authority.
+
 ## Current genuine private Product Master — V22.63,30 October2026
 
 Owner-supplied complete V22.63 Word original reopened: SHA-256 `7bae0e3a8ed88a1fa835e74c4b648be8b2eb4b707026f5cd94649ceef1cd6f52`,2,554 paragraphs/19 tables. Ordered comparison retains all V22.62 non-cover content, updates the version line and adds24 Section73 paragraphs; all additions were reviewed. V22.62 original checksum remains `e1db4f4fb9d3a77fa3502e1912c67d765ca8895ebe3fd949b29f50d6768af0ad`. Private originals and complete extracts remain outside Git. V22.63 is current; earlier unavailable-original notes are historical checkpoint evidence.

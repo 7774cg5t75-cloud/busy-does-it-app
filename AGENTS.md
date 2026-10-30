@@ -1,3 +1,9 @@
+## Current genuine private Product Master — V22.66 (30 October2026)
+
+The owner-supplied attachment identifies V22.66, newer than V22.64 named in the mission prose. Complete original reopened: SHA256 `11f7b3069894b40d4467d90ba6883eeb3e3584057ace5b37c511187c883a483a`,2,684 paragraphs/19 tables. Ordered comparison preserves every V22.63 non-cover paragraph and adds130 reviewed paragraphs in Sections74–76. Section74 zero-technical-experience requirements are now directly accessible in this latest original; earlier missing-V22.64 notes remain historical. Private original and complete extraction stay outside Git.
+
+Apply natural, context-aware, bounded goal preparation through original authorities; preserve owner corrections and evidence levels. Sections75–76 approve future governed model-assisted builders, not paid inference, new providers, arbitrary generated code, hosted activation, signing or publication in this mission. Preserve security, central cost governance, beginner simplicity, accepted visuals and all existing separate gates.
+
 ## Latest owner-approved authority — V22.64 Section74 (30 October2026)
 
 The owner identifies V22.64, Zero Technical Experience Required, as current. Its genuine complete Word original was not accessible in this continuation; do not claim full-document verification. Accessible V22.63 remains the latest byte-verified original, not the latest approved version. Apply the owner's explicit Section74 requirements: ordinary goals, minimal plain-language clarification, bounded context/plan/review/execution/verification through original authorities, honest evidence and zero-technical-experience acceptance. No new paid AI, deployment or operational authority is granted. Full original-document reconciliation remains pending; private masters stay outside Git.

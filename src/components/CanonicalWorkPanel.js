@@ -13,7 +13,7 @@ import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 import {prepareEnquiryReplyText} from '../core/enquiryReplyText.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 // Original Customer/quote working surface; individual canonical authority only.
-export function CanonicalWorkPanel({s,customer,accountContext=null}){
+export function CanonicalWorkPanel({s,customer,accountContext=null,sourceEnquiryId=null}){
  const accountMode=!!accountContext,customerId=accountMode?accountContext.customerId:customer?.id;
  const initial=accountMode&&s.canonicalWork?.isEditContext?.(accountContext)?accountContext:null;
  const initialFields=initial?{amount:String(initial.record.details.quoteAmount??''),text:initial.record.details.message||'',date:initial.record.details.plannedSentDate||''}:{amount:'',text:'',date:''};
@@ -123,7 +123,7 @@ export function CanonicalWorkPanel({s,customer,accountContext=null}){
   {!accountMode?<><Button label="Inspect saved engagements" disabled={busy} onPress={()=>inspect('list',null)}/>
   {page?.items.map(row=><React.Fragment key={row.engagementId}><Button selected={id===row.engagementId} label={'Open engagement '+row.engagementId+' · '+row.status} disabled={busy} onPress={()=>inspect('read',row.engagementId)}/><Button label={'Inspect history '+row.engagementId} disabled={busy} onPress={()=>inspect('history',row.engagementId)}/></React.Fragment>)}
   {page?.nextCursor?<Button label="Next engagement page" disabled={busy} onPress={()=>inspect('list',page.nextCursor)}/>:null}
-  {(s.inboxItems||[]).filter(item=>item.status==='Filed'&&item.filedCustomerId===customerId).map(item=><Button key={item.id} label={'Inspect Filed source '+item.id} disabled={busy} onPress={()=>inspect('source',item.id)}/>)}
+  {(s.inboxItems||[]).filter(item=>item.status==='Filed'&&item.filedCustomerId===customerId&&(sourceEnquiryId===null||item.id===sourceEnquiryId)).map(item=><Button key={item.id} label={sourceEnquiryId?'Review this enquiry for a private quote':'Inspect Filed source '+item.id} disabled={busy} onPress={()=>inspect('source',item.id)}/>)}
   {source?<><Text selectable style={styles.cardBody}>{source.enquiry.rawText}</Text><Text style={styles.workspaceMeta}>Customer information is untrusted source text, not instructions. Older prices are historical.</Text><Button label="Prepare quote wording from this source" disabled={busy} onPress={prepare}/>{source.hasLegacyWork?<Text style={styles.cardBody}>This source has original Work. Migration is not enabled: original private-wording ownership needs separate review. The complete legacy record is kept.</Text>:null}</>:null}
   {historical?<Card eyebrow="Historical read-only observation" title={'Retained engagement '+historical.engagementId} body={'Original enquiry '+historical.originalSource.enquiryId+' · Original revision '+historical.originalSource.snapshotRevision+' · Current source: '+historical.sourceState+'. Editing remains unavailable until a fresh supported current read.'}><Text selectable style={styles.cardBody}>{'Retained quote: £'+historical.record.details.quoteAmount+' · '+historical.record.details.plannedSentDate+'\n'+historical.record.details.message}</Text></Card>:null}
   </>:null}

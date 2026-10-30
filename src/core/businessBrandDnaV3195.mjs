@@ -134,7 +134,7 @@ function buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourc
   const normal=value=>String(value||'').trim().toLocaleLowerCase('en');
   const approvedServices=Array.isArray(approvedProfile.services)?approvedProfile.services:[];
   const profileVoice=approvedBrandTone(approvedProfile.toneOfVoice);
-  const differs=!!profileVoice&&profileVoice!==snapshot.voice.ownerChosenTone||normal(snapshot.identity.name)!==normal(approvedProfile.businessName)||approvedServices.some(service=>!snapshot.services.some(row=>normal(row.name)===normal(service.name)))||snapshot.services.some(service=>{
+  const differs=Object.hasOwn(approvedProfile,'tagline')&&normal(snapshot.identity.tagline)!==normal(approvedProfile.tagline)||!!profileVoice&&profileVoice!==snapshot.voice.ownerChosenTone||normal(snapshot.identity.name)!==normal(approvedProfile.businessName)||approvedServices.some(service=>!snapshot.services.some(row=>normal(row.name)===normal(service.name)))||snapshot.services.some(service=>{
    if(!approvedServices.some(row=>normal(row.name)===normal(service.name)))return true;
    const rows=approvedServices.filter(row=>normal(row.name)===normal(service.name));
    return rows.length===1&&normal(rows[0].description)&&normal(rows[0].description)!==normal(service.description);

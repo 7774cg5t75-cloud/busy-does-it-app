@@ -2881,6 +2881,12 @@
       "args": [
         "scripts/check-busy-goals.mjs"
       ]
+    },
+    {
+      "id": "natural-goal-context",
+      "args": [
+        "scripts/check-natural-goal-context.mjs"
+      ]
     }
   ]
 }

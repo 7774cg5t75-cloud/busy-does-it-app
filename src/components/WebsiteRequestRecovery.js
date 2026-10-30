@@ -1,3 +1,4 @@
+import {connectedBuilderObservation} from '../core/connectedBuilderObservation.mjs';
 import React from 'react';
 import * as SecureStore from 'expo-secure-store';
 import {Text} from 'react-native';
@@ -23,7 +24,7 @@ export function WebsiteRequestRecovery({s,plan,inputText,onRestore}){
   {saved?.scope===scope&&saved.record?<>
    <Button label="Review continuing the saved plan" disabled={busy||saved.record.expired===true} onPress={()=>run(async()=>{const r=await store.inspect();if(!r||r.revision!==saved.record.revision)throw Error('Device plan changed. Check it again.');const website=live.current.websiteDraft;
     if(!s.connectedRuntime?.verify)throw Error('Account inspection is unavailable. Your plan stays protected; nothing was repeated.');
-    const account=await s.connectedRuntime.verify();if(!current()||account.actorId!==owner||account.businessId!==business||account.notOwnReceipt!==true||account.websiteDraft?.generation!==website.generation||websiteRequestContent(account.websiteDraft)!==websiteRequestContent(website))throw Error('Open the current saved website, then review this plan again.');
+    const account=await s.connectedRuntime.verify();if(!current()||!connectedBuilderObservation(account,{ownerId:owner,businessId:business},'website')||account.websiteDraft?.generation!==website.generation||websiteRequestContent(account.websiteDraft)!==websiteRequestContent(website))throw Error('Open the current saved website, then review this plan again.');
     const recovered=recoverWebsiteRequest(r,website,{ownerId:owner,businessId:business,websiteId:id},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,rebuild:rebuildPrivateWebsiteDraft,renderPage:renderWebsiteHtml});if(!recovered.ok)throw Error(recovered.reason);if(current()){onRestore(recovered.plan);setNotice(recovered.position.done?'All parts are already present. No earlier save acknowledgement is claimed.':'Remaining work prepared for a fresh review. Nothing was replayed.');}})}/>
    <Button label="Forget only this device plan" disabled={busy} onPress={()=>run(async()=>{if(await store.remove(saved.record.revision,current)&&current()){setSaved({scope,record:null});setNotice('Device plan removed. Website and saved history are unchanged.');}})}/>
   </>:null}
