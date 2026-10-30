@@ -1,0 +1,134 @@
+{
+  "sourceCommit": "31ea363fb0373b663225871ba51630b2571c525f",
+  "sourceTree": "d5ba81f16c79d25f5a54a9b1017371586a32dfa1",
+  "coverage": [
+    {
+      "subsystem": "Home/mobile/AppController",
+      "completed": "All source parsed; static imports/storage/environment signals; existing application regressions; selected session and provider handoffs reviewed",
+      "notProven": "No complete line-by-line AppController review, native runtime, platform storage audit or physical acceptance"
+    },
+    {
+      "subsystem": "Website Builder and Cloudflare",
+      "completed": "Original planner/history/CAS/readback regressions, selected renderer/visual-AI boundaries, genuine Website gateway Deno and local SQL",
+      "notProven": "Hosted publishing/storage/IAM/domain configurations and actual browser/native visuals not verified"
+    },
+    {
+      "subsystem": "App Builder / Mini Apps",
+      "completed": "Original private transactions, request/customer provenance, current gateway Deno, selected function permission review and local SQL",
+      "notProven": "Every historical owner/consumer route not deeply reviewed; live marketplace/standalone distribution unavailable"
+    },
+    {
+      "subsystem": "Creator / Growth / Business Brain",
+      "completed": "Goal/proposal/approval regressions, original text drafts, selected provider/brand handoffs, private-table journey SQL",
+      "notProven": "All marketing connectors, image/video/upload providers and model behaviour not exhaustively reviewed"
+    },
+    {
+      "subsystem": "Inbox / Customers / Work / Get Paid",
+      "completed": "Original identity, contact-review, canonical engagement/private quote CAS/readback in selected local contracts",
+      "notProven": "Actual hosted communications, booking, financial providers, legal acceptance and public quote lifecycle not verified"
+    },
+    {
+      "subsystem": "AI proposal gateway",
+      "completed": "Source review of Auth/current membership, selected context, structured-output rejection, reservation ownership and offline provider; real local ledger tests",
+      "notProven": "No genuine hosted JWT, live model, deployment/rate limits/streaming adapter acceptance"
+    },
+    {
+      "subsystem": "AI cost controller",
+      "completed": "Selected actual SQL installed/executed;31 stages include cross-business platform ceiling, concurrent admission, entitlement/tariff/revocation, unknown liability, receipts and rollback",
+      "notProven": "Only synthetic local entitlement/Auth fixtures; administration/provisioning and real provider invoice reconciliation not accepted"
+    },
+    {
+      "subsystem": "Historical Edge endpoints",
+      "completed": "25 entry-point source inventory; all JS-family syntax;9 selected genuine Deno entry checks plus type fixture; direct-model census",
+      "notProven": "Other16 entries not genuinely Deno type checked; not all legacy route permissions/body limits/OAuth semantics reviewed"
+    },
+    {
+      "subsystem": "SQL/RLS/migrations",
+      "completed": "69 historical migrations inventoried/static signals; selected exact installation/failure/rollback and31+51+62 local stages",
+      "notProven": "Not a full replay or per-function review of all migrations; production DDL and hosted effective grants/defaults not inspected"
+    },
+    {
+      "subsystem": "CI/CD/supply chain",
+      "completed": "175 workflow inventory/parse; source-secret signals;543 locked dependencies/integrity/install-hook review; fresh registry audit",
+      "notProven": "Not full semantic review of every workflow/third-party action; deleted Git history, org IAM, signing and hosted secrets inaccessible"
+    },
+    {
+      "subsystem": "Configuration and docs",
+      "completed": "All tracked paths hashed;418 JSON/TOML/YAML/Python parse checks; full tracked-text redacted secret detector",
+      "notProven": "Finite detectors cannot prove no secret exists; historical deleted/untracked/private files outside repository not a public scan scope"
+    }
+  ],
+  "paidOperationInventory": [
+    {
+      "path": "busy-ai-intake:analyseWithOpenAI",
+      "category": "model",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-social-content:createContent",
+      "category": "model",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-command:transcribeAudio,routeOperator,interpretWebsitePageLanguage",
+      "category": "model (3 calls)",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-website-design-review:runVision,compareVision",
+      "category": "model (2 calls)",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-mini-apps:aiAppPlan,reviewAppDesignScreenshot",
+      "category": "model (2 calls)",
+      "status": "source-blocked; planning retains deterministic fallback"
+    },
+    {
+      "path": "busy-conversation-extract:handler",
+      "category": "model",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-builder-proposals",
+      "category": "new structured model gateway",
+      "status": "offline adapter + local ledger integrated; default disabled; no live model admission accepted"
+    },
+    {
+      "path": "cloudflare/busy-website-screenshot",
+      "category": "Browser Rendering",
+      "status": "internal credential/binding gated; not central monetary-controller integrated; external metering not accepted"
+    },
+    {
+      "path": "busy-website-publish and Cloudflare infrastructure",
+      "category": "hosting/storage/domain operations",
+      "status": "separate authority/approval; AI controller not applicable as universal infrastructure budget; all actual costs not verified"
+    },
+    {
+      "path": "busy-social-publish / permitted media storage",
+      "category": "communications/social/storage",
+      "status": "legacy prototype restricted to configured verified Auth ID; canonical tenant/provider mapping incomplete; no activation acceptance"
+    },
+    {
+      "path": "calendar, OAuth, push and delivery integrations",
+      "category": "external integration/possible infrastructure cost",
+      "status": "own original gates; monetary coverage unverified; not admitted by this AI ledger"
+    },
+    {
+      "path": "paid images/video, advertisements, standalone signing/distribution",
+      "category": "planned or separately gated services",
+      "status": "not activated; not proven central-budget integrated"
+    },
+    {
+      "path": "Get Paid private quotes/invoices",
+      "category": "financial preparation",
+      "status": "private preparation only; no payment execution/provider integration accepted"
+    },
+    {
+      "path": "GitHub/EAS/mobile distribution",
+      "category": "build/infrastructure spending",
+      "status": "separate approval; no build/distribution run; not centrally AI-budget integrated"
+    }
+  ],
+  "warning": "10 known direct model HTTP call sites inventoried. Finite static census is not whole-program taint analysis or proof that all possible providers/SDKs are covered. Zero live billable model routes accepted as centrally protected."
+}
