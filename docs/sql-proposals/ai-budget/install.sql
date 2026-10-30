@@ -152,6 +152,7 @@ BEGIN
  SELECT * INTO op FROM busy_ai_private.operations WHERE id=p_operation FOR UPDATE;
  IF p_request_nonce IS NOT NULL AND p_request_nonce IS DISTINCT FROM op.request_nonce THEN RAISE EXCEPTION 'Another request owns this reservation'; END IF;
  IF p_outcome NOT IN('settled','released','unknown') OR p_outcome IS NULL THEN RAISE EXCEPTION 'Unsupported outcome'; END IF;
+ IF p_outcome IN('released','unknown') AND (p_input IS NOT NULL OR p_output IS NOT NULL OR p_receipt IS NOT NULL) THEN RAISE EXCEPTION 'Usage evidence requires settlement, not a non-execution acknowledgement'; END IF;
  IF op.state='settled' THEN
   IF p_outcome<>'settled' OR op.usage_input IS DISTINCT FROM p_input OR op.usage_output IS DISTINCT FROM p_output OR op.receipt IS DISTINCT FROM p_receipt THEN RAISE EXCEPTION 'Conflicting receipt'; END IF;
   RETURN jsonb_build_object('state','settled','replayed',true);
@@ -166,7 +167,7 @@ BEGIN
   UPDATE busy_ai_private.operations SET state='unknown',updated_at=now() WHERE id=p_operation;
   RETURN jsonb_build_object('state','unknown','mayRetry',false);
  ELSIF p_outcome='released' THEN
-  IF op.state<>'reserved' OR p_input IS NOT NULL OR p_output IS NOT NULL OR p_receipt IS NOT NULL THEN RAISE EXCEPTION 'Execution uncertainty must remain reserved'; END IF;
+  IF op.state<>'reserved' THEN RAISE EXCEPTION 'Execution uncertainty must remain reserved'; END IF;
  ELSE
   IF op.state NOT IN('dispatched','unknown') OR p_input IS NULL OR p_output IS NULL OR p_input<0 OR p_output<0 OR p_input>1000000 OR p_output>1000000 OR p_receipt IS NULL OR p_receipt!~'^[A-Za-z0-9:_-]{8,160}$' THEN RAISE EXCEPTION 'Verified usage evidence required'; END IF;
   amount:=busy_ai_private.cost(op.pricing,p_input,p_output);overrun:=amount>op.maximum OR p_input>(op.pricing->>'max_input')::integer OR p_output>(op.pricing->>'max_output')::integer;

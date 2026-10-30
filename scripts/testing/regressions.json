@@ -2899,6 +2899,12 @@
       "args": [
         "scripts/check-ai-proposal-gateway.mjs"
       ]
+    },
+    {
+      "id": "historical-security-boundaries",
+      "args": [
+        "scripts/check-historical-security-boundaries.mjs"
+      ]
     }
   ]
 }

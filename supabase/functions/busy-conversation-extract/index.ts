@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {legacyAiAdmissionStatus} from '../_shared/legacyAiAdmission.mjs';
 const origin = Deno.env.get("SUPABASE_URL") || "";
 const publishable = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const allowed = ["businessName","businessType","serviceArea","description","openingHours","phone","email"];
@@ -7,6 +7,7 @@ function reply(data:unknown,status=200) { return new Response(JSON.stringify(dat
 Deno.serve(async req=>{
   if(req.method==="OPTIONS") return new Response(null,{status:204,headers});
   if(req.method!=="POST") return reply({error:"method_not_allowed"},405);
+  if(!legacyAiAdmissionStatus().allowed)return reply({error:"AI preparation is unavailable until secure cost admission is connected.",approvalRequired:true},503);
   const jwt=(req.headers.get("authorization")||"").replace(/^Bearer\s+/i,"");
   if(!jwt || !origin || !publishable) return reply({error:"not_authenticated"},401);
   let body:any;

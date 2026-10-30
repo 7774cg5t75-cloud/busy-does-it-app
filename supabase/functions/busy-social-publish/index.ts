@@ -1,4 +1,6 @@
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import {providerMessagePage} from '../_shared/providerMessagePage.mjs';
+import {matchesConfiguredPrototypeOwner,matchesConfiguredProviderSubject,providerEventAppliesToConnection} from '../_shared/legacyWorkspaceIdentity.mjs';
+import {createClient} from '../_shared/supabaseClient.ts';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -25,10 +27,7 @@ function json(status: number, body: unknown) {
 }
 
 function html(status: number, title: string, body: string) {
-  return new Response(
-    `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:32px;max-width:600px;margin:auto"><h1>${title}</h1><p>${body}</p><p>You can close this page and return to BUSY.</p></body></html>`,
-    { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
-  );
+  return providerMessagePage(status,title,body);
 }
 
 function cleanText(value: unknown, max = 5000) {
@@ -76,20 +75,20 @@ async function verifyMetaSignedRequest(value: string) {
   return JSON.parse(new TextDecoder().decode(base64UrlBytes(payloadPart)));
 }
 
-async function removeMetaConnection() {
-  const connection = await supabase
-    .from("busy_social_connections")
-    .delete()
-    .eq("workspace_key", WORKSPACE)
-    .eq("provider", "meta");
-  if (connection.error) throw connection.error;
-
-  const states = await supabase
-    .from("busy_social_oauth_states")
-    .delete()
-    .eq("workspace_key", WORKSPACE)
-    .eq("provider", "meta");
-  if (states.error) throw states.error;
+async function removeMetaConnection(payload:unknown) {
+  const expected=Deno.env.get("BUSY_SOCIAL_PROTOTYPE_META_USER_ID")||"";
+  if(!matchesConfiguredProviderSubject(payload,expected))throw new Error("Provider subject verification is unavailable.");
+  const current=await getConnection("meta");
+  if(!current)return;
+  if(!providerEventAppliesToConnection(payload,expected,current))throw new Error("Provider event does not match the current connection.");
+  const connection=await supabase.from("busy_social_connections").delete()
+    .eq("workspace_key",WORKSPACE).eq("provider","meta").eq("id",current.id)
+    .eq("updated_at",current.updated_at).select("id");
+  if(connection.error||connection.data?.length!==1)throw new Error("Connection changed; no unrelated provider state was removed.");
+  const issuedAt=new Date((payload as {issued_at:number}).issued_at*1000).toISOString();
+  const states=await supabase.from("busy_social_oauth_states").delete()
+    .eq("workspace_key",WORKSPACE).eq("provider","meta").lte("created_at",issuedAt);
+  if(states.error)throw new Error("Provider state cleanup needs review.");
 }
 
 function requirePrototypeCaller(request: Request) {
@@ -101,17 +100,6 @@ function requirePrototypeCaller(request: Request) {
   if (!supplied || !allowed.includes(supplied)) {
     throw new Error("Unauthorised BUSY prototype request.");
   }
-}
-
-async function getWorkspaceOwner() {
-  const { data, error } = await supabase
-    .from("busy_workspace_owners")
-    .select("workspace_key,owner_email")
-    .eq("workspace_key", WORKSPACE)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data?.owner_email) throw new Error("BUSY owner access is not configured.");
-  return data;
 }
 
 async function getWorkspaceSettings() {
@@ -134,12 +122,11 @@ async function requireOwner(request: Request) {
 
   const { data, error } = await supabase.auth.getUser(token);
   const user = data?.user;
-  if (error || !user?.email) throw new Error("Owner sign-in has expired. Sign in again.");
-
-  const owner = await getWorkspaceOwner();
-  if (user.email.trim().toLowerCase() !== String(owner.owner_email).trim().toLowerCase()) {
-    throw new Error("This signed-in account is not the BUSY owner for this workspace.");
-  }
+  if (error || !user?.id) throw new Error("Owner sign-in has expired. Sign in again.");
+  // Deliberately no email bootstrap. A server operator must independently bind
+  // this historical prototype workspace; it is not a production tenant route.
+  if(!matchesConfiguredPrototypeOwner(user,Deno.env.get("BUSY_SOCIAL_PROTOTYPE_OWNER_ID")||""))
+    throw new Error("Verified workspace ownership is not configured for this provider.");
   return user;
 }
 
@@ -1293,8 +1280,8 @@ Deno.serve(async (request: Request) => {
       const form = await request.formData();
       const signedRequest = cleanText(form.get("signed_request"), 10000);
       if (!signedRequest) return json(400, { error: "Missing signed_request." });
-      await verifyMetaSignedRequest(signedRequest);
-      await removeMetaConnection();
+      const verified=await verifyMetaSignedRequest(signedRequest);
+      await removeMetaConnection(verified);
       return json(200, { success: true });
     }
 
@@ -1302,8 +1289,8 @@ Deno.serve(async (request: Request) => {
       const form = await request.formData();
       const signedRequest = cleanText(form.get("signed_request"), 10000);
       if (!signedRequest) return json(400, { error: "Missing signed_request." });
-      await verifyMetaSignedRequest(signedRequest);
-      await removeMetaConnection();
+      const verified=await verifyMetaSignedRequest(signedRequest);
+      await removeMetaConnection(verified);
       const confirmationCode = crypto.randomUUID();
       return json(200, {
         url: `${SUPABASE_URL}/functions/v1/busy-social-publish?action=data_deletion_status&code=${confirmationCode}`,
@@ -1312,7 +1299,7 @@ Deno.serve(async (request: Request) => {
     }
 
     if (request.method === "GET" && url.searchParams.get("action") === "data_deletion_status") {
-      return html(200, "BUSY data deletion complete", "Meta connection data was deleted.");
+      return html(200, "BUSY deletion status", "A completed deletion cannot be independently verified from this page. Contact the business for confirmation.");
     }
 
     if (
@@ -1348,7 +1335,7 @@ Deno.serve(async (request: Request) => {
     requirePrototypeCaller(request);
     const body = await request.json();
     const action = cleanText(body?.action, 80);
-    const owner = action === "process_due" ? null : await requireOwner(request);
+    const owner = await requireOwner(request);
 
     if (action === "status") {
       const [credentials, meta, google, queue] = await Promise.all([

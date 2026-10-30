@@ -83,3 +83,7 @@ The newly supplied original V22.49 was actually opened and verified (provenance 
 ## V22.52 trusted quote recipient boundary — 25 October 2026
 
 Current private master provenance is recorded in CODEX_MASTER_ACCESS.md. Approved explicit recipient/version review and fresh original-server verification do not grant customer disclosure. Owner-private binding, consumer access, presentation, provider evidence, structured response, agreement and booking remain separate finite authorities. Keep recipient/access/response gates disabled, SQL abort-fused, private originals outside Git, and hosted/JWT/device/retention acceptance separately reviewed. See TRUSTED_QUOTE_BINDING_2026_10_25.md for current locally verified scope.
+
+## Historical-audit continuity — 30 October2026
+
+Use `scripts/audit-historical-source.mjs` for a tracked-tree inventory and redacted static signals, and `scripts/audit-historical-syntax.mjs` for an explicit all-source parse selection. Detailed signal locations/proofs stay in ignored/private local artifacts. Static matches are triage candidates, not confirmed vulnerabilities or permission acceptance. Continue the registered `historical-security-boundaries` regression and disposable PostgreSQL suites. A new direct model route must have reviewed central admission; never convert the legacy-denial helper into an environment-enabled bypass. Follow the published audit coverage/backlog rather than claiming complete historical deep review from a green scan. Existing deployment, privacy, spending and release gates remain unchanged.

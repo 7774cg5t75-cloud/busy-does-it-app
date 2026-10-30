@@ -28,7 +28,7 @@ export default {
      !parsed.pathname.startsWith("/storage/v1/object/sign/busy-website-preview/")||
      !parsed.pathname.includes("/deployments/"+deployment+"/")||
      !parsed.pathname.endsWith(".html")||!parsed.searchParams.has("token")||
-     parsed.username||parsed.password)
+     parsed.username||parsed.password||parsed.port)
     return new Response("Only signed BUSY hosted previews may be rendered",{status:403});
   if(!env.BROWSER)return new Response("Browser Rendering not configured",{status:503});
   let browser;
@@ -42,19 +42,19 @@ export default {
      const u=new URL(req.url());
      // Block third-party tracking, JS and redirects. BUSY CSS is embedded;
      // approved website assets must resolve from the same Supabase project.
-     if(u.protocol==="https:"&&u.hostname===parsed.hostname&&
+     if(u.protocol==="https:"&&u.origin===parsed.origin&&
         u.pathname.startsWith("/storage/v1/object/")&&
-        ["document","image","stylesheet","font"].includes(req.resourceType()))
+        ["document","image","stylesheet","font"].includes(req.resourceType())&&
+        (req.resourceType()!=="document"||u.href===parsed.href))
        return req.continue();
-     if(req.url().startsWith("data:"))return req.continue();
+     if(req.url().startsWith("data:")&&["image","font"].includes(req.resourceType()))return req.continue();
     }catch{}
     return req.abort();
    });
    await page.setJavaScriptEnabled(false);
    await page.goto(urlString,{waitUntil:"domcontentloaded",timeout:12000});
    const final=new URL(page.url());
-   if(final.origin!==parsed.origin||
-      !final.pathname.startsWith("/storage/v1/object/sign/busy-website-preview/"))
+   if(final.href!==parsed.href)
      return new Response("Redirected away from private preview",{status:403});
    const png=await page.screenshot({type:"png",fullPage:true});
    if(png.byteLength>2100000)return new Response("Screenshot too large",{status:413});

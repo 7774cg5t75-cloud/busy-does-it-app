@@ -1,3 +1,4 @@
+import {requireCentralAiAdmission,legacyAiAdmissionStatus} from '../_shared/legacyAiAdmission.mjs';
 import {scopedOwnerStatus} from './scopedOwnerStatus.mjs';
 import {commitPrivateDraft} from './commitPrivateDraft.mjs';
 import {connectedStagingAction} from '../_shared/connectedStagingActions.mjs';
@@ -1440,6 +1441,7 @@ async function aiAppPlan(
     catalog,
     existingConfig
   );
+  if(!legacyAiAdmissionStatus().allowed)return fallback;
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey || !ownerRequest) return fallback;
 
@@ -3935,7 +3937,7 @@ async function markRequestLinked(
  */
 const appVisualAiReady=()=>{
  const model=Deno.env.get("BUSY_APP_VISUAL_AI_MODEL")||"";
- return Deno.env.get("BUSY_APP_VISUAL_AI_ENABLED")==="true"&&
+ return legacyAiAdmissionStatus().allowed&&Deno.env.get("BUSY_APP_VISUAL_AI_ENABLED")==="true"&&
   !!Deno.env.get("OPENAI_API_KEY")&&/^gpt-[a-z0-9.-]+$/i.test(model);
 };
 const utcMonthStart=()=>{
@@ -3968,6 +3970,7 @@ async function appVisualReviewStatus(businessId:string){
 }
 async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:string,
  mode:"single"|"comparison"="single"){
+ requireCentralAiAdmission();
  if(!appVisualAiReady())throw Error("App screenshot AI is not enabled.");
  const fields=validateAppScreenshotReview(body);
  if(!fields.ok)throw Error(fields.reason);
