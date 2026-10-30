@@ -42,7 +42,8 @@ function prepareWebsiteRequest(draft,request,deps={}){
  let originalHtml,candidateHtml;
  try{originalHtml=deps.renderPage(draft,plan.pageId);candidateHtml=deps.renderPage(working,plan.pageId);}catch{return fail('This request cannot be previewed safely.');}
  if([originalHtml,candidateHtml].some(h=>typeof h!=='string'||h.length>500000||!h.startsWith('<!doctype html>')||/<script\b|data-busy-edit-section|busy.contextual-action.v1/i.test(h)))return fail('Only a safe static preview can be compared.');
- return {ok:true,kind:'reviewed_website_request',draftId:draft.id,businessId:draft.businessId,pageId:plan.pageId,generation:draft.generation,instruction:request.instruction,groups:prepared,boundaries,originalHtml,candidateHtml,steps:plan.steps.map(x=>x.spoken),neverPublishes:true,providerCalls:0,summary:prepared.length===1?'Review your proposed website changes.':'Review the complete result below. Each part needs its own approval and save; earlier saved parts remain if you stop.'};
+ const {html,...anchor}=draft;
+ return {ok:true,kind:'reviewed_website_request',anchor,draftId:draft.id,businessId:draft.businessId,pageId:plan.pageId,generation:draft.generation,instruction:request.instruction,groups:prepared,boundaries,originalHtml,candidateHtml,steps:plan.steps.map(x=>x.spoken),neverPublishes:true,providerCalls:0,summary:prepared.length===1?'Review your proposed website changes.':'Review the complete result below. Each part needs its own approval and save; earlier saved parts remain if you stop.'};
 }
 function locateWebsiteRequest(request,draft){
  if(!request?.ok||request.kind!=='reviewed_website_request'||draft?.id!==request.draftId||draft?.businessId!==request.businessId||!Number.isSafeInteger(draft?.generation))return fail('Choose the original business website before continuing.');

@@ -1,3 +1,4 @@
+import {planBusyGoal} from './busyGoalPlan.mjs';
 import {beginWebsiteConversation,addWebsiteConversationTurn} from './websiteDesignConversation.mjs';
 import {planUniversalBuilderRequest} from './universalBuilderPlanV3210.mjs';
 import {planAppVoiceInstructions} from './appCoordinatedStudio.mjs';
@@ -10,6 +11,8 @@ import {selectedWebsiteExploreAdvice} from './selectedWebsiteExploreAdvice.mjs';
 import {planSelectedWebsiteChanges} from './websiteContextPlan.mjs';
 import {prepareSelectedWebsiteTransaction} from './websiteContextPlan.mjs';
 function websiteIdea(project,instruction,selection=null){
+ const goal=!selection?planBusyGoal({request:instruction,website:project,businessId:project.businessId,pageId:'home'},{}):null;
+ if(goal?.recognised&&goal.instruction)instruction=goal.instruction;
  const plan=selection?planSelectedWebsiteChanges(project,selection.pageId,selection,instruction):planWebsitePageInstructions(project,{draftId:project.id,generation:project.generation,pageId:'home',instruction});
  if(!plan.ok)return plan;
  const dry=prepareSelectedWebsiteTransaction(project,plan,{layoutEdit:(draft,change)=>{const result=applyWebsiteVisualEdit(draft,{...change,kind:'layout'});return result.applied?{...result,draft:{...result.draft,generation:draft.generation+1}}:result;},fieldEdit:()=>({applied:false})});
@@ -43,7 +46,8 @@ function runBuilderExplore(session,context,request){
  const text=request.text.trim(),project=JSON.parse(session.source.stamp);
  const plan=planUniversalBuilderRequest({businessId:session.source.businessId,request:text,catalog:JSON.parse(session.source.catalogStamp),...session.source.kind==='app'?{app:project}:{website:project}});
  const hypothetical=/^what would happen if I moved (?:the )?([a-z][a-z -]{0,50}?) (above|below) (?:the )?([a-z][a-z -]{0,50}?)\??$/i.exec(text);
- const instruction=hypothetical?'move '+hypothetical[1].replace(/ section$/i,'')+(session.source.kind==='website'?' section':'')+' '+hypothetical[2]+' '+hypothetical[3].replace(/ section$/i,''):text;
+ let instruction=hypothetical?'move '+hypothetical[1].replace(/ section$/i,'')+(session.source.kind==='website'?' section':'')+' '+hypothetical[2]+' '+hypothetical[3].replace(/ section$/i,''):text;
+ if(session.source.kind==='website'&&!session.source.selection){const goal=planBusyGoal({request:instruction,website:project,businessId:session.source.businessId},{});if(goal.recognised&&goal.instruction)instruction=goal.instruction;}
  let edit=session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,instruction):websiteIdea(project,instruction,session.source.selection);
  let explanation=explainBuilderExplore({kind:session.source.kind,project,catalog:JSON.parse(session.source.catalogStamp),plan,text});
  if(session.source.selection&&!/\b(?:club|personal project|community project)\b/i.test(text))explanation=selectedWebsiteExploreAdvice(project,session.source.selection,text);

@@ -1,3 +1,5 @@
+import {WebsiteRequestRecovery} from '../components/WebsiteRequestRecovery';
+import {planBusyGoal} from '../core/busyGoalPlan.mjs';
 import {WebsiteGroupedReview} from '../components/WebsiteGroupedReview';
 import {prepareWebsiteRequest} from '../core/websiteRequestPlan.mjs';
 import {ConnectedWebsiteHistory} from '../components/ConnectedWebsiteHistory';
@@ -1019,6 +1021,7 @@ function WebsitePreview({ s }) {
   const [pageInstruction,setPageInstruction]=React.useState("");
   const [pagePlanPreview,setPagePlanPreview]=React.useState(null);
   const [pageRequest,setPageRequest]=React.useState(null);
+  const [pageGoal,setPageGoal]=React.useState(null);
   const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
   const [pageSaveBusy,setPageSaveBusy]=React.useState(false);const pageSaveFlight=React.useRef(false);
@@ -1050,7 +1053,7 @@ function WebsitePreview({ s }) {
   React.useEffect(()=>setConfirmRecoveryRestore(false),[draft?.id,draft?.generation]);
   const instructionIdentity=React.useRef('');
   React.useEffect(()=>{const key=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,selectedPageId]);
-    setPagePlanPreview(null);setPagePlanNotice('');if(instructionIdentity.current!==key){setPageInstruction('');setPageRequest(null);}instructionIdentity.current=key;
+    setPageGoal(null);setPagePlanPreview(null);setPagePlanNotice('');if(instructionIdentity.current!==key){setPageInstruction('');setPageRequest(null);}instructionIdentity.current=key;
     setPageConversation(null);setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
@@ -1361,14 +1364,14 @@ function WebsitePreview({ s }) {
       </Card>
 
       <Card eyebrow="Change several parts together"
-        title="Tell BUSY which sections to adjust"
-        body="Use the section names visible on this page. BUSY checks each instruction, shows the original beside the proposed result and asks you to approve before saving. Unsupported or unclear instructions change nothing."
+        title="What would you like to improve?"
+        body="Tell Busy the result you want, such as making your website easier to use on a phone. You can also give exact wording. Review the proposed result before saving; unclear or unsupported requests change nothing."
         tone="blue">
         <Details label="Examples of changes BUSY can preview">
         <Text style={styles.cardBody}>Try: Change the hero heading to "Welcome to our workshop"; move the about section above services. Or add question "Do you travel?" answer "Ask us about your location." For phone reading: make the whole page easier to read only on phones. For a calmer mobile layout: give the whole page less space on phones. For composition: make the hero centred; or move the hero photo left when an approved hero image exists. Shared theme changes affect all pages; always preview first.</Text>
         </Details>
         <TextInput value={pageInstruction}
-          onChangeText={value=>{setPageInstruction(value);setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice("");}}
+          onChangeText={value=>{setPageInstruction(value);setPageGoal(null);setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice("");}}
           multiline maxLength={6000}
           accessibilityLabel="Describe your website page changes"
           placeholder="Move the services section up; make the hero heading smaller on phones"
@@ -1454,14 +1457,21 @@ function WebsitePreview({ s }) {
         <Button label="Preview changes — do not save"
           onPress={()=>{
             setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);
-            const planned=prepareWebsiteRequest(draft,{draftId:draft.id,pageId:activePage?.id||"home",generation:draft.generation,instruction:pageInstruction},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
+            const goal=planBusyGoal({request:pageInstruction,website:draft,businessId:s.cloudWorkspace?.businessId,pageId:activePage?.id||"home",profile:s.connectedRuntime?.profile},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
+            setPageGoal(goal.recognised?goal:null);
+            if(goal.recognised&&!goal.ready){setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice(goal.question||goal.nextAction);return;}
+            const reviewedWords=goal.ready?goal.instruction:pageInstruction;
+            const planned=goal.ready?goal.prepared:prepareWebsiteRequest(draft,{draftId:draft.id,pageId:activePage?.id||"home",generation:draft.generation,instruction:reviewedWords},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
             if(planned.ok&&planned.groups.length>1){setPageRequest({...planned,ownerId:s.ownerSession?.userId,ownerScope:s.ownerWorkspaceScope});setPagePlanPreview(null);setPagePlanNotice('Review the whole result, then approve each part separately.');return;}
             setPageRequest(null);
-            const result=planned.ok?s.previewWebsitePageInstruction?.({pageId:activePage?.id||"home",generation:draft.generation,instruction:pageInstruction}):planned;
-            setPagePlanPreview(result?.ok?result:null);
+            const result=planned.ok?s.previewWebsitePageInstruction?.({pageId:activePage?.id||"home",generation:draft.generation,instruction:reviewedWords}):planned;
+            setPagePlanPreview(result?.ok?{...result,instruction:reviewedWords}:null);
             setPagePlanNotice(result?.ok?"Original unchanged — review below.":result?.reason||"This request could not be previewed.");
             setShowPagePlanOriginal(false);
           }}/>
+        {pageGoal?.recognised&&pageGoal.ownerWording===pageInstruction?<WorkflowStatus title="Here’s how I can help" body={[...(pageGoal.findings||pageGoal.steps||[]),pageGoal.question,...(pageGoal.limitations||[])].filter(Boolean).join(' ')}/>:null}
+        {pageGoal?.route&&pageGoal.ownerWording===pageInstruction?<Button label={pageGoal.nextAction} onPress={()=>s.go(pageGoal.route)}/>:null}
+        <WebsiteRequestRecovery key={['request-recovery',s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id].join(':')} s={s} plan={pageRequest} inputText={pageInstruction} onRestore={plan=>{setPageInstruction(plan.instruction);setPagePlanPreview(null);setPageGoal(null);setPageRequest({...plan,ownerId:s.ownerSession?.userId,ownerScope:s.ownerWorkspaceScope});}}/>
         {pageRequest?.ok&&pageRequest.ownerId===s.ownerSession?.userId&&pageRequest.ownerScope===s.ownerWorkspaceScope&&pageRequest.businessId===s.websiteDraft?.businessId&&pageRequest.instruction===pageInstruction?<WebsiteGroupedReview key={pageRequest.generation+':'+pageRequest.instruction} s={s} plan={pageRequest} onDiscard={()=>setPageRequest(null)}/>:null}
         {pagePlanPreview?.ok&&pagePlanPreview.draftId===draft.id&&
          pagePlanPreview.generation===draft.generation&&
@@ -1492,7 +1502,7 @@ function WebsitePreview({ s }) {
               if(pageSaveFlight.current)return;pageSaveFlight.current=true;const captured=pageSaveCurrent.current;setPageSaveBusy(true);
               let result;try{result=await s.applyWebsitePageInstruction?.({
                pageId:pagePlanPreview.pageId,generation:pagePlanPreview.generation,
-               instruction:pageInstruction
+               instruction:pagePlanPreview.instruction||pageInstruction
               });}catch{result={reason:'Save not confirmed. Keep your words and inspect the account.'};}finally{pageSaveFlight.current=false;if(pageSaveAlive.current)setPageSaveBusy(false);}
               const live=pageSaveCurrent.current;if(!pageSaveAlive.current||live.owner!==captured.owner||live.business!==captured.business||live.instruction!==captured.instruction||live.preview!==captured.preview)return;
               setPagePlanNotice(result?.reason||"No changes were saved.");

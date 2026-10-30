@@ -2875,6 +2875,12 @@
       "args": [
         "scripts/check-website-request-capacity.mjs"
       ]
+    },
+    {
+      "id": "busy-goals",
+      "args": [
+        "scripts/check-busy-goals.mjs"
+      ]
     }
   ]
 }

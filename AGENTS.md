@@ -1,3 +1,7 @@
+## Latest owner-approved authority — V22.64 Section74 (30 October2026)
+
+The owner identifies V22.64, Zero Technical Experience Required, as current. Its genuine complete Word original was not accessible in this continuation; do not claim full-document verification. Accessible V22.63 remains the latest byte-verified original, not the latest approved version. Apply the owner's explicit Section74 requirements: ordinary goals, minimal plain-language clarification, bounded context/plan/review/execution/verification through original authorities, honest evidence and zero-technical-experience acceptance. No new paid AI, deployment or operational authority is granted. Full original-document reconciliation remains pending; private masters stay outside Git.
+
 ## Current genuine private Product Master — V22.63,30 October2026
 
 Owner-supplied complete V22.63 Word original reopened: SHA-256 `7bae0e3a8ed88a1fa835e74c4b648be8b2eb4b707026f5cd94649ceef1cd6f52`,2,554 paragraphs/19 tables. Ordered comparison retains all V22.62 non-cover content, updates the version line and adds24 Section73 paragraphs; all additions were reviewed. V22.62 original checksum remains `e1db4f4fb9d3a77fa3502e1912c67d765ca8895ebe3fd949b29f50d6768af0ad`. Private originals and complete extracts remain outside Git. V22.63 is current; earlier unavailable-original notes are historical checkpoint evidence.
