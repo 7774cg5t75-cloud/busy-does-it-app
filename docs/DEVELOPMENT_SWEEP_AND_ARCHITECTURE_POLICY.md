@@ -65,9 +65,13 @@ This preflight is a **required step**, not a suggestion. The owner prefers takin
 
 Meaningful functional or maintainability improvements, no newly introduced regression according to available automated checks, transparent remaining uncertainty, and no additional unapproved costs. At ~five-sweep intervals, include architectural health as a first-class deliverable.
 
-## Build-first active development — owner Phase67 instruction (23 October2026)
+## Permanent development continuity — V22.63 Section73 (30 October2026)
 
-Prioritise coherent batches of working application code, reuse and essential automated quality checks. Use source/component, syntax, dependency, architecture and relevant security regressions during development; run the full applicable automated selection on frozen source before completion claims. Correct critical defects at their real boundary. Do not turn every mission into owner-performed device acceptance, hosted infrastructure investigation or documentation-only preparation. Actual device/browser/provider/JWT/release acceptance remains honestly separate and requires its existing authority; no relaxed security assertions, paid actions, hosted switches or abort-fuse removal.
+The canonical standing arrangements are in root [AGENTS.md — Permanent development continuity](../AGENTS.md#permanent-development-continuity--v2263-section73). They consolidate the earlier Phase67 build-first policy: the owner can usually make short decisions/approvals but is not routinely available for extensive manual/device testing. Maintain urgency in building, not urgency in releasing.
+
+Apply these arrangements to the per-sweep gates above: proceed with authorised implementation and proportionate automated verification; when a workstream needs acceptance or separate permission, checkpoint it and continue another independent safe task within scope. Seek one concise, operation-specific approval when necessary, never infer consent from silence, and preserve all security/spending/deployment/customer-action boundaries. Plan comprehensive owner end-to-end acceptance at meaningful integrated milestones; an essential unsatisfied check blocks that activation rather than unrelated development. Report source/local/hosted/native evidence distinctly and preserve recoverable commits within finite task limits.
+
+### Historical Phase67 authority note
 
 Product authority for this mission is the accessible genuine V22.48 original plus explicit Phase67 implementation instructions. V22.49's original is unavailable and not reconstructed. The approved visual direction may now be implemented in original app chrome/Home/settings while preserving corporate identity, six destinations, source/tenant approvals, all existing business records and owner-created website/app appearances. Device appearance preferences must remain separate from business Brand DNA and account snapshots.
 
