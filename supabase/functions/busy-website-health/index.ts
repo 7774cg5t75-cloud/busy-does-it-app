@@ -1,5 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabaseClient.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -21,7 +20,7 @@ function clean(value: unknown, max = 4000) {
 
 async function validRequest(request: Request) {
   const authorization = request.headers.get("Authorization") || "";
-  if (authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
+  if (SERVICE_ROLE_KEY && authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
 
   const supplied = request.headers.get("x-busy-health-token") || "";
   if (!supplied) return false;
@@ -41,14 +40,16 @@ async function fetchWithDeadline(url: string, timeoutMs = 6000) {
   try {
     const response = await fetch(url, {
       method: "GET",
-      redirect: "follow",
+      redirect: "error",
       headers: {
         "User-Agent": "BUSY-Website-Health/3.53",
         Accept: "text/html,*/*;q=0.8",
       },
       signal: controller.signal,
     });
-    const text = await response.text();
+    const reader=response.body?.getReader();
+    const decoder=new TextDecoder();let text="",bytes=0;
+    if(reader)try{while(true){const part=await reader.read();if(part.done)break;bytes+=part.value.byteLength;if(bytes>500000){void reader.cancel().catch(()=>{});throw new Error("Website health response exceeds its safe bound.");}text+=decoder.decode(part.value,{stream:true});}text+=decoder.decode();}finally{reader.releaseLock();}
     return {
       ok: response.ok,
       status: response.status,

@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {legacyProviderAdmission} from '../_shared/legacyProviderAdmission.mjs';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") || "";
@@ -223,7 +223,7 @@ async function handleCallback(url: URL) {
       `busy_calendar_oauth_states?state=eq.${encodeURIComponent(state)}`,
       { method: "DELETE" }
     ).catch(() => {});
-    return redirect("error", error?.message || "Google Calendar connection failed.");
+    return redirect("error", error instanceof Error ? error.message : "Google Calendar connection failed.");
   }
 }
 
@@ -232,6 +232,7 @@ Deno.serve(async (req: Request) => {
 
   const url = new URL(req.url);
   if (req.method === "GET" && (url.searchParams.get("code") || url.searchParams.get("error"))) {
+    if(!legacyProviderAdmission().allowed)return json(503,{error:"Calendar connection changes are unavailable pending security review."});
     return handleCallback(url);
   }
 
@@ -242,6 +243,7 @@ Deno.serve(async (req: Request) => {
 
   const body: any = await req.json().catch(() => ({}));
   const action = String(body?.action || "");
+  if(action!=="status"&&!legacyProviderAdmission().allowed)return json(503,{error:"Calendar connection changes are unavailable pending security review."});
   const businessId = String(body?.businessId || "");
   const membership = await assertMembership(user.id, businessId);
   if (!membership) return json(403, { error: "This user is not a member of that BUSY business." });

@@ -4,7 +4,8 @@ export function validServiceIndex(section){
  return section?.type==='services'&&Array.isArray(items)&&items.length>=2&&items.every(item=>item&&typeof item.id==='string'&&item.id.trim()&&String(item.title||'').trim()&&String(item.body||'').trim())&&new Set(items.map(item=>item.id)).size===items.length;
 }
 // Original record order and wording; finite local anchors, never new actions.
-export function serviceIndexHtml(section,{escapeHtml,editAttrs=()=>'',itemHeadingClass=()=>'',contactHref=''}={}){
+/** @param {unknown} section @param {{escapeHtml:(value:unknown)=>string,editAttrs?:(...args:unknown[])=>string,itemHeadingClass?:(item:unknown)=>string,contactHref?:string}} options */
+export function serviceIndexHtml(section,{escapeHtml,editAttrs=()=>'',itemHeadingClass=/** @type {(item:unknown)=>string} */(()=>''),contactHref=''}={}){
  if(!validServiceIndex(section)||typeof escapeHtml!=='function')return '';
  const segment=value=>Array.from(String(value),letter=>letter.codePointAt(0).toString(16)).join('-');
  const anchor=item=>'service-index-'+segment(section.id)+'--'+segment(item.id);

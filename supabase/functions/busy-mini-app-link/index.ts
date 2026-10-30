@@ -1,6 +1,5 @@
 import {parseBusinessContentInterest} from '../_shared/businessContentRecords.mjs';
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabaseClient.ts";
 import {verifyPublishedWebsiteIntent} from "./websiteRequestLinkGuardV3215.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";

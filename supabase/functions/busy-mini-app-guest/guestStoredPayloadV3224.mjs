@@ -17,7 +17,7 @@ const fail=()=>({ok:false,reason:"This browser's saved request differs from the 
  mayCreateAnotherRequest:false,bookingConfirmed:false,
  customerDetailsIncluded:false});
 function verifyStoredGuestSubmissionV3224({
- row=null,sanitized=null,requestId="",businessId="",appId="",
+ row=/** @type {Record<string, unknown>|null} */ (null),sanitized=/** @type {Record<string, unknown>|null} */ (null),requestId="",businessId="",appId="",
  challengeId="",requestType="",idempotencyKey=""
 }={}){
  const fields=FIELDS[requestType];

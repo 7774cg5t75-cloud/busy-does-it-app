@@ -10,7 +10,7 @@ const TYPES=new Set(["enquiry","booking_request"]);
 const deny=reason=>({ok:false,reason,recordEntryAllowed:false,
   submitAllowed:false,customerRequestCreated:false,
   receiptVerified:false,bookingConfirmed:false});
-function verifyPublishedWebsiteIntent({url="",app=null,version=null}={}){
+function verifyPublishedWebsiteIntent({url="",app=/** @type {Record<string, unknown>|null} */ (null),version=/** @type {Record<string, unknown>|null} */ (null)}={}){
  let parsed;
  try{parsed=new URL(url);}catch{return deny("The website request link is malformed.");}
  const q=parsed.searchParams;

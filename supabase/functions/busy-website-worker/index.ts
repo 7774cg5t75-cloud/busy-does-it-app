@@ -6,10 +6,9 @@ import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
 import {itemTypographyClasses} from "./websiteTextTypography.mjs";
 import {sectionAppearanceClasses} from './websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabaseClient.ts";
 import {renderOptInContactForm} from "./formHtml.mjs";
-import {formReadiness} from "./formPolicy.mjs";
+import {formReadiness} from "../busy-website-form/formPolicy.mjs";
 import {designForWebsite, designCss} from "./designSystem.mjs";
 import {planWebsiteDesign} from "./designPlanner.mjs";
 
@@ -1226,7 +1225,7 @@ async function processMessage(
 
 async function validWorkerRequest(request: Request) {
   const authorization = request.headers.get("Authorization") || "";
-  if (authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
+  if (SERVICE_ROLE_KEY && authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
 
   const supplied = request.headers.get("x-busy-worker-token") || "";
   if (!supplied) return false;

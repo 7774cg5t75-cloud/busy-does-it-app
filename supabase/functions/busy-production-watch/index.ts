@@ -1,4 +1,3 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const TRUSTED_SNAPSHOT_PROJECTIONS_ENABLED = false; // Separate staged service cutover.
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
@@ -346,9 +345,9 @@ async function runWatch(
       const uniqueTokens = [
         ...new Set(group.tokens),
       ].filter(
-        (token: string) =>
-          token.startsWith("ExponentPushToken[") ||
-          token.startsWith("ExpoPushToken[")
+        (token: unknown): token is string =>
+          typeof token === "string" && (token.startsWith("ExponentPushToken[") ||
+          token.startsWith("ExpoPushToken["))
       );
 
       if (!uniqueTokens.length) continue;

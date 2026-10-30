@@ -1,6 +1,6 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {originalUploadOperations} from './uploadOperations.mjs';
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient} from "jsr:@supabase/supabase-js@2";
+import {createClient} from "../_shared/supabaseClient.ts";
 
 /**
  * Explicit, authenticated business-owned original-photo transfer.
@@ -68,7 +68,7 @@ async function audit(userId:string,businessId:string,path:string,action:string,b
   storage_path:path,action,byte_length:bytes});
  if(r.error)throw r.error;
 }
-const uploadOperations=originalUploadOperations({supabase,inspect,rateGate,audit,digest:async(bytes:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('')});
+const uploadOperations=originalUploadOperations({supabase,inspect,rateGate,audit,digest:async(bytes:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Uint8Array.from(bytes)))).map(x=>x.toString(16).padStart(2,'0')).join('')});
 async function upload(req:Request,raw:any,userId:string,businessId:string){
  const encoded=raw?.photoBase64;
  if(typeof encoded!=="string"||encoded.length<28||encoded.length>12_600_000||
@@ -115,7 +115,7 @@ async function download(raw:any,userId:string,businessId:string){
  const bytes=new Uint8Array(await result.data.arrayBuffer());
  if(bytes.length!==record.data.byte_length||inspect(bytes)!==record.data.content_type)
   return fail(409,"The backed-up original did not pass the integrity checks.");
- const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('');
+ const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Uint8Array.from(bytes)))).map(x=>x.toString(16).padStart(2,'0')).join('');
  if(sha!==record.data.sha256||raw.expectedSha256!==undefined&&raw.expectedSha256!==sha)return fail(409,"The original digest did not match the reviewed asset.");
  await audit(userId,businessId,path,"download",bytes.length);
  return new Response(bytes,{status:200,headers:{...cors,
@@ -129,12 +129,10 @@ Deno.serve(async req=>{
  try{
   if(Number(req.headers.get("content-length")||0)>12_800_000)
    return fail(413,"Photo transfer request is too large.");
-  const text=await req.text();
-  if(text.length>12_800_000)return fail(413,"Photo transfer request is too large.");
-  const raw=JSON.parse(text);
+  const raw=await boundedJson(req,12_800_000) as Record<string,unknown>;
   const businessId=typeof raw?.businessId==="string"?raw.businessId:"";
   const userId=await auth(req,businessId);
-  if(['creator_upload','creator_upload_inspect','creator_upload_list'].includes(raw?.action)){
+  if(typeof raw?.action==='string'&&['creator_upload','creator_upload_inspect','creator_upload_list'].includes(raw?.action)){
    if(!UPLOAD_OPERATIONS_ENABLED)return fail(503,'Creator upload operations are not activated.');
    const value=raw.action==='creator_upload'?await uploadOperations.upload(raw,userId,businessId):raw.action==='creator_upload_inspect'?await uploadOperations.inspect(raw,userId,businessId):await uploadOperations.list(raw,userId,businessId);return success(value);
   }
@@ -142,6 +140,7 @@ Deno.serve(async req=>{
   if(raw?.action==="download")return await download(raw,userId,businessId);
   return fail(400,"Unknown photo transfer action.");
  }catch(error){
+  if(error instanceof BoundedRequestError)return fail(error.status,error.message);
   const message=String((error as Error)?.message||"Private original transfer failed.");
   if(/only a business owner|not a verified|select a valid|sign in|session expired/i.test(message))
    return fail(403,message);

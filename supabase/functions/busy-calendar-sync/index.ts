@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {legacyProviderAdmission} from '../_shared/legacyProviderAdmission.mjs';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") || "";
@@ -316,6 +316,7 @@ Deno.serve(async (req: Request) => {
   }
   if (req.method !== "POST") return json(405, { error: "POST required." });
 
+  if(!legacyProviderAdmission().allowed)return json(503,{error:"Calendar synchronisation is unavailable pending security review. No event was changed."});
   const user = await currentUser(req);
   if (!user?.id) return json(401, { error: "Authenticated BUSY owner required." });
 
@@ -375,7 +376,7 @@ Deno.serve(async (req: Request) => {
           { method: "DELETE" }
         );
       } catch (error) {
-        if (error?.status !== 404 && error?.status !== 410) throw error;
+        if ((error instanceof Error && "status" in error ? error.status : undefined) !== 404 && (error instanceof Error && "status" in error ? error.status : undefined) !== 410) throw error;
       }
       await patchLink(link.id, { status: "cancelled" });
     }
@@ -405,7 +406,7 @@ Deno.serve(async (req: Request) => {
           `/calendars/primary/events/${encodeURIComponent(link.event_id)}`
         );
       } catch (error) {
-        if (error?.status === 404 || error?.status === 410) {
+        if ((error instanceof Error && "status" in error ? error.status : undefined) === 404 || (error instanceof Error && "status" in error ? error.status : undefined) === 410) {
           event = await googleRequest(
             token,
             "/calendars/primary/events",

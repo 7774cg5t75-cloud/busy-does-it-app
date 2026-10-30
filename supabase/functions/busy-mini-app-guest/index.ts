@@ -1,8 +1,8 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {publicWebsiteBusinessContent} from '../_shared/publicBusinessContent.mjs';
 import {validContentLayout} from '../_shared/businessContentRecords.mjs';
 import {readBusinessContent} from '../_shared/businessContentStore.mjs';
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabaseClient.ts";
 import { publicNativeMiniAppProjection,validSlug } from "./publicNativeProjection.mjs";
 import {evaluateStoredRequestProof} from "./requestReceiptProofV3213.mjs";
 import {verifyStoredGuestSubmissionV3224} from "./guestStoredPayloadV3224.mjs";
@@ -431,7 +431,7 @@ async function submitGuestRequest(req: Request, body: any) {
     request:requestRow.data,context:"guest_submission",
     businessId:app.business_id,appId:app.id,requestId
   });
-  if(!saved.ok)throw new Error("BUSY cannot verify the committed guest request. Check the existing browser receipt before retrying.");
+  if(!saved.ok||!("statusLabel" in saved))throw new Error("BUSY cannot verify the committed guest request. Check the existing browser receipt before retrying.");
 
   // An INSERT trigger created this record atomically with the saved guest
   // request. Treat missing/cross-tenant intent as uncertain, never silently
@@ -519,7 +519,7 @@ async function guestStatus(body: any) {
     businessId:request.data.business_id,appId:request.data.mini_app_id,
     requestId
   });
-  if(!evidence.ok)throw new Error("The browser request status cannot be verified from its original business receipt.");
+  if(!evidence.ok||!("bookingMarkedConfirmedInBusy" in evidence)||!("bookingStateConsistent" in evidence))throw new Error("The browser request status cannot be verified from its original business receipt.");
 
   return {
     requestEvidence:evidence,
@@ -551,7 +551,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const body = await req.json().catch(() => ({}));
+    const body = await boundedJson(req,32768) as Record<string,unknown>;
     const action = clean(body?.action, 40);
 
     if(action==='public_content'){
@@ -596,6 +596,7 @@ Deno.serve(async (req: Request) => {
 
     return json(400, { error: "Unsupported guest Mini App action." });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{error:error.message});
     const message =
       error instanceof Error ? error.message : "Guest Mini App request failed.";
     console.error("BUSY guest Mini App error", message);

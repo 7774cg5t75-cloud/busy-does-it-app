@@ -79,7 +79,7 @@ function selectVisualIdentity({businessName="",businessType="",theme={},family="
    ].join("|")
  };
 }
-function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}}={}){
+function planWebsiteDesign({businessType="",businessName="",sections=/** @type {Array<Record<string,unknown>>} */([]),theme={}}={}){
   const active=list(sections).filter(s=>s?.enabled!==false);
   const services=list(section(active,"services")?.items).filter(s=>clean(s?.title));
   const serviceDescriptions=services.filter(s=>words(s?.body)>=5).length;

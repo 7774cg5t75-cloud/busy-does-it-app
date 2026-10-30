@@ -7,7 +7,7 @@
 const DIGEST=/^[0-9a-f]{64}$/;
 const TICKET=/^[A-Za-z0-9_-]{5,120}$/;
 function buildGuestDeviceGatewayEvidenceV3229({
- deviceHashes=[],tickets=null,responseOk=false
+ deviceHashes=/** @type {string[]} */([]),tickets=null,responseOk=false
 }={}){
  if(!Array.isArray(deviceHashes)||deviceHashes.length>20||
     deviceHashes.some(h=>typeof h!=="string"||!DIGEST.test(h)))

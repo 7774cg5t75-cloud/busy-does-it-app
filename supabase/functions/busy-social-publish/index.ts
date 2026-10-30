@@ -1,3 +1,4 @@
+import {legacyProviderAdmission} from '../_shared/legacyProviderAdmission.mjs';
 import {providerMessagePage} from '../_shared/providerMessagePage.mjs';
 import {matchesConfiguredPrototypeOwner,matchesConfiguredProviderSubject,providerEventAppliesToConnection} from '../_shared/legacyWorkspaceIdentity.mjs';
 import {createClient} from '../_shared/supabaseClient.ts';
@@ -1272,10 +1273,13 @@ Deno.serve(async (request: Request) => {
 
   try {
     const url = new URL(request.url);
+    const callbackAction=url.searchParams.get("action");
+    if(!legacyProviderAdmission().allowed&&((request.method==="GET"&&(url.searchParams.has("provider")||callbackAction==="callback"))||["deauthorize","data_delete"].includes(callbackAction||"")))return json(503,{error:"Provider connection changes are unavailable pending security review."});
     const pathParts = url.pathname.split("/").filter(Boolean);
     const callbackProvider =
       pathParts.at(-2) === "callback" ? cleanText(pathParts.at(-1), 40) : "";
 
+    if(callbackProvider&&!legacyProviderAdmission().allowed)return json(503,{error:"Provider connection changes are unavailable pending security review."});
     if (request.method === "POST" && url.searchParams.get("action") === "deauthorize") {
       const form = await request.formData();
       const signedRequest = cleanText(form.get("signed_request"), 10000);
@@ -1336,6 +1340,7 @@ Deno.serve(async (request: Request) => {
     const body = await request.json();
     const action = cleanText(body?.action, 80);
     const owner = await requireOwner(request);
+    if(!legacyProviderAdmission().allowed&&["set_live_publishing","begin_oauth","select_asset","verify_provider","disconnect","schedule","publish_now","retry_post","process_due"].includes(action))return json(503,{error:"Provider actions are unavailable pending security review. Private draft editing remains available."});
 
     if (action === "status") {
       const [credentials, meta, google, queue] = await Promise.all([

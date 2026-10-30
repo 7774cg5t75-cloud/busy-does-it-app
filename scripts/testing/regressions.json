@@ -2905,6 +2905,12 @@
       "args": [
         "scripts/check-historical-security-boundaries.mjs"
       ]
+    },
+    {
+      "id": "edge-audit-phase2",
+      "args": [
+        "scripts/check-edge-audit-phase2.mjs"
+      ]
     }
   ]
 }

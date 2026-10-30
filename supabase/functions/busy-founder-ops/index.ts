@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {isFounderUser,aggregateUsageRows,buildFounderReport} from "./report.mjs";
 import {VALID_KEYS} from "./alertInbox.mjs";
 import {probeManagedWebsite,buildExternalRealityDigest} from "./externalReality.mjs";
@@ -346,7 +346,7 @@ async function getServiceInventory(){
 }
 async function recordServiceSnapshot(body:any, founderId:string){
   const checked=validateServiceSnapshot(body);
-  if(!checked.ok)throw new Error(checked.error);
+  if(!checked.ok||!checked.record)throw new Error(checked.error||"Invalid service snapshot.");
   if(!SECRET_KEY)throw new Error("Founder reporting is not configured.");
   const q=new URLSearchParams({select:"service_key,request_key,recorded_at"});
   const response=await fetch(ROOT+"/rest/v1/busy_founder_service_snapshots?"+q,{
@@ -383,8 +383,8 @@ Deno.serve(async(req:Request)=>{
   let payload:unknown;
   try{
     if(Number(req.headers.get("content-length")||0)>2048)return send(413,{error:"request_too_large"});
-    payload=await req.json();
-  }catch{return send(400,{error:"invalid_request"});}
+    payload=await boundedJson(req,2048);
+  }catch(error){return send(error instanceof BoundedRequestError?error.status:400,{error:"invalid_request"});}
 
   if(!payload||typeof payload!=="object"||Array.isArray(payload))
     return send(400,{error:"unsupported_action"});
