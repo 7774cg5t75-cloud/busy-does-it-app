@@ -1,3 +1,4 @@
+import {WorkflowStatus} from './WorkflowChrome';
 import {CanonicalAgreementEvidence} from './CanonicalAgreementEvidence';
 import {CanonicalPrivateFollowUp,CanonicalWorkNotes} from './CanonicalPrivateFollowUp';
 import {CanonicalQuoteReference} from './CanonicalQuoteReference';
@@ -102,8 +103,8 @@ export function CanonicalWorkPanel({s,customer,accountContext=null}){
  if(!api?.enabled||!visible)return null;
  const roleHidden=role!=='owner';
  return <View style={roleHidden?{display:'none'}:undefined} accessibilityElementsHidden={roleHidden} importantForAccessibility={roleHidden?'no-hide-descendants':'auto'}><Card eyebrow={api.evidence==='local-test'?'Isolated local test records':'Canonical Work'} title="Separate customer engagements" body="Inspect, review and save one exact engagement. Selecting a record never replaces the customer’s legacy Work or another engagement.">
-  {api.status().status==='unknown'?<Text style={styles.cardBody}>An account operation is uncertain. Your wording is kept. Read-only inspection cannot reconstruct its acknowledgement or authorise another save.</Text>:null}
-  {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
+  {api.status().status==='unknown'?<WorkflowStatus tone="warning" title="Save outcome needs checking" body="Your wording is kept. Read-only inspection cannot reconstruct its acknowledgement or authorise another save."/>:null}
+  {notice?<WorkflowStatus title="Private work update" body={notice}/>:null}
   {unsupportedContext?<Text style={styles.cardBody}>This current edit binding expired. Your fields are kept. Close and inspect the current account source before another review.</Text>:null}
   {record?<Card eyebrow="Source and unfinished work" title="Review source changes" body={'Engagement '+record.engagementId+' · Customer '+customerId+'. Your editor fields are separate from current account observations.'}>
    <Button label="Inspect source changes without replacing wording" disabled={busy||checkingSource} onPress={compareSource}/>

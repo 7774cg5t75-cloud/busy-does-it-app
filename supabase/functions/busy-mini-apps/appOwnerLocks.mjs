@@ -2,11 +2,11 @@ import {componentLockTargets} from './appComponentAppearance.mjs';
 // Owner locks are editing constraints, not permissions or evidence of quality.
 function appOwnerLocks(config){
  const locks=config?.presentation?.ownerLockedElements;
- if(locks===undefined)return {ok:true,locks:[]};
+ if(locks===undefined)return {ok:/** @type {const} */ (true),locks:[]};
  if(!Array.isArray(locks)||locks.length>30||new Set(locks).size!==locks.length||
     locks.some(x=>typeof x!=="string"||!x.trim()||x.length>80))
-  return {ok:false,locks:[],reason:"Review the existing owner-locked elements before editing."};
- return {ok:true,locks};
+  return {ok:/** @type {const} */ (false),locks:[],reason:"Review the existing owner-locked elements before editing."};
+ return {ok:/** @type {const} */ (true),locks};
 }
 function appEditLockReason(config,op){
  if(op?.kind==="restore_photo_description")op={...op,kind:"photo_description"};

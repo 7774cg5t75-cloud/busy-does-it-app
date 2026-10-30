@@ -1,3 +1,4 @@
+import {SegmentedControl,EmptyState} from '../components/InteriorChrome';
 import React from "react";
 import { Text, View } from "react-native";
 
@@ -123,10 +124,10 @@ function CommunicationsHub({ s }) {
       <View style={styles.workspacePanel}>
        <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Find a customer conversation</Text>
        <Field label="Find a conversation" value={search} onChangeText={setSearch} placeholder="Customer, contact or service"/>
-       <View style={styles.choiceGrid}>{["All",...laneRows.map(([name])=>name)].map(name=><View key={name} style={styles.choiceCell}><Button compact selected={selectedLane===name} label={(selectedLane===name?"✓ ":"")+name} onPress={()=>setSelectedLane(name)}/></View>)}</View>
+       <SegmentedControl label="Conversation status" items={["All",...laneRows.map(([name])=>name)]} value={selectedLane} onChange={setSelectedLane}/>
        <Text style={styles.workspaceMeta}>Filters affect joined conversations only. Unmatched incoming items and the totals above stay visible for review.</Text>
        {query||selectedLane!=="All"?<Button label="Clear conversation filters" onPress={()=>{setSearch("");setSelectedLane("All");}}/>:null}
-       {!laneRows.some(([name,rows])=>(selectedLane==="All"||selectedLane===name)&&rows.some(matches))?<Text accessibilityLiveRegion="polite" style={styles.helper}>No joined conversations match this view. No records were removed.</Text>:null}
+       {!laneRows.some(([name,rows])=>(selectedLane==="All"||selectedLane===name)&&rows.some(matches))?<EmptyState title="No conversations in this view" body="No records were removed. Clear the filters to see all recorded conversations." actionLabel="Clear conversation filters" onAction={()=>{setSearch("");setSelectedLane("All");}}/>:null}
       </View>
       {laneRows.filter(([name])=>selectedLane==="All"||selectedLane===name).map(([lane, allRows]) => {
         const rows=allRows.filter(matches);return rows.length ? (

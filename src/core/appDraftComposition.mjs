@@ -20,7 +20,7 @@ function appConfigLockReason(before,after){
  return operations.map(op=>appEditLockReason(before,op)).find(Boolean)||'';
 }
 function retainAppDraftDesign(previous,rebuilt){
- if(!previous)return {ok:true,nextConfig:rebuilt};
+ if(!previous)return {ok:/** @type {const} */ (true),nextConfig:rebuilt};
  const next={...rebuilt};
  // Keep the established Studio, plan and distribution settings when refreshing
  // approved business facts. Applying a new plan explicitly replaces its fields.
@@ -31,19 +31,19 @@ function retainAppDraftDesign(previous,rebuilt){
  const enabled=(next.modules||[]).filter(x=>x.enabled===true).map(x=>x.key);
  next.navigation=[...new Set([...(previous.navigation||[]).filter(k=>enabled.includes(k)),...enabled])];
  const reason=appConfigLockReason(previous,next);
- return reason?{ok:false,reason}:{ok:true,nextConfig:next};
+ return reason?{ok:/** @type {const} */ (false),reason}:{ok:/** @type {const} */ (true),nextConfig:next};
 }
 function proposeAppModuleToggle(config,{moduleKey,enabled}={}){
  const valid=enabledAppKeys(config);if(!valid.ok)return valid;
  const found=config.modules.filter(x=>x.key===moduleKey);
  if(found.length!==1||typeof enabled!=='boolean'||found[0].enabled===enabled||
   moduleKey==='business_profile'&&!enabled||enabled&&found[0].status!=='available')
-  return {ok:false,reason:'Choose one supported module and a new enabled setting.'};
+  return {ok:/** @type {const} */ (false),reason:'Choose one supported module and a new enabled setting.'};
  const modules=config.modules.map(x=>x.key===moduleKey?{...x,enabled}:x);
  const keys=modules.filter(x=>x.enabled===true).map(x=>x.key);
  const navigation=[...config.navigation.filter(k=>keys.includes(k)),...keys.filter(k=>!config.navigation.includes(k))];
  const nextConfig={...config,modules,navigation};
  const reason=appConfigLockReason(config,nextConfig);
- return reason?{ok:false,reason}:{ok:true,nextConfig};
+ return reason?{ok:/** @type {const} */ (false),reason}:{ok:/** @type {const} */ (true),nextConfig};
 }
 export {appConfigLockReason,retainAppDraftDesign,proposeAppModuleToggle};

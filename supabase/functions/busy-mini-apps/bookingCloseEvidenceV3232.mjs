@@ -5,7 +5,7 @@
  */
 const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 function classifyBookingClosureEvidenceV3232({businessId="",requestId="",result=null}={}){
- const deny=reason=>({ok:false,reason,mayConfirmBooking:false,
+ const deny=reason=>({ok:/** @type {const} */ (false),reason,mayConfirmBooking:false,
   customerNotified:false,calendarDelivered:false,mayRetryAutomatically:false});
  if(!UUID.test(businessId)||!UUID.test(requestId)||!result||
   typeof result!=="object"||Array.isArray(result)||
@@ -27,7 +27,7 @@ function classifyBookingClosureEvidenceV3232({businessId="",requestId="",result=
   return deny("The cancelled booking ledger receipt is incomplete.");
  if(result.workLedgerState==="not_applicable"&&result.workLedgerDurable===true)
   return deny("The booking ledger state conflicts with the original request.");
- return {ok:true,kind:"atomic_booking_close_receipt_v3232",
+ return {ok:/** @type {const} */ (true),kind:"atomic_booking_close_receipt_v3232",
   businessId,requestId,requestClosed:true,
   workLedgerState:result.workLedgerState,
   workLedgerCancellationRecorded:result.workLedgerState==="cancelled",

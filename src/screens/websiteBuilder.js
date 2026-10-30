@@ -1,3 +1,4 @@
+import {WorkflowStatus} from '../components/WorkflowChrome';
 import {PremiumHomepagePreview} from './premiumHomepagePreview';
 import {appColors as C} from "../theme/appearance.mjs";
 import {useOwnerEditNavigation} from './useOwnerEditNavigation';
@@ -289,7 +290,7 @@ function WebsiteBuilder({ s }) {
       s={s}
       title="Website Builder"
       subtitle="Tell BUSY about your business, preview your website and make it your own."
-      brandCue="BUSY DOES IT • Website Builder"
+      brandCue="Create privately. Review before publishing."
     >
       <PremiumHomepagePreview key={['premium-sample',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')} ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} approvedFacts={brand.websiteBrief?{businessName:brand.websiteBrief.businessName||'',businessType:brand.websiteBrief.businessType||'',description:brand.websiteBrief.description||'',serviceArea:brand.websiteBrief.serviceArea||'',email:brand.websiteBrief.email||'',phone:brand.websiteBrief.phone||'',services:(Array.isArray(brand.websiteBrief.services)?brand.websiteBrief.services:[]).map(r=>({id:r.id,name:r.name,description:r.description||''}))}:null}/>
       <Button label="Talk & Explore — no project changes" disabled={!draft||!!s.websiteAction} onPress={()=>{
@@ -633,12 +634,7 @@ function WebsiteBuilder({ s }) {
         </Card>
       ):null}
       {s.websiteBuilderNotice ? (
-        <Card
-          eyebrow="BUSY website update"
-          title="Latest builder message"
-          body={s.websiteBuilderNotice}
-          tone="blue"
-        />
+        <WorkflowStatus title="Website update" body={s.websiteBuilderNotice}/>
       ) : null}
       {draft ? (
         <>
@@ -1679,7 +1675,7 @@ function WebsitePreview({ s }) {
         onPreviewInstruction={s.previewSelectedWebsiteInstruction}
         onDesignFeedback={s.recordMeasuredWebsiteFeedback}
         onTranscribe={s.transcribeSelectedWebsiteAudio}/>
-      {s.websiteBuilderNotice?<Text style={styles.cardBody}>{s.websiteBuilderNotice}</Text>:null}
+      {s.websiteBuilderNotice?<WorkflowStatus title="Website update" body={s.websiteBuilderNotice}/>:null}
       {s.canUndoWebsite ? <Button label="Undo last website change" onPress={s.undoWebsiteChange} /> : null}
       {s.canRedoWebsite ? <Button label="Redo website change" onPress={s.redoWebsiteChange} /> : null}
       <Button label={showRecoveryTools?"Hide recovery options":"Protect or restore my website draft"}

@@ -5,10 +5,10 @@
  * filtered by the SAME business/app/request. No owner contact data.
  */
 const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
-const deny=reason=>({ok:false,reason,mayClose:false,readOnly:true,
+const deny=reason=>({ok:/** @type {const} */ (false),reason,mayClose:false,readOnly:true,
  calendarDelivered:false,customerNotified:false,mayRetryAutomatically:false});
 function classifyBookingRevisionV3233({
- businessId="",appId="",requestId="",request=null,link=null,work=null
+ businessId="",appId="",requestId="",request=/** @type {{id:string,business_id:string,mini_app_id:string,request_type:string,status:string,updated_at?:string,created_at?:string,request_origin?:string,consumer_user_id?:string|null}|null} */ (null),link=/** @type {{request_id:string,business_id:string,bridge_state:string,customer_record_id?:string,action_record_id?:string,updated_at?:string}|null} */ (null),work=/** @type {{request_id:string,business_id:string,state:string,id?:string,mini_app_id?:string,customer_record_id?:string,action_record_id?:string,calendar_date?:string,calendar_time?:string,calendar_timezone?:string,source?:string,updated_at?:string}|null} */ (null)
 }={}){
  if(!UUID.test(businessId)||!UUID.test(appId)||!UUID.test(requestId)||
     !request||request.id!==requestId||request.business_id!==businessId||
@@ -29,7 +29,7 @@ function classifyBookingRevisionV3233({
     (!work||work.state==="cancelled");
  if(!draft&&!confirmed&&!closed)
   return deny("Booking records disagree. Review the request and Work calendar.");
- return {ok:true,kind:"owner_booking_revision_v3233",
+ return {ok:/** @type {const} */ (true),kind:"owner_booking_revision_v3233",
   businessId,appId,requestId,status:request.status,
   updatedAt:request.updated_at,bridgeState:link.bridge_state,
   workLedgerState:work?.state||"not_applicable",

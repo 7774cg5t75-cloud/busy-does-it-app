@@ -5,10 +5,10 @@
 const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const STATES=new Set(["received","reviewing","accepted","declined","closed"]);
 function verifyOwnerRequestFreshnessV3231({
- businessId="",requestId="",stored=null,
+ businessId="",requestId="",stored=/** @type {{id:string,business_id:string,mini_app_id:string,request_type:string,status:string,updated_at?:string,created_at?:string,request_origin?:string,consumer_user_id?:string|null}|null} */ (null),
  expectedStatus="",expectedUpdatedAt=""
 }={}){
- const fail=reason=>({ok:false,reason,mayWrite:false,
+ const fail=reason=>({ok:/** @type {const} */ (false),reason,mayWrite:false,
   customerNotified:false,bookingConfirmed:false});
  if(!UUID.test(businessId)||!UUID.test(requestId)||
   !stored||stored.id!==requestId||stored.business_id!==businessId||
@@ -21,7 +21,7 @@ function verifyOwnerRequestFreshnessV3231({
   return fail("Refresh the request before changing its status.");
  if(stored.status!==expectedStatus||stored.updated_at!==expectedUpdatedAt)
   return fail("This customer request changed since you opened it. Refresh before changing its status.");
- return {ok:true,kind:"owner_request_freshness_v3231",
+ return {ok:/** @type {const} */ (true),kind:"owner_request_freshness_v3231",
   businessId,requestId,expectedStatus,expectedUpdatedAt,mayWrite:true,
   customerNotified:false,bookingConfirmed:false};
 }

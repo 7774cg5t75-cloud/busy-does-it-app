@@ -26,13 +26,13 @@ function appComponentTextStyle(styles,key,{colors,baseSize=15}={}){
  return out;
 }
 function previewAppComponentAppearance(config,{field,value}={}){
- if(!componentTargetExists(config,field)||value!==null&&!validComponentStyle(value))return {ok:false,reason:'Select a current supported heading or identified service text and use finite text controls.'};
+ if(!componentTargetExists(config,field)||value!==null&&!validComponentStyle(value))return {ok:/** @type {const} */ (false),reason:'Select a current supported heading or identified service text and use finite text controls.'};
  const before=config.presentation?.componentStyles||{};
- if(!validComponentStyles(before))return {ok:false,reason:'Review the existing component styles first.'};
+ if(!validComponentStyles(before))return {ok:/** @type {const} */ (false),reason:'Review the existing component styles first.'};
  const styles={...before};if(value===null)delete styles[field];else styles[field]={...styles[field],...value};
- if(JSON.stringify(before)===JSON.stringify(styles))return {ok:false,reason:'This component style is already selected.'};
- if(!validComponentStyles(styles))return {ok:false,reason:'Up to 24 supported text components may be styled.'};
+ if(JSON.stringify(before)===JSON.stringify(styles))return {ok:/** @type {const} */ (false),reason:'This component style is already selected.'};
+ if(!validComponentStyles(styles))return {ok:/** @type {const} */ (false),reason:'Up to 24 supported text components may be styled.'};
  const presentation={...config.presentation};if(Object.keys(styles).length)presentation.componentStyles=styles;else delete presentation.componentStyles;
- return {ok:true,nextConfig:{...config,presentation},description:'Styled only '+field+'; customer actions and business facts are unchanged.'};
+ return {ok:/** @type {const} */ (true),nextConfig:{...config,presentation},description:'Styled only '+field+'; customer actions and business facts are unchanged.'};
 }
 export {COMPONENT_STYLE_OPTIONS,validComponentStyles,componentTargetExists,componentLockTargets,appComponentTextStyle,previewAppComponentAppearance};

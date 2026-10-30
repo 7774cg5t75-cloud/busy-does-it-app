@@ -2,6 +2,20 @@
   "version": 1,
   "checks": [
     {
+      "id": "check-connected-gateway-readiness",
+      "args": [
+        "scripts/check-connected-gateway-readiness.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-workflow-interiors",
+      "args": [
+        "scripts/check-workflow-interiors.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
       "id": "check-mission13-conversations",
       "args": [
         "scripts/check-mission13-conversations.mjs"

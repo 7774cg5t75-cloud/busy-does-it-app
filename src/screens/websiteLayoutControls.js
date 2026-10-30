@@ -1,3 +1,4 @@
+import {EditorToolbar,EditorAction} from '../components/WorkflowChrome';
 import {appColors as C} from "../theme/appearance.mjs";
 import React from "react";
 import {Text,TextInput,View} from "react-native";
@@ -78,9 +79,7 @@ function WebsiteLayoutControls({draft,onApply}){
       <View>
        {STYLE_GROUPS.map(group=><View key={group.title} style={styles.workspacePanel}>
         <Text accessibilityRole="header" style={styles.workspacePanelTitle}>{group.title}</Text>
-        <View style={styles.choiceGrid}>{group.choices.map(([label,field,value])=><View key={label} style={styles.choiceCell}>
-         <Button compact label={label} onPress={()=>apply({action:"style",field,value})}/>
-        </View>)}</View>
+        <EditorToolbar label={group.title}>{group.choices.map(([label,field,value])=><EditorAction key={label}><Button compact label={label} selected={draft.theme?.[field]===value} onPress={()=>apply({action:"style",field,value})}/></EditorAction>)}</EditorToolbar>
        </View>)}
        {(sections.find(s=>s.id==="gallery")?.items||[])
         .filter(x=>x?.approved!==false&&x?.storagePath)
@@ -99,10 +98,7 @@ function WebsiteLayoutControls({draft,onApply}){
         <View key={section.id} style={styles.recordRow}>
          <Text style={styles.sectionLabel}>{section.title||section.id}{section.enabled===false?" (hidden)":""}</Text>
          {section.enabled!==false&&section.id!=="hero"?(
-          <View style={styles.choiceGrid}>
-           <View style={styles.choiceCell}><Button compact label="Move up" onPress={()=>apply({action:"move",sectionId:section.id,direction:"up"})}/></View>
-           <View style={styles.choiceCell}><Button compact label="Move down" onPress={()=>apply({action:"move",sectionId:section.id,direction:"down"})}/></View>
-          </View>
+          <EditorToolbar label={'Arrange '+(section.title||section.id)}>{['up','down'].map(direction=><EditorAction key={direction}><Button compact label={'Move '+direction} onPress={()=>apply({action:"move",sectionId:section.id,direction})}/></EditorAction>)}</EditorToolbar>
          ):null}
          {!["hero","contact"].includes(section.id)?(
           <Button label={section.enabled===false?"Show section":"Hide section"}

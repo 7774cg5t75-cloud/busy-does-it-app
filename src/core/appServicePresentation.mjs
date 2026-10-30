@@ -14,15 +14,15 @@ function serviceButtonLabel(value,key,action,fallback){const prefix=action==='bo
 function validServicePresentation(value){return plain(value)&&Object.keys(value).length<=20&&Object.entries(value).every(([key,row])=>id(key)&&valid(row));}
 function servicePresentationTarget(config,key){return id(key)&&config?.modules?.some(m=>m.key==='services'&&m.enabled===true)&&Array.isArray(config.publicProfile?.services)&&config.publicProfile.services.filter(row=>row?.id===key).length===1;}
 function previewServicePresentation(config,{field,value,reset=false}={}){
- if(!servicePresentationTarget(config,field)||(reset?!['card','enquiry','booking'].includes(value):value!==null&&!valid(value)))return {ok:false,reason:'Select one identified service and use its supported card or button controls.'};
- const before=config.presentation?.servicePresentation||{};if(!validServicePresentation(before))return {ok:false,reason:'Review the existing service presentation first.'};
- if(!reset&&value&&Object.keys(value).some(k=>k.startsWith('enquiry')&&!config.modules.some(m=>m.key==='enquiry'&&m.enabled===true)||k.startsWith('booking')&&!config.modules.some(m=>m.key==='booking_request'&&m.enabled===true)))return {ok:false,reason:'This service action is not enabled. Styling cannot enable it.'};
+ if(!servicePresentationTarget(config,field)||(reset?!['card','enquiry','booking'].includes(value):value!==null&&!valid(value)))return {ok:/** @type {const} */ (false),reason:'Select one identified service and use its supported card or button controls.'};
+ const before=config.presentation?.servicePresentation||{};if(!validServicePresentation(before))return {ok:/** @type {const} */ (false),reason:'Review the existing service presentation first.'};
+ if(!reset&&value&&Object.keys(value).some(k=>k.startsWith('enquiry')&&!config.modules.some(m=>m.key==='enquiry'&&m.enabled===true)||k.startsWith('booking')&&!config.modules.some(m=>m.key==='booking_request'&&m.enabled===true)))return {ok:/** @type {const} */ (false),reason:'This service action is not enabled. Styling cannot enable it.'};
  const next={...before};
  if(reset){const row=Object.fromEntries(Object.entries(next[field]||{}).filter(([key])=>value==='card'?key.startsWith('enquiry')||key.startsWith('booking'):!key.startsWith(value)));if(Object.keys(row).length)next[field]=row;else delete next[field];}
  else if(value===null)delete next[field];else next[field]={...next[field],...value};
- if(!validServicePresentation(next)||JSON.stringify(next)===JSON.stringify(before))return {ok:false,reason:'This style is already selected or exceeds the supported limit.'};
+ if(!validServicePresentation(next)||JSON.stringify(next)===JSON.stringify(before))return {ok:/** @type {const} */ (false),reason:'This style is already selected or exceeds the supported limit.'};
  const presentation={...config.presentation};if(Object.keys(next).length)presentation.servicePresentation=next;else delete presentation.servicePresentation;
- return {ok:true,nextConfig:{...config,presentation},description:'Changed only this service card or request button appearance; facts and actions are unchanged.'};
+ return {ok:/** @type {const} */ (true),nextConfig:{...config,presentation},description:'Changed only this service card or request button appearance; facts and actions are unchanged.'};
 }
 function serviceCardStyle(value,key,colors){
  const row=validServicePresentation(value||{})?value?.[key]:null;if(!row)return {};

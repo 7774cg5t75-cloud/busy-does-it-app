@@ -6,11 +6,11 @@
  */
 const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const STATUSES=new Set(["received","reviewing","accepted","declined","closed"]);
-const fail=reason=>({ok:false,reason,readOnly:true,
+const fail=reason=>({ok:/** @type {const} */ (false),reason,readOnly:true,
   independentlyVerifiedByThisFunction:false,ownerMessageSent:false,
   bookingConfirmed:false,providerDelivered:false});
 function classifyOwnerRequestQueueV3225({
- businessId="",appId="",received=null,reviewing=null,latest=null
+ businessId="",appId="",received=/** @type {number|null} */ (null),reviewing=/** @type {number|null} */ (null),latest=/** @type {{id:string,business_id:string,mini_app_id:string,request_type:string,status:string,updated_at?:string,created_at?:string,request_origin?:string,consumer_user_id?:string|null}|null} */ (null)
 }={}){
  if(!UUID.test(businessId)||!UUID.test(appId)||
   !Number.isSafeInteger(received)||received<0||received>100000000||
@@ -31,7 +31,7 @@ function classifyOwnerRequestQueueV3225({
   return fail("The latest request does not match the queue's priority status.");
  const next=received>0?"review_new_requests":
   reviewing>0?"continue_reviewing_requests":"no_pending_requests";
- return {ok:true,kind:"owner_request_queue_v3225",
+ return {ok:/** @type {const} */ (true),kind:"owner_request_queue_v3225",
   businessId,appId,received,reviewing,pendingTotal:total,
   nextAction:next,
   title:received>0?"Review new customer requests":

@@ -1,6 +1,7 @@
+import {ReviewPanel} from '../components/WorkflowChrome';
 import React from 'react';
 import {View,Text} from 'react-native';
-import {Card,Button,Field} from '../components/ui';
+import {Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
 import {planReviewedWebsiteComposition,reviewedWebsiteCompositionCurrent} from '../core/websiteReviewedComposition.mjs';
 function WebsiteCompositionReview({website,app,businessId,pageId,canCompare,onCompare}){
@@ -9,7 +10,7 @@ function WebsiteCompositionReview({website,app,businessId,pageId,canCompare,onCo
  if(!website?.id||!app?.id)return null;
  const input={website,app,businessId,pageId,request:goal,brandSource};
  const plan=planReviewedWebsiteComposition(input),current=review&&reviewedWebsiteCompositionCurrent(review.evidence,input)&&review.pageId===pageId&&review.request===goal.trim()&&review.brandSource===brandSource;
- return <Card title="Compose the whole website together" eyebrow="Your business, one coherent design" body="Choose the customer goal and branding source. Busy reuses existing sections; no facts or media are invented. Nothing is saved by preparing a comparison.">
+ return <ReviewPanel title="Compose the whole website together" eyebrow="Your business, one coherent design" body="Choose the customer goal and branding source. Busy reuses existing sections; no facts or media are invented. Nothing is saved by preparing a comparison.">
   <Field label="What should customers find or do?" value={goal} onChangeText={value=>{setGoal(value);setReview(null);}}/>
   <Button label={(brandSource==='website'?'✓ ':'')+'Keep my website branding'} onPress={()=>{setBrandSource('website');setReview(null);}}/>
   <Button label={(brandSource==='app'?'✓ ':'')+'Review my app branding for this website'} onPress={()=>{setBrandSource('app');setReview(null);}}/>
@@ -30,6 +31,6 @@ function WebsiteCompositionReview({website,app,businessId,pageId,canCompare,onCo
     }}/>
    </>}
   </View>:null}
- </Card>;
+ </ReviewPanel>;
 }
 export {WebsiteCompositionReview};

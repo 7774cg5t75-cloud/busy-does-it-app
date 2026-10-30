@@ -1,3 +1,4 @@
+import {WorkflowStatus} from '../components/WorkflowChrome';
 import {GoalToPrivateApp} from './goalToPrivateApp';
 import {AppServiceAnswersEditor} from './appServiceAnswersEditor';
 import {AppEnquiryJourneyEditor} from './appEnquiryJourneyEditor';
@@ -1243,8 +1244,8 @@ function MiniAppBuilder({ s }) {
     <Shell
       s={s}
       title="Business App Builder"
-      subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
-      brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
+      subtitle="What would you like your app to do? Start with your goal, then review the private draft."
+      brandCue="Your business facts. Your choice before anything goes live."
     >
       <Button label="Talk & Explore — no project changes" disabled={!app||!view.draftConfig||!!s.miniAppsAction||studio.pending||studio.uncertain} onPress={()=>s.requestOwnerEditTransition?s.requestOwnerEditTransition(()=>setExplore(true)):setExplore(true)}/>
       <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
@@ -2548,13 +2549,13 @@ function MiniAppBuilder({ s }) {
             </>
           ):null}
           {!studio.recoveryReady?<Text style={styles.cardBody}>Checking your encrypted private Studio checkpoint…</Text>:null}
-          {studio.recoveryError?<Text style={styles.cardBody}>{studio.recoveryError}</Text>:null}
+          {studio.recoveryError?<WorkflowStatus tone="warning" title="Your private recovery point needs attention" body={studio.recoveryError}/>:null}
           {studio.interrupted?<Button label="Refresh current private app" disabled={!!s.miniAppsAction||studio.pending}
             onPress={studio.reconcile}/>:null}
-          {studioNotice?<Text style={styles.cardBody}>{studioNotice}</Text>:null}
+          {studioNotice?<WorkflowStatus title="App editing update" body={studioNotice}/>:null}
           {studioPreview?.ok&&studioIsCurrent?(
             <>
-              <Text style={styles.sectionLabel}>Proposed changes — not saved</Text>
+              <WorkflowStatus tone="review" title="Proposed changes — not saved" body="Check each change below before saving. Nothing is published by this review."/>
               {studioPreview.changes.map((change,index)=>(
                 <View key={"change-"+index}>
                   <MetricRow left={"Change "+(index+1)} right={change}/>

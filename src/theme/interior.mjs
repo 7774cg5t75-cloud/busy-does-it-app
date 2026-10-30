@@ -13,3 +13,7 @@ export function segmentWidths(labels,width,fontScale=1){
  return labels.map(label=>Math.max(88,Math.floor((available-gap*(labels.length-1))/labels.length),Math.ceil(String(label).length*13*.68*Math.max(1,fontScale)+28)));
 }
 export const interiorType=Object.freeze({title:22,titleLine:29,body:14,bodyLine:21,cardTitle:16,cardTitleLine:23,touch:48});
+// Status uses text and icons as well as colour; financial surfaces stay quiet.
+export function interiorStatus(tone='info'){
+ return ({info:{accent:'blueText',icon:'spark'},review:{accent:'violet',icon:'work'},warning:{accent:'amber',icon:'work'},error:{accent:'red',icon:'work'}})[tone]||{accent:'blueText',icon:'spark'};
+}

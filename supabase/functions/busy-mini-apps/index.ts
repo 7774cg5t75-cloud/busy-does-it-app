@@ -506,8 +506,9 @@ async function ownerBookingRevisionV3233(businessId:string,body:any){
  if(request.error)throw request.error;
  if(!request.data)throw Error("The original booking request is unavailable.");
  const [link,work]=await Promise.all([
-  supabase.from("busy_mini_app_request_links")
-   .select(associated?"request_id,business_id,bridge_state,customer_record_id,action_record_id,updated_at":"request_id,business_id,bridge_state")
+  (associated?supabase.from("busy_mini_app_request_links")
+   .select("request_id,business_id,bridge_state,customer_record_id,action_record_id,updated_at"):supabase.from("busy_mini_app_request_links")
+   .select("request_id,business_id,bridge_state"))
    .eq("request_id",requestId).eq("business_id",businessId).maybeSingle(),
   (associated?supabase.from("busy_mini_app_work_bookings")
    .select("id,request_id,business_id,mini_app_id,customer_record_id,action_record_id,calendar_date,calendar_time,calendar_timezone,state,source,updated_at"):supabase.from("busy_mini_app_work_bookings")
@@ -2428,8 +2429,8 @@ function publicMiniAppWebHtml(app: any, version: any) {
       : "";
 
   const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
-  const publicInformationHtml = enabled.has('business_profile') ? [['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']].map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);return rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map(row=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';}).join('') : '';
-  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map(block=>businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}})).join(''):'';
+  const publicInformationHtml = enabled.has('business_profile') ? ([['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']] as const).map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);return rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map((row:Record<string,string>)=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';}).join('') : '';
+  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map((block:{kind:string,title:string,featuredId?:string})=>businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}})).join(''):'';
   const aboutHtml = enabled.has("business_profile")
     ? `<section id="about"><div class="wrap"><p class="eyebrow">About</p><h2>${escapeHtml(name)}</h2>${about ? `<p>${escapeHtml(about)}</p>` : ""}${serviceArea ? `<p class="muted">Service area: ${escapeHtml(serviceArea)}</p>` : ""}</div></section>`
     : "";
@@ -3549,7 +3550,7 @@ async function sendRequestMessage(
   const fresh=await currentOwnerFollowup(businessId,{requestId});
   const guarded=guardReviewedOwnerSend({
    businessId,appId:fresh.appId,requestId,
-   expectedSourceStamp:reviewedStamp,fresh:{ok:true,...fresh}
+   expectedSourceStamp:reviewedStamp,fresh
   });
   if(!guarded.ok)throw Error(guarded.reason);
  }
@@ -3971,7 +3972,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
  const fields=validateAppScreenshotReview(body);
  if(!fields.ok)throw Error(fields.reason);
  const pair=mode==="comparison"?validatePairedAppVisualRequest(body):null;
- if(mode==="comparison"&&!pair?.ok)throw Error(pair?.reason||
+ if(mode==="comparison"&&(!pair||!pair.ok))throw Error(pair?.reason||
   "Both public-only preview captures need owner approval.");
  const app=await appForBusiness(businessId);
  if(!app||app.id!==fields.appId||
@@ -3979,7 +3980,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
    throw Error("Private app revision changed. Capture the current customer preview again.");
  const candidate=mode==="comparison"?
   prepareAppVisualBatch(app.draft_config,pair?.operations):null;
- if(mode==="comparison"&&!candidate?.ok)
+ if(mode==="comparison"&&(!candidate||!candidate.ok))
   throw Error(candidate?.reason||"Proposed design was not safe to compare.");
  const status=await appVisualReviewStatus(businessId);
  if(!status.enabled||status.remaining<1)
@@ -3994,7 +3995,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
     bytes[0]!==255||bytes[1]!==216||
     bytes[bytes.length-2]!==255||bytes[bytes.length-1]!==217)
   throw Error("A compressed JPEG screenshot under 590 KB is required.");
- if(mode==="comparison"){
+ if(pair?.ok){
   let after:Uint8Array;
   try{after=Uint8Array.from(atob(pair.afterImageBase64),c=>c.charCodeAt(0));}
   catch{throw Error("Second screenshot could not be decoded.");}
@@ -4037,7 +4038,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
      {type:"input_text",text:prompt},
      ...(mode==="comparison"?[{type:"input_text",text:"BEFORE: original customer-only app"}]:[]),
      {type:"input_image",image_url:"data:image/jpeg;base64,"+input,detail:"low"},
-     ...(mode==="comparison"?[
+     ...(pair?.ok?[
       {type:"input_text",text:"AFTER: proposed private design, NOT yet saved"},
       {type:"input_image",image_url:"data:image/jpeg;base64,"+pair.afterImageBase64,detail:"low"}
      ]:[])
@@ -4054,7 +4055,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
   let parsed:any;
   try{parsed=JSON.parse(content);}catch{throw Error("AI returned an unreadable design review.");}
   const proof=normalizeAppVisualAIResult(parsed,
-    mode==="comparison"?candidate.nextConfig:app.draft_config);
+    candidate?.ok?candidate.nextConfig:app.draft_config);
   if(!proof.ok)throw Error(proof.reason);
   completed=true;
   return {review:proof,appId:app.id,draftRevision:fields.revision,
@@ -4155,7 +4156,7 @@ Deno.serve(async (request: Request) => {
       });
     }
     if (action === "customer_message_receipt") {
-      return json(200,{ok:true,...(await exactMessageReceipt(
+      return json(200,{...(await exactMessageReceipt(
        user.id,"","customer",body))});
     }
     if (action === "reply_request_message") {
@@ -4402,13 +4403,13 @@ Deno.serve(async (request: Request) => {
     if (action === "owner_message_receipt") {
       if(!["owner","admin"].includes(member.role))
         throw Error("Owner or admin permissions are required.");
-      return json(200,{ok:true,...(await exactMessageReceipt(
+      return json(200,{...(await exactMessageReceipt(
         user.id,resolvedBusinessId,"business",body))});
     }
     if (action === "owner_followup_check") {
       if(!["owner","admin"].includes(member.role))
         throw Error("Owner or admin permissions are required.");
-      return json(200,{ok:true,
+      return json(200,{
         ...(await currentOwnerFollowup(resolvedBusinessId,body))});
     }
     if (action === "owner_queue_summary") {
@@ -4420,7 +4421,7 @@ Deno.serve(async (request: Request) => {
     if (action === "owner_inbox_receipt") {
       if(!["owner","admin"].includes(member.role))
         throw Error("Owner or admin permissions are required.");
-      return json(200,{ok:true,...(await exactOwnerInboxReceipt(
+      return json(200,{...(await exactOwnerInboxReceipt(
         resolvedBusinessId,member.role,body))});
     }
     if (action === "owner_booking_revision") {
@@ -4446,7 +4447,7 @@ Deno.serve(async (request: Request) => {
         postSendEvidence=validateOwnerReplyAfterSave({
           businessId:resolvedBusinessId,appId:fresh.appId,
           requestId:clean(body?.requestId,80),sent:saved,
-          current:{ok:true,...fresh}
+          current:fresh
         });
       }catch{ /* Message saved; readback availability is separate. */ }
       try{
