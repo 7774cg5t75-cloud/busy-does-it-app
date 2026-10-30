@@ -1,5 +1,7 @@
 // Exact selected original RPC signatures. Overloads never inherit an allowlist grant.
 export const wholeAppFunctionSignatures=Object.freeze({
+ "busy_connected_website_history_v1":"uuid, bigint, text, text",
+ "busy_connected_website_transition_v1":"uuid, uuid, bigint, jsonb, jsonb, bigint, text",
   "busy_connected_initialize_v1": "uuid",
   "busy_connected_profile_write_v1": "uuid, bigint, jsonb, jsonb, boolean",
   "busy_connected_workspaces_v1": "",

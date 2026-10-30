@@ -2863,6 +2863,12 @@
       "args": [
         "scripts/check-security-baseline.mjs"
       ]
+    },
+    {
+      "id": "connected-website-history",
+      "args": [
+        "scripts/check-connected-website-history.mjs"
+      ]
     }
   ]
 }

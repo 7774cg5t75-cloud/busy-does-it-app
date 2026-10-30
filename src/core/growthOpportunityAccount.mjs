@@ -6,7 +6,7 @@ export function finiteOwnerOpportunity(v){
  return !!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join('|')==='description|permission|serviceId|source|title'&&[['title',100],['description',600],['source',300],['serviceId',128]].every(([k,n])=>typeof v[k]==='string'&&!!v[k].trim()&&v[k].length<=n&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(v[k]))&&['permitted','unknown','restricted'].includes(v.permission);
 }
 export function createGrowthOpportunityAccount({enabled=GROWTH_OPPORTUNITY_ACCOUNT_ENABLED,getCurrent,ownerAccessToken,request,authenticatedRequest}){
- const initial=getCurrent(),scope=initial.scope,business=initial.businessId,owner=initial.ownerId,observations=new WeakMap(),tickets=new WeakMap();let uncertain=null;
+ const initial=getCurrent(),scope=initial.scope,business=initial.businessId,owner=initial.ownerId,observations=new WeakMap(),tickets=new WeakMap();let uncertain=null,pending=false;
  const valid=()=>{const v=getCurrent();return enabled===true&&!!scope&&v.scope===scope&&v.ownerId===owner&&v.businessId===business&&v.role==='owner'&&v.ready===true&&uuid(business)&&uuid(owner);};
  const io=async(name,body,before=()=>true)=>{if(!valid())throw Error('Growth account operations are disabled or the owner changed.');if(!before())throw Error('Current review unavailable.');let v;if(authenticatedRequest){if(!['read','list','write','operation'].includes(name))throw Error('Unsupported Growth operation');v=await authenticatedRequest(name,{p_business_id:business,...body},before);}else{const token=await ownerAccessToken();if(!token||!valid()||!before())throw Error('Current review unavailable.');v=await request('rpc/busy_growth_opportunity_'+name+'_v1',{method:'POST',token,body:{p_business_id:business,...body}});}if(!valid())throw Error('Account changed while the operation was pending.');return v;};
  const scoped=v=>v?.businessId===business&&v?.ownerId===owner;
@@ -23,12 +23,12 @@ export function createGrowthOpportunityAccount({enabled=GROWTH_OPPORTUNITY_ACCOU
    if(v.found)uncertain=null;return v;
   },
   review({action,base=null,fields=null,feedback=null,reason=null,operationId,isCurrent=()=>true}){
-   if(uncertain||!valid()||!isCurrent()||!['create','edit','retire','reopen','reinspect','feedback'].includes(action)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||action!=='create'&&!observed(base)||action==='create'&&base!==null||['create','edit'].includes(action)&&!finiteOwnerOpportunity(fields)||!['create','edit'].includes(action)&&fields!==null||action==='feedback'&&(!['clear','useful','irrelevant','later'].includes(feedback)||typeof reason!=='string'||reason.length>300)||action!=='feedback'&&(feedback!==null||reason!==null))return null;
+   if(pending||uncertain||!valid()||!isCurrent()||!['create','edit','retire','reopen','reinspect','feedback'].includes(action)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||action!=='create'&&!observed(base)||action==='create'&&base!==null||['create','edit'].includes(action)&&!finiteOwnerOpportunity(fields)||!['create','edit'].includes(action)&&fields!==null||action==='feedback'&&(!['clear','useful','irrelevant','later'].includes(feedback)||typeof reason!=='string'||reason.length>300)||action!=='feedback'&&(feedback!==null||reason!==null))return null;
    const ticket={action,base,fields:fields?{...fields}:null,feedback,reason,operationId};tickets.set(ticket,{stamp:stableJson(ticket),isCurrent});return ticket;
   },
   async commit(ticket){
-   const t=ticket&&tickets.get(ticket);if(!t||!valid()||!t.isCurrent()||t.stamp!==stableJson(ticket)||ticket.base&&!observed(ticket.base))return {ok:false,status:'not_sent'};
-   tickets.delete(ticket);const body={p_opportunity_id:ticket.base?.opportunityId||null,p_expected_revision:ticket.base?.revision||0,p_source_hash:ticket.base?.sourceHash||null,p_action:ticket.action,p_record:ticket.fields,p_feedback:ticket.feedback,p_reason:ticket.reason,p_operation_id:ticket.operationId};
+   const t=ticket&&tickets.get(ticket);if(!t||pending||uncertain||!valid()||!t.isCurrent()||t.stamp!==stableJson(ticket)||ticket.base&&!observed(ticket.base))return {ok:false,status:'not_sent'};
+   tickets.delete(ticket);pending=true;const body={p_opportunity_id:ticket.base?.opportunityId||null,p_expected_revision:ticket.base?.revision||0,p_source_hash:ticket.base?.sourceHash||null,p_action:ticket.action,p_record:ticket.fields,p_feedback:ticket.feedback,p_reason:ticket.reason,p_operation_id:ticket.operationId};
    try{
     const v=await io('write',body,t.isCurrent);if(!t.isCurrent()||!record(v)||v.ownOperationReceipt!==true||v.notOwnReceipt!==false||v.executionAuthorised!==false||v.operationId!==ticket.operationId||v.previousRevision!==body.p_expected_revision||v.revision!==body.p_expected_revision+1||ticket.base&&v.opportunityId!==ticket.base.opportunityId||ticket.fields&&stableJson(v.record)!==stableJson(ticket.fields)||v.action!==ticket.action)throw Error('Exact target receipt unavailable.');
     const expectedState=ticket.action==='retire'?'retired':ticket.action==='reopen'||ticket.action==='create'?'active':ticket.base.state;
@@ -39,7 +39,7 @@ export function createGrowthOpportunityAccount({enabled=GROWTH_OPPORTUNITY_ACCOU
     // exact atomic PostgreSQL rejection classes can establish a rejected RPC.
     const code=error?.payload?.code,status=error?.status;
     if(status===409&&['40001','23505'].includes(code)||status===403&&code==='42501'||status===400&&code==='22023'){observations.delete(ticket.base);return {ok:false,status:'rejected',reason:code==='42501'?'restricted':status===409?'conflict':'invalid',mayReplay:false};}
-    uncertain=ticket.operationId;return {ok:false,status:'unknown',mayReplay:false};}
+    uncertain=ticket.operationId;return {ok:false,status:'unknown',mayReplay:false};}finally{pending=false;}
 
   }
  };

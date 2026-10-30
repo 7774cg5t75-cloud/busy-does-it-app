@@ -957,7 +957,7 @@ ALTER FUNCTION public.busy_owner_reply_text_v2(uuid,text,text,bigint,text,text,t
 REVOKE ALL ON FUNCTION public.busy_owner_reply_text_v2(uuid,text,text,bigint,text,text,text) FROM PUBLIC,anon,authenticated,service_role;
 
 GRANT EXECUTE ON FUNCTION public.busy_owner_reply_text_v2(uuid,text,text,bigint,text,text,text) TO authenticated;
--- Source docs/sql-proposals/connected-builders/contracts.sql SHA256 3ac3858af331baecac1d7099bf665bc7c157093aa4a26ca5a425b51c64d83f2d
+-- Source docs/sql-proposals/connected-builders/contracts.sql SHA256 137379b0bd3dd514270982c041fa408958842f1ceca92ececa0e98bb51fcf544
 
 
 -- Read-only membership discovery: no caller-supplied actor or editable JWT metadata.
@@ -995,7 +995,7 @@ BEGIN
  SELECT * INTO profile FROM public.busy_public_business_profiles WHERE business_id=p_business_id AND status<>'disabled' FOR SHARE;
  -- Only original website and finite public business facts. Never CRM/snapshot restoration.
  RETURN jsonb_build_object('actorId',actor,'businessId',p_business_id,'revision',snap.revision,
- 'websiteDraft',snap.payload->'websiteDraft','websiteDraftHash',CASE WHEN snap.payload->'websiteDraft' IS NOT NULL AND snap.payload->'websiteDraft'<>'null' THEN encode(sha256(convert_to((snap.payload->'websiteDraft')::text,'UTF8')),'hex') ELSE NULL END,'profileRevision',profile.revision,'profileHash',CASE WHEN profile.profile IS NOT NULL THEN encode(sha256(convert_to(busy_snapshot_private.profile_facts(profile.profile)::text,'UTF8')),'hex') ELSE NULL END,
+ 'websiteUndoCount',coalesce(jsonb_array_length(snap.payload#>'{websiteHistory,undo}'),0),'websiteRedoCount',coalesce(jsonb_array_length(snap.payload#>'{websiteHistory,redo}'),0),'websiteHistoryHash',CASE WHEN snap.payload?'websiteHistory' THEN encode(sha256(convert_to((snap.payload->'websiteHistory')::text,'UTF8')),'hex') ELSE NULL END,'websiteDraft',snap.payload->'websiteDraft','websiteDraftHash',CASE WHEN snap.payload->'websiteDraft' IS NOT NULL AND snap.payload->'websiteDraft'<>'null' THEN encode(sha256(convert_to((snap.payload->'websiteDraft')::text,'UTF8')),'hex') ELSE NULL END,'profileRevision',profile.revision,'profileHash',CASE WHEN profile.profile IS NOT NULL THEN encode(sha256(convert_to(busy_snapshot_private.profile_facts(profile.profile)::text,'UTF8')),'hex') ELSE NULL END,
  'profile',CASE WHEN profile.business_id IS NULL THEN NULL ELSE busy_snapshot_private.profile_facts(profile.profile) END);
 END $$;
 
@@ -2527,6 +2527,70 @@ END $$;
 REVOKE ALL ON FUNCTION public.busy_connected_initialize_v1(uuid),public.busy_connected_profile_write_v1(uuid,bigint,jsonb,jsonb,boolean) FROM PUBLIC,anon,authenticated,service_role;
 
 GRANT EXECUTE ON FUNCTION public.busy_connected_initialize_v1(uuid),public.busy_connected_profile_write_v1(uuid,bigint,jsonb,jsonb,boolean) TO authenticated;
+-- Source docs/sql-proposals/connected-builders/website-history.sql SHA256 5d4edd3c1eca101b631cfec2a8644955b921f89828949582f819e20f8d987aa1
+
+CREATE FUNCTION public.busy_connected_website_transition_v1(p_business_id uuid,p_actor_id uuid,p_expected_revision bigint,p_expected_draft jsonb,p_candidate jsonb,p_profile_revision bigint,p_operation text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE s public.busy_business_snapshots%ROWTYPE;h jsonb;u jsonb;r jsonb;t jsonb;receipt jsonb;updated jsonb;
+BEGIN
+ IF p_operation IS NULL OR p_operation NOT IN ('edit','undo','redo') OR p_actor_id IS NULL THEN RAISE EXCEPTION 'Finite private transition required' USING ERRCODE='22023';END IF;
+ PERFORM 1 FROM public.busy_business_memberships WHERE business_id=p_business_id AND user_id=p_actor_id AND role='owner' FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Owner required' USING ERRCODE='42501';END IF;
+ SELECT * INTO s FROM public.busy_business_snapshots WHERE business_id=p_business_id FOR UPDATE;
+ IF NOT FOUND OR s.revision IS DISTINCT FROM p_expected_revision OR s.schema_version<>1 OR nullif(s.payload->'websiteDraft','null') IS DISTINCT FROM p_expected_draft THEN RAISE EXCEPTION 'Website conflict' USING ERRCODE='40001';END IF;
+ h:=s.payload->'websiteHistory';
+ IF h IS NULL OR h='null' THEN h:=jsonb_build_object('v',1,'draftId',coalesce(p_expected_draft->>'id',p_candidate->>'id'),'undo','[]'::jsonb,'redo','[]'::jsonb);END IF;
+ IF jsonb_typeof(h) IS DISTINCT FROM 'object' OR h->'v' IS DISTINCT FROM '1' OR h->>'draftId' IS DISTINCT FROM coalesce(p_expected_draft->>'id',p_candidate->>'id') OR jsonb_typeof(h->'undo') IS DISTINCT FROM 'array' OR jsonb_typeof(h->'redo') IS DISTINCT FROM 'array' OR jsonb_array_length(h->'undo')>8 OR jsonb_array_length(h->'redo')>8 OR h-ARRAY['v','draftId','undo','redo']<>'{}' THEN RAISE EXCEPTION 'Existing history requires review' USING ERRCODE='22023';END IF;
+ u:=h->'undo';r:=h->'redo';
+ IF p_operation<>'edit' THEN
+  IF p_expected_draft IS NULL THEN RAISE EXCEPTION 'No current website' USING ERRCODE='40001';END IF;
+  t:=CASE WHEN p_operation='undo' THEN u->-1 ELSE r->-1 END;
+  IF t IS NULL OR t->'draft' IS NULL OR (p_candidate-ARRAY['generation','updatedAt']) IS DISTINCT FROM ((t->'draft')-ARRAY['generation','updatedAt']) THEN RAISE EXCEPTION 'Reviewed history target changed' USING ERRCODE='40001';END IF;
+ END IF;
+ -- The original finite writer retains all validation, locks, exact CAS and receipts.
+ receipt:=busy_snapshot_private.website_commit_original(p_business_id,p_actor_id,p_expected_revision,p_expected_draft,p_candidate,p_profile_revision);
+ IF p_expected_draft IS NOT NULL THEN
+  t:=jsonb_build_object('draft',p_expected_draft,'revision',p_expected_revision,'at',clock_timestamp());
+  IF p_operation='undo' THEN u:=u-(jsonb_array_length(u)-1);r:=r||jsonb_build_array(t);
+  ELSIF p_operation='redo' THEN r:=r-(jsonb_array_length(r)-1);u:=u||jsonb_build_array(t);
+  ELSE u:=u||jsonb_build_array(t);r:='[]';END IF;
+ END IF;
+ WHILE jsonb_array_length(u)>8 LOOP u:=u-0;END LOOP;
+ WHILE jsonb_array_length(r)>8 LOOP r:=r-0;END LOOP;
+ h:=jsonb_build_object('v',1,'draftId',p_candidate->>'id','undo',u,'redo',r);
+ WHILE octet_length(h::text)>600000 AND (jsonb_array_length(u)>0 OR jsonb_array_length(r)>0) LOOP
+  IF jsonb_array_length(u)>=jsonb_array_length(r) THEN u:=u-0;ELSE r:=r-0;END IF;
+  h:=jsonb_build_object('v',1,'draftId',p_candidate->>'id','undo',u,'redo',r);
+ END LOOP;
+ UPDATE public.busy_business_snapshots SET payload=jsonb_set(payload,'{websiteHistory}',h,true) WHERE business_id=p_business_id;
+ RETURN receipt||jsonb_build_object('operation',p_operation,'undoCount',jsonb_array_length(u),'redoCount',jsonb_array_length(r),'historyHash',encode(sha256(convert_to(h::text,'UTF8')),'hex'));
+END $$;
+
+-- Preserve the original externally supported signature; move implementation private.
+ALTER FUNCTION public.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint) SET SCHEMA busy_snapshot_private;
+
+ALTER FUNCTION busy_snapshot_private.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint) RENAME TO website_commit_original;
+
+CREATE FUNCTION public.busy_connected_website_commit_v1(p_business_id uuid,p_actor_id uuid,p_expected_revision bigint,p_expected_draft jsonb,p_candidate jsonb,p_profile_revision bigint) RETURNS jsonb
+LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$ SELECT public.busy_connected_website_transition_v1(p_business_id,p_actor_id,p_expected_revision,p_expected_draft,p_candidate,p_profile_revision,'edit') $$;
+
+CREATE FUNCTION public.busy_connected_website_history_v1(p_business_id uuid,p_expected_revision bigint,p_expected_hash text,p_direction text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE a uuid:=busy_snapshot_private.lock_writer(p_business_id);s public.busy_business_snapshots%ROWTYPE;h jsonb;t jsonb;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM public.busy_business_memberships WHERE business_id=p_business_id AND user_id=a AND role='owner') THEN RAISE EXCEPTION 'Owner required' USING ERRCODE='42501';END IF;
+ SELECT * INTO s FROM public.busy_business_snapshots WHERE business_id=p_business_id FOR SHARE;
+ IF NOT FOUND OR s.revision IS DISTINCT FROM p_expected_revision OR encode(sha256(convert_to((s.payload->'websiteDraft')::text,'UTF8')),'hex') IS DISTINCT FROM p_expected_hash THEN RAISE EXCEPTION 'Website changed' USING ERRCODE='40001';END IF;
+ IF p_direction IS NOT NULL AND p_direction NOT IN ('undo','redo') THEN RAISE EXCEPTION 'Finite history direction required' USING ERRCODE='22023';END IF;
+ h:=s.payload->'websiteHistory';t:=CASE WHEN p_direction='undo' THEN h->'undo'->-1 WHEN p_direction='redo' THEN h->'redo'->-1 ELSE NULL END;
+ RETURN jsonb_build_object('businessId',p_business_id,'actorId',a,'revision',s.revision,'notOwnReceipt',true,'direction',p_direction,'target',t->'draft','entries',coalesce((SELECT jsonb_agg(jsonb_build_object('generation',v#>'{draft,generation}','revision',v->'revision','at',v->'at')) FROM jsonb_array_elements(coalesce(h->'undo','[]'))v),'[]'));
+END $$;
+
+REVOKE ALL ON FUNCTION public.busy_connected_website_transition_v1(uuid,uuid,bigint,jsonb,jsonb,bigint,text),public.busy_connected_website_history_v1(uuid,bigint,text,text),public.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint),busy_snapshot_private.website_commit_original(uuid,uuid,bigint,jsonb,jsonb,bigint) FROM PUBLIC,anon,authenticated,service_role;
+
+GRANT EXECUTE ON FUNCTION public.busy_connected_website_transition_v1(uuid,uuid,bigint,jsonb,jsonb,bigint,text),public.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint) TO service_role;
+
+GRANT EXECUTE ON FUNCTION public.busy_connected_website_history_v1(uuid,bigint,text,text) TO authenticated;
 -- Original supabase/migrations/20261006165702_v3_36_multitenant_website_publishing_foundation.sql SHA256 49fbb291a0daae9456b5f50be36c40f3c8af6309cc80da88e5d987a58b7cef99
 
 
@@ -2931,8 +2995,8 @@ DO $$ DECLARE f record; t record; col record; BEGIN
  END LOOP;
  FOR f IN SELECT p.oid::regprocedure signature,p.proname,n.nspname,p.proname||'('||oidvectortypes(p.proargtypes)||')' AS exact FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE (n.nspname='public' AND p.proname LIKE 'busy_%') OR n.nspname IN ('busy_snapshot_private','busy_work_private','busy_growth_private','busy_creator_private') LOOP
   EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
-  IF f.nspname='public' AND f.exact IN ('busy_connected_initialize_v1(uuid)','busy_connected_profile_write_v1(uuid, bigint, jsonb, jsonb, boolean)','busy_connected_workspaces_v1()','busy_connected_builder_read_v1(uuid)','busy_connected_app_enquiry_state_v1(uuid, uuid)','busy_connected_app_enquiry_review_v1(uuid, uuid)','busy_connected_app_enquiry_import_v2(uuid, uuid, text, bigint)','busy_connected_app_enquiry_file_v2(uuid, bigint, jsonb, text)','busy_connected_journeys_v1(uuid, text, bigint)','busy_owner_pending_review_v1(uuid, bigint, text)','busy_owner_first_reply_review_v1(uuid, bigint, text, text)','busy_work_source_review_v1(uuid, text, text, bigint)','busy_work_create_quote_v1(uuid, text, text, bigint, text, text, text, text, text, text)','busy_work_list_v1(uuid, text, uuid, integer)','busy_work_discover_v1(uuid, uuid, integer)','busy_work_compare_v1(uuid, text, uuid)','busy_work_edit_context_v1(uuid, text, uuid, bigint)','busy_work_history_v1(uuid, text, uuid)','busy_work_read_v1(uuid, text, uuid)','busy_work_edit_quote_v1(uuid, text, uuid, bigint, text, text, text, text, text)','busy_work_private_read_v1(uuid, text, uuid, text)','busy_work_private_write_v1(uuid, text, uuid, bigint, bigint, text, text, text, text)','busy_creator_draft_read_v1(uuid, text, bigint)','busy_creator_draft_list_v1(uuid, uuid, text, integer)','busy_creator_draft_write_v1(uuid, text, bigint, jsonb, uuid, bigint, text, text)','busy_creator_draft_operation_v1(uuid, text)','busy_growth_opportunity_read_v1(uuid, uuid, bigint)','busy_growth_opportunity_list_v1(uuid, uuid, integer)','busy_growth_opportunity_write_v1(uuid, uuid, bigint, text, text, jsonb, text, text, text)','busy_growth_opportunity_operation_v1(uuid, text)') THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
-  IF f.nspname='public' AND f.exact IN ('busy_connected_website_commit_v1(uuid, uuid, bigint, jsonb, jsonb, bigint)','busy_connected_first_app_v1(uuid, uuid, text, text, text, text, bigint, jsonb)','busy_connected_private_app_commit_v1(uuid, uuid, uuid, bigint, bigint, jsonb)','busy_mini_app_entry_summary(uuid, uuid, timestamp with time zone)') THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role',f.signature);END IF;
+  IF f.nspname='public' AND f.exact IN ('busy_connected_website_history_v1(uuid, bigint, text, text)','busy_connected_initialize_v1(uuid)','busy_connected_profile_write_v1(uuid, bigint, jsonb, jsonb, boolean)','busy_connected_workspaces_v1()','busy_connected_builder_read_v1(uuid)','busy_connected_app_enquiry_state_v1(uuid, uuid)','busy_connected_app_enquiry_review_v1(uuid, uuid)','busy_connected_app_enquiry_import_v2(uuid, uuid, text, bigint)','busy_connected_app_enquiry_file_v2(uuid, bigint, jsonb, text)','busy_connected_journeys_v1(uuid, text, bigint)','busy_owner_pending_review_v1(uuid, bigint, text)','busy_owner_first_reply_review_v1(uuid, bigint, text, text)','busy_work_source_review_v1(uuid, text, text, bigint)','busy_work_create_quote_v1(uuid, text, text, bigint, text, text, text, text, text, text)','busy_work_list_v1(uuid, text, uuid, integer)','busy_work_discover_v1(uuid, uuid, integer)','busy_work_compare_v1(uuid, text, uuid)','busy_work_edit_context_v1(uuid, text, uuid, bigint)','busy_work_history_v1(uuid, text, uuid)','busy_work_read_v1(uuid, text, uuid)','busy_work_edit_quote_v1(uuid, text, uuid, bigint, text, text, text, text, text)','busy_work_private_read_v1(uuid, text, uuid, text)','busy_work_private_write_v1(uuid, text, uuid, bigint, bigint, text, text, text, text)','busy_creator_draft_read_v1(uuid, text, bigint)','busy_creator_draft_list_v1(uuid, uuid, text, integer)','busy_creator_draft_write_v1(uuid, text, bigint, jsonb, uuid, bigint, text, text)','busy_creator_draft_operation_v1(uuid, text)','busy_growth_opportunity_read_v1(uuid, uuid, bigint)','busy_growth_opportunity_list_v1(uuid, uuid, integer)','busy_growth_opportunity_write_v1(uuid, uuid, bigint, text, text, jsonb, text, text, text)','busy_growth_opportunity_operation_v1(uuid, text)') THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
+  IF f.nspname='public' AND f.exact IN ('busy_connected_website_transition_v1(uuid, uuid, bigint, jsonb, jsonb, bigint, text)','busy_connected_website_commit_v1(uuid, uuid, bigint, jsonb, jsonb, bigint)','busy_connected_first_app_v1(uuid, uuid, text, text, text, text, bigint, jsonb)','busy_connected_private_app_commit_v1(uuid, uuid, uuid, bigint, bigint, jsonb)','busy_mini_app_entry_summary(uuid, uuid, timestamp with time zone)') THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role',f.signature);END IF;
  END LOOP;
 END $$;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE ALL ON TABLES FROM PUBLIC,anon,authenticated,service_role;

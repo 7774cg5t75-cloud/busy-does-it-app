@@ -35,7 +35,7 @@ BEGIN
  SELECT * INTO profile FROM public.busy_public_business_profiles WHERE business_id=p_business_id AND status<>'disabled' FOR SHARE;
  -- Only original website and finite public business facts. Never CRM/snapshot restoration.
  RETURN jsonb_build_object('actorId',actor,'businessId',p_business_id,'revision',snap.revision,
- 'websiteDraft',snap.payload->'websiteDraft','websiteDraftHash',CASE WHEN snap.payload->'websiteDraft' IS NOT NULL AND snap.payload->'websiteDraft'<>'null' THEN encode(sha256(convert_to((snap.payload->'websiteDraft')::text,'UTF8')),'hex') ELSE NULL END,'profileRevision',profile.revision,'profileHash',CASE WHEN profile.profile IS NOT NULL THEN encode(sha256(convert_to(busy_snapshot_private.profile_facts(profile.profile)::text,'UTF8')),'hex') ELSE NULL END,
+ 'websiteUndoCount',coalesce(jsonb_array_length(snap.payload#>'{websiteHistory,undo}'),0),'websiteRedoCount',coalesce(jsonb_array_length(snap.payload#>'{websiteHistory,redo}'),0),'websiteHistoryHash',CASE WHEN snap.payload?'websiteHistory' THEN encode(sha256(convert_to((snap.payload->'websiteHistory')::text,'UTF8')),'hex') ELSE NULL END,'websiteDraft',snap.payload->'websiteDraft','websiteDraftHash',CASE WHEN snap.payload->'websiteDraft' IS NOT NULL AND snap.payload->'websiteDraft'<>'null' THEN encode(sha256(convert_to((snap.payload->'websiteDraft')::text,'UTF8')),'hex') ELSE NULL END,'profileRevision',profile.revision,'profileHash',CASE WHEN profile.profile IS NOT NULL THEN encode(sha256(convert_to(busy_snapshot_private.profile_facts(profile.profile)::text,'UTF8')),'hex') ELSE NULL END,
  'profile',CASE WHEN profile.business_id IS NULL THEN NULL ELSE busy_snapshot_private.profile_facts(profile.profile) END);
 END $$;
 

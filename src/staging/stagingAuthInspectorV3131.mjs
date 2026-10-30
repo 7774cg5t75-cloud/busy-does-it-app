@@ -181,7 +181,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch,now=Date.now}={})
       const apps=['owner_status','build_draft','apply_app_plan','apply_coordinated_edits','set_module','move_section','set_appearance'];
       const account=connectedAccountRoutes;
 
-      if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design','website_edit_page',...apps,...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
+      if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design','website_edit_page','website_edit_instruction','website_undo','website_redo',...apps,...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
       try{
         const id=await checkIdentity(bearer,FIXTURES[key].email);
         if(!current())throw Error("staging-session-cancelled");

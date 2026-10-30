@@ -1,3 +1,4 @@
+import {ConnectedWebsiteHistory} from '../components/ConnectedWebsiteHistory';
 import {WorkflowStatus} from '../components/WorkflowChrome';
 import {PremiumHomepagePreview} from './premiumHomepagePreview';
 import {appColors as C} from "../theme/appearance.mjs";
@@ -1017,6 +1018,9 @@ function WebsitePreview({ s }) {
   const [pagePlanPreview,setPagePlanPreview]=React.useState(null);
   const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
+  const [pageSaveBusy,setPageSaveBusy]=React.useState(false);const pageSaveFlight=React.useRef(false);
+  const pageSaveAlive=React.useRef(true);React.useEffect(()=>{pageSaveAlive.current=true;return()=>{pageSaveAlive.current=false;};},[]);
+  const pageSaveCurrent=React.useRef(null);pageSaveCurrent.current={instruction:pageInstruction,preview:pagePlanPreview,owner:s.ownerSession?.userId,business:s.cloudWorkspace?.businessId};
   const [pageVoiceExpanded,setPageVoiceExpanded]=React.useState(false);
   const [pageInterpretBusy,setPageInterpretBusy]=React.useState(false);
   const [pageConversation,setPageConversation]=React.useState(null);
@@ -1041,8 +1045,10 @@ function WebsitePreview({ s }) {
   },[previewSize]);
   React.useEffect(()=>setViewportEvidence(null),[selectedPageId,draft?.id,draft?.generation]);
   React.useEffect(()=>setConfirmRecoveryRestore(false),[draft?.id,draft?.generation]);
-  React.useEffect(()=>{setPagePlanPreview(null);setPagePlanNotice("");setPageInstruction("");
-    setPageConversation(null);setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId]);
+  const instructionIdentity=React.useRef('');
+  React.useEffect(()=>{const key=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,selectedPageId]);
+    setPagePlanPreview(null);setPagePlanNotice('');if(instructionIdentity.current!==key)setPageInstruction('');instructionIdentity.current=key;
+    setPageConversation(null);setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
@@ -1477,13 +1483,16 @@ function WebsitePreview({ s }) {
            </View>
            <Text style={styles.cardBody}>Previewing does not save, consume AI credits or publish. Use the screen-size choices below to compare phone and desktop layouts.</Text>
            <Button primary label={"Apply "+pagePlanPreview.steps.length+" reviewed changes together"}
-             onPress={()=>{
-              const result=s.applyWebsitePageInstruction?.({
+             disabled={pageSaveBusy}
+             onPress={async()=>{
+              if(pageSaveFlight.current)return;pageSaveFlight.current=true;const captured=pageSaveCurrent.current;setPageSaveBusy(true);
+              let result;try{result=await s.applyWebsitePageInstruction?.({
                pageId:pagePlanPreview.pageId,generation:pagePlanPreview.generation,
                instruction:pageInstruction
-              });
+              });}catch{result={reason:'Save not confirmed. Keep your words and inspect the account.'};}finally{pageSaveFlight.current=false;if(pageSaveAlive.current)setPageSaveBusy(false);}
+              const live=pageSaveCurrent.current;if(!pageSaveAlive.current||live.owner!==captured.owner||live.business!==captured.business||live.instruction!==captured.instruction||live.preview!==captured.preview)return;
               setPagePlanNotice(result?.reason||"No changes were saved.");
-              setPagePlanPreview(null);
+              if(result?.applied)setPagePlanPreview(null);
              }}/>
            <Button label="Discard — keep original" onPress={()=>{
              setPagePlanPreview(null);setPagePlanNotice("No changes made.");
@@ -1676,6 +1685,7 @@ function WebsitePreview({ s }) {
         onDesignFeedback={s.recordMeasuredWebsiteFeedback}
         onTranscribe={s.transcribeSelectedWebsiteAudio}/>
       {s.websiteBuilderNotice?<WorkflowStatus title="Website update" body={s.websiteBuilderNotice}/>:null}
+      <ConnectedWebsiteHistory s={s}/>
       {s.canUndoWebsite ? <Button label="Undo last website change" onPress={s.undoWebsiteChange} /> : null}
       {s.canRedoWebsite ? <Button label="Redo website change" onPress={s.redoWebsiteChange} /> : null}
       <Button label={showRecoveryTools?"Hide recovery options":"Protect or restore my website draft"}
