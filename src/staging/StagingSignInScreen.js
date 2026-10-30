@@ -24,6 +24,7 @@ const copy={
  "staging-anonymous-denial-failed":"Security check failed: anonymous access was not denied.",
  "staging-account-changed":"The authenticated identity changed. Please sign in again.",
  "staging-session-cancelled":"This test session was cancelled.",
+ "staging-session-expired":"Your private staging session expired. Sign in again; nothing was replayed.",
  "staging-no-session":"Sign in first.",
  "staging-not-configured":"Staging needs its own Supabase URL and public key before login can work."
 };
@@ -84,7 +85,7 @@ export default function StagingSignInScreen(){
     <Text style={inspector.current.configured?styles.good:styles.warning}>
       {inspector.current.configured?"Configured for the designated staging project":"Staging project key / URL not configured"}
     </Text>
-    <Text style={styles.info}>Real Supabase authentication • read-only business checks • no saved session</Text>
+    <Text style={styles.info}>Real Supabase authentication • private in-memory session • sign in again after expiry</Text>
    </View>
    <View style={styles.panel}>
     <Text style={styles.label}>Choose a fictional owner</Text>

@@ -36,19 +36,21 @@ function accountKey(email=""){
   const normalized=String(email||"").trim().toLowerCase();
   return Object.keys(FIXTURES).find(key=>FIXTURES[key].email===normalized)||null;
 }
-function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
+function createStagingAuthInspector({config={},fetchImpl=fetch,now=Date.now}={}){
   const enabled=validateStagingAuthConfig(config);
-  let token="";
+  let token="",expiresAt=0;
   let verifiedKey=null;
   let verifiedUser="";
   let generation=0;
   const clear=()=>{
     generation++;
     const old=token;
-    token="";verifiedKey=null;verifiedUser="";
+    token="";expiresAt=0;verifiedKey=null;verifiedUser="";
     return old;
   };
+  function expire(){if(token&&now()>=expiresAt)clear();}
   function assertConfigured(){
+    expire();
     if(!enabled)throw new Error("staging-not-configured");
   }
   async function call(path,{method="GET",bearer="",body=null}={}){
@@ -58,18 +60,18 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
       ...(body!==null?{"Content-Type":"application/json"}:{}),
       ...(bearer?{Authorization:"Bearer "+bearer}:{})
     };
-    let response;
+    let response;const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),15000);
     try{
       response=await fetchImpl(config.baseUrl+path,{
-        method,headers,redirect:"error",cache:"no-store",
+        method,headers,redirect:"error",cache:"no-store",credentials:"omit",signal:controller.signal,
         ...(body!==null?{body:JSON.stringify(body)}:{})
       });
-    }catch{throw new Error("staging-network-unavailable");}
-    if(!response||!Number.isInteger(response.status))
+        if(!response||!Number.isInteger(response.status))
       throw new Error("staging-network-unavailable");
     let json=null;
     try{json=await response.json();}catch{}
     return {status:response.status,json};
+    }catch{throw new Error("staging-network-unavailable");}finally{clearTimeout(deadline);}
   }
   async function checkIdentity(accessToken,email){
     const user=await call("/auth/v1/user",{bearer:accessToken});
@@ -105,8 +107,9 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
   }
   return {
     get configured(){return enabled;},
-    get signedIn(){return !!token&&!!verifiedKey;},
-    get sessionVersion(){return generation;},
+    get sessionPolicy(){return {storage:'memory-only',refresh:'fresh-sign-in-required',maxLifetimeSeconds:3600};},
+    get signedIn(){expire();return !!token&&!!verifiedKey;},
+    get sessionVersion(){expire();return generation;},
     async signIn(email,password){
       assertConfigured();
       // Clear previous account, including on failed attempts.
@@ -115,6 +118,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
       const key=accountKey(email);
       if(!key||typeof password!=="string"||password.length<1)
         throw new Error("staging-test-account-required");
+      const started=now();
       const login=await call("/auth/v1/token?grant_type=password",{
         method:"POST",body:{email:FIXTURES[key].email,password}
       });
@@ -129,6 +133,9 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
         const result=await checkIsolation(accessToken,id,key);
         if(generation!==requestGeneration)
           throw new Error("staging-session-cancelled");
+        const seconds=Number.isFinite(login.json.expires_in)?Math.min(3600,Math.max(0,login.json.expires_in)):900;
+        expiresAt=started+seconds*1000;
+        if(now()>=expiresAt)throw Error("staging-session-expired");
         token=accessToken;
         verifiedKey=key;
         verifiedUser=id;
@@ -170,14 +177,15 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
       assertConfigured();
       if(!token||!verifiedKey)throw Error("staging-no-session");
       const active=generation,bearer=token,userId=verifiedUser,key=verifiedKey;
-      const current=()=>generation===active&&token===bearer;
+      const current=()=>{expire();return generation===active&&token===bearer;};
       const apps=['owner_status','build_draft','apply_app_plan','apply_coordinated_edits','set_module','move_section','set_appearance'];
       const account=connectedAccountRoutes;
 
       if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design','website_edit_page',...apps,...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
       try{
         const id=await checkIdentity(bearer,FIXTURES[key].email);
-        if(!current()||id!==userId)throw Error("staging-account-changed");
+        if(!current())throw Error("staging-session-cancelled");
+        if(id!==userId)throw Error("staging-account-changed");
         let response;
         if(action==='workspaces'){
           response=await call('/rest/v1/rpc/busy_connected_workspaces_v1',{method:'POST',bearer,body:{}});

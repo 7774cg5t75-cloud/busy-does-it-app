@@ -342,6 +342,7 @@ function App({connectedRuntime=null}={}) {
   const [radius, setRadius] = useState("15");
   const [brandProfile, setBrandProfile] = useState(() => ({
     ...BRAND_PROFILE_SEED,
+    ...(connected?{tagline:connected.profile.tagline||''}:{}),
     serviceDescriptions: Object.fromEntries((connected?.profile.services||[]).map(r=>[r.id,r.description||''])),
     publicDescription:connected?.profile.description||'',serviceAreaText:connected?.profile.serviceArea||'',phone:connected?.profile.contact?.phone||'',email:connected?.profile.contact?.email||'',
     faqs: [],testimonials: [],

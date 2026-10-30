@@ -354,7 +354,7 @@
       "sha256": "722b84a7bbe6dde9fe6e8145a0a9fc64e344e63ad59a3c98bd489cec742f66d5"
     }
   ],
-  "sha256": "36dc9b55f37dd3aeaf7f9e1b97ac78276e91a31fcb58f9c12484c08a69db3cfb",
+  "sha256": "4e35a03699ea0d80117667bcc5990307d0a9702b2f0d75962d14a0968f83a99a",
   "rollbackSha256": "ed8fb0c5b95b68bce67577bb7ed510f22db885c95206262ea2e55b363d39e778",
   "retainedReaders": [
     "busy_connected_workspaces_v1",
@@ -455,6 +455,22 @@
   ],
   "dependencies": [
     {
+      "path": "scripts/lib/staging-installation-security.mjs",
+      "sha256": "0ed188104768e4530fa3a80b68c5e424523f769916f92acef70298ecb3bcafb7"
+    },
+    {
+      "path": "scripts/lib/whole-app-staging-package.mjs",
+      "sha256": "7b17bf87dab2a5dde2bf1fef1de7cace5c87c65d09f88b1a60441f44d35fb7ad"
+    },
+    {
+      "path": "scripts/lib/whole-app-function-signatures.mjs",
+      "sha256": "0fb98822742b6afe24e4d7cce9e92d203ef72028a634cbc28a2c991b62442c30"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "2512ca83f769666a48059f138a482f172cd77fc72715f9ee95538f05c72ca00d"
+    },
+    {
       "path": "supabase/connected-staging.deno.json",
       "sha256": "34f82cf97fb8d812026690d1082b8f4fe8bab181c17370e4afff0b1f5096b143"
     },
@@ -488,11 +504,11 @@
     },
     {
       "path": "scripts/lib/connected-hosted-acceptance.mjs",
-      "sha256": "8a96f5764fcfba3ebeaecc15713610a9e42b2b9a6be19e5e0d6cbf0bf40ec64d"
+      "sha256": "09e200ff2641ff670d56a174252216b54c5e8a727c3f4fb919d53b4f4d55e74c"
     },
     {
       "path": "src/staging/stagingAuthInspectorV3131.mjs",
-      "sha256": "c6edd5130ff0719d1ae6cc0f046a55a04c73d2c07ec05a0c1f415172965e85ac"
+      "sha256": "a21909d08621832ee2e39fb557f96f91565ee4921bf61184e92d233f21ead3f8"
     },
     {
       "path": "docs/sql-proposals/connected-builders/whole-app-staging-metadata-2026-10-30.json",

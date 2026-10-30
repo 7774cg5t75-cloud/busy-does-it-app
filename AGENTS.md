@@ -1,3 +1,9 @@
+## Permanent Security by Design — owner instruction,30 October2026
+
+The owner explicitly approved V22.60 Section72 requirements in the development mission. The genuine V22.60 Word original was not accessible at this checkpoint; do not claim direct document verification. V22.59 below is the latest genuine original reopened locally, not the latest owner-approved version. Future missions must check authentic newer master access.
+
+Treat security as an implementation requirement in every sweep: threat-model trust boundaries, enforce server identity/current membership/tenant and source revisions independently of AI, use least privilege and protected secrets, treat external content as data, preserve review/cost gates, test adversarial inputs and safe recovery, and inspect dependency/secret findings. Critical/high exploitable issues block activation/release of the affected path, not unrelated safe source development. Keep real hosted/JWT/native/independent-assurance evidence separate from local checks. No passing script or AI score proves complete security. Comprehensive owner testing remains deferred until the connected first-release application is ready; automated security/integration verification continues throughout. Separate deployment/spending authority is unchanged.
+
 ## Latest genuine owner-approved private Product Master — V22.59, 29 October 2026
 
 The owner supplied the Word original during the connected-application/interior mission. It was reopened and SHA-256 verified: `a275340a7258f96f830d2c53e46734c4b93c5365f1a172a0950b4c349c71c5cc`; cover V22.59,2,454 paragraphs/19 tables. Relevant Section61.5 and connected-workflow/simplicity, orb, quality-first cost and readiness-based release requirements were reviewed. Private original bytes and complete extraction remain outside Git. Earlier version entries below are historical provenance, not substitutes for this original.

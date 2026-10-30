@@ -1,3 +1,4 @@
+import {stagingPreflight,stagingDefaultPrivileges,stagingPostflight} from './staging-installation-security.mjs';
 import {wholeAppFunctionSignatures} from './whole-app-function-signatures.mjs';
 import {readFileSync,readdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -32,15 +33,17 @@ export function wholeAppStagingPackage(root){
   IF f.nspname='public' AND f.exact IN (${service}) THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role',f.signature);END IF;
  END LOOP;
 END $$;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC,anon,authenticated,service_role;`;
+${stagingDefaultPrivileges}`;
  const sql=`-- GENERATED REVIEW ONLY: pnjdlogwegnqbsfpcofw fresh compatibility foundation; NOT production DDL capture.
 BEGIN;
 DO $$ BEGIN RAISE EXCEPTION 'WHOLE APP STAGING REVIEW FUSE: separate exact installation approval required'; END $$;
 SET LOCAL lock_timeout='5s';SET LOCAL statement_timeout='120s';
+${stagingPreflight}
 DO $$ BEGIN IF EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename<>'busy_staging_rls_canary') THEN RAISE EXCEPTION 'Fresh reviewed staging only: preserve existing operational records';END IF;IF to_regclass('auth.users') IS NULL OR to_regprocedure('auth.uid()') IS NULL THEN RAISE EXCEPTION 'Genuine Auth foundation required';END IF;END $$;
 ${parts.map(p=>'-- Source '+p.path+' SHA256 '+p.sha256+'\n'+p.body).join('\n')}
 ${supplement.map(s=>'-- Original '+s.path+' SHA256 '+hash(s.sql)+'\n'+s.sql).join('\n')}
 ${acl}
+${stagingPostflight}
 COMMIT;
 `;
  const retainedReaders=wholeAppAuthenticatedFunctions.filter(n=>!/(?:initialize|profile_write|creator_draft_write|growth_opportunity_write|app_enquiry_import|app_enquiry_file|work_create_quote|work_edit_quote|work_private_write)/.test(n));

@@ -2851,6 +2851,18 @@
       "args": [
         "scripts/check-whole-app-connections.mjs"
       ]
+    },
+    {
+      "id": "security-by-design-adversarial",
+      "args": [
+        "scripts/check-security-by-design.mjs"
+      ]
+    },
+    {
+      "id": "security-baseline",
+      "args": [
+        "scripts/check-security-baseline.mjs"
+      ]
     }
   ]
 }

@@ -2,6 +2,13 @@
 BEGIN;
 DO $$ BEGIN RAISE EXCEPTION 'WHOLE APP STAGING REVIEW FUSE: separate exact installation approval required'; END $$;
 SET LOCAL lock_timeout='5s';SET LOCAL statement_timeout='120s';
+DO $$ BEGIN
+ IF current_user<>'postgres' THEN RAISE EXCEPTION 'Reviewed postgres installer required';END IF;
+ IF EXISTS(SELECT 1 FROM pg_namespace WHERE nspname IN ('busy_snapshot_private','busy_work_private','busy_creator_private','busy_growth_private')) THEN RAISE EXCEPTION 'Fresh reviewed staging only: existing private schema requires independent upgrade review';END IF;
+ IF EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname<>'busy_staging_rls_canary' AND NOT EXISTS(SELECT 1 FROM pg_depend d WHERE d.classid='pg_class'::regclass AND d.objid=c.oid AND d.deptype='e') AND c.relkind IN ('v','m','f','S')) THEN RAISE EXCEPTION 'Fresh reviewed staging only: unexpected exposed relation requires review';END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND NOT EXISTS(SELECT 1 FROM pg_depend d WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e') AND NOT (p.proname='rls_auto_enable' AND p.pronargs=0 AND p.prorettype='event_trigger'::regtype AND p.proowner='postgres'::regrole AND p.proconfig=ARRAY['search_path=pg_catalog'] AND NOT has_function_privilege('anon',p.oid,'EXECUTE') AND NOT has_function_privilege('authenticated',p.oid,'EXECUTE') AND NOT has_function_privilege('service_role',p.oid,'EXECUTE'))) THEN RAISE EXCEPTION 'Fresh reviewed staging only: unexpected public routine requires review';END IF;
+END $$;
+REVOKE CREATE ON SCHEMA public FROM PUBLIC,anon,authenticated,service_role;
 DO $$ BEGIN IF EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename<>'busy_staging_rls_canary') THEN RAISE EXCEPTION 'Fresh reviewed staging only: preserve existing operational records';END IF;IF to_regclass('auth.users') IS NULL OR to_regprocedure('auth.uid()') IS NULL THEN RAISE EXCEPTION 'Genuine Auth foundation required';END IF;END $$;
 -- Source staging/ISOLATED_ONLY_business_core_v3180.sql SHA256 af81c5b8d1a0a68a061c48e221ebcb1e74c0360d512eb33f40639a54ef54f83a
 -- V3.180: isolated staging-only missing business core baseline.
@@ -2928,5 +2935,19 @@ DO $$ DECLARE f record; t record; col record; BEGIN
   IF f.nspname='public' AND f.exact IN ('busy_connected_website_commit_v1(uuid, uuid, bigint, jsonb, jsonb, bigint)','busy_connected_first_app_v1(uuid, uuid, text, text, text, text, bigint, jsonb)','busy_connected_private_app_commit_v1(uuid, uuid, uuid, bigint, bigint, jsonb)','busy_mini_app_entry_summary(uuid, uuid, timestamp with time zone)') THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role',f.signature);END IF;
  END LOOP;
 END $$;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC,anon,authenticated,service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE ALL ON TABLES FROM PUBLIC,anon,authenticated,service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE ALL ON SEQUENCES FROM PUBLIC,anon,authenticated,service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC,anon,authenticated,service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES FROM PUBLIC,anon,authenticated,service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON SEQUENCES FROM PUBLIC,anon,authenticated,service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC,anon,authenticated,service_role;
+DO $$ DECLARE f record; r text; BEGIN
+ FOR f IN SELECT p.oid,p.prosecdef,p.proconfig,p.proowner FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE (n.nspname='public' AND p.proname LIKE 'busy_%') OR n.nspname IN ('busy_snapshot_private','busy_work_private','busy_creator_private','busy_growth_private') LOOP
+  IF f.proowner<>'postgres'::regrole THEN RAISE EXCEPTION 'Unexpected function owner';END IF;
+  IF f.prosecdef AND (f.proconfig IS NULL OR NOT f.proconfig&&ARRAY['search_path=pg_catalog, pg_temp','search_path=pg_catalog','search_path=""']) THEN RAISE EXCEPTION 'Unsafe definer search path: %',f.oid::regprocedure;END IF;
+  IF has_function_privilege('anon',f.oid,'EXECUTE') THEN RAISE EXCEPTION 'Anonymous function exposure';END IF;
+ END LOOP;
+ FOREACH r IN ARRAY ARRAY['anon','authenticated','service_role'] LOOP IF has_schema_privilege(r,'public','CREATE') THEN RAISE EXCEPTION 'Client schema CREATE exposure';END IF;END LOOP;
+ IF EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p') AND NOT c.relrowsecurity) THEN RAISE EXCEPTION 'Missing RLS';END IF;
+END $$;
 COMMIT;
