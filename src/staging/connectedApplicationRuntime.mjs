@@ -26,7 +26,7 @@ export function createConnectedApplicationRuntime({environment,inspector,basis,a
  const contentScope={},contentCurrent=()=>({scope:contentScope,ready:current(),ownerId:basis.actorId,businessId:basis.businessId,role:'owner'});
  const creator=createCreatorDraftAccount({enabled:true,getCurrent:contentCurrent,authenticatedRequest:(name,body,before)=>{check();if(!before())throw Error('Review changed');return request('creator_'+name,body);}});
  const growth=createGrowthOpportunityAccount({enabled:true,getCurrent:contentCurrent,authenticatedRequest:(name,body,before)=>{check();if(!before())throw Error('Review changed');return request('growth_'+name,body);}});
- const api={get active(){return current();},ownerId:basis.actorId,businessId:basis.businessId,get profile(){return packet.profile;},get websiteDraft(){return packet.websiteDraft;},appStatus,
+ const api={get active(){return current();},ownerId:basis.actorId,businessId:basis.businessId,get profile(){return packet.profile;},get profileRevision(){return packet.profileRevision;},get websiteDraft(){return packet.websiteDraft;},appStatus,
   async requestApp(action,payload,options={}){if(!['owner_status','build_draft','apply_app_plan','apply_coordinated_edits','set_module','move_section','set_appearance'].includes(action)||options.includeBusiness===false||options.isCurrent&&!options.isCurrent())throw Error('This action is not connected in staging');const result=await request(action,payload);if(options.isCurrent&&!options.isCurrent())throw Error('Your app changed during the request');return result;},
   async verify(){check();const r=await request('builder_read');if(r.actorId!==basis.actorId)throw Error('Owner changed');return r;},
   dispose(){active=false;session.clear();live=null;},

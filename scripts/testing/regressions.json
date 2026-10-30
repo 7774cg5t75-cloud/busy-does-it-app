@@ -2887,6 +2887,12 @@
       "args": [
         "scripts/check-natural-goal-context.mjs"
       ]
+    },
+    {
+      "id": "governed-builder-proposals",
+      "args": [
+        "scripts/check-governed-builder-proposals.mjs"
+      ]
     }
   ]
 }

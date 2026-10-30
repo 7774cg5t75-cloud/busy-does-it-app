@@ -1,7 +1,7 @@
 import {BusyOwnerCorrection} from '../components/BusyOwnerCorrection';
 import {BusyGoalRecords} from '../components/BusyGoalRecords';
 import {WebsiteRequestRecovery} from '../components/WebsiteRequestRecovery';
-import {planBusyGoal} from '../core/busyGoalPlan.mjs';
+import {planReviewedWebsiteGoal as planBusyGoal} from '../core/governedBuilderProposal.mjs';
 import {WebsiteGroupedReview} from '../components/WebsiteGroupedReview';
 import {prepareWebsiteRequest} from '../core/websiteRequestPlan.mjs';
 import {ConnectedWebsiteHistory} from '../components/ConnectedWebsiteHistory';
@@ -1461,7 +1461,7 @@ function WebsitePreview({ s }) {
         <Button label="Preview changes — do not save"
           onPress={()=>{
             setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);
-            const goal=planBusyGoal({request:pageInstruction,surface:'website',website:draft,businessId:s.cloudWorkspace?.businessId,pageId:activePage?.id||"home",profile:s.connectedRuntime?.profile},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
+            const goal=planBusyGoal({request:pageInstruction,ownerId:s.connectedRuntime?.ownerId,profileRevision:s.connectedRuntime?.profileRevision,surface:'website',website:draft,businessId:s.cloudWorkspace?.businessId,pageId:activePage?.id||"home",profile:s.connectedRuntime?.profile},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
             setPageGoal(goal.recognised?goal:null);
             if(goal.recognised&&!goal.ready){setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice(goal.question||goal.nextAction);return;}
             const reviewedWords=goal.ready?goal.instruction:pageInstruction;
