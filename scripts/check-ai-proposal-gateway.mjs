@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {createBuilderProposalGateway} from '../supabase/functions/busy-builder-proposals/gateway.mjs';
+import {offlineBuilderProvider} from '../supabase/functions/busy-builder-proposals/offlineProvider.mjs';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+import {createBuilderProposalContext} from '../src/core/governedBuilderProposal.mjs';
+import {prepareBuilderGatewayReview} from '../src/core/builderGatewayReview.mjs';
+const B='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',O='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+const d=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyStructuredWebsiteEdit','applyWebsiteLayoutChange','renderWebsiteHtml','rebuildPrivateWebsiteDraft']);
+const project=d.buildWebsiteDraft({businessId:B,brandBrain:{websiteBrief:{businessName:'Fictional test',services:[{name:'Walks',description:'Approved wording'}],phone:'0123456789'}}});
+const binding={surface:'website',projectId:project.id,sourceRevision:project.generation,profileRevision:1,snapshotRevision:3,pageId:'home'},record={ownerId:O,businessId:B,project,profile:{businessName:'Fictional test',services:[{name:'Walks'}]},catalog:[]};
+const request=(patch={},options={})=>new Request('https://local.invalid',{method:'POST',headers:{authorization:'Bearer local-fictional-user-token', 'content-type':'application/json'},body:JSON.stringify({version:1,operationId:randomUUID(),businessId:B,binding,goal:'Make my website professional and phone friendly',...patch}),...options});
+let state='none',effects=[],contextReads=0;const outcomes=[];
+const deps={enabled:true,projectUrl:'https://pnjdlogwegnqbsfpcofw.supabase.co',providerMode:'offline-simulation',authenticate:async()=>({id:O}),offlineProvider:offlineBuilderProvider,rpc:async(name,p)=>{effects.push(name);if(name==='busy_ai_context_v1'){contextReads++;return record;}if(name==='busy_ai_reserve_v1'){state='reserved';return {fresh:true};}if(name==='busy_ai_dispatch_v1'){state='dispatched';return {};}if(name==='busy_ai_finish_v1'){outcomes.push(p.p_outcome);if(p.p_outcome==='released'&&state!=='reserved')throw Error('uncertain');state=p.p_outcome;return {};}}};
+const invoke=async(overrides={},patch={},options={})=>{state='none';effects=[];contextReads=0;outcomes.length=0;return createBuilderProposalGateway({...deps,...overrides})(request(patch,options));};
+assert.equal((await invoke({enabled:false})).status,503);assert.deepEqual(effects,[]);
+assert.equal((await invoke({projectUrl:'https://qgkmuiipicazmcxxmoxv.supabase.co'})).status,503);assert.equal((await invoke({providerMode:'live'})).status,503);
+assert.equal((await invoke({}, {},{headers:{'content-type':'application/json'}})).status,401);
+assert.equal((await invoke({authenticate:async()=>({id:'metadata-user'})})).status,401);
+for(const patch of [{actorId:O},{provider:'live'},{context:{private:'forged'}},{binding:{...binding,tool:'publish'}},{goal:'x'.repeat(241)},{goal:'<script>publish()</script>'}])assert.equal((await invoke({},patch)).status,400);
+assert.equal((await invoke({}, {},{body:' '.repeat(4097)})).status,400);
+const success=await invoke(),response=await success.json();assert.equal(success.status,200);assert.equal(response.simulation,true);assert.equal(response.mayExecute,false);assert.equal(response.requiresOwnerReview,true);assert.equal(state,'settled');assert.ok(!JSON.stringify(response).includes('maxInput'));assert.deepEqual(outcomes,['settled']);
+const context=createBuilderProposalContext({...record,ownerId:O,businessId:B,projectId:project.id,sourceRevision:project.generation,profileRevision:1,surface:'website',pageId:'home'});
+const review=prepareBuilderGatewayReview({response,context,current:context},{fieldEdit:d.applyStructuredWebsiteEdit,layoutEdit:d.applyWebsiteLayoutChange,renderPage:d.renderWebsiteHtml,rebuild:d.rebuildPrivateWebsiteDraft});assert.equal(review.ok,true,review.reason);assert.equal(review.mayExecute,false);assert.equal(review.prepared.groups.length,1);
+for(const provider of [()=>'{"tool":"send_messages","scope":"other_business"}',()=>JSON.stringify({...response.proposal,scope:{...response.proposal.scope,businessId:O}}),()=>JSON.stringify({...response.proposal,objectives:['run_code']}),()=>' '.repeat(16001)]){assert.equal((await invoke({offlineProvider:provider})).status,422);assert.equal(state,'settled');}
+assert.equal((await invoke({offlineProvider:()=>{throw Error('provider failed after dispatch');}})).status,409);assert.deepEqual(outcomes,['unknown']);assert.equal(state,'unknown');
+assert.equal((await invoke({rpc:async(name,p)=>{if(name==='busy_ai_reserve_v1')throw Error('Monthly allowance exceeded');return deps.rpc(name,p);}})).status,429);assert.ok(!effects.includes('busy_ai_dispatch_v1'));
+assert.equal((await invoke({rpc:async(name,p)=>{if(name==='busy_ai_reserve_v1')return {fresh:false};return deps.rpc(name,p);}})).status,409);assert.ok(!effects.includes('busy_ai_dispatch_v1'));
+assert.equal((await invoke({rpc:async(name,p)=>{if(name==='busy_ai_context_v1'&&contextReads===1)return {...record,profile:{...record.profile,businessName:'Changed'}};return deps.rpc(name,p);}})).status,409);assert.deepEqual(outcomes,['released']);
+const cancelled=new AbortController();cancelled.abort();assert.equal((await invoke({}, {},{signal:cancelled.signal})).status,409);assert.deepEqual(outcomes,['released']);
+assert.equal((await invoke({rpc:async(name,p)=>{if(name==='busy_ai_dispatch_v1'){state='dispatched';throw Error('Acknowledgement lost');}return deps.rpc(name,p);}})).status,409);assert.deepEqual(outcomes,['released','unknown']);assert.equal(state,'unknown');
+console.log('PASS original proposal gateway: default/production/live denial, verified-actor contract, bounded requests, independent proposal validation, original Website review, cancellation, source changes, unknown provider outcomes and no automatic replay. Auth/transport inert here; PostgreSQL acceptance is separate.');
+
+const slowBody=new ReadableStream({start(controller){controller.enqueue(new TextEncoder().encode(JSON.stringify({version:1,operationId:randomUUID(),businessId:B,binding,goal:'A private design idea'})));}});assert.equal((await invoke({}, {},{body:slowBody,duplex:'half'})).status,400);assert.deepEqual(effects,[],'Incomplete streamed requests never obtain admission');
+assert.equal((await invoke({offlineProvider:()=>new Promise(()=>{})})).status,409);assert.equal(state,'unknown','Provider timeout retains liability and never retries');

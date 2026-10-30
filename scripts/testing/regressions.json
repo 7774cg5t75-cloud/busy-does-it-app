@@ -2893,6 +2893,12 @@
       "args": [
         "scripts/check-governed-builder-proposals.mjs"
       ]
+    },
+    {
+      "id": "ai-proposal-gateway",
+      "args": [
+        "scripts/check-ai-proposal-gateway.mjs"
+      ]
     }
   ]
 }
