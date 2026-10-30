@@ -1,3 +1,4 @@
+import {WEBSITE_ATOMIC_CHARACTERS} from '../../../src/core/websiteEditingLimits.mjs';
 import {planWebsitePageInstructions} from '../../../src/core/websitePageInstructions.mjs';
 import {prepareSelectedWebsiteTransaction} from '../../../src/core/websiteContextPlan.mjs';
 import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint} from '../../../src/core/websiteRecoveryPoint.mjs';
@@ -18,7 +19,7 @@ export async function privateWebsiteDraftAction({action,body,userId,read,commit,
   candidate=buildWebsiteDraft({brandBrain:{websiteBrief:brief},businessId:body.businessId});
  }else if(action==='website_edit_instruction'){
   const patch=body.patch;
-  if(!basis.websiteDraft||!patch||Object.keys(patch).some(k=>!['pageId','generation','instruction'].includes(k))||typeof patch.instruction!=='string'||patch.instruction.length>2000)throw Error('Review exact page instructions');
+  if(!basis.websiteDraft||!patch||Object.keys(patch).some(k=>!['pageId','generation','instruction'].includes(k))||typeof patch.instruction!=='string'||patch.instruction.length>WEBSITE_ATOMIC_CHARACTERS)throw Error('Review exact page instructions');
   const plan=planWebsitePageInstructions(basis.websiteDraft,{...patch,draftId:basis.websiteDraft.id});
   if(!plan.ok)throw Error(plan.reason);
   const edited=prepareSelectedWebsiteTransaction(basis.websiteDraft,plan,{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange});

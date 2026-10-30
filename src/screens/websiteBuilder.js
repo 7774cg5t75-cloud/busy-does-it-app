@@ -1,3 +1,5 @@
+import {WebsiteGroupedReview} from '../components/WebsiteGroupedReview';
+import {prepareWebsiteRequest} from '../core/websiteRequestPlan.mjs';
 import {ConnectedWebsiteHistory} from '../components/ConnectedWebsiteHistory';
 import {WorkflowStatus} from '../components/WorkflowChrome';
 import {PremiumHomepagePreview} from './premiumHomepagePreview';
@@ -43,7 +45,7 @@ import { websiteOnboardingCoach } from "../core/websiteOnboardingCoach.mjs";
 import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
 import { websiteRegionalReadiness } from "../core/websiteRegionalReadiness.mjs";
 import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
-import { renderWebsiteHtml,applyWebsiteLayoutChange } from "../domain/websiteBuilder";
+import { renderWebsiteHtml,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
 import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,ownerDesignPreference,describeWebsiteDesignComparison} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteAppServiceCopy} from "./websiteAppServiceCopy";
@@ -1016,6 +1018,7 @@ function WebsitePreview({ s }) {
   const [showOriginalComparison,setShowOriginalComparison]=React.useState(false);
   const [pageInstruction,setPageInstruction]=React.useState("");
   const [pagePlanPreview,setPagePlanPreview]=React.useState(null);
+  const [pageRequest,setPageRequest]=React.useState(null);
   const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
   const [pageSaveBusy,setPageSaveBusy]=React.useState(false);const pageSaveFlight=React.useRef(false);
@@ -1047,7 +1050,7 @@ function WebsitePreview({ s }) {
   React.useEffect(()=>setConfirmRecoveryRestore(false),[draft?.id,draft?.generation]);
   const instructionIdentity=React.useRef('');
   React.useEffect(()=>{const key=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,selectedPageId]);
-    setPagePlanPreview(null);setPagePlanNotice('');if(instructionIdentity.current!==key)setPageInstruction('');instructionIdentity.current=key;
+    setPagePlanPreview(null);setPagePlanNotice('');if(instructionIdentity.current!==key){setPageInstruction('');setPageRequest(null);}instructionIdentity.current=key;
     setPageConversation(null);setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
@@ -1365,9 +1368,9 @@ function WebsitePreview({ s }) {
         <Text style={styles.cardBody}>Try: Change the hero heading to "Welcome to our workshop"; move the about section above services. Or add question "Do you travel?" answer "Ask us about your location." For phone reading: make the whole page easier to read only on phones. For a calmer mobile layout: give the whole page less space on phones. For composition: make the hero centred; or move the hero photo left when an approved hero image exists. Shared theme changes affect all pages; always preview first.</Text>
         </Details>
         <TextInput value={pageInstruction}
-          onChangeText={value=>{setPageInstruction(value);setPagePlanPreview(null);setPagePlanNotice("");}}
-          multiline maxLength={400}
-          accessibilityLabel="Describe up to five named website page changes"
+          onChangeText={value=>{setPageInstruction(value);setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice("");}}
+          multiline maxLength={6000}
+          accessibilityLabel="Describe your website page changes"
           placeholder="Move the services section up; make the hero heading smaller on phones"
           placeholderTextColor={C.muted}
           style={{minHeight:95,padding:12,borderRadius:12,backgroundColor:C.input,color:C.ink,borderWidth:1,borderColor:C.controlBorder,textAlignVertical:"top"}}/>
@@ -1451,14 +1454,15 @@ function WebsitePreview({ s }) {
         <Button label="Preview changes — do not save"
           onPress={()=>{
             setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);
-            const result=s.previewWebsitePageInstruction?.({
-              pageId:activePage?.id||"home",generation:draft.generation,
-              instruction:pageInstruction
-            });
+            const planned=prepareWebsiteRequest(draft,{draftId:draft.id,pageId:activePage?.id||"home",generation:draft.generation,instruction:pageInstruction},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
+            if(planned.ok&&planned.groups.length>1){setPageRequest({...planned,ownerId:s.ownerSession?.userId,ownerScope:s.ownerWorkspaceScope});setPagePlanPreview(null);setPagePlanNotice('Review the whole result, then approve each part separately.');return;}
+            setPageRequest(null);
+            const result=planned.ok?s.previewWebsitePageInstruction?.({pageId:activePage?.id||"home",generation:draft.generation,instruction:pageInstruction}):planned;
             setPagePlanPreview(result?.ok?result:null);
             setPagePlanNotice(result?.ok?"Original unchanged — review below.":result?.reason||"This request could not be previewed.");
             setShowPagePlanOriginal(false);
           }}/>
+        {pageRequest?.ok&&pageRequest.ownerId===s.ownerSession?.userId&&pageRequest.ownerScope===s.ownerWorkspaceScope&&pageRequest.businessId===s.websiteDraft?.businessId&&pageRequest.instruction===pageInstruction?<WebsiteGroupedReview key={pageRequest.generation+':'+pageRequest.instruction} s={s} plan={pageRequest} onDiscard={()=>setPageRequest(null)}/>:null}
         {pagePlanPreview?.ok&&pagePlanPreview.draftId===draft.id&&
          pagePlanPreview.generation===draft.generation&&
          pagePlanPreview.pageId===(activePage?.id||"home")?(
@@ -1494,7 +1498,7 @@ function WebsitePreview({ s }) {
               setPagePlanNotice(result?.reason||"No changes were saved.");
               if(result?.applied)setPagePlanPreview(null);
              }}/>
-           <Button label="Discard — keep original" onPress={()=>{
+           <Button label="Discard — keep original" disabled={pageSaveBusy} onPress={()=>{
              setPagePlanPreview(null);setPagePlanNotice("No changes made.");
            }}/>
           </View>

@@ -2869,6 +2869,12 @@
       "args": [
         "scripts/check-connected-website-history.mjs"
       ]
+    },
+    {
+      "id": "website-request-capacity",
+      "args": [
+        "scripts/check-website-request-capacity.mjs"
+      ]
     }
   ]
 }

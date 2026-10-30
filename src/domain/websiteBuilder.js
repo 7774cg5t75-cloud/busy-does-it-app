@@ -13,6 +13,9 @@ import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
 import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";
 
+import {splitBuilderInstructionClauses} from '../core/builderInstructionClauses.mjs';
+import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../core/websiteEditingLimits.mjs';
+
 function clean(value = "") {
   return String(value || "").trim();
 }
@@ -611,10 +614,9 @@ function applySingleWebsiteInstruction(draft = {}, instruction = "") {
  */
 function applyWebsiteInstructionUnchecked(draft = {}, instruction = "") {
   const raw=clean(instruction);
-  const parts=raw.split(/\s*;\s*|\s+and then\s+|,\s*(?:and )?then\s+/i).map(x=>x.trim());
+  const parts=splitBuilderInstructionClauses(raw,{website:true,max:WEBSITE_ATOMIC_CHANGES,maxCharacters:WEBSITE_ATOMIC_CHARACTERS});
+  if(!parts)return {applied:false,draft,reason:"Describe complete changes separated by ';' or 'and then'. Review larger requests in groups."};
   if(parts.length===1)return applySingleWebsiteInstruction(draft,instruction);
-  if(parts.length>4||parts.some(x=>!x))
-    return {applied:false,draft,reason:"Give BUSY up to four complete changes separated by ';' or 'and then'."};
   let candidate=draft;
   const summaries=[];
   for(let i=0;i<parts.length;i++){

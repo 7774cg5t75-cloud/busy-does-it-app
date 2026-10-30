@@ -1,3 +1,4 @@
+import {WEBSITE_ATOMIC_CHARACTERS} from './websiteEditingLimits.mjs';
 import {reviewWebsiteEditingQuality} from "../../supabase/functions/busy-website-worker/websiteEditingQuality.mjs";
 /**
  * V3.148 — Private, on-demand, exact-element design preview.
@@ -14,8 +15,8 @@ function previewSelectedWebsiteInstruction(draft,{selection,instruction}={},deps
   return fail("That selection is inconsistent. Tap the website part again.");
  if(!selectedWebsiteVoiceContextIsCurrent(draft,selection))
   return fail("Your website changed. Tap the part you want to edit again.");
- if(typeof instruction!=="string"||!instruction.trim()||instruction.length>400)
-  return fail("Ask for one to three short changes.");
+ if(typeof instruction!=="string"||!instruction.trim()||instruction.length>WEBSITE_ATOMIC_CHARACTERS)
+  return fail("Describe the changes you want to preview.");
  if(typeof deps.fieldEdit!=="function"||typeof deps.layoutEdit!=="function"||
     typeof deps.renderPage!=="function")return fail("The preview is not ready.");
  const plan=planSelectedWebsiteChanges(draft,selection.pageId,selection,instruction);

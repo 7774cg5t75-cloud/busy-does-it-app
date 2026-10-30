@@ -4,21 +4,25 @@
  * guesses a target or supplies unreviewed operations. All steps share the
  * existing immutable layout transaction and exactly one Undo on approval.
  */
-import {splitSelectedWebsiteInstruction,prepareSelectedWebsiteTransaction} from "./websiteContextPlan.mjs";
+import {prepareSelectedWebsiteTransaction} from "./websiteContextPlan.mjs";
+import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,WEBSITE_REQUEST_CHANGES,WEBSITE_REQUEST_CHARACTERS} from './websiteEditingLimits.mjs';
+import {splitBuilderInstructionClauses} from './builderInstructionClauses.mjs';
 import {privateBuilderRevisionMatches} from "./privateBuilderBoundary.mjs";
 const list=x=>Array.isArray(x)?x:[];
 const fail=reason=>({ok:false,reason,steps:[]});
 const forbidden=/\b(publish|delete|remove|transfer|export|upload|send|buy|purchase)\b/i;
-function planWebsitePageInstructions(draft,{draftId,pageId,generation,instruction}={}){
+function planWebsitePageInstructions(draft,{draftId,pageId,generation,instruction}={},planningLimits=null){
+ const max=planningLimits?.request===true?WEBSITE_REQUEST_CHANGES:WEBSITE_ATOMIC_CHANGES;
+ const maxCharacters=planningLimits?.request===true?WEBSITE_REQUEST_CHARACTERS:WEBSITE_ATOMIC_CHARACTERS;
  if(!privateBuilderRevisionMatches(draft,{draftId,generation,pageId}))
   return fail("The website or selected page changed. Review the current draft again.");
  const page=list(draft.pages).find(p=>p.id===pageId&&p.enabled!==false);
  if(!page)return fail("Choose a current website page.");
- let clauses=splitSelectedWebsiteInstruction(instruction);
+ let clauses=splitBuilderInstructionClauses(instruction,{website:true,max,maxCharacters});
  // Expand one bounded goal into existing width-specific operations, never global styling.
  if(clauses)clauses=clauses.flatMap(clause=>/^improve (?:the )?phone layout (?:but )?(?:leave|keep) (?:the )?desktop (?:arrangement |layout )?(?:alone|unchanged)$/i.test(clause)?['make the page easier to read on phones','give the page more space on phones']:clause);
- if(clauses&&clauses.length>5)return fail('Use up to five supported changes, including the two phone-layout adjustments.');
- if(!clauses)return fail("Ask for up to five clear changes separated by 'and then' or semicolons.");
+ if(clauses&&clauses.length>max)return fail('This request needs separate review groups. Nothing was changed.');
+ if(!clauses)return fail("Describe clear changes separated by 'and then' or semicolons. Longer requests need separate review groups.");
  const steps=[],targets=new Set();let previousSection=null,preserveWording=false;
  const findSection=phrase=>{
   const name=String(phrase||"").trim().toLowerCase();

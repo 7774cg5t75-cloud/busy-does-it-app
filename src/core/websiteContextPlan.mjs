@@ -8,17 +8,18 @@ import {splitBuilderInstructionClauses} from './builderInstructionClauses.mjs';
  * single immutable transaction is prepared.
  */
 import {interpretSelectedWebsiteRequest} from "./websiteContextualEdit.mjs";
-const MAX_STEPS=5;
-const MAX_CHARACTERS=400;
+import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from './websiteEditingLimits.mjs';
+const MAX_STEPS=WEBSITE_ATOMIC_CHANGES;
+const MAX_CHARACTERS=WEBSITE_ATOMIC_CHARACTERS;
 const list=x=>Array.isArray(x)?x:[];
 const error=reason=>({ok:false,reason,steps:[]});
 function splitSelectedWebsiteInstruction(text){
  if(typeof text!=="string"||!text.trim()||text.length>MAX_CHARACTERS)return null;
- return splitBuilderInstructionClauses(text,{website:true,max:MAX_STEPS});
+ return splitBuilderInstructionClauses(text,{website:true,max:MAX_STEPS,maxCharacters:MAX_CHARACTERS});
 }
 function planSelectedWebsiteChanges(draft,pageId,selection,instruction){
  const clauses=splitSelectedWebsiteInstruction(instruction);
- if(!clauses)return error("Ask for up to five short changes. Separate them with 'and then' or a semicolon.");
+ if(!clauses)return error("Describe clear changes separated by 'and then' or a semicolon. Longer requests can be reviewed in groups.");
  const steps=[];let preserveColours=false;
  const changed=new Set();
  for(let i=0;i<clauses.length;i++){
