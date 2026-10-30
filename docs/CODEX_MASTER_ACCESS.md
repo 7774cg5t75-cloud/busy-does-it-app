@@ -1,3 +1,9 @@
+## Current genuine private Product Master — V22.62,30 October2026
+
+Owner-supplied complete Word original reopened: SHA-256 `e1db4f4fb9d3a77fa3502e1912c67d765ca8895ebe3fd949b29f50d6768af0ad`,2,530 paragraphs/19 tables. Ordered comparison with verified V22.59 preserves every non-cover paragraph and adds76 paragraphs; all additions were reviewed. Private original and full extraction remain outside Git. V22.62 supersedes earlier versions; earlier unavailable-original notes below are historical checkpoint evidence.
+
+Section72 security by design and practical continuous assurance governs every sweep. Sections72.11–72.13 require provider-supported cryptographic agility and truthful inventories, readiness-based secure/simple release, and risk-proportionate affordable assurance. No fixed consultancy price is a universal release prerequisite; actual applicable risks, legal/provider obligations and exploitable critical/high findings still gate the affected capability. Do not weaken tenant, approval, AI-budget, privacy or recovery controls, claim independent certification, invent cryptography, enable customer/provider actions or infer deployment/spending approval. Preserve one intuitive voice-first assistant, accepted premium identity, six-area authorities and controlled sustainable costs. Reopen genuine newer originals in subsequent missions.
+
 ## Latest genuine owner-approved private Product Master — V22.59, 29 October 2026
 
 The owner supplied the Word original during the connected-application/interior mission. It was reopened and SHA-256 verified: `a275340a7258f96f830d2c53e46734c4b93c5365f1a172a0950b4c349c71c5cc`; cover V22.59,2,454 paragraphs/19 tables. Relevant Section61.5 and connected-workflow/simplicity, orb, quality-first cost and readiness-based release requirements were reviewed. Private original bytes and complete extraction remain outside Git. Earlier version entries below are historical provenance, not substitutes for this original.
