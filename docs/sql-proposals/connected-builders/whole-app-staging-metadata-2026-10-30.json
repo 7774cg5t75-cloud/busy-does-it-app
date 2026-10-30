@@ -1,0 +1,69 @@
+{
+  "observedAt": "2026-10-30T04:43:20.190Z",
+  "project": "pnjdlogwegnqbsfpcofw",
+  "readOnly": true,
+  "productionAccessed": false,
+  "projectStatus": "ACTIVE_HEALTHY",
+  "postgresVersion": "17.11.0.003",
+  "tables": [
+    {
+      "name": "public.busy_staging_rls_canary",
+      "rls_enabled": true,
+      "rows": 2,
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "owner_id",
+          "data_type": "uuid",
+          "format": "uuid",
+          "options": [
+            "updatable"
+          ]
+        },
+        {
+          "name": "marker",
+          "data_type": "text",
+          "format": "text",
+          "options": [
+            "updatable"
+          ],
+          "check": "length(marker) >= 8 AND length(marker) <= 80"
+        }
+      ],
+      "primary_keys": [
+        "id"
+      ],
+      "foreign_key_constraints": [
+        {
+          "name": "busy_staging_rls_canary_owner_id_fkey",
+          "source_table": "public.busy_staging_rls_canary",
+          "source_columns": [
+            "owner_id"
+          ],
+          "target_table": "auth.users",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ]
+    }
+  ],
+  "migrations": [
+    {
+      "version": "20261010224121",
+      "name": "staging_canary_owner_read_v3130"
+    },
+    {
+      "version": "20261010224205",
+      "name": "restrict_staging_rls_event_helper_v3130"
+    }
+  ],
+  "functions": []
+}

@@ -1,0 +1,520 @@
+{
+  "targetProject": "pnjdlogwegnqbsfpcofw",
+  "compatibilityFoundation": true,
+  "productionSchemaCapture": false,
+  "autoExecute": false,
+  "serverSwitchEnabled": false,
+  "authUsersCreated": false,
+  "activationReady": false,
+  "sourceCandidates": [
+    {
+      "path": "staging/ISOLATED_ONLY_business_core_v3180.sql",
+      "sha256": "af81c5b8d1a0a68a061c48e221ebcb1e74c0360d512eb33f40639a54ef54f83a"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/staging-foundation.sql",
+      "sha256": "2e4fc89dbcf8d0af57478b840157ee3df587e9cf599b4bdc031194f1edee3783"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/owner-status.sql",
+      "sha256": "3aeac2d8f6deabdbd8a6e3f2b1a3e0af12e8ce046e9836bf7bf713a06fca8676"
+    },
+    {
+      "path": "docs/sql-proposals/phase58-snapshot/writer.sql",
+      "sha256": "cf0bf33a24b4acf066e743d9eff8011ef2ba0fda2a0163a9fa36d81254a98548"
+    },
+    {
+      "path": "docs/sql-proposals/phase58-snapshot/fence.sql",
+      "sha256": "e093bc939d8ac4ba104eb8d17f80d0acbae0acdb2d67dddaa76259c87148e118"
+    },
+    {
+      "path": "docs/sql-proposals/phase60-snapshot/privacy-fence.sql",
+      "sha256": "3a2751ad5dd3a8bf25d5a5fa62222c052ff55ab40043a905c8d2e89344e5d816"
+    },
+    {
+      "path": "docs/sql-proposals/phase60-snapshot/readers.sql",
+      "sha256": "092b909c7e66d88556cf8570efaaba2ccc013046ab56a6c3c6f3a43973592de2"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/contracts.sql",
+      "sha256": "3ac3858af331baecac1d7099bf665bc7c157093aa4a26ca5a425b51c64d83f2d"
+    },
+    {
+      "path": "supabase/migrations/20261013081000_v3199_atomic_first_private_app.sql",
+      "sha256": "eb2011c7f90c67f95e13b56f129310f20f175a8776dd22b29066dfb8babc1877"
+    },
+    {
+      "path": "docs/sql-proposals/phase64-snapshot/first-enquiry.sql",
+      "sha256": "7c0e92efb18f52173876622c3b369bf30ff3466620df7ddb33509ec124af09c8"
+    },
+    {
+      "path": "docs/sql-proposals/phase65-snapshot/operations.sql",
+      "sha256": "3131cce732cf63ea454b9493c614158b91a9638f96e27abbce020abc772c0121"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/app-enquiry.sql",
+      "sha256": "0f930f2fc63683db5f97aa189a5e0c8f768dd6d3e10a6088e4c008add5baee28"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/durable-journey.sql",
+      "sha256": "ef4fc480caff2c7edda4183981eef7a71d115f79612ea14844a1ce3b593673ba"
+    },
+    {
+      "path": "docs/sql-proposals/canonical-work/engagements.sql",
+      "sha256": "dcca31ceba8e0b5aed0da832a53f925f1c147ba7da7feb471abe8169942af057"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/private-work-permissions.sql",
+      "sha256": "7d33e4c826a8a3ed2aa6bf8fe312c78c531af181d10ffe0f9ac279a2e1a77119"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/app-transaction.sql",
+      "sha256": "4ce5b4b5e15bd6e4ab60e06be3febdf86b813247c554e6882d918a1f5265beb6"
+    },
+    {
+      "path": "docs/sql-proposals/growth/opportunities.sql",
+      "sha256": "30c421cad0cf7d2d7ac6ac449ca5f944fb241cd93cdccae660688201e35a2992"
+    },
+    {
+      "path": "docs/sql-proposals/creator/private-drafts.sql",
+      "sha256": "d8b3beada8ca71a87d50aa410a5ec257e271b4b0a615c35f42abec70fd05a5f8"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/business-context.sql",
+      "sha256": "baaaca28c9881de9caf4c8ce2ebbba2bd08d659ca8ee26e2f9f1a899c48d68fd"
+    }
+  ],
+  "supplements": [
+    {
+      "path": "supabase/migrations/20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "49fbb291a0daae9456b5f50be36c40f3c8af6309cc80da88e5d987a58b7cef99"
+    },
+    {
+      "path": "supabase/migrations/20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "4fab3137b798bb6343e975ed4222e81c214b3cf201d6286fa360b8f4459fcd97"
+    },
+    {
+      "path": "supabase/migrations/20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "a1420ae844eab23d7648b92ae7957d440a19ac5dcb4ad39259fd4ebaebe767dd"
+    },
+    {
+      "path": "supabase/migrations/20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "b7f6881ec13c69db39412485c6adc49f87f7ea511c1fa7451b212c367b12b75f"
+    },
+    {
+      "path": "supabase/migrations/20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "76ec567cac7603a9c4504563525a93d4354f8d49c9fc7e17272975be3628599c"
+    },
+    {
+      "path": "supabase/migrations/20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "1a9576591c6bb812283f8e51cf1379637055d1f6094d1e2f84930f7f643f2f90"
+    },
+    {
+      "path": "supabase/migrations/20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "70f43878ee95f81588369292b62f4a1c10be4842f2d709f86396273f3d9fbd48"
+    },
+    {
+      "path": "supabase/migrations/20261006165735_v3_36_website_fk_indexes.sql",
+      "sha256": "0e21ed17fe78ff3eebd8404fe4b6e903a7e6dddf08ce215f79cf4aee50e447f4"
+    },
+    {
+      "path": "supabase/migrations/20261006165735_v3_36_website_fk_indexes.sql",
+      "sha256": "b8ab8b05e2de92555b4bef3cb6fc89d3b3aaf3f32f0ca02e8a3c24afefd658d9"
+    },
+    {
+      "path": "supabase/migrations/20261006165735_v3_36_website_fk_indexes.sql",
+      "sha256": "462f4e58b3acee85d396ff719208160641b178937533cf6b9263cb53288ed45e"
+    },
+    {
+      "path": "supabase/migrations/20261006165735_v3_36_website_fk_indexes.sql",
+      "sha256": "7740bbb63cd69d60a1cf7b95ec38fd300390064a0e370bc535e07d1f8700e56b"
+    },
+    {
+      "path": "supabase/migrations/20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "6d34e5c42b702f1116763d5a1e26870648e7cf877160be276f05735a8781acf5"
+    },
+    {
+      "path": "supabase/migrations/20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "168de2237985f034c2f50a4391eb75a7bd698daabd103f828800e6ae4d919088"
+    },
+    {
+      "path": "supabase/migrations/20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "42dbdaaaec0209fcefe19966aa364439d24766cd8b55495174e19f42d4b3ec36"
+    },
+    {
+      "path": "supabase/migrations/20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "d0a84eef27d13a71a9a66080ee52ceeb14ebf6e9e0c877e68b7833244aacd376"
+    },
+    {
+      "path": "supabase/migrations/20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "76e91176bc3212f422accfc961fe967d74c1e8796335d00f054e0a88b74099de"
+    },
+    {
+      "path": "supabase/migrations/20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "7c84bf4b9d6a6a94901674a7d93d7ce768dda1784e3bea0448d0d13cc6fc9b39"
+    },
+    {
+      "path": "supabase/migrations/20261007073500_v3_38_delivery_signals_usage_foundation.sql",
+      "sha256": "33f051c29eba16139ebeba4728ee218a0ba6bea4a362edc2cbff6f739221497c"
+    },
+    {
+      "path": "supabase/migrations/20261007073500_v3_38_delivery_signals_usage_foundation.sql",
+      "sha256": "4ff2537665323bf860fd6ef54ffdafff5d963518a0cf233db10e61cd453a0803"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "51750f45c43c34e6a6f75a1fd5a61b1b61784583909d991c59a6f07714fd63be"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "00cbb1600239d9bbdc5927740ea24f93fa3bd8c6e8b2b49b245429c1df9e4fad"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "3be29aa30b19551f9d740120093197172c09ad227ebfcd0fdec943d6eb6c6637"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "21359fdad8674cbd80dca92f757aed1aefd0b8f358960a80e9efe49ace8a64f5"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "309b5c632418cc27dad29d2c123fe6e70b189a9d12d110f93aca9ba1090bf22d"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "da110a252d94b3c0e9bd2553d973cbcaa6f867b69e496875e85bd02c7cc54545"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "049d66aaf2c4a4a17abda1171bbfedb6c5dbefb891c32d7c99ad7ae14620a72b"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "f5777fa1ac8c37bbe9e5139ac479b67df4a50904a51adbafe508d2737b4ff7a0"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "4966a5c13e1f1ec87aec55cbad53ff7797fe0445e861505a2ffcff5ea91c4384"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "8ea30ad42237d9893acb158a2c95178929b88e089e32c876077abb65b4698b5a"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "e89fbd3aab45742f1680d1cb032791ff2f1917f2d61a6541f71d62bc2ac700ba"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "580e29566ffec5dcaafcf6c88141c5af93656559e9baa2e5ec9999621445ca93"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "9fcceec1c5f24cee348b2ff453f10eeeb92ba71b9cb9e638602a1bc1fed4e756"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "71daec187d3f8347c65e75d292e93aac105bc8c87968ad7b62c88bfbe52cc347"
+    },
+    {
+      "path": "supabase/migrations/20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "c8c05d15c2b9197fc2aaa66a48657e89deacb78dfd9b1b0f8fe145b418826d21"
+    },
+    {
+      "path": "supabase/migrations/20261007082328_v3_39_mini_app_version_hashing.sql",
+      "sha256": "2a787ec987692204e9ed0f32a4a336fe751fe0bd440771cebea96b693f6619b4"
+    },
+    {
+      "path": "supabase/migrations/20261007082328_v3_39_mini_app_version_hashing.sql",
+      "sha256": "4967e10867be20c7bc9be7410d6d450dbacf4f8398986ab1d91ad30f825ac49c"
+    },
+    {
+      "path": "supabase/migrations/20261007082355_v3_39_mini_app_request_idempotency.sql",
+      "sha256": "61ccf1a5e2838542c4569129fc7b56bf32092c3383c2e19ae9ecdbf5c30b61c1"
+    },
+    {
+      "path": "supabase/migrations/20261007083706_v3_39_mini_app_security_indexes.sql",
+      "sha256": "be9e0bc41ed562dd3ed0811502d989776322654ba89ddc7c6dbe6df22fcfbd37"
+    },
+    {
+      "path": "supabase/migrations/20261007083706_v3_39_mini_app_security_indexes.sql",
+      "sha256": "5f2666fff888b27bf10676b13dc04390b23d6aa1d75af2c69d966cc4c3546013"
+    },
+    {
+      "path": "supabase/migrations/20261007101513_v3_40_mini_app_customer_journey_bridge.sql",
+      "sha256": "06394d9324d96c1a999afece33170c2fe5cb5b5e3e31e5d8ef4ca4fb8e9b5a30"
+    },
+    {
+      "path": "supabase/migrations/20261007101513_v3_40_mini_app_customer_journey_bridge.sql",
+      "sha256": "370e7ad83b8a8f4dd984c66ada355b668812e5040c8e84bc5bb4ab86444f86cd"
+    },
+    {
+      "path": "supabase/migrations/20261007101513_v3_40_mini_app_customer_journey_bridge.sql",
+      "sha256": "790c4907f26b570d6bec46d37ac2a86b1f897c1ca497c8ea52707fdcef083f21"
+    },
+    {
+      "path": "supabase/migrations/20261007101513_v3_40_mini_app_customer_journey_bridge.sql",
+      "sha256": "ff0ab7395218df2db6386b695184764ea50846011cc2dd5d3d6d60d4fbe37c35"
+    },
+    {
+      "path": "supabase/migrations/20261007102458_v3_40_mini_app_bridge_hardening.sql",
+      "sha256": "28ecd3e8fceed4e99bd4beb3ffa86db77107b3406c62ec6e4a095fc4d946e69a"
+    },
+    {
+      "path": "supabase/migrations/20261007125000_v3_41_mini_app_request_messaging.sql",
+      "sha256": "f946b1895e07e024d69c571b7e68c3c7526c5845ffaf9adea4f4e28cc57f3695"
+    },
+    {
+      "path": "supabase/migrations/20261007125000_v3_41_mini_app_request_messaging.sql",
+      "sha256": "f9ca19eb6c07a6578823abafc7f15915899d8f9bd1e2c8292442b29c48444b38"
+    },
+    {
+      "path": "supabase/migrations/20261007125000_v3_41_mini_app_request_messaging.sql",
+      "sha256": "7b7a5bce804b22c6d3a7872fff01fa0dae169a7657e91d7da332b031fb076931"
+    },
+    {
+      "path": "supabase/migrations/20261007125100_v3_41_mini_app_request_messaging_hardening.sql",
+      "sha256": "6fe2720daa71bc5b15972103ee3d72c6e4bee2ece8883b23a85ac9b65dc908b8"
+    },
+    {
+      "path": "supabase/migrations/20261007133000_v3_42_mini_app_notifications.sql",
+      "sha256": "c015b087abc6bbcdb70073d234e2c27f6d2d65478c1017fe7bf82e660636c4f3"
+    },
+    {
+      "path": "supabase/migrations/20261007133000_v3_42_mini_app_notifications.sql",
+      "sha256": "7b8c3386c5c6328ccabdcf94f1fc4d571d0b94114fbae672c92928c19e0a69c6"
+    },
+    {
+      "path": "supabase/migrations/20261007143000_v3_43_mini_app_direct_entry.sql",
+      "sha256": "ace27e217d2b1e0ab6b60e8a7a2fffeea72790aad173a6cc066081b8776a4fa6"
+    },
+    {
+      "path": "supabase/migrations/20261007143000_v3_43_mini_app_direct_entry.sql",
+      "sha256": "cf682f4f327e88ccbc236655233ddb7789d1d88966d4c67a1642c020d0107b26"
+    },
+    {
+      "path": "supabase/migrations/20261007143000_v3_43_mini_app_direct_entry.sql",
+      "sha256": "25d1c5d687e6b4ce3ad4dd86a25aac72f8e3c5476e3502d5bffd728eaeb3ee5d"
+    },
+    {
+      "path": "supabase/migrations/20261007143200_v3_43_mini_app_entry_daily_rollup.sql",
+      "sha256": "7df719fe16d2c0fb0b26bebd5208a54320ad98f3e346f68d68cb89c0347f0e35"
+    },
+    {
+      "path": "supabase/migrations/20261007154000_v3_44_public_mini_app_web.sql",
+      "sha256": "9737d1f71b6527a2015da824e17080f8a3c93ccd81ae504bcbe67590f5306995"
+    },
+    {
+      "path": "supabase/migrations/20261007161000_v3_45_guest_mini_app_requests.sql",
+      "sha256": "a8cd71b1903c25540f06b7e1110926abd8dd696fcd124cefd484050035d2b2e3"
+    },
+    {
+      "path": "supabase/migrations/20261007161000_v3_45_guest_mini_app_requests.sql",
+      "sha256": "0c4cd6d4ec5779f79e27c6f0450503f09694265cb4ab44a256a68c74c00283fb"
+    },
+    {
+      "path": "supabase/migrations/20261007161000_v3_45_guest_mini_app_requests.sql",
+      "sha256": "d526a9b722d996f0532ca06b0408a3cd742216f51a6c912bb79a07db143dd3dc"
+    },
+    {
+      "path": "supabase/migrations/20261007220000_v3_52_website_scale_hardening.sql",
+      "sha256": "539aae8b04df2b01e3f2d660a62c2cd20e1a8e64f100bd5e61ac5a6e4c2e70fc"
+    },
+    {
+      "path": "supabase/migrations/20261007220000_v3_52_website_scale_hardening.sql",
+      "sha256": "1f8c692b4ccc4930e2a1755e38b6da84a83fed53eb83f525566fb4eff26e8577"
+    },
+    {
+      "path": "supabase/migrations/20261007220000_v3_52_website_scale_hardening.sql",
+      "sha256": "691c0f70482b78c1623bc50d1dc2704c800af932c29010dc30c297fb57fe2b18"
+    },
+    {
+      "path": "supabase/migrations/20261007221500_v3_52_tenant_fk_indexes.sql",
+      "sha256": "a0235f3102bec216ad1b0b4d1530c4ec817c27fc3b9c90dd2d82b32e09d466b9"
+    },
+    {
+      "path": "supabase/migrations/20261007234500_v3_55_business_app_journey_loyalty.sql",
+      "sha256": "f7fe771416d179bd2e365a3cc6cd7c65f8a137ec4a03e8490bd2c0fa5a5adf73"
+    },
+    {
+      "path": "supabase/migrations/20261007234500_v3_55_business_app_journey_loyalty.sql",
+      "sha256": "194eb325c3b4f15d3e8988acf94d8520a6f50dc07c27c84f0035792947a2c3d9"
+    },
+    {
+      "path": "supabase/migrations/20261012193000_v3_181_durable_work_booking_ledger.sql",
+      "sha256": "752a9d043a3523778a12fe5cf6533370fefb9f1b67094dc57588b78274a6cdb2"
+    },
+    {
+      "path": "supabase/migrations/20261012193000_v3_181_durable_work_booking_ledger.sql",
+      "sha256": "f39d410f4455c3424c87c851e02ef3c9cd2732f18dd67c42ffa5ad82d95e687f"
+    },
+    {
+      "path": "supabase/migrations/20261012211000_v3_185_durable_message_delivery_intent.sql",
+      "sha256": "722b84a7bbe6dde9fe6e8145a0a9fc64e344e63ad59a3c98bd489cec742f66d5"
+    }
+  ],
+  "sha256": "239a39b3a49ec2de7a5d195cd520c8e4ca0c17811edfb9dd963a39af2f317ca5",
+  "rollbackSha256": "ed8fb0c5b95b68bce67577bb7ed510f22db885c95206262ea2e55b363d39e778",
+  "retainedReaders": [
+    "busy_connected_workspaces_v1",
+    "busy_connected_builder_read_v1",
+    "busy_connected_app_enquiry_state_v1",
+    "busy_connected_app_enquiry_review_v1",
+    "busy_connected_journeys_v1",
+    "busy_owner_pending_review_v1",
+    "busy_owner_first_reply_review_v1",
+    "busy_work_source_review_v1",
+    "busy_work_list_v1",
+    "busy_work_discover_v1",
+    "busy_work_compare_v1",
+    "busy_work_edit_context_v1",
+    "busy_work_history_v1",
+    "busy_work_read_v1",
+    "busy_work_private_read_v1",
+    "busy_creator_draft_read_v1",
+    "busy_creator_draft_list_v1",
+    "busy_creator_draft_operation_v1",
+    "busy_growth_opportunity_read_v1",
+    "busy_growth_opportunity_list_v1",
+    "busy_growth_opportunity_operation_v1"
+  ],
+  "functionSignatures": {
+    "busy_connected_initialize_v1": "uuid",
+    "busy_connected_profile_write_v1": "uuid, bigint, jsonb, jsonb, boolean",
+    "busy_connected_workspaces_v1": "",
+    "busy_connected_builder_read_v1": "uuid",
+    "busy_connected_app_enquiry_state_v1": "uuid, uuid",
+    "busy_connected_app_enquiry_review_v1": "uuid, uuid",
+    "busy_connected_app_enquiry_import_v2": "uuid, uuid, text, bigint",
+    "busy_connected_app_enquiry_file_v2": "uuid, bigint, jsonb, text",
+    "busy_connected_journeys_v1": "uuid, text, bigint",
+    "busy_owner_pending_review_v1": "uuid, bigint, text",
+    "busy_owner_first_reply_review_v1": "uuid, bigint, text, text",
+    "busy_work_source_review_v1": "uuid, text, text, bigint",
+    "busy_work_create_quote_v1": "uuid, text, text, bigint, text, text, text, text, text, text",
+    "busy_work_list_v1": "uuid, text, uuid, integer",
+    "busy_work_discover_v1": "uuid, uuid, integer",
+    "busy_work_compare_v1": "uuid, text, uuid",
+    "busy_work_edit_context_v1": "uuid, text, uuid, bigint",
+    "busy_work_history_v1": "uuid, text, uuid",
+    "busy_work_read_v1": "uuid, text, uuid",
+    "busy_work_edit_quote_v1": "uuid, text, uuid, bigint, text, text, text, text, text",
+    "busy_work_private_read_v1": "uuid, text, uuid, text",
+    "busy_work_private_write_v1": "uuid, text, uuid, bigint, bigint, text, text, text, text",
+    "busy_creator_draft_read_v1": "uuid, text, bigint",
+    "busy_creator_draft_list_v1": "uuid, uuid, text, integer",
+    "busy_creator_draft_write_v1": "uuid, text, bigint, jsonb, uuid, bigint, text, text",
+    "busy_creator_draft_operation_v1": "uuid, text",
+    "busy_growth_opportunity_read_v1": "uuid, uuid, bigint",
+    "busy_growth_opportunity_list_v1": "uuid, uuid, integer",
+    "busy_growth_opportunity_write_v1": "uuid, uuid, bigint, text, text, jsonb, text, text, text",
+    "busy_growth_opportunity_operation_v1": "uuid, text",
+    "busy_connected_website_commit_v1": "uuid, uuid, bigint, jsonb, jsonb, bigint",
+    "busy_connected_first_app_v1": "uuid, uuid, text, text, text, text, bigint, jsonb",
+    "busy_connected_private_app_commit_v1": "uuid, uuid, uuid, bigint, bigint, jsonb",
+    "busy_mini_app_entry_summary": "uuid, uuid, timestamp with time zone"
+  },
+  "authFunctions": [
+    "busy_connected_initialize_v1",
+    "busy_connected_profile_write_v1",
+    "busy_connected_workspaces_v1",
+    "busy_connected_builder_read_v1",
+    "busy_connected_app_enquiry_state_v1",
+    "busy_connected_app_enquiry_review_v1",
+    "busy_connected_app_enquiry_import_v2",
+    "busy_connected_app_enquiry_file_v2",
+    "busy_connected_journeys_v1",
+    "busy_owner_pending_review_v1",
+    "busy_owner_first_reply_review_v1",
+    "busy_work_source_review_v1",
+    "busy_work_create_quote_v1",
+    "busy_work_list_v1",
+    "busy_work_discover_v1",
+    "busy_work_compare_v1",
+    "busy_work_edit_context_v1",
+    "busy_work_history_v1",
+    "busy_work_read_v1",
+    "busy_work_edit_quote_v1",
+    "busy_work_private_read_v1",
+    "busy_work_private_write_v1",
+    "busy_creator_draft_read_v1",
+    "busy_creator_draft_list_v1",
+    "busy_creator_draft_write_v1",
+    "busy_creator_draft_operation_v1",
+    "busy_growth_opportunity_read_v1",
+    "busy_growth_opportunity_list_v1",
+    "busy_growth_opportunity_write_v1",
+    "busy_growth_opportunity_operation_v1"
+  ],
+  "serviceFunctions": [
+    "busy_connected_website_commit_v1",
+    "busy_connected_first_app_v1",
+    "busy_connected_private_app_commit_v1",
+    "busy_mini_app_entry_summary"
+  ],
+  "dependencies": [
+    {
+      "path": "supabase/connected-staging.deno.json",
+      "sha256": "34f82cf97fb8d812026690d1082b8f4fe8bab181c17370e4afff0b1f5096b143"
+    },
+    {
+      "path": "supabase/connected-staging.deno.lock",
+      "sha256": "14b2afec5ae75a165e96926815238069e922351b632dce75b7cf79db4cf1d65e"
+    },
+    {
+      "path": "supabase/functions/busy-mini-apps/index.ts",
+      "sha256": "536b0d34f985e7129aff35b8f6a13043513162f3af046b3653cee12b70ffc5ee"
+    },
+    {
+      "path": "supabase/functions/busy-mini-apps/commitPrivateDraft.mjs",
+      "sha256": "81a0d1b00e91f29d31b00f9896c7b1c8cb6967fd009f49faffc059706db61259"
+    },
+    {
+      "path": "supabase/functions/busy-mini-apps/scopedOwnerStatus.mjs",
+      "sha256": "9bdfd14e94455553575b9e83144cc6cc9f18755419ffcccabe768d9d00604e53"
+    },
+    {
+      "path": "supabase/functions/busy-website-publish/index.ts",
+      "sha256": "d09de0d7f6ee35caf6663503916d9593873a96a628edca3135fdc6c93922ce4c"
+    },
+    {
+      "path": "supabase/functions/busy-website-publish/privateDraftService.mjs",
+      "sha256": "86dc1ad18cf5627b387d464384008f91fa1a1b7adb49a80fc876da6f5e457290"
+    },
+    {
+      "path": "supabase/functions/_shared/connectedStagingActions.mjs",
+      "sha256": "7bfabdb251ba8a93bea38f40b208bcce7321f6e6bc5d25e9b31753f413ea5b99"
+    },
+    {
+      "path": "scripts/lib/connected-hosted-acceptance.mjs",
+      "sha256": "8a96f5764fcfba3ebeaecc15713610a9e42b2b9a6be19e5e0d6cbf0bf40ec64d"
+    },
+    {
+      "path": "src/staging/stagingAuthInspectorV3131.mjs",
+      "sha256": "c6edd5130ff0719d1ae6cc0f046a55a04c73d2c07ec05a0c1f415172965e85ac"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/whole-app-staging-metadata-2026-10-30.json",
+      "sha256": "4575e8b496bb34a9b36c2ca275e851c888bbb66c5558bde9ad4aa942df25d57c"
+    }
+  ],
+  "originalOwnerPreviewBuild": 29,
+  "productionAllowed": false,
+  "hostedVerified": false,
+  "authIdentity": "Genuine auth.uid required; local synthetic identities are not hosted evidence",
+  "schemaAcceptance": "Reviewed staging-only compatibility foundation. Original missing snapshot CREATE was not independently captured.",
+  "operationsRequiringSeparateApproval": [
+    "Exact fresh-staging SQL installation with only its named review fuse removed",
+    "Fictional Auth users, business memberships and canary bindings; no live data",
+    "Deploy reviewed original gateways using server-only credentials with server switch still disabled",
+    "Separate private-action switch approval and source-bound real-JWT acceptance; no providers"
+  ],
+  "rollback": "Revoke writes, retain exact records and private read/reconciliation access. Does not undo authored records or restore broad historical privileges.",
+  "cost": "No build, provider, domain or spending enabled by this package. Confirm existing staging plan before activation.",
+  "limitations": [
+    "Fresh installation only; never overwrite existing operational tables",
+    "Real token expiry/refresh and hosted revocation/concurrency still require separate acceptance",
+    "Media upload, consumer submission, publication, booking, sending and payment remain unavailable or separately gated"
+  ]
+}

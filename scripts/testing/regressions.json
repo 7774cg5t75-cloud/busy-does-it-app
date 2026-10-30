@@ -2845,6 +2845,12 @@
       "args": [
         "scripts/check-premium-interiors.mjs"
       ]
+    },
+    {
+      "id": "whole-app-connected-authorities",
+      "args": [
+        "scripts/check-whole-app-connections.mjs"
+      ]
     }
   ]
 }

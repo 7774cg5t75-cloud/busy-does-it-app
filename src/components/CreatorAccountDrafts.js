@@ -1,3 +1,4 @@
+import {WorkflowStatus} from './WorkflowChrome';
 import {compareCreatorDraft,copyCreatorDeviceDraft,selectLoadedCreatorDraft} from '../core/creatorDraftReconciliation.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 import {materializeCreatorMedia,creatorImageDataUri,creatorPublisherPreparation,prepareCreatorLocalOriginals} from '../core/creatorDraftMedia.mjs';
@@ -78,6 +79,6 @@ export function CreatorAccountDrafts({s,opportunityId=null}){
    <Text style={styles.cardBody}>Publisher workspace identity, copyright/licensing, customer promotional consent and public-use permission are not established. Publishing is not authorised.</Text>
    <Button label="Recheck this exact publishing preparation" disabled={busy} onPress={()=>work(async()=>{const ticket=s.socialContentActions.capture(),v=await api.read(handoff.value.draftId);if(!current()||!s.socialContentActions.fresh(ticket)||v.revision!==handoff.value.revision){if(current()){setHandoff(null);setNotice('This draft changed. Saved words and media are kept; review the current revision again.');}return false;}setHandoff({scope,owner,business,ticket,record:v,reviewed:false,value:creatorPublisherPreparation(v)});setNotice('Exact private revision rechecked. No approval, queue record or provider receipt was created.');return true;})}/>
   </>:null}
-  {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
+  {notice?<WorkflowStatus title="Private account update" body={notice}/>:null}
  </Card>;
 }

@@ -12,6 +12,18 @@ LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
  WHERE auth.uid() IS NOT NULL AND m.user_id=auth.uid() AND m.role='owner'
 $$;
 
+-- A single finite approved-facts projection serves readback, CAS and receipts.
+CREATE FUNCTION busy_snapshot_private.profile_facts(p jsonb) RETURNS jsonb
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $$
+ SELECT jsonb_strip_nulls(jsonb_build_object(
+ 'businessName',p->'businessName','businessType',p->'businessType','tagline',p->'tagline',
+ 'serviceArea',p->'serviceArea','description',p->'description',
+ 'services',coalesce((SELECT jsonb_agg(jsonb_strip_nulls(jsonb_build_object('id',v->'id','name',v->'name','description',v->'description','category',v->'category'))) FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p->'services')='array' THEN p->'services' ELSE '[]'::jsonb END)v),'[]'::jsonb),
+ 'contact',nullif(jsonb_strip_nulls(jsonb_build_object('phone',p#>'{contact,phone}','email',p#>'{contact,email}','openingHours',p#>'{contact,openingHours}')),'{}'::jsonb),
+ 'brand',nullif(jsonb_strip_nulls(jsonb_build_object('primary',p#>'{brand,primary}','secondary',p#>'{brand,secondary}')),'{}'::jsonb)))
+$$;
+REVOKE ALL ON FUNCTION busy_snapshot_private.profile_facts(jsonb) FROM PUBLIC,anon,authenticated,service_role;
+
 CREATE FUNCTION public.busy_connected_builder_read_v1(p_business_id uuid) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE actor uuid; snap public.busy_business_snapshots%ROWTYPE; profile public.busy_public_business_profiles%ROWTYPE;
@@ -23,13 +35,8 @@ BEGIN
  SELECT * INTO profile FROM public.busy_public_business_profiles WHERE business_id=p_business_id AND status<>'disabled' FOR SHARE;
  -- Only original website and finite public business facts. Never CRM/snapshot restoration.
  RETURN jsonb_build_object('actorId',actor,'businessId',p_business_id,'revision',snap.revision,
- 'websiteDraft',snap.payload->'websiteDraft','websiteDraftHash',CASE WHEN snap.payload->'websiteDraft' IS NOT NULL AND snap.payload->'websiteDraft'<>'null' THEN encode(sha256(convert_to((snap.payload->'websiteDraft')::text,'UTF8')),'hex') ELSE NULL END,'profileRevision',profile.revision,
- 'profile',CASE WHEN profile.business_id IS NULL THEN NULL ELSE jsonb_build_object(
- 'businessName',profile.profile->>'businessName','businessType',profile.profile->>'businessType',
- 'serviceArea',profile.profile->>'serviceArea','description',profile.profile->>'description',
- 'services',(SELECT coalesce(jsonb_agg(jsonb_build_object('id',v->>'id','name',v->>'name','description',v->>'description','category',v->>'category')),'[]'::jsonb) FROM jsonb_array_elements(CASE WHEN jsonb_typeof(profile.profile->'services')='array' THEN profile.profile->'services' ELSE '[]'::jsonb END) v),
- 'contact',jsonb_build_object('phone',profile.profile#>>'{contact,phone}','email',profile.profile#>>'{contact,email}'),
- 'brand',jsonb_build_object('primary',profile.profile#>>'{brand,primary}','secondary',profile.profile#>>'{brand,secondary}')) END);
+ 'websiteDraft',snap.payload->'websiteDraft','websiteDraftHash',CASE WHEN snap.payload->'websiteDraft' IS NOT NULL AND snap.payload->'websiteDraft'<>'null' THEN encode(sha256(convert_to((snap.payload->'websiteDraft')::text,'UTF8')),'hex') ELSE NULL END,'profileRevision',profile.revision,'profileHash',CASE WHEN profile.profile IS NOT NULL THEN encode(sha256(convert_to(busy_snapshot_private.profile_facts(profile.profile)::text,'UTF8')),'hex') ELSE NULL END,
+ 'profile',CASE WHEN profile.business_id IS NULL THEN NULL ELSE busy_snapshot_private.profile_facts(profile.profile) END);
 END $$;
 
 -- Original snapshot websiteDraft target only. Called by authenticated original

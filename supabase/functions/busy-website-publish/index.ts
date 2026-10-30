@@ -1382,7 +1382,7 @@ Deno.serve(async (request: Request) => {
       cleanText(request.headers.get("x-busy-request-id"), 180) ||
       cleanText(body?.idempotencyKey, 180);
 
-    if(action==="website_create"||action==="website_edit_text"||action==="website_edit_design"){
+    if(action==="website_create"||action==="website_edit_text"||action==="website_edit_design"||action==="website_edit_page"){
       if(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co"||Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED")!=="true")
         return json(403,{ok:false,error:"Connected staging builders are not activated"});
       const reader=createClient(SUPABASE_URL,SERVICE_ROLE_KEY,{auth:{persistSession:false},global:{headers:{Authorization:request.headers.get("Authorization")||""}}});

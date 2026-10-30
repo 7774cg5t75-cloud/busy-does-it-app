@@ -19,7 +19,7 @@ export function createConnectedBuilderSession({request,onInvalidated=()=>{}}){
   if(captured!==epoch||packet.actorId!==s.ownerId)throw Error('Workspace changed');return packet;
  }
  async function website({basis,action,patch,sourceRevision,ownerApproved=false}){
-  if(!scope||pending||unknown||!ownerApproved||!['create','edit_text','edit_design'].includes(action)||basis?.actorId!==scope.ownerId||basis.businessId!==scope.businessId)throw Error('Review this business and draft before saving');
+  if(!scope||pending||unknown||!ownerApproved||!['create','edit_text','edit_design','edit_page'].includes(action)||basis?.actorId!==scope.ownerId||basis.businessId!==scope.businessId)throw Error('Review this business and draft before saving');
   const captured=epoch,s=scope;pending=true;
   const current=()=>captured===epoch&&scope===s;
   try{
@@ -36,6 +36,14 @@ export function createConnectedBuilderSession({request,onInvalidated=()=>{}}){
    return {ok:false,unknown:true,mayReplay:false,observed,reason:'Save not confirmed. Inspect the account version before another deliberate review.'};
   }finally{if(current())pending=false;}
  }
+ async function profile({basis,profile,ownerApproved=false}){
+  if(!scope||pending||unknown||!ownerApproved||basis?.actorId!==scope.ownerId||basis.businessId!==scope.businessId)throw Error('Review this business before saving facts');
+  const captured=epoch,s=scope;pending=true;const current=()=>captured===epoch&&scope===s;
+  try{const receipt=await request('profile_write',{businessId:s.businessId,p_expected_revision:basis.profileRevision||0,p_expected_profile:basis.profile||null,p_profile:profile,p_owner_approved:true});
+   if(!current()||receipt.actorId!==s.ownerId||receipt.businessId!==s.businessId||receipt.profileRevision!==(basis.profileRevision||0)+1||receipt.privateOnly!==true||receipt.publicationChanged!==false||!(/^[a-f0-9]{64}$/.test(receipt.recordHash||'')))throw Error('Business facts receipt unavailable');
+   const observed=await read();if(observed.profileRevision!==receipt.profileRevision||observed.profileHash!==receipt.recordHash||stableJson(observed.profile)!==stableJson(receipt.profile))throw Error('Business facts changed before readback');return {ok:true,receipt,observed};
+  }catch{if(!current())return {ok:false,stale:true};unknown=true;let observed=null;try{observed=await read();}catch{}return {ok:false,unknown:true,mayReplay:false,observed};}finally{if(current())pending=false;}
+ }
  async function reconcile(){const observed=await read();unknown=false;return {observed,notOwnReceipt:true,requiresNewReview:true};}
- return {open,read,website,reconcile,clear,get scope(){return scope&&{...scope};},get uncertain(){return unknown;}};
+ return {open,read,website,profile,reconcile,clear,get scope(){return scope&&{...scope};},get uncertain(){return unknown;}};
 }

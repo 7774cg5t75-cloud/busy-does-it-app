@@ -1,3 +1,5 @@
+import {createCreatorDraftAccount} from '../../src/core/creatorDraftAccount.mjs';
+import {createGrowthOpportunityAccount} from '../../src/core/growthOpportunityAccount.mjs';
 import assert from 'node:assert/strict';
 import {createStagingAuthInspector,FIXTURES} from '../../src/staging/stagingAuthInspectorV3131.mjs';
 import {createConnectedBuilderSession} from '../../src/staging/connectedBuilderSession.mjs';
@@ -5,7 +7,7 @@ import {prepareGoalToPrivateApp,executeGoalToPrivateApp} from '../../src/core/go
 import {createConnectedEnquiryJourney} from '../../src/staging/connectedEnquiryJourney.mjs';
 import {createCanonicalWorkSession} from '../../src/core/canonicalWorkSession.mjs';
 const target='https://pnjdlogwegnqbsfpcofw.supabase.co',uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
-export function connectedAcceptancePlan(){return {project:'pnjdlogwegnqbsfpcofw',networkByDefault:false,createsAuthUsers:false,usesServiceKey:false,providersAllowed:false,steps:['Real Auth and original canary isolation','Finite business membership and cross-owner denial','Private website create/wording/design + independent readback','Fresh sign-in reopening','Stale write denial and intentional lost acknowledgement without replay','Original reviewed App create/configure and fresh reopening','Preprovisioned fictional enquiry review/import/separate-contact filing','Canonical private quote review/create/readback/fresh reopening','Sign-out invalidation'],separateChecksRequired:['Token expiry/refresh: inspector currently discards refresh token and requires fresh sign-in','Controlled membership revocation during live requests','Hosted transaction concurrency and Edge runtime acceptance','Fresh deployment and complete original schema approval']};}
+export function connectedAcceptancePlan(){return {project:'pnjdlogwegnqbsfpcofw',networkByDefault:false,createsAuthUsers:false,usesServiceKey:false,providersAllowed:false,steps:['Real Auth and original canary isolation','Finite business membership and cross-owner denial','Blank original workspace initialization and approved finite facts with fresh readback','Private website create/wording/design + independent readback','Fresh sign-in reopening','Stale write denial and intentional lost acknowledgement without replay','Original reviewed App create/configure and fresh reopening','Original private Growth and Creator save/readback/fresh-auth reopening; no providers','Preprovisioned fictional enquiry review/import/separate-contact filing','Canonical private quote review/create/readback/fresh reopening','Sign-out invalidation'],separateChecksRequired:['Token expiry/refresh: inspector currently discards refresh token and requires fresh sign-in','Controlled membership revocation during live requests','Hosted transaction concurrency and Edge runtime acceptance','Fresh deployment and complete original schema approval']};}
 // Never called automatically. Exact source + explicit fictional-mutation consent
 // is checked before constructing an Auth client or making the first request.
 export async function runConnectedAcceptance(config,{fetchImpl=fetch,sourceSha}={}){
@@ -25,7 +27,9 @@ export async function runConnectedAcceptance(config,{fetchImpl=fetch,sourceSha}=
    const request=(a,p={})=>auth.requestConnected(a,{...p,businessId:owner.businessId});
    const spaces=await request('workspaces');assert.ok(spaces.items.some(x=>x.businessId===owner.businessId));
    await assert.rejects(()=>auth.requestConnected('builder_read',{businessId:other.businessId}));
-   auth=await login(index);const session=createConnectedBuilderSession({request});let basis=await session.open(owner.businessId);
+   auth=await login(index);await request('initialize');const session=createConnectedBuilderSession({request});let basis=await session.open(owner.businessId);
+   const facts=basis.profile||{businessName:'Fictional staging business '+(index+1),businessType:'Gardening',services:[{id:'fictional_lawn',name:'Lawn care',description:'Fictional private test service.'}],contact:{email:'fictional@example.invalid'}};
+   const savedFacts=await session.profile({basis,profile:{...facts,description:'Owner-approved fictional staging context. Not a public claim.'},ownerApproved:true});assert.equal(savedFacts.ok,true);basis=savedFacts.observed;
    assert.ok(basis.profile?.businessName&&basis.profile.services?.length);
    if(!basis.websiteDraft){const made=await session.website({basis,action:'create',sourceRevision:basis.profileRevision,ownerApproved:true});assert.equal(made.ok,true);basis=made.observed;}
    const old=basis,wording=await session.website({basis,action:'edit_text',patch:{sectionId:'hero',field:'title',value:'Fictional staging service — private test'},ownerApproved:true});assert.equal(wording.ok,true);basis=wording.observed;
@@ -45,6 +49,15 @@ export async function runConnectedAcceptance(config,{fetchImpl=fetch,sourceSha}=
    const app=status.app,edited=await request('apply_coordinated_edits',{appId:app.id,expectedRevision:app.draft_revision,expectedProfileRevision:fresh.profileRevision,ownerApproved:true,operations:[{kind:'text',field:'tagline',value:'Fictional private staging App'}]});
    assert.equal(edited.app.draft_revision,app.draft_revision+1);auth=await login(index);assert.deepEqual((await request('owner_status')).app.draft_config,edited.app.draft_config);
    await assert.rejects(()=>request('apply_coordinated_edits',{appId:app.id,expectedRevision:app.draft_revision,expectedProfileRevision:fresh.profileRevision,ownerApproved:true,operations:[{kind:'text',field:'tagline',value:'Must not overwrite newer work'}]}));
+   const contentScope={},contentCurrent=()=>({scope:contentScope,ownerId:fresh.actorId,businessId:owner.businessId,role:'owner',ready:auth.signedIn});
+   const growth=()=>createGrowthOpportunityAccount({enabled:true,getCurrent:contentCurrent,authenticatedRequest:(name,args)=>request('growth_'+name,args)});
+   const creator=()=>createCreatorDraftAccount({enabled:true,getCurrent:contentCurrent,authenticatedRequest:(name,args)=>request('creator_'+name,args)});
+   const opportunityApi=growth(),create=opportunityApi.review({action:'create',fields:{title:'Fictional owner supplied notice',description:fresh.profile.description||'Fictional preparation',source:'Fictional staging owner notice',serviceId:fresh.profile.services[0].id,permission:'permitted'},operationId:'staging_growth_'+crypto.randomUUID()});
+   const created=await opportunityApi.commit(create);assert.equal(created.ok,true);let opportunity=await opportunityApi.read(created.receipt.opportunityId);
+   assert.equal((await opportunityApi.commit(opportunityApi.review({action:'reinspect',base:opportunity,operationId:'staging_review_'+crypto.randomUUID()}))).ok,true);opportunity=await opportunityApi.read(opportunity.opportunityId);
+   const reference=opportunityApi.reference(opportunity);assert.ok(reference);const draftId='staging_content_'+crypto.randomUUID(),content={schemaVersion:1,text:'Fictional private content. Not published.',brief:fresh.profile.services[0].description,format:'social',treatment:'standard',channels:[],media:[],brandFingerprint:fresh.profileHash,ownerFacts:fresh.profile.description||'',preparedCopy:'Owner-reviewed fictional wording.'};
+   const contentApi=creator(),savedContent=await contentApi.commit(contentApi.review({draftId,content,reference,requestKey:'staging_creator_'+crypto.randomUUID()}));assert.equal(savedContent.ok,true);
+   auth=await login(index);assert.deepEqual((await creator().read(draftId)).content,content);assert.equal((await growth().read(opportunity.opportunityId)).contactPermission,'not_established');
    // Existing fictional request must be separately provisioned through its
    // original bounded source. This harness cannot manufacture consumer authority.
    const journey=createConnectedEnquiryJourney({request,businessId:owner.businessId,ownerId:fresh.actorId,isCurrent:()=>auth.signedIn});
@@ -57,7 +70,7 @@ export async function runConnectedAcceptance(config,{fetchImpl=fetch,sourceSha}=
    auth=await login(index);const reopened=await bind().read(customer,quote.receipt.engagementId);assert.equal(reopened.status,'Prepared');assert.equal(reopened.record.details.message,editor.fields.text);
    const reopenedJourneys=await request('journey_list');assert.ok(reopenedJourneys.items.some(x=>x.record?.customer?.id===customer));
    await auth.signOut();assert.equal(auth.signedIn,false);await assert.rejects(()=>request('builder_read'));
-   observations.push({owner:index===0?'A':'B',realAuth:true,tenantDenial:true,websiteReadback:true,unknownOutcomeNoReplay:true,appReopened:true,customerProvenance:true,privateQuoteReopened:true,signOutInvalidated:true});
+   observations.push({owner:index===0?'A':'B',realAuth:true,tenantDenial:true,approvedFactsReadback:true,creatorFreshAuthReadback:true,growthSourceReviewed:true,websiteReadback:true,unknownOutcomeNoReplay:true,appReopened:true,customerProvenance:true,privateQuoteReopened:true,signOutInvalidated:true});
   }
   return {status:'hosted-observations-require-independent-review',hostedObservations:true,hostedAcceptance:false,observations,nativeAcceptance:false,productionReady:false,separateChecksRequired:connectedAcceptancePlan().separateChecksRequired};
  }finally{for(const inspector of inspectors)inspector.clearLocal();}
