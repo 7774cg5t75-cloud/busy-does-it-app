@@ -89,6 +89,12 @@ try{
   const result=await session.profile({basis,profile:{...basis.profile,description:'Reviewed finite update keeps original extensions.'},ownerApproved:true});assert.equal(result.ok,true);basis=result.observed;
   const raw=JSON.parse(sql('SELECT profile FROM public.busy_public_business_profiles WHERE business_id='+q(B)));assert.equal(raw.privateMarker,'unexposed fixture extension');assert.equal(raw.services[0].internalExtension,'unexposed service extension');assert.equal(raw.contact.internalExtension,'unexposed contact extension');
  });
+ await stage('private-business-facts-cannot-edit-an-already-public-profile',()=>{
+  sql("UPDATE public.busy_public_business_profiles SET status='live' WHERE business_id="+q(B));
+  assert.throws(()=>rpc('busy_connected_profile_write_v1',[B,basis.profileRevision,basis.profile,{...basis.profile,description:'Must not alter public facts'},true]));
+  assert.equal(rpc('busy_connected_builder_read_v1',[B]).profile.description,basis.profile.description);
+  sql("UPDATE public.busy_public_business_profiles SET status='draft' WHERE business_id="+q(B));
+ });
  await stage('concurrent-exact-profile-cas-only-one-owner-write-commits',async()=>{
   const run=promisify(execFile),common=[B,basis.profileRevision,basis.profile],commands=['First concurrent private wording','Second concurrent private wording'].map(description=>auth('SELECT public.busy_connected_profile_write_v1('+[...common,{...basis.profile,description},true].map(q).join(',')+')'));
   const jobs=commands.map(command=>{const child=run(bin,['-X','-h',socket,'-U','postgres','-v','ON_ERROR_STOP=1','-At','-d',db,'-c',command],{encoding:'utf8'});return child;});

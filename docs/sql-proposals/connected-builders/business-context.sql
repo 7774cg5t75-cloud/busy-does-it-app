@@ -32,7 +32,7 @@ BEGIN
  PERFORM 1 FROM public.busy_businesses WHERE id=p_business_id FOR UPDATE;
  SELECT * INTO p FROM public.busy_public_business_profiles WHERE business_id=p_business_id FOR UPDATE;
  IF FOUND THEN
-  IF p.revision IS DISTINCT FROM p_expected_revision OR busy_snapshot_private.profile_facts(p.profile) IS DISTINCT FROM p_expected_profile OR p.status='disabled' THEN RAISE EXCEPTION 'Business facts changed' USING ERRCODE='40001';END IF;
+  IF p.revision IS DISTINCT FROM p_expected_revision OR busy_snapshot_private.profile_facts(p.profile) IS DISTINCT FROM p_expected_profile OR p.status<>'draft' THEN RAISE EXCEPTION 'Business facts changed' USING ERRCODE='40001';END IF;
   stored:=p.profile;
   FOREACH k IN ARRAY allowed LOOP
    IF p_profile?k THEN stored:=jsonb_set(stored,ARRAY[k],p_profile->k,true);ELSE stored:=stored-k;END IF;

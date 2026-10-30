@@ -81,7 +81,7 @@
     },
     {
       "path": "docs/sql-proposals/connected-builders/business-context.sql",
-      "sha256": "baaaca28c9881de9caf4c8ce2ebbba2bd08d659ca8ee26e2f9f1a899c48d68fd"
+      "sha256": "4d6fd3ae5a09086c92ed53a88f3e7d1756297818cdd3a2e7526ec1624e07e59c"
     }
   ],
   "supplements": [
@@ -354,7 +354,7 @@
       "sha256": "722b84a7bbe6dde9fe6e8145a0a9fc64e344e63ad59a3c98bd489cec742f66d5"
     }
   ],
-  "sha256": "239a39b3a49ec2de7a5d195cd520c8e4ca0c17811edfb9dd963a39af2f317ca5",
+  "sha256": "36dc9b55f37dd3aeaf7f9e1b97ac78276e91a31fcb58f9c12484c08a69db3cfb",
   "rollbackSha256": "ed8fb0c5b95b68bce67577bb7ed510f22db885c95206262ea2e55b363d39e778",
   "retainedReaders": [
     "busy_connected_workspaces_v1",

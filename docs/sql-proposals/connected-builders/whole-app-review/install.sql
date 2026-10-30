@@ -2467,7 +2467,7 @@ DO $$ DECLARE f record;BEGIN
  END LOOP;
  IF EXISTS(SELECT 1 FROM pg_roles r WHERE r.rolname IN ('anon','authenticated','service_role') AND (has_schema_privilege(r.oid,'busy_creator_private','USAGE') OR has_table_privilege(r.oid,'public.busy_creator_draft_versions','SELECT,INSERT,UPDATE,DELETE') OR has_table_privilege(r.oid,'public.busy_creator_draft_heads','SELECT,INSERT,UPDATE,DELETE'))) THEN RAISE EXCEPTION 'Effective Creator privilege leak' USING ERRCODE='42501';END IF;
 END $$;
--- Source docs/sql-proposals/connected-builders/business-context.sql SHA256 baaaca28c9881de9caf4c8ce2ebbba2bd08d659ca8ee26e2f9f1a899c48d68fd
+-- Source docs/sql-proposals/connected-builders/business-context.sql SHA256 4d6fd3ae5a09086c92ed53a88f3e7d1756297818cdd3a2e7526ec1624e07e59c
 
 CREATE FUNCTION public.busy_connected_initialize_v1(p_business_id uuid) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
@@ -2501,7 +2501,7 @@ BEGIN
  PERFORM 1 FROM public.busy_businesses WHERE id=p_business_id FOR UPDATE;
  SELECT * INTO p FROM public.busy_public_business_profiles WHERE business_id=p_business_id FOR UPDATE;
  IF FOUND THEN
-  IF p.revision IS DISTINCT FROM p_expected_revision OR busy_snapshot_private.profile_facts(p.profile) IS DISTINCT FROM p_expected_profile OR p.status='disabled' THEN RAISE EXCEPTION 'Business facts changed' USING ERRCODE='40001';END IF;
+  IF p.revision IS DISTINCT FROM p_expected_revision OR busy_snapshot_private.profile_facts(p.profile) IS DISTINCT FROM p_expected_profile OR p.status<>'draft' THEN RAISE EXCEPTION 'Business facts changed' USING ERRCODE='40001';END IF;
   stored:=p.profile;
   FOREACH k IN ARRAY allowed LOOP
    IF p_profile?k THEN stored:=jsonb_set(stored,ARRAY[k],p_profile->k,true);ELSE stored:=stored-k;END IF;
