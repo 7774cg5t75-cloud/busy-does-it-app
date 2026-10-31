@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import * as composition from '../src/core/appGoalComposition.mjs';
 import {createRequire} from 'node:module';
+import {readFileSync} from 'node:fs';
 import {appCompositionContext,proposeLocalAppGoal,reviewAppComposition,prepareAppComposition,initialAppCompositionSelection} from '../src/core/appGoalComposition.mjs';
 import {APP_SPEC_PROPOSAL_VERSION,BUILDER_PROPOSAL_VERSION,validateBuilderProposal,builderProposalResponseSchema,createOfflineBuilderInterpreter} from '../src/core/governedBuilderProposal.mjs';
 import {proposeCoordinatedAppChanges} from '../src/core/appCoordinatedStudio.mjs';
 import {executePrivateAppBatch} from '../src/core/privateAppEditSession.mjs';
+assert.match(readFileSync('src/screens/miniApps.js','utf8'),/markOwnerDirty\('goal-composition',value\)/);
+assert.doesNotMatch(readFileSync('src/staging/ConnectedBuilderWorkspace.js','utf8'),/AppGoalCompositionEditor/,'Keep diagnostic enquiry dirty-token authority separate; connected app uses original six-area editor');
 const B='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',O='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',A='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const keys=['business_profile','services','contact','enquiry','gallery'];
 const catalog=keys.map(module_key=>({module_key,status:'available',module_version:1,capabilities:module_key==='enquiry'?{customer_action:true,request_type:'enquiry'}:{}}));
