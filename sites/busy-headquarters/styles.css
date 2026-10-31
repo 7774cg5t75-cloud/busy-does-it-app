@@ -228,7 +228,7 @@
  .showcase-browser-chrome{font-size:9px;padding:9px 11px}
  .showcase-browser-canvas{height:225px}
  .showcase-browser-canvas iframe{transform:scale(.345)}
- ..story{padding-block:57px}
+ .story{padding-block:57px}
  .story-art{min-height:290px}
  .story-copy h2{font-size:34px}
  .founder-business{gap:10px}
@@ -238,3 +238,10 @@
 }
 @media(max-width:375px){.showcase-browser-canvas iframe{transform:scale(.31)}}
 @media(prefers-reduced-motion:reduce){.showcase-frame{transform:none}}
+
+.showcase-frame{position:relative}
+.showcase-overlay-link{position:absolute;inset:0;z-index:2;display:block;border-radius:19px}
+.showcase-overlay-link:focus-visible{outline:3px solid #91efff;outline-offset:-4px}
+.showcase-frame:focus-within{border-color:#91efff}
+.feature-drawer:target{border-color:#70d2ff}
+@media(max-width:550px){.showcase-browser-canvas iframe{transform:scale(.345)}}
