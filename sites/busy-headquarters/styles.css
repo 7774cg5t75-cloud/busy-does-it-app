@@ -328,3 +328,24 @@ a.founder-business:focus-visible{outline:2px solid #83eaff;outline-offset:4px}
  .story-refined .founder-business-logo{width:73px;height:73px;flex-basis:73px}
  .story-refined .founder-business-identity strong{font-size:19px}
 }
+
+/* Nine owner-approved, progressively disclosed questions: concise and easy to scan. */
+.questions .faq-item{padding:0;border-bottom:1px solid #29405f}
+.questions .faq-item summary{display:flex;align-items:center;gap:15px;padding:21px 46px 21px 4px;min-height:78px;line-height:1.4;font-size:16px;font-weight:680;letter-spacing:-.02em}
+.questions .faq-item summary::after{top:50%;right:8px;transform:translateY(-50%);font-size:27px}
+.questions .faq-item summary:hover{color:#a6efff}
+.questions .faq-item summary:focus-visible{outline:2px solid #88eaff;outline-offset:3px;border-radius:6px}
+.questions .faq-number{flex:0 0 27px;color:#70cee6;font-size:11px;font-weight:790;letter-spacing:.08em}
+.questions .faq-question{flex:1;min-width:0}
+.questions .faq-answer{padding:0 48px 22px 46px}
+.questions .faq-answer p{font-size:14px;line-height:1.75;color:#b1c2d9;margin:0}
+.questions .faq-item[open] summary{color:#f4f8ff}
+@media(max-width:550px){
+ .qa{padding-block:62px 72px}
+ .qa .section-heading.compact{margin-bottom:13px}
+ .questions .faq-item summary{font-size:15px;min-height:69px;gap:10px;padding:16px 33px 16px 0}
+ .questions .faq-item summary::after{right:2px;font-size:25px}
+ .questions .faq-number{flex-basis:24px;font-size:10px}
+ .questions .faq-answer{padding:0 22px 20px 34px}
+ .questions .faq-answer p{font-size:13px;line-height:1.7}
+}
