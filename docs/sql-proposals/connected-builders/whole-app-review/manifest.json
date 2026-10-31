@@ -89,7 +89,7 @@
     },
     {
       "path": "docs/sql-proposals/connected-builders/listing-lifecycle.sql",
-      "sha256": "1c2be1132eb75d841338e3be79a59188534b7fa873f475a8abf1bf21340f7537"
+      "sha256": "9c961ecb51142ef23f760315232c6db924b829b5bf0e0d7ca9a29ae8beee66ee"
     }
   ],
   "supplements": [
@@ -362,7 +362,7 @@
       "sha256": "722b84a7bbe6dde9fe6e8145a0a9fc64e344e63ad59a3c98bd489cec742f66d5"
     }
   ],
-  "sha256": "18fd1dd02ed5422ed972f71986bdce8e09a200dcbed30d341ee0449965317750",
+  "sha256": "176d0e4153012ab93457b3c9ee010a688044d61b0bb01baaad070909847aa95f",
   "rollbackSha256": "0155a9858e8c32851212cdf63051f3be9ff979799f70639ff07d2d7af2e94106",
   "retainedReaders": [
     "busy_connected_website_history_v1",
