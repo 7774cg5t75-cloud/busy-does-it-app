@@ -3,7 +3,7 @@ import {SelectedListingSummary} from './selectedListingSummary';
 import {View,Text,Image,TextInput,Pressable,useWindowDimensions,Linking} from 'react-native';
 import {contentPrice,contentEventSchedule,prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {catalogueState,catalogueSource,catalogueView,transitionCatalogue} from './catalogueState.mjs';
-function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSaveBrowseState,layout='cards',title,onInterest,featuredId='',colors={text:'#16253a',muted:'#46556a',surface:'#fff',line:'#8b93a3'}}){
+function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSaveBrowseState,layout='cards',imageScale='regular',title,onInterest,featuredId='',colors={text:'#16253a',muted:'#46556a',surface:'#fff',line:'#8b93a3'}}){
  const [storedState,setStoredState]=React.useState(savedBrowseState),[notice,setNotice]=React.useState(''),[pageSize,setPageSize]=React.useState(12),[categoryCount,setCategoryCount]=React.useState(8);
  const width=useWindowDimensions().width;
  const interactionEpoch=React.useRef(0),renderedEpoch=interactionEpoch.current;
@@ -35,7 +35,7 @@ function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSa
   {feed?.ok?<Text accessibilityLiveRegion="polite" style={{color:colors.muted}}>{rows.length+' matching '+(kind==='product'?'products':'events')+' in results'+(activeCategory?' · '+activeCategory:'')+'.'}</Text>:null}
   <View style={{flexDirection:'row',flexWrap:'wrap',gap:12}}>
    {visible.map(row=>{const data=row.data;return <View key={row.id} style={{width:layout==='cards'&&width>=700&&!detail?'48%':'100%',padding:14,borderWidth:1,borderColor:'#cbd2dc',borderRadius:10}}>
-    {data.image?<Image source={{uri:data.image.uri}} accessibilityLabel={data.image.alt} accessible style={{height:180,width:'100%',borderRadius:8}}/>:null}
+    {data.image?<Image source={{uri:data.image.uri}} accessibilityLabel={data.image.alt} accessible style={{height:imageScale==='large'?280:180,width:'100%',borderRadius:8}}/>:null}
     <Text style={{fontSize:19,fontWeight:'700',color:colors.text}}>{data.name}</Text>
     <Text style={{color:colors.muted,marginTop:6}}>{data.category}</Text>
     <Text style={{color:colors.text,marginTop:6}}>{detail?data.description:data.description.slice(0,180)}</Text>

@@ -2980,6 +2980,13 @@
         "scripts/check-private-app-project.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-app-project-continuation",
+      "args": [
+        "scripts/check-app-project-continuation.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -12,8 +12,8 @@ export function preparePrivateAppProject({ownerId,businessId,app,catalog,proposa
 export function reopenPrivateAppProject({ownerId,businessId,app,catalog}){
  const saved=app?.private_project_spec;
  if(!saved)return fail('There is no saved private idea yet.');
- const scope=saved.scope,context=appCompositionContext({ownerId,businessId,app,catalog});
- if(!context.ok||scope?.ownerId!==ownerId||scope.businessId!==businessId||scope.projectId!==app.id||scope.surface!=='app'||!Number.isSafeInteger(scope.sourceRevision)||scope.sourceRevision>=app.draft_revision)return fail('The saved idea does not match this account and app.');
+ const scope=saved.scope,scopeKeys=['ownerId','businessId','projectId','sourceRevision','profileRevision','surface','pageId'],context=appCompositionContext({ownerId,businessId,app,catalog});
+ if(!context.ok||!scope||Object.keys(scope).length!==scopeKeys.length||scopeKeys.some(k=>!Object.hasOwn(scope,k))||scope.pageId!==null||scope.profileRevision!==scope.sourceRevision||scope?.ownerId!==ownerId||scope.businessId!==businessId||scope.projectId!==app.id||scope.surface!=='app'||!Number.isSafeInteger(scope.sourceRevision)||scope.sourceRevision>=app.draft_revision)return fail('The saved idea does not match this account and app.');
  // Explicitly re-review the retained description against today's catalogue.
  // This does not replace its saved origin, grant features or write anything.
  const proposal={...saved,scope:{...context.scope}},checked=validateBuilderProposal(proposal,context);

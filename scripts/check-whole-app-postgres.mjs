@@ -1,3 +1,4 @@
+import {continueSavedAppProject,correctAppProject,prepareContinuedAppProject} from '../src/core/appProjectContinuation.mjs';
 import {preparePrivateAppProject,reopenPrivateAppProject,savePrivateAppProject} from '../src/core/privateAppProject.mjs';
 import {savePrivateProject} from '../supabase/functions/busy-mini-apps/privateProjectService.mjs';
 import {publicBusinessContent} from '../src/core/businessContentRecords.mjs';
@@ -179,6 +180,23 @@ try{
   for(const bad of [{...proposal,scope:{...proposal.scope,businessId:F}},{...proposal,app:{...proposal.app,execute:'Forbidden'}},{...proposal,app:{...proposal.app,screens:[{id:'pay',title:'Pay now',module:'charge_anyone',next:[]}]}}])assert.throws(()=>service('busy_connected_app_spec_commit_v1',[B,O,current.id,current.draft_revision,basis.profileRevision,'save',bad]));
   assert.throws(()=>service('busy_connected_app_spec_commit_v1',[B,P,current.id,current.draft_revision,basis.profileRevision,'save',proposal]));assert.throws(()=>rpc('busy_connected_app_spec_commit_v1',[B,O,current.id,current.draft_revision,basis.profileRevision,'save',proposal]));
   sql('DELETE FROM public.busy_business_memberships WHERE business_id='+q(B)+' AND user_id='+q(O));assert.throws(()=>service('busy_connected_app_spec_commit_v1',[B,O,current.id,current.draft_revision,basis.profileRevision,'save',proposal]));sql('INSERT INTO public.busy_business_memberships(business_id,user_id,role)VALUES('+[B,O,'owner'].map(q).join(',')+')');assert.equal(readApp().draft_revision,current.draft_revision);
+ });
+ await stage('saved-project-corrections-original-spec-studio-reopen-and-exact-undo',async()=>{
+  const before=readApp(),configBefore=before.draft_config,ctx=appCompositionContext({ownerId:O,businessId:B,app:before,catalog}),proposal=proposeLocalAppGoal(ctx,'Show menu, upcoming events, photos and contact details').proposal;
+  const specWrite=body=>savePrivateProject({client:serviceClient,businessId:B,actorId:O,app:readApp(),catalog,body,profileRevision:basis.profileRevision}).then(r=>({ok:true,...r}));
+  const save=proposal=>savePrivateAppProject({ownerId:O,businessId:B,app:readApp(),catalog,proposal,isCurrent:()=>true,write:specWrite,readStatus:async()=>({app:readApp()})});
+  assert.equal((await save(proposal)).ok,true);
+  const feed=publicBusinessContent(JSON.parse(sql("SELECT coalesce(json_agg(t),'[]'::json) FROM (SELECT id,business_id,kind,revision,published,published_revision FROM public.busy_business_content WHERE business_id="+q(B)+')t')),B);
+  let continued=continueSavedAppProject({ownerId:O,businessId:B,app:readApp(),catalog,feed});assert.equal(continued.ok,true,continued.reason);assert.equal(continued.choices.length,2);
+  for(const words of ['I want the menu to appear before the events','Make the product pictures bigger','Keep the contact page, but make it easier to find']){const corrected=correctAppProject({...continued,current:continued.context,words,feed});assert.equal(corrected.ok,true,corrected.reason);continued={...continued,...corrected};}
+  assert.equal((await save(continued.proposal)).ok,true);assert.deepEqual(readApp().draft_config,configBefore);assert.equal(readApp().private_project_history.length,8);
+  const fresh=readApp(),opened=continueSavedAppProject({ownerId:O,businessId:B,app:fresh,catalog,feed});assert.equal(opened.ok,true);assert.equal(opened.choices[0].imageScale,'large');assert.equal(opened.selection.order[0],'contact');
+  const plan=prepareContinuedAppProject({...opened,current:opened.context,feed,expected:opened.recordBasis});assert.equal(plan.ok,true,plan.reason);
+  assert.equal(prepareContinuedAppProject({...opened,current:opened.context,feed:{...feed,records:[]},expected:opened.recordBasis}).ok,false);
+  assert.equal(continueSavedAppProject({ownerId:P,businessId:F,app:fresh,catalog,feed}).ok,false);
+  const applied=await executePrivateAppBatch({businessId:B,app:fresh,operations:plan.operations,source:plan.source,isCurrent:()=>true,write,readStatus:async()=>({app:readApp()})});assert.equal(applied.ok,true,applied.reason);
+  assert.deepEqual(readApp().draft_config,plan.nextConfig);assert.deepEqual(readApp().private_project_spec,continued.proposal);assert.deepEqual(readApp().draft_config.publicProfile,configBefore.publicProfile);
+  const undone=await executePrivateAppBatch({businessId:B,app:readApp(),operations:applied.undoOperations,isCurrent:()=>true,write,readStatus:async()=>({app:readApp()})});assert.equal(undone.ok,true,undone.reason);assert.deepEqual(readApp().draft_config,configBefore);assert.deepEqual(readApp().private_project_spec,continued.proposal);
  });
  await stage('original-growth-context-record-review-no-provider-claims',async()=>{const api=growth(),t=api.review({action:'create',fields:{title:'Fictional community notice',description:'Owner supplied fictional opportunity',source:'Synthetic owner notice',serviceId:'lawns',permission:'permitted'},operationId:'whole_growth_create'});const result=await api.commit(t);assert.equal(result.ok,true);opportunity=await api.read(result.receipt.opportunityId);assert.equal(api.reference(opportunity),null);const review=api.review({action:'reinspect',base:opportunity,operationId:'whole_growth_reinspect'});assert.equal((await api.commit(review)).ok,true);opportunity=await api.read(opportunity.opportunityId);reference=api.reference(opportunity);assert.ok(reference);assert.equal(opportunity.contactPermission,'not_established');});
 

@@ -1,3 +1,7 @@
+## Current genuine private Product Master — V22.72,31 October2026
+
+Owner-supplied original reopened: SHA256 `1eba92db38697b6753d673a1c704a0b29f8be16f81a7466ac50b0c6f909a06fa`,2,877 paragraphs/19 tables; cover22.72. It supersedes earlier versions below. Relevant original builder, security, cost, continuity and transparency requirements reviewed. Section81 permits broad secure source development with independently enforced default-off sensitive actions, not blanket activation or deferred security. Section82 printing is future scoped work and does not interrupt the current App Builder mission or authorise supplier, ordering, sharing or spending. Keep complete original/extraction outside Git; retain all inherited approval/hosted/provider/release boundaries.
+
 ## Current private Product Master — V22.70,31 October2026
 
 The newly supplied Word original identifies V22.70 (filename shortened to22.7): SHA256 `32a8931437dbeef7c9d76030e2f3abdf6296777f30029f1e0744f2605e2d6ab5`,2,813 paragraphs/19 tables. The original was reopened and the new Section80 reviewed; private bytes/extraction remain outside Git. It supersedes V22.69 named in the mission prose. Preserve the canonical approved app orb across future channels; this content-composition mission does not redesign Home/orbs, implement marketing assets or authorise publishing/spending. All inherited security, continuity, cost and release gates remain in force.
