@@ -1,0 +1,10 @@
+{
+  "stagingProject": "pnjdlogwegnqbsfpcofw",
+  "hostedExecutionAuthorised": false,
+  "files": {
+    "install.sql": "330b8e8fd800479c0572fbcff0af00f34d941a20fd8025d7990921c7c209e8bb",
+    "rollback-retain.sql": "fdf4626c3ff42d213369e912fe4af6d07535fdc014da89bbe39da7fb35280165"
+  },
+  "prerequisite": "Original Mini App guest/request/event contracts plus independently reconciled business/Auth foundation",
+  "retainingRollback": true
+}

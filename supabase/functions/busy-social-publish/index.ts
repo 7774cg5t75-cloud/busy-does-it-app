@@ -1,3 +1,5 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {createProviderPreparationGateway} from '../_shared/providerPreparationGateway.mjs';
 import {legacyProviderAdmission} from '../_shared/legacyProviderAdmission.mjs';
 import {providerMessagePage} from '../_shared/providerMessagePage.mjs';
 import {matchesConfiguredPrototypeOwner,matchesConfiguredProviderSubject,providerEventAppliesToConnection} from '../_shared/legacyWorkspaceIdentity.mjs';
@@ -1273,6 +1275,12 @@ Deno.serve(async (request: Request) => {
 
   try {
     const url = new URL(request.url);
+    if(url.searchParams.get('mode')==='provider-preparation'){
+      const handler=createProviderPreparationGateway({enabled:Deno.env.get('BUSY_PROVIDER_PREPARATION_ENABLED')||'',projectUrl:SUPABASE_URL,readJson:boundedJson,
+       authenticate:async(token:string)=>{const r=await supabase.auth.getUser(token);if(r.error||!r.data.user)throw Error('Unverified');return {id:r.data.user.id,isAnonymous:r.data.user.is_anonymous===true};},
+       rpc:async(name:string,args:unknown[])=>{const fields=name==='busy_provider_status_v1'?['a','b','p','h']:name==='busy_provider_begin_v1'?['a','b','p','h','r','u']:null;if(!fields)throw Error('Unsupported');const r=await supabase.rpc(name,Object.fromEntries(fields.map((key,i)=>[key,args[i]])));if(r.error)throw Error('Provider preparation unavailable');return r.data;}});
+      return handler(request);
+    }
     const callbackAction=url.searchParams.get("action");
     if(!legacyProviderAdmission().allowed&&((request.method==="GET"&&(url.searchParams.has("provider")||callbackAction==="callback"))||["deauthorize","data_delete"].includes(callbackAction||"")))return json(503,{error:"Provider connection changes are unavailable pending security review."});
     const pathParts = url.pathname.split("/").filter(Boolean);
@@ -1337,24 +1345,14 @@ Deno.serve(async (request: Request) => {
 
     if (request.method !== "POST") return json(405, { error: "POST required" });
     requirePrototypeCaller(request);
-    const body = await request.json();
-    const action = cleanText(body?.action, 80);
+    // Verify the configured historical owner before consuming any inline media.
     const owner = await requireOwner(request);
+    const body = await boundedJson(request, 8 * 1024 * 1024) as Record<string, unknown>;
+    const action = cleanText(body?.action, 80);
     if(!legacyProviderAdmission().allowed&&["set_live_publishing","begin_oauth","select_asset","verify_provider","disconnect","schedule","publish_now","retry_post","process_due"].includes(action))return json(503,{error:"Provider actions are unavailable pending security review. Private draft editing remains available."});
 
     if (action === "status") {
-      const [credentials, meta, google, queue] = await Promise.all([
-        credentialStatus(),
-        connectionSummary("meta"),
-        connectionSummary("google_business"),
-        listQueue(),
-      ]);
-      return json(200, {
-        credentials,
-        owner: { authenticated: true, email: owner?.email || "" },
-        connections: { meta, google_business: google },
-        queue,
-      });
+      return json(503,{error:"Scoped connection metadata is required. Legacy prototype status is unavailable."});
     }
 
     if (action === "set_live_publishing") {
@@ -1540,7 +1538,7 @@ Deno.serve(async (request: Request) => {
     return json(400, { error: "Unknown action." });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Social publishing request failed.";
-    console.error("BUSY social publish error:", message);
-    return json(400, { error: message });
+    console.error("BUSY social publish request failed");
+    return json(error instanceof BoundedRequestError ? error.status : 400, { error: message });
   }
 });

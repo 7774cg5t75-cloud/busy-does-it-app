@@ -3209,6 +3209,7 @@ function App({connectedRuntime=null}={}) {
   };
 
   const socialPublishRequest = async (action, payload = {}, {isCurrent=()=>true}={}) => {
+    if(connected){if(action!=="status")throw Error("Provider actions are not connected. Your private drafts are unchanged.");const r=await connected.requestProvider("status");if(!isCurrent())throw Error("The review changed");return r;}
     const requestScope=businessWorkspaceScopeRef.current;
     const current=()=>businessWorkspaceScopeRef.current===requestScope&&isCurrent();
     const token = await ownerAccessToken();

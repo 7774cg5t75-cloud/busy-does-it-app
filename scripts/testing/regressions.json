@@ -2917,6 +2917,13 @@
       "args": [
         "scripts/check-security-phase3.mjs"
       ]
+    },
+    {
+      "id": "check-security-phase4",
+      "args": [
+        "scripts/check-security-phase4.mjs"
+      ],
+      "timeoutSeconds": 60
     }
   ]
 }

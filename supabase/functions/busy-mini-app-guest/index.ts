@@ -95,14 +95,14 @@ async function hmacText(value: string) {
   return [...signature].map((item) => item.toString(16).padStart(2, "0")).join("");
 }
 
-async function fingerprintFor(req: Request) {
+async function fingerprintFor(req: Request,scope="") {
   const rawIp =
     clean(req.headers.get("cf-connecting-ip"), 120) ||
     clean(req.headers.get("x-real-ip"), 120) ||
     clean(req.headers.get("x-forwarded-for"), 400).split(",")[0].trim() ||
     "unknown";
   const userAgent = clean(req.headers.get("user-agent"), 320) || "unknown";
-  return await hmacText(`guest-fingerprint|${rawIp}|${userAgent}`);
+  return await hmacText(scope?`guest-fingerprint-v2|${scope}|${rawIp}|${userAgent}`:`guest-fingerprint|${rawIp}|${userAgent}`);
 }
 
 async function contactHash(email: string, phone: string) {
@@ -185,51 +185,14 @@ async function createChallenge(req: Request, body: any) {
   const { app, version } = await liveApp(slug);
   requireEnabledModule(version, requestType);
 
-  const fingerprint = await fingerprintFor(req);
-  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const [browserCount, appCount] = await Promise.all([
-    supabase
-      .from("busy_mini_app_guest_challenges")
-      .select("id", { count: "exact", head: true })
-      .eq("fingerprint_hash", fingerprint)
-      .gte("created_at", since),
-    supabase
-      .from("busy_mini_app_guest_challenges")
-      .select("id", { count: "exact", head: true })
-      .eq("mini_app_id", app.id)
-      .gte("created_at", since),
-  ]);
-  if (browserCount.error) throw browserCount.error;
-  if (appCount.error) throw appCount.error;
-  if (Number(browserCount.count || 0) >= 30) {
-    throw new Error("Too many verification attempts from this browser. Try again later.");
-  }
-  if (Number(appCount.count || 0) >= 1000) {
-    throw new Error("This Mini App is receiving unusually high request traffic. Try again shortly.");
-  }
-
-  const token = randomToken(24);
-  const seed = randomToken(18);
-  const difficulty = 3;
-  const tokenHash = await sha256Text(token);
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-  const inserted = await supabase
-    .from("busy_mini_app_guest_challenges")
-    .insert({
-      business_id: app.business_id,
-      mini_app_id: app.id,
-      version_id: version.id,
-      request_type: requestType,
-      token_hash: tokenHash,
-      fingerprint_hash: fingerprint,
-      pow_seed: seed,
-      pow_difficulty: difficulty,
-      expires_at: expiresAt,
-    })
-    .select("id")
-    .single();
-  if (inserted.error) throw inserted.error;
+  // The RPC serialises original business/app counters; caller headers are
+  // only a supplementary browser signal, never identity or the global quota.
+  const fingerprint = await fingerprintFor(req,app.business_id+'/'+app.id);
+  const token=randomToken(24),seed=randomToken(18),difficulty=3;
+  const tokenHash=await sha256Text(token);
+  const admitted=await supabase.rpc('busy_mini_app_guest_challenge_v1',{b:app.business_id,a:app.id,v:version.id,t:requestType,h:tokenHash,f:fingerprint,s:seed});
+  if(admitted.error||!admitted.data?.id||!Number.isFinite(Date.parse(admitted.data.expiresAt)))throw Error('Guest verification is unavailable. No enquiry was submitted.');
+  const inserted={data:{id:admitted.data.id}},expiresAt=admitted.data.expiresAt;
 
   await recordEntry(app, entrySourceValue(body?.source), "action_intent");
 
@@ -348,7 +311,7 @@ async function submitGuestRequest(req: Request, body: any) {
     throw new Error("Guest verification does not match this request.");
   }
 
-  const fingerprint = await fingerprintFor(req);
+  const fingerprint = await fingerprintFor(req,challenge.data.admission_version===2?challenge.data.business_id+'/'+challenge.data.mini_app_id:'');
   if (fingerprint !== challenge.data.fingerprint_hash) {
     throw new Error("Guest verification must be completed in the same browser.");
   }

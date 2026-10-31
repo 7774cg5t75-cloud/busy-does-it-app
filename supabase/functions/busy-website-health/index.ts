@@ -1,3 +1,4 @@
+import {approvedHealthProbe} from './probeDestination.mjs';
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import { createClient } from "../_shared/supabaseClient.ts";
 
@@ -167,6 +168,7 @@ async function recordCheck({
   targetType: "live_alias" | "default_domain" | "custom_domain";
   url: string;
 }) {
+  if(!approvedHealthProbe(url,{projectUrl:SUPABASE_URL,rootDomain:Deno.env.get('BUSY_WEBSITE_ROOT_DOMAIN')||'busydoesit.co.uk',website}))return {status:'unverified',networkAttempted:false,reason:'reviewed_egress_required'};
   const result = await fetchWithDeadline(url);
   const marker = deploymentMarker(result.text);
   const expected = clean(website.current_live_deployment_id, 80);
@@ -233,6 +235,7 @@ async function checkWebsite(website: any) {
     targetType: "live_alias",
     url: liveUrl,
   });
+  if(live.status==='unverified')return {websiteId:website.id,status:'unverified',reason:'reviewed_egress_required',healthStateChanged:false};
   const liveFailureStreak =
     live.status === "healthy"
       ? 0
@@ -275,6 +278,7 @@ async function checkWebsite(website: any) {
   ]);
 
   const defaultResult: any = routeChecks[0];
+  if(routeChecks.some(result=>result?.status==='unverified'))return {websiteId:website.id,status:'unverified',reason:'reviewed_custom_domain_egress_required',healthStateChanged:false};
   const domainResults = routeChecks.slice(1);
   let maxDomainFailureStreak = 0;
 

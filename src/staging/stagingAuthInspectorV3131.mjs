@@ -181,7 +181,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch,now=Date.now}={})
       const apps=['owner_status','build_draft','apply_app_plan','apply_coordinated_edits','set_module','move_section','set_appearance'];
       const account=connectedAccountRoutes;
 
-      if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design','website_edit_page','website_edit_instruction','website_undo','website_redo',...apps,...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
+      if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design','website_edit_page','website_edit_instruction','website_undo','website_redo',...apps,'provider_status','provider_prepare','provider_inspect',...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
       try{
         const id=await checkIdentity(bearer,FIXTURES[key].email);
         if(!current())throw Error("staging-session-cancelled");
@@ -196,7 +196,12 @@ function createStagingAuthInspector({config={},fetchImpl=fetch,now=Date.now}={})
           const basis=await call('/rest/v1/rpc/'+(action==='initialize'?'busy_connected_initialize_v1':'busy_connected_builder_read_v1'),{method:'POST',bearer,body:{p_business_id:payload.businessId}});
           if(!current())throw Error('staging-session-cancelled');
           if(basis.status!==200||basis.json?.actorId!==userId||basis.json?.businessId!==payload.businessId)throw Error('staging-business-unavailable');
-          if(action==='initialize')response=basis;else if(account[action]){
+          if(action.startsWith('provider_')){
+            const operation=action.slice('provider_'.length);
+            const body=operation==='status'?{action:'status',businessId:payload.businessId}:operation==='prepare'?{action:'prepare',businessId:payload.businessId,provider:payload.provider,expectedRevision:payload.expectedRevision,ownerReviewed:payload.ownerReviewed}:{action:'inspect',businessId:payload.businessId,provider:payload.provider,state:payload.state};
+            response=await call('/functions/v1/busy-social-publish?mode=provider-preparation',{method:'POST',bearer,body});
+            if(response.status===200&&(response.json?.owner?.userId!==userId||response.json?.owner?.businessId!==payload.businessId))throw Error('staging-business-unavailable');
+          }else if(action==='initialize')response=basis;else if(account[action]){
             const [rpc,keys]=account[action],names={businessId:'p_business_id',requestId:'p_request_id',requestHash:'p_request_hash',expectedRevision:'p_expected_revision',enquiryId:'p_enquiry_id',customerId:'p_customer_id',capture:'p_capture',identityDecision:'p_identity_decision',after:'p_after'};
             response=await call('/rest/v1/rpc/'+rpc,{method:'POST',bearer,body:Object.fromEntries(keys.map(k=>[names[k]||k,payload[k]??null]))});
           }else if(action==='builder_read'||action==='initialize')response=basis;
