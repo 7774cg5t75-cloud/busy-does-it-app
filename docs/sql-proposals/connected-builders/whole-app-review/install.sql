@@ -2591,7 +2591,7 @@ REVOKE ALL ON FUNCTION public.busy_connected_website_transition_v1(uuid,uuid,big
 GRANT EXECUTE ON FUNCTION public.busy_connected_website_transition_v1(uuid,uuid,bigint,jsonb,jsonb,bigint,text),public.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint) TO service_role;
 
 GRANT EXECUTE ON FUNCTION public.busy_connected_website_history_v1(uuid,bigint,text,text) TO authenticated;
--- Source docs/sql-proposals/connected-builders/listing-lifecycle.sql SHA256 4b05e1d2671d17cc1e0132fe2efbfe74bf6b2f3aaa91b60d69417c36ad39c217
+-- Source docs/sql-proposals/connected-builders/listing-lifecycle.sql SHA256 1c2be1132eb75d841338e3be79a59188534b7fa873f475a8abf1bf21340f7537
 
 CREATE FUNCTION busy_snapshot_private.listing_candidate(b uuid,rid uuid) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
@@ -2608,7 +2608,7 @@ BEGIN
  SELECT x INTO refs FROM regexp_matches(r.payload->>'message','^Listing reference: ([A-Za-z0-9_-]+) / approved revision ([1-9][0-9]{0,9})(?: / option ([A-Za-z0-9_-]+))?\.$','n')x;
  IF n<>1 OR (length(r.payload->>'message')-length(replace(r.payload->>'message','Listing reference:','')))<>length('Listing reference:') OR refs[1] IS DISTINCT FROM s->>'recordId' OR refs[2] IS DISTINCT FROM s->>'revision' OR refs[3] IS DISTINCT FROM s->>'variantId' THEN RAISE EXCEPTION 'Ambiguous or conflicting listing reference' USING ERRCODE='22023';END IF;
  SELECT * INTO c FROM public.busy_business_content WHERE business_id=b AND id=s->>'recordId' FOR SHARE;
- IF NOT FOUND OR c.kind IS DISTINCT FROM s->>'kind' OR c.published_revision IS DISTINCT FROM (s->>'revision')::bigint OR jsonb_typeof(c.published) IS DISTINCT FROM 'object' OR c.published->>'status' IS DISTINCT FROM CASE c.kind WHEN 'product' THEN 'active' ELSE 'scheduled' END OR jsonb_typeof(c.published->'name') IS DISTINCT FROM 'string' OR length(btrim(c.published->>'name')) NOT BETWEEN 1 AND 160 THEN RAISE EXCEPTION 'Approved listing changed or unavailable' USING ERRCODE='40001';END IF;
+ IF NOT FOUND OR c.kind IS DISTINCT FROM s->>'kind' OR c.published_revision IS DISTINCT FROM (s->>'revision')::bigint OR jsonb_typeof(c.published) IS DISTINCT FROM 'object' OR c.published->>'status' IS DISTINCT FROM (CASE c.kind WHEN 'product' THEN 'active' ELSE 'scheduled' END) OR jsonb_typeof(c.published->'name') IS DISTINCT FROM 'string' OR length(btrim(c.published->>'name')) NOT BETWEEN 1 AND 160 THEN RAISE EXCEPTION 'Approved listing changed or unavailable' USING ERRCODE='40001';END IF;
  IF c.kind='product' THEN
   IF NOT(c.published ? 'amountMinor') OR jsonb_typeof(c.published->'currency') IS DISTINCT FROM 'string' OR c.published->>'currency' NOT IN ('GBP','USD','EUR') OR (c.published->'amountMinor'<>'null' AND (c.published->>'amountMinor')!~'^[0-9]{1,12}$') THEN RAISE EXCEPTION 'Unsupported approved product facts' USING ERRCODE='22023';END IF;
   facts:=jsonb_build_object('name',c.published->'name','description',c.published->'description','amountMinor',c.published->'amountMinor','currency',c.published->'currency');
