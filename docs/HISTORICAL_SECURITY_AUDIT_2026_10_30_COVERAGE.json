@@ -527,5 +527,102 @@
       ]
     },
     "paidPaths": "All10 known direct model HTTP paths remain source-denied. Pinned Edge dependency graph contains no model-provider SDK; broader source search found no additional direct SDK inference path. This is finite evidence, not whole-program proof or future activation approval."
+  },
+  "phaseThree": {
+    "date": "2026-10-31",
+    "implementationCommit": "41bff13da839bb9b8adafeffd416876f308031e1",
+    "implementationTree": "61580d39f129a02ab79b8c3256bd205960c12efe",
+    "sourceCorrections": [
+      {
+        "area": "Public Mini App links",
+        "implemented": "Exact project/bucket/business/app/live-version redirect binding through original destination helper and actual-handler tests",
+        "remaining": "Hosted storage/public availability and inbound traffic controls"
+      },
+      {
+        "area": "Internal workers and calendar status",
+        "implemented": "16KiB incremental bytes/deadline for four original internal workers,8KiB calendar metadata body",
+        "remaining": "Not a universal ingress/rate limit; calendar/provider mutations remain source-denied"
+      },
+      {
+        "area": "Legacy source-write/publication workflows",
+        "implemented": "Four targeted workflows pinned to verified upstream v4 commit IDs; three privileged jobs require exact manual approval; EAS/Snack require separately set toolchain-review variable; read-only staging checkout does not persist credentials and install uses lock",
+        "remaining": "No workflow executed; other historical refs/jobs and repository protected Environments not accepted"
+      }
+    ],
+    "replacementContracts": [
+      {
+        "area": "Original social connection/state authority",
+        "status": "21-stage combined actual local PostgreSQL rehearsal includes provider transitions and legacy counter repair; no hosted installation",
+        "implemented": [
+          "Original tables extended, no parallel provider store",
+          "Five finite service-only operations with current-owner member locks and connection revision binding",
+          "Single-use hashed state, fixed staging callback, nonce claims and no blind exchange replay",
+          "No inherited refresh tokens/assets on replacement; exact disconnect and retained receipts",
+          "Direct table/column write closure plus table-owner/finite-operation trigger",
+          "10 starts per owner/business/hour, serialised for this pair; not a universal business ingress limiter"
+        ],
+        "remaining": [
+          "Genuine callback/Auth session/PKCE/provider verification transport",
+          "Calendar original DDL authority",
+          "Existing status-reader migration to finite metadata API",
+          "Token encryption/rotation, Auth-user deletion and retention compatibility",
+          "Full owner-transfer and external provider revocation/reconciliation"
+        ]
+      },
+      {
+        "area": "Mini App daily entry writer",
+        "status": "Review-only replacement of original RPC; exercised in real local PostgreSQL, not deployed",
+        "implemented": "App/business row binding under lock; original daily counter retained; mismatched historical scope rejected; direct table AND column write grants closed; retaining rollback closes writer",
+        "remaining": "Current hosted function/grant inventory, public counter abuse controls and other historical writer families"
+      }
+    ],
+    "legacyWriterReview": [
+      {
+        "authority": "Social connections/state direct service writes",
+        "coverage": "Original DDL/roles and direct REST writer path reviewed; new bound-row trigger/finite SQL tested, including forged GUC denial"
+      },
+      {
+        "authority": "Mini App entry record RPC",
+        "coverage": "Original CREATE/function source executed; reproduced mismatched-business acceptance; reviewed replacement/negative role/scoping/lockdown tested"
+      },
+      {
+        "authority": "Website enqueue/read/archive/retry RPCs",
+        "coverage": "Original service-only authority/search path/source routing sampled; full actor/approval/revocation closure not accepted"
+      },
+      {
+        "authority": "Mini App unread, guest-request and message paths",
+        "coverage": "Selected service-role grants/identity/proof boundaries source-reviewed; atomic guest challenge quotas and remaining legacy message/publication writes still incomplete"
+      }
+    ],
+    "verification": {
+      "application": 453,
+      "providerAndLegacyPostgresStages": 21,
+      "budgetPostgresStages": 31,
+      "allEdgeEntryChecks": 25,
+      "hosted": false
+    },
+    "riskRegister": [
+      {
+        "priority": "High before affected activation",
+        "item": "Live provider callback/session/subject verification and credential/deletion integration incomplete; keep all existing denial fences"
+      },
+      {
+        "priority": "High before affected deployment",
+        "item": "Existing hosted versions/grants not inspected; source fixes do not retroactively repair deployed legacy endpoints"
+      },
+      {
+        "priority": "Affected-path dependent; unresolved",
+        "item": "Four dependency advisory families; no compatible validated remediation; root lock unchanged"
+      },
+      {
+        "priority": "Medium/activation dependent",
+        "item": "Guest quota/proxy trust, custom-host DNS/egress, push receipts and remaining legacy writer races remain unaccepted"
+      },
+      {
+        "priority": "Operational approval gate",
+        "item": "Legacy EAS/Snack toolchain-review variable not set; no credential/protected-Environment acceptance or distribution run"
+      }
+    ],
+    "deepAuditComplete": false
   }
 }
