@@ -253,3 +253,7 @@ a.founder-business:focus-visible{outline:2px solid #83eaff;outline-offset:4px}
 .founder-business .founder-business-link{font-size:11px;margin-left:auto;color:#92e9ff;font-weight:720}
 @media(max-width:550px){.founder-business .founder-business-link{margin-left:0;width:100%}}
 @media(prefers-reduced-motion:reduce){a.founder-business{transition:none}}
+
+/* Approved original Slow Roast logo; whole brand card remains a link to slowroast.co.uk. */
+.founder-business-logo{width:92px;height:92px;flex:0 0 92px;display:block;object-fit:contain;object-position:center;border-radius:50%;background:#f9f6ef;border:1px solid #9a6a35;box-shadow:0 6px 20px #02091699}
+@media(max-width:550px){.founder-business-logo{width:80px;height:80px;flex-basis:80px}.founder-business>span:nth-child(2){flex:1;min-width:135px}}
