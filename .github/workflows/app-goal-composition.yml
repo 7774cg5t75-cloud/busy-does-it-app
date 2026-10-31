@@ -13,6 +13,10 @@ on:
       - 'src/screens/miniApps.js'
       - 'src/screens/appEnquiryRequestPreview.js'
       - 'scripts/check-contextual-app-enquiries.mjs'
+      - 'src/core/privateAppProject.mjs'
+      - 'supabase/functions/busy-mini-apps/privateProjectService.mjs'
+      - 'supabase/functions/busy-mini-apps/index.ts'
+      - 'scripts/check-private-app-project.mjs'
       - 'src/core/appGoalComposition.mjs'
       - 'src/core/appRecordComposition.mjs'
       - 'scripts/check-app-record-composition.mjs'
@@ -57,6 +61,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-private-app-project.mjs
           node scripts/check-frozen-source-evidence.mjs
           node scripts/check-contextual-app-enquiries.mjs
           node scripts/check-app-record-composition.mjs

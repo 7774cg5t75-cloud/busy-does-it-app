@@ -2973,6 +2973,13 @@
         "scripts/check-frozen-source-evidence.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "private-app-project",
+      "args": [
+        "scripts/check-private-app-project.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

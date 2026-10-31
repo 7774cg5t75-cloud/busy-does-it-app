@@ -1,3 +1,4 @@
+import {savePrivateAppProject} from '../core/privateAppProject.mjs';
 import {approvedCompositionFeed,appRecordReview,currentAppRecordReview} from '../core/appRecordComposition.mjs';
 import {AppGoalCompositionEditor} from './appGoalCompositionEditor';
 import {WorkflowStatus} from '../components/WorkflowChrome';
@@ -1262,6 +1263,9 @@ function MiniAppBuilder({ s }) {
       <Button label="Talk & Explore — no project changes" disabled={!app||!view.draftConfig||!!s.miniAppsAction||studio.pending||studio.uncertain} onPress={()=>s.requestOwnerEditTransition?s.requestOwnerEditTransition(()=>setExplore(true)):setExplore(true)}/>
       {app?<AppGoalCompositionEditor key={['goal-composition',s.ownerSession?.userId,s.cloudWorkspace?.businessId,ownerEditorEpoch].join(':')}
         ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog||[]}
+        onProjectObserved={s.connectedRuntime?.active?()=>s.refreshMiniAppsStatus({quiet:true}):undefined}
+        onSaveProject={s.connectedRuntime?.active?args=>savePrivateAppProject({...args,ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,catalog:view.catalog||[],write:payload=>s.miniAppsRequest('save_project_spec',payload),readStatus:()=>s.miniAppsRequest('owner_status')}):undefined}
+        onUndoProject={s.connectedRuntime?.active?args=>savePrivateAppProject({...args,operation:'undo',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,catalog:view.catalog||[],write:payload=>s.miniAppsRequest('save_project_spec',payload),readStatus:()=>s.miniAppsRequest('owner_status')}):undefined}
         initialGoal={s.miniAppBuildBrief||''} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
         Surface={MiniAppSurface} recordsFeed={approvedRecords.feed} onRefreshRecords={async()=>{try{const result=await s.businessContentRequest('content_list');const feed=approvedCompositionFeed(result,s.cloudWorkspace?.businessId);approvedRecords.onApprovedRecords(feed.ok?feed:null);return feed;}catch(error){approvedRecords.onApprovedRecords(null);throw error;}}} onDraftChange={value=>markOwnerDirty('goal-composition',value)}
         onPreview={plan=>plan?setStudioPreview(plan,'goal-composition'):proposalDraft.current?.part==='goal-composition'?setStudioPreview(null,'goal-composition'):false}/>:null}

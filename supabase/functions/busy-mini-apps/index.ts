@@ -1,3 +1,4 @@
+import {savePrivateProject} from './privateProjectService.mjs';
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
 import {requireCentralAiAdmission,legacyAiAdmissionStatus} from '../_shared/legacyAiAdmission.mjs';
@@ -4357,6 +4358,12 @@ Deno.serve(async (request: Request) => {
       return json(200,{ok:true,
         ...(await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
         status:await readCurrentStatus()});
+    }
+    if (action === "save_project_spec") {
+      if(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co")throw Error("Private project specification authority is unavailable in this environment.");
+      const app=await appForBusiness(resolvedBusinessId);
+      const result=await savePrivateProject({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,catalog:await moduleCatalog(),body,profileRevision:Number(body.expectedProfileRevision)});
+      return json(200,{ok:true,...result,status:await readCurrentStatus()});
     }
     if (action === "apply_coordinated_edits") {
       return json(200,{ok:true,

@@ -90,6 +90,10 @@
     {
       "path": "docs/sql-proposals/connected-builders/listing-lifecycle.sql",
       "sha256": "9c961ecb51142ef23f760315232c6db924b829b5bf0e0d7ca9a29ae8beee66ee"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/private-app-project.sql",
+      "sha256": "e054a05cbff7752c87647e9fb779ef53cef4e2f0ef4e228c46373a1e1d9d286c"
     }
   ],
   "supplements": [
@@ -362,7 +366,7 @@
       "sha256": "722b84a7bbe6dde9fe6e8145a0a9fc64e344e63ad59a3c98bd489cec742f66d5"
     }
   ],
-  "sha256": "176d0e4153012ab93457b3c9ee010a688044d61b0bb01baaad070909847aa95f",
+  "sha256": "287cf9cf52b85a7a52ed6e120eb8fc89216d2360e9d416e3083cb74a19489f8d",
   "rollbackSha256": "0155a9858e8c32851212cdf63051f3be9ff979799f70639ff07d2d7af2e94106",
   "retainedReaders": [
     "busy_connected_website_history_v1",
@@ -389,6 +393,7 @@
     "busy_growth_opportunity_operation_v1"
   ],
   "functionSignatures": {
+    "busy_connected_app_spec_commit_v1": "uuid, uuid, uuid, bigint, bigint, text, jsonb",
     "busy_connected_website_history_v1": "uuid, bigint, text, text",
     "busy_connected_website_transition_v1": "uuid, uuid, bigint, jsonb, jsonb, bigint, text",
     "busy_connected_initialize_v1": "uuid",
@@ -460,6 +465,7 @@
     "busy_growth_opportunity_operation_v1"
   ],
   "serviceFunctions": [
+    "busy_connected_app_spec_commit_v1",
     "busy_connected_website_transition_v1",
     "busy_connected_website_commit_v1",
     "busy_connected_first_app_v1",
@@ -468,16 +474,24 @@
   ],
   "dependencies": [
     {
+      "path": "src/core/privateAppProject.mjs",
+      "sha256": "cc97cfa11c43366ed6ff1117b7ea7f624f42008d5f235cc6c199975aaa365e76"
+    },
+    {
+      "path": "supabase/functions/busy-mini-apps/privateProjectService.mjs",
+      "sha256": "54b78d771610ad7aa6e3bcc0068793541e4331649971e899b2ff13ff4a56c9a9"
+    },
+    {
       "path": "scripts/lib/staging-installation-security.mjs",
       "sha256": "0ed188104768e4530fa3a80b68c5e424523f769916f92acef70298ecb3bcafb7"
     },
     {
       "path": "scripts/lib/whole-app-staging-package.mjs",
-      "sha256": "89fd96b032ec35c5d7bb89c08f2598e001ab5e8a461a92ec3b793a6ec8176c86"
+      "sha256": "6916a64499e97ec3c6b675be38e42f1b5b145b22ea90c3a1668bd3affcdb5c20"
     },
     {
       "path": "scripts/lib/whole-app-function-signatures.mjs",
-      "sha256": "a1c6811c2ffdd2ec3773f9be736f2eab5565bd5c9837f17ff7bf17e8c98cae4c"
+      "sha256": "00d731cd968139d938eb91f0b1e14eff8f82a2ee71a60f664abfe33d62048cfc"
     },
     {
       "path": "package-lock.json",
@@ -493,7 +507,7 @@
     },
     {
       "path": "supabase/functions/busy-mini-apps/index.ts",
-      "sha256": "00cdbaf87d287f527fd06761c241e5bb387a2e5d4fed8e6f0d247d66afa7d14f"
+      "sha256": "1fe49b2d4eec858d56687ad41784bee283d074b7fb5c00d3dc18b3eef60d4515"
     },
     {
       "path": "supabase/functions/busy-mini-apps/commitPrivateDraft.mjs",
@@ -513,7 +527,7 @@
     },
     {
       "path": "supabase/functions/_shared/connectedStagingActions.mjs",
-      "sha256": "a4a8c24233593d2844cef8c19b223fd1ca786b60a8579a613068501927e7babd"
+      "sha256": "5941c5557068926817b7eb6496f91566727aaf04646189833fe3b6bf6a52125b"
     },
     {
       "path": "scripts/lib/connected-hosted-acceptance.mjs",
@@ -521,7 +535,7 @@
     },
     {
       "path": "src/staging/stagingAuthInspectorV3131.mjs",
-      "sha256": "8ba7aa9bb2dd27a9fe52701a66fffe661a25af11ca07574d8f0e6b73139c8d22"
+      "sha256": "bf67042bd559b60e8fe17f0e733fdceb390b639ce02dd4ee4aafa27c1c9e27d9"
     },
     {
       "path": "docs/sql-proposals/connected-builders/whole-app-staging-metadata-2026-10-30.json",

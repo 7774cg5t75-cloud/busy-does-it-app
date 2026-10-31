@@ -1,3 +1,5 @@
+import {preparePrivateAppProject,reopenPrivateAppProject,savePrivateAppProject} from '../src/core/privateAppProject.mjs';
+import {savePrivateProject} from '../supabase/functions/busy-mini-apps/privateProjectService.mjs';
 import {publicBusinessContent} from '../src/core/businessContentRecords.mjs';
 import {prepareContextualAppEnquiry,filedAppEnquirySource,resolveAppEnquirySource} from '../src/core/appEnquirySource.mjs';
 import {readBusinessContent} from '../supabase/functions/_shared/businessContentStore.mjs';
@@ -160,6 +162,19 @@ try{
  });
  const context={scope:{},ownerId:O,businessId:B,role:'owner',ready:true};const growth=()=>createGrowthOpportunityAccount({enabled:true,getCurrent:()=>context,authenticatedRequest:(name,args)=>request('growth_'+name,{...args,businessId:B})}),creator=()=>createCreatorDraftAccount({enabled:true,getCurrent:()=>context,authenticatedRequest:(name,args)=>request('creator_'+name,{...args,businessId:B})});
  let opportunity,reference,content={schemaVersion:1,text:'Fictional garden service announcement. Not published.',brief:'Owner requested service information.',format:'social',treatment:'standard',channels:[],media:[],brandFingerprint:basis.profileHash,ownerFacts:basis.profile.services[0].description,preparedCopy:'Owner-reviewed source wording.'};
+ await stage('private-bespoke-project-original-app-save-fresh-reopen-and-undo',async()=>{
+  const before=readApp(),ctx=appCompositionContext({ownerId:O,businessId:B,app:before,catalog}),proposal=proposeLocalAppGoal(ctx,'Show services and let customers enquire').proposal;
+  const write=body=>savePrivateProject({client:serviceClient,businessId:B,actorId:O,app:readApp(),catalog,body,profileRevision:basis.profileRevision}).then(r=>({ok:true,...r}));
+  const saved=await savePrivateAppProject({ownerId:O,businessId:B,app:before,catalog,proposal,isCurrent:()=>true,write,readStatus:async()=>({app:readApp()})});assert.equal(saved.ok,true,saved.reason);assert.deepEqual(readApp().draft_config,before.draft_config);assert.deepEqual(readApp().private_project_spec,proposal);assert.equal(reopenPrivateAppProject({ownerId:O,businessId:B,app:readApp(),catalog}).ok,true);
+  await assert.rejects(()=>write({appId:before.id,expectedRevision:before.draft_revision,ownerApproved:true,operation:'save',proposal}));
+  const undo=await savePrivateAppProject({ownerId:O,businessId:B,app:readApp(),catalog,operation:'undo',isCurrent:()=>true,write,readStatus:async()=>({app:readApp()})});assert.equal(undo.ok,true,undo.reason);assert.equal(readApp().private_project_spec,null);assert.deepEqual(readApp().draft_config,before.draft_config);
+ });
+ await stage('private-project-server-member-scope-and-malformed-descriptions-denied',async()=>{
+  const current=readApp(),ctx=appCompositionContext({ownerId:O,businessId:B,app:current,catalog}),proposal=proposeLocalAppGoal(ctx,'Show products and contact information').proposal;
+  for(const bad of [{...proposal,scope:{...proposal.scope,businessId:F}},{...proposal,app:{...proposal.app,execute:'Forbidden'}},{...proposal,app:{...proposal.app,screens:[{id:'pay',title:'Pay now',module:'charge_anyone',next:[]}]}}])assert.throws(()=>service('busy_connected_app_spec_commit_v1',[B,O,current.id,current.draft_revision,basis.profileRevision,'save',bad]));
+  assert.throws(()=>service('busy_connected_app_spec_commit_v1',[B,P,current.id,current.draft_revision,basis.profileRevision,'save',proposal]));assert.throws(()=>rpc('busy_connected_app_spec_commit_v1',[B,O,current.id,current.draft_revision,basis.profileRevision,'save',proposal]));
+  sql('DELETE FROM public.busy_business_memberships WHERE business_id='+q(B)+' AND user_id='+q(O));assert.throws(()=>service('busy_connected_app_spec_commit_v1',[B,O,current.id,current.draft_revision,basis.profileRevision,'save',proposal]));sql('INSERT INTO public.busy_business_memberships(business_id,user_id,role)VALUES('+[B,O,'owner'].map(q).join(',')+')');assert.equal(readApp().draft_revision,current.draft_revision);
+ });
  await stage('original-growth-context-record-review-no-provider-claims',async()=>{const api=growth(),t=api.review({action:'create',fields:{title:'Fictional community notice',description:'Owner supplied fictional opportunity',source:'Synthetic owner notice',serviceId:'lawns',permission:'permitted'},operationId:'whole_growth_create'});const result=await api.commit(t);assert.equal(result.ok,true);opportunity=await api.read(result.receipt.opportunityId);assert.equal(api.reference(opportunity),null);const review=api.review({action:'reinspect',base:opportunity,operationId:'whole_growth_reinspect'});assert.equal((await api.commit(review)).ok,true);opportunity=await api.read(opportunity.opportunityId);reference=api.reference(opportunity);assert.ok(reference);assert.equal(opportunity.contactPermission,'not_established');});
 
  await stage('growth-dropped-ack-blocks-pre-reviewed-second-write-until-exact-observation',async()=>{
