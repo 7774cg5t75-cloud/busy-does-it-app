@@ -95,3 +95,6 @@
  .intro{padding-top:63px}
 }
 @media(prefers-reduced-motion:reduce){.quick-tile{transition:none}.quick-tile:hover{transform:none}}
+
+/* Review polish: keep the decorative orb caption clear of any note text. */
+.orb-note{display:none}
