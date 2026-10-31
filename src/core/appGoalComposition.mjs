@@ -13,7 +13,7 @@ const same=(a,b)=>stableJson(a)===stableJson(b);
 // The saved app profile belongs to this exact draft revision, not an inferred
 // Business Brain revision. No external facts or credentials enter this anchor.
 export function appCompositionContext({ownerId,businessId,app,catalog}={}){
- if(!Array.isArray(catalog)||catalog.length>50||new Set(catalog.map(r=>r?.module_key)).size!==catalog.length)return no('Recheck the current feature catalogue before preparing an app.');
+ if(!Array.isArray(catalog)||catalog.length>50||catalog.some(r=>!r||typeof r!=='object'||Array.isArray(r)||typeof r.module_key!=='string'||!(/^[a-z][a-z_]{0,39}$/).test(r.module_key)||typeof r.status!=='string'||r.module_version!==undefined&&(!Number.isSafeInteger(r.module_version)||r.module_version<1))||new Set(catalog.map(r=>r.module_key)).size!==catalog.length)return no('Recheck the current feature catalogue before preparing an app.');
  if(!privateAppEditSource({businessId,app})||!enabledAppKeys(app.draft_config).ok)return no('Open your current private app first.');
  return createBuilderProposalContext({ownerId,businessId,projectId:app.id,sourceRevision:app.draft_revision,profileRevision:app.draft_revision,surface:'app',project:app,profile:app.draft_config.publicProfile||{},catalog});
 }
