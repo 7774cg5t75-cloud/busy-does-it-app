@@ -41,3 +41,17 @@ const listingJourney=createConnectedEnquiryJourney({businessId:B,ownerId:O,reque
 }});
 const originalReview=await listingJourney.review(source.requestId),pendingReview=await listingJourney.importSource(originalReview);assert.equal(pendingReview.ok,true);await assert.rejects(()=>listingJourney.file(pendingReview.review,{}),/listing enquiry/);assert.equal(filingWrites,0);assert.equal(listingJourney.uncertain,false);assert.equal(pendingReview.review.pending.pending.rawText,source.message);
 console.log('PASS original listing handoff refuses unsupported Customer filing before dispatch; Pending source and future review retained.');
+// Run each distinct scenario through the ORIGINAL app surface, original listing
+// or service action, owner form state and original request validation boundary.
+for(const scenario of scenarios){
+ const runtime=createRuntime();Object.assign(runtime.load('src/core/appEnquirySource.mjs'),contracts);
+ const Preview=runtime.load('src/screens/appEnquiryRequestPreview.js').AppEnquiryRequestPreview,App=runtime.load('src/screens/miniApps.js').MiniAppSurface,Collection=runtime.load('standalone/template/businessContentView.js').BusinessContentView;
+ const p={ownerId:O,businessId:scenario.businessId,app:scenario.app,catalog,config:scenario.app.draft_config,feed:scenario.feed,Surface:'OriginalSurface'},render=()=>runtime.render(Preview,p);
+ const surface=runtime.render(App,walk(render()).find(n=>n.type==='OriginalSurface').props);
+ if(scenario.selection.kind==='listing'){
+  const row=scenario.feed.records.find(r=>r.id===scenario.selection.recordId),block=walk(surface).find(n=>n.props?.kind===row.kind&&typeof n.props?.onInterest==='function');assert.ok(block,scenario.name);
+  const collection=runtime.render(Collection,block.props),action=walk(collection).find(n=>n.type==='Pressable'&&text(n)==='Ask about '+row.data.name);assert.ok(action,scenario.name);action.props.onPress();
+ }else{const action=walk(surface).find(n=>n.props?.label==='Ask about Patio Cleaning');assert.ok(action);action.props.onPress();}
+ let form=walk(render()).find(n=>n.props?.previewOnly).props.form;form.setName('Fictional component customer');form.setEmail('component@example.invalid');form.setMessage('My original question for '+scenario.name);form=walk(render()).find(n=>n.props?.previewOnly).props.form;assert.equal(form.enquiryReady.ok,true,scenario.name);form.reviewExample();const rendered=text(render());assert.ok(rendered.includes(scenario.selection.kind==='listing'?'Listing reference: '+scenario.selection.recordId:'Service reference: patio'));assert.ok(rendered.includes('My original question for '+scenario.name));assert.ok(rendered.includes('not submitted'));
+}
+console.log('PASS original food product/event, retail product and trades service components select exact context and prepare original customer fields. Inert local preview; no public submission.');
