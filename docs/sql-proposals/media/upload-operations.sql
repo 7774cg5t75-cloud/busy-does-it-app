@@ -43,6 +43,13 @@ BEGIN
  IF p_action='begin' AND(op.selection_id IS DISTINCT FROM p_selection_id OR op.sha256 IS DISTINCT FROM p_sha256 OR op.byte_length IS DISTINCT FROM p_byte_length OR op.content_type IS DISTINCT FROM p_content_type)THEN RAISE EXCEPTION 'Upload request identity collision' USING ERRCODE='40001';END IF;
  IF p_action='commit' AND op.state='pending' THEN
   IF p_verified_path IS NULL OR p_verified_path!~('^'||p_business_id::text||'/'||p_actor_id::text||'/[a-f0-9-]{36}\.(png|jpg|webp)$') OR NOT EXISTS(SELECT 1 FROM storage.objects o JOIN storage.buckets b ON b.id=o.bucket_id AND b.public=false WHERE o.bucket_id='busy-website-originals' AND o.name=p_verified_path) THEN RAISE EXCEPTION 'Verified original object required' USING ERRCODE='42501';END IF;
+  -- Bind completion to this server-minted path or the exact prior canonical
+  -- digest asset. A different existing private object is not a substitute.
+  IF p_verified_path IS DISTINCT FROM op.planned_path AND NOT EXISTS(SELECT 1 FROM public.busy_website_original_media m WHERE m.business_id=p_business_id AND m.uploaded_by=p_actor_id AND m.sha256=op.sha256 AND m.storage_path=p_verified_path AND m.byte_length=op.byte_length AND m.content_type=op.content_type) THEN RAISE EXCEPTION 'Original operation path mismatch' USING ERRCODE='42501';END IF;
+  PERFORM 1 FROM storage.buckets WHERE id='busy-website-originals' AND public=false FOR SHARE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Private original bucket unavailable' USING ERRCODE='42501';END IF;
+  PERFORM 1 FROM storage.objects WHERE bucket_id='busy-website-originals' AND name=p_verified_path FOR SHARE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Private original object unavailable' USING ERRCODE='42501';END IF;
   -- Storage bytes are verified by the original trusted gateway immediately
   -- before this finite call. This transaction binds registry + operation only.
   INSERT INTO public.busy_website_original_media(business_id,uploaded_by,storage_path,content_type,byte_length,sha256)VALUES(p_business_id,p_actor_id,p_verified_path,op.content_type,op.byte_length,op.sha256)ON CONFLICT(business_id,uploaded_by,sha256)DO NOTHING;
@@ -56,6 +63,9 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.busy_original_upload_operation_v1(text,uuid,uuid,text,text,text,integer,text,text,uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.busy_original_upload_operation_v1(text,uuid,uuid,text,text,text,integer,text,text,uuid) TO service_role;
+-- Only the original finite transaction may create/update canonical asset metadata.
+REVOKE INSERT,UPDATE,DELETE ON public.busy_website_original_media FROM PUBLIC,anon,authenticated,service_role;
+DO $$ DECLARE c record;BEGIN FOR c IN SELECT attname FROM pg_attribute WHERE attrelid='public.busy_website_original_media'::regclass AND attnum>0 AND NOT attisdropped LOOP EXECUTE format('REVOKE INSERT (%I),UPDATE (%I) ON public.busy_website_original_media FROM PUBLIC,anon,authenticated,service_role',c.attname,c.attname);END LOOP;END $$;
 DO $$ BEGIN
  IF has_function_privilege('anon','public.busy_original_upload_operation_v1(text,uuid,uuid,text,text,text,integer,text,text,uuid)','EXECUTE') OR has_function_privilege('authenticated','public.busy_original_upload_operation_v1(text,uuid,uuid,text,text,text,integer,text,text,uuid)','EXECUTE') OR has_table_privilege('authenticated','public.busy_original_upload_operations','SELECT,INSERT,UPDATE,DELETE') THEN RAISE EXCEPTION 'Unexpected effective upload privileges' USING ERRCODE='42501';END IF;
 END $$;

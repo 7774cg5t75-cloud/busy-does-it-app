@@ -1,3 +1,4 @@
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from './websitePageGuide.mjs';
@@ -1248,6 +1249,7 @@ Deno.serve(async (request: Request) => {
 
   try {
     const body = await boundedJson(request,16384) as Record<string,unknown>;
+    if(!legacyConsequentialAllowed('website_worker','dispatch'))return json(503,{ok:false,error:'Publication worker authority is not activated.'});
     const limit = Math.min(12, Math.max(1, Number(body?.limit) || 5));
 
     const stale = await supabase.rpc(

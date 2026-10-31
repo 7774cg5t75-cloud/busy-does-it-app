@@ -1,3 +1,4 @@
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import { createClient } from "../_shared/supabaseClient.ts";
 
@@ -1141,6 +1142,7 @@ Deno.serve(async (request: Request) => {
   try {
     const body = await boundedJson(request,16384) as Record<string,unknown>;
     const action = clean(body?.action, 80) || "status";
+    if(!legacyConsequentialAllowed('website_provider',action))return json(503,{ok:false,error:'Provider changes require separately reviewed authority.'});
     if (action === "status") {
       const config = providerConfig();
       const preflight = await platformPreflight();

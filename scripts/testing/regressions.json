@@ -2924,6 +2924,13 @@
         "scripts/check-security-phase4.mjs"
       ],
       "timeoutSeconds": 60
+    },
+    {
+      "id": "check-security-phase5",
+      "args": [
+        "scripts/check-security-phase5.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

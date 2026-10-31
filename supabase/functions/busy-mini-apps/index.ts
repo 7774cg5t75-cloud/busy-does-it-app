@@ -1,3 +1,5 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
 import {requireCentralAiAdmission,legacyAiAdmissionStatus} from '../_shared/legacyAiAdmission.mjs';
 import {scopedOwnerStatus} from './scopedOwnerStatus.mjs';
 import {commitPrivateDraft} from './commitPrivateDraft.mjs';
@@ -270,6 +272,7 @@ async function dispatchMiniAppPush({
   body,
   data = {},
 }: any) {
+  if(!legacyConsequentialAllowed('app_push','dispatch'))return {sent:0,deliveryVerified:false,dispatchAvailable:false};
   const ids = [...new Set(safeArray(userIds).map((value) => clean(value, 80)).filter(Boolean))];
   if (!ids.length || !businessId || !notificationKey) return { sent: 0 };
   let sent = 0;
@@ -4088,13 +4091,14 @@ Deno.serve(async (request: Request) => {
 
   try {
     const user = await requireUser(request);
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16_000_000) as Record<string,unknown>;
     const exploreGate=builderExploreRemoteGuard(body);
     if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
     if(body?.connectedStaging===true&&(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co"||Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED")!=="true"))
       return json(403,{ok:false,error:"Connected staging builders are not activated"});
     const action = clean(body?.action, 80);
     if(!connectedStagingAction({projectUrl:SUPABASE_URL,enabled:Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED"),domain:"app",action}).allowed)return json(403,{ok:false,error:"This action is not enabled in connected staging"});
+    if(!legacyConsequentialAllowed('app',action))return json(503,{ok:false,error:'This customer or hosted action requires its separately reviewed authority. Your private draft is unchanged.'});
     const businessId = clean(body?.businessId, 80);
     const requestId =
       clean(request.headers.get("x-busy-request-id"), 180) ||
@@ -4103,7 +4107,7 @@ Deno.serve(async (request: Request) => {
     if (action === "directory_search") {
       return json(200, {
         ok: true,
-        apps: await directorySearch(body?.query),
+        apps: await directorySearch(clean(body?.query,160)),
       });
     }
     if (action === "app_detail") {
@@ -4521,6 +4525,7 @@ Deno.serve(async (request: Request) => {
 
     return json(400, { error: "Unknown BUSY Apps action." });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{ok:false,error:error.message});
     return json(400, {
       error:
         error instanceof Error

@@ -1,3 +1,5 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
 import {connectedStagingAction} from '../_shared/connectedStagingActions.mjs';
 import {privateWebsiteDraftAction} from './privateDraftService.mjs';
 import {builderExploreRemoteGuard} from '../_shared/builderExploreRemoteGuard.mjs';
@@ -1344,11 +1346,12 @@ Deno.serve(async (request: Request) => {
 
   try {
     const user = await requireUser(request);
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16_000_000) as Record<string,unknown>;
     const exploreGate=builderExploreRemoteGuard(body);
     if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
     const action = cleanText(body?.action, 80);
     if(!connectedStagingAction({projectUrl:SUPABASE_URL,enabled:Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED"),domain:"website",action}).allowed)return json(403,{ok:false,error:"This action is not enabled in connected staging"});
+    if(!legacyConsequentialAllowed('website',action))return json(503,{ok:false,error:'This hosted action requires its separately reviewed authority. Your private draft is unchanged.'});
     const requestedBusinessId = cleanText(body?.businessId, 80);
     const writeActions = new Set([
       "website_create","website_edit_text","website_edit_design","website_edit_page","website_edit_instruction","website_undo","website_redo",
@@ -1553,6 +1556,7 @@ Deno.serve(async (request: Request) => {
 
     return json(400, { error: "Unknown website publishing action." });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{ok:false,error:error.message});
     return json(400, {
       error: error instanceof Error ? error.message : "Website publishing request failed.",
     });

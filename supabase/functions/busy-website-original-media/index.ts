@@ -96,8 +96,9 @@ async function upload(req:Request,raw:any,userId:string,businessId:string){
  const inserted=await supabase.from(TABLE).insert({business_id:businessId,
   uploaded_by:userId,storage_path:path,content_type:mime,byte_length:bytes.length,sha256:digest});
  if(inserted.error){
-  await supabase.storage.from(BUCKET).remove([path]);
-  throw inserted.error;
+  // An error can follow a committed metadata write. Never destroy the object
+  // on an unknown acknowledgement; use the finite operation's inspection.
+  throw Error("Original upload outcome is unconfirmed. Keep the object for reviewed reconciliation.");
  }
  await audit(userId,businessId,path,"upload",bytes.length);
  return success({storagePath:path,reused:false,bytes:bytes.length,contentType:mime});
@@ -112,6 +113,7 @@ async function download(raw:any,userId:string,businessId:string){
  if(!record.data||record.data.byte_length>MAX)return fail(404,"Approved cloud original was not found.");
  const result=await supabase.storage.from(BUCKET).download(path);
  if(result.error||!result.data)return fail(404,"The original photograph is not available.");
+ if(result.data.size>MAX||result.data.size!==record.data.byte_length)return fail(409,"The original size changed. Review the saved asset.");
  const bytes=new Uint8Array(await result.data.arrayBuffer());
  if(bytes.length!==record.data.byte_length||inspect(bytes)!==record.data.content_type)
   return fail(409,"The backed-up original did not pass the integrity checks.");
@@ -134,10 +136,14 @@ Deno.serve(async req=>{
   const userId=await auth(req,businessId);
   if(typeof raw?.action==='string'&&['creator_upload','creator_upload_inspect','creator_upload_list'].includes(raw?.action)){
    if(!UPLOAD_OPERATIONS_ENABLED)return fail(503,'Creator upload operations are not activated.');
-   const value=raw.action==='creator_upload'?await uploadOperations.upload(raw,userId,businessId):raw.action==='creator_upload_inspect'?await uploadOperations.inspect(raw,userId,businessId):await uploadOperations.list(raw,userId,businessId);return success(value);
+   const value=raw.action==='creator_upload'?await uploadOperations.upload(raw,userId,businessId):raw.action==='creator_upload_inspect'?await uploadOperations.inspect(raw,userId,businessId):await uploadOperations.list(raw,userId,businessId);if(await auth(req,businessId)!==userId)throw Error("Your session expired. Sign in again.");return success(value);
   }
-  if(raw?.action==="upload")return await upload(req,raw,userId,businessId);
-  if(raw?.action==="download")return await download(raw,userId,businessId);
+  if(raw?.action==="upload")return fail(503,"Legacy original uploads are unavailable. Use the separately reviewed private upload operation when activated.");
+  if(raw?.action==="download"){
+   const result=await download(raw,userId,businessId);
+   if(await auth(req,businessId)!==userId)throw Error("Your session expired. Sign in again.");
+   return result;
+  }
   return fail(400,"Unknown photo transfer action.");
  }catch(error){
   if(error instanceof BoundedRequestError)return fail(error.status,error.message);

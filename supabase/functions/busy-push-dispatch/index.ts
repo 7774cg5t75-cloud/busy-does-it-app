@@ -1,3 +1,4 @@
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 
@@ -35,6 +36,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "POST required." });
 
+  if(!legacyConsequentialAllowed('push','test'))return json(503,{sent:0,error:'Remote push requires separately reviewed idempotent dispatch authority.'});
   const user = await currentUser(req);
   if (!user?.id) return json(401, { error: "Authenticated BUSY owner required." });
 
