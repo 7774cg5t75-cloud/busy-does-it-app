@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Busy assistant orb, adapted faithfully from BusyOrb.js">
+ <defs>
+  <radialGradient id="halo"><stop offset=".34" stop-color="#536AFF" stop-opacity="0"/><stop offset=".64" stop-color="#6D44E9" stop-opacity=".32"/><stop offset=".8" stop-color="#246DFF" stop-opacity=".12"/><stop offset="1" stop-color="#246DFF" stop-opacity="0"/></radialGradient>
+  <radialGradient id="core" cx="40%" cy="35%"><stop offset="0" stop-color="#182A43"/><stop offset="1" stop-color="#080F20"/></radialGradient>
+  <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0" stop-color="#42E7FF"/><stop offset=".28" stop-color="#4385FF"/><stop offset=".58" stop-color="#9172FF"/><stop offset=".78" stop-color="#F05DDD"/><stop offset="1" stop-color="#6E8CFF"/></linearGradient>
+  <radialGradient id="cyan"><stop offset="0" stop-color="#65F1FF" stop-opacity=".8"/><stop offset="1" stop-color="#1C95FF" stop-opacity="0"/></radialGradient>
+  <radialGradient id="pink"><stop offset="0" stop-color="#FF75E7" stop-opacity=".75"/><stop offset="1" stop-color="#B847FF" stop-opacity="0"/></radialGradient>
+  <radialGradient id="electric"><stop offset="0" stop-color="#E7FFFF"/><stop offset=".13" stop-color="#38ECFF" stop-opacity=".98"/><stop offset=".42" stop-color="#147EFF" stop-opacity=".55"/><stop offset="1" stop-color="#147EFF" stop-opacity="0"/></radialGradient>
+ </defs>
+ <circle cx="100" cy="100" r="99" fill="url(#halo)"/>
+ <circle cx="100" cy="100" r="65" fill="url(#core)"/>
+ <circle cx="100" cy="100" r="68" fill="none" stroke="url(#ring)" stroke-width="22" opacity=".22"/>
+ <circle cx="100" cy="100" r="68" fill="none" stroke="url(#ring)" stroke-width="10" opacity=".6"/>
+ <circle cx="100" cy="100" r="68" fill="none" stroke="url(#ring)" stroke-width="4.5"/>
+ <ellipse cx="46" cy="64" rx="32" ry="40" fill="url(#cyan)"/>
+ <ellipse cx="157" cy="130" rx="33" ry="40" fill="url(#pink)"/>
+ <path d="M38 77A67 67 0 0 1 115 34M163 122a67 67 0 0 1-45 43" fill="none" stroke="#E0F7FF" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
+ <path d="M34 105A68 68 0 0 1 105 32" fill="none" stroke="#26E7FF" stroke-width="5" stroke-linecap="round"/>
+ <path d="M138 44A68 68 0 0 1 165 120M139 154A68 68 0 0 1 72 161" fill="none" stroke="#FF49D6" stroke-width="4" stroke-linecap="round"/>
+ <path d="M53 148A68 68 0 0 0 146 149" fill="none" stroke="#29CFFF" stroke-width="3" stroke-linecap="round"/>
+ <circle cx="48" cy="56" r="25" fill="url(#electric)"/><circle cx="142" cy="47" r="23" fill="url(#pink)"/>
+ <circle cx="48" cy="56" r="2.8" fill="#DBFFFF"/><circle cx="145" cy="49" r="3" fill="#FFE9FC"/>
+ <path d="M40 117A61 61 0 0 0 111 160M121 41A61 61 0 0 1 160 102" stroke="#8766FF" stroke-width="1.3" fill="none" opacity=".7"/>
+ <circle cx="100" cy="100" r="59" fill="none" stroke="#A8CAFF" stroke-width=".7" opacity=".26"/>
+ <g transform="translate(84 84)"><rect x="12" y="4" width="8" height="15" rx="4" fill="none" stroke="#F2F5FC" stroke-width="2"/><path d="M8 14v2a8 8 0 0 0 16 0v-2M16 24v4m-5 0h10" fill="none" stroke="#F2F5FC" stroke-width="2" stroke-linecap="round"/></g>
+</svg>
