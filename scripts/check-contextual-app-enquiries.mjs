@@ -29,3 +29,15 @@ const fields=walk(draw()).find(n=>n.props?.previewOnly).props.form;fields.setNam
 find('Return to app information; keep my example').props.onPress();assert.equal(walk(draw()).some(n=>n.props?.previewOnly),false);find('Continue my example enquiry').props.onPress();assert.equal(walk(draw()).find(n=>n.props?.previewOnly).props.form.message,'Keep my own words');const late=walk(draw()).find(n=>n.props?.previewOnly).props.form.reviewExample;props.feed={...feed,records:[]};draw();assert.equal(late(),false);assert.equal(walk(draw()).find(n=>n.props?.previewOnly).props.form.enquiryReady.ok,false);find('Remove selected item; keep my words').props.onPress();assert.equal(walk(draw()).find(n=>n.props?.previewOnly).props.form.message,'Keep my own words');props.ownerId=C;assert.equal(draw(),null);
 for(const words of ['Let customers enquire about a specific product','Make it easy to contact us from the menu','Put an enquiry option on each service'])assert.equal(refineRecordAppChoice(words,{selection:{order:['business_profile'],appearance:{},labels:{}},choices:[],config:food.draft_config}).alreadyConfigured,true);
 console.log('PASS four independently scoped original product/event/service preparations, exact references/options, untrusted-price separation, original listing-to-form interaction, wording retention/return, stale/foreign/withdrawn denial and source readback matching. No public submission/provider/hosted/native acceptance.');
+// Exercise the ORIGINAL account handoff: unsupported listing filing is refused
+// before any request, while retaining the pending ticket and customer words.
+const {createConnectedEnquiryJourney}=await import('../src/staging/connectedEnquiryJourney.mjs');let filingWrites=0;
+const listingJourney=createConnectedEnquiryJourney({businessId:B,ownerId:O,request:async(action)=>{
+ if(action==='app_enquiry_review')return {...source,ownerId:O};
+ if(action==='builder_read')return {businessId:B,actorId:O,revision:1};
+ if(action==='app_enquiry_import')return {businessId:B,actorId:O,revision:2,enquiryId:'original_pending'};
+ if(action==='pending_review')return {businessId:B,ownerId:O,pending:{id:'original_pending',rawText:source.message}};
+ filingWrites++;throw Error('No unsupported listing filing should be sent');
+}});
+const originalReview=await listingJourney.review(source.requestId),pendingReview=await listingJourney.importSource(originalReview);assert.equal(pendingReview.ok,true);await assert.rejects(()=>listingJourney.file(pendingReview.review,{}),/listing enquiry/);assert.equal(filingWrites,0);assert.equal(listingJourney.uncertain,false);assert.equal(pendingReview.review.pending.pending.rawText,source.message);
+console.log('PASS original listing handoff refuses unsupported Customer filing before dispatch; Pending source and future review retained.');
