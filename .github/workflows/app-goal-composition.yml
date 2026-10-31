@@ -16,7 +16,7 @@ permissions:
   contents: read
 concurrency:
   group: private-app-goal-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   original-source:
     runs-on: ubuntu-latest

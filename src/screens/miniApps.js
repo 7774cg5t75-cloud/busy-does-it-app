@@ -951,6 +951,7 @@ function MiniAppBuilder({ s }) {
     }
     return run();
   };
+  const recordApproval=React.useRef(false);
   const approvalEpoch=ownerDraftEpoch.current;
   const mayReplaceOwnerSource=()=>{
     if(liveControlContext.current!==controlContext||approvalEpoch!==ownerDraftEpoch.current)return false;
@@ -962,7 +963,6 @@ function MiniAppBuilder({ s }) {
     return true;
   };
 
-  const recordApproval=React.useRef(false);
   const approveOwnerDraft=async()=>{
     if(recordApproval.current||!mayReplaceOwnerSource())return {ok:false};
     if(studioPreview?.operations.some(op=>op.kind==='content_layout'&&op.value?.length)){
