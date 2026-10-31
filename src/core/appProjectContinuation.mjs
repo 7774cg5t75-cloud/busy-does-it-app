@@ -55,7 +55,7 @@ export function correctAppProject({words,proposal,context,current,selection,choi
   if(!supportedAppCatalogModule(current.anchor.catalog,'enquiry'))return no('Enquiries need their original available capability and review.');
   if(!next.app.screens.some(s=>s.module==='enquiry'))next.app.screens.push({id:'enquiry',title:'Customer enquiries',module:'enquiry',next:[]});notice='The idea includes enquiries. Only the existing enabled private enquiry preview can be used; no request is sent.';
  }else if(intent==='remove_booking'){
-  next.app.screens=next.app.screens.filter(s=>s.module!=='booking_request');notice='Booking is no longer requested in this idea. Any existing booking feature stays unchanged until its original feature controls are reviewed.';
+  next.app.screens=next.app.screens.filter(s=>s.module!=='booking_request'&&!(s.module===null&&s.id==='booking_request'));notice='Booking is no longer requested in this idea. Any existing booking feature stays unchanged until its original feature controls are reviewed.';
  }else if(intent==='explanation'){
   const answers=publicCollection('faqs',current.anchor.project.draft_config.publicProfile?.faqs||[]).filter(r=>/how.*(?:work|service)|process/i.test(r.question));
   if(answers.length){const i=next.app.screens.findIndex(s=>s.module==='business_profile');if(i>=0)next.app.screens.unshift(...next.app.screens.splice(i,1));notice='The existing business-information screen already shows your approved explanation. I can bring that screen earlier; the answer is unchanged.';}
