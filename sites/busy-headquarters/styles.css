@@ -283,3 +283,48 @@ a.founder-business:focus-visible{outline:2px solid #83eaff;outline-offset:4px}
   .hero-stage { min-height:144px; }
   .orb-halo { width:124px; height:124px; }
 }
+
+/* Founder story refresh: audience first, then real Slow Roast proof and a concise explanation. */
+.story.story-refined{display:block;padding-block:86px 90px}
+.story-refined-head{max-width:1000px;margin-bottom:32px}
+.story-refined-head h2{font-size:clamp(36px,4.5vw,61px);line-height:1.13;margin:16px 0 18px;max-width:950px}
+.story-refined-intro{font-size:17px;color:#b4c4db;line-height:1.65;max-width:740px;margin:0}
+.story-refined-body{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:32px;align-items:stretch}
+.story-refined .founder-business-featured{display:flex;align-items:center;align-content:center;flex-wrap:wrap;gap:18px;min-height:221px;margin:0;padding:28px;border:1px solid #365d87;border-radius:23px;background:radial-gradient(circle at 4% 93%,#1f4a8966,transparent 61%),linear-gradient(145deg,#152d51,#0c192e 85%);box-shadow:0 17px 36px #03091950}
+.story-refined .founder-business-logo{width:110px;height:110px;flex:0 0 110px;background:#f9f6ef}
+.story-refined .founder-business-identity{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;flex:1 1 150px}
+.story-refined .founder-business-identity strong{font-size:24px;line-height:1.18;color:#f2f7ff;letter-spacing:-.04em}
+.story-refined .founder-business-identity small{font-size:13px;line-height:1.4;color:#a9bad3}
+.story-refined .founder-business-link{display:inline-flex;align-items:center;margin:17px 0 0;width:auto;color:#86edff;font-size:13px;font-weight:750}
+.story-refined-explanation{padding:7px 4px}
+.story-refined-explanation h3{font-size:25px;letter-spacing:-.04em;line-height:1.25;margin:0 0 12px}
+.story-refined-explanation p{font-size:15px;line-height:1.7;color:#aebed6;margin:0 0 14px}
+.story-refined-explanation .story-footer{display:inline-block;margin-top:5px}
+@media(max-width:790px){
+ .story.story-refined{padding-block:68px 70px}
+ .story-refined-head{margin-bottom:23px}
+ .story-refined-head h2{font-size:clamp(35px,6vw,49px);max-width:700px}
+ .story-refined-body{grid-template-columns:1fr;gap:22px}
+ .story-refined .founder-business-featured{min-height:0;padding:22px}
+ .story-refined-explanation{padding:0 2px}
+}
+@media(max-width:550px){
+ .story.story-refined{padding-block:52px 56px}
+ .story-refined-head{margin-bottom:21px}
+ .story-refined-head h2{font-size:clamp(33px,8.2vw,41px);line-height:1.16;margin:14px 0 15px}
+ .story-refined-intro{font-size:14px;line-height:1.62}
+ .story-refined-body{gap:20px}
+ .story-refined .founder-business-featured{padding:19px 17px;gap:14px;border-radius:20px;flex-wrap:nowrap}
+ .story-refined .founder-business-logo{width:82px;height:82px;flex-basis:82px}
+ .story-refined .founder-business-identity{flex:1;min-width:0}
+ .story-refined .founder-business-identity strong{font-size:20px}
+ .story-refined .founder-business-identity small{font-size:11px}
+ .story-refined .founder-business-link{font-size:12px;margin-top:9px;width:auto}
+ .story-refined-explanation h3{font-size:21px}
+ .story-refined-explanation p{font-size:14px;line-height:1.65;margin-bottom:12px}
+}
+@media(max-width:360px){
+ .story-refined .founder-business-featured{padding:15px 12px;gap:10px}
+ .story-refined .founder-business-logo{width:73px;height:73px;flex-basis:73px}
+ .story-refined .founder-business-identity strong{font-size:19px}
+}
