@@ -1,3 +1,4 @@
+import {AppEnquiryRequestPreview} from './appEnquiryRequestPreview';
 import {prepareRecordAppComposition,suggestAppRecordBlocks,appRecordReview,currentAppRecordReview,refineRecordAppChoice} from '../core/appRecordComposition.mjs';
 import React from 'react';
 import {Text,View} from 'react-native';
@@ -41,7 +42,7 @@ export function AppGoalCompositionEditor({ownerId,businessId,app,catalog,initial
     {!currentAppRecordReview(recordBasis,recordsFeed,businessId)?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>Approved listings changed or expired. Load them again and prepare a fresh review. Your saved app is kept.</Text>:null}
    </>:null}
    <Field label="What would you like to refine?" value={refinement} maxLength={240} editable={!busy&&!reading} onChangeText={setRefinement}/>
-   <Button label="Prepare this refinement" disabled={busy||reading} onPress={()=>{const next=refineRecordAppChoice(refinement,{selection,choices:blocks,config:app.draft_config});if(!next.ok){setNotice(next.reason);return false;}return change(()=>{setSelection(next.selection);setBlocks(next.choices);setNotice('Refinement prepared. Compare it before Studio review.');});}}/>
+   <Button label="Prepare this refinement" disabled={busy||reading} onPress={()=>{const next=refineRecordAppChoice(refinement,{selection,choices:blocks,config:app.draft_config});if(!next.ok){setNotice(next.reason);return false;}if(next.alreadyConfigured){setNotice(next.nextAction);return true;}return change(()=>{setSelection(next.selection);setBlocks(next.choices);setNotice('Refinement prepared. Compare it before Studio review.');});}}/>
    <Text style={styles.sectionLabel}>Choose the supported screen order</Text>
    {selection.order.map((key,i)=><View key={key}>
     {Object.hasOwn(selection.labels,key)?<Field label={'Screen name: '+key.replaceAll('_',' ')} value={selection.labels[key]} maxLength={36} editable={!busy} onChangeText={v=>change(()=>setSelection(old=>({...old,labels:{...old.labels,[key]:v}})))}/>:<Text style={styles.cardBody}>{key.replaceAll('_',' ')}</Text>}
@@ -52,6 +53,7 @@ export function AppGoalCompositionEditor({ownerId,businessId,app,catalog,initial
    <Button label={side==='original'?'Show proposed app':'Compare with my saved app'} disabled={busy} onPress={()=>setSide(side==='original'?'proposed':'original')}/>
    <Text style={styles.sectionLabel}>{side==='original'?'Saved private app':'Proposed supported private app'}</Text>
    {Surface?<Surface key={ownerId+businessId+side} config={side==='original'?app.draft_config:preview?.ok?preview.nextConfig:app.draft_config} businessContent={recordsFeed&&(!blocks.length||currentAppRecordReview(recordBasis,recordsFeed,businessId))?recordsFeed:null} interactive={false} catalogueContextKey={businessId+':'+app.id}/>:null}
+   {Surface?<AppEnquiryRequestPreview key={ownerId+businessId+app.id} ownerId={ownerId} businessId={businessId} app={app} catalog={catalog} config={preview?.ok?preview.nextConfig:app.draft_config} feed={recordsFeed} Surface={Surface}/>:null}
    {!preview?.ok?<Text style={styles.cardBody}>{preview?.reason||'Choose a supported private screen to refine.'}</Text>:null}
    <Details label="What will Busy change?">
     <Text style={styles.cardBody}>{preview?.explanation?.summary||'Your saved app is unchanged. Proposed bespoke features are not included in this preview.'}</Text>

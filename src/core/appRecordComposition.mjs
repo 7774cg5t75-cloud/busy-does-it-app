@@ -53,6 +53,7 @@ export function prepareRecordAppComposition({context,current,proposal,selection,
 export function refineRecordAppChoice(words,{selection,choices,config}={}){
  if(typeof words!=='string'||words.length>240||!selection||!Array.isArray(choices))return no('Describe one supported layout change.');
  const next=JSON.parse(stableJson({selection,choices}));
+ if(/\b(?:enquir\w*|contact us)\b/i.test(words)&&/\b(?:products?|menu|services?|events?)\b/i.test(words)){if(!config?.modules?.some(m=>m.key==='enquiry'&&m.enabled===true))return no('Enable enquiries through the original feature review first. Nothing was changed.');return {ok:true,...next,taskOnly:true,alreadyConfigured:true,nextAction:'The original enquiry action is already enabled. Try the private customer preview below; no request will be sent.'};}
  if(/\bmenu\b.*\b(?:browse|browsing|easier)\b/i.test(words)&&choices.some(c=>c.kind==='product')){next.choices=choices.map(c=>c.kind==='product'?{...c,layout:'rows'}:c);}
  else if(/\bevents?\b.*\b(?:top|first|earlier)\b/i.test(words)&&choices.some(c=>c.kind==='event')){next.choices=[...choices.filter(c=>c.kind==='event'),...choices.filter(c=>c.kind!=='event')];next.selection.order=['business_profile',...selection.order.filter(k=>k!=='business_profile')];}
  else if(/\b(?:photos?|photographs?|pictures?)\b.*\b(?:bigger|larger)\b/i.test(words)&&config?.modules?.some(m=>m.key==='gallery'&&m.enabled===true)&&config.publicProfile?.assets?.gallery?.some(p=>p.approved===true||p.marketingOk===true)){next.selection.appearance.imageScale='large';}

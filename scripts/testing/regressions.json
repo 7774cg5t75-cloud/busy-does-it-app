@@ -2959,6 +2959,13 @@
         "scripts/check-app-record-composition.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "contextual-app-enquiries",
+      "args": [
+        "scripts/check-contextual-app-enquiries.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

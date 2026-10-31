@@ -4,6 +4,10 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - 'src/core/appEnquirySource.mjs'
+      - 'src/components/AppEnquirySourceContext.js'
+      - 'src/screens/appEnquiryRequestPreview.js'
+      - 'scripts/check-contextual-app-enquiries.mjs'
       - 'src/core/appGoalComposition.mjs'
       - 'src/core/appRecordComposition.mjs'
       - 'scripts/check-app-record-composition.mjs'
@@ -41,6 +45,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-contextual-app-enquiries.mjs
           node scripts/check-app-record-composition.mjs
           node scripts/check-app-goal-composition.mjs
           node scripts/check-governed-builder-proposals.mjs

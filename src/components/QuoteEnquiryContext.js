@@ -1,3 +1,5 @@
+import {AppEnquirySourceContext} from './AppEnquirySourceContext';
+import {filedAppEnquirySource} from '../core/appEnquirySource.mjs';
 import React from 'react';
 import {Text,View} from 'react-native';
 import {Card,Button} from './ui';
@@ -12,6 +14,7 @@ export function QuoteEnquiryContext(props){
  if(!item&&customerId===s.selectedReplyActionId&&s.quoteEnquiryLinkStatus==='needs-review')return <Card eyebrow="Saved enquiry link" title="Review the original enquiry" body="This quote keeps an enquiry reference, but its current filed record could not be matched. Your quote wording is kept. Do not assume the original requirements are unchanged or that anything was delivered." tone="blue"/>;
  if(!item||item.status!=='Filed'||item.filedCustomerId!==customerId||!s.inboxItems?.includes(item))return null;
  return <Card eyebrow="Original filed enquiry" title={item.parsed?.name||'Customer request'} body="Review the current customer request alongside your private quote. Saving the quote can retain its filing reference; device/account saving and customer delivery need separate evidence. Requested dates and requirements are not confirmed availability or bookings.">
+  {filedAppEnquirySource(item,s.cloudWorkspace?.businessId)?<AppEnquirySourceContext s={s} source={filedAppEnquirySource(item,s.cloudWorkspace?.businessId)}/>:null}
   {s.quoteEnquiryLinkStatus==='linked'?<Text style={styles.cardBody}>This quote retains a link to this filing record. Review the current request; the link does not prove that its wording is unchanged or that the quote was delivered.</Text>:null}
   {item.parsed?.service?<Text style={styles.cardBody}>{'Requested service: '+item.parsed.service}</Text>:null}
   <Text selectable style={styles.workspaceMeta}>{'Filed enquiry reference: '+item.id+' · Recorded source: '+(item.source||'Not recorded')}</Text>
