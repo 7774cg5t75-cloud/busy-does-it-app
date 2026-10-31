@@ -11,6 +11,7 @@ const catalog=keys.map(module_key=>({module_key,status:'available',module_versio
 const config={modules:keys.map(key=>({key,enabled:true})),navigation:keys,presentation:{headerStyle:'quiet'},publicProfile:{name:'Fictional owner business',about:'Exact approved business words',services:[{id:'one',name:'Approved service',description:'Approved details'}],assets:{gallery:[]}},unrelated:{keep:'exact'}};
 const app={id:A,business_id:B,draft_revision:7,draft_config:config},input={ownerId:O,businessId:B,app,catalog},context=appCompositionContext(input),original=JSON.stringify(app);
 assert.equal(context.ok,true);
+for(const bad of [null,{},[...catalog,catalog[0]]])assert.equal(appCompositionContext({...input,catalog:bad}).ok,false);
 const examples=[
  ['Gardening','Show our services so customers can request work and receive updates.','hybrid'],
  ['Food','Show our menu, upcoming events and useful contact details.','hybrid'],
