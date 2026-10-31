@@ -632,6 +632,9 @@
     "network": "Custom health probes fail closed pending reviewed egress; no DNS-rebinding acceptance claim.",
     "legacyWriters": "Guest submit and provider status reviewed; remaining publication/media/message action audit incomplete.",
     "paidOperations": "Existing ten direct-model denial fences and budget controller unchanged; local accounting regression required.",
-    "unreviewed": "Full private media upload lifecycle, push/outbox dispatch, hosted storage IAM, all historical action grants and independent native/security assurance remain incomplete."
+    "unreviewed": "Full private media upload lifecycle, push/outbox dispatch, hosted storage IAM, all historical action grants and independent native/security assurance remain incomplete.",
+    "implementationCommit": "73605e55f33cd7aa856e02cf9cd537e0155dfa26",
+    "implementationTree": "4bb2c452385d980bde9d793985bc3fad3907b404",
+    "evidence": "docs/HISTORICAL_SECURITY_AUDIT_PHASE_FOUR_2026_10_31_CHECKS.json"
   }
 }

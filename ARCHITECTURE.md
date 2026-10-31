@@ -1,3 +1,9 @@
+## Historical security audit Phase Four — 31 October 2026
+
+Verified functional GitHub `73605e55f33cd7aa856e02cf9cd537e0155dfa26`, tree `4bb2c452385d980bde9d793985bc3fad3907b404`, equivalent clean local `c1f8f506be96fea0a746fb87d6746a6aebcc4222`. Original staging session now routes secret-free provider status/reviewed intent inspection through the original social gateway's fixed, default-disabled preparation mode and original finite RPCs. No token exchange is exposed. Original guest tables/writer gain atomic source-bound quotas and membership/live-version locks in a fused SQL candidate; retaining rollback preserves receipts. Legacy social authentication precedes bounded inline-media parsing; unapproved custom health destinations return unverified without outage transitions. No new data authority or Home/build29 change.
+
+Final 454/454 application, foundation105, guest13/provider22/budget31 actual disposable PostgreSQL stages, all25 genuine frozen-lock Deno entries, changed syntax13 and both unsigned local iOS/Hermes exports passed (process exits0). Registry audit remains exit1: four advisory families, 2 high/10 moderate/24 low affected nodes; latest compatible-major versions remain affected. No hosted/provider/native acceptance, spending or activation. Persistent PKCE/key management, private-media/publication/message writers, authentic hosted schema/ACL and independent assurance remain gates. Continue targeted security remediation; see Phase Four report/checks and existing extended coverage. Earlier evidence and draft PR dependencies preserved.
+
 ## Independent Work notes and unverified agreement preparation — 24 October2026
 
 Frozen local `19d5e8028293159264be2f3eb8f56068ca53e134`, matching GitHub `a10bf1d36c32573da6cbd5458b035b72de537678`, tree `157b2f16499ee180bbab8b411138b34ec73a80be`; genuine private V22.51 hash reverified, original outside Git.
