@@ -12,6 +12,9 @@ on:
       - 'security/dependency-*'
       - 'package.json'
       - 'package-lock.json'
+      - 'scripts/native-capture/package-lock.json'
+      - 'scripts/native-capture/prepare.py'
+      - '.github/workflows/native-screenshots.yml'
 permissions:
   contents: read
 concurrency:
@@ -32,11 +35,12 @@ jobs:
           node-version: '24.19.0'
       - name: Registry metadata and genuine advisory evidence (no installs)
         run: |
-          mkdir -p dependency-evidence/registry
+          mkdir -p .test-artifacts/dependency-evidence/registry
           python3 - <<'PY'
-          import subprocess,pathlib,json
-          p=pathlib.Path('dependency-evidence');rows=[]
-          cmds=[('audit',['npm','audit','--json','--ignore-scripts'])]
+          import subprocess,pathlib,json,tempfile,shutil
+          p=pathlib.Path('.test-artifacts/dependency-evidence');rows=[]
+          native=tempfile.TemporaryDirectory(prefix='busy-native-lock-audit-');shutil.copyfile('package.json',pathlib.Path(native.name)/'package.json');shutil.copyfile('scripts/native-capture/package-lock.json',pathlib.Path(native.name)/'package-lock.json')
+          cmds=[('audit',['npm','audit','--json','--ignore-scripts']),('audit-production',['npm','audit','--omit=dev','--json','--ignore-scripts']),('audit-offline-tools',['npm','--prefix','scripts/offline-tools','audit','--json','--ignore-scripts']),('audit-browser-tools',['npm','--prefix','scripts/browser-tools','audit','--json','--ignore-scripts']),('audit-native-capture',['npm','--prefix',native.name,'audit','--json','--ignore-scripts'])]
           for pkg in ['zod@4.6.6','glob@14.0.2','minimatch@11.0.1','deepmerge@latest','deepmerge-ts@latest','expo@57','@expo/config@57','@expo/cli@57']:
             cmds.append((pkg.replace('/','_'),['npm','view',pkg,'version','dependencies','peerDependencies','engines','dist.integrity','dist.tarball','--json']))
           for name,cmd in cmds:
@@ -47,8 +51,8 @@ jobs:
       - name: Retrieve exact candidate tarballs without scripts
         id: pack
         run: |
-          mkdir -p dependency-evidence/tarballs
-          npm pack zod@4.6.6 glob@14.0.2 minimatch@11.0.1 --ignore-scripts --pack-destination dependency-evidence/tarballs --json > dependency-evidence/registry/packs.json
+          mkdir -p .test-artifacts/dependency-evidence/tarballs
+          npm pack zod@4.6.6 glob@14.0.2 minimatch@11.0.1 --ignore-scripts --pack-destination .test-artifacts/dependency-evidence/tarballs --json > .test-artifacts/dependency-evidence/registry/packs.json
           echo 'candidates=true' >> "$GITHUB_OUTPUT"
       - name: Readable public registry metadata for restricted source workspace
         run: node scripts/dependency-evidence-transfer.mjs --registry
@@ -56,7 +60,7 @@ jobs:
         if: always()
         with:
           name: dependency-registry-${{ github.sha }}
-          path: dependency-evidence/
+          path: .test-artifacts/dependency-evidence/
           retention-days: 7
           if-no-files-found: error
   compatibility-experiment:
@@ -88,9 +92,9 @@ jobs:
       - name: Actual baseline Expo caller probe
         run: |
           node scripts/dependency-compatibility-probe.mjs
-          mv dependency-evidence/compatibility.json dependency-evidence/compatibility-baseline.json
+          mv .test-artifacts/dependency-evidence/compatibility.json .test-artifacts/dependency-evidence/compatibility-baseline.json
       - name: Record baseline lock
-        run: cp package-lock.json dependency-evidence/package-lock-baseline.json
+        run: cp package-lock.json .test-artifacts/dependency-evidence/package-lock-baseline.json
       - name: Disposable scoped-major compatibility experiment (not an approved source override)
         if: hashFiles('security/dependency-policy.json') == ''
         run: |
@@ -99,7 +103,7 @@ jobs:
           JS
           npm install --package-lock-only --ignore-scripts --no-audit
           npm ci --ignore-scripts --no-audit
-          cp package-lock.json dependency-evidence/package-lock-candidate.json
+          cp package-lock.json .test-artifacts/dependency-evidence/package-lock-candidate.json
       - name: Reapply reviewed backport after fresh install
         run: |
           if test -f scripts/apply-tooling-security-patches.mjs; then node scripts/apply-tooling-security-patches.mjs; node scripts/apply-tooling-security-patches.mjs --check; fi
@@ -110,23 +114,26 @@ jobs:
         run: |
           python3 - <<'PY'
           import subprocess,pathlib,json
-          p=pathlib.Path('dependency-evidence');p.mkdir(exist_ok=True);r=subprocess.run(['npm','audit','--json','--ignore-scripts'],capture_output=True,text=True);(p/'audit-candidate.json').write_text(r.stdout);(p/'audit-candidate-exit.json').write_text(json.dumps({'exitCode':r.returncode}));print(r.stdout)
+          p=pathlib.Path('.test-artifacts/dependency-evidence');p.mkdir(exist_ok=True);r=subprocess.run(['npm','audit','--json','--ignore-scripts'],capture_output=True,text=True);(p/'audit-candidate.json').write_text(r.stdout);(p/'audit-candidate-exit.json').write_text(json.dumps({'exitCode':r.returncode}));print(r.stdout)
+          audit=json.loads(r.stdout);assert 'metadata'in audit,'Audit unavailable';families={v['url']for item in audit.get('vulnerabilities',{}).values()for v in item.get('via',[])if isinstance(v,dict)}
+          assert families<={'https://github.com/advisories/GHSA-gcqx-w48m-w2h4'},'Unexpected advisory requires review; no audit suppression'
+          if families:print('::warning::Upstream deepmerge advisory remains. Reviewed runtime backport is tested separately; raw audit exit and findings retained.')
           PY
       - name: Unsigned native compatibility export, no cloud build or distribution
         run: |
           if test -f scripts/run-expo-safe.mjs; then
-            node scripts/run-expo-safe.mjs export --platform ios --source-maps --output-dir /tmp/busy-dependency-candidate-ios > dependency-evidence/hermes-owner-preview.log 2>&1
+            node scripts/run-expo-safe.mjs export --platform ios --source-maps --output-dir /tmp/busy-dependency-candidate-ios > .test-artifacts/dependency-evidence/hermes-owner-preview.log 2>&1
           else
-            node node_modules/expo/bin/cli export --platform ios --source-maps --output-dir /tmp/busy-dependency-candidate-ios > dependency-evidence/hermes-owner-preview.log 2>&1
+            node node_modules/expo/bin/cli export --platform ios --source-maps --output-dir /tmp/busy-dependency-candidate-ios > .test-artifacts/dependency-evidence/hermes-owner-preview.log 2>&1
           fi
       - name: Isolated staging unsigned export
         env:
           EXPO_PUBLIC_BUSY_ENVIRONMENT: isolated-staging
         run: |
           if test -f scripts/run-expo-safe.mjs; then
-            node scripts/run-expo-safe.mjs export --platform ios --source-maps --output-dir /tmp/busy-dependency-staging-ios > dependency-evidence/hermes-isolated-staging.log 2>&1
+            node scripts/run-expo-safe.mjs export --platform ios --source-maps --output-dir /tmp/busy-dependency-staging-ios > .test-artifacts/dependency-evidence/hermes-isolated-staging.log 2>&1
           else
-            node node_modules/expo/bin/cli export --platform ios --source-maps --output-dir /tmp/busy-dependency-staging-ios > dependency-evidence/hermes-isolated-staging.log 2>&1
+            node node_modules/expo/bin/cli export --platform ios --source-maps --output-dir /tmp/busy-dependency-staging-ios > .test-artifacts/dependency-evidence/hermes-isolated-staging.log 2>&1
           fi
       - name: Prove affected tooling packages are absent from mobile source maps
         run: |
@@ -139,7 +146,7 @@ jobs:
               for s in json.loads(file.read_text()).get('sources',[]):
                 if re.search(r'(?:^|/)node_modules/(?:zod|deepmerge|glob|minimatch)(?:/|$)',s):hits.append(s)
             result.append({'environment':root,'maps':len(files),'affectedRuntimeSources':hits});assert not hits,hits
-          pathlib.Path('dependency-evidence/mobile-reachability.json').write_text(json.dumps(result,indent=2))
+          pathlib.Path('.test-artifacts/dependency-evidence/mobile-reachability.json').write_text(json.dumps(result,indent=2))
           PY
       - name: Reviewed backport regression
         if: hashFiles('scripts/check-dependency-security.mjs') != ''
@@ -148,17 +155,20 @@ jobs:
         if: matrix.node == '24.19.0' && hashFiles('security/dependency-policy.json') != ''
         run: |
           npm ci --prefix scripts/offline-tools --ignore-scripts --no-audit
-          python3 scripts/testing/regressions.py --output dependency-evidence/application.json > dependency-evidence/application.log 2>&1
-          node scripts/check-production.mjs > dependency-evidence/foundation.log
-          node scripts/check-security-baseline.mjs > dependency-evidence/security-baseline.log
-          node scripts/check-security-by-design.mjs > dependency-evidence/security-by-design.log
+          python3 scripts/testing/regressions.py --output .test-artifacts/dependency-evidence/application.json > .test-artifacts/dependency-evidence/application.log 2>&1
+          python3 -c "import json;d=json.load(open('.test-artifacts/dependency-evidence/application.json'));print('BUSY_APPLICATION_RESULT '+json.dumps({k:d[k]for k in ['sourceSha','sourceTree','workingTreeChanged','summary']}))"
+          node scripts/check-production.mjs > .test-artifacts/dependency-evidence/foundation.log
+          node scripts/check-security-baseline.mjs > .test-artifacts/dependency-evidence/security-baseline.log
+          node scripts/check-security-by-design.mjs > .test-artifacts/dependency-evidence/security-by-design.log
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
       - name: Transfer public lockfile and exact package evidence through readable job logs
-        if: matrix.node == '24.19.0'
+        if: always() && matrix.node == '24.19.0'
         run: node scripts/dependency-evidence-transfer.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: dependency-compatibility-${{ matrix.node }}-${{ github.sha }}
-          path: dependency-evidence/
+          path: .test-artifacts/dependency-evidence/
           retention-days: 7
           if-no-files-found: error

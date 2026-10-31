@@ -50,9 +50,15 @@ jobs:
       - name: Install integrity-locked declared app dependencies
         working-directory: ${{ env.CAPTURE_WORK }}
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify reviewed dependency policy and apply deterministic security backport
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: |
+          node --input-type=module -e "import {verifyToolingDependencyPolicy}from'./scripts/dependency-policy.mjs';verifyToolingDependencyPolicy()"
+          node scripts/apply-tooling-security-patches.mjs
+          node scripts/apply-tooling-security-patches.mjs --check
       - name: Preflight actual iOS JavaScript and Hermes bundle
         working-directory: ${{ env.CAPTURE_WORK }}
-        run: npx --no-install expo export --platform ios --max-workers 2 --output-dir "$RUNNER_TEMP/busy-bundle-preflight"
+        run: node scripts/run-expo-safe.mjs export --platform ios --max-workers 2 --output-dir "$RUNNER_TEMP/busy-bundle-preflight"
       - name: Generate actual native application
         working-directory: ${{ env.CAPTURE_WORK }}
         run: npx --no-install expo prebuild --platform ios --no-install

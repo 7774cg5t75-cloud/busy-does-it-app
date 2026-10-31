@@ -1,3 +1,7 @@
+## Dependency toolchain security — targeted remediation
+
+For approved source work use the reviewed lock, `npm ci --ignore-scripts`, then `node scripts/apply-tooling-security-patches.mjs` and `node scripts/check-dependency-security.mjs`. Use the guarded Expo launcher (`npm start`, or `node scripts/run-expo-safe.mjs export ...`) so fixed installed versions and the actual deepmerge runtime patch are verified before config loads. Keep scoped overrides/policy and the mirrored capture lock consistent; changed dependency versions/hashes require compatible review, not forced upgrades. Raw npm findings remain visible: deepmerge is a reviewed local backport, not an upstream clean-audit claim. See `docs/DEPENDENCY_SECURITY_INSTALL.md`. This changes no hosted, spending, signing, provider or release authority; preserve all Phase Five quarantines.
+
 ## Current genuine private Product Master — V22.66 (30 October2026)
 
 The owner-supplied attachment identifies V22.66, newer than V22.64 named in the mission prose. Complete original reopened: SHA256 `11f7b3069894b40d4467d90ba6883eeb3e3584057ace5b37c511187c883a483a`,2,684 paragraphs/19 tables. Ordered comparison preserves every V22.63 non-cover paragraph and adds130 reviewed paragraphs in Sections74–76. Section74 zero-technical-experience requirements are now directly accessible in this latest original; earlier missing-V22.64 notes remain historical. Private original and complete extraction stay outside Git.

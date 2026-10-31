@@ -2931,6 +2931,20 @@
         "scripts/check-security-phase5.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "dependency-security",
+      "args": [
+        "scripts/check-dependency-security.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "dependency-compatibility",
+      "args": [
+        "scripts/dependency-compatibility-probe.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
