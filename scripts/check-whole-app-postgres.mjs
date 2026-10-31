@@ -169,6 +169,11 @@ try{
   await assert.rejects(()=>write({appId:before.id,expectedRevision:before.draft_revision,ownerApproved:true,operation:'save',proposal}));
   const undo=await savePrivateAppProject({ownerId:O,businessId:B,app:readApp(),catalog,operation:'undo',isCurrent:()=>true,write,readStatus:async()=>({app:readApp()})});assert.equal(undo.ok,true,undo.reason);assert.equal(readApp().private_project_spec,null);assert.deepEqual(readApp().draft_config,before.draft_config);
  });
+ await stage('private-project-history-bounded-and-original-config-retained',async()=>{
+  const config=readApp().draft_config;
+  for(let n=0;n<10;n++){const current=readApp(),ctx=appCompositionContext({ownerId:O,businessId:B,app:current,catalog}),proposal=proposeLocalAppGoal(ctx,'Show services and contact information, idea '+n).proposal;const result=await savePrivateProject({client:serviceClient,businessId:B,actorId:O,app:current,catalog,body:{appId:current.id,expectedRevision:current.draft_revision,ownerApproved:true,operation:'save',proposal},profileRevision:basis.profileRevision});assert.equal(result.privateOnly,true);}
+  assert.equal(readApp().private_project_history.length,8);assert.ok(Number(sql('SELECT octet_length(private_project_history::text) FROM public.busy_mini_apps WHERE business_id='+q(B)))<=130000);assert.deepEqual(readApp().draft_config,config);assert.equal(JSON.stringify(config).includes('busy.app-specification'),false);
+ });
  await stage('private-project-server-member-scope-and-malformed-descriptions-denied',async()=>{
   const current=readApp(),ctx=appCompositionContext({ownerId:O,businessId:B,app:current,catalog}),proposal=proposeLocalAppGoal(ctx,'Show products and contact information').proposal;
   for(const bad of [{...proposal,scope:{...proposal.scope,businessId:F}},{...proposal,app:{...proposal.app,execute:'Forbidden'}},{...proposal,app:{...proposal.app,screens:[{id:'pay',title:'Pay now',module:'charge_anyone',next:[]}]}}])assert.throws(()=>service('busy_connected_app_spec_commit_v1',[B,O,current.id,current.draft_revision,basis.profileRevision,'save',bad]));
