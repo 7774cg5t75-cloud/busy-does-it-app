@@ -1,3 +1,4 @@
+import {supportedListingFiling} from '../core/appEnquirySource.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 // Review tickets own no records. Original request, snapshot and Customer records
 // remain the authorities; no customer matching, booking or send is inferred.
@@ -24,7 +25,7 @@ export function createConnectedEnquiryJourney({request,businessId,ownerId,isCurr
   if(busy||unknown||!isCurrent()||tickets.get(value)!==stableJson(value))throw Error('Review current contact details again');
   // Original filed-reader and canonical Work contracts exclude listing sources.
   // Refuse BEFORE a write rather than create an unreopenable Customer.
-  if(value.source.message.includes('Listing reference:'))throw Error('Keep this listing enquiry in Inbox; Customer filing needs its original listing-source contract.');
+  if(value.source.message.includes('Listing reference:')&&!supportedListingFiling(value.source))throw Error('Keep this listing enquiry in Inbox; Customer filing needs its original listing-source contract.');
   tickets.delete(value);busy=true;
   if(!fields||Object.keys(fields).some(k=>!['name','phone','email','address','service','eventDate','eventTime','note','confidence'].includes(k))||Object.values(fields).some(v=>typeof v!=='string'||v.length>6000)){busy=false;throw Error('Review supported contact fields');}
   const id=value.source.requestId.replaceAll('-','_'),capture={customerId:'customer_'+id,enquiryId:value.pending.pending.id,sourceRecordId:'source_'+id,intakeId:'intake_'+id,activityId:'activity_'+id,sourceHash:value.pending.sourceHash,...fields};
@@ -32,8 +33,8 @@ export function createConnectedEnquiryJourney({request,businessId,ownerId,isCurr
    const r=await request('app_enquiry_file',{businessId,expectedRevision:value.revision,capture,identityDecision:'create_separate_contact'});
    if(!verified(r)||r.customerId!==capture.customerId||r.enquiryId!==capture.enquiryId||r.revision!==value.revision+1)throw Error('Filing receipt unavailable');
    const observed=await request('filed_review',{businessId,expectedRevision:r.revision,customerId:r.customerId,enquiryId:r.enquiryId});
-   if(!verified(observed)||observed.customer?.id!==r.customerId||observed.enquiry?.filedCustomerId!==r.customerId||observed.enquiry.rawText!==value.source.message)throw Error('Filing readback unavailable');
-   return {ok:true,receipt:r,observed,source:value.source,requestOrigin:{requestId:value.source.requestId,appId:value.source.appId}};
+   if(!verified(observed)||observed.customer?.id!==r.customerId||observed.enquiry?.filedCustomerId!==r.customerId||observed.enquiry.rawText!==value.source.message||(value.source.message.includes('Listing reference:')&&(!observed.enquiry.listingProvenance||observed.enquiry.listingProvenance.requestHash!==value.source.requestHash)))throw Error('Filing readback unavailable');
+   return {ok:true,receipt:r,observed,source:{...value.source,listingProvenance:observed.enquiry.listingProvenance||null,filed:true},requestOrigin:{requestId:value.source.requestId,appId:value.source.appId}};
   }catch{unknown=true;return {ok:false,unknown:true,mayReplay:false};}finally{busy=false;}
  }
  return {review,importSource,file,get uncertain(){return unknown;}};

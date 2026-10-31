@@ -26,7 +26,7 @@ def main():
  report={'sourceSha':git('rev-parse','HEAD'),'sourceTree':git('rev-parse','HEAD^{tree}'),'workingTreeEntries':git('status','--porcelain','--untracked-files=normal').splitlines(),'workingTreeChanged':bool(git('status','--porcelain','--untracked-files=normal')),'testToolModulePath':TEST_ENV['NODE_PATH'],'selectionSha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'evidence':'Offline original code with inert boundaries; not hosted/native/browser acceptance.','results':rows}
  output=pathlib.Path(args.output).resolve();output.parent.mkdir(parents=True,exist_ok=True)
  def save():
-  report['finalSourceSha']=git('rev-parse','HEAD');report['finalWorkingTreeEntries']=git('status','--porcelain','--untracked-files=normal').splitlines()
+  report['finalSourceSha']=git('rev-parse','HEAD');report['finalSourceTree']=git('rev-parse','HEAD^{tree}');report['sourceStable']=report['sourceSha']==report['finalSourceSha'] and report['sourceTree']==report['finalSourceTree'];report['finalWorkingTreeEntries']=git('status','--porcelain','--untracked-files=normal').splitlines()
   report['summary']={key:sum(r['status']==key for r in rows) for key in ['passed','failed','blocked','unexecuted']}
   temporary=output.with_suffix(output.suffix+'.tmp');temporary.write_text(json.dumps(report,indent=2)+'\n');temporary.replace(output)
  stopped=False
@@ -51,5 +51,5 @@ def main():
   print(row['status'].upper(),row['id'],flush=True);save()
   if args.fail_fast and row['status'] in ['failed','blocked']:stopped=True
  report['finishedAt']=datetime.datetime.now(datetime.timezone.utc).isoformat();save();print(json.dumps(report['summary']))
- return 1 if report['summary']['failed'] else 2 if report['summary']['blocked'] or stopped or report['selectedCount']==0 else 0
+ return 1 if report['summary']['failed'] or not report['sourceStable'] else 2 if report['summary']['blocked'] or stopped or report['selectedCount']==0 else 0
 if __name__=='__main__':sys.exit(main())

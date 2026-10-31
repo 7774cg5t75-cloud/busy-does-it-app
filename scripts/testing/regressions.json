@@ -2966,6 +2966,13 @@
         "scripts/check-contextual-app-enquiries.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "frozen-source-evidence",
+      "args": [
+        "scripts/check-frozen-source-evidence.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

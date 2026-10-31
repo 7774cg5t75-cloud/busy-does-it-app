@@ -86,6 +86,10 @@
     {
       "path": "docs/sql-proposals/connected-builders/website-history.sql",
       "sha256": "5d4edd3c1eca101b631cfec2a8644955b921f89828949582f819e20f8d987aa1"
+    },
+    {
+      "path": "docs/sql-proposals/connected-builders/listing-lifecycle.sql",
+      "sha256": "4b05e1d2671d17cc1e0132fe2efbfe74bf6b2f3aaa91b60d69417c36ad39c217"
     }
   ],
   "supplements": [
@@ -358,7 +362,7 @@
       "sha256": "722b84a7bbe6dde9fe6e8145a0a9fc64e344e63ad59a3c98bd489cec742f66d5"
     }
   ],
-  "sha256": "77db9ed80a0352c20ce10c3b17c143433aeedac17e7d74228e9390fb29d9a7c8",
+  "sha256": "c5ed7052b798dec5ee4e2f8686821456b9bd74192849ca6f4821b20cd30ba41f",
   "rollbackSha256": "0155a9858e8c32851212cdf63051f3be9ff979799f70639ff07d2d7af2e94106",
   "retainedReaders": [
     "busy_connected_website_history_v1",
@@ -469,7 +473,7 @@
     },
     {
       "path": "scripts/lib/whole-app-staging-package.mjs",
-      "sha256": "050536e8c6e0fb1b0f1bd1a37215c5b912b3912e62e60fd81eef54248c106036"
+      "sha256": "89fd96b032ec35c5d7bb89c08f2598e001ab5e8a461a92ec3b793a6ec8176c86"
     },
     {
       "path": "scripts/lib/whole-app-function-signatures.mjs",
@@ -477,7 +481,7 @@
     },
     {
       "path": "package-lock.json",
-      "sha256": "2512ca83f769666a48059f138a482f172cd77fc72715f9ee95538f05c72ca00d"
+      "sha256": "41bf68d4a9a165a9fe2673cee134c917bb99009c4cae821ce19c0c6b1de0da6a"
     },
     {
       "path": "supabase/connected-staging.deno.json",
@@ -489,7 +493,7 @@
     },
     {
       "path": "supabase/functions/busy-mini-apps/index.ts",
-      "sha256": "536b0d34f985e7129aff35b8f6a13043513162f3af046b3653cee12b70ffc5ee"
+      "sha256": "00cdbaf87d287f527fd06761c241e5bb387a2e5d4fed8e6f0d247d66afa7d14f"
     },
     {
       "path": "supabase/functions/busy-mini-apps/commitPrivateDraft.mjs",
@@ -501,15 +505,15 @@
     },
     {
       "path": "supabase/functions/busy-website-publish/index.ts",
-      "sha256": "6b8373ead2b3b4ed522444434af90413288fd77934194201019992c9c472990f"
+      "sha256": "d1d6dea3613d54f5f3341012f7d9545bdcbac9dada17b84117d6b5eb74c857a3"
     },
     {
       "path": "supabase/functions/busy-website-publish/privateDraftService.mjs",
-      "sha256": "5c479a4c54f0fd71ced726dbece43b357af4e3b93a66b6e1e103f1a987ee0393"
+      "sha256": "15994d51403021b8dd8dced07d1a6b2c5f012c7863fbcd3153c62527d27c1cb5"
     },
     {
       "path": "supabase/functions/_shared/connectedStagingActions.mjs",
-      "sha256": "f22bcfcd243df256699f8cefef148b70abd8ddf02cb8837b655e875236f58b42"
+      "sha256": "a4a8c24233593d2844cef8c19b223fd1ca786b60a8579a613068501927e7babd"
     },
     {
       "path": "scripts/lib/connected-hosted-acceptance.mjs",
@@ -517,7 +521,7 @@
     },
     {
       "path": "src/staging/stagingAuthInspectorV3131.mjs",
-      "sha256": "02352fa03147a27eaec0e96a449da94c9ae0cd8edf74f82f874c33a59126402e"
+      "sha256": "8ba7aa9bb2dd27a9fe52701a66fffe661a25af11ca07574d8f0e6b73139c8d22"
     },
     {
       "path": "docs/sql-proposals/connected-builders/whole-app-staging-metadata-2026-10-30.json",

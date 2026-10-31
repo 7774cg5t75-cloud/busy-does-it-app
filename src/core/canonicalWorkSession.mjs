@@ -148,6 +148,7 @@ export function createCanonicalWorkSession(){
    return observe(v,'decision');
   };
   const review=({operation,source:src,record,draft,fields,operationId,editor})=>{
+   if(operation==='create'&&src?.enquiry?.listingProvenance&&src.listingStatus?.current!==true)return null;
    if(!valid()||!['create','edit','private','agreement','decision','reference','binding','management','presentation','presentationWithdrawal','grantCreate','grantRevoke','accessPrepare','accessRevoke'].includes(operation)||typeof operationId!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(operationId)||!editor||!Number.isSafeInteger(editor.typingEpoch)||editor.typingEpoch<0)return null;
    const base=operation==='create'?src:record;
    const sourceKind=operation==='accessPrepare'?'accessReview':operation==='accessRevoke'?'accessObservation':operation==='grantCreate'?'grantCreate':operation==='grantRevoke'?'grantRevoke':operation==='management'?'management':operation==='presentation'?'presentation':operation==='presentationWithdrawal'?'presentationObservation':operation==='binding'?'binding':operation==='reference'?'reference':operation==='decision'?'decision':operation==='agreement'?'agreement':operation==='create'?'source':observed(base,'edit')?'edit':'record';

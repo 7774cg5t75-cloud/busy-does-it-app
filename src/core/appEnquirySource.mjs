@@ -12,7 +12,7 @@ const servicePattern=/^Service reference: ([A-Za-z0-9_-]{1,80}) \/ app draft rev
 export function filedAppEnquirySource(item,businessId){
  const origin=item?.miniAppOrigin;
  if(!origin||typeof item.rawText!=='string'||!['requestId','appId'].every(k=>typeof origin[k]==='string'&&uuid.test(origin[k]))||typeof origin.requestHash!=='string'||!/^[0-9a-f]{64}$/i.test(origin.requestHash))return null;
- return {businessId,appId:origin.appId,requestId:origin.requestId,requestHash:origin.requestHash,message:item.rawText};
+ return {businessId,appId:origin.appId,requestId:origin.requestId,requestHash:origin.requestHash,message:item.rawText,ownerId:item.registeredBy||item.listingProvenance?.ownerId,listingProvenance:item.listingProvenance||null,filed:item.status==='Filed'};
 }
 // Original message references are customer assertions, never authorisation or
 // proof of submission-time facts. Do not parse names/prices from free text.
@@ -39,7 +39,7 @@ export function prepareContextualAppEnquiry({businessId,app,catalog,feed,selecti
   message='Service reference: '+selection.serviceId+' / app draft revision '+source.revision+'.\n\n'+composed.message;
  }else return no('Choose an exact product, event or service before reviewing.');
  const checked=validateNativeGuestRequest('enquiry',{name:customer.name,email:customer.email,phone:customer.phone,service,message});
- return checked.ok&&appEnquiryReference(checked.payload.message)?{ok:true,payload:checked.payload,reference:appEnquiryReference(checked.payload.message),appId:app.id,businessId,sourceRevision:source.revision,privatePreparation:true,customerSupplied:true,maySend:false,submissionVerified:false}:no(checked.reason||'The exact source and customer wording exceed the supported reference format. Shorten the message; your words are kept.');
+ return checked.ok&&appEnquiryReference(checked.payload.message)?{ok:true,payload:checked.payload,reference:appEnquiryReference(checked.payload.message),appId:app.id,businessId,sourceRevision:source.revision,listingContext:selection.kind==='listing'?{version:1,kind:feed.records.find(r=>r.id===selection.recordId).kind,recordId:selection.recordId,revision:selection.revision,variantId:selection.variantId||null}:null,privatePreparation:true,customerSupplied:true,maySend:false,submissionVerified:false}:no(checked.reason||'The exact source and customer wording exceed the supported reference format. Shorten the message; your words are kept.');
 }
 export function resolveAppEnquirySource({source,app,feed}={}){
  const reference=appEnquiryReference(source?.message),scope=privateAppEditSource({businessId:source?.businessId,app});
@@ -49,7 +49,10 @@ export function resolveAppEnquirySource({source,app,feed}={}){
  let facts;
  if(reference.kind==='listing'){
   if(!reviewApprovedBuilderRecords(feed,source.businessId).ok)return unavailable('Load current approved records.');
-  const checked=prepareBusinessContentEnquiry(feed,source.businessId,reference);if(!checked.ok)return unavailable(checked.reason);
+  const checked=prepareBusinessContentEnquiry(feed,source.businessId,reference);if(!checked.ok){
+   if(source.filed&&supportedListingFiling(source))return {ok:true,reference,facts:{kind:source.listingProvenance.selection.kind,id:reference.recordId,revision:reference.revision,...source.listingProvenance.facts},subject:'Enquiry about '+source.listingProvenance.facts.name,businessId:source.businessId,appId:source.appId,requestId:source.requestId,requestHash:source.requestHash,customerWords:customerQuestionText(source.message),requirements:readCustomerEnquiryRequirements(source.message),historical:true,sourceState:'changed_or_unavailable',evidence:'Original server-verified facts at owner filing. Current source changed or unavailable; submission-time display and customer identity are not verified.',maySend:false,mayCreateWork:false,submissionVerified:false};
+   return unavailable(checked.reason);
+  }
   const row=feed.records.find(r=>r.id===reference.recordId),variant=reference.variantId?row.data.variants?.find(v=>v.id===reference.variantId):null;
   facts={kind:row.kind,id:row.id,revision:row.revision,name:row.data.name,...row.kind==='product'?{amountMinor:variant?.amountMinor??row.data.amountMinor,currency:row.data.currency,...variant?{optionId:variant.id,optionLabel:variant.label}:{}}:{startsAt:row.data.startsAt,endsAt:row.data.endsAt,timeZone:row.data.timeZone,location:row.data.location}};
  }else{
@@ -64,7 +67,15 @@ export function resolveAppEnquirySource({source,app,feed}={}){
 // projection. No app ID inference from a name or current selected application.
 export function canonicalAppEnquirySource(source,inboxItems,businessId){
  const e=source?.enquiry,c=source?.customer;
+ if(source?.businessId===businessId&&e?.listingProvenance&&e?.miniAppOrigin){const bound=filedAppEnquirySource({...e,status:'Filed'},businessId);if(bound&&supportedListingFiling(bound))return bound;}
  if(!e||!c||!Array.isArray(inboxItems))return null;
  const rows=inboxItems.filter(r=>r.id===e.id&&r.status==='Filed'&&r.filedCustomerId===c.id&&r.rawText===e.rawText&&r.reviewedAt===e.reviewedAt);
  return rows.length===1?filedAppEnquirySource(rows[0],businessId):null;
+}
+
+// Trusted only as an authenticated finite-reader proposal. SQL independently
+// repeats all checks and stamps provenance within the original filing transaction.
+export function supportedListingFiling(source){
+ const p=source?.listingProvenance,r=appEnquiryReference(source?.message);
+ return !!(r?.kind==='listing'&&p?.version===1&&p.authority==='busy_listing_filing_v1'&&p.businessId===source.businessId&&p.ownerId===source.ownerId&&p.appId===source.appId&&p.requestId===source.requestId&&p.requestHash===source.requestHash&&p.selection?.version===1&&['product','event'].includes(p.selection.kind)&&p.selection.recordId===r.recordId&&p.selection.revision===r.revision&&(p.selection.variantId||null)===(r.variantId||null)&&p.facts&&typeof p.facts.name==='string'&&/^[a-f0-9]{64}$/.test(p.integrity||''));
 }

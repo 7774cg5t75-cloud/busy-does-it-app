@@ -21,6 +21,13 @@ on:
       - 'src/screens/appGoalCompositionEditor.js'
       - 'scripts/check-app-goal-composition.mjs'
       - 'scripts/check-whole-app-postgres.mjs'
+      - 'docs/sql-proposals/connected-builders/**'
+      - 'scripts/lib/whole-app-*.mjs'
+      - 'scripts/prepare-listing-lifecycle.mjs'
+      - 'scripts/check-frozen-source-evidence.mjs'
+      - 'scripts/testing/regressions.py'
+      - 'scripts/testing/regressions.json'
+      - 'src/core/canonicalWorkSession.mjs'
 permissions:
   contents: read
 concurrency:
@@ -50,6 +57,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-frozen-source-evidence.mjs
           node scripts/check-contextual-app-enquiries.mjs
           node scripts/check-app-record-composition.mjs
           node scripts/check-app-goal-composition.mjs
@@ -82,7 +90,8 @@ jobs:
       - name: Complete frozen-source regressions
         run: |
           python3 scripts/testing/regressions.py --output .test-artifacts/app-goal-composition/application.json > .test-artifacts/app-goal-composition/application.log 2>&1
-          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/application.json'));print('BUSY_APPLICATION_RESULT '+json.dumps({k:d[k] for k in ['sourceSha','sourceTree','workingTreeChanged','summary']}))"
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/application.json'));print('BUSY_APPLICATION_RESULT '+json.dumps({k:d[k] for k in ['sourceSha','sourceTree','finalSourceSha','finalSourceTree','sourceStable','workingTreeChanged','summary']}))"
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/application.json'));assert d['sourceStable'] and d['sourceSha']==d['finalSourceSha'] and d['sourceTree']==d['finalSourceTree']"
           git diff --exit-code
           test -z "$(git status --porcelain)"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

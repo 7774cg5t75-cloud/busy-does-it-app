@@ -2,7 +2,7 @@ import React from 'react';
 import {Text} from 'react-native';
 import {Button,Details} from './ui';
 import {styles} from '../theme/styles';
-import {appEnquiryReference,resolveAppEnquirySource} from '../core/appEnquirySource.mjs';
+import {appEnquiryReference,resolveAppEnquirySource,supportedListingFiling} from '../core/appEnquirySource.mjs';
 import {approvedCompositionFeed} from '../core/appRecordComposition.mjs';
 import {contentPrice,contentEventSchedule} from '../core/businessContentRecords.mjs';
 import {stableJson} from '../core/stableJson.mjs';
@@ -15,9 +15,10 @@ export function AppEnquirySourceContext({s,source}){
  const ownerId=s.ownerSession?.userId,businessId=s.cloudWorkspace?.businessId,stamp=stableJson([ownerId,businessId,s.cloudWorkspace?.role,s.connectedRuntime?.active,source]);live.current={stamp,s};
  React.useEffect(()=>{setBusy(false);setChecked(null);setNotice('');},[stamp]);
  const current=()=>alive.current&&live.current.stamp===stamp&&(!live.current.s.connectedRuntime||live.current.s.connectedRuntime.active);
- if(!ownerId||!businessId||(s.connectedRuntime&&!s.connectedRuntime.active)||source?.businessId!==businessId||!appEnquiryReference(source.message))return null;
- const value=checked?.stamp===stamp?checked.value:null;
+ if(!ownerId||!businessId||(s.connectedRuntime&&!s.connectedRuntime.active)||source?.businessId!==businessId||(source.ownerId&&source.ownerId!==ownerId)||!appEnquiryReference(source.message))return null;
+ const value=checked?.stamp===stamp?checked.value:null,retained=source.filed&&supportedListingFiling(source)?source.listingProvenance:null;
  return <Details label="What prompted this enquiry?">
+  {retained?<Text style={styles.cardBody}>{'Source verified at filing: '+retained.facts.name+' · '+retained.selection.kind+' · revision '+retained.selection.revision+'. Current availability needs a fresh check. This is not an order, reservation or verified submission-time display.'}</Text>:null}
   <Text style={styles.cardBody}>{value?.ok?value.subject:'This request contains an item reference. Its wording alone does not verify the item or displayed facts.'}</Text>
   <Button label="Check current original item context" disabled={busy||typeof s.readCurrentAppStudioDraft!=='function'} onPress={async()=>{
    if(!current()||pending.current)return false;pending.current=true;setBusy(true);setChecked(null);setNotice('');
@@ -31,8 +32,8 @@ export function AppEnquirySourceContext({s,source}){
    finally{pending.current=false;if(current())setBusy(false);}
   }}/>
   {value?.ok?<>
-   <Text style={styles.cardBody}>{'Current source: '+value.facts.kind+' · '+value.facts.name+' · revision '+value.facts.revision}</Text>
-   {value.facts.amountMinor!==undefined?<Text style={styles.cardBody}>{'Current approved price: '+contentPrice(value.facts.amountMinor,value.facts.currency)+(value.facts.optionLabel?' · '+value.facts.optionLabel:'')}</Text>:null}
+   <Text style={styles.cardBody}>{(value.historical?'Source at filing (current source changed or unavailable): ':'Current source: ')+value.facts.kind+' · '+value.facts.name+' · revision '+value.facts.revision}</Text>
+   {value.facts.amountMinor!==undefined?<Text style={styles.cardBody}>{(value.historical?'Approved price at filing (not a quote): ':'Current approved price: ')+contentPrice(value.facts.amountMinor,value.facts.currency)+(value.facts.optionLabel?' · '+value.facts.optionLabel:'')}</Text>:null}
    {value.facts.kind==='event'?<Text style={styles.cardBody}>{contentEventSchedule(value.facts)}</Text>:null}
    <Text selectable style={styles.cardBody}>{'Customer wording and requested details (not verified):\n'+value.customerWords}</Text>
    <Details label="Source evidence"><Text selectable style={styles.cardBody}>{'Original request '+value.requestId+' · app '+value.appId+' · checked '+checked.at+'. '+value.evidence}</Text></Details>
