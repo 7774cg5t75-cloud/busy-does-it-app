@@ -8,6 +8,8 @@ import {stableJson} from './stableJson.mjs';
 // Data-only, provider-neutral boundary. Neither model output nor this client
 // validator authenticates anyone, reserves money, writes records or grants tools.
 export const BUILDER_PROPOSAL_VERSION='busy.builder-proposal.v1';
+// Explicit successor for descriptive bespoke screens. Null modules are never executable.
+export const APP_SPEC_PROPOSAL_VERSION='busy.app-specification.v2';
 const objectives=['professional-presentation','mobile-readability'];
 const id=x=>typeof x==='string'&&/^[a-zA-Z0-9_-]{1,100}$/.test(x);
 const text=x=>typeof x==='string'&&x.trim().length>0&&x.length<=240&&!/[<>\u0000-\u001f\u007f]/.test(x);
@@ -28,14 +30,15 @@ export function builderInterpretationEnvelope(context,goal){
 }
 export function validateBuilderProposal(proposal,context){
  try{
-  if(!context?.ok||new TextEncoder().encode(stableJson(proposal)).length>16000||!exact(proposal,['version','scope','kind','explanation','objectives','app'])||proposal.version!==BUILDER_PROPOSAL_VERSION||stableJson(proposal.scope)!==stableJson(context.scope)||!text(proposal.explanation))return fail('This suggestion does not match the current project. Nothing changed.');
+  if(!context?.ok||new TextEncoder().encode(stableJson(proposal)).length>16000||!exact(proposal,['version','scope','kind','explanation','objectives','app'])||!([BUILDER_PROPOSAL_VERSION,...(context.scope.surface==='app'?[APP_SPEC_PROPOSAL_VERSION]:[])].includes(proposal.version))||stableJson(proposal.scope)!==stableJson(context.scope)||!text(proposal.explanation))return fail('This suggestion does not match the current project. Nothing changed.');
   if(context.scope.surface==='website'){
    if(proposal.kind!=='website-design'||proposal.app!==null||!list(proposal.objectives,2,x=>objectives.includes(x))||new Set(proposal.objectives).size!==proposal.objectives.length)return fail('Only supported private design suggestions can be reviewed.');
    return {ok:true,proposal:frozen(JSON.parse(stableJson(proposal))),mayExecute:false,requiresReview:true};
   }
   const a=proposal.app;
-  if(proposal.kind!=='app-requirements'||!Array.isArray(proposal.objectives)||proposal.objectives.length||!exact(a,['purpose','users','screens','entities','workflows','deviceCapabilities','privacy','visual','acceptance','unsupported'])||!text(a.purpose)||!list(a.users,4,text)||!list(a.screens,12,s=>exact(s,['id','title','module','next'])&&id(s.id)&&text(s.title)&&!!supportedAppCatalogModule(context.anchor.catalog,s.module)&&Array.isArray(s.next)&&s.next.length<=12&&s.next.every(id))||new Set(a.screens.map(s=>s.id)).size!==a.screens.length)return fail('The app needs a supported, clearly scoped plan.');
+  if(proposal.kind!=='app-requirements'||!Array.isArray(proposal.objectives)||proposal.objectives.length||!exact(a,['purpose','users','screens','entities','workflows','deviceCapabilities','privacy','visual','acceptance','unsupported'])||!text(a.purpose)||!list(a.users,4,text)||!list(a.screens,12,s=>exact(s,['id','title','module','next'])&&id(s.id)&&text(s.title)&&(!!supportedAppCatalogModule(context.anchor.catalog,s.module)||proposal.version===APP_SPEC_PROPOSAL_VERSION&&s.module===null)&&Array.isArray(s.next)&&s.next.length<=12&&s.next.every(id))||new Set(a.screens.map(s=>s.id)).size!==a.screens.length)return fail('The app needs a supported, clearly scoped plan.');
   const screens=new Set(a.screens.map(s=>s.id));
+  if(proposal.version===APP_SPEC_PROPOSAL_VERSION&&new Set(a.screens.filter(s=>s.module!==null).map(s=>s.module)).size!==a.screens.filter(s=>s.module!==null).length)return fail('A supported destination can appear once; new screens need separate development.');
   if(a.screens.some(s=>s.next.some(n=>!screens.has(n)))||!list(a.entities,10,e=>exact(e,['id','fields','relatedTo'])&&id(e.id)&&list(e.fields,12,text)&&Array.isArray(e.relatedTo)&&e.relatedTo.length<=10&&e.relatedTo.every(id))||new Set(a.entities.map(e=>e.id)).size!==a.entities.length)return fail('Check the screen and information relationships before review.');
   const entities=new Set(a.entities.map(e=>e.id));
   if(a.entities.some(e=>e.relatedTo.some(r=>!entities.has(r)))||!list(a.workflows,10,text)||!Array.isArray(a.deviceCapabilities)||a.deviceCapabilities.length>3||a.deviceCapabilities.some(x=>!['camera-proposal','location-proposal','notifications-proposal'].includes(x))||!list(a.privacy,8,text)||!list(a.visual,8,text)||!list(a.acceptance,12,text)||!Array.isArray(a.unsupported)||a.unsupported.length>10||!a.unsupported.every(text))return fail('This plan contains unsupported requirements.');
@@ -51,7 +54,7 @@ export function prepareGovernedBuilderReview(proposal,context,current,deps={}){
   const plan=planBusyGoal({request:words,surface:'website',website:context.anchor.project,businessId:context.scope.businessId,pageId:context.scope.pageId,profile:context.anchor.profile},deps);
   return plan.ready?{ok:true,kind:'website-review',plan,original:context.anchor.project,prepared:plan.prepared,explanation:'Review supported private design changes. Your original website is unchanged.',suggestedExplanation:proposal.explanation,suggestionNotVerified:true,requiresReview:true,mayExecute:false,providerCalls:0}:fail(plan.nextAction||'No supported change is needed.');
  }
- const modules=[...new Set(proposal.app.screens.map(s=>s.module))];
+ const modules=[...new Set(proposal.app.screens.map(s=>s.module).filter(Boolean))];
  const supported=planFunctionalBusinessApp({businessId:context.scope.businessId,profile:context.anchor.profile,catalog:context.anchor.catalog,businessGoals:proposal.app.purpose,businessName:context.anchor.profile.businessName});
  return {ok:true,kind:'app-requirements-review',requirements:checked.proposal.app,supportedPlan:supported,requestedModules:modules,capabilities:modules.map(m=>getUniversalCapability(m)).filter(Boolean),requiresReview:true,mayExecute:false,providerCalls:0,limitations:['Requirements are not implemented screens or new data tables.','Only original available modules can enter a private draft through its existing review.','Device permissions, bespoke workflows and standalone distribution need independent implementation and approval.']};
 }
@@ -95,14 +98,14 @@ export function prepareGovernedAppPreview(proposal,context,current,goal){
 }
 // Provider structured-output schema is advisory to the provider; the independent
 // validator above remains mandatory even if a provider promises strict output.
-export function builderProposalResponseSchema(context){
+export function builderProposalResponseSchema(context,{bespoke=false}={}){
  if(!context?.ok)return null;
  const string={type:'string',minLength:1,maxLength:240};
  const identifier={type:'string',pattern:'^[a-zA-Z0-9_-]{1,100}$'};
  const array=(items,max,min=1)=>({type:'array',items,minItems:min,maxItems:max});
  const object=properties=>({type:'object',additionalProperties:false,required:Object.keys(properties),properties});
- const app=object({purpose:string,users:array(string,4),screens:array(object({id:identifier,title:string,module:{enum:context.anchor.catalog.filter(row=>supportedAppCatalogModule(context.anchor.catalog,row.module_key)).map(row=>row.module_key)},next:array(identifier,12,0)}),12),entities:array(object({id:identifier,fields:array(string,12),relatedTo:array(identifier,10,0)}),10),workflows:array(string,10),deviceCapabilities:array({enum:['camera-proposal','location-proposal','notifications-proposal']},3,0),privacy:array(string,8),visual:array(string,8),acceptance:array(string,12),unsupported:array(string,10,0)});
- return object({version:{const:BUILDER_PROPOSAL_VERSION},scope:object(Object.fromEntries(Object.entries(context.scope).map(([k,v])=>[k,{const:v}]))),kind:{const:context.scope.surface==='website'?'website-design':'app-requirements'},explanation:string,objectives:context.scope.surface==='website'?{...array({enum:objectives},2),uniqueItems:true}:array(string,0,0),app:context.scope.surface==='website'?{type:'null'}:app});
+ const app=object({purpose:string,users:array(string,4),screens:array(object({id:identifier,title:string,module:bespoke?{anyOf:[{enum:context.anchor.catalog.filter(row=>supportedAppCatalogModule(context.anchor.catalog,row.module_key)).map(row=>row.module_key)},{type:'null'}]}:{enum:context.anchor.catalog.filter(row=>supportedAppCatalogModule(context.anchor.catalog,row.module_key)).map(row=>row.module_key)},next:array(identifier,12,0)}),12),entities:array(object({id:identifier,fields:array(string,12),relatedTo:array(identifier,10,0)}),10),workflows:array(string,10),deviceCapabilities:array({enum:['camera-proposal','location-proposal','notifications-proposal']},3,0),privacy:array(string,8),visual:array(string,8),acceptance:array(string,12),unsupported:array(string,10,0)});
+ return object({version:{const:bespoke&&context.scope.surface==='app'?APP_SPEC_PROPOSAL_VERSION:BUILDER_PROPOSAL_VERSION},scope:object(Object.fromEntries(Object.entries(context.scope).map(([k,v])=>[k,{const:v}]))),kind:{const:context.scope.surface==='website'?'website-design':'app-requirements'},explanation:string,objectives:context.scope.surface==='website'?{...array({enum:objectives},2),uniqueItems:true}:array(string,0,0),app:context.scope.surface==='website'?{type:'null'}:app});
 }
 // A future transport must bound bytes while reading the response as well. This
 // entry point caps raw JSON before parsing; it never evals fenced code or tools.

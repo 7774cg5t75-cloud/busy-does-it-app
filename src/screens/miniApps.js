@@ -1,3 +1,4 @@
+import {AppGoalCompositionEditor} from './appGoalCompositionEditor';
 import {WorkflowStatus} from '../components/WorkflowChrome';
 import {GoalToPrivateApp} from './goalToPrivateApp';
 import {AppServiceAnswersEditor} from './appServiceAnswersEditor';
@@ -1248,6 +1249,11 @@ function MiniAppBuilder({ s }) {
       brandCue="Your business facts. Your choice before anything goes live."
     >
       <Button label="Talk & Explore — no project changes" disabled={!app||!view.draftConfig||!!s.miniAppsAction||studio.pending||studio.uncertain} onPress={()=>s.requestOwnerEditTransition?s.requestOwnerEditTransition(()=>setExplore(true)):setExplore(true)}/>
+      {app?<AppGoalCompositionEditor key={['goal-composition',s.ownerSession?.userId,s.cloudWorkspace?.businessId,ownerEditorEpoch].join(':')}
+        ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog||[]}
+        initialGoal={s.miniAppBuildBrief||''} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+        Surface={MiniAppSurface} onDraftChange={value=>markOwnerDirty('goal-composition',value)}
+        onPreview={plan=>setStudioPreview(plan,'goal-composition')}/>:null}
       <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
         onApprovedRecords={approvedRecords.onApprovedRecords}

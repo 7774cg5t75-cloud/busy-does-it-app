@@ -1,3 +1,9 @@
+## Current private Product Master — V22.69,31 October2026
+
+The owner-supplied complete original was reopened: SHA256 `73c81159c901e62f8d0620399848f7167abbba55cf5e1bb5e3bc1c39d2ba6ea8`,2,794 paragraphs/19 tables; cover identifies V22.69. Relevant builder, security, cost, continuity and evidence requirements were reviewed. This supersedes the historical version entries below. The private original and complete extraction remain outside Git.
+
+The current owner mission authorises bounded post-audit App Builder source development: existing verified composition plus descriptive bespoke specifications, original private review/save authorities, and honest optional evidence. No arbitrary generated-code execution, provider activation, paid inference, hosted changes, signing or distribution is authorised. Founder subscriber analytics remain a separate future workstream. Preserve all PhaseFive protections and reviewed dependency installation/backport controls.
+
 ## Dependency toolchain security — targeted remediation
 
 For approved source work use the reviewed lock, `npm ci --ignore-scripts`, then `node scripts/apply-tooling-security-patches.mjs` and `node scripts/check-dependency-security.mjs`. Use the guarded Expo launcher (`npm start`, or `node scripts/run-expo-safe.mjs export ...`) so fixed installed versions and the actual deepmerge runtime patch are verified before config loads. Keep scoped overrides/policy and the mirrored capture lock consistent; changed dependency versions/hashes require compatible review, not forced upgrades. Raw npm findings remain visible: deepmerge is a reviewed local backport, not an upstream clean-audit claim. See `docs/DEPENDENCY_SECURITY_INSTALL.md`. This changes no hosted, spending, signing, provider or release authority; preserve all Phase Five quarantines.

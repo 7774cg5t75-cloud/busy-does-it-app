@@ -1,3 +1,9 @@
+## Current private Product Master — V22.69,31 October2026
+
+The owner-supplied complete original was reopened: SHA256 `73c81159c901e62f8d0620399848f7167abbba55cf5e1bb5e3bc1c39d2ba6ea8`,2,794 paragraphs/19 tables; cover identifies V22.69. Relevant builder, security, cost, continuity and evidence requirements were reviewed. This supersedes the historical version entries below. The private original and complete extraction remain outside Git.
+
+The current owner mission authorises bounded post-audit App Builder source development: existing verified composition plus descriptive bespoke specifications, original private review/save authorities, and honest optional evidence. No arbitrary generated-code execution, provider activation, paid inference, hosted changes, signing or distribution is authorised. Founder subscriber analytics remain a separate future workstream. Preserve all PhaseFive protections and reviewed dependency installation/backport controls.
+
 ## Latest original reopened — V22.66,30 October2026
 
 Owner attachment identifies V22.66; original SHA256 `11f7b3069894b40d4467d90ba6883eeb3e3584057ace5b37c511187c883a483a`,2,684 paragraphs/19 tables. Ordered comparison with genuine V22.63 retains all non-cover content, updates the version line and appends130 paragraphs covering Sections74–76; all additions reviewed. Complete original/extraction remain private outside this repository. V22.64's separate original was not supplied; its Section74 requirements are now directly reviewed within the newer authentic V22.66. No original was rewritten, no private Library upload is claimed, and future model/provider/build ambitions do not grant spending or deployment authority.

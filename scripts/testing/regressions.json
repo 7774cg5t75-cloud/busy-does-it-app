@@ -2945,6 +2945,13 @@
         "scripts/dependency-compatibility-probe.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "app-goal-composition",
+      "args": [
+        "scripts/check-app-goal-composition.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
