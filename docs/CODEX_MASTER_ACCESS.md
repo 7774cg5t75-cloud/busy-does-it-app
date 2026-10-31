@@ -1,3 +1,7 @@
+## Current private Product Master — V22.70,31 October2026
+
+The newly supplied Word original identifies V22.70 (filename shortened to22.7): SHA256 `32a8931437dbeef7c9d76030e2f3abdf6296777f30029f1e0744f2605e2d6ab5`,2,813 paragraphs/19 tables. The original was reopened and the new Section80 reviewed; private bytes/extraction remain outside Git. It supersedes V22.69 named in the mission prose. Preserve the canonical approved app orb across future channels; this content-composition mission does not redesign Home/orbs, implement marketing assets or authorise publishing/spending. All inherited security, continuity, cost and release gates remain in force.
+
 ## Current private Product Master — V22.69,31 October2026
 
 The owner-supplied complete original was reopened: SHA256 `73c81159c901e62f8d0620399848f7167abbba55cf5e1bb5e3bc1c39d2ba6ea8`,2,794 paragraphs/19 tables; cover identifies V22.69. Relevant builder, security, cost, continuity and evidence requirements were reviewed. This supersedes the historical version entries below. The private original and complete extraction remain outside Git.

@@ -4212,7 +4212,9 @@ Deno.serve(async (request: Request) => {
     const readCurrentStatus=()=>connectedProject?scopedOwnerStatus({read:()=>ownerStatus(resolvedBusinessId),verify:async()=>{const current=await membership(user.id,resolvedBusinessId,true);if(current.role!=='owner')throw Error('Current owner access changed');}}):ownerStatus(resolvedBusinessId);
 
     if(['content_list','content_save','content_publish','content_undo'].includes(action)){
-      return json(200,await manageBusinessContent(supabase,{businessId:resolvedBusinessId,actorId:user.id,role:member.role},body));
+      const read=()=>manageBusinessContent(supabase,{businessId:resolvedBusinessId,actorId:user.id,role:member.role},body);
+      if(action==='content_list')return json(200,await scopedOwnerStatus({read,verify:async()=>{const active=await membership(user.id,resolvedBusinessId,false);if(connectedProject?active.role!=='owner':!['owner','admin'].includes(active.role))throw Error('Business record access changed');}}));
+      return json(200,await read());
     }
 
     if(action==="brain_owner_decisions"){

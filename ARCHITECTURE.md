@@ -1,3 +1,9 @@
+## Approved record-backed app composition —31 October2026
+
+The original goal editor can compose existing product/event collections using scoped approved records from the original `content_list` authority. It reuses `busy_business_content`, the original product/event renderer/search/category/detail state and finite `content_layout` Studio operations. Prices, dates and media are not copied into a new store. Food/menu+events, retail/product and trades/service/gallery experiences share components but retain different arrangements and original source facts. Natural refinements remain finite, reviewable and private.
+
+A read-only `content_list` action is prepared through the existing disabled staging gates; content-save/publication/Undo routes remain denied there. The original server reader verifies current membership before and after its multi-read response. The client binds approved identities/revisions to preview and re-reads before collection approval, denying stale/changed/missing records or unknown reads. This is not a transactional record-version pin: saved layouts resolve the latest approved records dynamically. Membership/CAS still belong to original finite private writers; hosted activation and genuine JWT/storage/provider/native acceptance remain separate. No schema, migration, provider or new runtime configuration field is introduced. Complete MasterV22.70 stays private; approved Home/orbs and dependency controls are unchanged.
+
 ## App goal composition — bounded post-audit development,31 October2026
 
 The original governed proposal contract retains v1 compatibility and adds an explicit app-specification v2 for descriptive unbuilt screens (`module:null`). The independent validator rejects forged scope, unknown executable modules, invalid relationships and duplicate supported destinations. This is not generated code or permission to execute custom features.

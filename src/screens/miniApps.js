@@ -1,3 +1,4 @@
+import {approvedCompositionFeed,appRecordReview,currentAppRecordReview} from '../core/appRecordComposition.mjs';
 import {AppGoalCompositionEditor} from './appGoalCompositionEditor';
 import {WorkflowStatus} from '../components/WorkflowChrome';
 import {GoalToPrivateApp} from './goalToPrivateApp';
@@ -937,7 +938,7 @@ function MiniAppBuilder({ s }) {
   const studioPreview=studio.preview,studioNotice=studio.notice;
   const setStudioNotice=studio.setNotice;
   const setStudioPreview=(proposal,part=null)=>{
-    proposalDraft.current=proposal?{part,epoch:ownerDraftEpoch.current,source:view.draftConfig}:null;
+    proposalDraft.current=proposal?{part,epoch:ownerDraftEpoch.current,source:view.draftConfig,recordReview:proposal.recordReview||null}:null;
     return studio.prepare(proposal);
   };
   // This gates these original source replacements BEFORE mutation, not merely their later navigation.
@@ -961,8 +962,18 @@ function MiniAppBuilder({ s }) {
     return true;
   };
 
+  const recordApproval=React.useRef(false);
   const approveOwnerDraft=async()=>{
-    if(!mayReplaceOwnerSource())return {ok:false};
+    if(recordApproval.current||!mayReplaceOwnerSource())return {ok:false};
+    if(studioPreview?.operations.some(op=>op.kind==='content_layout'&&op.value?.length)){
+      const kinds=[...new Set(studioPreview.operations.filter(op=>op.kind==='content_layout').flatMap(op=>op.value.map(b=>b.kind)))];
+      const expected=proposalDraft.current?.recordReview||appRecordReview(studioPreview.businessContentPreview||approvedRecords.feed,controlContext.businessId,kinds);
+      if(!expected?.ok){setStudioNotice('Load current approved listings and prepare this collection review again. Nothing was saved.');return {ok:false};}
+      recordApproval.current=true;
+      try{const response=await s.businessContentRequest('content_list');const feed=approvedCompositionFeed(response,controlContext.businessId);if(!mayReplaceOwnerSource()||!currentAppRecordReview(expected,feed,controlContext.businessId)){setStudioNotice('Approved listings changed or access could not be confirmed. Load them and prepare a fresh review.');return {ok:false};}}
+      catch{setStudioNotice('Current approved listings could not be checked. Your review is kept; nothing was saved.');return {ok:false};}
+      finally{recordApproval.current=false;}
+    }
     const part=proposalDraft.current?.part;
     const expected=captureAppDraftAcknowledgement({...controlContext,config:view.draftConfig},part,ownerPartEpochs.current[part]);
     const result=await studio.approve();
@@ -1252,8 +1263,8 @@ function MiniAppBuilder({ s }) {
       {app?<AppGoalCompositionEditor key={['goal-composition',s.ownerSession?.userId,s.cloudWorkspace?.businessId,ownerEditorEpoch].join(':')}
         ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog||[]}
         initialGoal={s.miniAppBuildBrief||''} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
-        Surface={MiniAppSurface} onDraftChange={value=>markOwnerDirty('goal-composition',value)}
-        onPreview={plan=>setStudioPreview(plan,'goal-composition')}/>:null}
+        Surface={MiniAppSurface} recordsFeed={approvedRecords.feed} onRefreshRecords={async()=>{try{const result=await s.businessContentRequest('content_list');const feed=approvedCompositionFeed(result,s.cloudWorkspace?.businessId);approvedRecords.onApprovedRecords(feed.ok?feed:null);return feed;}catch(error){approvedRecords.onApprovedRecords(null);throw error;}}} onDraftChange={value=>markOwnerDirty('goal-composition',value)}
+        onPreview={plan=>plan?setStudioPreview(plan,'goal-composition'):proposalDraft.current?.part==='goal-composition'?setStudioPreview(null,'goal-composition'):false}/>:null}
       <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
         onApprovedRecords={approvedRecords.onApprovedRecords}
@@ -2582,7 +2593,7 @@ function MiniAppBuilder({ s }) {
                   const next=amendAppQualityProposal(view.draftConfig,studioPreview,repair);
                   if(next.ok)setStudioPreview(next);else setStudioNotice(next.reason);
                 }}
-                renderSurface={config=><MiniAppSurface config={config} businessContent={s.miniAppsView?.app?.businessContent||null}/>}/>
+                renderSurface={config=><MiniAppSurface config={config} businessContent={studioPreview.recordReview?(currentAppRecordReview(studioPreview.recordReview,approvedRecords.feed,controlContext.businessId)?approvedRecords.feed:null):approvedRecords.feed||s.miniAppsView?.app?.businessContent||null}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction||!studio.canApprove}
                 onPress={approveOwnerDraft}/>

@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/app-goal-composition.yml'
       - 'src/core/appGoalComposition.mjs'
+      - 'src/core/appRecordComposition.mjs'
+      - 'scripts/check-app-record-composition.mjs'
       - 'src/core/governedBuilderProposal.mjs'
       - 'src/core/universalBuilderPlanV3210.mjs'
       - 'src/screens/appGoalCompositionEditor.js'
@@ -39,6 +41,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-app-record-composition.mjs
           node scripts/check-app-goal-composition.mjs
           node scripts/check-governed-builder-proposals.mjs
           node scripts/check-production.mjs

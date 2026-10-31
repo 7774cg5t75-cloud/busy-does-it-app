@@ -60,14 +60,14 @@ export function prepareAppComposition({proposal,context,current,selection}={}){
  const allowed=[...new Set(review.rows.filter(r=>r.status==='private-configured').map(r=>r.module))];
  const order=selection.order,labels=selection.labels||{},appearance=selection.appearance||{};
  if(!Array.isArray(order)||!order.length||order.length!==allowed.length||new Set(order).size!==order.length||order.some(k=>!allowed.includes(k)))return no('Keep each supported screen once. Other saved sections are retained.');
- if(!labels||typeof labels!=='object'||Array.isArray(labels)||!appearance||typeof appearance!=='object'||Array.isArray(appearance)||Object.keys(labels).some(k=>!allowed.includes(k))||Object.keys(appearance).some(k=>!['serviceStyle','navigationStyle','layoutDensity'].includes(k)||!OPTIONS[k].includes(appearance[k])))return no('Use the supported screen labels and layout choices.');
+ if(!labels||typeof labels!=='object'||Array.isArray(labels)||!appearance||typeof appearance!=='object'||Array.isArray(appearance)||Object.keys(labels).some(k=>!allowed.includes(k))||Object.keys(appearance).some(k=>!['serviceStyle','navigationStyle','layoutDensity','imageScale'].includes(k)||!OPTIONS[k].includes(appearance[k])))return no('Use the supported screen labels and layout choices.');
  const operations=[],nextOrder=[...order,...old.filter(k=>!order.includes(k))];
  if(!same(nextOrder,old))operations.push({kind:'navigation',value:nextOrder});
  const existing=publicNavigationLabels(config,{withDefaults:true});
  for(const [moduleKey,value]of Object.entries(labels))if(value!==existing[moduleKey])operations.push({kind:'navigation_label',moduleKey,value});
- const defaults={serviceStyle:'cards',navigationStyle:'tabs',layoutDensity:'comfortable'};
+ const defaults={serviceStyle:'cards',navigationStyle:'tabs',layoutDensity:'comfortable',imageScale:'regular'};
  for(const [field,value]of Object.entries(appearance))if(value!==(config.presentation?.[field]||defaults[field]))operations.push({kind:'appearance',field,value});
- if(!operations.length)return no('These choices already match your saved app. Your existing information is kept.');
+ if(!operations.length)return {...no('These choices already match your saved app. Your existing information is kept.'),code:'no_changes'};
  const result=proposeCoordinatedAppChanges(config,operations);if(!result.ok)return result;
  const bound=bindPrivateAppProposal(result,{businessId:context.scope.businessId,app:context.anchor.project});
  return bound?{...bound,compositionReview:review,explanation:{status:'Ready for private review',summary:'Only the listed screen labels, order and layout change. Your saved wording and other sections are kept.',source:'Saved private app',revision:context.scope.sourceRevision,verified:'Validated against the current private configuration; not saved or tested live.',limitations:review.limitations},mayExecute:false}:no('Reopen the current private app before review.');

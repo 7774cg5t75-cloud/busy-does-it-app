@@ -2952,6 +2952,13 @@
         "scripts/check-app-goal-composition.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "app-record-composition",
+      "args": [
+        "scripts/check-app-record-composition.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
