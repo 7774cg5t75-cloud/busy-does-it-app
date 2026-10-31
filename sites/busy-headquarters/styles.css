@@ -349,3 +349,38 @@ a.founder-business:focus-visible{outline:2px solid #83eaff;outline-offset:4px}
  .questions .faq-answer{padding:0 22px 20px 34px}
  .questions .faq-answer p{font-size:13px;line-height:1.7}
 }
+
+
+/* Owner-approved hero order: orb above headline on phone, right of headline on desktop.
+   Layout only: the orb remains the same app-derived SVG, with no pretend voice interaction. */
+@media (max-width:790px) {
+  .hero-layout { display:flex; flex-direction:column; align-items:stretch; gap:0; }
+  .hero-stage {
+    order:-1; width:100%; align-self:center;
+    min-height:147px; max-height:none; margin:0 0 6px; padding:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .hero-copy { order:0; width:100%; max-width:100%; }
+  .orb-halo { width:124px; height:124px; margin:0 auto; }
+  .constellation {
+    left:50%; right:auto; top:50%;
+    width:min(76vw,268px); height:auto;
+    transform:translate(-50%,-56%);
+    opacity:.82;
+  }
+  .stage-aura { inset:0 10%; }
+  .stage-caption, .orb-note { display:none; }
+}
+@media (max-width:550px) {
+  .hero-layout { padding-top:10px; padding-bottom:0; }
+  .hero-stage { min-height:137px; margin:0 0 5px; }
+  .orb-halo { width:120px; height:120px; }
+  .constellation { width:min(78vw,258px); }
+  .hero-copy .eyebrow { margin-bottom:5px; }
+  .quick-capabilities { padding-top:5px; }
+}
+@media (max-width:375px) {
+  .hero-stage { min-height:129px; }
+  .orb-halo { width:112px; height:112px; }
+  .constellation { width:min(80vw,239px); }
+}
