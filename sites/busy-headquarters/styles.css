@@ -98,3 +98,26 @@
 
 /* Review polish: keep the decorative orb caption clear of any note text. */
 .orb-note{display:none}
+
+
+/* Owner-reviewed sample-website spotlight: distinct from BUSY's own premium Midnight identity. */
+.showcase-splash{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center;padding-block:55px 95px}
+.showcase-copy h2{font-size:clamp(36px,4.1vw,55px);line-height:1.14;margin:19px 0 23px}
+.showcase-copy>p:not(.eyebrow){font-size:15px;color:#aebdd3;line-height:1.7;max-width:590px}
+.showcase-copy .button{margin:16px 0 0}
+.showcase-copy .showcase-caveat{font-size:10px!important;color:#8295b3!important;line-height:1.6!important;margin:17px 0 0}
+.showcase-caveat a{text-decoration:underline;text-underline-offset:2px;color:#b5d8eb}
+.showcase-image{min-height:380px;border:1px solid #437b6c;border-radius:24px;background:linear-gradient(110deg,#f6f5ed 0 47%,#d0dfd3 100%);color:#183a31;box-shadow:0 30px 60px #020b1a66;overflow:hidden;position:relative;transform:rotate(1.2deg)}
+.showcase-image:after{content:'';position:absolute;inset:75px 0 0 58%;background:linear-gradient(150deg,#51796860,#0e382a18),url('https://images.unsplash.com/photo-1761637823276-7d714eb45cb1?auto=format&fit=crop&w=800&q=75') center/cover no-repeat;border-radius:100px 0 0 0}
+.showcase-mini-header{display:flex;justify-content:space-between;align-items:center;background:#fdfcf5;padding:17px 23px;position:relative;z-index:1}
+.showcase-mini-header span:first-child{font-size:22px;font-weight:850;letter-spacing:-.09em}
+.showcase-mini-header span:last-child{font-size:8px;letter-spacing:.14em;font-weight:700;color:#7c978b}
+.showcase-mini-content{position:relative;z-index:1;padding:48px 24px 72px;display:flex;flex-direction:column;align-items:flex-start;max-width:90%}
+.showcase-mini-content>span:first-child{font-size:9px;letter-spacing:.13em;font-weight:850;color:#427663}
+.showcase-mini-content strong{font-size:clamp(25px,2.4vw,37px);line-height:1.15;letter-spacing:-.055em;margin:10px 0 14px}
+.showcase-mini-content i{color:#398675;font-family:Georgia,serif;font-weight:500}
+.showcase-mini-content small{font-size:11px;color:#526960;max-width:240px}
+.showcase-mini-button{font-size:11px;font-weight:760;color:#fff;background:#173c34;padding:9px 14px;border-radius:100px;margin-top:23px}
+.showcase-mini-footer{position:absolute;z-index:1;bottom:0;left:0;right:0;padding:10px 24px;background:#15382eda;color:#e4f6e9;font-size:10px}
+@media(max-width:940px){.showcase-splash{grid-template-columns:1fr;gap:28px}.showcase-image{min-height:340px;max-width:640px;width:100%}}
+@media(max-width:550px){.showcase-splash{padding-block:20px 68px}.showcase-copy h2{font-size:35px}.showcase-copy>p:not(.eyebrow){font-size:13px}.showcase-image{min-height:325px;transform:none}.showcase-mini-content{padding-top:40px;padding-bottom:68px}.showcase-mini-header{padding:13px 18px}.showcase-mini-content strong{font-size:28px}}
