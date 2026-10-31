@@ -257,3 +257,29 @@ a.founder-business:focus-visible{outline:2px solid #83eaff;outline-offset:4px}
 /* Approved original Slow Roast logo; whole brand card remains a link to slowroast.co.uk. */
 .founder-business-logo{width:92px;height:92px;flex:0 0 92px;display:block;object-fit:contain;object-position:center;border-radius:50%;background:#f9f6ef;border:1px solid #9a6a35;box-shadow:0 6px 20px #02091699}
 @media(max-width:550px){.founder-business-logo{width:80px;height:80px;flex-basis:80px}.founder-business>span:nth-child(2){flex:1;min-width:135px}}
+
+/* Owner-approved placement: centre Busy orb on mobile/tablet while retaining desktop right-side hero.
+   This overrides the original mobile edge-alignment rules; preserve the canonical orb art. */
+@media (max-width:790px) {
+  .hero-stage {
+    width:100%; min-height:178px; max-height:none; margin:0; padding:3px 0 0;
+    align-items:center; justify-content:center;
+  }
+  .orb-halo { width:156px; height:156px; margin-inline:auto; }
+  .constellation {
+    top:50%; left:50%; right:auto; width:min(85vw,300px); height:auto;
+    transform:translate(-50%,-56%); opacity:.83;
+  }
+  .stage-aura { inset:0 9%; }
+  .stage-caption, .orb-note { display:none; }
+}
+@media (max-width:550px) {
+  .hero-stage { min-height:151px; padding:0; margin-top:0; }
+  .orb-halo { width:132px; height:132px; }
+  .constellation { width:min(78vw,264px); }
+  .quick-capabilities { padding-top:4px; }
+}
+@media (max-width:375px) {
+  .hero-stage { min-height:144px; }
+  .orb-halo { width:124px; height:124px; }
+}
