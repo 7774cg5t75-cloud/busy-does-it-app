@@ -1,3 +1,7 @@
+import {connectedTransportRestricted} from './connectedTransportBoundary.mjs';
+import {appColors} from "../theme/appearance.mjs";
+export const TRUSTED_WORKSPACE_BOOTSTRAP_ENABLED = false; // Separate read/write cutover approval required.
+export const TRUSTED_PRIVATE_REPLY_ACCOUNT_ENABLED = false; // Separate reviewed server/client cutover required.
 import {busyRuntimeCloudConfig} from "./stagingRuntimeIsolation.mjs";
 const APP_VERSION = "3.105";
 const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Hosted Website Visual Review Connection`;
@@ -31,7 +35,7 @@ const BUSY_CALENDAR_OAUTH_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-calendar-o
 const BUSY_CALENDAR_SYNC_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-calendar-sync";
 const BUSY_PRODUCTION_WATCH_URL =
   BUSY_SUPABASE_URL+"/functions/v1/busy-production-watch";
-const OWNER_SESSION_KEY = IS_STAGING_BUILD
+const OWNER_SESSION_KEY = process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview" ? "busy-owner-preview-no-account" : IS_STAGING_BUILD
   ? "busy-owner-session-v3.128-isolated-staging"
   : "busy-owner-session-v3.6";
 const DEFAULT_OWNER_EMAIL = IS_STAGING_BUILD ? "" : "busydoesitapp@gmail.com";
@@ -42,6 +46,7 @@ function busyRequestId(prefix = "req") {
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 15000, fetchImpl = fetch) {
+  if(connectedTransportRestricted())throw Error("This action is not connected in isolated staging. Nothing was sent.");
   if (IS_STAGING_BUILD && !CLOUD_CONFIG.configured) {
     const error=new Error("Staging cloud setup is incomplete. BUSY has not contacted a live service.");
     error.stageGuard=true;
@@ -150,25 +155,7 @@ function ownerSessionFromPayload(data) {
 
 // V3.84: shared dark design tokens for the entire authenticated product.
 // Keep high-contrast text tones distinct from filled-button colors.
-const C = {
-  bg: "#0D131E",
-  card: "#171F2D",
-  ink: "#F4F7FE",
-  muted: "#B4C0D2",
-  blue: "#3671E3",
-  blueText: "#94BCFF",
-  blueSoft: "#1A2A44",
-  green: "#7BE0AE",
-  greenAction: "#238F57",
-  greenSoft: "#173329",
-  amber: "#F6C16E",
-  amberAction: "#9D631D",
-  amberSoft: "#342817",
-  red: "#FF9494",
-  redAction: "#AA3F4F",
-  border: "#344157",
-  shadow: "#000000",
-};
+const C = appColors;
 
 const VERTICAL_PACKS = {
   "exterior-cleaning": {

@@ -1,11 +1,22 @@
+import {savePrivateProject} from './privateProjectService.mjs';
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
+import {requireCentralAiAdmission,legacyAiAdmissionStatus} from '../_shared/legacyAiAdmission.mjs';
+import {scopedOwnerStatus} from './scopedOwnerStatus.mjs';
+import {commitPrivateDraft} from './commitPrivateDraft.mjs';
+import {connectedStagingAction} from '../_shared/connectedStagingActions.mjs';
+import {createOwnerStatusReader} from './ownerStatusReader.mjs';
+import {quotationAccountReadiness} from './quoteAuthenticationBoundary.mjs';
+import {builderExploreRemoteGuard} from './builderExploreRemoteGuard.mjs';
+import {reviewAppEditingQuality} from "./appAppearanceEditing.mjs";
+import {checkReviewedCustomerVersion} from "./customerReviewedVersion.mjs";
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
 import {validContentLayout} from './businessContentRecords.mjs';
 import {manageBusinessContent,readBusinessContent} from '../_shared/businessContentStore.mjs';
 import {publicServiceDetails} from './publicServiceDetails.mjs';
 import {publicCollection} from './appPublicCollections.mjs';
 import {appConfigLockReason,retainAppDraftDesign,proposeAppModuleToggle} from "./appDraftComposition.mjs";
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import {createClient} from "../_shared/supabaseClient.ts";
 import { decideStandaloneEligibility } from "./standaloneEligibility.mjs";
 import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
 import { proposeAppSectionMove } from "./appSectionOrder.mjs";
@@ -37,7 +48,7 @@ import {ownerGuestAlertEvidenceV3227} from "./ownerGuestAlertEvidenceV3227.mjs";
 import {chooseOwnerRequestNextStepV3228} from "./ownerNextStepV3228.mjs";
 import {verifyOwnerRequestFreshnessV3231} from "./ownerRequestFreshnessV3231.mjs";
 import {classifyBookingClosureEvidenceV3232} from "./bookingCloseEvidenceV3232.mjs";
-import {classifyBookingRevisionV3233} from "./ownerBookingRevisionV3233.mjs";
+import {classifyBookingRevisionV3233,classifyBookingAssociationV3233} from "./ownerBookingRevisionV3233.mjs";
 import {chooseOwnerConversationActionV3234} from "./ownerConversationActionV3234.mjs";
 import {readCurrentOwnerFollowupV3235} from "./ownerFollowupReadbackV3235.mjs";
 
@@ -262,6 +273,7 @@ async function dispatchMiniAppPush({
   body,
   data = {},
 }: any) {
+  if(!legacyConsequentialAllowed('app_push','dispatch'))return {sent:0,deliveryVerified:false,dispatchAvailable:false};
   const ids = [...new Set(safeArray(userIds).map((value) => clean(value, 80)).filter(Boolean))];
   if (!ids.length || !businessId || !notificationKey) return { sent: 0 };
   let sent = 0;
@@ -489,7 +501,7 @@ async function exactOwnerInboxReceipt(
 
 /** V3.233 read-only authenticated owner booking freshness, no PII or writes. */
 async function ownerBookingRevisionV3233(businessId:string,body:any){
- const requestId=clean(body?.requestId,80);
+ const requestId=clean(body?.requestId,80),associated=body?.includeAssociation===true;
  const app=await appForBusiness(businessId);
  if(!app?.id)throw Error("Current Business App is unavailable.");
  const request=await supabase.from("busy_mini_app_requests")
@@ -499,19 +511,28 @@ async function ownerBookingRevisionV3233(businessId:string,body:any){
  if(request.error)throw request.error;
  if(!request.data)throw Error("The original booking request is unavailable.");
  const [link,work]=await Promise.all([
-  supabase.from("busy_mini_app_request_links")
-   .select("request_id,business_id,bridge_state")
+  (associated?supabase.from("busy_mini_app_request_links")
+   .select("request_id,business_id,bridge_state,customer_record_id,action_record_id,updated_at"):supabase.from("busy_mini_app_request_links")
+   .select("request_id,business_id,bridge_state"))
    .eq("request_id",requestId).eq("business_id",businessId).maybeSingle(),
-  supabase.from("busy_mini_app_work_bookings")
-   .select("request_id,business_id,state")
+  (associated?supabase.from("busy_mini_app_work_bookings")
+   .select("id,request_id,business_id,mini_app_id,customer_record_id,action_record_id,calendar_date,calendar_time,calendar_timezone,state,source,updated_at"):supabase.from("busy_mini_app_work_bookings")
+   .select("request_id,business_id,state"))
    .eq("request_id",requestId).eq("business_id",businessId).maybeSingle()
  ]);
  if(link.error||work.error)throw Error("The original Work booking could not be checked.");
- const check=classifyBookingRevisionV3233({
+ const base=classifyBookingRevisionV3233({
   businessId,appId:app.id,requestId,request:request.data,
   link:link.data,work:work.data
  });
+ const check=associated?classifyBookingAssociationV3233({businessId,appId:app.id,requestId,request:request.data,link:link.data,work:work.data}):base;
  if(!check.ok)throw Error(check.reason);
+ if(associated){
+  // The original atomic handoff updates request.updated_at with link/ledger changes.
+  const after=await supabase.from("busy_mini_app_requests").select("id,status,updated_at")
+   .eq("id",requestId).eq("business_id",businessId).eq("mini_app_id",app.id).maybeSingle();
+  if(after.error||!after.data||after.data.status!==request.data.status||after.data.updated_at!==request.data.updated_at)throw Error("The booking changed during inspection. Review it again.");
+ }
  return check;
 }
 
@@ -528,7 +549,7 @@ async function ownerQueueSummaryV3225(businessId:string){
    .select("id",{head:true,count:"exact"})
    .eq("business_id",businessId).eq("mini_app_id",app.id)
    .eq("status",status);
-  if(r.error||!Number.isSafeInteger(r.count)||r.count<0)
+  if(r.error||typeof r.count!=="number"||!Number.isSafeInteger(r.count)||r.count<0)
    throw r.error||Error("The current inbox count is unavailable.");
   return r.count;
  };
@@ -559,7 +580,7 @@ async function ownerQueueSummaryV3225(businessId:string){
     .select("id",{head:true,count:"exact"})
     .eq("business_id",businessId).eq("mini_app_id",app.id)
     .eq("state",state);
-  if(result.error||!Number.isSafeInteger(result.count)||result.count<0)
+  if(result.error||typeof result.count!=="number"||!Number.isSafeInteger(result.count)||result.count<0)
    throw result.error||Error("Guest notification queue is unavailable.");
   return result.count;
  };
@@ -616,6 +637,7 @@ async function customerRequestDetail(userId: string, body: any) {
   const detail = await requestConversationPage(updated.data, body);
   return {
     ...detail,
+    quotationAccess:quotationAccountReadiness({verifiedUserId:userId,request:updated.data}),
     loyaltyProgress: await loyaltyForRequest(updated.data),
   };
 }
@@ -1423,6 +1445,7 @@ async function aiAppPlan(
     catalog,
     existingConfig
   );
+  if(!legacyAiAdmissionStatus().allowed)return fallback;
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey || !ownerRequest) return fallback;
 
@@ -1594,7 +1617,8 @@ async function planBusinessApp(
 async function applyBusinessAppPlan(
   userId: string,
   businessId: string,
-  body: any
+  body: any,
+  stagingActor?:string
 ) {
   const [catalog, storedProfile, existingApp] = await Promise.all([
     moduleCatalog(),
@@ -1629,6 +1653,7 @@ async function applyBusinessAppPlan(
     safeArray(existingApp?.draft_config?.offers),
     existingApp?.draft_config?.loyalty || null
   );
+  if(stagingActor&&!existingApp)throw Error("Create the reviewed private App first; planning cannot create a partial staging project.");
   const app = existingApp || (await ensureApp(businessId, userId, profile,{requireNew:true}));
   if(existingApp)requireAppDraftRevision(app,body);
   const base = buildConfig(
@@ -1675,9 +1700,17 @@ async function applyBusinessAppPlan(
 
   const lockReason=appConfigLockReason(app.draft_config,config);
   if(lockReason)throw Error(lockReason);
-  const updated = await supabase
-    .from("busy_mini_apps")
-    .update({
+  const updated = stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+      display_name: profile.businessName,
+      category: profile.businessType,
+      tagline: profile.tagline,
+      status: app.current_live_version_id ? "update_pending" : "draft",
+      draft_revision: Number(app.draft_revision || 1) + 1,
+      draft_profile_revision: Number(storedProfile?.revision || 0),
+      draft_config: config,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
       display_name: profile.businessName,
       category: profile.businessType,
       tagline: profile.tagline,
@@ -1810,154 +1843,13 @@ async function ensureApp(
   throw created.error;
 }
 
-// V3.181 durable BUSY Work bookings for this authenticated owner business.
-// Never return raw customer messages or contact details through this list.
-async function ownerWorkBookingLedger(businessId: string, miniAppId: string) {
-  const earliest=new Date(Date.now()-90*86400000).toISOString().slice(0,10);
-  const result=await supabase.from("busy_mini_app_work_bookings")
-    .select("id,business_id,mini_app_id,request_id,customer_record_id,action_record_id,calendar_date,calendar_time,state,updated_at")
-    .eq("business_id",businessId).eq("mini_app_id",miniAppId)
-    .gte("calendar_date",earliest)
-    .order("calendar_date",{ascending:true}).limit(200);
-  if(result.error)throw result.error;
-  return {rows:result.data||[],truncated:(result.data||[]).length>=200,
-    scope:"authenticated_owner_business",verifiedExternalCalendar:false};
-}
-
-async function ownerStatus(businessId: string) {
-  const [app, catalog, profile] = await Promise.all([
-    appForBusiness(businessId),
-    moduleCatalog(),
-    publicProfileForBusiness(businessId),
-  ]);
-  if (!app) {
-    return {
-      app: null,
-      versions: [],
-      requests: [],
-      requestLinks: [],
-      workBookingLedger:{rows:[],truncated:false,verifiedExternalCalendar:false},
-      messageCheckpoints:{rows:[],truncated:false},
-      messageDeliveryOutbox:{rows:[],truncated:false},
-      pushGatewayEvidence:{ok:false,reason:"No Business App is configured."},
-      requestCount30: 0,
-      guestRequestCount30: 0,
-      entrySummary: [],
-      catalog,
-      publicProfile: profile,
-    };
-  }
-
-  const entrySince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [versions, requests, requestLinks, entrySummary, requestCount30, guestRequestCount30, workBookingLedger, messageCheckpoints, messageDeliveryOutbox] = await Promise.all([
-    supabase
-      .from("busy_mini_app_versions")
-      .select(
-        "id,version_no,source_profile_revision,source_draft_revision,config_hash,state,change_label,change_summary,public_web_storage_path,public_web_artifact_bytes,public_web_published_at,created_at,prepared_at,published_at"
-      )
-      .eq("mini_app_id", app.id)
-      .order("version_no", { ascending: false })
-      .limit(12),
-    supabase
-      .from("busy_mini_app_requests")
-      .select(
-        "id,business_id,mini_app_id,version_id,module_key,request_type,status,payload,consumer_user_id,contact_name,contact_email,contact_phone,service_name,preferred_date_text,request_origin,identity_assurance,guest_proof_verified_at,business_unread_count,customer_unread_count,last_business_read_at,last_customer_read_at,created_at,updated_at"
-      )
-      .eq("mini_app_id", app.id)
-      .order("created_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("busy_mini_app_request_links")
-      .select("request_id,business_id,customer_record_id,action_record_id,bridge_state,linked_at,updated_at,metadata")
-      .eq("business_id", businessId)
-      .order("linked_at", { ascending: false })
-      .limit(100),
-    supabase.rpc("busy_mini_app_entry_summary", {
-      p_business_id: businessId,
-      p_mini_app_id: app.id,
-      p_since: entrySince,
-    }),
-    supabase
-      .from("busy_mini_app_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("mini_app_id", app.id)
-      .gte("created_at", entrySince),
-    supabase
-      .from("busy_mini_app_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("mini_app_id", app.id)
-      .eq("request_origin", "guest_web")
-      .gte("created_at", entrySince),
-    ownerWorkBookingLedger(businessId,app.id),
-    supabase.from("busy_mini_app_request_messages")
-      .select("id,business_id,mini_app_id,request_id,sender_role,created_at")
-      .eq("business_id",businessId).eq("mini_app_id",app.id)
-      .order("created_at",{ascending:false}).limit(150),
-    supabase.from("busy_mini_app_message_delivery_outbox")
-      .select("id,business_id,mini_app_id,request_id,message_id,recipient_role,state,attempt_count,submitted_token_count,created_at")
-      .eq("business_id",businessId).eq("mini_app_id",app.id)
-      .order("created_at",{ascending:false}).limit(100),
-  ]);
-  if (versions.error) throw versions.error;
-  if (requests.error) throw requests.error;
-  if (requestLinks.error) throw requestLinks.error;
-  if (entrySummary.error) throw entrySummary.error;
-  if (requestCount30.error) throw requestCount30.error;
-  if (guestRequestCount30.error) throw guestRequestCount30.error;
-  if(messageCheckpoints.error)throw messageCheckpoints.error;
-  if(messageDeliveryOutbox.error)throw messageDeliveryOutbox.error;
-  // Reconcile saved gateway submission tickets in a read-only, tenant-scoped
-  // query. An unavailable query remains UNKNOWN, never a false zero success.
-  let pushGatewayEvidence={ok:false,
-    reason:"Gateway evidence could not be checked; saved replies remain available."};
-  const intentRows=messageDeliveryOutbox.data||[];
-  if(intentRows.length){
-    const keys=intentRows.map(x=>
-      "miniapp:"+x.request_id+":message:"+x.message_id);
-    try{
-      const delivered=await supabase.from("busy_push_deliveries")
-        .select("business_id,notification_key,provider_receipts")
-        .eq("business_id",businessId)
-        .in("notification_key",keys)
-        .limit(400);
-      if(!delivered.error){
-        pushGatewayEvidence=reviewPushGatewayReceipts({
-          businessId,appId:app.id,outboxRows:intentRows,
-          deliveryRows:delivered.data||[],
-          outboxTruncated:intentRows.length>=100,
-          deliveryTruncated:(delivered.data||[]).length>=400
-        });
-      }
-    }catch(error){console.warn("Gateway receipt review is not available.");}
-  }else{
-    pushGatewayEvidence=reviewPushGatewayReceipts({
-      businessId,appId:app.id,outboxRows:[],deliveryRows:[]
-    });
-  }
-
-  return {
-    app:app.draft_config?.contentLayout?.length?{...app,businessContent:await readBusinessContent(supabase,businessId,{publicOnly:true})}:app,
-    versions: versions.data || [],
-    requests: requests.data || [],
-    requestLinks: requestLinks.data || [],
-    workBookingLedger,
-    messageCheckpoints:{rows:messageCheckpoints.data||[],
-      truncated:(messageCheckpoints.data||[]).length>=150},
-    messageDeliveryOutbox:{rows:messageDeliveryOutbox.data||[],
-      truncated:(messageDeliveryOutbox.data||[]).length>=100},
-    pushGatewayEvidence,
-    entrySummary: entrySummary.data || [],
-    requestCount30: Number(requestCount30.count || 0),
-    guestRequestCount30: Number(guestRequestCount30.count || 0),
-    catalog,
-    publicProfile: profile,
-  };
-}
+const ownerStatus=createOwnerStatusReader({supabase,appForBusiness,moduleCatalog,publicProfileForBusiness,readBusinessContent,reviewPushGatewayReceipts});
 
 async function buildDraft(
   userId: string,
   businessId: string,
-  body: any
+  body: any,
+  stagingActor?:string
 ) {
   const catalog = await moduleCatalog();
   const storedProfile = await publicProfileForBusiness(businessId);
@@ -1985,7 +1877,8 @@ async function buildDraft(
     const base=slugify(profile.businessName||"business");
     const suffix=businessId.replaceAll("-","").slice(0,8);
     const publicSlug=`${base}-${suffix}`.slice(0,80);
-    const result=await supabase.rpc("busy_create_first_mini_app_draft_v3199",{
+    if(stagingActor&&Number(body?.expectedProfileRevision)!==revision)throw Error("Business facts changed before first App creation.");
+    const result=await supabase.rpc(stagingActor?"busy_connected_first_app_v1":"busy_create_first_mini_app_draft_v3199",{
       p_business_id:businessId,p_actor_user_id:userId,
       p_public_slug:publicSlug,
       p_display_name:profile.businessName,
@@ -2009,7 +1902,8 @@ async function buildDraft(
     return {app,source:"atomic_first_private_app_v3199",
       atomicFirstCreate:true,privateOnly:true,neverPublishes:true};
   }
-  const app = await ensureApp(businessId, userId, profile);
+  const app = stagingActor?await appForBusiness(businessId):await ensureApp(businessId, userId, profile);
+  if(!app)throw Error("Create the reviewed private App first.");
   requireAppDraftRevision(app,body);
   const config = buildConfig(
     profile,
@@ -2017,9 +1911,17 @@ async function buildDraft(
     Number(storedProfile?.revision || 0),
     app.draft_config
   );
-  const updated = await supabase
-    .from("busy_mini_apps")
-    .update({
+  const updated = stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+      display_name: profile.businessName,
+      category: profile.businessType,
+      tagline: profile.tagline,
+      status: app.current_live_version_id ? "update_pending" : "draft",
+      draft_revision: Number(app.draft_revision || 1) + 1,
+      draft_profile_revision: Number(storedProfile?.revision || 0),
+      draft_config: config,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
       display_name: profile.businessName,
       category: profile.businessType,
       tagline: profile.tagline,
@@ -2051,7 +1953,8 @@ async function setModule(
   businessId: string,
   moduleKey: string,
   enabled: boolean,
-  body: any
+  body: any,
+  stagingActor?:string
 ) {
   const [app, catalog] = await Promise.all([
     appForBusiness(businessId),
@@ -2086,9 +1989,12 @@ async function setModule(
   if(!proposal.ok)throw Error(proposal.reason);
   const config=proposal.nextConfig;
 
-  const updated = await supabase
-    .from("busy_mini_apps")
-    .update({
+  const updated = stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+      draft_config: config,
+      draft_revision: Number(app.draft_revision || 1) + 1,
+      status: app.current_live_version_id ? "update_pending" : "draft",
+      updated_at: new Date().toISOString(),
+    },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
       draft_config: config,
       draft_revision: Number(app.draft_revision || 1) + 1,
       status: app.current_live_version_id ? "update_pending" : "draft",
@@ -2104,7 +2010,7 @@ async function setModule(
   return updated.data;
 }
 
-async function movePrivateAppModule(businessId:string,body:any){
+async function movePrivateAppModule(businessId:string,body:any,stagingActor?:string){
  const app=await appForBusiness(businessId);
  if(!app)throw new Error("Build your Business App draft first.");
  const expected=Number(body?.expectedRevision);
@@ -2115,7 +2021,11 @@ async function movePrivateAppModule(businessId:string,body:any){
    moduleKey:body?.moduleKey,direction:body?.direction
  });
  if(!proposal.ok)throw new Error(proposal.reason);
- const update=await supabase.from("busy_mini_apps").update({
+ const update=stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+   draft_config:proposal.nextConfig,draft_revision:expected+1,
+   status:app.current_live_version_id?"update_pending":"draft",
+   updated_at:new Date().toISOString()
+ },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
    draft_config:proposal.nextConfig,draft_revision:expected+1,
    status:app.current_live_version_id?"update_pending":"draft",
    updated_at:new Date().toISOString()
@@ -2131,7 +2041,7 @@ async function movePrivateAppModule(businessId:string,body:any){
  * One owner-approved edit transaction = one revision, for marketplace and
  * standalone alike. Optimistic concurrency rejects stale approval/replay.
  */
-async function applyCoordinatedPrivateAppEdits(businessId:string,body:any){
+async function applyCoordinatedPrivateAppEdits(businessId:string,body:any,stagingActor?:string){
  const app=await appForBusiness(businessId);
  if(!app)throw new Error("Build your Business App draft first.");
  const expected=Number(body?.expectedRevision);
@@ -2141,7 +2051,11 @@ async function applyCoordinatedPrivateAppEdits(businessId:string,body:any){
   throw new Error("Approve the current private draft before saving a coordinated edit.");
  const plan=proposeCoordinatedAppChanges(app.draft_config,body?.operations);
  if(!plan.ok)throw new Error(plan.reason);
- const saved=await supabase.from("busy_mini_apps").update({
+ const saved=stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+   draft_config:plan.nextConfig,draft_revision:expected+1,
+   status:app.current_live_version_id?"update_pending":"draft",
+   updated_at:new Date().toISOString()
+ },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
    draft_config:plan.nextConfig,draft_revision:expected+1,
    status:app.current_live_version_id?"update_pending":"draft",
    updated_at:new Date().toISOString()
@@ -2155,7 +2069,7 @@ async function applyCoordinatedPrivateAppEdits(businessId:string,body:any){
    affectsLiveBookings:false,sharedConfigForStandalone:true};
 }
 
-async function setPrivateAppAppearance(businessId:string,body:any){
+async function setPrivateAppAppearance(businessId:string,body:any,stagingActor?:string){
  const app=await appForBusiness(businessId);
  if(!app)throw new Error("Build the Business App draft first.");
  const expected=Number(body?.expectedRevision);
@@ -2166,7 +2080,12 @@ async function setPrivateAppAppearance(businessId:string,body:any){
  const candidate=previewPrivateAppAppearance(app.draft_config,{
   field:body?.field,value:body?.value});
  if(!candidate.ok)throw new Error(candidate.reason);
- const update=await supabase.from("busy_mini_apps").update({
+ const update=stagingActor?await commitPrivateDraft(supabase,{businessId,actorId:stagingActor,app,patch:{
+   draft_config:candidate.nextConfig,
+   draft_revision:expected+1,
+   status:app.current_live_version_id?"update_pending":"draft",
+   updated_at:new Date().toISOString()
+  },profileRevision:Number(body?.expectedProfileRevision)}):await supabase.from("busy_mini_apps").update({
    draft_config:candidate.nextConfig,
    draft_revision:expected+1,
    status:app.current_live_version_id?"update_pending":"draft",
@@ -2516,8 +2435,8 @@ function publicMiniAppWebHtml(app: any, version: any) {
       : "";
 
   const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
-  const publicInformationHtml = enabled.has('business_profile') ? [['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']].map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);return rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map(row=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';}).join('') : '';
-  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map(block=>businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}})).join(''):'';
+  const publicInformationHtml = enabled.has('business_profile') ? ([['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']] as const).map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);return rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map((row:Record<string,string>)=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';}).join('') : '';
+  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map((block:{kind:string,title:string,featuredId?:string})=>businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}})).join(''):'';
   const aboutHtml = enabled.has("business_profile")
     ? `<section id="about"><div class="wrap"><p class="eyebrow">About</p><h2>${escapeHtml(name)}</h2>${about ? `<p>${escapeHtml(about)}</p>` : ""}${serviceArea ? `<p class="muted">Service area: ${escapeHtml(serviceArea)}</p>` : ""}</div></section>`
     : "";
@@ -2827,6 +2746,8 @@ async function uploadMiniAppHtml(path: string, html: string, cacheControl: strin
 }
 
 async function publishMiniAppWebArtifact(app: any, version: any) {
+  const quality=reviewAppEditingQuality(version?.config);
+  if(!quality.mayCommit)throw new Error(quality.explanation);
   await ensureMiniAppPublicBucket();
   const html = publicMiniAppWebHtml(app, version);
   const bytes = new TextEncoder().encode(html).byteLength;
@@ -3361,6 +3282,7 @@ async function appDetail(
       favorite,
     },
     version: version.data,
+    requestReview:{schema:"published-version.v1",appId:app.data.id,versionId:version.data.id},
     loyaltyProgress,
     businessContent:version.data.config?.contentLayout?.length?await readBusinessContent(supabase,app.data.business_id,{publicOnly:true}):null,
   };
@@ -3487,6 +3409,13 @@ async function submitRequest(
         notificationDeliveryVerified:false,retryMayCreateDuplicate:false};
     }
   }
+
+  // Reconcile a saved idempotent request ABOVE this gate, even if the app
+  // has since been republished. A new action must match the reviewed version.
+  const reviewed=checkReviewedCustomerVersion(body,detail);
+  if(!reviewed.ok)return {reviewRequired:true,newRequestSaved:false,
+    reviewedAppId:body.expectedAppId,reviewedVersionId:body.expectedVersionId,
+    reason:reviewed.reason};
 
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const recent = await supabase
@@ -3627,7 +3556,7 @@ async function sendRequestMessage(
   const fresh=await currentOwnerFollowup(businessId,{requestId});
   const guarded=guardReviewedOwnerSend({
    businessId,appId:fresh.appId,requestId,
-   expectedSourceStamp:reviewedStamp,fresh:{ok:true,...fresh}
+   expectedSourceStamp:reviewedStamp,fresh
   });
   if(!guarded.ok)throw Error(guarded.reason);
  }
@@ -4012,7 +3941,7 @@ async function markRequestLinked(
  */
 const appVisualAiReady=()=>{
  const model=Deno.env.get("BUSY_APP_VISUAL_AI_MODEL")||"";
- return Deno.env.get("BUSY_APP_VISUAL_AI_ENABLED")==="true"&&
+ return legacyAiAdmissionStatus().allowed&&Deno.env.get("BUSY_APP_VISUAL_AI_ENABLED")==="true"&&
   !!Deno.env.get("OPENAI_API_KEY")&&/^gpt-[a-z0-9.-]+$/i.test(model);
 };
 const utcMonthStart=()=>{
@@ -4045,11 +3974,12 @@ async function appVisualReviewStatus(businessId:string){
 }
 async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:string,
  mode:"single"|"comparison"="single"){
+ requireCentralAiAdmission();
  if(!appVisualAiReady())throw Error("App screenshot AI is not enabled.");
  const fields=validateAppScreenshotReview(body);
  if(!fields.ok)throw Error(fields.reason);
  const pair=mode==="comparison"?validatePairedAppVisualRequest(body):null;
- if(mode==="comparison"&&!pair?.ok)throw Error(pair?.reason||
+ if(mode==="comparison"&&(!pair||!pair.ok))throw Error(pair?.reason||
   "Both public-only preview captures need owner approval.");
  const app=await appForBusiness(businessId);
  if(!app||app.id!==fields.appId||
@@ -4057,7 +3987,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
    throw Error("Private app revision changed. Capture the current customer preview again.");
  const candidate=mode==="comparison"?
   prepareAppVisualBatch(app.draft_config,pair?.operations):null;
- if(mode==="comparison"&&!candidate?.ok)
+ if(mode==="comparison"&&(!candidate||!candidate.ok))
   throw Error(candidate?.reason||"Proposed design was not safe to compare.");
  const status=await appVisualReviewStatus(businessId);
  if(!status.enabled||status.remaining<1)
@@ -4072,7 +4002,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
     bytes[0]!==255||bytes[1]!==216||
     bytes[bytes.length-2]!==255||bytes[bytes.length-1]!==217)
   throw Error("A compressed JPEG screenshot under 590 KB is required.");
- if(mode==="comparison"){
+ if(pair?.ok){
   let after:Uint8Array;
   try{after=Uint8Array.from(atob(pair.afterImageBase64),c=>c.charCodeAt(0));}
   catch{throw Error("Second screenshot could not be decoded.");}
@@ -4115,7 +4045,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
      {type:"input_text",text:prompt},
      ...(mode==="comparison"?[{type:"input_text",text:"BEFORE: original customer-only app"}]:[]),
      {type:"input_image",image_url:"data:image/jpeg;base64,"+input,detail:"low"},
-     ...(mode==="comparison"?[
+     ...(pair?.ok?[
       {type:"input_text",text:"AFTER: proposed private design, NOT yet saved"},
       {type:"input_image",image_url:"data:image/jpeg;base64,"+pair.afterImageBase64,detail:"low"}
      ]:[])
@@ -4132,7 +4062,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
   let parsed:any;
   try{parsed=JSON.parse(content);}catch{throw Error("AI returned an unreadable design review.");}
   const proof=normalizeAppVisualAIResult(parsed,
-    mode==="comparison"?candidate.nextConfig:app.draft_config);
+    candidate?.ok?candidate.nextConfig:app.draft_config);
   if(!proof.ok)throw Error(proof.reason);
   completed=true;
   return {review:proof,appId:app.id,draftRevision:fields.revision,
@@ -4162,8 +4092,14 @@ Deno.serve(async (request: Request) => {
 
   try {
     const user = await requireUser(request);
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16_000_000) as Record<string,unknown>;
+    const exploreGate=builderExploreRemoteGuard(body);
+    if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
+    if(body?.connectedStaging===true&&(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co"||Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED")!=="true"))
+      return json(403,{ok:false,error:"Connected staging builders are not activated"});
     const action = clean(body?.action, 80);
+    if(!connectedStagingAction({projectUrl:SUPABASE_URL,enabled:Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED"),domain:"app",action}).allowed)return json(403,{ok:false,error:"This action is not enabled in connected staging"});
+    if(!legacyConsequentialAllowed('app',action))return json(503,{ok:false,error:'This customer or hosted action requires its separately reviewed authority. Your private draft is unchanged.'});
     const businessId = clean(body?.businessId, 80);
     const requestId =
       clean(request.headers.get("x-busy-request-id"), 180) ||
@@ -4172,7 +4108,7 @@ Deno.serve(async (request: Request) => {
     if (action === "directory_search") {
       return json(200, {
         ok: true,
-        apps: await directorySearch(body?.query),
+        apps: await directorySearch(clean(body?.query,160)),
       });
     }
     if (action === "app_detail") {
@@ -4228,7 +4164,7 @@ Deno.serve(async (request: Request) => {
       });
     }
     if (action === "customer_message_receipt") {
-      return json(200,{ok:true,...(await exactMessageReceipt(
+      return json(200,{...(await exactMessageReceipt(
        user.id,"","customer",body))});
     }
     if (action === "reply_request_message") {
@@ -4272,8 +4208,14 @@ Deno.serve(async (request: Request) => {
       writeActions.has(action)
     );
     const resolvedBusinessId = member.business_id;
+    const connectedProject=SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co";
+    if(connectedProject&&member.role!=='owner')return json(403,{ok:false,error:'Current owner access is required in connected staging'});
+    const readCurrentStatus=()=>connectedProject?scopedOwnerStatus({read:()=>ownerStatus(resolvedBusinessId),verify:async()=>{const current=await membership(user.id,resolvedBusinessId,true);if(current.role!=='owner')throw Error('Current owner access changed');}}):ownerStatus(resolvedBusinessId);
+
     if(['content_list','content_save','content_publish','content_undo'].includes(action)){
-      return json(200,await manageBusinessContent(supabase,{businessId:resolvedBusinessId,actorId:user.id,role:member.role},body));
+      const read=()=>manageBusinessContent(supabase,{businessId:resolvedBusinessId,actorId:user.id,role:member.role},body);
+      if(action==='content_list')return json(200,await scopedOwnerStatus({read,verify:async()=>{const active=await membership(user.id,resolvedBusinessId,false);if(connectedProject?active.role!=='owner':!['owner','admin'].includes(active.role))throw Error('Business record access changed');}}));
+      return json(200,await read());
     }
 
     if(action==="brain_owner_decisions"){
@@ -4384,21 +4326,21 @@ Deno.serve(async (request: Request) => {
         ok: true,
         businessId: resolvedBusinessId,
         role: member.role,
-        ...(await ownerStatus(resolvedBusinessId)),
+        ...(await readCurrentStatus()),
       });
     }
     if (action === "build_draft") {
       return json(200, {
         ok: true,
-        ...(await buildDraft(user.id, resolvedBusinessId, body)),
-        status: await ownerStatus(resolvedBusinessId),
+        ...(await buildDraft(user.id, resolvedBusinessId, body, SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "plan_app") {
       return json(200, {
         ok: true,
         plan: await planBusinessApp(resolvedBusinessId, body),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "apply_app_plan") {
@@ -4407,77 +4349,83 @@ Deno.serve(async (request: Request) => {
         ...(await applyBusinessAppPlan(
           user.id,
           resolvedBusinessId,
-          body
+          body, SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined
         )),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "move_section") {
       return json(200,{ok:true,
-        ...(await movePrivateAppModule(resolvedBusinessId,body)),
-        status:await ownerStatus(resolvedBusinessId)});
+        ...(await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
+        status:await readCurrentStatus()});
+    }
+    if (action === "save_project_spec") {
+      if(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co")throw Error("Private project specification authority is unavailable in this environment.");
+      const app=await appForBusiness(resolvedBusinessId);
+      const result=await savePrivateProject({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,catalog:await moduleCatalog(),body,profileRevision:Number(body.expectedProfileRevision)});
+      return json(200,{ok:true,...result,status:await readCurrentStatus()});
     }
     if (action === "apply_coordinated_edits") {
       return json(200,{ok:true,
-        ...(await applyCoordinatedPrivateAppEdits(resolvedBusinessId,body)),
-        status:await ownerStatus(resolvedBusinessId)});
+        ...(await applyCoordinatedPrivateAppEdits(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
+        status:await readCurrentStatus()});
     }
     if (action === "set_appearance") {
       return json(200,{ok:true,
-        ...(await setPrivateAppAppearance(resolvedBusinessId,body)),
-        status:await ownerStatus(resolvedBusinessId)});
+        ...(await setPrivateAppAppearance(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
+        status:await readCurrentStatus()});
     }
     if (action === "set_module") {
       const app = await setModule(
         resolvedBusinessId,
         clean(body?.moduleKey, 80),
         body?.enabled === true,
-        body
+        body, SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined
       );
       return json(200, {
         ok: true,
         app,
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "prepare_preview") {
       return json(200, {
         ok: true,
         ...(await preparePreview(user.id, resolvedBusinessId)),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "publish") {
       return json(200, {
         ok: true,
         ...(await publishVersion(user.id, resolvedBusinessId, body)),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "rollback") {
       return json(200, {
         ok: true,
         ...(await rollbackVersion(user.id, resolvedBusinessId, body)),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "set_discoverable") {
       return json(200, {
         ok: true,
         app: await setDiscoverable(resolvedBusinessId, body),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "owner_message_receipt") {
       if(!["owner","admin"].includes(member.role))
         throw Error("Owner or admin permissions are required.");
-      return json(200,{ok:true,...(await exactMessageReceipt(
+      return json(200,{...(await exactMessageReceipt(
         user.id,resolvedBusinessId,"business",body))});
     }
     if (action === "owner_followup_check") {
       if(!["owner","admin"].includes(member.role))
         throw Error("Owner or admin permissions are required.");
-      return json(200,{ok:true,
+      return json(200,{
         ...(await currentOwnerFollowup(resolvedBusinessId,body))});
     }
     if (action === "owner_queue_summary") {
@@ -4489,14 +4437,19 @@ Deno.serve(async (request: Request) => {
     if (action === "owner_inbox_receipt") {
       if(!["owner","admin"].includes(member.role))
         throw Error("Owner or admin permissions are required.");
-      return json(200,{ok:true,...(await exactOwnerInboxReceipt(
+      return json(200,{...(await exactOwnerInboxReceipt(
         resolvedBusinessId,member.role,body))});
     }
     if (action === "owner_booking_revision") {
+      if(body?.includeAssociation===true&&member.role!=="owner")throw Error("Only the current business owner may inspect customer associations.");
       if(!["owner","admin"].includes(member.role))
         throw Error("Owner or admin permissions are required.");
-      return json(200,{ok:true,revision:await ownerBookingRevisionV3233(
-        resolvedBusinessId,body)});
+      const revision=await ownerBookingRevisionV3233(resolvedBusinessId,body);
+      if(body?.includeAssociation===true){
+        const live=await membership(user.id,resolvedBusinessId,false);
+        if(live.business_id!==resolvedBusinessId||live.role!=="owner")throw Error("Current owner membership is required.");
+      }
+      return json(200,{ok:true,revision});
     }
     if (action === "send_request_message") {
       if(body?.reviewedFollowupStamp!==undefined&&
@@ -4510,12 +4463,12 @@ Deno.serve(async (request: Request) => {
         postSendEvidence=validateOwnerReplyAfterSave({
           businessId:resolvedBusinessId,appId:fresh.appId,
           requestId:clean(body?.requestId,80),sent:saved,
-          current:{ok:true,...fresh}
+          current:fresh
         });
       }catch{ /* Message saved; readback availability is separate. */ }
       try{
         return json(200,{ok:true,...saved,postSendEvidence,
-          status:await ownerStatus(resolvedBusinessId),statusRefreshRequired:false});
+          status:await readCurrentStatus(),statusRefreshRequired:false});
       }catch(error){
         console.warn("Saved owner reply; refreshing owner list later.");
         return json(200,{ok:true,...saved,postSendEvidence,statusRefreshRequired:true});
@@ -4525,7 +4478,7 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         detail: await ownerRequestDetail(resolvedBusinessId, body),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "request_bridge_plan") {
@@ -4546,7 +4499,7 @@ Deno.serve(async (request: Request) => {
           body,
           requestId
         )),
-        status: await ownerStatus(resolvedBusinessId),
+        status: await readCurrentStatus(),
       });
     }
     if (action === "mark_request_linked") {
@@ -4555,7 +4508,7 @@ Deno.serve(async (request: Request) => {
       // apparent failed write or encourage duplicate customer actions.
       const link=await markRequestLinked(user.id,resolvedBusinessId,body);
       try {
-        const status=await ownerStatus(resolvedBusinessId);
+        const status=await readCurrentStatus();
         return json(200,{ok:true,link,status,statusRefreshRequired:false});
       } catch (readError) {
         console.warn("Work handoff saved; owner snapshot refresh pending.");
@@ -4569,7 +4522,7 @@ Deno.serve(async (request: Request) => {
        user.id,resolvedBusinessId,body);
       try{
        return json(200,{ok:true,request,
-        status:await ownerStatus(resolvedBusinessId),
+        status:await readCurrentStatus(),
         statusRefreshRequired:false});
       }catch{
        console.warn("Request status saved; dashboard refresh pending.");
@@ -4581,6 +4534,7 @@ Deno.serve(async (request: Request) => {
 
     return json(400, { error: "Unknown BUSY Apps action." });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{ok:false,error:error.message});
     return json(400, {
       error:
         error instanceof Error

@@ -1,3 +1,4 @@
+import {ConnectedBuilderWorkspace} from './ConnectedBuilderWorkspace';
 import React,{useEffect,useRef,useState} from "react";
 import {ActivityIndicator,KeyboardAvoidingView,Platform,Pressable,ScrollView,StyleSheet,Text,TextInput,View} from "react-native";
 import {createStagingAuthInspector,FIXTURES}
@@ -23,6 +24,7 @@ const copy={
  "staging-anonymous-denial-failed":"Security check failed: anonymous access was not denied.",
  "staging-account-changed":"The authenticated identity changed. Please sign in again.",
  "staging-session-cancelled":"This test session was cancelled.",
+ "staging-session-expired":"Your private staging session expired. Sign in again; nothing was replayed.",
  "staging-no-session":"Sign in first.",
  "staging-not-configured":"Staging needs its own Supabase URL and public key before login can work."
 };
@@ -36,6 +38,7 @@ function TestButton({title,onPress,disabled=false,secondary=false}){
 export default function StagingSignInScreen(){
  const inspector=useRef(null);
  if(!inspector.current)inspector.current=createStagingAuthInspector({config:SETTINGS});
+ const [connected,setConnected]=useState(false);
  const [selected,setSelected]=useState("a");
  const [password,setPassword]=useState("");
  const [busy,setBusy]=useState(false);
@@ -69,6 +72,7 @@ export default function StagingSignInScreen(){
   if(busy||inspector.current.signedIn)return;
   setSelected(key);setPassword("");setNotice("");setResult(null);
  };
+ if(connected&&inspector.current.signedIn)return <ConnectedBuilderWorkspace inspector={inspector.current} onClose={()=>{setConnected(false);if(!inspector.current.signedIn){setResult(null);setStatus("Signed out of this test device");}}}/>;
  return <KeyboardAvoidingView style={styles.fill}
    behavior={Platform.OS==="ios"?"padding":undefined}>
   <ScrollView contentContainerStyle={styles.content}
@@ -81,7 +85,7 @@ export default function StagingSignInScreen(){
     <Text style={inspector.current.configured?styles.good:styles.warning}>
       {inspector.current.configured?"Configured for the designated staging project":"Staging project key / URL not configured"}
     </Text>
-    <Text style={styles.info}>Real Supabase authentication • read-only business checks • no saved session</Text>
+    <Text style={styles.info}>Real Supabase authentication • private in-memory session • sign in again after expiry</Text>
    </View>
    <View style={styles.panel}>
     <Text style={styles.label}>Choose a fictional owner</Text>
@@ -121,6 +125,7 @@ export default function StagingSignInScreen(){
       <Text style={styles.info}>Hosted HTTPS preview: not yet verified</Text>
     </View>:null}
     {notice?<Text style={styles.warning}>{notice}</Text>:null}
+    <TestButton title="Open connected business drafts" disabled={busy||!inspector.current.signedIn} onPress={()=>setConnected(true)}/>
     <TestButton title="Recheck access" secondary
       disabled={busy||!inspector.current.signedIn}
       onPress={()=>run("recheck")}/>

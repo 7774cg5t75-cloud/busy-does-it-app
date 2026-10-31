@@ -1,0 +1,14 @@
+{
+  "designatedProject": "pnjdlogwegnqbsfpcofw",
+  "hostedAuthorised": false,
+  "legacyProviderAdmissionOpen": false,
+  "liveAdapterImplemented": false,
+  "sourceSha256": {
+    "docs/sql-proposals/provider-security/install.sql": "7aff9ed4c85b403c138edefa9acf43b71f3cd835eb1d8627ba037f9c7932dc15",
+    "docs/sql-proposals/provider-security/rollback-retain.sql": "1f33dd852a4ec3cacd941e68f71cf06a68a88e41143f664b2d64042b747f1f89",
+    "docs/sql-proposals/legacy-entry/install.sql": "dff9d1567e6c3e4a921bef7520d2b60f32c9011f8d0af475145be032225f6ca2",
+    "docs/sql-proposals/legacy-entry/rollback-retain.sql": "7e23dcfd986b52b85e544ed771ab9da717d98e394eea7869ab4bbed88d737abc",
+    "supabase/functions/_shared/offlineProviderConnections.mjs": "8e119999871c14aa5f387acd47a79c754e3cb4cd11fee4542be4c501d51c5a37"
+  },
+  "localBusinessDDL": "Existing reconstructed fixture; original social and counter CREATE statements reused verbatim. Not a production DDL capture."
+}

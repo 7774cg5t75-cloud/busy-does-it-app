@@ -1,3 +1,4 @@
+import {appColors as C} from '../theme/appearance.mjs';
 import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
@@ -22,24 +23,24 @@ function HostedWebsitePreview({ s }) {
     : "Back to Website Management";
   if (!preview?.html) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#0b1220", padding: 20 }}>
-        <Text style={{ color: "#fff", fontSize: 23, fontWeight: "700" }}>Website preview unavailable</Text>
-        <Text style={{ color: "#c4ccdc", marginVertical: 14 }}>Return to Website Management and open the hosted preview again.</Text>
+      <View style={{ flex: 1, backgroundColor: C.bg, padding: 20 }}>
+        <Text style={{ color: C.ink, fontSize: 23,lineHeight:31, fontWeight: "700" }}>Website preview unavailable</Text>
+        <Text style={{ color: C.muted, marginVertical: 14 }}>Return to Website Management and open the hosted preview again.</Text>
         <Button label={backLabel} onPress={s.back} />
       </View>
     );
   }
   return (
-    <View style={{ flex: 1, backgroundColor: "#0b1220" }}>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ paddingHorizontal: 15, paddingTop: 12, paddingBottom: 10, gap: 7 }}>
-        <Text style={{ color: "#fff", fontSize: 21, fontWeight: "700" }}>{preview.brandName ? "Previewing " + preview.brandName : "Your private website preview"}</Text>
-        <Text style={{ color: "#a9c4ef", fontSize: 13 }}>
+        <Text style={{ color: C.ink, fontSize: 21,lineHeight:29, fontWeight: "700" }}>{preview.brandName ? "Previewing " + preview.brandName : "Your private website preview"}</Text>
+        <Text style={{ color: C.blueText, fontSize: 13 }}>
           Real hosted pages • Not public • Publishing requires your approval
         </Text>
         <Button label={backLabel} onPress={s.back} />
         {Array.isArray(preview.pages) && preview.pages.length > 1 ? (
           <View>
-            <Text style={{ color: "#ccd7e9", fontSize: 12, marginBottom: 7 }}>
+            <Text style={{ color: C.muted, fontSize: 12, marginBottom: 7 }}>
               Browse your website pages — you can return to them as often as you like
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}
@@ -52,13 +53,14 @@ function HostedWebsitePreview({ s }) {
                   accessibilityState={{ selected: preview.pageId === page.id, disabled: !!preview.loading }}
                   disabled={!!preview.loading}
                   onPress={() => s.openHostedWebsitePreviewPage(page.url)}
-                  style={{
+                  style={({pressed})=>({
+                    minHeight:48,justifyContent:"center",opacity:pressed?.86:1,
                     paddingVertical: 9, paddingHorizontal: 13, borderRadius: 11,
-                    backgroundColor: preview.pageId === page.id ? "#e0ecff" : "#263448",
-                    borderWidth: 1, borderColor: preview.pageId === page.id ? "#8cbaff" : "#3b4a60",
-                  }}
+                    backgroundColor: preview.pageId === page.id ? C.blueSoft : C.card,
+                    borderWidth: 1, borderColor: preview.pageId === page.id ? C.blueText : C.controlBorder,
+                  })}
                 >
-                  <Text style={{ color: preview.pageId === page.id ? "#15263f" : "#f0f5ff", fontWeight: "700", fontSize: 13 }}>
+                  <Text style={{ color: preview.pageId === page.id ? C.blueText : C.ink, fontWeight: "700", fontSize: 13 }}>
                     {page.id === "home" ? "Home" : (page.label || page.id || "Page").replace(/-/g, " ").replace(/^./, x => x.toUpperCase())}
                   </Text>
                 </Pressable>
@@ -66,7 +68,7 @@ function HostedWebsitePreview({ s }) {
             </ScrollView>
           </View>
         ) : null}
-        {preview.error ? <Text style={{ color: "#ffcc8d" }}>{preview.error}</Text> : null}
+        {preview.error ? <Text style={{ color: C.amber }}>{preview.error}</Text> : null}
       </View>
       <View style={{ flex: 1, marginHorizontal: 8, marginBottom: 8, borderRadius: 12, overflow: "hidden", backgroundColor: "#fff" }}>
         <WebView

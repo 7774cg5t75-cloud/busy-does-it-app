@@ -1,3 +1,4 @@
+import {DashboardMetrics,dashboardMoney} from '../components/DashboardMetrics';
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -167,17 +168,15 @@ function Results({ s }) {
       s={s}
       noBack
       title="Your results"
-      subtitle="See the work you've completed, the jobs you've booked and anything that needs following up."
+      subtitle="Saved work, bookings and follow-ups."
     >
-      <Card eyebrow="YOUR BUSINESS AT A GLANCE"
-        title="How things are going"
-        body="Based on your saved records, not estimated earnings."
-        tone="blue"
-      >
-        <MetricRow left="Completed work recorded" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
-        <MetricRow left="Confirmed bookings" right={String(confirmedBookings)} strong={confirmedBookings > 0} />
-        <MetricRow left="Value of booked jobs" right={`£${s.bookedWorkValue}`} />
-        <MetricRow left="Enquiries to follow up" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} />
+      <Card eyebrow="SAVED RECORDS" title="Business at a glance" body="Recorded values, not earnings or received payments." tone="blue">
+        <DashboardMetrics items={[
+          {label:'Completed work recorded',value:dashboardMoney(s.completedJobValue)},
+          {label:'Confirmed bookings',value:String(confirmedBookings)},
+          {label:'Value of booked jobs',value:dashboardMoney(s.bookedWorkValue)},
+          {label:'Enquiries to follow up',value:String(s.staleEnquiryEntries.length)}
+        ]}/>
       </Card>
       <Button label="Customers & enquiries" primary onPress={() => s.go("workPipeline")} />
       <Button label="Social Media" onPress={s.openSocialCentre} />

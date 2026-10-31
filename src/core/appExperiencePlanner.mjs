@@ -1,3 +1,5 @@
+import {reviewApprovedBuilderRecords} from './approvedBuilderRecords.mjs';
+import {supportedAppCatalogModule} from './appCatalogSupport.mjs';
 import {inspectCapabilityIntent} from './universalBuilderPlanV3210.mjs';
 /**
  * V3.153 — business-specific recommendation for functional mini-app modules.
@@ -16,15 +18,15 @@ const categories=[
  ["events",/event plan|wedding plan|event venue|conference|theatre|event production|entertainment|performer/i],
  ["professional",/account|consult|law|legal|architect|bookkeep|advisor|coaching/i]
 ];
-function planFunctionalBusinessApp({businessType="",businessName="",businessGoals="",catalog=[],profile={},offerTerms=null}={}){
+function planFunctionalBusinessApp({businessType="",businessName="",businessGoals="",catalog=[],profile={},offerTerms=null,approvedContent=null,businessId=""}={}){
  // Goals are read as evidence of desired CUSTOMER actions, not authority to
  // enable paid, unavailable, unapproved or unimplemented features.
  const goal=String(businessGoals).slice(0,600).toLowerCase();
  const intent=inspectCapabilityIntent(goal),wanted=new Set(intent.requested),declined=new Set(intent.declined);
- const signals={booking:wanted.has('booking_request'),gallery:wanted.has('gallery'),enquiry:wanted.has('enquiry'),events:wanted.has('events'),offers:wanted.has('offers')};
+ const signals={catalogue:wanted.has('catalogue'),booking:wanted.has('booking_request'),gallery:wanted.has('gallery'),enquiry:wanted.has('enquiry'),events:wanted.has('events'),offers:wanted.has('offers')};
  const category=categories.find(([name,re])=>re.test(businessType))?.[0]||"other";
  const available=new Map((Array.isArray(catalog)?catalog:[])
-  .filter(x=>x?.status==="available"&&typeof x.module_key==="string")
+  .filter(x=>typeof x?.module_key==="string"&&supportedAppCatalogModule(catalog,x.module_key))
   .map(x=>[x.module_key,x]));
  const base=["business_profile","services","contact","enquiry"];
  // A suggested request is never a confirmed appointment.
@@ -87,7 +89,12 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
   (signals.enquiry||category==="trades")?"contact-first":
   category==="food"?"events-first":
   category==="retail"?"service-first":"minimal";
+ const approvedRecords=reviewApprovedBuilderRecords(approvedContent,businessId);
+ const hasApproved=kind=>approvedRecords.ok&&approvedRecords.records.some(row=>row.kind===kind&&row.count>0);
  const missingOwnerFacts=[
+  ...((wanted.has('services')||signals.booking)&&(!Array.isArray(profile.services)||!profile.services.length)?['owner_service_details']:[]),
+  ...(signals.catalogue&&!hasApproved('product')?['approved_product_records']:[]),
+  ...(signals.events&&!hasApproved('event')?['approved_event_records']:[]),
   ...(signals.gallery&&!approvedPhotos.length?["approved_gallery_photos"]:[]),
   ...(signals.offers&&!approvedOffers?["approved_offer_terms"]:[])
  ];
@@ -97,6 +104,8 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
   layoutReason:category==="other"?
    "BUSY chose a simple starting point until the business purpose is clearer.":
    "BUSY considered this "+category+" business, customer goals and available features.",
+  approvedRecords:approvedRecords.ok?approvedRecords.records.filter(row=>row.count>0&&!declined.has(row.kind==='product'?'catalogue':'events')):[],
+  approvedSnapshotAt:approvedRecords.ok?approvedRecords.snapshotAt:null,
   missingOwnerFacts,declinedCapabilities:intent.declined,needsClarification:intent.conflicts.length>0,conflictingCapabilities:intent.conflicts,
   suggestedModules:suggestions,visibleModuleKeys:suggestions.map(x=>x.key),
   understoodGoals:Object.entries(signals).filter(([,yes])=>yes).map(([key])=>key),

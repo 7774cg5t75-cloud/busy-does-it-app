@@ -4,7 +4,12 @@
  * variable is present. This file does NOT build, deploy or activate anything.
  */
 module.exports=({config})=>{
+ if(process.env.BUSY_BUILD_PROFILE==="owner-preview"&&process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT!=="owner-preview")throw new Error("Owner preview requires offline environment; refusing production fallback.");
  const original=config||require("./app.json").expo;
+ if(process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview"){
+  const plugins=(original.plugins||[]).filter(p=>!["expo-notifications","expo-calendar"].includes(Array.isArray(p)?p[0]:p));
+  return {...original,name:"BUSY Owner Preview",scheme:"busy-owner-preview",plugins:[...plugins,"./plugins/withIsolatedStagingNoPush.js"],updates:{enabled:false,checkAutomatically:"NEVER"},ios:{...original.ios,buildNumber:"29",bundleIdentifier:"com.busydoesit.app.ownerpreview",entitlements:{},infoPlist:{...original.ios?.infoPlist,UIFileSharingEnabled:false}},android:{...original.android,package:"com.busydoesit.app.ownerpreview"},extra:{eas:original.extra?.eas,busyEnvironment:"owner-preview",ownerPreviewOffline:true,busyBuildIdentity:require("./scripts/lib/ownerBuildIdentity.cjs").ownerBuildIdentity({root:__dirname})}};
+ }
  const isolated=process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="isolated-staging";
  if(!isolated)return original;
  // The first isolated staging app only tests Supabase Auth + tenant RLS.

@@ -8,9 +8,14 @@ on:
       - .github/workflows/apply-v13.yml
       - scripts/apply-v1.3.mjs
   workflow_dispatch:
+    inputs:
+      approval_phrase:
+        description: "Explicit approval for this legacy external/source operation"
+        required: true
+        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: apply-v13
@@ -18,15 +23,18 @@ concurrency:
 
 jobs:
   apply:
+    if: github.event_name == 'workflow_dispatch' && inputs.approval_phrase == 'APPROVE_LEGACY_SOURCE_SWEEP'
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out v1.3
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 verified upstream commit
         with:
           ref: v1.3
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4 verified upstream commit
         with:
           node-version: 20
 

@@ -84,7 +84,9 @@ for(const needle of ["message_id uuid not null unique",
  "revoke execute on function public.busy_send_mini_app_message_v3184",
  "force row level security","provider_delivery_verified boolean not null default false"])
  ok(sql.includes(needle));
-const edge=read("supabase/functions/busy-mini-apps/index.ts");
+const endpoint=read("supabase/functions/busy-mini-apps/index.ts");
+ok(endpoint.includes("createOwnerStatusReader"));
+const edge=endpoint+"\n"+read("supabase/functions/busy-mini-apps/ownerStatusReader.mjs");
 const service=read("supabase/functions/busy-mini-apps/atomicConversationService.mjs");
 ok(service.includes('supabase.rpc("busy_send_mini_app_message_v3185"'));
 ok(service.includes("deliveryIntentDurable!==true"));

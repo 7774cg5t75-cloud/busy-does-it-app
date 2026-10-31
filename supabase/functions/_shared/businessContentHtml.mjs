@@ -40,7 +40,7 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule)
  }
  refresh();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
 }
-function businessContentSectionHtml(section,{endpoint='',websiteId='',deploymentId='',appSource=null}={}){
+function businessContentSectionHtml(section,{endpoint='',websiteId='',deploymentId='',appSource=/** @type {{slug:string,expectedAppId:string,expectedVersionId:string,allowEnquiry:boolean}|null} */ (null),sectionClasses=''}={}){
  if(!['products','events'].includes(section?.type)||section.contentSource!=='business_records_v1')return '';
  const id='business-content-'+section.id,kind=section.type==='products'?'product':'event';
  const safeEndpoint=typeof endpoint==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-mini-app-guest$/.test(endpoint);
@@ -48,6 +48,6 @@ function businessContentSectionHtml(section,{endpoint='',websiteId='',deployment
  const preview=!safeEndpoint&&validPublicBusinessContent(section.previewFeed)?section.previewFeed:null;
  const previewHtml=preview?`<p>Approved record snapshot checked ${escape(preview.checkedAt)}. Current details require the connected public feed.</p>`+preview.records.filter(r=>r.kind===kind).map(r=>`<article><h3>${escape(r.data.name)}</h3><p>${escape(r.data.description)}</p><p>${escape(kind==='product'?contentPrice(r.data.amountMinor,r.data.currency):r.data.status==='cancelled'?'Cancelled':r.data.startsAt+' • '+r.data.timeZone)}</p></article>`).join(''):'';
  const args=[id,endpoint,payload,kind,section.featuredId||''].map(x=>JSON.stringify(x).replace(/</g,'\\u003c')).join(',');
- return `<section id="${escape(section.id)}"><div class="wrap"><h2>${escape(section.title)}</h2><div id="${escape(id)}" style="display:grid;grid-template-columns:${section.contentLayout==='rows'?'1fr':'repeat(auto-fit,minmax(min(100%,280px),1fr))'};gap:1rem">${previewHtml||`<p>${safeEndpoint?'Current approved information loads here.':'Shared record section prepared. Current published records require the connected live website.'}</p>`}</div>${safeEndpoint?`<script>(${mountBusinessContent.toString()})(${args},${contentEventSchedule.toString()});</script>`:''}</div></section>`;
+ return `<section id="${escape(section.id)}"${sectionClasses?` class="${escape(sectionClasses)}"`:''}><div class="wrap"><h2>${escape(section.title)}</h2><div id="${escape(id)}" style="display:grid;grid-template-columns:${section.contentLayout==='rows'?'1fr':'repeat(auto-fit,minmax(min(100%,280px),1fr))'};gap:1rem">${previewHtml||`<p>${safeEndpoint?'Current approved information loads here.':'Shared record section prepared. Current published records require the connected live website.'}</p>`}</div>${safeEndpoint?`<script>(${mountBusinessContent.toString()})(${args},${contentEventSchedule.toString()});</script>`:''}</div></section>`;
 }
 export {businessContentSectionHtml};

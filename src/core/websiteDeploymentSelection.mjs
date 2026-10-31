@@ -18,7 +18,12 @@ function selectRecordedWebsiteDeployment({deployments=[],website=null,kind="prev
    // another row marked preview_ready just because it appears first.
    if(typeof currentId!=="string")return null;
    const exact=records.filter(r=>r.id===currentId);
-   return exact.length===1&&exact[0]?.state===expectedState?exact[0]:null;
+   const row=exact.length===1?exact[0]:null;
+   // Publishing promotes this same immutable record to live. Keep its private
+   // preview reachable only while BOTH canonical pointers name this record.
+   const promoted=isPreview&&row?.state==='live'&&
+     website?.current_live_deployment_id===currentId;
+   return row&&(row.state===expectedState||promoted)?row:null;
  }
  const matches=records.filter(r=>r.state===expectedState&&
    typeof r.id==="string"&&r.id.length>0);

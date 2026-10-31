@@ -1,3 +1,4 @@
+import {publicNavigationLabels} from './appNavigationLabels.mjs';
 /**
  * V3.153 finite shared runtime-schema for Business Apps, without generated
  * executable code. The Marketplace uses controlled modules today; a future
@@ -40,7 +41,7 @@ function appRuntimeScreenSchema(config={},catalog=[]){
    return {ok:false,reason:"The enquiry module needs a verified request backend."};
   seen.add(m.key);
   screens.push({key:m.key,component:capability.component,
-   title:String(provider.title||m.key).slice(0,85),
+   title:publicNavigationLabels(config)[m.key]||String(provider.title||m.key).slice(0,85),
    publicRead:capability.publicRead===true,
    customerRequest:["enquiry","booking_request"].includes(m.key),
    requiresBusinessConfirmation:capability.requiresBusinessConfirmation===true,

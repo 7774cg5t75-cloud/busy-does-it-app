@@ -1,0 +1,237 @@
+FILE PUBLICATION NOTE: This report is published in an evidence-only commit for sharing. It does not synchronise the connected-builder implementation or change the installed application. Source verification below describes the state observed before this report was published.
+
+# BUSY DOES IT — Connected Business Workflows
+## Development delivery and continuation report — 29 October 2026
+
+**Purpose:** A self-contained report for the owner to share with ChatGPT. This describes implemented source, observed automated evidence and outstanding work. It does not claim a completed hosted application or a new installed iPhone build.
+
+## 1. Outcome
+
+A first bounded connected-builder slice was implemented and locally verified. It connects the existing staging authentication inspector to scoped business discovery and a workbench using original Website Builder and App Builder components.
+
+The strongest completed vertical slice is original website generation → private save through a finite server contract → independent readback → fresh-client reopening → wording revision, with CAS and failure recovery tested against real local PostgreSQL.
+
+App Builder now has staging workbench wiring to its original planner, service selection, preview, creation/configuration and Studio/Undo routes. Original first-app SQL and the original Studio function body were exercised against local PostgreSQL. The complete hosted App endpoint is not provisioned or verified.
+
+**This is not yet the complete connected six-area application. It is not ready for the owner's full end-to-end acceptance session.**
+
+## 2. Source identity and GitHub status
+
+Repository: `7774cg5t75-cloud/busy-does-it-app`
+
+Branch: `codex/builder-mission15-design-advancement`
+
+Verified starting GitHub source:
+
+- Commit: `4d1397c77b535da887161cc1949664f4316f0569`
+- Tree: `8f3e89df9cd6c81fcd054a1e75b7805ae8401910`
+- Its legitimate Owner Preview build-29 preparation was preserved.
+
+Final tested local source:
+
+- Commit: `a1a6ce2925c5511a815ca4ce4b42fff7d8f19a54`
+- Tree: `3c5db0d80e06082533b18c330dc89321abbe3f0b`
+- Local repository: `/workspace/mission13-git`
+- Full application regression began and ended on this exact commit with a clean worktree.
+
+Recoverable local implementation checkpoint:
+
+- `aaad1f4605fe4d1dfcce4de5d4fd9e787c6b3599` — connected builder implementation.
+- `a1a6ce2925c5511a815ca4ce4b42fff7d8f19a54` — exact-import test harness alignment, followed by the successful full regression.
+
+**GitHub synchronisation is unfinished.** The functional tree was uploaded as a Git object, but the execution environment became unavailable before creation of its remote implementation commit and the expected-head branch update.
+
+A fresh GitHub inspection while preparing this report confirms the branch remains at:
+
+- Commit: `49bf49c0ad8e42018ca80ad7391dd00f6415f7e8`
+- Tree: `b5f4d6e73c2a9cd0d536511185a3a51d8874f413`
+
+That preceding checkpoint contains the About/build-identification work. It does **not** contain the final connected-builder implementation. Do not initiate a build assuming the connected slice is already on the remote branch.
+
+PRs #21 → #23 → #24 → #25 → #26 were independently confirmed open, draft and unmerged. No reset, rebase, force-push, merge, PR closure or dependency-branch change occurred.
+
+## 3. Product authority
+
+The genuine private V22.53 Word master was reopened and its checksum verified:
+
+`fa9456077fd843f1f04ea450d9e2ec425077695b6b106b91bf7cee150b727f62`
+
+The original remains outside Git. Repository instructions and architecture were consulted. The six-area structure, original data authorities, owner approvals, privacy boundaries, appearance modes and disabled release/provider switches remain authoritative.
+
+## 4. Connectivity gap confirmed
+
+Read-only Supabase metadata inspection found:
+
+- Designated staging project `pnjdlogwegnqbsfpcofw`: active and healthy.
+- Its public schema still contained only `busy_staging_rls_canary`, with RLS enabled and two rows.
+- Production project `qgkmuiipicazmcxxmoxv` is separate. No production business/customer data was read or copied for testing.
+
+The isolated-staging application previously opened only the real-authentication/security inspector. Successful canary verification did not establish an operational business membership or provision builder persistence.
+
+The original application also contains legacy whole-workspace recovery alongside newer finite operations. This mission did not resume broad snapshot restoration.
+
+## 5. Connected staging implementation
+
+The existing inspector remains available. After verified fictional-account sign-in, **Open connected business drafts** opens a bounded integration workbench.
+
+Implemented:
+
+- Finite owner-workspace discovery from trusted membership authority.
+- Current server identity and owner membership checks before connected operations.
+- No authorisation from an email address, editable user metadata or a client-supplied actor ID.
+- Tokens remain private and ephemeral inside the existing inspector closure.
+- Foreground access revalidation and shielding after backgrounding.
+- Scope-change and obsolete-response guards.
+- Missing schema/endpoint states remain unavailable rather than returning fictional success.
+- A corrected authentication race: a late obsolete sign-in/recheck callback cannot clear a newer verified session.
+
+The workbench mounts original editors and planners. It is not another Home, CRM, builder engine or persistence database. It does not yet provide the entire signed-in six-area application.
+
+## 6. Website Builder
+
+Reused:
+
+- Original `buildWebsiteDraft` generation.
+- Original shared HTML renderer.
+- Original `WebsiteContentEditor` and structured wording operations.
+- Original `busy-website-publish` gateway.
+- Existing canonical `busy_business_snapshots.websiteDraft` target.
+
+Implemented persistence contract:
+
+- Server-verified actor; service-only write function.
+- Current owner-membership lock and verification.
+- Exact snapshot revision and previous website-target comparison.
+- Initial generation checks the saved profile revision.
+- Only `websiteDraft` changes; unrelated records and unknown snapshot keys are preserved.
+- Private draft status remains separate from publication.
+- Generated HTML is reconstructed, not treated as an independent stored authority.
+- Successful receipts require independent exact-target readback.
+- Lost acknowledgement remains uncertain, with observation clearly distinguished from an own-write receipt.
+- No automatic replay of an uncertain write.
+
+Verified locally: creation, save, independent reopening, exact wording edits, stale conflict denial, unrelated-data preservation, lost acknowledgement, tenant denial, membership revocation and competing CAS writes.
+
+Limitations: this is a generation/wording-editing slice, not complete persisted coverage of every website design control. Snapshot revision CAS is not an immutable website-version archive or an exact upload/save-operation ledger.
+
+## 7. App Builder
+
+Reused:
+
+- Original goal-to-private-app planner and executor.
+- Explicit owner service choices, bounded by the existing six-service limit.
+- Original capability catalogue and creation/configuration distinction.
+- Original `MiniAppSurface` customer preview.
+- Original enquiry-journey editor.
+- Original coordinated Studio batch/save and eligible Undo.
+
+The workbench connects to existing finite App operations, rather than adding another app writer or table model. Saved profile revisions are rechecked before dispatch. Existing drafts are not automatically refreshed from newer facts.
+
+Local PostgreSQL evidence includes the original atomic first-app routine and the actual original Studio function body mapped to real PostgreSQL CAS queries, including independent reopening and Undo.
+
+**Important gate:** the full `owner_status` endpoint reads additional request, guest, Work booking, message/outbox and related evidence tables. Testing the first-app foundation does not prove that full endpoint is provisioned. Original multi-request App membership/revocation race acceptance also remains a cutover gate. The website transaction does not establish that guarantee for App Studio.
+
+## 8. Shared context and remaining modules
+
+Website and App preparation reuse a finite projection of the original saved public business profile: business details, services, supported contact and branding fields. Reuse still requires owner review. Historical facts do not silently overwrite newer edits.
+
+Not implemented or activated in this slice:
+
+- Customer enquiry → Inbox → Customer/Work integration.
+- Full connected six-area application entry.
+- Creator or Growth persistence cutover.
+- Get Paid, booking, payment, publication or communication activation.
+- Generic Business Brain memory or a replacement CRM.
+
+These remain future connections through their original canonical authorities.
+
+## 9. SQL and activation boundary
+
+Source proposals are in:
+
+- `docs/sql-proposals/connected-builders/contracts.sql`
+- `docs/sql-proposals/connected-builders/rollback-readonly.sql`
+- `docs/sql-proposals/connected-builders/README.md`
+
+The contracts intentionally abort and are outside the migration directory. No installed migration history is claimed. They add scoped readers and a website-only commit operation using existing tables, not a second draft store.
+
+Both connected gateway paths require the designated staging URL and an explicit server activation switch. `BUSY_CONNECTED_BUILDERS_ENABLED` was not activated.
+
+No hosted schema changes, Auth-user creation, function deployment, service activation, customer actions or external spending occurred. The retaining rollback revokes the new write authority while retaining records and readers; it is not erasure or a retention policy.
+
+## 10. Automated evidence
+
+The restored workspace allowed the final application runner receipt to be retrieved. This corrects the earlier chat report, which said that outer exit was unobserved.
+
+| Verification | Actual observed result |
+| --- | --- |
+| Final full application selection | **435 passed; 0 failed, blocked or unexecuted; outer exit 0** |
+| Source/worktree provenance | Exact local `a1a6ce29…` / tree `3c5db0d8…`; clean start and end; unchanged source |
+| Foundation checks | **105 passed; exit 0** on implementation checkpoint |
+| Local PostgreSQL integration | **21 stages passed; 0 failed; outer exit 0** on `aaad1f46…` |
+| Concurrent website CAS | Real concurrent PostgreSQL writes: one commit, one rejected conflict; exit 0 on final source |
+| Syntax | 13 supported source files passed; exit 0; separate CommonJS syntax check exited 0 |
+| Architecture audit | Exit 0 on implementation checkpoint |
+| Expo dependency validation | Exit 0; Expo warned that offline dependency validation is limited |
+| Owner Preview iOS/Hermes export | Initial implementation-checkpoint export exited 0 |
+| Isolated-staging iOS/Hermes export | Exit 0 on final source; 1,529 modules, approximately 8 MB Hermes bundle |
+| Final repeat Owner Preview export | Completion logged on final source; 1,470 modules, approximately 7.8 MB Hermes bundle; repeat process exit was not separately retrieved |
+
+The PostgreSQL17 server used the existing dedicated private Unix socket with TCP disabled. Tests used synthetic `auth.uid()` claims and inert external transport. They are **not hosted Auth/JWT/PostgREST, Storage or physical-device acceptance**.
+
+No broad rerun of all historical PostgreSQL stages is claimed. The historical Snack diagnostic failure remains separately known; it is not an iOS export failure or a passing check.
+
+### Retained unsuccessful candidates
+
+- First database candidate: 1 stage passed, 1 failed at the original fixture's exact database-name guard. The guard was retained; the new harness was corrected to use extracted fixture DDL in its own checked disposable database.
+- Second database candidate: 17 stages passed, 1 failed because the fictional app fixture had invalid navigation. The fixture was corrected to the original contract; no application assertion was relaxed.
+- First full application candidate: 87 passed, 38 failed and 310 unexecuted; outer exit 1 after deliberate interruption. Failures exposed an exact-import harness mismatch after making the original website import server-compatible. The exact expected import was updated; all assertions and VM limits remained intact. The subsequent complete run passed 435/435.
+- Initial syntax invocation: exit 1 because the syntax runner does not accept `.cjs`; corrected supported-file invocation and separate `node --check` passed.
+- A native screenshot attachment-validator candidate from the preceding About work failed with a print-variable error, was corrected and passed 24 unit checks. Synthetic PNG fixtures were never presented as application screenshots.
+
+Local raw evidence is retained under `.test-artifacts/connected-builders/`, including `application.json`, `application-outer.json`, `postgres.json`, `postgres-outer.json`, `website-concurrent.json` and failed-candidate artifacts. These ignored artifacts are not claimed to have been uploaded to GitHub.
+
+## 11. iPhone, screenshots and operational preservation
+
+The owner reported physical acceptance of the floating position retention and subtle main-orb animation, and reported installed Owner Preview build 29. This mission did not independently inspect that binary or change the installed app.
+
+Preserved:
+
+- Accepted Home design, living orb and four-edge floating assistant.
+- Six Home areas, original navigation and appearance modes.
+- Owner Preview transport denial and fictional-data boundaries.
+- Existing bundle/signing identity and disabled OTA policy.
+- Production/staging separation and existing financial/provider approvals.
+
+No EAS cloud build, OTA update, signed binary, distribution, signing change or new physical-device acceptance occurred. No genuine new screenshots were produced. No mock-ups were substituted for implemented evidence.
+
+The preceding checkpoint added Settings > About using native version/build and honest bundled-source/environment identification. That identifies a future installed binary; it does not mean new source is already installed.
+
+## 12. Readiness and next actions
+
+Ready for further automated development:
+
+- Scoped staging business discovery and verified workspace entry.
+- Original website generation/wording persistence slice.
+- App planner/preview/Studio integration wiring and local persistence rehearsal.
+- Shared finite saved-business-context reuse.
+
+Not ready:
+
+- Hosted connected application acceptance.
+- Full six-area owner end-to-end testing.
+- Complete hosted App Builder dependency closure.
+- Enquiry-to-Inbox/Work journey.
+- Production use or provider/financial activation.
+
+Recommended continuation:
+
+1. Recheck current local/remote source, then safely create the remote implementation commit and update the existing branch with an expected-head check. Preserve all later legitimate work; do not force-push or overwrite history.
+2. Preserve this report and the exact executable evidence in the repository through an additive evidence checkpoint.
+3. Complete the original Mini App schema/endpoint dependency closure and genuine signed-in application adapter.
+4. Rehearse the selected staging SQL, effective grants, revocation/concurrency behaviour and retaining rollback locally.
+5. Present the exact staging installation/deployment operations for separate owner approval. Do not apply historical migrations blindly or copy production data.
+6. After provisioning is separately approved, run two-tenant hosted Auth/JWT/PostgREST and builder save/reopen tests.
+7. Connect the first bounded original enquiry-to-Inbox/Customer/Work flow, then assess readiness for meaningful owner end-to-end testing.
+
+**No further cloud build or owner manual testing is requested by this report.**

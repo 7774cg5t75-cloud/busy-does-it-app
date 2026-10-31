@@ -11,7 +11,7 @@ import {prepareOwnerConversation,parseEnquiryListingReference,conversationReview
 import {publicBusinessContent} from './businessContentRecords.mjs';
 const ID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 async function readCurrentOwnerFollowupV3235({
- businessId="",requestId="",appId="",store=null,nowISO="",prepareReply=false
+ businessId="",requestId="",appId="",store=/** @type {import('../_shared/supabaseClient.ts').SupabaseClient|null} */ (null),nowISO="",prepareReply=false
 }={}){
  if(!ID.test(businessId)||!ID.test(requestId)||!ID.test(appId)||
   !store||typeof store.from!=="function"||

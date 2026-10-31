@@ -1,3 +1,12 @@
+import {appColors as C} from '../theme/appearance.mjs';
+import {useMotionPolicy} from '../theme/motion';
+import {currentBuilderExplore} from '../core/builderExplore.mjs';
+import {BuilderTalkExplore} from './builderTalkExplore';
+import {selectedWebsiteComparisons} from '../core/websiteSelectedComparisons.mjs';
+import {amendSelectedWebsiteQualityInstruction} from "../core/websiteSelectedChangePreview.mjs";
+import {BuilderQualityNotice} from "../components/builderQualityNotice";
+import {WebsiteTypographyControls} from "./websiteTypographyControls";
+import {WebsitePhotoControls} from './websitePhotoControls';
 import React from "react";
 import {Image,KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {Button,Card,Field} from "../components/ui";
@@ -20,9 +29,13 @@ const photoPreviewSource=asset=>{
  const uri=typeof asset?.uri==="string"?asset.uri.trim():"";
  return /^(https:\/\/|file:\/\/)/i.test(uri)?{uri}:null;
 };
-function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onPreviewInstruction,onTranscribe}){
+function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onPreviewInstruction,onTranscribe,exploreContext,onDraftChange,onDesignFeedback}){
+ const [closeRequested,setCloseRequested]=React.useState(false);
+ const [exploring,setExploring]=React.useState(false);
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
+ const [showRejected,setShowRejected]=React.useState(false);
+ const [showComparisonReasons,setShowComparisonReasons]=React.useState(false);
  const [showSectionDesign,setShowSectionDesign]=React.useState(false);
  const [showContextHelp,setShowContextHelp]=React.useState(false);
  const [contextRequest,setContextRequest]=React.useState("");
@@ -31,6 +44,18 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const [selectedInstructionPreview,setSelectedInstructionPreview]=React.useState(null);
  const [showPreviewOriginal,setShowPreviewOriginal]=React.useState(false);
  const [comparisonSize,setComparisonSize]=React.useState("phone");
+ const alive=React.useRef(true);React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ const wordingEdited=React.useRef(false);
+ const editorLive=React.useRef(null);editorLive.current={draft,selection,contextRequest,value,exploreContext};
+ // Old toolbar, wording and voice callbacks may survive a selection change.
+ // They must not submit an earlier value against a replacement source.
+ // Invalidate callbacks immediately, including before React renders the new text.
+ const setContextDraft=words=>{editorLive.current.contextRequest=words;setContextRequest(words);};
+ const setOwnerWording=words=>{setCloseRequested(false);onDraftChange?.(true);wordingEdited.current=true;editorLive.current.value=words;setValue(words);};
+ const cancelOwnerWording=()=>{if(!current())return;const original=String(target?.[field]??'');onDraftChange?.(false);wordingEdited.current=false;editorLive.current.value=original;setValue(original);};
+ const current=()=>alive.current&&editorLive.current.draft===draft&&editorLive.current.selection===selection&&editorLive.current.exploreContext===exploreContext;
+ const comparisonChoices=React.useMemo(()=>selectedWebsiteComparisons(draft,selection,{includeRejected:true}),[draft,selection,exploreContext?.ownerId,exploreContext?.businessId]);
+ const visibleComparisons=comparisonChoices.filter(choice=>showRejected||choice.ownerPreference!=='disliked');
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -38,22 +63,26 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const title=section?.title||"Website section";
  const key=[selection?.sectionId,selection?.field,selection?.itemId,selection?.photoIndex].join(":");
  React.useEffect(()=>{
+  if(wordingEdited.current){setSelectedInstructionPreview(null);setContextNote('Your source or selection changed. Your unsaved wording is kept; cancel it or reselect the current part before saving.');return;}
   setValue(typeof target?.[field]==="string"?target[field]:"");
-  setConfirmRemove(false);
-  setShowSectionDesign(initialMode==="more"||selection?.field==="section");
+  wordingEdited.current=false;setConfirmRemove(false);
+  setShowSectionDesign(initialMode==="more");
   setShowContextHelp(initialMode==="voice");
-  setContextRequest("");
+  setContextDraft("");
   setContextNote("");
   setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo");
   setSelectedInstructionPreview(null);
   setShowPreviewOriginal(false);
-  setComparisonSize("phone");
+  setComparisonSize("phone");setShowComparisonReasons(false);setShowRejected(false);
  },[key,draft?.updatedAt,initialMode]);
+ const requestClose=()=>{if(!current())return;if(wordingEdited.current){setCloseRequested(true);return;}onClose?.();};
  const save=()=>{
-  if(!selection||field==="photo")return;
-  if(onTextChange?.({...selection,value})===true)onClose?.();
+  if(!current()||editorLive.current.value!==value||!selection||field==="photo")return;
+  if(onTextChange?.({...selection,value})===true){wordingEdited.current=false;onDraftChange?.(false);onClose?.();}
  };
  const apply=change=>{
+  if(!current())return;
+  if(wordingEdited.current){setShowContextHelp(true);setContextNote('Save or cancel your wording before changing the layout. Your words are kept.');return;}
   if(onLayoutChange?.(change)===true)onClose?.();
  };
  const gallery=list(draft?.sections).find(x=>x.id==="gallery");
@@ -68,7 +97,14 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  });
  const preparedInstruction=contextRequest.trim()
   ?planSelectedWebsiteChanges(draft,selection?.pageId,selection,contextRequest):null;
+ const prepareContextChoice=instruction=>{
+  const live=editorLive.current;
+  if(live.draft!==draft||live.selection!==selection||live.contextRequest!==contextRequest)return;
+  setContextDraft(instruction);setShowContextHelp(true);setSelectedInstructionPreview(null);
+  setContextNote('Choice prepared. Compare it before using Apply; nothing has been saved.');
+ };
  const previewContext=()=>{
+  if(!current()||editorLive.current.contextRequest!==contextRequest)return;
   if(!preparedInstruction?.ok||!onPreviewInstruction){
    setContextNote(preparedInstruction?.reason||"Check your instruction before previewing.");
    return;
@@ -83,7 +119,20 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setShowPreviewOriginal(false);
   setContextNote("Your private comparison is ready. Nothing has been saved or published.");
  };
+ const previewQualityAdjustment=repair=>{
+  const live=editorLive.current;
+  if(live.draft!==draft||live.selection!==selection||live.contextRequest!==contextRequest)return;
+  const amended=amendSelectedWebsiteQualityInstruction(draft,{selection,instruction:contextRequest,repair});
+  if(!amended.ok){setContextNote(amended.reason);return;}
+  const outcome=onPreviewInstruction?.({selection,instruction:amended.instruction});
+  if(!outcome?.ok){setContextNote(outcome?.reason||'The adjustment could not be previewed. Your current proposal is unchanged.');return;}
+  setContextDraft(amended.instruction);setSelectedInstructionPreview(outcome);setShowPreviewOriginal(false);
+  setContextNote('Suggested adjustment prepared with your other changes. Compare it, then use Apply if you want to keep it. Nothing was saved.');
+ };
  const applyContext=(instruction)=>{
+  if(!current())return;
+  if(wordingEdited.current){setShowContextHelp(true);setContextNote('Save or cancel your wording before applying this comparison. Your words are kept.');return;}
+  if(!current()||editorLive.current.contextRequest!==contextRequest)return;
   const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
   if(!plan.ok){setContextNote(plan.reason);return;}
   if(onApplyInstruction){
@@ -117,17 +166,23 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
       ?{action:"image-style",sectionId:section?.id,photoIndex,field,value}
       :{action:"section-style",sectionId:section?.id,field,value})}/>;
  };
+ const motion=useMotionPolicy();
  return (
-  <Modal visible={!!selection} onRequestClose={onClose}
-   animationType="slide" presentationStyle="pageSheet">
-   <SafeAreaView style={{flex:1,backgroundColor:"#0D131E"}}>
+  <Modal visible={!!selection} onRequestClose={requestClose}
+   animationType={motion.enabled?"slide":"none"} presentationStyle="pageSheet" allowSwipeDismissal={false}>
+   <SafeAreaView style={{flex:1,backgroundColor:C.bg}}>
     <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==="ios"?"padding":undefined}>
-     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:18,paddingBottom:40}}>
-      <Text style={{color:"#F4F7FE",fontSize:24,fontWeight:"800",marginBottom:6}}>Edit this part</Text>
-      <Text style={{color:"#B4C0D2",marginBottom:14}}>
-       {title+" • "+(names[field]||"Selected element")}
-      </Text>
-      <Card eyebrow="Private website change" title={initialMode==="voice"?"Talk to BUSY about this part":initialMode==="more"?"More ways to adjust this part":field==="section"?"Adjust this section":field==="photo"?"Replace this picture":"Change the exact wording"}
+     <View style={styles.editorChromeHeader}><View style={{width:3,alignSelf:'stretch',backgroundColor:C.cyan,borderRadius:2,marginRight:10}}/><View style={{flex:1,minWidth:0}}><Text accessibilityRole="header" style={styles.editorChromeTitle}>Edit this part</Text><Text style={styles.workspaceMeta}>{title+" · "+(names[field]||"Selected element")}</Text></View></View>
+     <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS==="ios"?"interactive":"on-drag"} contentContainerStyle={{padding:18,paddingBottom:40}}>
+      {exploring&&exploreContext?<BuilderTalkExplore context={exploreContext} onExit={()=>setExploring(false)} onHandoff={handoff=>{
+       if(!current()||editorLive.current.contextRequest!==contextRequest||!currentBuilderExplore({ok:true,source:handoff.source},exploreContext)||!handoff.source.selection||wordingEdited.current)return false;
+       const outcome=onPreviewInstruction?.({selection,instruction:handoff.instruction});
+       if(!outcome?.ok){setContextNote(outcome?.reason||'Select the current section again.');return false;}
+       setContextDraft(handoff.instruction);setSelectedInstructionPreview(outcome);setShowContextHelp(true);setExploring(false);return true;
+      }}/>:null}
+      {exploreContext&&!exploring?<Button label="Talk & Explore about this part" onPress={()=>{if(!current())return;if(wordingEdited.current){setShowContextHelp(true);setContextNote('Save or cancel your wording before opening Talk & Explore. Your words are kept.');return;}setExploring(true);}}/>:null}
+      {closeRequested?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>Your wording is not saved. Save it below or choose whether to discard it.</Text><Button label="Keep editing this wording" onPress={()=>setCloseRequested(false)}/><Button label="Discard wording and close" onPress={()=>{if(!current()||editorLive.current.value!==value)return;cancelOwnerWording();setCloseRequested(false);onClose?.();}}/></View>:null}
+      {!exploring?<Card eyebrow="Private website change" title={initialMode==="voice"?"Talk to BUSY about this part":initialMode==="more"?"More ways to adjust this part":field==="section"?"Adjust this section":field==="photo"?"Replace this picture":"Change the exact wording"}
        body="Your edits stay in your private draft. Nothing is published automatically, and you can undo a saved change."
        tone="blue">
        {selection&&field!=="photo"&&field!=="section"&&initialMode==="edit"?(
@@ -136,30 +191,34 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           <View style={styles.fieldWrap}>
            <Text style={styles.fieldLabel}>Your new wording</Text>
            <View style={styles.fieldBox}>
-            <TextInput value={value} onChangeText={setValue}
+            <TextInput accessibilityLabel="Your new wording" selectionColor={C.blueText} value={value} onChangeText={next=>{if(current())setOwnerWording(next);}}
              style={[styles.fieldInput,{minHeight:135,textAlignVertical:"top"}]}
-             placeholderTextColor="#9AA3B2"
+             placeholderTextColor={C.muted}
              placeholder="Type the exact wording you want" multiline
              textAlignVertical="top"/>
            </View>
           </View>
          ):(
           <Field label={names[field]||"Website wording"} value={value}
-           onChangeText={setValue}
+           onChangeText={next=>{if(current())setOwnerWording(next);}}
            autoCapitalize={field==="email"||field==="ctaHref"?"none":"sentences"}
            keyboardType={field==="email"?"email-address":field==="phone"?"phone-pad":"default"}
            placeholder="Write your replacement"/>
          )}
+         <Button label="Cancel wording changes" onPress={cancelOwnerWording}/>
          <Button label="Save to private website draft" primary onPress={save}/>
+         <WebsiteTypographyControls section={section} selection={selection} onChoose={prepareContextChoice}/>
+
         </>
        ):null}
        {selection&&field==="photo"&&initialMode==="edit"?(
         <>
          <Text style={styles.sectionLabel}>Currently selected photograph</Text>
+         <WebsitePhotoControls draft={draft} selection={selection} section={section} onChoose={prepareContextChoice}/>
          {selectedPhotoSource?(
           <Image source={selectedPhotoSource} resizeMode="contain"
            accessibilityLabel={String(selectedPhoto?.alt||"Your selected business photograph").slice(0,120)}
-           style={{height:190,width:"100%",backgroundColor:"#202D40",borderRadius:12,marginBottom:10}}/>
+           style={{height:190,width:"100%",backgroundColor:C.surface,borderRadius:12,marginBottom:10}}/>
          ):(
           <Text style={styles.cardBody}>A local thumbnail is not available for this approved photo. You can still view the exact framing in your website preview.</Text>
          )}
@@ -167,9 +226,9 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           <>
            <Text style={styles.cardBody}>{"Photo "+(photoIndex+1)+" of "+list(section.items).length+". Change its position or remove it from the draft gallery."}</Text>
            <Button label="Move photograph left / earlier"
-            onPress={()=>apply({action:"move-gallery-photo",sectionId:"gallery",photoIndex,direction:"up"})}/>
+            onPress={()=>prepareContextChoice('move this photo to the left')}/>
            <Button label="Move photograph right / later"
-            onPress={()=>apply({action:"move-gallery-photo",sectionId:"gallery",photoIndex,direction:"down"})}/>
+            onPress={()=>prepareContextChoice('move this photo to the right')}/>
            <Button label={confirmRemove?"Confirm remove from gallery":"Remove from this gallery"}
             onPress={()=>{
              if(!confirmRemove){setConfirmRemove(true);return;}
@@ -194,7 +253,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
                {photoPreviewSource(photo)?(
                 <Image source={photoPreviewSource(photo)} resizeMode="cover"
                  accessibilityLabel={String(photo.alt||"Approved photograph "+(i+1)).slice(0,120)}
-                 style={{width:92,height:74,borderRadius:9,backgroundColor:"#202D40"}}/>
+                 style={{width:92,height:74,borderRadius:9,backgroundColor:C.surface}}/>
                ):null}
                <Button label={"Use photo "+(i+1)+(photo.alt?" • "+String(photo.alt).slice(0,35):"")}
                 onPress={()=>apply({action:section?.type==="hero"?"choose-hero-photo":"choose-feature-photo",
@@ -218,30 +277,56 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
        ):null}
        {selection&&section?(
         <>
+         {field==='cta'&&section.type==='hero'?<View>
+          <Text style={styles.sectionLabel}>Responsive button size</Text>
+          <Text style={styles.cardBody}>These presets preserve the existing action and wrap on small screens.</Text>
+          {['normal','roomier','wider'].map(size=><Button key={size} label={'Choose '+size+' button'} onPress={()=>{
+            setContextDraft('make this button '+size);setShowContextHelp(true);setSelectedInstructionPreview(null);
+            setContextNote('Preview the responsive button before applying. Its destination stays unchanged.');
+          }}/>)}</View>:null}
+
          {initialMode==="voice"?(
           <Text style={styles.cardBody}>You selected the exact {names[field]?.toLowerCase()||"website part"}. BUSY is ready to listen. Press the red Stop control when you're finished — pauses are fine.</Text>
          ):null}
+         {onDesignFeedback&&comparisonChoices.some(choice=>choice.ownerPreference==='disliked')?<Button label={showRejected?'Hide declined ideas':'Reconsider declined ideas'} onPress={()=>{if(current())setShowRejected(x=>!x);}}/>:null}
+         {onPreviewInstruction&&visibleComparisons.length?<Button label={showComparisonReasons?'Hide layout explanations':'Explain these layout choices'} onPress={()=>{if(current())setShowComparisonReasons(x=>!x);}}/>:null}
+         {onPreviewInstruction?visibleComparisons.map(choice=>(
+          <View key={choice.id}>
+           {showComparisonReasons?<Text style={styles.cardBody}>{choice.explanation}</Text>:null}
+           {choice.ownerPreference==='disliked'?<View><Text style={styles.cardBody}>You previously declined this exact layout. Exploring it here does not change your saved website.</Text><Button label={'Show this idea again: '+choice.label} onPress={()=>{if(!current()||editorLive.current.contextRequest!==contextRequest)return;if(onDesignFeedback?.({draftId:draft.id,pageId:selection.pageId,changeId:choice.id,operation:choice.operation,expectedSource:draft,choice:'liked'})===true){setShowRejected(false);setContextNote('This idea is available again for this source. Nothing about the website layout was changed.');}}}/></View>:null}
+           <Button label={'Compare: '+choice.label} onPress={()=>{
+            if(!current()||editorLive.current.contextRequest!==contextRequest)return;
+            const outcome=onPreviewInstruction({selection,instruction:choice.instruction});
+            if(!outcome?.ok){setContextNote(outcome?.reason||'Select the current section again.');return;}
+            setContextDraft(choice.instruction);setShowContextHelp(true);
+            setSelectedInstructionPreview(outcome);setShowPreviewOriginal(false);
+            setContextNote('Private comparison for this section only. Nothing has been saved.');
+           }}/>
+          </View>
+         )):null}
          <Button label={showContextHelp?"Hide instructions for this part":"Tell BUSY what to do with this part"}
           onPress={()=>{setContextNote("");setShowContextHelp(x=>!x);}}/>
          {showContextHelp?(
           <View>
            <Text style={styles.cardBody}>BUSY knows exactly what you tapped. Try a suggested change, type an instruction or record your voice. Typed edits are local and use no AI credits; voice transcription uses a cloud service.</Text>
            {contextExamples.map(example=>(
-            <Button key={example} label={example} onPress={()=>applyContext(example)}/>
+            <Button key={example} label={'Prepare: '+example} onPress={()=>prepareContextChoice(example)}/>
            ))}
            <WebsiteSelectedVoice key={key} selection={selection} startImmediately={initialMode==="voice"} onTranscribe={onTranscribe}
             onTranscript={words=>{
-              setContextRequest(words);
+              if(!current())return;
+              setContextDraft(words);
               setSelectedInstructionPreview(null);
               setContextNote("Please check these words carefully. Nothing has changed yet.");
             }}/>
            <Field label="What would you like to change?" value={contextRequest}
             onChangeText={words=>{
-             setContextRequest(words);
+             if(!current())return;
+             setContextDraft(words);
              setSelectedInstructionPreview(null);
              setContextNote("");
             }}
-            placeholder={field==="title"?"Make this heading bigger":"Describe one change to this selected part"}
+            placeholder={field==="title"?"Make this heading bigger":"Make this section more premium; move this section above contact"}
             autoCapitalize="sentences"/>
            {preparedInstruction?.ok&&preparedInstruction.steps.length>1?(
             <View style={{marginTop:8,marginBottom:8}}>
@@ -254,6 +339,10 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
              <Text style={styles.cardBody}>If any step cannot be completed, nothing changes. One Undo restores the original.</Text>
             </View>
            ):null}
+           {contextRequest||selectedInstructionPreview?<Button label="Cancel proposed changes" onPress={()=>{
+            if(!current()||editorLive.current.contextRequest!==contextRequest)return;
+            setContextDraft('');setSelectedInstructionPreview(null);setContextNote('Comparison cancelled. Your unsaved wording is kept.');
+           }}/>:null}
            {preparedInstruction?.ok&&onPreviewInstruction?(
             <Button label="See these changes before saving" onPress={previewContext}/>
            ):null}
@@ -264,6 +353,15 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
             <View style={{marginVertical:10}}>
              <Text style={styles.sectionLabel}>Private before-and-after preview</Text>
              <Text style={styles.cardBody}>{selectedInstructionPreview.summary}</Text>
+             {onDesignFeedback&&selectedWebsiteComparisons(draft,selection).some(choice=>choice.instruction===contextRequest)?<Button label="Do not suggest this layout again" onPress={()=>{
+              if(!current()||editorLive.current.contextRequest!==contextRequest)return;
+              const choice=selectedWebsiteComparisons(draft,selection).find(item=>item.instruction===contextRequest),plan=planSelectedWebsiteChanges(draft,selection.pageId,selection,contextRequest);
+              if(!choice||!plan.ok||plan.steps.some(step=>step.type!=='layout'))return;
+              const operation={action:'style-group',operations:plan.steps.map(step=>step.change)};
+              if(onDesignFeedback({draftId:draft.id,pageId:selection.pageId,changeId:choice.id,operation,expectedSource:draft,choice:'disliked'})!==true){setContextNote('Your source changed. Compare the current section before recording a preference.');return;}
+              setContextDraft('');setSelectedInstructionPreview(null);setContextNote('Your preference was saved privately. Original wording and layout stay unchanged.');
+             }}/>:null}
+             <BuilderQualityNotice quality={{...selectedInstructionPreview.quality,findings:(selectedInstructionPreview.quality?.findings||[]).map(f=>({...f,repair:amendSelectedWebsiteQualityInstruction(draft,{selection,instruction:contextRequest,repair:f.repair}).ok?f.repair:null}))}} onRepair={previewQualityAdjustment}/>
              <Text style={styles.cardBody}>Compare phone, tablet or desktop layouts before applying. Wider views are scaled down on your phone.</Text>
              {["phone","tablet","desktop"].map(mode=>(
               <Button key={mode} label={(comparisonSize===mode?"✓ ":"")+"Compare "+mode+" layout"}
@@ -366,8 +464,8 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
          ):null}
         </>
        ):null}
-       <Button label="Cancel — leave website unchanged" onPress={onClose}/>
-      </Card>
+       <Button label="Cancel — leave website unchanged" onPress={requestClose}/>
+      </Card>:null}
      </ScrollView>
     </KeyboardAvoidingView>
    </SafeAreaView>

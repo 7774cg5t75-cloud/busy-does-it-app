@@ -1,3 +1,11 @@
+import {splitBuilderInstructionClauses} from '../../src/core/builderInstructionClauses.mjs';
+import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../../src/core/websiteEditingLimits.mjs';
+import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
+import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
+import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
+import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
+import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../../src/core/businessContentHtml.mjs';
 import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";
 /**
@@ -26,9 +34,17 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {splitBuilderInstructionClauses} from '../core/builderInstructionClauses.mjs';",
+ "import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../core/websiteEditingLimits.mjs';",
+ "import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';",
+ "import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';",
+ "import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';",
+ "import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';",
+ 'import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";',
+ "import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';",
  "import {businessContentSectionHtml} from '../core/businessContentHtml.mjs';",
  'import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";',
- 'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import { syncWebsitePageModel } from "./websiteManagement.js";',
  'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
@@ -50,8 +66,9 @@ function stripKnownModule(file){
 }
 const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
  "\nreturn {syncWebsitePageModel};")();
-const deps=Object.freeze({
- syncWebsitePageModel:management.syncWebsitePageModel,
+const deps=Object.freeze({splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
+ testimonialSpotlightItems,
+ websitePageGuide,websitePageHeadingHierarchy,serviceIndexHtml,serviceContactAction,heroServiceOverview,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,
  planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,
  editWebsiteDraftField,protectWebsiteOwnerLocks,businessContentSectionHtml

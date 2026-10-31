@@ -68,7 +68,7 @@ function countStates(values,states){
   for(const value of values)result[states.includes(value)?value:"unverified"]++;
   return result;
 }
-function buildExternalRealityDigest({websiteChecks=null,socialRows=null,appRows=null,checkedAt=""}={}){
+function buildExternalRealityDigest({websiteChecks=/** @type {unknown[]|null} */(null),socialRows=/** @type {unknown[]|null} */(null),appRows=/** @type {unknown[]|null} */(null),checkedAt=""}={}){
   const website=Array.isArray(websiteChecks)?{
     status:websiteChecks.length?"sample_checked":"no_live_sites_sampled",
     sampled:websiteChecks.length,

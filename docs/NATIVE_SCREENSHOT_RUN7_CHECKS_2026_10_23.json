@@ -1,0 +1,1856 @@
+{
+  "kind": "Run7 native screenshot correction offline verification",
+  "sourceAtRunnerStart": "7139dd4ae6c6ee00e3af8313f9d6e24c46e35bd9",
+  "workingTreeChangedAtRunnerStart": true,
+  "frozenFunctionalLocalCommit": "6f52052aa42521b8fd5973fa4476a8028e07152f",
+  "frozenFunctionalGitHubCommit": "4503218bc16a6c49a41fb24ac65da03ada9281eb",
+  "frozenTree": "e305a41fceccba590bb8215a7976046eb1b14288",
+  "note": "Runner started with the final functional edits uncommitted; those same functional files were committed while it ran. Only documentation changed during execution. No functional source/test changes during the selection.",
+  "command": "python3 scripts/testing/regressions.py --fail-fast --output .test-artifacts/native-screenshots-run7-correction.json",
+  "runnerExit": 0,
+  "counts": {
+    "passed": 346,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "children": [
+    {
+      "id": "check-mission13-conversations",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission13-private-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission13-customer-surfaces",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission13-communication-truth",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission12-content-enquiry",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission12-builder-reuse",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission12-intent",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission12-live-form-logic",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission12-public-handoff",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission12-record-review",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission12-standalone-continuity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission11-records",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission11-intelligence",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission11-public-views",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-goal-content",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-goal-editing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-goal-decisions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-builder-dual-track-v3153",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission10-information-reuse",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission9-builder-language",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission10-public-information",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission10-service-details",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-owner-outcome-v3235",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-communications-v3205",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-customer-journey-v3204",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission9-reply-continuity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission9-request-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-message-integrity-v3185",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-builder-intelligence-v3240",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission14-contextual-replies",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission14-content-intelligence",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission14-experience-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-standalone-native-v3154",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-editing-preview",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-app-services",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-design-candidates",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-coherence",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-page-instructions-v3149",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-context-plan-v3147",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-context-v3140",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-measured-coach-v3144",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-coordinated-alternatives",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission7-website-decisions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-major-builders-v3195",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase2-copy",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase2-responsive",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase2-services",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase2-measured-reading",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase2-request-intent",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase2-transfer-review",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-studio-session",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-studio-checkpoint",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "build-website-design-gallery-v3100",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-builder-visual-receipt-v3238",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase3-composition",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase3-content-review",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase3-gallery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase3-language",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase3-studio-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase4-app-capabilities",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase4-requirements",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase4-website-spacing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase5-approved-records",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase5-catalogue-editing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase5-enquiry-review",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission11-composition",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "prepare-standalone-prototype-v3154",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase6-booking-review",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase6-hero-composition",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-distinct-website-designs-v3101",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-layout-v3134",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission8-shared-request-entry",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase7-visual-movement",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase7-typography",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase7-app-selection",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-section-styling-v3139",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase7-reviewed-request",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase7-card-colours",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase7-page-movement",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-pages-v3135",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-website-tap-editor-v3138",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase8-quality",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase8-sizing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase8-service-questions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase8-website-suggestions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase9-studio-selection",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase9-service-details",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase9-browser-policy",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase10-selected-images",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase10-website-toolbar",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase10-selected-instructions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase10-gallery-parity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-context-editor-v3155",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission7-app-intent",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-voice-layout-v3156",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase11-selected-services",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase11-website-pictures",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase11-brand-controls",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-app-visual-comparison-v3161",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-major-builders-v3193",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase11-selected-faq",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase12-component-styles",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase12-explore",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase12-explore-handoff",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase13-explore-experience",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase13-faq-styles",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase13-trusted-explore",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase13-website-reading",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase14-image-styles",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase14-explore-context",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase14-picture-presets",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase14-navigation-labels",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase15-service-buttons",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase15-neutral-planning",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase15-brand-typography",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase18-customer-browsing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase19-journeys",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase19-editing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase20-catalogue",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase20-editing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase21-context",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase21-editing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase21-draft-choices",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase22-removal",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase22-composition",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase22-editing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase23-field-contract",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase23-focus",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase23-editorial",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase23-photo-controls",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase23-catalogue-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase23-explore",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase24-comparisons",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase24-wording",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase24-service-composition",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase24-catalogue-freshness",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase24-editor-scope",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase24-explore",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase25-pictures",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase25-wording",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase25-attachment-summary",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase25-reading",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase25-coordinated-controls",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase25-explore",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase26-selected-explore",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase26-draft-switch",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase26-request-returns",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase26-faq-composition",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase26-editing-controls",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase26-selected-advice",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase27-button-drafts",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase27-design-feedback",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase27-request-return",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase27-service-index",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase27-simple-controls",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase27-service-advice",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase27-selected-feedback",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase28-navigation",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase28-reconsider",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase28-returns",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase28-page-guide",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase28-customer-controls",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase28-explore",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase28-legacy-copy",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-legacy-drafts",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-approval-conflicts",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-page-reconsider",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-article-layout",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-option-readback",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-source-transitions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-explore-reading",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-dispatch-epoch",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase29-website-drafts",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase30-website-mutation",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase30-history",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase30-save-ack",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase30-testimonials",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase30-service-return",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase30-photo-backup",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase30-explore",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase31-pages",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase31-service-resume",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase31-cloud-drafts",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase31-independent-editors",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase31-home",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase31-service-content",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase31-growth-content",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase31-text-drafts",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-service-intent",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-growth-handoff",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-content-save",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-approved-profile",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-home-content",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-marketing-goals",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-manual-content",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-caption-races",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-source-choice",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-transcript-parity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase32-save-freshness",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-introduction",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-approved-records",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-device-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-announcements",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-growth-home",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-creator-starts",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-new-post-safety",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-cloud-freshness",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-growth-records",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-source-continuity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase33-talk-parity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-natural-content",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-wording",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-publication-freshness",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-management-actions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-job-start",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-account-readback",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-queue-continuity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-inbox-quote",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-record-wording",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-home-quote",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-receipt-identity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase34-quote-scope",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase35-growth-treatment",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase35-catalogue-treatment",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase35-publish-claims",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase35-quote-transition",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase35-quote-outcome",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase35-catalogue-option",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase36-source-treatment",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase36-talk-treatment",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase36-quote-review",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase36-record-continuity",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase36-quote-navigation",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase36-quote-device-copy",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase36-cancel-revision",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase36-home-prepared-quote",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase36-core-routing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase37-enquiry-quote-return",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase37-customer-enquiry",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase37-talk-quote",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase37-content-reprepare",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase37-home-inbox",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase37-reopened-content",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase37-recorded-quote-status",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase38-quote-reference",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase38-quote-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase38-current-enquiry",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase38-content-draft-fields",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase38-followup-enquiry",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase39-followup-review",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase39-home-quote-review",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase39-review-to-followup",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase39-unsaved-content-home",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase39-talk-current-content",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase40-quote-selection",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase40-creator-formats",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase40-growth-formats",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase40-talk-formats",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase40-followup-context",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase40-growth-source-choice",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase40-home-quote-selection",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase40-followup-authority",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase41-item-formats",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase41-growth-item-formats",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase41-talk-item-formats",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase41-enquiry-replies",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase41-reply-questions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase41-talk-replies",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase41-home-replies",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase41-reply-source-removal",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase42-reply-save",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase42-owner-formats",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase42-reply-information",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase42-saved-reply-home",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase42-reply-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase43-growth-announcement",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase43-reply-canonical",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase43-reply-account",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase43-reply-management",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase43-connected-routing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase43-date-flexibility",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase44-announcement-reuse",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase44-removal-account",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase44-own-revision",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase44-newsletter",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase44-newsletter-talk",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase44-removal-parent",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase44-home-newsletter",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase45-approved-newsletters",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase45-newsletter-editing",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase45-reply-receipt",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase45-newsletter-parent",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase46-newsletter-preview",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase46-newsletter-account",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase46-reply-adapter",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase46-newsletter-exact",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase47-newsletter-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase47-content-restoration",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase47-enquiry-requirements",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase48-enquiry-quote",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase48-approved-knowledge",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase48-newsletter-copy",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase48-quote-boundary",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase49-catalogue-quote",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase49-newsletter-source",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase49-enquiry-projection",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase50-older-enquiry",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase50-newsletter-dirty",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase50-quote-fields",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase50-runtime-loading",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase51-catalogue-reply",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase51-newsletter-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase51-known-requirements",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase52-reply-provenance",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase52-newsletter-versions",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase52-owner-tone",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase52-retention-contract",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase52-newsletter-boundary",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase53-reply-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase53-newsletter-comparison",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase53-snapshot-compatibility",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase53-approved-area",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase54-private-write-boundary",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase54-reply-evidence",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase54-newsletter-device",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase54-approved-contact",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase55-recovery-explanations",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase56-reply-requirements",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase56-newsletter-inspection",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase57-fresh-clarification",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase58-writer-proposal",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase59-cutover",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase60-account-reply",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase61-reconciliation",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase62-bootstrap",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase62-services",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase63-recovery",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase64-recovered-save",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase64-filing-parent",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase65-first-journey",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-mission15-phase66-interrupted-enquiries",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase67-appearance",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase67-parent",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase68-working-surfaces",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "mission15-phase69-workspaces",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "native-screenshot-pipeline",
+      "status": "passed",
+      "exit": 0
+    }
+  ],
+  "fullLocalReportSha256": "8a473a56020bcf64a0dadf7c728544dd757e12646c6c52b3a4fe058ac208794d",
+  "productionFoundation": {
+    "checks": 105,
+    "exit": 0
+  },
+  "pythonSyntaxExit": 0,
+  "nodeSyntaxExit": 0,
+  "diffCheckExit": 0,
+  "retentionCounterexampleSha256": "1480655ab323ce18b6fcfc99e635f4abc77692e18c3d419b7debf201598b95c7",
+  "nativeExecution": "Separate controlled GitHub run39978147649; not established by this offline report.",
+  "failedCandidate": {
+    "check": "check-native-screenshot-pipeline",
+    "exit": 1,
+    "reason": "Signing assertion still read YAML after command moved to native_stage.py. Corrected assertion checks actual command owner; same security guarantee retained."
+  },
+  "deadlineWrapperExecution": {
+    "exit": 0,
+    "cases": [
+      "Actual disposable Python child killed promptly after simulated monotonic deadline; exact124 receipt",
+      "Actual successful Python child; exact0 non-timeout receipt"
+    ],
+    "limitation": "Clock accelerated to expire deadline; command replaced with harmless local Python child. Validates process lifecycle/receipt, not Xcode or macOS enforcement."
+  },
+  "run7": {
+    "run": 39967258319,
+    "job": 120460260984,
+    "source": "459c2ccd2ced5c7f45ac7fbd14965316346a0296",
+    "conclusion": "cancelled",
+    "combinedStageSeconds": 2409,
+    "logCharacters": 296643,
+    "logLines": 3096,
+    "finding": "Compilation active at cancellation; no evidence of app launch or XCTest start; four clang processes terminated during cleanup.",
+    "pngCount": 0,
+    "artifactGateExit": 1
+  },
+  "controlledAttempt": {
+    "run": 39978147649,
+    "job": 120498085116,
+    "source": "4503218bc16a6c49a41fb24ac65da03ada9281eb",
+    "conclusion": "failure",
+    "logCharacters": 7056749,
+    "logLines": 43760,
+    "build": {
+      "exit": 0,
+      "elapsedSeconds": 978.9,
+      "actionsStageSeconds": 980,
+      "testBundleCompiled": true
+    },
+    "simulator": {
+      "model": "iPhone 14 Pro",
+      "runtime": "iOS 26.2",
+      "step": "success",
+      "actionsStageSeconds": 270
+    },
+    "testStage": {
+      "exit": 1,
+      "actionsStageSeconds": 32,
+      "reason": "Local Apple screenshot receiver did not start",
+      "xcodeTestInvoked": false,
+      "appLaunched": false
+    },
+    "artifactGateExit": 1,
+    "artifactUpload": "skipped",
+    "pngCount": 0,
+    "additionalNativeAttempts": 0
+  },
+  "receiverFollowup": {
+    "nativeExecution": "NOT EXECUTED; skip-ci source-only follow-up",
+    "scope": "Owned receiver, visible stderr, per-process identity, fixed loopback no-proxy readiness, early preflight before expensive build",
+    "localChecks": {
+      "script": "python3 scripts/native-capture/check_receiver_local.py",
+      "exit": 0,
+      "cases": [
+        "Exact native build/test commands",
+        "Missing simulator and ambiguous workspace denied",
+        "Actual loopback readiness with unusable proxy configuration",
+        "Occupied port/other receiver denied",
+        "Caller error preserved",
+        "Receiver cleanup and fresh restart"
+      ]
+    },
+    "focusedPipelineCheckExit": 0,
+    "pythonSyntaxExit": 0,
+    "yamlParseExit": 0,
+    "productionFoundation": {
+      "checks": 105,
+      "exit": 0
+    },
+    "fullApplicationSelectionRepeated": false,
+    "reason": "No production application changes; full346 selection executed on controlled source4503218, followed by focused CI-only verification."
+  },
+  "additionalUnsuccessfulAttempts": [
+    {
+      "kind": "local loopback integration",
+      "exit": 1,
+      "status": "blocked",
+      "reason": "Restricted sandbox denied socket creation; rerun with approved additional network permission passed. This does not establish the macOS cause."
+    }
+  ],
+  "operational": {
+    "additionalExternalSpendingGBP": 0,
+    "hostedChanges": false,
+    "deployment": false,
+    "paidBuilds": false,
+    "customerData": false,
+    "newNativeRunsAfterControlledAttempt": 0
+  }
+}

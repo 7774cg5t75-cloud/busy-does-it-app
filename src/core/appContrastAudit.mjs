@@ -20,6 +20,7 @@ function auditStandaloneContrast(palette=NATIVE_SHELL_PALETTE){
  const pairs=[
   ["body_text", "text","surface","normal",4.5],
   ["secondary_text","muted","surface","normal",4.5],
+  ["service_accent_text","accent","surface","normal",4.5],
   ["page_header","text","bg","normal",4.5],
   ["primary_button_label","bg","accent","normal",4.5],
   ["navigation_label","text","surface","normal",4.5],

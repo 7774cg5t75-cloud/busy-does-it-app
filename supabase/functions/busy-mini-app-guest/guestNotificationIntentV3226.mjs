@@ -5,7 +5,7 @@
  */
 const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 function verifyGuestNotificationIntentV3226({
- intent=null,requestId="",businessId="",appId=""
+ intent=/** @type {Record<string, unknown>|null} */ (null),requestId="",businessId="",appId=""
 }={}){
  const valid=[requestId,businessId,appId].every(v=>UUID.test(v))&&
   intent&&typeof intent==="object"&&!Array.isArray(intent)&&

@@ -1,32 +1,81 @@
+import {websitePageGuideEntries} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
 import {deriveSector,photographicCount} from './websiteDesignPlanner.mjs';
 import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
-import {ownerDesignPreference} from './websiteMeasuredDesignCoach.mjs';
+import {createWebsitePreferenceReader} from './websiteMeasuredDesignCoach.mjs';
 // Finite alternatives for the EXISTING measured candidate lifecycle. Industry
 // is a hypothesis; current-render checks and the owner's choice stay decisive.
-function coordinatedWebsiteAlternatives(draft,pageId,report){
+function websiteCompositionFacts(draft,pageId='home'){
+ const page=draft?.pages?.find(p=>p.id===pageId&&p.enabled!==false),sections=(draft?.sections||[]).filter(s=>s.enabled!==false&&page?.sectionIds?.includes(s.id));
+ const readingSections=sections.filter(section=>['about','text','photo-feature'].includes(section.type)&&String(section.body||'').length>=500);
+ const phoneReadingSection=readingSections.find(section=>!section.appearance?.mobileBodyScale&&!section.appearance?.mobileSectionSpacing);
+ const editorialFeature=sections.find(section=>section.type==='photo-feature'&&section.asset?.approved===true&&typeof section.asset.storagePath==='string'&&section.asset.storagePath.trim()&&String(section.body||'').length>=240&&!section.appearance?.photoSide&&!section.appearance?.desktopSectionSpacing&&!section.appearance?.sectionSpacing);
+ const service=sections.find(s=>s.id==='services'),gallery=sections.find(s=>s.id==='gallery');
+ return {editorialFeatureId:editorialFeature?.id||null,longReadingSectionCount:readingSections.length,phoneReadingSectionId:phoneReadingSection?.id||null,serviceCount:Array.isArray(service?.items)?service.items.filter(item=>String(item.title||'').trim()).length:0,approvedGalleryCount:photographicCount(gallery?[gallery]:[]),heroPhoto:photographicCount(sections.filter(s=>s.id==='hero'))>0,gallerySizeCustomized:['compact','large'].includes(gallery?.appearance?.gallerySize)||['compact','large'].includes(gallery?.appearance?.desktopGallerySize)};
+}
+function coordinatedWebsiteAlternatives(draft,pageId,report,{includeRejected=false,renderedHtml=null}={}){
+ const preference=createWebsitePreferenceReader(draft,pageId);
  if(!draft?.id||!draft.pages?.some(p=>p.id===pageId&&p.enabled!==false)||!report?.counts||!Array.isArray(report.issues)||!Number.isFinite(report.counts.viewport)||report.counts.viewport<250||report.counts.viewport>3000)return [];
  const issueIds=report.issues.map(x=>x?.id);
  // Restyling cannot repair missing originals, factual descriptions or links.
  if(issueIds.length&&issueIds.every(id=>['photos','descriptions','links'].includes(id)))return [];
  const sector=deriveSector(draft.businessType||''),photos=photographicCount(draft.sections),theme=draft.theme||{};
+ const heroPhoto=photographicCount((draft.sections||[]).filter(section=>section.id==='hero'))>0;
  const directions=[{id:'coordinated-reading',label:'Clear information, calm rhythm',
-  explanation:'Compare readable service rows, restrained headings and consistent spacing. '+
+  explanation:'Put existing services near the start where supported; compare readable rows, restrained headings and consistent spacing. '+
    (['professional','learning','wellness'].includes(sector)?'This suits information-led decisions.':'Useful when customers need to understand the details first.'),
-  settings:{typography:'refined',cardLayout:'rows',spacing:'comfortable'},tradeoff:'Less image-led; visitors may scroll through more service details.'}];
- if(photos>0)directions.push({id:'coordinated-visual',label:'Visual story with breathing room',
-  explanation:'Use your existing approved photos with editorial headings, separated cards and generous spacing. No images or colours are replaced.',
-  settings:{typography:'editorial',cardLayout:'cards',spacing:'generous'},tradeoff:'Uses more vertical space on phones; inspect tablet and desktop rhythm too.'});
+  settings:{typography:'refined',cardLayout:'rows',heroLayout:heroPhoto?'image-right':'type-left'},tradeoff:'Less image-led; visitors may scroll through more service details.'}];
+ directions.push({id:'coordinated-visual',label:heroPhoto?'Image-led introduction':'Editorial introduction',
+  explanation:'Compare an editorial hero, separated cards and the existing gallery where it is on this page. Without an approved hero image, use a typographic statement. Images, colours and owner spacing choices are preserved.',
+  settings:{typography:'editorial',cardLayout:'cards',heroLayout:heroPhoto?'image-feature':'type-poster'},tradeoff:'Uses more vertical space on phones; inspect tablet and desktop rhythm too.'});
+ const facts=websiteCompositionFacts(draft,pageId),serviceCount=facts.serviceCount;
+ if(serviceCount>=4)directions.unshift({id:'coordinated-service-guide',label:'Service guide with clear detail rows',explanation:'Your current page contains '+serviceCount+' named services. Compare compact typography and title/detail rows so visitors can scan names before reading the detail. Existing words, colours and images stay unchanged.',settings:{typography:'compact',cardLayout:'rows',heroLayout:heroPhoto?'image-frame':'type-left'},tradeoff:'Prioritises information density over large decorative cards; phones retain stacked service text.'});
+ const suppliedTestimonials=(draft.sections||[]).find(s=>s.type==='testimonials'&&s.enabled!==false&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id)&&!s.appearance?.testimonialsLayout&&s.items?.length>=2&&s.items.every(item=>String(item?.title||'').trim()&&String(item?.body||'').trim()));
+ if(suppliedTestimonials)directions.unshift({id:'coordinated-testimonial-spotlight',label:'Give supplied customer words a clear lead',explanation:'This page has '+suppliedTestimonials.items.length+' supplied testimonials. Compare a larger first quotation above supporting cards on wide screens and a single phone column. Attribution, exact wording and owner item order stay unchanged. Use only words you have permission to display; this layout does not verify a review.',settings:{},sectionOperations:[{action:'section-style',sectionId:suppliedTestimonials.id,field:'testimonialsLayout',value:'spotlight'}],tradeoff:'The first existing quotation gets more visual weight. That is a design choice, not proof of better conversions or more reliable testimony.'});
+ const detailedFaq=(draft.sections||[]).find(s=>s.type==='faq'&&s.enabled!==false&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id)&&s.items?.length>=5&&s.items.every(item=>String(item.title||'').trim()&&String(item.body||'').trim())&&!s.appearance?.faqLayout);
+ if(detailedFaq)directions.unshift({id:'coordinated-faq-questions',label:'Questions visitors can open individually',explanation:'This section has '+detailedFaq.items.length+' complete questions and answers. Compare expandable answers to reduce initial reading density without changing the original wording.',settings:{},sectionOperations:[{action:'section-style',sectionId:detailedFaq.id,field:'faqLayout',value:'questions'}],tradeoff:'Answers take an extra opening action; keep the expanded original if immediate reading is more useful. This uses native HTML disclosures, not screenshot-tested interaction.'});
+ const article=(draft.sections||[]).find(s=>['about','text'].includes(s.type)&&s.enabled!==false&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id)&&String(s.body||'').length>=1600&&!s.appearance?.readingLayout);
+ if(article)directions.unshift({id:'coordinated-article-columns',label:'Long-form article with wide-screen columns',explanation:'Your '+(article.title||'information')+' section has substantial approved text. Compare two flowing reading columns on wide desktop screens while retaining one column on phones and tablets. Words, heading order, colours and other sections stay unchanged.',settings:{},sectionOperations:[{action:'section-style',sectionId:article.id,field:'readingLayout',value:'columns'}],tradeoff:'Readers follow the first column before the second. Keep the single column if continuous vertical reading is more useful; this is a CSS proposal, not measured reading performance.'});
+ const longInformation=(draft.sections||[]).find(s=>['about','text'].includes(s.type)&&s.enabled!==false&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id)&&String(s.body||'').length>=700&&!s.appearance?.readingLayout&&!s.appearance?.desktopSectionSpacing&&!s.appearance?.sectionSpacing);
+ if(longInformation)directions.unshift({id:'coordinated-information-editorial',label:'A clear heading beside longer information',explanation:'Your '+(longInformation.title||'information')+' section contains longer owner-written text. Compare a heading beside the explanation on wider screens, with original phone reading order, words and colours preserved.',settings:{},sectionOperations:[{action:'section-style',sectionId:longInformation.id,field:'readingLayout',value:'editorial'},{action:'section-style',sectionId:longInformation.id,field:'desktopSectionSpacing',value:'generous'}],tradeoff:'Separates the heading from the detailed explanation on larger screens. This is a source-based layout proposal, not screenshot-measured readability.'});
+ const indexedServices=(draft.sections||[]).find(s=>s.type==='services'&&s.enabled!==false&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id)&&!s.appearance?.serviceLayout&&s.items?.length>=6&&s.items.every(item=>String(item.body||'').length>=100));
+ if(indexedServices)directions.unshift({id:'coordinated-service-index',label:'Service guide with a quick index',explanation:'Your page has several detailed services. Compare a local index beside their original descriptions on wider screens and above them on phones.',settings:{},sectionOperations:[{action:'section-style',sectionId:indexedServices.id,field:'serviceLayout',value:'index'}],tradeoff:'An extra index takes space, but visitors can jump directly to an original service description. No request action or service identity changes.'});
+ const detailedServices=(draft.sections||[]).find(s=>s.type==='services'&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id)&&s.enabled!==false&&!s.appearance?.serviceLayout&&!s.appearance?.desktopSectionSpacing&&!s.appearance?.sectionSpacing&&s.items?.filter(item=>String(item.body||'').length>=180).length>=3);
+ if(detailedServices)directions.unshift({id:'coordinated-service-directory',label:'Service directory for longer descriptions',explanation:'This page has several detailed services. Compare names beside descriptions on larger screens and a single reading column on phones. Other sections, wording, colours and service order stay unchanged.',settings:{},sectionOperations:[{action:'section-style',sectionId:detailedServices.id,field:'serviceLayout',value:'directory'},{action:'section-style',sectionId:detailedServices.id,field:'desktopSectionSpacing',value:'generous'}],tradeoff:'Longer descriptions get more reading width; this prioritises detail over image-led cards. It is a source-based proposal, not visual acceptance.'});
+ const galleryPhotos=facts.approvedGalleryCount;
+ if(galleryPhotos>=3&&serviceCount<4&&!facts.gallerySizeCustomized)directions.unshift({id:'coordinated-gallery-story',label:'Image-led story with a featured photograph',explanation:'Your current page has '+galleryPhotos+' approved gallery photographs. Compare a gallery-first story with one larger existing photograph on wide screens; phones keep the original flowing gallery. Existing captions, assets and colours stay unchanged.',settings:{typography:'editorial',cardLayout:'outlines',heroLayout:heroPhoto?'image-feature':'type-poster'},tradeoff:'Visitors meet the imagery before longer service detail. No photo is invented, replaced or assigned to a service.'});
+ const readingSection=(draft.sections||[]).find(section=>section.id===facts.phoneReadingSectionId);
+ if(report.counts.viewport<=600&&readingSection)directions.unshift({id:'coordinated-phone-reading',label:'Phone-first reading for longer information',explanation:'Your '+(readingSection.title||'information')+' section contains longer approved text. Compare larger phone reading and more section space without changing desktop composition, words, images or brand colours.',settings:{},sectionOperations:[{action:'section-style',sectionId:readingSection.id,field:'mobileBodyScale',value:'large'},{action:'section-style',sectionId:readingSection.id,field:'mobileSectionSpacing',value:'generous'}],tradeoff:'Longer phone pages with fewer words on each line. Desktop and tablet styles stay unchanged; this is an unrendered proposal, not measured visual improvement.'});
+ const editorial=(draft.sections||[]).find(section=>section.id===facts.editorialFeatureId);
+ if(editorial)directions.unshift({id:'coordinated-editorial-feature',label:'Read the story, then meet the photograph',explanation:'Your '+(editorial.title||'picture and text')+' section has an approved photograph and a longer description. Compare text-first reading with the existing picture beside it on desktop and after the copy on phones. No words or assets are changed.',settings:{},sectionOperations:[{action:'section-style',sectionId:editorial.id,field:'photoSide',value:'right'},{action:'section-style',sectionId:editorial.id,field:'desktopSectionSpacing',value:'generous'}],tradeoff:'Gives the explanation priority and adds desktop breathing room. Existing phone spacing, section order and brand colours stay unchanged. This is source-based composition, not screenshot evidence.'});
+ const guideSections=(draft.sections||[]).filter(section=>section.enabled!==false&&section.type!=='hero'&&String(section.title||'').trim()&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(section.id));
+ const guideCount=typeof renderedHtml==='string'?websitePageGuideEntries(guideSections,renderedHtml,value=>String(value).replaceAll('&','&amp;').replaceAll('\"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;')).length:guideSections.length;
+ if(guideCount>=5&&!theme.pageGuide)directions.unshift({id:'coordinated-page-guide',label:'A guide through longer pages',explanation:'Compare an On this page guide using existing section headings and real rendered destinations. The website-wide setting appears only on pages with at least three eligible rendered sections; existing section order, copy, brand and actions stay unchanged.',settings:{pageGuide:'sections'},tradeoff:'Adds a navigation block before the main content. This helps direct jumps but uses additional space on phones; compare before keeping it.'});
  directions.sort((a,b)=>{
-  const liked=d=>ownerDesignPreference(draft,d.id,pageId)==='liked'?4:0;
-  const relevant=d=>d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
+  const liked=d=>preference(d.id)==='liked'?4:0;
+  const relevant=d=>['coordinated-testimonial-spotlight','coordinated-article-columns','coordinated-page-guide','coordinated-service-index','coordinated-faq-questions','coordinated-information-editorial','coordinated-service-directory','coordinated-phone-reading','coordinated-editorial-feature'].includes(d.id)?3:['coordinated-service-guide','coordinated-gallery-story'].includes(d.id)?3:d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
    d.id==='coordinated-visual'&&photos>0&&['creative','hospitality','events','retail'].includes(sector)?1:0;
   return liked(b)+relevant(b)-liked(a)-relevant(a);
  });
- return directions.filter(d=>ownerDesignPreference(draft,d.id,pageId)!=='disliked').map(d=>{
+ return directions.filter(d=>includeRejected||preference(d.id)!=='disliked').map(d=>{
   const operations=Object.entries(d.settings).filter(([field,value])=>theme[field]!==value).map(([field,value])=>({action:'style',field,value}));
+  operations.push(...(d.sectionOperations||[]));
+  // Reuse the exact reviewed-composition operation, not a new layout engine.
+  // Distinguish information-first and image-first journeys structurally when
+  // both sections are actually present on this page. Never invent imagery.
+  const active=(draft.sections||[]).filter(s=>s.enabled!==false).map(s=>s.id);
+  const before=[...new Set([...(draft.designPlan?.sectionOrder||[]).filter(id=>active.includes(id)),...active])];
+  const target=['coordinated-visual','coordinated-gallery-story'].includes(d.id)?'gallery':'services';
+  const page=draft.pages.find(p=>p.id===pageId);
+  if(!d.sectionOperations&&!theme.sectionOrder?.length&&draft.businessId&&before[0]==='hero'&&before.includes(target)&&page.sectionIds?.includes(target)){
+   const proposed=['hero',target,...before.filter(id=>id!=='hero'&&id!==target)];
+   if(JSON.stringify(before)!==JSON.stringify(proposed))operations.push({action:'apply-reviewed-composition',
+    websiteId:draft.id,expectedGeneration:draft.generation,expectedBusinessId:draft.businessId,before,proposed});
+  }
   const operation={action:'style-group',operations};
-  return {...d,operation,source:'current-draft-and-business-type-hypothesis',notGuaranteed:true,
-   industry:sector,measuredImprovementProven:false,decisionEvidence:{viewport:report.counts.viewport,issueIds,approvedPhotoCount:photos,ownerPreference:ownerDesignPreference(draft,d.id,pageId)||null},available:operations.length>0&&applyWebsiteLayoutOperation(draft,operation).applied};
- }).filter(d=>d.available).slice(0,2);
+  const ownerPreference=preference(d.id,operation);
+  if(ownerPreference==='disliked'&&!includeRejected)return {...d,available:false};
+  return {...d,operation,ownerPreference,source:'current-draft-and-business-type-hypothesis',notGuaranteed:true,
+   industry:sector,measuredImprovementProven:false,decisionEvidence:{viewport:report.counts.viewport,issueIds,approvedPhotoCount:photos,ownerPreference:preference(d.id)||null},available:operations.length>0&&applyWebsiteLayoutOperation(draft,operation).applied};
+ }).filter(d=>d.available).slice(0,includeRejected?16:2);
 }
-export {coordinatedWebsiteAlternatives};
+export {coordinatedWebsiteAlternatives,websiteCompositionFacts};

@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from "react";
-import {Text} from "react-native";
+import {Text,View} from "react-native";
 import {Card,Field,Button} from "./ui";
 import {styles} from "../theme/styles";
 import {
@@ -39,16 +39,20 @@ export default function GetPaidOwnerReview({s,customer,saved,type,bookingStatus=
         title="Ask Busy to prepare a quote"
         body="Type or use the keyboard microphone to describe the agreed job and price. Busy prepares an editable suggestion; she won't send it or take payment."
         tone="blue"/>
+      <View style={styles.workspacePanel}>
+      <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Your job and price</Text>
       <Field label="Describe the quote (private)"
         value={quoteBrief} onChangeText={setQuoteBrief}
+        multiline
         placeholder="e.g. Repair a tap for £125, materials included"/>
+      </View>
       {quoteBrief.trim()?(draft?.ok?<>
         <Card eyebrow="Owner review • not sent"
           title={"Proposed quote: £"+draft.amountDisplay}
           body={draft.message}
           footer={draft.vatNote+" • "+draft.reviewChecks.join(" ")}
           tone="blue"/>
-        <Button label="Use this editable quote" onPress={()=>{
+        <Button primary label="Use this editable quote" onPress={()=>{
           s.setActionQuoteAmount(draft.amountDisplay);
           s.setActionQuoteMessage(draft.message);
           setQuoteBrief("");

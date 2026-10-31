@@ -1,3 +1,33 @@
+import {savePrivateAppProject} from '../core/privateAppProject.mjs';
+import {approvedCompositionFeed,appRecordReview,currentAppRecordReview} from '../core/appRecordComposition.mjs';
+import {AppGoalCompositionEditor} from './appGoalCompositionEditor';
+import {WorkflowStatus} from '../components/WorkflowChrome';
+import {GoalToPrivateApp} from './goalToPrivateApp';
+import {AppServiceAnswersEditor} from './appServiceAnswersEditor';
+import {AppEnquiryJourneyEditor} from './appEnquiryJourneyEditor';
+import {AppEnquirySetup} from './appEnquirySetup';
+import {AppServiceEnquiryEditor} from './appServiceEnquiryEditor';
+import {BusinessAppQuotationEntry} from '../components/BusinessAppQuoteReview';
+import {accountBookingContext} from '../core/bookingCancelReadbackV3233.mjs';
+import {useServiceBrowseReturn} from '../../standalone/template/useServiceBrowseReturn';
+import {captureAppDraftAcknowledgement,acknowledgedAppDraftPart} from '../core/appDraftAcknowledgement.mjs';
+import {useOwnerEditNavigation} from './useOwnerEditNavigation';
+import {ServiceActionButton} from '../../standalone/template/serviceActionButton';
+import {serviceCardStyle} from '../core/appServicePresentation.mjs';
+import {AppGallerySurface} from "./appGallerySurface";
+import {ServiceDetails} from "../../standalone/template/serviceDetails";
+import {AppEntryEditButton} from './appEntryEditButton';
+import {AppFaqCard} from '../../standalone/template/appFaqCard';
+import {appComponentTextStyle} from '../core/appComponentAppearance.mjs';
+import {amendAppQualityProposal} from "../core/appCoordinatedStudio.mjs";
+import {AppVisualSelection} from "./appVisualSelection";
+import {BuilderTalkExplore} from './builderTalkExplore';
+import {currentBuilderExplore} from '../core/builderExplore.mjs';
+import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
+import {planApprovedAppRecordSection} from '../core/approvedBuilderRecords.mjs';
+import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from '../core/customerEnquiryRequirements.mjs';
+import {AppServiceEditor} from './appServiceEditor';
+import {AppGalleryDescriptionEditor} from './appGalleryDescriptionEditor';
 import {validContentLayout,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
 import {BusinessContentView} from '../components/businessContentView';
@@ -7,7 +37,7 @@ import {AppSectionNavigation} from '../components/appSectionNavigation';
 import {AppPublicCollectionEditor} from './appPublicCollectionEditor';
 import {publicCollection} from '../core/appPublicCollections.mjs';
 import {AppContactEditor} from "./appContactEditor";
-import {validateNativeGuestRequest,searchPublicNativeServices,browsePublicNativeServices} from "../../standalone/template/nativeCustomerActions.mjs";
+import {validateNativeGuestRequest,searchPublicNativeServices,browsePublicNativeServices,prepareServiceQuestion,SERVICE_QUESTION_TOPICS} from "../../standalone/template/nativeCustomerActions.mjs";
 import {ServiceCategoryFilter} from '../components/serviceCategoryFilter';
 import {BusinessAppCustomerRequestFields} from './businessAppCustomerRequestFields';
 import {nativePreferredDates} from "../../standalone/template/nativePreferredDates.mjs";
@@ -17,13 +47,13 @@ import {AppOwnerLockControls} from "./appOwnerLockControls";
 import {AppBusinessFactRefresh} from "./appBusinessFactRefresh";
 import {useOwnerDesignMemory} from "./useOwnerDesignMemory";
 import React from "react";
-import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
+import { Image, Text, View, Pressable, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
 import {captureRef} from "react-native-view-shot";
 import {File as ExpoFile} from "expo-file-system";
 import QRCode from "react-native-qrcode-svg";
 
 import { styles } from "../theme/styles";
-import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
+import { Shell, Card, Button, Field, MetricRow, StatusChip, Details } from "../components/ui";
 import { miniAppModuleLabel } from "../domain/miniApps";
 import { businessAppPreviewProof } from "../core/businessAppPreviewProof.mjs";
 import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/appDistributionChoices.mjs";
@@ -258,19 +288,27 @@ function MiniAppSurface({
   onSelectContent = null,
   onRequestNavigation = null,
   businessContent = null,
+  ownerEdit = null,
+  catalogueContextKey = '',
+  requestPreview = null,
 }) {
+  const catalogueCache=React.useRef({scope:catalogueContextKey,states:{}});
+  if(catalogueCache.current.scope!==catalogueContextKey)catalogueCache.current={scope:catalogueContextKey,states:{}};
+  const ownerSelection=!interactive&&typeof ownerEdit?.onSelect==='function'?ownerEdit:null;
+  const previewService=!interactive&&!ownerSelection&&typeof requestPreview?.onSelectService==='function'?requestPreview.onSelectService:null;
+  const serviceAction=interactive?onSelectService:previewService;
+  const Header=ownerSelection?Pressable:View;
   const profile = config?.publicProfile || {};
   const modules = orderedAppModules(config);
   const [serviceQuery,setServiceQuery]=React.useState('');
   const [serviceCategory,setServiceCategory]=React.useState('');
+  const [questionService,setQuestionService]=React.useState('');
   const [selectedSection,setSelectedSection]=React.useState('');
   const currentSection=modules.some(m=>m.key===selectedSection)?selectedSection:'';
   const allServices=Array.isArray(profile?.services)?profile.services:[];
+  const serviceReturn=useServiceBrowseReturn({services:allServices,contextKey:catalogueContextKey,query:serviceQuery,category:serviceCategory,setQuery:setServiceQuery,setCategory:setServiceCategory});
   // Marketplace has legacy 50-row profiles; retain the native helper's 40-row bound.
-  const serviceBrowse=browsePublicNativeServices(allServices,serviceQuery,serviceCategory),services=serviceBrowse.rows;
-  const gallery = Array.isArray(profile?.assets?.gallery)
-    ? profile.assets.gallery.filter((item) => String(item?.uri || "").startsWith("https://"))
-    : [];
+  const serviceBrowse=browsePublicNativeServices(allServices,serviceReturn.query,serviceReturn.category),services=serviceBrowse.rows;
   const heroUri = String(profile?.assets?.hero?.uri || "");
   const loyalty = config?.loyalty || {};
   const offers = (Array.isArray(config?.offers) ? config.offers : []).filter(
@@ -287,6 +325,7 @@ function MiniAppSurface({
   const headerStyle=presentation.headerStyle||"refined";
   const brandColours=nativePalette(presentation.brandPalette,presentation.brandAccent);
   const visual=appVisualPresentation(presentation);
+  const componentStyle=(key,baseSize)=>appComponentTextStyle(presentation.componentStyles,key,{colors:brandColours,baseSize});
 
   return (
     <View style={{width:"100%"}} onLayout={({nativeEvent})=>{
@@ -296,7 +335,12 @@ function MiniAppSurface({
         onMeasuredWidth?.(width);
       }
     }}>
-      <View style={{backgroundColor:brandColours.bg,padding:14,
+      <Header accessibilityRole={ownerSelection?'button':undefined}
+        accessibilityLabel={ownerSelection?'Select app header typography':undefined}
+        accessibilityState={ownerSelection?{selected:ownerSelection.selection?.part==='header'}:undefined}
+        onPress={ownerSelection?()=>ownerSelection.onSelect({part:'header'}):undefined}
+        style={{backgroundColor:brandColours.bg,padding:14,
+        ...(ownerSelection?{borderWidth:2,borderColor:ownerSelection.selection?.part==='header'?'#4489ed':brandColours.muted}:{}),
         borderRadius:14,marginBottom:10}}>
         <Text style={{color:brandColours.muted,fontSize:12}}>
           {config?.display?.category||profile.businessType||"Business"}
@@ -306,15 +350,15 @@ function MiniAppSurface({
             visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize,
           fontWeight:visual.type.titleWeight,
           letterSpacing:visual.type.titleSpacing,
-          textAlign:visual.headerCentered?"center":"left",marginTop:5}}> 
+          textAlign:visual.headerCentered?"center":"left",marginTop:5,...componentStyle('header-title',visual.headerCompact?visual.type.titleSize-5:visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize)}}>
           {config?.display?.name||profile.businessName||"Business"}
         </Text>
-        <Text style={{color:brandColours.muted,marginTop:5}}>
+        <Text style={{color:brandColours.muted,marginTop:5,...componentStyle('header-tagline',visual.type.bodySize)}}>
           {config?.display?.tagline||profile.tagline||profile.description||"Your Business App"}
         </Text>
         <View style={{backgroundColor:brandColours.accent,
           height:4,borderRadius:3,marginTop:14}}/>
-      </View>
+      </Header>
       <Card
         eyebrow={config?.display?.category || profile.businessType || "Business App"}
         title={config?.display?.name || profile.businessName || "Business"}
@@ -338,15 +382,21 @@ function MiniAppSurface({
           </Text>
         ):null}
         {interactive?<AppSectionNavigation modules={modules.map(module=>({...module,label:module.label||module.title||miniAppModuleLabel(module.key)}))} selected={currentSection} colors={brandColours}
-          onSelect={key=>{setSelectedSection(key);if(['enquiry','booking_request'].includes(key))onRequestNavigation?.();}}/>:modules.length?(
+          onSelect={key=>{setSelectedSection(key);if(['enquiry','booking_request'].includes(key)){if(!interactive&&key==='enquiry')requestPreview?.onNavigate?.(key);else onRequestNavigation?.(key);}}}/>:modules.length?(
           <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
             "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
             {modules.map((module,index)=>(
-              <MeasuredNavLabel key={"preview-navigation-"+module.key}
+              ownerSelection?<Pressable key={"select-navigation-"+module.key}
+                accessibilityRole="button" accessibilityLabel={"Select "+module.key.replaceAll("_"," ")+" navigation"}
+                accessibilityState={{selected:ownerSelection.selection?.moduleKey===module.key}}
+                onPress={()=>ownerSelection.onSelect({part:'navigation',moduleKey:module.key})}
+                style={{minHeight:44,padding:8,borderRadius:8,borderWidth:2,
+                  borderColor:ownerSelection.selection?.moduleKey===module.key?'#4489ed':brandColours.muted}}>
+                <MeasuredNavLabel label={module.label||module.title||module.key.replaceAll("_"," ")}
+                  index={index} isList={responsive.ok&&responsive.navigation==="list"} onObservation={onQualityObservation}/>
+              </Pressable>:<MeasuredNavLabel key={"preview-navigation-"+module.key}
                 label={module.label||module.title||module.key.replaceAll("_"," ")}
-                index={index}
-                isList={responsive.ok&&responsive.navigation==="list"}
-                onObservation={onQualityObservation}/>
+                index={index} isList={responsive.ok&&responsive.navigation==="list"} onObservation={onQualityObservation}/>
             ))}
           </View>
         ):null}
@@ -385,10 +435,16 @@ function MiniAppSurface({
               footer={profile.differentiators || ""}
               tone="blue"
             />
-            {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?(onSelectContent||onSelectService):null}/>)}
-            {['faqs','testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
-              eyebrow={field==='faqs'?'Customer question':'Customer testimonial'}
-              title={field==='faqs'?row.question:row.attribution} body={field==='faqs'?row.answer:row.text}/>))}
+            {ownerSelection?<Button label="Edit this business description" onPress={()=>ownerSelection.onSelect({part:'wording',field:profile.about?'about':'description'})}/>:null}
+            {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueCache.current.states[block.kind]} onSaveBrowseState={value=>{if(catalogueCache.current.scope===catalogueContextKey)catalogueCache.current.states[block.kind]=value;}} feed={businessContent} colors={brandColours} {...block} onInterest={modules.some(m=>m.key==='enquiry')?(interactive?(onSelectContent||onSelectService):!ownerSelection&&requestPreview?.onSelectContent||null):null}/>)}
+            {publicCollection('faqs',profile.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={brandColours} componentStyles={presentation.componentStyles} bodySize={visual.type.bodySize}>
+              {ownerSelection?<AppEntryEditButton label={'Edit answer: '+row.question} colors={brandColours} selected={ownerSelection.selection?.part==='faq'&&ownerSelection.selection.index===i} onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
+             </AppFaqCard>)}
+            {['testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
+              eyebrow="Customer testimonial"
+              title={row.attribution} body={row.text}>
+
+             </Card>))}
             </View>
           );
         }
@@ -396,9 +452,10 @@ function MiniAppSurface({
         if (module.key === "services") {
           return (
             <View key={module.key}>
-              <Text style={styles.sectionLabel}>Services</Text>
-              {allServices.length>4?<Field label="Find a service" value={serviceQuery} onChangeText={setServiceQuery}/>:null}
-              <ServiceCategoryFilter categories={serviceBrowse.categories} selected={serviceBrowse.selectedCategory} onSelect={setServiceCategory} colors={brandColours}/>
+              {ownerSelection?<Pressable accessibilityRole="button" accessibilityLabel="Select service presentation" accessibilityState={{selected:ownerSelection.selection?.part==='services'}} onPress={()=>ownerSelection.onSelect({part:'services'})} style={{borderWidth:2,borderColor:ownerSelection.selection?.part==='services'?'#4489ed':brandColours.muted,padding:8}}><Text style={styles.sectionLabel}>Services</Text></Pressable>:<Text style={styles.sectionLabel}>Services</Text>}
+              {allServices.length>4?<Field label="Find a service" value={serviceReturn.query} onChangeText={serviceReturn.onQuery}/>:null}
+              <ServiceCategoryFilter categories={serviceBrowse.categories} selected={serviceBrowse.selectedCategory} onSelect={serviceReturn.onCategory} colors={brandColours} query={serviceReturn.query} resultCount={services.length} onClear={serviceReturn.clear}/>
+              {serviceReturn.canReturn?<Button label="Back to my service results" onPress={serviceReturn.back}/>:null}
               {services.length ? (
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:12}}>
@@ -419,25 +476,28 @@ function MiniAppSurface({
                         borderColor:index===0&&visual.featuredFirst?
                            brandColours.accent:brandColours.line,
                         borderRadius:visual.serviceStyle==="rows"?0:12,
-                        padding:visual.serviceStyle==="rows"?9:15}}>
+                        padding:visual.serviceStyle==="rows"?9:15,...serviceCardStyle(presentation.servicePresentation,service.id,brandColours)}}>
                         {index===0&&visual.featuredFirst?<Text style={{
                           color:brandColours.accent,fontSize:12,fontWeight:"700"}}>
                           Featured service
                         </Text>:null}
                         <Text style={{color:brandColours.text,
                           fontSize:visual.type.bodySize+2,
-                          fontWeight:visual.type.sectionWeight}}>
+                          fontWeight:visual.type.sectionWeight,...componentStyle('service:'+service.id+':title',visual.type.bodySize+2)}}>
                           {service.name||"Service"}
                         </Text>
-                        <Text style={{color:brandColours.muted,marginTop:5,
-                          fontSize:visual.type.bodySize}}>
-                          {service.description||"Contact the business for more information."}
-                        </Text>
-                        {service.category?<Text style={styles.cardBody}>{'Category: '+service.category}</Text>:null}
-                        {service.priceLabel?<Text style={styles.cardBody}>{'Price information: '+service.priceLabel}</Text>:null}
-                        {service.durationLabel?<Text style={styles.cardBody}>{'Typical duration: '+service.durationLabel}</Text>:null}
-                        {interactive&&typeof onSelectService==='function'?<Button label={'Choose '+service.name+' for my request'}
-                          onPress={()=>onSelectService(service.name)}/>:null}
+                        <ServiceDetails service={service} onRelatedServices={interactive&&!ownerSelection?serviceReturn.related:undefined} colors={brandColours} bodySize={visual.type.bodySize} textStyle={componentStyle('service:'+service.id+':body',visual.type.bodySize)}/>
+                        {ownerSelection?<AppEntryEditButton label={'Edit service '+service.name} colors={brandColours}
+                          selected={ownerSelection.selection?.part==='service'&&ownerSelection.selection.index===allServices.indexOf(service)}
+                          onPress={()=>ownerSelection.onSelect({part:'service',index:allServices.indexOf(service),expectedService:JSON.stringify(service)})}/>:null}
+                        {(ownerSelection||typeof serviceAction==='function')&&modules.some(m=>m.key==='enquiry')?<ServiceActionButton serviceId={service.id} action="enquiry" presentation={presentation.servicePresentation} colors={brandColours} label={'Ask about '+service.name}
+                          onPress={()=>ownerSelection?ownerSelection.onSelect({part:'service-button',action:'enquiry',index:allServices.indexOf(service),expectedService:JSON.stringify(service)}):serviceAction(service.name,'enquiry')}/>:null}
+                        {typeof serviceAction==='function'&&modules.some(m=>m.key==='enquiry')?<View>
+                          <Button label={questionService===service.name?'Hide question ideas':'Help me ask about '+service.name} onPress={()=>setQuestionService(questionService===service.name?'':service.name)}/>
+                          {questionService===service.name?SERVICE_QUESTION_TOPICS.map(topic=><Button key={topic.key} label={topic.label} onPress={()=>serviceAction(service.name,'enquiry',topic.key)}/>):null}
+                        </View>:null}
+                        {(ownerSelection||interactive&&typeof onSelectService==='function')&&modules.some(m=>m.key==='booking_request')?<ServiceActionButton serviceId={service.id} action="booking_request" presentation={presentation.servicePresentation} colors={brandColours} label={'Request '+service.name}
+                          onPress={()=>ownerSelection?ownerSelection.onSelect({part:'service-button',action:'booking_request',index:allServices.indexOf(service),expectedService:JSON.stringify(service)}):onSelectService(service.name,'booking_request')}/>:null}
                       </View>
                     </View>
                   ))}
@@ -455,45 +515,8 @@ function MiniAppSurface({
         }
 
         if (module.key === "gallery") {
-          return (
-            <View key={module.key}>
-              <Text style={styles.sectionLabel}>Gallery</Text>
-              {gallery.length ? (
-                <View style={{flexDirection:"row",flexWrap:"wrap",
-                  gap:responsive.ok?responsive.gap:8}}>
-                  {gallery.slice(0, 12).map((asset, index) => (
-                    <View key={asset.key || asset.uri || `gallery-${index}`}
-                      style={{width:responsive.ok?(responsive.galleryColumns===3?"31%":
-                        responsive.galleryColumns===2?"48%":"100%"):"100%"}}>
-                      <MeasuredPublicImage
-                        source={{ uri: asset.uri }}
-                        observationKey={"gallery-"+index} observationKind="gallery_image"
-                        onObservation={onQualityObservation}
-                        accessibilityLabel={String(asset.alt||asset.caption||
-                          asset.description||"Business gallery photo "+(index+1)).slice(0,140)}
-                        style={{
-                          width:"100%",
-                          height:responsive.ok?responsive.galleryHeight:205,
-                          borderRadius:presentation.imageCorners==="square"?2:14,
-                          marginBottom:asset.caption?4:8,
-                        }}
-                      />
-                      {asset.caption?<Text style={styles.cardBody}>
-                        {String(asset.caption).slice(0,240)}
-                      </Text>:null}
-                    </View>
-                  ))}
-                </View>
-              ) : (
-                <Card
-                  eyebrow="Gallery"
-                  title="No approved photos yet"
-                  body="Only imagery approved for public business use is shown here."
-                  tone="amber"
-                />
-              )}
-            </View>
-          );
+          return <AppGallerySurface key={module.key} config={config} responsive={responsive} colors={brandColours} visual={visual}
+            ImageComponent={MeasuredPublicImage} onQualityObservation={onQualityObservation} ownerSelection={ownerSelection} publicMode={interactive}/>;
         }
 
         if (module.key === "contact") {
@@ -638,6 +661,10 @@ function MiniAppSurface({
 }
 
 function BusyAppsMarketplace({ s }) {
+  const [savedAppQuery,setSavedAppQuery]=React.useState("");
+  const savedApps=Array.isArray(s.myBusyApps)?s.myBusyApps:[];
+  const query=savedAppQuery.trim().toLocaleLowerCase("en");
+  const visibleSavedApps=savedApps.filter(item=>!query||[item.name,item.tagline,item.category].some(value=>String(value||"").toLocaleLowerCase("en").includes(query)));
   const results = Array.isArray(s.busyAppsResults) ? s.busyAppsResults : [];
 
   return (
@@ -701,6 +728,8 @@ function BusyAppsMarketplace({ s }) {
       </Card>
 
       <Text style={styles.sectionLabel}>My BUSY Apps</Text>
+      <Field label="Find an app you have used" value={savedAppQuery} onChangeText={setSavedAppQuery} placeholder="Business name, description or category"/>
+      {query?<><Text accessibilityLiveRegion="polite" style={styles.helper}>{visibleSavedApps.length+" matching saved apps. Public marketplace results below are separate."}</Text><Button label="Show all my saved apps" onPress={()=>setSavedAppQuery("")}/></>:null}
       {s.myBusyAppsLoading ? (
         <Card
           eyebrow="My BUSY Apps"
@@ -709,7 +738,7 @@ function BusyAppsMarketplace({ s }) {
           tone="blue"
         />
       ) : (s.myBusyApps || []).length ? (
-        (s.myBusyApps || []).map((item) => (
+        visibleSavedApps.map((item) => (
           <Card
             key={`mine-${item.id}`}
             eyebrow={item.favorite ? "Favourite BUSY App" : item.category || "BUSY App"}
@@ -850,6 +879,8 @@ function BusyAppsMarketplace({ s }) {
 }
 
 function MiniAppBuilder({ s }) {
+  const [explore,setExplore]=React.useState(false);
+  const approvedRecords=useApprovedBuilderRecords(s.ownerSession?.userId,s.cloudWorkspace?.businessId);
   const [distributionMode,setDistributionMode]=React.useState("busy_marketplace");
   const [distributionAcks,setDistributionAcks]=React.useState({});
   const [requestedPlatforms,setRequestedPlatforms]=React.useState(["ios","android"]);
@@ -886,21 +917,77 @@ function MiniAppBuilder({ s }) {
   const [photoFrom,setPhotoFrom]=React.useState("1");
   const [photoTo,setPhotoTo]=React.useState("2");
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
-  const [serviceIndex,setServiceIndex]=React.useState(-1);
-  const [serviceName,setServiceName]=React.useState("");
-  const [serviceCategory,setServiceCategory]=React.useState(''),[servicePrice,setServicePrice]=React.useState(''),[serviceDuration,setServiceDuration]=React.useState('');
-  const [serviceDescription,setServiceDescription]=React.useState("");
-  const [accessiblePhotoNumber,setAccessiblePhotoNumber]=React.useState("1");
-  const [accessiblePhotoAlt,setAccessiblePhotoAlt]=React.useState("");
-  const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
+  const [ownerEditorEpoch,setOwnerEditorEpoch]=React.useState(0);
+  const ownerDirtyParts=React.useRef({selected:false,copy:false});
+  const ownerDraftEpoch=React.useRef(0),proposalDraft=React.useRef(null),ownerPartEpochs=React.useRef({});
+  const [confirmedOwnerParts,setConfirmedOwnerParts]=React.useState({});
+  const copyScope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,app?.id]);
+  const previousCopyScope=React.useRef(copyScope);
+  const copyScopeCurrent=previousCopyScope.current===copyScope;
+  if(!copyScopeCurrent){ownerDraftEpoch.current++;for(const part of Object.keys(ownerPartEpochs.current))ownerPartEpochs.current[part]=ownerDraftEpoch.current;previousCopyScope.current=copyScope;ownerDirtyParts.current={selected:false,copy:false};setStudioCopy('');}
+  const legacyCopyLive=React.useRef(null);legacyCopyLive.current={value:copyScopeCurrent?studioCopy:'',field:studioCopyField,source:view.draftConfig};
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>{ownerDraftEpoch.current++;for(const part of Object.keys(ownerPartEpochs.current))ownerPartEpochs.current[part]=ownerDraftEpoch.current;ownerDirtyParts.current={selected:false,copy:false};legacyCopyLive.current.value='';setStudioCopy('');setOwnerEditorEpoch(x=>x+1);});
+  const currentOwnerReport=React.useRef(reportOwnerDraft);currentOwnerReport.current=reportOwnerDraft;
+  const markOwnerDirty=(part,value)=>{ownerDraftEpoch.current++;ownerPartEpochs.current[part]=ownerDraftEpoch.current;ownerDirtyParts.current={...ownerDirtyParts.current,[part]:!!value};reportOwnerDraft(Object.values(ownerDirtyParts.current).some(Boolean));};
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
+  const dispatchDraftEpoch=ownerDraftEpoch.current;
   const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
-    ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges);
+    ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges,s.readCurrentAppStudioDraft,()=>dispatchDraftEpoch===ownerDraftEpoch.current);
   const studioPreview=studio.preview,studioNotice=studio.notice;
-  const setStudioPreview=studio.prepare,setStudioNotice=studio.setNotice;
+  const setStudioNotice=studio.setNotice;
+  const setStudioPreview=(proposal,part=null)=>{
+    proposalDraft.current=proposal?{part,epoch:ownerDraftEpoch.current,source:view.draftConfig,recordReview:proposal.recordReview||null}:null;
+    return studio.prepare(proposal);
+  };
+  // This gates these original source replacements BEFORE mutation, not merely their later navigation.
+  const replaceOwnerSource=action=>{
+    if(liveControlContext.current!==controlContext)return false;
+    const run=()=>{if(liveControlContext.current!==controlContext)return false;return action();};
+    if(Object.values(ownerDirtyParts.current).some(Boolean)){
+      if(s.requestOwnerEditTransition)return s.requestOwnerEditTransition(run,{reason:'source-change'});
+      setStudioNotice('Keep editing or cancel your unsaved wording before replacing this private app.');return false;
+    }
+    return run();
+  };
+  const recordApproval=React.useRef(false);
+  const approvalEpoch=ownerDraftEpoch.current;
+  const mayReplaceOwnerSource=()=>{
+    if(liveControlContext.current!==controlContext||approvalEpoch!==ownerDraftEpoch.current)return false;
+    const dirty=Object.keys(ownerDirtyParts.current).filter(part=>ownerDirtyParts.current[part]);
+    const proposed=proposalDraft.current;
+    if(dirty.length&&!(dirty.length===1&&dirty[0]===proposed?.part&&proposed.epoch===ownerDraftEpoch.current&&proposed.source===view.draftConfig)){
+      setStudioNotice('Other wording is not saved. Keep editing, or cancel that wording before approving this change. Your proposal and private app are unchanged.');return false;
+    }
+    return true;
+  };
+
+  const approveOwnerDraft=async()=>{
+    if(recordApproval.current||!mayReplaceOwnerSource())return {ok:false};
+    if(studioPreview?.operations.some(op=>op.kind==='content_layout'&&op.value?.length)){
+      const kinds=[...new Set(studioPreview.operations.filter(op=>op.kind==='content_layout').flatMap(op=>op.value.map(b=>b.kind)))];
+      const expected=proposalDraft.current?.recordReview||appRecordReview(studioPreview.businessContentPreview||approvedRecords.feed,controlContext.businessId,kinds);
+      if(!expected?.ok){setStudioNotice('Load current approved listings and prepare this collection review again. Nothing was saved.');return {ok:false};}
+      recordApproval.current=true;
+      try{const response=await s.businessContentRequest('content_list');const feed=approvedCompositionFeed(response,controlContext.businessId);if(!mayReplaceOwnerSource()||!currentAppRecordReview(expected,feed,controlContext.businessId)){setStudioNotice('Approved listings changed or access could not be confirmed. Load them and prepare a fresh review.');return {ok:false};}}
+      catch{setStudioNotice('Current approved listings could not be checked. Your review is kept; nothing was saved.');return {ok:false};}
+      finally{recordApproval.current=false;}
+    }
+    const part=proposalDraft.current?.part;
+    const expected=captureAppDraftAcknowledgement({...controlContext,config:view.draftConfig},part,ownerPartEpochs.current[part]);
+    const result=await studio.approve();
+    const cleared=acknowledgedAppDraftPart(expected,result,liveControlContext.current,ownerPartEpochs.current);
+    if(cleared){
+      ownerDirtyParts.current={...ownerDirtyParts.current,[cleared]:false};
+      if(cleared==='copy'){legacyCopyLive.current.value='';setStudioCopy('');}
+      setConfirmedOwnerParts(previous=>({...previous,[cleared]:(previous[cleared]||0)+1}));
+      currentOwnerReport.current(Object.values(ownerDirtyParts.current).some(Boolean));
+    }
+    return result;
+  };
+
   const studioIsCurrent=!!studio.preview;
   const goalMemory=useOwnerDesignMemory({businessId:s.cloudWorkspace?.businessId||"",
     ownerId:s.ownerSession?.userId||"",appId:app?.id,revision:app?.draft_revision},s.getAppDesignLearningStatus);
@@ -926,9 +1013,6 @@ function MiniAppBuilder({ s }) {
     setStagingInstallAudit(null);
     setBrainOwnerHistory(null);
     setBrainOwnerNotice("");
-    setServiceIndex(-1);setServiceName("");setServiceDescription("");setServiceCategory('');setServicePrice('');setServiceDuration('');
-    setAccessiblePhotoNumber("1");
-    setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
   },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   React.useEffect(()=>{
     setPendingAppearance(null);
@@ -1000,6 +1084,7 @@ function MiniAppBuilder({ s }) {
     businessGoals:s.miniAppBuildBrief||plan?.ownerRequest||"",
     catalog:view.catalog||[],
     profile:view.draftConfig?.publicProfile||view.activeConfig?.publicProfile||{},
+    approvedContent:approvedRecords.feed,businessId:s.cloudWorkspace?.businessId,
     offerTerms:view.draftConfig?.offers||view.activeConfig?.offers||[]
   });
   const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
@@ -1161,16 +1246,37 @@ function MiniAppBuilder({ s }) {
     },
   ];
 
+  const exploreContext={kind:'app',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,catalog:view.catalog||[],project:app?{...app,draft_config:view.draftConfig}:null};
+  const exploreLive=React.useRef(null);exploreLive.current=exploreContext;
+  if(explore)return <Shell s={s} title="Business App • Talk & Explore" subtitle="Nothing will be changed"><BuilderTalkExplore context={exploreContext} onExit={()=>setExplore(false)} onHandoff={handoff=>{
+    if(s.miniAppsAction||studio.pending||studio.uncertain||!currentBuilderExplore({ok:true,source:handoff.source},exploreLive.current))return false;
+    if(!setStudioPreview(handoff.proposal))return false;
+    setExplore(false);setStudioNotice('Explore ended. Review the original Studio comparison; no project change was applied.');return true;
+  }}/></Shell>;
   return (
     <Shell
       s={s}
       title="Business App Builder"
-      subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
-      brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
+      subtitle="What would you like your app to do? Start with your goal, then review the private draft."
+      brandCue="Your business facts. Your choice before anything goes live."
     >
+      <Button label="Talk & Explore — no project changes" disabled={!app||!view.draftConfig||!!s.miniAppsAction||studio.pending||studio.uncertain} onPress={()=>s.requestOwnerEditTransition?s.requestOwnerEditTransition(()=>setExplore(true)):setExplore(true)}/>
+      {app?<AppGoalCompositionEditor key={['goal-composition',s.ownerSession?.userId,s.cloudWorkspace?.businessId,ownerEditorEpoch].join(':')}
+        ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog||[]}
+        onProjectObserved={s.connectedRuntime?.active?()=>s.refreshMiniAppsStatus({quiet:true}):undefined}
+        onSaveProject={s.connectedRuntime?.active?args=>savePrivateAppProject({...args,ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,catalog:view.catalog||[],write:payload=>s.miniAppsRequest('save_project_spec',payload),readStatus:()=>s.miniAppsRequest('owner_status')}):undefined}
+        onUndoProject={s.connectedRuntime?.active?args=>savePrivateAppProject({...args,operation:'undo',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,catalog:view.catalog||[],write:payload=>s.miniAppsRequest('save_project_spec',payload),readStatus:()=>s.miniAppsRequest('owner_status')}):undefined}
+        initialGoal={s.miniAppBuildBrief||''} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+        Surface={MiniAppSurface} recordsFeed={approvedRecords.feed} onRefreshRecords={async()=>{try{const result=await s.businessContentRequest('content_list');const feed=approvedCompositionFeed(result,s.cloudWorkspace?.businessId);approvedRecords.onApprovedRecords(feed.ok?feed:null);return feed;}catch(error){approvedRecords.onApprovedRecords(null);throw error;}}} onDraftChange={value=>markOwnerDirty('goal-composition',value)}
+        onPreview={plan=>plan?setStudioPreview(plan,'goal-composition'):proposalDraft.current?.part==='goal-composition'?setStudioPreview(null,'goal-composition'):false}/>:null}
       <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
+        onApprovedRecords={approvedRecords.onApprovedRecords}
         onCompose={(_,choice)=>{const old=validContentLayout(view.draftConfig?.contentLayout)?view.draftConfig.contentLayout:[],block={kind:choice.kind,layout:choice.layout,featuredId:choice.featuredId,title:choice.kind==='product'?'Products':'Upcoming events'};const value=choice.remove?old.filter(x=>x.kind!==choice.kind):old.some(x=>x.kind===choice.kind)?old.map(x=>x.kind===choice.kind?block:x):[...old,block];const proposal=proposeContentComposition(view.draftConfig,[{kind:'content_layout',value}]);if(proposal.ok)proposal.businessContentPreview=choice.previewFeed;setStudioPreview(proposal.ok?proposal:null);setStudioNotice(proposal.ok?'Review the real content composition in Studio. Approved records are loaded separately.':proposal.reason);}}/>
+      <GoalToPrivateApp key={['new-goal',s.ownerSession?.userId,s.cloudWorkspace?.businessId,ownerEditorEpoch].join(':')}
+        ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId}
+        app={app} profile={s.miniAppProfileDraft} catalog={view.catalog||[]}
+        initialGoal={s.miniAppBuildBrief||''} onDraftChange={value=>markOwnerDirty('new-goal',value)} onCreate={review=>reportOwnerDraft.commit(()=>s.createPrivateAppFromGoal(review))} busy={s.miniAppsAction}/>
       <FirstAppFromWebsite website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}
         businessType={s.trade} services={s.miniAppProfileDraft?.services||s.services}
@@ -1196,19 +1302,19 @@ function MiniAppBuilder({ s }) {
         onSave={s.saveCoordinatedAppChanges}
         onRefresh={s.refreshMiniAppsStatus}
         busy={s.miniAppsAction}/>
-      <BusinessBrandDnaPreview website={s.websiteDraft}
+      <BusinessBrandDnaPreview key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.websiteDraft?.id,app?.id].join(':')} website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}
         catalog={view.catalog||s.miniAppsStatus?.catalog||[]}/>
-      <UniversalBuilderPlanReview surface="app"
+      <UniversalBuilderPlanReview surface="app" approvedContent={approvedRecords.feed}
         businessId={s.cloudWorkspace?.businessId||""}
         businessType={view.category||s.trade||""}
         website={s.websiteDraft} app={app} catalog={view.catalog||[]}
         initialGoal={s.miniAppBuildBrief||plan?.ownerRequest||""}
         onSaveAppChanges={s.saveCoordinatedAppChanges}
         busy={!!s.miniAppsAction}/>
-      <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
+      <WebsiteToAppDesignTransfer key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.websiteDraft?.id,app?.id].join(':')} website={s.websiteDraft} app={app}
         businessId={s.cloudWorkspace?.businessId}
-        onPreview={setStudioPreview} busy={!!s.miniAppsAction||studio.pending}/>
+        onPreview={setStudioPreview} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}/>
       <Card
         eyebrow="Choose how customers use your app"
         title="Inside Busy, standalone, or eventually both"
@@ -1323,8 +1429,8 @@ function MiniAppBuilder({ s }) {
              {"Before showing these features, BUSY needs: "+
               experience.missingOwnerFacts.map(x=>x==="approved_gallery_photos"?
                 "approved photographs":x==="approved_offer_terms"?
-                "approved offer terms":"owner details").join(", ")+
-              ". No photographs or offer terms will be invented."}
+                "approved offer terms":x==="owner_service_details"?"owner-written service details":x==="approved_product_records"?"current approved product records in Products & Events":x==="approved_event_records"?"current approved event records in Products & Events":"owner details").join(", ")+
+              ". Review the existing content editor; no facts, stock, prices or availability will be invented."}
            </Text>
          ):null}
          {experience.unavailableGoalCapabilities?.length?(
@@ -1332,6 +1438,14 @@ function MiniAppBuilder({ s }) {
             experience.unavailableGoalCapabilities.join(", ")+
             ". BUSY will not pretend these work."}</Text>
         ):null}
+        {experience.approvedRecords?.map(row=><View key={row.kind}>
+          <Text style={styles.cardBody}>{row.count+' approved '+(row.kind==='product'?'product':'upcoming event')+' record(s) in the latest loaded snapshot. No stock, attendance or availability is confirmed.'}</Text>
+          {!view.draftConfig?.contentLayout?.some(block=>block.kind===row.kind)?<Button label={'Review '+(row.kind==='product'?'approved products':'approved events')+' in my app'} onPress={()=>{
+            if(liveControlContext.current!==controlContext||!approvedRecords.isCurrent())return;
+            const proposal=planApprovedAppRecordSection(view.draftConfig,approvedRecords.feed,s.cloudWorkspace?.businessId,row.kind);
+            setStudioPreview(proposal.ok?proposal:null);setStudioNotice(proposal.ok?'Review the original private Studio preview before approval. Publication remains separate.':proposal.reason);
+          }}/>:<Text style={styles.cardBody}>Already included. Studio keeps your existing heading, layout and featured item.</Text>}
+        </View>)}
         {experience.suggestedModules.filter(item=>item.suggested).slice(0,7).map(item=>(
           <MetricRow key={item.key} left={item.title} right={item.reason}/>
         ))}
@@ -1542,7 +1656,7 @@ function MiniAppBuilder({ s }) {
               }
               primary
               disabled={!!s.miniAppsAction}
-              onPress={s.applyMiniAppPlan}
+              onPress={()=>replaceOwnerSource(()=>s.applyMiniAppPlan())}
             />
           ) : null}
         </Card>
@@ -1594,6 +1708,11 @@ function MiniAppBuilder({ s }) {
           body="Describe the result you want. BUSY identifies only supported safe edits, checks the current private app, then shows the entire proposed customer view. If an instruction is unclear, nothing is applied."
           footer="One approval saves the complete batch as ONE private revision. Undo reverses that batch without touching the live app."
           tone="blue">
+          <Text style={styles.cardBody}>
+            Try: rename products section to {'"Our collection"'}; show products as rows.
+            For approved gallery photos, try: describe gallery photo 1 as
+            {' "Workshop entrance" caption "Find us here"'}. Images stay unchanged.
+          </Text>
           <Button label={showCustomerTaskReview?
               "Hide customer journey ideas":"Help customers find what they need"}
             onPress={()=>setShowCustomerTaskReview(x=>!x)}/>
@@ -2354,13 +2473,13 @@ function MiniAppBuilder({ s }) {
           ):null}
             </>
           ):null}
-          <AppOwnerLockControls key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(":")}
+          <AppOwnerLockControls key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(":")}
             config={view.draftConfig} onPreview={setStudioPreview} onNotice={setStudioNotice}
             busy={!!s.miniAppsAction||studio.pending}/>
           <Text style={styles.sectionLabel}>Or tell Busy other changes</Text>
           <Field label="App instructions" value={studioWords}
             onChangeText={value=>{setStudioWords(value);setStudioPreview(null);}}
-            placeholder="Put bookings first, make the photos bigger and keep my existing colours"/>
+            placeholder='Rename service "Survey" to "Site survey"; move service "Repair" before service "Site survey"'/>
           <Button label="Preview these app changes together" disabled={!!s.miniAppsAction||!studioWords.trim()}
             onPress={()=>{
               const p=planAppVoiceInstructions(view.draftConfig,studioWords);
@@ -2385,151 +2504,54 @@ function MiniAppBuilder({ s }) {
           <Text style={styles.cardBody}>
             Voice provides transcription only, within its existing daily allowance. BUSY asks before changing the private app.
           </Text>
-          <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
-            config={view.draftConfig} suggestions={view.enquiryContentGaps?.suggestions||[]} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
-          <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
-            businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending}
-            onPreview={setStudioPreview} onNotice={setStudioNotice}/>
-          <Text style={styles.sectionLabel}>Or change supported public wording directly</Text>
+          <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['public-info']||0].join(':')}
+            onDraftChange={value=>markOwnerDirty('public-info',value)} config={view.draftConfig} suggestions={view.enquiryContentGaps?.suggestions||[]} onPreview={proposal=>setStudioPreview(proposal,'public-info')} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}/>
+          <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch,confirmedOwnerParts.contact||0].join(':')}
+            businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+            onDraftChange={value=>markOwnerDirty('contact',value)}
+            onPreview={proposal=>setStudioPreview(proposal,'contact')} onNotice={setStudioNotice}/>
+          <View style={styles.inspectorGroup}>
+          <Text accessibilityRole="header" style={styles.inspectorHeading}>Edit public wording</Text>
+          <Text style={styles.workspaceMeta}>Choose one part, write your replacement, then preview it before approval.</Text>
+          <View style={styles.choiceGrid}>
           {[
             ["tagline","Tagline"],["about","About section"],["description","Description"]
           ].map(([key,label])=>(
-            <Button key={key} label={(studioCopyField===key?"✓ ":"")+"Edit "+label}
-              onPress={()=>{setStudioCopyField(key);setStudioPreview(null);}}/>
+            <View key={key} style={styles.choiceCell}><Button compact selected={studioCopyField===key} label={(studioCopyField===key?"✓ ":"")+"Edit "+label}
+              onPress={()=>{const change=()=>{setStudioCopyField(key);setStudioPreview(null);};if(ownerDirtyParts.current.copy&&s.requestOwnerEditTransition)s.requestOwnerEditTransition(change);else change();}}/></View>
           ))}
+          </View>
           <Field label={"Replacement "+studioCopyField+" (owner-approved copy)"}
-            value={studioCopy} onChangeText={setStudioCopy}
+            value={copyScopeCurrent?studioCopy:''} editable={studio.canEdit()} onChangeText={value=>{if(liveControlContext.current!==controlContext||!studio.canEdit())return;legacyCopyLive.current.value=value;setStudioCopy(value);markOwnerDirty('copy',!!value);setStudioPreview(null);}}
             placeholder="Write the exact words you want customers to see"/>
+          {studioCopy?<Button label="Cancel replacement wording" onPress={()=>{if(liveControlContext.current!==controlContext||legacyCopyLive.current.value!==studioCopy)return;legacyCopyLive.current.value='';setStudioCopy('');markOwnerDirty('copy',false);setStudioPreview(null);}}/>:null}
           <Button label="Preview exact wording" disabled={!studioCopy.trim()||!!s.miniAppsAction}
             onPress={()=>{
+              if(liveControlContext.current!==controlContext||!copyScopeCurrent||legacyCopyLive.current.value!==studioCopy||legacyCopyLive.current.field!==studioCopyField||legacyCopyLive.current.source!==view.draftConfig)return;
               const p=proposeCoordinatedAppChanges(view.draftConfig,
                 [{kind:"text",field:studioCopyField,value:studioCopy}]);
-              setStudioPreview(p.ok?p:null);setStudioNotice(p.ok?
+              setStudioPreview(p.ok?p:null,'copy');setStudioNotice(p.ok?
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
-          {view.draftConfig.modules?.some(m=>m.key==="services"&&m.enabled===true)?(
-            <>
-              <Text style={styles.sectionLabel}>Edit individual services</Text>
-              <Text style={styles.cardBody}>
-                Add, change or remove a service, then review the whole private app before saving. Your live app will not be touched.
-              </Text>
-              <Button label={(serviceIndex===-1?"✓ ":"")+"Add a new service"}
-                onPress={()=>{setServiceIndex(-1);setServiceName("");setServiceDescription("");setServiceCategory('');setServicePrice('');setServiceDuration('');setStudioPreview(null);}}/>
-              {(view.draftConfig.publicProfile?.services||[]).slice(0,30).map((service,i)=>(
-                <Button key={service.id||"service-"+i} label={(serviceIndex===i?"✓ ":"")+
-                  (service.name||"Unnamed service")}
-                  onPress={()=>{setServiceIndex(i);setServiceName(service.name||"");
-                    setServiceDescription(service.description||"");setServiceCategory(service.category||'');setServicePrice(service.priceLabel||'');setServiceDuration(service.durationLabel||'');setStudioPreview(null);}}/>
-              ))}
-              <Field label="Service name" value={serviceName} onChangeText={setServiceName}
-                placeholder="e.g. Cut and blow dry"/>
-              <Field label="Service description" value={serviceDescription}
-                onChangeText={setServiceDescription} placeholder="Explain this service"/>
-              <Field label="Service category (optional)" value={serviceCategory} onChangeText={setServiceCategory}/>
-              <Field label="Owner-approved price wording (optional)" value={servicePrice} onChangeText={setServicePrice} placeholder="For example: From €40 — final quote agreed separately"/>
-              <Field label="Typical duration wording (optional)" value={serviceDuration} onChangeText={setServiceDuration}/>
-              <Text style={styles.cardBody}>These are public information labels. They do not take payment, reserve a slot or promise availability.</Text>
-              <Button label={serviceIndex<0?"Preview new service":"Preview edited service"}
-                disabled={!!s.miniAppsAction||!serviceName.trim()}
-                onPress={()=>{
-                  const old=view.draftConfig.publicProfile?.services||[];
-                  const value=old.map(x=>({...x}));
-                  const row={id:serviceIndex<0?"owner_service_"+Date.now().toString(36):
-                    value[serviceIndex]?.id||"owner_service_"+Date.now().toString(36),
-                    name:serviceName,description:serviceDescription,...serviceCategory.trim()?{category:serviceCategory}:{},...servicePrice.trim()?{priceLabel:servicePrice}:{},...serviceDuration.trim()?{durationLabel:serviceDuration}:{}};
-                  if(serviceIndex<0)value.push(row);else value[serviceIndex]=row;
-                  const plan=proposeCoordinatedAppChanges(view.draftConfig,
-                    [{kind:"services",value}]);
-                  setStudioPreview(plan.ok?plan:null);
-                  setStudioNotice(plan.ok?"Review all services below before saving.":plan.reason);
-                }}/>
-              {serviceIndex>=0&&
-                (view.draftConfig.publicProfile?.services||[]).length>1?(
-                <>
-                  {[
-                    ["up","Move this service earlier"],
-                    ["down","Move this service later"]
-                  ].map(([direction,label])=>(
-                    <Button key={direction} label={"Preview: "+label}
-                      disabled={!!s.miniAppsAction}
-                      onPress={()=>{
-                        const previous=(view.draftConfig.publicProfile?.services||[])
-                          .map(x=>({...x}));
-                        const destination=serviceIndex+(direction==="up"?-1:1);
-                        if(destination<0||destination>=previous.length){
-                          setStudioNotice("The service is already at that end of the list.");
-                          return;
-                        }
-                        const [item]=previous.splice(serviceIndex,1);
-                        previous.splice(destination,0,item);
-                        const proposed=proposeCoordinatedAppChanges(view.draftConfig,
-                          [{kind:"services",value:previous}]);
-                        setStudioPreview(proposed.ok?proposed:null);
-                        setStudioNotice(proposed.ok?
-                          "Preview the reordered service list, then approve or discard.":proposed.reason);
-                      }}/>
-                  ))}
-                </>
-              ):null}
-              {serviceIndex>=0?(
-                <Button label="Preview removal of this service"
-                  disabled={!!s.miniAppsAction}
-                  onPress={()=>{
-                    const value=(view.draftConfig.publicProfile?.services||[])
-                      .filter((_,i)=>i!==serviceIndex).map(x=>({...x}));
-                    const plan=proposeCoordinatedAppChanges(view.draftConfig,
-                      [{kind:"services",value}]);
-                    setStudioPreview(plan.ok?plan:null);
-                    setStudioNotice(plan.ok?"Review the service removal below.":plan.reason);
-                  }}/>
-              ):null}
-            </>
+          </View>
+          <AppServiceAnswersEditor key={['service-answers',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['service-answers']||0].join(':')} ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog} busy={!!s.miniAppsAction||studio.pending||studio.uncertain} onPreview={plan=>setStudioPreview(plan,'service-answers')} onDraftChange={value=>markOwnerDirty('service-answers',value)} Surface={MiniAppSurface}/>
+          <AppEnquiryJourneyEditor key={['enquiry-journey',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch].join(':')} ownerGoal={s.miniAppBuildBrief||''} businessId={s.cloudWorkspace?.businessId} ownerId={s.ownerSession?.userId} app={app} catalog={view.catalog} approvedProfile={s.businessCreationIntelligence?.sharedProfile} busy={!!s.miniAppsAction||studio.pending||studio.uncertain} onPreview={plan=>setStudioPreview(plan,'enquiry-journey')} onDraftChange={value=>markOwnerDirty('enquiry-journey',value)} Surface={MiniAppSurface}/>
+          <AppEnquirySetup key={['enquiry-setup',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['service-selection']||0].join(':')} businessId={s.cloudWorkspace?.businessId} ownerId={s.ownerSession?.userId} app={app} catalog={view.catalog} busy={!!s.miniAppsAction||studio.pending||studio.uncertain} onEnable={key=>replaceOwnerSource(()=>s.toggleMiniAppModule(key,true))} approvedProfile={s.businessCreationIntelligence?.sharedProfile} onPreview={plan=>setStudioPreview(plan,'service-selection')} onDraftChange={value=>markOwnerDirty('service-selection',value)} Surface={MiniAppSurface}/>
+          <AppServiceEnquiryEditor key={['service-enquiry',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts['service-enquiry']||0].join(':')}
+            ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog} approvedProfile={s.businessCreationIntelligence?.sharedProfile} Surface={MiniAppSurface}
+            busy={!!s.miniAppsAction||studio.pending||studio.uncertain} onDraftChange={value=>markOwnerDirty('service-enquiry',value)} onPreview={proposal=>setStudioPreview(proposal,'service-enquiry')} onNotice={setStudioNotice}/>
+          {view.draftConfig.modules?.some(m=>m.key==='services'&&m.enabled===true)?(
+            <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts.services||0].join(':')}
+              onDraftChange={value=>markOwnerDirty('services',value)} requestTransition={s.requestOwnerEditTransition}
+              config={view.draftConfig} revision={app.draft_revision} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+              onPreview={proposal=>setStudioPreview(proposal,'services')} onNotice={setStudioNotice}/>
           ):null}
-          {view.draftConfig.modules?.some(x=>x.key==="gallery"&&x.enabled===true)&&
-            (view.draftConfig.publicProfile?.assets?.gallery||[]).length>0?(
-            <>
-              <Text style={styles.sectionLabel}>Make gallery photos accessible</Text>
-              <Text style={styles.cardBody}>
-                Describe what an approved photo shows, rather than adding marketing slogans.
-                BUSY keeps the existing picture and asks before saving any public wording.
-              </Text>
-              <Field label="Gallery photo number (1 is first)" value={accessiblePhotoNumber}
-                onChangeText={setAccessiblePhotoNumber}/>
-              <Button label="Load this photo's existing descriptions"
-                onPress={()=>{
-                  const asset=view.draftConfig.publicProfile?.assets?.gallery?.[
-                    Number(accessiblePhotoNumber)-1];
-                  if(!asset||asset.approved!==true&&asset.marketingOk!==true){
-                    setStudioNotice("Choose an existing approved gallery photo.");
-                    return;
-                  }
-                  setAccessiblePhotoAlt(String(asset.alt||""));
-                  setAccessiblePhotoCaption(String(asset.caption||""));
-                  setStudioPreview(null);
-                }}/>
-              <Field label="Image description for screen readers"
-                value={accessiblePhotoAlt} onChangeText={setAccessiblePhotoAlt}
-                placeholder="e.g. Hairdresser cutting a client's hair in the salon"/>
-              <Field label="Optional public caption"
-                value={accessiblePhotoCaption} onChangeText={setAccessiblePhotoCaption}
-                placeholder="e.g. Our team at work"/>
-              <Button label="Preview photo description changes"
-                disabled={!!s.miniAppsAction}
-                onPress={()=>{
-                  const index=Number(accessiblePhotoNumber)-1;
-                  const gallery=view.draftConfig.publicProfile?.assets?.gallery||[];
-                  const item=gallery[index];
-                  const plan=proposeCoordinatedAppChanges(view.draftConfig,[{
-                    kind:"photo_description",index,
-                    expectedUri:item?.uri,
-                    value:{alt:accessiblePhotoAlt,caption:accessiblePhotoCaption}
-                  }]);
-                  setStudioPreview(plan.ok?plan:null);
-                  setStudioNotice(plan.ok?
-                    "Preview the owner-written photo descriptions below, then approve or discard.":
-                    plan.reason);
-                }}/>
-            </>
+          {view.draftConfig.modules?.some(x=>x.key==='gallery'&&x.enabled===true)?(
+            <AppGalleryDescriptionEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts.gallery||0].join(':')}
+              config={view.draftConfig} revision={app.draft_revision}
+              busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+              onDraftChange={value=>markOwnerDirty('gallery',value)} requestTransition={s.requestOwnerEditTransition}
+              onPreview={proposal=>setStudioPreview(proposal,'gallery')} onNotice={setStudioNotice}/>
           ):null}
           {Array.isArray(view.draftConfig.publicProfile?.assets?.gallery)&&
             view.draftConfig.publicProfile.assets.gallery.length>=2?(
@@ -2548,13 +2570,13 @@ function MiniAppBuilder({ s }) {
             </>
           ):null}
           {!studio.recoveryReady?<Text style={styles.cardBody}>Checking your encrypted private Studio checkpoint…</Text>:null}
-          {studio.recoveryError?<Text style={styles.cardBody}>{studio.recoveryError}</Text>:null}
-          {studio.interrupted?<Button label="Refresh current private app" disabled={!!s.miniAppsAction}
-            onPress={()=>s.refreshMiniAppsStatus?.()}/>:null}
-          {studioNotice?<Text style={styles.cardBody}>{studioNotice}</Text>:null}
+          {studio.recoveryError?<WorkflowStatus tone="warning" title="Your private recovery point needs attention" body={studio.recoveryError}/>:null}
+          {studio.interrupted?<Button label="Refresh current private app" disabled={!!s.miniAppsAction||studio.pending}
+            onPress={studio.reconcile}/>:null}
+          {studioNotice?<WorkflowStatus title="App editing update" body={studioNotice}/>:null}
           {studioPreview?.ok&&studioIsCurrent?(
             <>
-              <Text style={styles.sectionLabel}>Proposed changes — not saved</Text>
+              <WorkflowStatus tone="review" title="Proposed changes — not saved" body="Check each change below before saving. Nothing is published by this review."/>
               {studioPreview.changes.map((change,index)=>(
                 <View key={"change-"+index}>
                   <MetricRow left={"Change "+(index+1)} right={change}/>
@@ -2570,18 +2592,23 @@ function MiniAppBuilder({ s }) {
               ):null}
               <AppStudioComparison key={studioPreview.source.configStamp+":"+JSON.stringify(studioPreview.operations)}
                 original={view.draftConfig} proposed={studioPreview.nextConfig}
-                renderSurface={config=><MiniAppSurface config={config} businessContent={s.miniAppsView?.app?.businessContent||null}/>}/>
+                onQualityRepair={repair=>{
+                  if(liveControlContext.current!==controlContext||!studioIsCurrent||studio.pending||studio.uncertain)return;
+                  const next=amendAppQualityProposal(view.draftConfig,studioPreview,repair);
+                  if(next.ok)setStudioPreview(next);else setStudioNotice(next.reason);
+                }}
+                renderSurface={config=><MiniAppSurface config={config} businessContent={studioPreview.recordReview?(currentAppRecordReview(studioPreview.recordReview,approvedRecords.feed,controlContext.businessId)?approvedRecords.feed:null):approvedRecords.feed||s.miniAppsView?.app?.businessContent||null}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction||!studio.canApprove}
-                onPress={studio.approve}/>
-              <Button label="Discard the whole proposed batch" disabled={studio.pending}
+                onPress={approveOwnerDraft}/>
+              <Button label="Discard the whole proposed batch" disabled={studio.pending||studio.uncertain}
                 onPress={studio.discard}/>
             </>
           ):null}
           {studio.undo?(
             <Button label="Undo my last approved batch"
               disabled={!!s.miniAppsAction||!studio.canUndo}
-              onPress={studio.undoLast}/>
+              onPress={()=>{if(Object.values(ownerDirtyParts.current).some(Boolean)){setStudioNotice('Keep editing or cancel your unsaved wording before Undo.');return;}if(liveControlContext.current===controlContext&&approvalEpoch===ownerDraftEpoch.current)return studio.undoLast();}}/>
           ):null}
           <Text style={styles.cardBody}>
             BUSY cannot treat unrecognised instructions as completed edits. Payments,
@@ -2840,18 +2867,28 @@ function MiniAppBuilder({ s }) {
           title="Change the private app design"
           body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
           tone="blue">
-          <Text style={styles.sectionLabel}>Select the part you want to change</Text>
-          {[
+          <AppVisualSelection key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
+            onDraftChange={value=>markOwnerDirty('selected',value)}
+            Surface={MiniAppSurface} config={view.draftConfig} businessContent={app.businessContent||null}
+            voiceScope={s.cloudWorkspace?.businessId?{appId:app.id,revision:app.draft_revision,businessId:s.cloudWorkspace.businessId,selectedPart:'whole_app'}:null}
+            onTranscribe={s.transcribeSelectedAppAudio}
+            busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+            onPrepare={proposal=>{
+              if(liveControlContext.current!==controlContext)return;
+              setStudioPreview(proposal,'selected');setStudioNotice('Review the selected visual change in the original Studio comparison. Approval saves one private revision; Undo restores it.');
+            }}/>
+          <View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Select the part you want to change</Text>
+          <View style={styles.choiceGrid}>{[
             ["header","Header"],["spacing","Spacing"],["navigation","Navigation"]
           ].map(([part,label])=>(
-            <Button key={part} label={(selectedAppPart===part?"✓ ":"")+"Edit "+label}
+            <View key={part} style={styles.choiceCell}><Button compact selected={selectedAppPart===part} label={(selectedAppPart===part?"✓ ":"")+"Edit "+label}
               onPress={()=>{setSelectedAppPart(part);setPendingAppearance(null);
-                setAppearanceInstructionNotice("");setShowAppVoice(false);}}/>
-          ))}
+                setAppearanceInstructionNotice("");setShowAppVoice(false);}}/></View>
+          ))}</View>
           <Field label="Tell BUSY how to change the selected part"
             value={appearanceWords} onChangeText={setAppearanceWords}
-            placeholder="e.g. Make the header bold, or use roomier spacing"/>
-          <Button label="Preview my described app change" disabled={!appearanceWords.trim()}
+            placeholder="e.g. Make the header bold, or use roomier spacing"/></View>
+          <Button primary label="Preview my described app change" disabled={!appearanceWords.trim()}
             onPress={()=>{
               const proposal=interpretSelectedAppAppearance(view.draftConfig,{
                 selected:selectedAppPart,text:appearanceWords
@@ -2972,14 +3009,14 @@ function MiniAppBuilder({ s }) {
                 ):null}
                 <Button label="Keep this appearance in my PRIVATE app"
                   primary disabled={!!s.miniAppsAction}
-                  onPress={async()=>{
+                  onPress={()=>replaceOwnerSource(async()=>{
                     if(!appControlReviewCurrent(pendingAppearance,liveControlContext.current))return;
                     const ok=await s.savePrivateAppAppearance?.({
                       field:pendingAppearance.field,value:pendingAppearance.value,appId:app.id,
                       expectedRevision:pendingAppearance.reviewSource.revision
                     });
                     if(ok&&appControlReviewCurrent(pendingAppearance,liveControlContext.current)){setPendingAppearance(null);setAppearancePreviewOpen(false);}
-                  }}/>
+                  })}/>
                 <Button label="Discard appearance changes"
                   onPress={()=>{setPendingAppearance(null);setAppearancePreviewOpen(false);}}/>
               </>
@@ -2994,8 +3031,8 @@ function MiniAppBuilder({ s }) {
           body="Your sections work in both the BUSY marketplace app and its standalone native counterpart. Preview a one-position move before keeping it in your PRIVATE draft."
           tone="blue">
           {orderedAppModules(view.draftConfig).map((module,index,items)=>(
-            <View key={module.key} style={{marginTop:8}}>
-              <Text style={styles.cardBody}>{(index+1)+". "+module.key.replaceAll("_"," ")}</Text>
+            <View key={module.key} style={styles.recordRow}>
+              <Text accessibilityRole="header" style={styles.workspacePanelTitle}>{(index+1)+". "+module.key.replaceAll("_"," ")}</Text>
               {index>0?<Button label={"Move "+module.key.replaceAll("_"," ")+" up"}
                 disabled={!!s.miniAppsAction}
                 onPress={()=>setPendingMove(bindAppControlReview({moduleKey:module.key,direction:"up"},controlContext))}/>:null}
@@ -3014,12 +3051,12 @@ function MiniAppBuilder({ s }) {
                 <MiniAppSurface config={proposal.nextConfig} businessContent={proposal.businessContentPreview||s.miniAppsView?.app?.businessContent||null}/>
                 <Button label="Keep new order in PRIVATE app"
                   primary disabled={!!s.miniAppsAction}
-                  onPress={async()=>{
+                  onPress={()=>replaceOwnerSource(async()=>{
                     if(!appControlReviewCurrent(pendingMove,liveControlContext.current))return;
                     const ok=await s.movePrivateAppSection?.({
                       moduleKey:pendingMove.moduleKey,direction:pendingMove.direction,appId:app.id,expectedRevision:pendingMove.reviewSource.revision});
                     if(ok&&appControlReviewCurrent(pendingMove,liveControlContext.current))setPendingMove(null);
-                  }}/>
+                  })}/>
                 <Button label="Discard section move" onPress={()=>setPendingMove(null)}/>
               </>
             ):<Text style={styles.cardBody}>{proposal.reason}</Text>;
@@ -3083,7 +3120,7 @@ function MiniAppBuilder({ s }) {
                     }
                     disabled={!!s.miniAppsAction}
                     onPress={() =>
-                      s.toggleMiniAppModule(module.module_key, !enabled)
+                      replaceOwnerSource(()=>s.toggleMiniAppModule(module.module_key, !enabled))
                     }
                   />
                 ) : null}
@@ -4659,10 +4696,18 @@ function BusyAppDetail({ s }) {
   return <BusyAppDetailForm key={[s.ownerSession?.userId||"",detail?.app?.id||"",detail?.version?.id||"",JSON.stringify(detail?.entryContentInterest?.selection||null)].join(":")} s={s}/>;
 }
 function BusyAppDetailForm({ s }) {
+  const requestUserId=s.ownerSession?.userId;
   const detail = s.selectedBusyAppDetail || {};
   const config = detail?.version?.config || null;
   const requestScroll=React.useRef(null),requestFormY=React.useRef(null);
-  const goToRequest=()=>{if(Number.isFinite(requestFormY.current))requestScroll.current?.scrollTo?.({y:Math.max(0,requestFormY.current-12),animated:true});};
+  const [requestKind,setRequestKind]=React.useState(config?.modules?.some(m=>m.enabled&&m.key==='enquiry')?'enquiry':'booking_request');
+  const goToRequest=type=>{
+    if(['enquiry','booking_request'].includes(type)&&config?.modules?.some(m=>m.enabled&&m.key===type)){
+      if(type==='booking_request'&&contentInterest)setContentNotice('The selected product or event is an enquiry. Remove that selection before switching to a booking request.');
+      else setRequestKind(type);
+    }
+    if(Number.isFinite(requestFormY.current))requestScroll.current?.scrollTo?.({y:Math.max(0,requestFormY.current-12),animated:true});
+  };
   const saved=s.readBusyAppCustomerForm?.()||{};
   const initial=detail.entryContentInterest;
   const [name, setName] = React.useState(saved.name||"");
@@ -4675,19 +4720,32 @@ function BusyAppDetailForm({ s }) {
 
   const [contentInterest,setContentInterest]=React.useState(Object.hasOwn(saved,'contentInterest')?saved.contentInterest:initial?.selection??null);
   const [contentNotice,setContentNotice]=React.useState(detail.entryContentNotice||'');
-  const recoveryDraft={name,email,phone,service,message,contentInterest};
+  const [requirements,setRequirements]=React.useState(saved.requirements||emptyEnquiryRequirements());
+  const recoveryDraft={name,email,phone,service,message,contentInterest,requirements};
   const privateRecovery=useCustomerEnquiryRecovery({userId:s.ownerSession?.userId,detail,draft:recoveryDraft,
-    onRestore:value=>{setName(value.name);setEmail(value.email);setPhone(value.phone);setService(value.service);setMessage(value.message);setContentInterest(value.contentInterest);}});
-  React.useEffect(()=>{s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message,contentInterest});},[name,email,phone,service,date,note,message,contentInterest]);
+    onRestore:value=>{setName(value.name);setEmail(value.email);setPhone(value.phone);setService(value.service);setMessage(value.message);setContentInterest(value.contentInterest);setRequirements(value.requirements||emptyEnquiryRequirements());}});
+  React.useEffect(()=>{s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message,contentInterest,requirements});},[name,email,phone,service,date,note,message,contentInterest,requirements]);
   const chooseContent=(label,prepared)=>{
     const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,prepared?.selection);
     if(!checked.ok){setContentNotice(checked.reason);return;}
-    const apply=()=>{setService(checked.service);setMessage(checked.message);setContentInterest(checked.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');goToRequest();};
+    const stamp=formLive.current,selectedUser=s.ownerSession?.userId;
+    const apply=()=>{
+      if(!formAlive.current||formLive.current!==stamp||s.selectedBusyAppDetail!==detail||s.ownerSession?.userId!==selectedUser){setContentNotice('Your draft or app changed. Choose the listing again; your newer details were kept.');return;}
+      const fresh=prepareBusinessContentEnquiry(s.selectedBusyAppDetail?.businessContent,detail.app?.business_id,checked.selection);
+      if(!fresh.ok){setContentNotice(fresh.reason);return;}
+      setService(fresh.service);setMessage(fresh.message);setContentInterest(fresh.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');goToRequest('enquiry');};
     if(message.trim())Alert.alert('Replace this enquiry draft?','Your current message will be replaced by the selected listing context.',[{text:'Keep my message',style:'cancel'},{text:'Use selected item',onPress:apply}]);else apply();
   };
-  const chooseService=label=>{
-    const apply=()=>{setService(label);if(contentInterest){setContentInterest(null);setMessage("I'd like to ask about "+label+'.');setContentNotice('Selected listing removed. Review your service enquiry before sending.');}goToRequest();};
-    if(contentInterest)Alert.alert('Replace the selected listing?','This removes the product or event selection and replaces its enquiry message with the selected service.',[{text:'Keep selected item',style:'cancel'},{text:'Use service',onPress:apply}]);else apply();
+  const chooseService=(label,kind,topic)=>{
+    const type=['enquiry','booking_request'].includes(kind)?kind:config?.modules?.some(m=>m.enabled&&m.key==='enquiry')?'enquiry':'booking_request';
+    if(!config?.modules?.some(m=>m.enabled&&m.key===type))return;
+    const question=topic?prepareServiceQuestion(config?.publicProfile?.services||[],label,topic):null;
+    if(topic&&(!question?.ok||type!=='enquiry')){setContentNotice(question?.reason||'Choose an enquiry question.');return;}
+    const stamp=formLive.current,selectedUser=s.ownerSession?.userId;
+    const apply=()=>{
+      if(!formAlive.current||formLive.current!==stamp||s.selectedBusyAppDetail!==detail||s.ownerSession?.userId!==selectedUser){setContentNotice('Your draft changed. Choose the service again; your newer details were kept.');return;}
+      setService(label);setRequestKind(type);if(question){setContentInterest(null);setMessage(question.message);setContentNotice('Question prepared, not sent. Add your requirements and review before confirming.');}else if(contentInterest){setContentInterest(null);setMessage("I'd like to ask about "+label+'.');setContentNotice('Selected listing removed. Review your service enquiry before sending.');}else if(type==='enquiry'&&!message.trim())setMessage("I'd like to ask about "+label+'.');goToRequest();};
+    if(question&&message.trim())Alert.alert('Replace this enquiry message?','Your existing message will be replaced by the service question. Contact details and requirements will be kept.',[{text:'Keep my message',style:'cancel'},{text:'Use question',onPress:apply}]);else if(contentInterest)Alert.alert('Replace the selected listing?','This removes the product or event selection and replaces its enquiry message with the selected service.',[{text:'Keep selected item',style:'cancel'},{text:'Use service',onPress:apply}]);else apply();
   };
   const enabled = new Set(
     (config?.modules || [])
@@ -4696,44 +4754,56 @@ function BusyAppDetailForm({ s }) {
   );
 
   const formLive=React.useRef(null),formAlive=React.useRef(true);
-  formLive.current=JSON.stringify([name,email,phone,service,date,note,message]);
+  formLive.current=JSON.stringify([name,email,phone,service,date,note,message,contentInterest,requirements]);
   React.useEffect(()=>{formAlive.current=true;return()=>{formAlive.current=false;};},[]);
   const requestInput={name,email,phone,service,preferredDate:date,note,message};
-  const bookingReady=validateNativeGuestRequest('booking_request',requestInput);
-  const enquiryReady=validateNativeGuestRequest('enquiry',requestInput);
+  const preparedBookingNote=prepareCustomerBookingNote(note,requirements);
+  const bookingReady=preparedBookingNote.ok?validateNativeGuestRequest('booking_request',{...requestInput,note:preparedBookingNote.note}):preparedBookingNote;
+  const preparedEnquiry=prepareCustomerEnquiry({message,requirements,feed:detail.businessContent,businessId:detail.app?.business_id,selection:contentInterest});
+  const enquiryReady=preparedEnquiry.ok?validateNativeGuestRequest('enquiry',{...requestInput,message:preparedEnquiry.message}):preparedEnquiry;
   const serviceChoices=searchPublicNativeServices(config?.publicProfile?.services||[],service.slice(0,80)).slice(0,8);
   const preferredDates=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
+  const reviewScope=JSON.stringify([s.ownerSession?.userId,detail.app?.business_id,detail.app?.id,detail.version?.id,requestKind]);
+  const [bookingReview,setBookingReview]=React.useState(null),bookingConfirming=React.useRef(false);
+  const currentBookingReview=bookingReady.ok&&!contentInterest?customerEnquiryReview(bookingReady.payload,reviewScope,formLive.current,'booking_request'):null;
+  const bookingLive=React.useRef(null);bookingLive.current={key:currentBookingReview?.key,detail};
+  const bookingReviewCurrent=!!bookingReview&&bookingReview.key===currentBookingReview?.key;
   const submitBooking = async () => {
-    if(!bookingReady.ok)return false;
+    if(!bookingReady.ok||contentInterest||bookingConfirming.current||!formAlive.current||!enabled.has('booking_request'))return false;
+    if(!currentBookingReview||bookingLive.current?.key!==currentBookingReview.key||bookingLive.current?.detail!==detail)return false;
+    if(!bookingReviewCurrent){setBookingReview(currentBookingReview);return false;}
     const reviewed=formLive.current;
-    const ok = await s.submitBusyAppRequest("booking_request", {
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      service: service.trim(),
-      preferredDate: date.trim(),
-      note: note.trim(),
-    });
+    setBookingReview(null);bookingConfirming.current=true;
+    let ok=false;
+    try{ok=await s.submitBusyAppRequest('booking_request',bookingReview.payload);}
+    finally{bookingConfirming.current=false;}
     if (ok&&formAlive.current&&formLive.current===reviewed) {
       setService("");
       setDate("");
       setNote("");
+      setRequirements(emptyEnquiryRequirements());
     }
   };
 
+  const [enquiryReview,setEnquiryReview]=React.useState(null);
+  const enquiryConfirming=React.useRef(false);
+
+  const currentEnquiryReview=enquiryReady.ok?customerEnquiryReview(enquiryReady.payload,reviewScope,formLive.current):null;
+  const enquiryLive=React.useRef(null);enquiryLive.current={key:currentEnquiryReview?.key,detail};
+  const enquiryReviewCurrent=!!enquiryReview&&enquiryReview.key===currentEnquiryReview?.key;
   const submitEnquiry = async () => {
-    if(!enquiryReady.ok)return false;
+    if(!enquiryReady.ok||enquiryConfirming.current||!formAlive.current)return false;
     if(contentInterest){const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,contentInterest);if(!checked.ok){setContentNotice(checked.reason);return false;}}
+    if(!currentEnquiryReview||enquiryLive.current?.key!==currentEnquiryReview.key||enquiryLive.current?.detail!==detail)return false;
+    if(!enquiryReviewCurrent){setEnquiryReview(currentEnquiryReview);return false;}
     const reviewed=formLive.current;
-    const ok = await s.submitBusyAppRequest("enquiry", {
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      service: service.trim(),
-      message: message.trim(),
-    });
+    setEnquiryReview(null);
+    enquiryConfirming.current=true;
+    let ok=false;
+    try{ok=await s.submitBusyAppRequest("enquiry", enquiryReview.payload);}
+    finally{enquiryConfirming.current=false;}
     if(ok)privateRecovery.clearIfSame(recoveryDraft).catch(()=>{});
-    if (ok&&formAlive.current&&formLive.current===reviewed) {setMessage("");setContentInterest(null);s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message:"",contentInterest:null});}
+    if (ok&&formAlive.current&&formLive.current===reviewed) {setMessage("");setContentInterest(null);setRequirements(emptyEnquiryRequirements());s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message:"",contentInterest:null,requirements:emptyEnquiryRequirements()});}
   };
 
   return (
@@ -4760,6 +4830,7 @@ function BusyAppDetailForm({ s }) {
           tone="green"
         />
       ) : null}
+      {(enabled.has('enquiry')||enabled.has('booking_request'))?<Button label={(requestKind==='booking_request'?bookingReviewCurrent:enquiryReviewCurrent)?'Return to my reviewed request':'Return to my request draft'} disabled={!!s.miniAppsAction} onPress={()=>{if(formAlive.current&&s.selectedBusyAppDetail===detail&&s.ownerSession?.userId===requestUserId)goToRequest();}}/>:null}
       {config?.contentLayout?.length?<Button label="Refresh products and events" disabled={!!s.miniAppsAction} onPress={()=>s.openBusyAppDetail(detail.app.slug)}/>:null}
       {config ? (
         <MiniAppSurface
@@ -4768,6 +4839,7 @@ function BusyAppDetailForm({ s }) {
           s={s}
           loyaltyProgress={detail?.loyaltyProgress || null}
           businessContent={detail.businessContent}
+          catalogueContextKey={JSON.stringify([s.ownerSession?.userId||'',detail.app?.business_id||'',detail.app?.id||'',detail.version?.id||''])}
           onSelectService={enabled.has('enquiry')||enabled.has('booking_request')?chooseService:null}
           onRequestNavigation={goToRequest}
           onSelectContent={enabled.has('enquiry')?chooseContent:null}
@@ -4806,7 +4878,7 @@ function BusyAppDetailForm({ s }) {
       {s.latestCustomerRequestOutcome?.ok===true&&
         s.latestCustomerRequestOutcome.businessAppId===detail?.app?.id?(
         <Card eyebrow="What Busy has verified"
-          title="Your request is saved"
+          title="Earlier saved request — separate from this draft"
           body={s.latestCustomerRequestOutcome.evidenceLevel===
             "authenticated_customer_readback"?
             "Busy checked the saved request after an interrupted response.":
@@ -4816,6 +4888,8 @@ function BusyAppDetailForm({ s }) {
             This does not yet verify that a notification arrived, the
             business replied, or an appointment was confirmed.
           </Text>
+          <Text style={styles.cardBody}>This receipt does not show that the currently edited form was sent. A changed request needs its own exact review and submission.</Text>
+          {typeof s.latestCustomerRequestOutcome.requestId==='string'&&/^[a-zA-Z0-9_-]{1,120}$/.test(s.latestCustomerRequestOutcome.requestId)?<Text selectable style={styles.cardBody}>{'Saved request reference: '+s.latestCustomerRequestOutcome.requestId}</Text>:null}
           <Button label="Review My BUSY Apps"
             onPress={()=>s.go("busyAppsMarketplace")}/>
         </Card>
@@ -4830,7 +4904,7 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
-      <BusinessAppCustomerRequestFields s={s} form={{enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
+      <BusinessAppCustomerRequestFields s={s} form={{returnToInformation:()=>requestScroll.current?.scrollTo?.({y:0,animated:true}),bookingReview:bookingReviewCurrent?bookingReview:null,cancelBookingReview:()=>setBookingReview(null),enquiryReview:enquiryReviewCurrent?enquiryReview:null,cancelEnquiryReview:()=>setEnquiryReview(null),requirements,setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
       <Button label="Back to BUSY Apps" onPress={() => s.go("busyAppsMarketplace")} />
     </Shell>
   );
@@ -4940,15 +5014,20 @@ function MiniAppRequestDetailForm({ s }) {
   const detail = s.selectedMiniAppRequestDetail || {};
   const request = detail.request || null;
   const role = s.selectedMiniAppRequestRole || "customer";
-  const [draft, setDraft] = React.useState("");
+  const [draft, setDraftValue] = React.useState("");
+  const replyTyping=React.useRef(0);
+  const setDraft=value=>{replyTyping.current++;liveReply.current=value;setDraftValue(value);};
   const [reviewedReplyStamp,setReviewedReplyStamp]=React.useState(null);
   const liveReply=React.useRef(null),replyAlive=React.useRef(true);liveReply.current=draft;
+  const liveReplyContext=React.useRef(s);liveReplyContext.current=s;
   React.useEffect(()=>{replyAlive.current=true;return()=>{replyAlive.current=false;};},[]);
   const ownerView = role === "business";
   React.useEffect(()=>{
     setReviewedReplyStamp(null);
     setDraft("");
   },[request?.id,role]);
+  const accountReview=detail.accountBookingReview;
+  const accountContext=accountBookingContext(accountReview,{ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,role:s.cloudWorkspace?.role,request,customers:s.customers,lastSimulatedRecipients:s.lastSimulatedRecipients,replyActions:s.replyActions,revision:s.cloudRevision});
   const guestWebRequest = request?.request_origin === "guest_web";
   const followUpSuggestion=request?.id?
     s.miniAppsView?.followUpIntelligence?.items?.find(item=>
@@ -4994,6 +5073,7 @@ function MiniAppRequestDetailForm({ s }) {
         <Card eyebrow="Conversation" title="Loading…" body="BUSY is loading the latest request activity." tone="blue" />
       ) : request ? (
         <>
+          {!ownerView?<BusinessAppQuotationEntry s={s} request={request} app={detail.app}/>:null}
           <Card
             eyebrow={request.request_type === "booking_request" ? "Booking request" : "Enquiry"}
             title={detail.app?.display_name || detail.app?.name || (ownerView ? request.contact_name || "Customer" : "BUSY business")}
@@ -5149,9 +5229,14 @@ function MiniAppRequestDetailForm({ s }) {
                         disabled={!!s.miniAppsAction||!!s.ownerFollowupBusy}
                         onPress={()=>{
                           const stamp=s.ownerFollowupReview.sourceStamp;
+                          const epoch=replyTyping.current,originalWords=liveReply.current,review=s.ownerFollowupReview;
+                          let consumed=false;
+                          const current=()=>{const now=liveReplyContext.current;return replyAlive.current&&replyTyping.current===epoch&&liveReply.current===originalWords&&now.ownerSession?.userId===s.ownerSession?.userId&&now.cloudWorkspace?.businessId===s.cloudWorkspace?.businessId&&now.selectedMiniAppRequestRole===role&&now.selectedMiniAppRequestDetail?.request===request&&now.ownerFollowupReview===review&&review.sourceStamp===stamp;};
                           const apply=async()=>{
+                            if(consumed||!current())return false;consumed=true;
                             const confirmed=await s.prepareVerifiedOwnerFollowupDraft(
                               request.id,stamp);
+                            if(!current())return false;
                             if(confirmed?.ok&&confirmed.sourceStamp&&
                                confirmed.requestId===request.id&&
                                confirmed.appId===request.mini_app_id){
@@ -5161,6 +5246,7 @@ function MiniAppRequestDetailForm({ s }) {
                                 appId:request.mini_app_id,
                                 sourceStamp:confirmed.sourceStamp
                               });
+                              return true;
                             }else{
                               Alert.alert("Review the latest conversation",
                                 confirmed?.reason||
@@ -5170,10 +5256,10 @@ function MiniAppRequestDetailForm({ s }) {
                           if(draft.trim()){
                             Alert.alert("Replace your current reply?",
                               "Busy will check the current saved messages again before replacing your unsent text. Nothing will be sent.",[
-                                {text:"Keep my text",style:"cancel"},
+                                {text:"Keep my text",style:"cancel",onPress:()=>{consumed=true;}},
                                 {text:"Recheck and use draft",onPress:apply}
                               ]);
-                          }else apply();
+                          }else return apply();
                         }}/>
                     </View>
                   ):null}
@@ -5185,6 +5271,22 @@ function MiniAppRequestDetailForm({ s }) {
               </Text>
             </Card>
           ):null}
+          {ownerView&&request.request_type==='booking_request'?<Card eyebrow="Returning to work" title="Inspect this account booking" body="Check one current account customer and Work action. This does not restore the workspace or settle an uncertain booking.">
+            <Button label="Inspect current account customer and Work" disabled={s.cloudWorkspace?.role!=='owner'} onPress={()=>{const epoch=replyTyping.current;return s.inspectMiniAppAccountBooking?.(request.id,{isCurrent:()=>replyAlive.current&&replyTyping.current===epoch});}}/>
+            {!accountContext?<Text accessibilityLiveRegion="polite" style={styles.helper}>{s.cloudWorkspace?.role!=='owner'?'Owner-private account inspection is unavailable for this role.':'No supported account context is verified here. Inspect again; missing, changed, inaccessible or unsupported records cannot be restored from this view.'}</Text>:null}
+            {accountContext?<View>
+              <Text style={styles.sectionLabel}>{detail.accountBookingReview.customer.name+' · '+detail.accountBookingReview.customer.service}</Text>
+              <Text accessibilityLiveRegion="polite" style={styles.cardBody}>Last checked account version — read-only. This is not a recovered editable customer or a save receipt.</Text>
+              <Text style={styles.cardBody}>{{missing:'No corresponding customer is loaded on this device. You can inspect this account observation without restoring a customer.',ambiguous:'Device identity is ambiguous. No customer can be safely selected from these copies.',foreign:'A device record has a different business identity. It was not used.',unsupported:'The device customer has no matching supported booking source. Nothing was combined.',matching:'The listed device facts match this account observation. This does not confirm a save or settle an earlier uncertain operation.',different:'The device and account facts differ. Your device copy and unsaved work are kept; no automatic replacement is available.'}[accountContext.device]}</Text>
+              {accountContext.revisionDiffers?<Text style={styles.helper}>Account and device revisions differ. Inspecting this booking does not update the rest of your workspace.</Text>:null}
+              <Details label="Read-only customer and source references"><Text selectable style={styles.cardBody}>{'Customer '+accountReview.customer.id+' · Work '+accountReview.action.id+' · request '+accountReview.requestId+' · account revision '+accountReview.revision}</Text><Text style={styles.cardBody}>{'Request checked: '+accountReview.requestRevision+' · Work checked: '+accountReview.workRevision}</Text><Text style={styles.helper}>Contact details, private notes, replies and unrelated records are not included. Open only the supported diary context below; broad customer editing remains unavailable.</Text></Details>
+              <Text style={styles.cardBody}>{'Account booking: '+detail.accountBookingReview.action.status+' · '+detail.accountBookingReview.action.date+' '+detail.accountBookingReview.action.time}</Text>
+              <Text style={styles.cardBody}>{'Work diary: '+detail.accountBookingReview.ledger.date+' '+detail.accountBookingReview.ledger.time+' · '+detail.accountBookingReview.ledger.timeZone}</Text>
+              <Text style={styles.cardBody}>{detail.accountBookingReview.matchesLedger?'These account and Work facts agree. No local customer was inserted and no own-operation receipt was reconstructed.':'Account and Work facts differ. Keep current work and review the source; no automatic repair is available.'}</Text>
+              <Button label="Review account booking day in diary" disabled={!!draft.trim()||!detail.accountBookingReview.matchesLedger} onPress={()=>{if(liveReply.current?.trim())return false;const epoch=replyTyping.current;return s.inspectMiniAppAccountBooking?.(request.id,{navigate:'diary',isCurrent:()=>replyAlive.current&&replyTyping.current===epoch});}}/>
+              {draft.trim()?<Text style={styles.helper}>Your unfinished conversation wording is kept. Finish or clear it deliberately before leaving this context.</Text>:null}
+            </View>:null}
+          </Card>:null}
           {ownerView && link?.bridge_state === "booking_draft" ? (
             <Card
               eyebrow="BUSY booking"

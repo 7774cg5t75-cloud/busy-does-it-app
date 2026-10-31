@@ -1,4 +1,8 @@
+import {previewServicePresentation} from './appServicePresentation.mjs';
+import {prepareNavigationLabel} from './appNavigationLabels.mjs';
+import {previewAppImageAppearance} from './appImageAppearance.mjs';
 import {validContentLayout} from './businessContentRecords.mjs';
+import {previewAppComponentAppearance} from './appComponentAppearance.mjs';
 import {validPublicCollection} from './appPublicCollections.mjs';
 import {splitBuilderInstructionClauses} from './builderInstructionClauses.mjs';
 import {validAppContactEdit} from './appContactPolicy.mjs';
@@ -11,7 +15,7 @@ import {appEditLockReason} from "./appOwnerLocks.mjs";
  * It cannot enable modules, confirm requests, charge, publish or submit apps.
  */
 import {enabledAppKeys,proposeAppSectionMove} from "./appSectionOrder.mjs";
-import {previewPrivateAppAppearance,publicAppAppearance} from "./appAppearanceEditing.mjs";
+import {reviewAppEditingQuality,previewPrivateAppAppearance,publicAppAppearance} from "./appAppearanceEditing.mjs";
 import {reviewPrivateAppServices} from "./appServiceCollection.mjs";
 import {proposeGalleryImageDescription,restoreGalleryDescription} from "./appGalleryDescription.mjs";
 const MAX_CHANGES=8;
@@ -21,25 +25,33 @@ const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 function proposeCoordinatedAppChanges(config,operations){
  if(!config||typeof config!=="object"||!Array.isArray(config.modules)||
     !Array.isArray(operations)||!operations.length||operations.length>MAX_CHANGES)
-  return {ok:false,reason:"Select 1 to 8 supported private app changes."};
- if(operations.some(op=>op?.kind==="owner_locks")&&operations.length!==1)return {ok:false,reason:"Review owner locks separately from content edits."};
+  return {ok:/** @type {const} */ (false),reason:"Select 1 to 8 supported private app changes."};
+ if(operations.some(op=>op?.kind==="owner_locks")&&operations.length!==1)return {ok:/** @type {const} */ (false),reason:"Review owner locks separately from content edits."};
  const valid=enabledAppKeys(config);
- if(!valid.ok)return valid;
+ if(!valid.ok)return {...valid,ok:/** @type {const} */ (false)};
  let next=config;
  const changes=[],inverse=[];
  for(const op of operations){
   if(!op||typeof op!=="object"||Array.isArray(op)||
      Object.keys(op).some(k=>!["kind","field","value","moduleKey","direction","index","from","to","expectedUri"].includes(k)))
-   return {ok:false,reason:"Unknown edit data was rejected."};
+   return {ok:/** @type {const} */ (false),reason:"Unknown edit data was rejected."};
   const locked=op.kind==="owner_locks"?null:appEditLockReason(next,op);
-  if(locked)return {ok:false,reason:locked};
+  if(locked)return {ok:/** @type {const} */ (false),reason:locked};
   let undo=null,after=null,description="";
   if(op.kind==="owner_locks"){
-   const edit=editAppOwnerLocks(next,op);if(!edit.ok)return edit;
+   const edit=editAppOwnerLocks(next,op);if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};
    after=edit.nextConfig;undo=edit.undo;description="Editing protection: "+(after.presentation?.ownerLockedElements?.length?after.presentation.ownerLockedElements.join(", "):"no locks")+". Customer content is unchanged.";
+  }else if(['service_presentation','reset_service_presentation'].includes(op.kind)){
+   const edit=previewServicePresentation(next,{...op,reset:op.kind==='reset_service_presentation'});if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};after=edit.nextConfig;undo={kind:'restore_appearance',value:own(next,'presentation')?JSON.parse(JSON.stringify(next.presentation)):null};description=edit.description;
+  }else if(op.kind==='image_appearance'){
+   const edit=previewAppImageAppearance(next,op);if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};
+   after=edit.nextConfig;undo={kind:'restore_appearance',value:own(next,'presentation')?JSON.parse(JSON.stringify(next.presentation)):null};description=edit.description;
+  }else if(op.kind==='component_appearance'){
+   const edit=previewAppComponentAppearance(next,op);if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};
+   after=edit.nextConfig;undo={kind:'restore_appearance',value:own(next,'presentation')?JSON.parse(JSON.stringify(next.presentation)):null};description=edit.description;
   }else if(op.kind==="appearance"){
    const edit=previewPrivateAppAppearance(next,{field:op.field,value:op.value});
-   if(!edit.ok)return edit;
+   if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};
    after=edit.nextConfig;
    undo={kind:"restore_appearance",value:own(next,"presentation")?
     JSON.parse(JSON.stringify(next.presentation)):null};
@@ -49,26 +61,28 @@ function proposeCoordinatedAppChanges(config,operations){
       !publicAppAppearance(next.presentation||{}).ok||
       JSON.stringify(next.presentation?.ownerLockedElements||[])!==
        JSON.stringify(op.value?.ownerLockedElements||[]))
-    return {ok:false,reason:"Only a validated appearance snapshot with unchanged owner locks can be restored."};
+    return {ok:/** @type {const} */ (false),reason:"Only a validated appearance snapshot with unchanged owner locks can be restored."};
    if(JSON.stringify(next.presentation??null)===JSON.stringify(op.value))
-    return {ok:false,reason:"This appearance is already restored."};
+    return {ok:/** @type {const} */ (false),reason:"This appearance is already restored."};
    undo={kind:"restore_appearance",value:own(next,"presentation")?
     JSON.parse(JSON.stringify(next.presentation)):null};
    after={...next};
    if(op.value===null)delete after.presentation;
    else after.presentation=JSON.parse(JSON.stringify(op.value));
    description="Restored the reviewed private appearance";
+  }else if(op.kind==='navigation_label'){
+   const edit=prepareNavigationLabel(next,op);if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};after=edit.nextConfig;undo=edit.undo;description=edit.description;
   }else if(op.kind==="move"){
    const edit=proposeAppSectionMove(next,{moduleKey:op.moduleKey,direction:op.direction});
-   if(!edit.ok)return edit;
+   if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};
    after=edit.nextConfig;
    undo={kind:"move",moduleKey:op.moduleKey,direction:op.direction==="up"?"down":"up"};
    description="Moved "+op.moduleKey+" "+op.direction;
   }else if(op.kind==="first"){
    const order=enabledAppKeys(next);
-   if(!order.ok)return order;
+   if(!order.ok)return {...order,ok:/** @type {const} */ (false)};
    const pos=order.keys.indexOf(op.moduleKey);
-   if(pos<0||pos===0)return {ok:false,reason:"Choose an enabled section that is not already first."};
+   if(pos<0||pos===0)return {ok:/** @type {const} */ (false),reason:"Choose an enabled section that is not already first."};
    const reordered=[op.moduleKey,...order.keys.filter(x=>x!==op.moduleKey)];
    after={...next,navigation:reordered};
    undo={kind:"navigation",value:order.keys};
@@ -80,55 +94,55 @@ function proposeCoordinatedAppChanges(config,operations){
        new Set(op.value).size!==order.keys.length||
        op.value.some(x=>!order.keys.includes(x))||
        op.value.every((x,i)=>x===order.keys[i]))
-    return {ok:false,reason:"Navigation must be a different exact ordering of enabled sections."};
+    return {ok:/** @type {const} */ (false),reason:"Navigation must be a different exact ordering of enabled sections."};
    after={...next,navigation:[...op.value]};
    undo={kind:"navigation",value:order.keys};
    description="Changed section order";
   }else if(op.kind==="restore_public_field"){
    const restored=restoreAppProfileField(next,op);
-   if(!restored.ok)return restored;
+   if(!restored.ok)return {...restored,ok:/** @type {const} */ (false)};
    after=restored.nextConfig;undo={kind:"restore_public_field",field:op.field,value:restored.previous};
    description="Restored the reviewed public "+op.field;
   }else if(op.kind==="text"){
    const snapshot=captureAppProfileField(next,op.field);
-   if(!snapshot)return {ok:false,reason:"Review the existing public field before editing it."};
+   if(!snapshot)return {ok:/** @type {const} */ (false),reason:"Review the existing public field before editing it."};
    const limit=TEXT_FIELDS[op.field];
    if(!own(TEXT_FIELDS,op.field)||typeof op.value!=="string"||
       op.value.length>limit||
       /[<>\u0000-\u001f]/.test(op.value))
-    return {ok:false,reason:"Only safe, owner-written public copy can be changed."};
+    return {ok:/** @type {const} */ (false),reason:"Only safe, owner-written public copy can be changed."};
    const prev=typeof next.publicProfile?.[op.field]==="string"?next.publicProfile[op.field]:"";
-   if(prev===op.value)return {ok:false,reason:"This wording is already in the app."};
+   if(prev===op.value)return {ok:/** @type {const} */ (false),reason:"This wording is already in the app."};
    after={...next,publicProfile:{...next.publicProfile,[op.field]:op.value}};
    if(op.field==="tagline")after.display={...next.display,tagline:op.value};
    undo={kind:"restore_public_field",field:op.field,value:snapshot};
    description="Updated public "+op.field;
   }else if(op.kind==="contact"){
    const snapshot=captureAppProfileField(next,'contact');
-   if(!snapshot||!validAppContactEdit(op.field,op.value))return {ok:false,reason:'Review the supported owner-written contact field and existing contact details.'};
+   if(!snapshot||!validAppContactEdit(op.field,op.value))return {ok:/** @type {const} */ (false),reason:'Review the supported owner-written contact field and existing contact details.'};
    const value=op.value.trim();
-   if(next.publicProfile?.contact?.[op.field]===value)return {ok:false,reason:'This contact detail is already saved.'};
+   if(next.publicProfile?.contact?.[op.field]===value)return {ok:/** @type {const} */ (false),reason:'This contact detail is already saved.'};
    after={...next,publicProfile:{...next.publicProfile,contact:{...next.publicProfile?.contact,[op.field]:value}}};
    undo={kind:'restore_public_field',field:'contact',value:snapshot};description='Updated public '+op.field;
   }else if(['content_layout','restore_content_layout'].includes(op.kind)){
    const present=Object.hasOwn(next,'contentLayout'),before=present?next.contentLayout:undefined;
-   if(present&&!validContentLayout(before))return {ok:false,reason:'Review the existing content layout.'};
+   if(present&&!validContentLayout(before))return {ok:/** @type {const} */ (false),reason:'Review the existing content layout.'};
    const restore=op.kind==='restore_content_layout',value=restore?op.value?.value:op.value;
-   if(restore?(!op.value||typeof op.value.present!=='boolean'||Object.keys(op.value).some(k=>!['present','value'].includes(k))||op.value.present!==Object.hasOwn(op.value,'value')||op.value.present&&!validContentLayout(value)):!validContentLayout(value))return {ok:false,reason:'Choose supported product/event blocks and layouts.'};
+   if(restore?(!op.value||typeof op.value.present!=='boolean'||Object.keys(op.value).some(k=>!['present','value'].includes(k))||op.value.present!==Object.hasOwn(op.value,'value')||op.value.present&&!validContentLayout(value)):!validContentLayout(value))return {ok:/** @type {const} */ (false),reason:'Choose supported product/event blocks and layouts.'};
    after={...next};if(restore&&!op.value.present)delete after.contentLayout;else after.contentLayout=JSON.parse(JSON.stringify(value));
-   if(JSON.stringify(after.contentLayout)===JSON.stringify(before))return {ok:false,reason:'This composition is already saved.'};
+   if(JSON.stringify(after.contentLayout)===JSON.stringify(before))return {ok:/** @type {const} */ (false),reason:'This composition is already saved.'};
    undo={kind:'restore_content_layout',value:{present,...present?{value:JSON.parse(JSON.stringify(before))}:{}}};description='Updated reusable product/event composition';
   }else if(op.kind==='public_collection'){
-   if(!['faqs','testimonials'].includes(op.field)||!validPublicCollection(op.field,op.value))return {ok:false,reason:'Use up to 20 complete owner-approved entries with safe public wording.'};
+   if(!['faqs','testimonials'].includes(op.field)||!validPublicCollection(op.field,op.value))return {ok:/** @type {const} */ (false),reason:'Use up to 20 complete owner-approved entries with safe public wording.'};
    const snapshot=captureAppProfileField(next,op.field);
-   if(!snapshot||JSON.stringify(next.publicProfile?.[op.field])===JSON.stringify(op.value))return {ok:false,reason:'Review the existing public entries before editing.'};
+   if(!snapshot||JSON.stringify(next.publicProfile?.[op.field])===JSON.stringify(op.value))return {ok:/** @type {const} */ (false),reason:'Review the existing public entries before editing.'};
    after={...next,publicProfile:{...next.publicProfile,[op.field]:JSON.parse(JSON.stringify(op.value))}};
    undo={kind:'restore_public_field',field:op.field,value:snapshot};description='Updated public '+op.field;
   }else if(op.kind==="services"){
    const snapshot=captureAppProfileField(next,"services");
-   if(!snapshot)return {ok:false,reason:"Review the existing public services before editing them."};
+   if(!snapshot)return {ok:/** @type {const} */ (false),reason:"Review the existing public services before editing them."};
    const edit=reviewPrivateAppServices(next,op.value);
-   if(!edit.ok)return edit;
+   if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};
    after=edit.nextConfig;
    undo={kind:"restore_public_field",field:"services",value:snapshot};
    description=edit.description;
@@ -136,7 +150,7 @@ function proposeCoordinatedAppChanges(config,operations){
    const edit=(op.kind==="restore_photo_description"?restoreGalleryDescription:proposeGalleryImageDescription)(next,{
      index:op.index,expectedUri:op.expectedUri,value:op.value
    });
-   if(!edit.ok)return edit;
+   if(!edit.ok)return {...edit,ok:/** @type {const} */ (false)};
    after=edit.nextConfig;
    undo={kind:"restore_photo_description",index:op.index,
     expectedUri:op.expectedUri,value:edit.previousSnapshot};
@@ -147,18 +161,20 @@ function proposeCoordinatedAppChanges(config,operations){
      !Number.isInteger(op.from)||!Number.isInteger(op.to)||
      op.from<0||op.to<0||op.from>=arr.length||op.to>=arr.length||
      op.from===op.to)
-    return {ok:false,reason:"Choose two valid existing photo positions."};
+    return {ok:/** @type {const} */ (false),reason:"Choose two valid existing photo positions."};
    const reordered=[...arr];
    const [moved]=reordered.splice(op.from,1);reordered.splice(op.to,0,moved);
    after={...next,publicProfile:{...next.publicProfile,
     assets:{...next.publicProfile.assets,gallery:reordered}}};
    undo={kind:"photo",from:op.to,to:op.from};
    description="Reordered approved gallery photos";
-  }else return {ok:false,reason:"This app edit is not supported yet."};
-  if(!after||!undo)return {ok:false,reason:"No safe change was prepared."};
+  }else return {ok:/** @type {const} */ (false),reason:"This app edit is not supported yet."};
+  if(!after||!undo)return {ok:/** @type {const} */ (false),reason:"No safe change was prepared."};
   next=after;inverse.unshift(undo);changes.push(description);
  }
- return {ok:true,changes,operations:operations.map(x=>({...x})),undoOperations:inverse,
+ const quality=reviewAppEditingQuality(next);
+ if(!quality.mayCommit)return {ok:/** @type {const} */ (false),reason:quality.explanation,quality};
+ return {ok:/** @type {const} */ (true),quality,changes,operations:operations.map(x=>({...x})),undoOperations:inverse,
    nextConfig:next,privateOnly:true,requiresOwnerApproval:true,
    changesBookings:false,chargesCustomers:false,publishes:false,
    sameSharedConfigForStandalone:true,proofType:"static_config_preview"};
@@ -166,18 +182,88 @@ function proposeCoordinatedAppChanges(config,operations){
 /** Small exact-intent parser: anything unclear is surfaced instead of guessed. */
 function planAppVoiceInstructions(config,instruction){
  const phrase=clean(instruction);
- if(!phrase||phrase.length>400)return {ok:false,reason:"Describe up to 400 characters of app changes."};
+ if(!phrase||phrase.length>400)return {ok:/** @type {const} */ (false),reason:"Describe up to 400 characters of app changes."};
  const pieces=splitBuilderInstructionClauses(phrase,{max:MAX_CHANGES});
- if(!pieces)return {ok:false,needsClarification:true,reason:"Use balanced quotes and up to eight complete changes."};
- if(pieces.length>MAX_CHANGES)return {ok:false,reason:"Describe up to eight changes at once."};
+ if(!pieces)return {ok:/** @type {const} */ (false),needsClarification:true,reason:"Use balanced quotes and up to eight complete changes."};
+ if(pieces.length>MAX_CHANGES)return {ok:/** @type {const} */ (false),reason:"Describe up to eight changes at once."};
  const operations=[],unresolved=[],preserved=[];let contentBlocks=validContentLayout(config.contentLayout)?config.contentLayout.map(x=>({...x})):[],contentChanged=false;
  let faqWorking=config.publicProfile?.faqs===undefined?[]:Array.isArray(config.publicProfile.faqs)?config.publicProfile.faqs.map(row=>({...row})):null;
- let faqChanged=false;
+ let faqChanged=false;const contentWrites=new Set();
+ let serviceWorking=Array.isArray(config.publicProfile?.services)?config.publicProfile.services.map(row=>({...row})):[];
+ let servicesChanged=false;
+ const serviceKeys=serviceWorking.map((_,index)=>index),serviceWrites=new Set();let nextServiceKey=serviceKeys.length;
  for(let p of pieces){
+  const photoDescription=/^describe gallery photo ([1-9][0-9]?) as "([^"<>]{1,160})" caption "([^"<>]{0,240})"$/i.exec(p);
+  if(photoDescription){
+   const index=Number(photoDescription[1])-1,image=config.publicProfile?.assets?.gallery?.[index];
+   operations.push({kind:'photo_description',index,expectedUri:image?.uri,value:{alt:photoDescription[2],caption:photoDescription[3]}});continue;
+  }
+  const blockMove=/^move (products|events) (before|after) (products|events)$/i.exec(p);
+  if(blockMove){
+   const kind=name=>name.toLowerCase()==='products'?'product':'event',from=contentBlocks.findIndex(block=>block.kind===kind(blockMove[1])),to=contentBlocks.findIndex(block=>block.kind===kind(blockMove[3]));
+   if(from<0||to<0||from===to||contentWrites.has('order')){unresolved.push(p);continue;}
+   const [block]=contentBlocks.splice(from,1),target=to-(from<to?1:0)+(blockMove[2].toLowerCase()==='after'?1:0);contentBlocks.splice(target,0,block);contentWrites.add('order');contentChanged=true;continue;
+  }
+  const blockTitle=/^rename (products|events) section to "([^"<>]{1,80})"$/i.exec(p);
+  const blockLayout=/^(?:show|display) (products|events) as (cards|rows)$/i.exec(p);
+  const blockRemove=/^hide (products|events) section$/i.exec(p);
+  if(blockTitle||blockLayout||blockRemove){
+   const command=blockTitle||blockLayout||blockRemove,kind=command[1].toLowerCase()==='products'?'product':'event',at=contentBlocks.findIndex(block=>block.kind===kind);
+   const target=kind+':'+(blockRemove?'all':blockTitle?'title':'layout');
+   if(at<0&&blockLayout){contentBlocks.push({kind,title:kind==='product'?'Products':'Upcoming events',layout:command[2].toLowerCase()});contentWrites.add(target);contentChanged=true;continue;}
+   if(at<0||contentWrites.has(target)||contentWrites.has(kind+':all')||blockRemove&&[...contentWrites].some(key=>key.startsWith(kind+':'))){unresolved.push(p);continue;}contentWrites.add(target);
+   if(blockRemove)contentBlocks=contentBlocks.filter(block=>block.kind!==kind);
+   else contentBlocks=contentBlocks.map((block,index)=>index===at?{...block,...blockTitle?{title:command[2]}:{layout:command[2].toLowerCase()}}:block);
+   contentChanged=true;continue;
+  }
   const block=/^(?:add|show|include)(?: my| our| the)? (products|events|upcoming events)(?: (?:section|screen))?(?: as (cards|rows))?$/i.exec(p);
   if(block){const kind=block[1].toLowerCase()==='products'?'product':'event',value={kind,title:kind==='product'?'Products':'Upcoming events',layout:(block[2]||'cards').toLowerCase()};const i=contentBlocks.findIndex(x=>x.kind===kind);if(i>=0)contentBlocks[i]={...contentBlocks[i],layout:value.layout};else contentBlocks.push(value);contentChanged=true;continue;}
   const faq=/^add (?:a )?(?:customer )?question "([^"<>]{1,160})" (?:with )?answer "([^"<>]{1,1200})"$/i.exec(p);
   if(faq){if(!faqWorking){unresolved.push(p);continue;}faqWorking=[...faqWorking,{question:faq[1],answer:faq[2]}];faqChanged=true;continue;}
+  const serviceAdd=/^add service "([^"<>]{1,120})" (?:with )?description "([^"<>]{1,600})"$/i.exec(p);
+  const serviceEdit=/^(?:change|update) service "([^"<>]{1,120})" (description|category|price label|duration label) (?:to|with) "([^"<>]{1,600})"$/i.exec(p);
+  const serviceRename=/^rename service "([^"<>]{1,120})" to "([^"<>]{1,120})"$/i.exec(p);
+  const serviceRemove=/^remove service "([^"<>]{1,120})"$/i.exec(p);
+  const serviceMove=/^move service "([^"<>]{1,120})" (before|after) service "([^"<>]{1,120})"$/i.exec(p);
+  if(serviceRename||serviceRemove||serviceMove){
+   const command=serviceRename||serviceRemove||serviceMove;
+   const indices=name=>serviceWorking.map((row,index)=>row.name?.trim().normalize('NFKC').toLocaleLowerCase('en')===name.trim().normalize('NFKC').toLocaleLowerCase('en')?index:-1).filter(index=>index>=0);
+   const from=indices(command[1]);if(from.length!==1){unresolved.push(p);continue;}
+   const at=from[0],write=serviceKeys[at]+':'+(serviceRename?'name':serviceRemove?'remove':'order');
+   if(serviceWrites.has(write)){unresolved.push(p);continue;}serviceWrites.add(write);
+   if(serviceRename){
+    if(indices(command[2]).length){unresolved.push(p);continue;}
+    serviceWorking=serviceWorking.map((row,index)=>index===at?{...row,name:command[2].trim()}:row);
+   }else if(serviceRemove){serviceWorking.splice(at,1);serviceKeys.splice(at,1);}
+   else{
+    const target=indices(command[3]);if(target.length!==1||target[0]===at){unresolved.push(p);continue;}
+    const [row]=serviceWorking.splice(at,1),[key]=serviceKeys.splice(at,1),to=target[0]-(at<target[0]?1:0)+(command[2].toLowerCase()==='after'?1:0);
+    serviceWorking.splice(to,0,row);serviceKeys.splice(to,0,key);
+   }
+   servicesChanged=true;continue;
+  }
+  if(serviceAdd||serviceEdit){
+   const name=(serviceAdd||serviceEdit)[1].trim().toLocaleLowerCase('en');
+   const positions=serviceWorking.map((row,index)=>row.name?.trim().toLocaleLowerCase('en')===name?index:-1).filter(index=>index>=0);
+   if(serviceAdd){if(positions.length){unresolved.push(p);continue;}
+    serviceWorking.push({name:serviceAdd[1].trim(),description:serviceAdd[2]});serviceKeys.push(nextServiceKey++);
+   }else{
+    if(positions.length!==1){unresolved.push(p);continue;}
+    const field={'price label':'priceLabel','duration label':'durationLabel'}[serviceEdit[2].toLowerCase()]||serviceEdit[2].toLowerCase();
+    const write=serviceKeys[positions[0]]+':'+field;if(serviceWrites.has(write)){unresolved.push(p);continue;}serviceWrites.add(write);
+    serviceWorking=serviceWorking.map((row,index)=>index===positions[0]?{...row,[field]:serviceEdit[3]}:row);
+   }
+   servicesChanged=true;continue;
+  }
+  const relative=/^move (services|gallery|contact|about|enquiries|booking requests) (above|below|before|after) (services|gallery|contact|about|enquiries|booking requests)$/i.exec(p);
+  if(relative){
+   const keys={services:'services',gallery:'gallery',contact:'contact',about:'business_profile',enquiries:'enquiry','booking requests':'booking_request'};
+   const section=keys[relative[1].toLowerCase()],target=keys[relative[3].toLowerCase()],order=enabledAppKeys(config);
+   if(!order.ok||section===target||![section,target].every(key=>order.keys.includes(key))){unresolved.push(p);continue;}
+   const value=order.keys.filter(key=>key!==section),at=value.indexOf(target);
+   value.splice(at+(/below|after/i.test(relative[2])?1:0),0,section);
+   operations.push({kind:'navigation',value});continue;
+  }
   const faqEdit=/^(?:change|update) (?:the )?answer to question "([^"<>]{1,160})" (?:to|with) "([^"<>]{1,1200})"$/i.exec(p);
   const faqRemove=/^remove (?:the )?question "([^"<>]{1,160})"$/i.exec(p);
   if(faqEdit||faqRemove){
@@ -251,12 +337,24 @@ function planAppVoiceInstructions(config,instruction){
  }
  if(contentChanged)operations.push({kind:'content_layout',value:contentBlocks});
  if(faqChanged)operations.push({kind:'public_collection',field:'faqs',value:faqWorking});
- if(unresolved.length)return {ok:false,needsClarification:true,unresolved,preserved,
+ if(servicesChanged)operations.push({kind:'services',value:serviceWorking});
+ if(unresolved.length)return {ok:/** @type {const} */ (false),needsClarification:true,unresolved,preserved,
   supportedOperations:operations,reason:"BUSY needs clarification before combining these changes: "+unresolved.join("; ")};
- if(!operations.length)return {ok:false,reason:"Nothing needs changing; your existing design stays as it is."};
- const targets=operations.map(op=>['appearance','text','contact','public_collection'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':'navigation');
- if(new Set(targets).size!==targets.length)return {ok:false,needsClarification:true,reason:'Choose one instruction for each app setting before preparing the changes.'};
+ if(!operations.length)return {ok:/** @type {const} */ (false),reason:"Nothing needs changing; your existing design stays as it is."};
+ const targets=operations.map(op=>['appearance','text','contact','public_collection'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':op.kind==='services'?'services':op.kind==='photo_description'?'photo_description:'+op.index:'navigation');
+ if(new Set(targets).size!==targets.length)return {ok:/** @type {const} */ (false),needsClarification:true,reason:'Choose one instruction for each app setting before preparing the changes.'};
  const result=proposeCoordinatedAppChanges(config,operations);
  return {...result,instruction:phrase,preserved};
 }
 export {MAX_CHANGES,TEXT_FIELDS,proposeCoordinatedAppChanges,planAppVoiceInstructions};
+
+// Re-prepare the ORIGINAL proposal after an owner requests a suggested repair.
+// No save, standalone edit engine or change to unrelated reviewed operations.
+function amendAppQualityProposal(config,proposal,repair){
+ if(!proposal?.ok||repair?.kind!=='appearance'||
+  !['headerStyle','layoutDensity'].includes(repair.field)||
+  proposal.operations.some(op=>op.kind==='restore_appearance'))
+  return {ok:/** @type {const} */ (false),reason:'Prepare a current supported design proposal before adjusting it.'};
+ return proposeCoordinatedAppChanges(config,[...proposal.operations.filter(op=>!(op.kind==='appearance'&&op.field===repair.field)),repair]);
+}
+export {amendAppQualityProposal};

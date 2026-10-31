@@ -1,3 +1,4 @@
+import {PUBLIC_GALLERY_LIMIT,publicAppGallery} from "../src/core/publicAppGallery.mjs";
 import fs from "node:fs";
 
 const readJson = (path) => JSON.parse(fs.readFileSync(path, "utf8"));
@@ -53,6 +54,7 @@ const miniAppsScreenSource = fs.readFileSync(
   "src/screens/miniApps.js",
   "utf8"
 );
+const appGallerySurfaceSource=fs.readFileSync("src/screens/appGallerySurface.js","utf8");
 const appBuilderMigrationSource = fs.readFileSync(
   "supabase/migrations/20261007231500_v3_54_business_app_builder_intelligence.sql",
   "utf8"
@@ -170,7 +172,7 @@ const checks = [
   ["V3.55 loyalty reward cannot be invented", miniAppsSource.includes("loyaltyRewardSupported") && miniAppsSource.includes("Never invent a reward") && busyCommandSource.includes("Never invent the target, reward or terms")],
   ["V3.55 signed-in customers receive loyalty progress", miniAppsSource.includes("loyaltyProgressFor") && miniAppsSource.includes("loyaltyProgress") && miniAppsScreenSource.includes("Record 1 eligible loyalty stamp")],
   ["V3.55 booking requests open the real BUSY booking", controllerSource.includes("openMiniAppLinkedBooking") && miniAppsScreenSource.includes("Open BUSY booking to confirm") && controllerSource.includes('bridgeState:"booking_confirmed"') && controllerSource.includes('miniAppsRequest("owner_booking_revision"') && controllerSource.includes('miniAppsRequest("update_request_status"') && controllerSource.includes('miniAppsRequest("mark_request_linked"')],
-  ["V3.55 customer preview renders real branding media", miniAppsScreenSource.includes("profile?.assets?.hero?.uri") && miniAppsScreenSource.includes("gallery.slice(0, 12)")],
+  ["V3.55 customer preview renders real branding media", miniAppsScreenSource.includes("profile?.assets?.hero?.uri") && miniAppsScreenSource.includes("<AppGallerySurface") && appGallerySurfaceSource.includes("publicAppGallery(raw)") && appGallerySurfaceSource.includes(".slice(0,PUBLIC_GALLERY_LIMIT)") && PUBLIC_GALLERY_LIMIT===15 && publicAppGallery(Array.from({length:20},(_,i)=>({uri:"https://example.test/"+i,approved:true}))).length===15 && publicAppGallery([{uri:"https://example.test/private",approved:false}]).length===0],
   ["V3.55 payments remain deliberately planned", appJourneyMigrationSource.includes("Payments are not enabled in V3.55") && busyCommandSource.includes("Payments/deposits remain planned")],
   ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
   ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],

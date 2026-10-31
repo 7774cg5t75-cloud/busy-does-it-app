@@ -2,6 +2,21 @@
 
 **Standing owner development instruction (12 October 2026).** Apply in future Busy Does It development sweeps, especially while completing the **App Builder first** and **Website Builder second**. This policy is intended to persist across ChatGPT sessions and future branches; include it by branching from the latest verified development branch.
 
+## Permanent architecture rule — Shared Intelligence, Separated Responsibilities (21 October 2026)
+
+Owner-approved product-master reference: private **V22.42 (retaining Section 56)**; technical reference: root `ARCHITECTURE.md` under the matching permanent architecture principle.
+
+- Deliver one useful conversational Busy with reusable, business-scoped Business Brain/Brand DNA, approved facts, customer/work context, permissions and outcome evidence. Don't create disconnected versions of these truths.
+- Keep clearly accountable specialist domains for creative preparation, marketing, customer communications/CRM/Work, app/website composition, quotes/payments and their trusted provider execution. Shared intelligence supplies facts and recommendations; it does **not** silently obtain authority to send, publish, spend, book, mutate or take payments.
+- Do **not** turn Business Brain, AppController, shared hooks or an orchestration layer into a giant module every unrelated feature must depend on. Prefer bounded, testable contracts, controlled data flows, independently understandable domain modules and reused canonical services.
+- For each feature sweep identify the owner of facts, approval, writes and external effects; check touched-code responsibilities, fan-in/fan-out, coupling, copy-pasted business rules and static/dynamic dependencies. At approximately five-major-sweep audits, inspect oversized files/components and show concrete incremental refactors and regression evidence; don't rewrite just to shorten files.
+- Protect tenant/owner boundaries, source identity, revision/CAS, stale-work denial, data portability, backward compatibility, current owner edits and result honesty in each domain's real trusted contract. Do not misstate source tests as hosted integration proof.
+
+
+## Approved future visual direction — Midnight Intelligence (owner decision 21 October 2026)
+
+Reference private Product Master **V22.43, Section 61** and the matching non-confidential `ARCHITECTURE.md` direction. Preserve premium near-black/midnight UI with exceptionally subtle stars, constellation links, restrained area-specific aurora tones and a distinctive non-cartoon Busy ring/presence. All effects are subordinate to legible, navigable business content; use shared tokens/components and keep page responsibilities separated from Business Brain and AppController. Actual listening/working/completed motion must be bound to truthful workflow state. Respect Reduce Motion, keyboard/screen readers, contrast, low-power/performance and correct six-area navigation. This is **future design approval only**, not permission for a broad code redesign, deployment, paid build or release. Review representative screens and motion with the owner before implementation; validate actual device/browser behaviour separately.
+
 ## Mandatory two-master preflight (owner decision, 14 October 2026)
 
 Before planning or beginning **any substantial sweep**, read both (1) the **latest saved Busy Does It product master** (the owner's versioned Word master, normally in ChatGPT Library or supplied by the owner) and (2) GitHub **`ARCHITECTURE.md`**, alongside the latest relevant source, prior sweep results and actual CI/staging evidence. Never rely on an outdated file copy or assume the two stay synced automatically. If the product master is inaccessible, disclose that limitation rather than claiming it was checked.
@@ -49,3 +64,26 @@ This preflight is a **required step**, not a suggestion. The owner prefers takin
 ## Definition of a successful sweep
 
 Meaningful functional or maintainability improvements, no newly introduced regression according to available automated checks, transparent remaining uncertainty, and no additional unapproved costs. At ~five-sweep intervals, include architectural health as a first-class deliverable.
+
+## Permanent development continuity — V22.63 Section73 (30 October2026)
+
+The canonical standing arrangements are in root [AGENTS.md — Permanent development continuity](../AGENTS.md#permanent-development-continuity--v2263-section73). They consolidate the earlier Phase67 build-first policy: the owner can usually make short decisions/approvals but is not routinely available for extensive manual/device testing. Maintain urgency in building, not urgency in releasing.
+
+Apply these arrangements to the per-sweep gates above: proceed with authorised implementation and proportionate automated verification; when a workstream needs acceptance or separate permission, checkpoint it and continue another independent safe task within scope. Seek one concise, operation-specific approval when necessary, never infer consent from silence, and preserve all security/spending/deployment/customer-action boundaries. Plan comprehensive owner end-to-end acceptance at meaningful integrated milestones; an essential unsatisfied check blocks that activation rather than unrelated development. Report source/local/hosted/native evidence distinctly and preserve recoverable commits within finite task limits.
+
+### Historical Phase67 authority note
+
+Product authority for this mission is the accessible genuine V22.48 original plus explicit Phase67 implementation instructions. V22.49's original is unavailable and not reconstructed. The approved visual direction may now be implemented in original app chrome/Home/settings while preserving corporate identity, six destinations, source/tenant approvals, all existing business records and owner-created website/app appearances. Device appearance preferences must remain separate from business Brand DNA and account snapshots.
+
+## Phase68 — genuine V22.49 policy authority
+
+The newly supplied original V22.49 was actually opened and verified (provenance in master-access manifest). Its build-first reaffirmation supports substantial connected implementation and independent automated checks while deferring exhaustive founder/manual/device/hosted acceptance to stabilisation. Fix critical defects promptly, record failed and unavailable checks, and retain all thorough pre-release, security, privacy and deployment gates. This supersedes Phase67's missing-original limitation, without granting hosted rollout authority.
+
+
+## V22.52 trusted quote recipient boundary — 25 October 2026
+
+Current private master provenance is recorded in CODEX_MASTER_ACCESS.md. Approved explicit recipient/version review and fresh original-server verification do not grant customer disclosure. Owner-private binding, consumer access, presentation, provider evidence, structured response, agreement and booking remain separate finite authorities. Keep recipient/access/response gates disabled, SQL abort-fused, private originals outside Git, and hosted/JWT/device/retention acceptance separately reviewed. See TRUSTED_QUOTE_BINDING_2026_10_25.md for current locally verified scope.
+
+## Historical-audit continuity — 30 October2026
+
+Use `scripts/audit-historical-source.mjs` for a tracked-tree inventory and redacted static signals, and `scripts/audit-historical-syntax.mjs` for an explicit all-source parse selection. Detailed signal locations/proofs stay in ignored/private local artifacts. Static matches are triage candidates, not confirmed vulnerabilities or permission acceptance. Continue the registered `historical-security-boundaries` regression and disposable PostgreSQL suites. A new direct model route must have reviewed central admission; never convert the legacy-denial helper into an environment-enabled bypass. Follow the published audit coverage/backlog rather than claiming complete historical deep review from a green scan. Existing deployment, privacy, spending and release gates remain unchanged.

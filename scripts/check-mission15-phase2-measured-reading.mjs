@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {reviewWebsiteVisualCheck,CHANNEL} from '../src/core/websiteVisualCheck.mjs';
+import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports} from '../src/core/websiteMeasuredDesignCoach.mjs';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+const {buildWebsiteDraft,applyWebsiteLayoutChange,renderWebsiteHtml}=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyWebsiteLayoutChange','renderWebsiteHtml']);
+const d=buildWebsiteDraft({businessId:'business-a',brandBrain:{websiteReady:true,websiteBrief:{businessName:'Example',businessType:'Workshop',description:'Owner introduction',services:[{name:'Survey',description:'Discuss requirements'}],email:'hello@example.test'}}});
+const msg={channel:CHANNEL,key:'read',viewport:390,width:390,overflow:0,images:0,missingAlt:0,unloadedImages:0,smallTargets:0,badAnchors:0,clippedHeadings:0,headings:3,sections:3,lowContrast:0,contrastUnknown:0,contrastChecked:6,smallBodyText:1,textBlocks:3,smallTextSectionIds:['services']};
+const report=reviewWebsiteVisualCheck(msg,'read');assert.ok(report);const hint=recommendMeasuredWebsiteChange({draft:d,pageId:'home',report});assert.ok(hint);assert.equal(hint.operation.field,'mobileBodyScale');assert.equal(hint.operation.sectionId,'services');
+const out=applyWebsiteLayoutChange(d,hint.operation);assert.equal(out.applied,true,out.reason);assert.ok(renderWebsiteHtml(out.draft,'home').includes('owner-mobile-body-large'));assert.equal(out.draft.sections.find(s=>s.id==='hero').appearance?.mobileBodyScale,undefined);
+assert.equal(recommendMeasuredWebsiteChange({draft:{...d,theme:{...d.theme,lockedSections:['services']}},pageId:'home',report}),null);
+assert.equal(recommendMeasuredWebsiteChange({draft:{...d,ownerDesignFeedback:[{draftId:d.id,pageId:'home',changeId:hint.id,choice:'disliked'}]},pageId:'home',report}),null);
+assert.equal(recommendMeasuredWebsiteChange({draft:d,pageId:'home',report:reviewWebsiteVisualCheck({...msg,viewport:768,width:768},'read')}),null,'No fake tablet-only control');
+assert.equal(recommendMeasuredWebsiteChange({draft:d,pageId:'home',report:reviewWebsiteVisualCheck({...msg,smallTextSectionIds:['foreign']},'read')}),null);
+assert.equal(reviewWebsiteVisualCheck({...msg,smallTextSectionIds:['services','hero']},'read'),null,'Targets cannot exceed measured counter');
+const legacy={...report,targets:{}};assert.equal(recommendMeasuredWebsiteChange({draft:d,pageId:'home',report:legacy}),null,'No section guessing without measured targets');
+const after=reviewWebsiteVisualCheck({...msg,smallBodyText:0,smallTextSectionIds:[]},'read');assert.equal(compareWebsiteVisualReports(report,after).improved,true);
+assert.equal(compareWebsiteVisualReports(report,{...after,counts:{...after.counts,textBlocks:2}}).noNewMeasuredProblems,false);
+console.log('PASS synthetic small-text observation -> validated current-section candidate -> real first-party HTML; owner locks/preferences and regression gates. No browser measurements claimed.');

@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient} from "jsr:@supabase/supabase-js@2";
+import {requireCentralAiAdmission,legacyAiAdmissionStatus} from '../_shared/legacyAiAdmission.mjs';
+import {createClient} from '../_shared/supabaseClient.ts';
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const OPENAI_TRANSCRIPTIONS_URL = "https://api.openai.com/v1/audio/transcriptions";
@@ -582,6 +582,7 @@ function safeContext(value: any) {
 }
 
 async function transcribeAudio(file: File) {
+ requireCentralAiAdmission();
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured.");
   if (!file.size || file.size > MAX_AUDIO_BYTES) {
@@ -747,6 +748,7 @@ ${JSON.stringify(context)}`;
 }
 
 async function routeOperator(text: string, context: any, conversation: any[]) {
+ requireCentralAiAdmission();
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured.");
   const model = Deno.env.get("OPENAI_COMMAND_MODEL") || DEFAULT_COMMAND_MODEL;
@@ -880,6 +882,7 @@ async function routeOperator(text: string, context: any, conversation: any[]) {
  * One explicit, metered request is needed; disabled by default.
  */
 async function interpretWebsitePageLanguage(request:Request,body:any){
+ requireCentralAiAdmission();
  if(Deno.env.get("BUSY_WEBSITE_PAGE_INTENT_ENABLED")!=="true")
   return json(503,{error:"Natural website language interpretation is not enabled yet. You can still type exact edits."});
  if(body?.ownerConsent!==true)return json(400,{error:"Confirm the AI interpretation request first."});
@@ -967,6 +970,7 @@ Deno.serve(async (request: Request) => {
   }
   if (request.method !== "POST") return json(405, { error: "POST required" });
 
+  if(!legacyAiAdmissionStatus().allowed)return json(503,{error:"AI preparation is unavailable until secure cost admission is connected. Supported manual preparation remains available."});
   try {
     const contentType = request.headers.get("content-type") || "";
     let transcript = "";
@@ -1033,7 +1037,7 @@ Deno.serve(async (request: Request) => {
         if(audio.size>9_000_000||audio.size<100||
           !["audio/mp4","audio/m4a","audio/x-m4a","audio/aac","application/octet-stream",""].includes(audio.type))
           return json(413,{error:"Voice recording must be M4A and under 9 MB."});
-        const rawToken=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"");
+        const rawToken=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
         const url=Deno.env.get("SUPABASE_URL")||"";
         const key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
         if(!rawToken||!url||!key)return json(401,{error:"Sign in again before using voice editing."});

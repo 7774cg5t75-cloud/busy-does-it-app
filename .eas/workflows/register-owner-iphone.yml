@@ -1,0 +1,16 @@
+# BUSY Owner Preview: register one physical iPhone, without building or publishing.
+# Intentionally dormant on ordinary code/workflow commits.
+# Starts only when the owner separately approves a change to the request file.
+# This source file contains no Apple identifiers, passwords, UDIDs or tokens.
+name: BUSY - Register owner iPhone only
+
+on:
+  push:
+    branches:
+      - codex/builder-mission15-design-advancement
+    paths:
+      - .eas/owner-device-registration/request.txt
+
+jobs:
+  register_owner_iphone:
+    type: apple-device-registration-request

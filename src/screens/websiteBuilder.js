@@ -1,3 +1,21 @@
+import {BusyOwnerCorrection} from '../components/BusyOwnerCorrection';
+import {BusyGoalRecords} from '../components/BusyGoalRecords';
+import {WebsiteRequestRecovery} from '../components/WebsiteRequestRecovery';
+import {planReviewedWebsiteGoal as planBusyGoal} from '../core/governedBuilderProposal.mjs';
+import {WebsiteGroupedReview} from '../components/WebsiteGroupedReview';
+import {prepareWebsiteRequest} from '../core/websiteRequestPlan.mjs';
+import {ConnectedWebsiteHistory} from '../components/ConnectedWebsiteHistory';
+import {WorkflowStatus} from '../components/WorkflowChrome';
+import {PremiumHomepagePreview} from './premiumHomepagePreview';
+import {appColors as C} from "../theme/appearance.mjs";
+import {useOwnerEditNavigation} from './useOwnerEditNavigation';
+import {websiteMovementOptions,resolveWebsiteMovement} from "../core/websiteVisualMovement.mjs";
+import {BuilderTalkExplore} from './builderTalkExplore';
+import {BuilderExploreEditReview} from './builderExploreEditReview';
+import {currentBuilderExplore} from '../core/builderExplore.mjs';
+import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
+import {WebsiteCompositionReview} from './websiteCompositionReview';
+import {prepareReviewedWebsiteComposition,reviewedWebsiteCompositionCurrent} from '../core/websiteReviewedComposition.mjs';
 import {BusinessContentEditor} from './businessContentEditor';
 import {coordinatedWebsiteAlternatives} from "../core/websiteCoordinatedAlternatives.mjs";
 import {beginWebsiteMeasurementAttempt,currentWebsiteMeasurementAttempt} from "../core/websiteMeasurementAttempt.mjs";
@@ -7,7 +25,7 @@ import { Text, TextInput, View, Alert } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { styles } from "../theme/styles";
-import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
+import { Details, Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
@@ -31,7 +49,7 @@ import { websiteOnboardingCoach } from "../core/websiteOnboardingCoach.mjs";
 import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
 import { websiteRegionalReadiness } from "../core/websiteRegionalReadiness.mjs";
 import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
-import { renderWebsiteHtml,applyWebsiteLayoutChange } from "../domain/websiteBuilder";
+import { renderWebsiteHtml,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
 import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,ownerDesignPreference,describeWebsiteDesignComparison} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteAppServiceCopy} from "./websiteAppServiceCopy";
@@ -56,6 +74,8 @@ import {inspectCurrentWebsiteCandidateV3240}
  from "../core/websiteCurrentCandidateV3240.mjs";
 
 function WebsiteBuilder({ s }) {
+  const [explore,setExplore]=React.useState(false),[exploreHandoff,setExploreHandoff]=React.useState(null);
+  const approvedRecords=useApprovedBuilderRecords(s.ownerSession?.userId,s.cloudWorkspace?.businessId);
   const draft = s.websiteDraft;
   const brand = s.brandBrain || {};
   const [instruction, setInstruction] = React.useState("");
@@ -266,16 +286,30 @@ function WebsiteBuilder({ s }) {
     if (applied) setInstruction("");
   };
 
+  const exploreContext={kind:'website',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,project:draft};
+  const exploreLive=React.useRef(null);exploreLive.current=exploreContext;
+  if(explore)return <Shell s={s} title="Website • Talk & Explore" subtitle="Nothing will be changed"><BuilderTalkExplore context={exploreContext} onExit={()=>setExplore(false)} onHandoff={handoff=>{
+    if(!currentBuilderExplore({ok:true,source:handoff.source},exploreLive.current))return false;
+    setExploreHandoff(handoff);setExplore(false);return true;
+  }}/></Shell>;
   return (
     <Shell
       s={s}
       title="Website Builder"
       subtitle="Tell BUSY about your business, preview your website and make it your own."
-      brandCue="BUSY DOES IT • Website Builder"
+      brandCue="Create privately. Review before publishing."
     >
-      <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
+      <PremiumHomepagePreview key={['premium-sample',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')} ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} approvedFacts={brand.websiteBrief?{businessName:brand.websiteBrief.businessName||'',businessType:brand.websiteBrief.businessType||'',description:brand.websiteBrief.description||'',serviceArea:brand.websiteBrief.serviceArea||'',email:brand.websiteBrief.email||'',phone:brand.websiteBrief.phone||'',services:(Array.isArray(brand.websiteBrief.services)?brand.websiteBrief.services:[]).map(r=>({id:r.id,name:r.name,description:r.description||''}))}:null}/>
+      <Button label="Talk & Explore — no project changes" disabled={!draft||!!s.websiteAction} onPress={()=>{
+        const current=()=>exploreLive.current.project===exploreContext.project&&exploreLive.current.ownerId===exploreContext.ownerId&&exploreLive.current.businessId===exploreContext.businessId;
+        if(!current())return;
+        const open=()=>{if(current())setExplore(true);};
+        if(s.requestOwnerEditTransition)s.requestOwnerEditTransition(open);else open();
+      }}/>
+      {exploreHandoff?<BuilderExploreEditReview context={exploreContext} handoff={exploreHandoff} onCancel={()=>setExploreHandoff(null)} onApply={s.applyWebsitePageInstruction}/>:null}
+      <BusinessContentEditor onApprovedRecords={approvedRecords.onApprovedRecords} key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
-        onCompose={(_,choice)=>s.applyWebsiteFieldChange(choice.remove?{action:'remove-content-section',sectionId:choice.kind==='product'?'products':'events'}:{action:'content-section',sectionId:choice.kind==='product'?'products':'events',title:choice.kind==='product'?'Products':'Upcoming events',layout:choice.layout,featuredId:choice.featuredId,previewFeed:choice.previewFeed})}/>
+        onCompose={(_,choice)=>s.applyWebsiteFieldChange(choice.remove?{action:'remove-content-section',sectionId:choice.kind==='product'?'products':'events'}:{action:'content-section',sectionId:choice.kind==='product'?'products':'events',title:draft?.sections?.find(section=>section.id===(choice.kind==='product'?'products':'events'))?.title||(choice.kind==='product'?'Products':'Upcoming events'),layout:choice.layout,featuredId:choice.featuredId,previewFeed:choice.previewFeed})}/>
       <Card eyebrow="Your website"
         title={journey.isVerified ? "Your website is live and verified" :
           s.websitePublishingView?.liveDeployment ? "Website published • connection being verified" :
@@ -311,7 +345,7 @@ function WebsiteBuilder({ s }) {
         {draft ? (
           <Button label="Preview my website draft" onPress={() => s.go("websitePreview")} />
         ) : null}
-        {hostedPreview?.id && journey.nextAction !== "review" ? (
+        {hostedPreview?.id ? (
           <Button label={hostedPreviewOutdated?
             "View previous hosted version (not latest)":"View my hosted website again"}
             primary={!hostedPreviewOutdated && journey.nextAction !== "brand"}
@@ -323,7 +357,7 @@ function WebsiteBuilder({ s }) {
           </Text>
         ) : null}
       </Card>
-      <UniversalBuilderPlanReview surface="website"
+      <UniversalBuilderPlanReview surface="website" approvedContent={approvedRecords.feed}
         businessId={s.cloudWorkspace?.businessId||""}
         businessType={draft?.businessType||brand?.websiteBrief?.businessType||s.trade||""}
         website={draft} app={s.miniAppsView?.app}
@@ -607,12 +641,7 @@ function WebsiteBuilder({ s }) {
         </Card>
       ):null}
       {s.websiteBuilderNotice ? (
-        <Card
-          eyebrow="BUSY website update"
-          title="Latest builder message"
-          body={s.websiteBuilderNotice}
-          tone="blue"
-        />
+        <WorkflowStatus title="Website update" body={s.websiteBuilderNotice}/>
       ) : null}
       {draft ? (
         <>
@@ -623,6 +652,7 @@ function WebsiteBuilder({ s }) {
             footer={s.websitePublishingView?.liveDeployment ? "A separate approved version is currently live." : "This editor draft is not public until an exact hosted version is approved."}
             tone="blue"
           >
+            <Details label="Current website and revision"><MetricRow left="Website reference" right={draft.id}/><MetricRow left="Private draft revision" right={String(draft.generation)}/><Text style={styles.workspaceMeta}>These identify the draft you are editing; a public deployment has separate approval and revision evidence.</Text></Details>
             <MetricRow left="Pages" right={String(draft.pages?.length || 1)} />
             <Button label="Preview website" primary onPress={() => s.go("websitePreview")} />
           </Card>
@@ -809,10 +839,10 @@ function WebsiteBuilder({ s }) {
               </>
             ) : null}
           </Card>
-          <AppToWebsiteDesignTransfer website={draft}
+          <AppToWebsiteDesignTransfer key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app} businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyAppDesignToWebsite}/>
-          <BusinessBrandDnaPreview website={draft}
+          <BusinessBrandDnaPreview key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             catalog={s.miniAppsView?.catalog||s.miniAppsStatus?.catalog||[]}
@@ -827,23 +857,23 @@ function WebsiteBuilder({ s }) {
             deliveryProof={deliveryProof}
             businessType={draft?.businessType||brand?.websiteBrief?.businessType||s.trade||""}
             description={brand?.websiteBrief?.description||""}/>
-          <WebsiteAppTypographyMatch website={draft}
+          <WebsiteAppTypographyMatch key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyBusinessAppTypographyToWebsite}/>
-          <WebsiteAppBrandMatch website={draft}
+          <WebsiteAppBrandMatch key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyBusinessAppBrandToWebsite}/>
-          <WebsiteAppServiceCopy website={draft}
+          <WebsiteAppServiceCopy key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyMissingAppServicesToWebsite}/>
-          <WebsiteContentEditor key={[s.ownerSession?.userId,draft.businessId,draft.id].join(':')} draft={draft} onApply={s.applyWebsiteFieldChange}
+          <WebsiteContentEditor key={[s.ownerSession?.userId,draft.businessId,draft.id].join(':')} draft={draft} ownerState={s} onApply={s.applyWebsiteFieldChange}
             suggestions={draft.businessId===s.cloudWorkspace?.businessId&&s.miniAppsView?.app?.business_id===draft.businessId?
               reviewEnquiryContentGaps({businessId:draft.businessId,appId:s.miniAppsView.app.id,requests:s.miniAppsView.requests||[],config:{publicProfile:{faqs:(draft.sections||[]).filter(section=>section.type==='faq').flatMap(section=>(section.items||[]).map(item=>({question:item.title})))}}}).suggestions:[]}/>
           <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
-          <WebsitePagesEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id].join(":")} draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
+          <WebsitePagesEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id].join(":")} draft={draft} ownerState={s} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
         </>
       ) : null}
       <Button label={showWebsiteDetails ? "Hide extra website settings" : "More website settings"}
@@ -965,10 +995,16 @@ function WebsiteBuilder({ s }) {
 
 function WebsitePreview({ s }) {
   const draft = s.websiteDraft;
+
   const [selectedPageId,setSelectedPageId] = React.useState("home");
   const [tapEditMode,setTapEditMode]=React.useState(false);
   const [previewSize,setPreviewSize]=React.useState("full");
-  const [selectedEdit,setSelectedEdit]=React.useState(null);
+  const [selectedEdit,setSelectedEditState]=React.useState(null);
+  const selectedWordingDirty=React.useRef(false);
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:draft,projectId:draft?.id,revision:draft?.generation},()=>{selectedWordingDirty.current=false;setSelectedEditState(null);});
+  const [pendingEdit,setPendingEdit]=React.useState(null);
+  const setSelectedEdit=value=>{if(selectedWordingDirty.current){setPendingEdit({value,draft});return;}setSelectedEditState(value);};
+  React.useEffect(()=>{selectedWordingDirty.current=false;setSelectedEditState(null);setPendingEdit(null);},[s.ownerSession?.userId,s.cloudWorkspace?.businessId]);
   const [visualCheckOn,setVisualCheckOn]=React.useState(false);
   const [visualCheckResult,setVisualCheckResult]=React.useState(null);
   const [viewportEvidence,setViewportEvidence]=React.useState(null);
@@ -986,11 +1022,19 @@ function WebsitePreview({ s }) {
   const [showOriginalComparison,setShowOriginalComparison]=React.useState(false);
   const [pageInstruction,setPageInstruction]=React.useState("");
   const [pagePlanPreview,setPagePlanPreview]=React.useState(null);
+  const [pageRequest,setPageRequest]=React.useState(null);
+  const [pageGoal,setPageGoal]=React.useState(null);
+  const goalInputEpoch=React.useRef(0),livePageGoal=React.useRef(pageGoal);livePageGoal.current=pageGoal;
   const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
+  const [pageSaveBusy,setPageSaveBusy]=React.useState(false);const pageSaveFlight=React.useRef(false);
+  const pageSaveAlive=React.useRef(true);React.useEffect(()=>{pageSaveAlive.current=true;return()=>{pageSaveAlive.current=false;};},[]);
+  const pageSaveCurrent=React.useRef(null);pageSaveCurrent.current={instruction:pageInstruction,preview:pagePlanPreview,owner:s.ownerSession?.userId,business:s.cloudWorkspace?.businessId};
   const [pageVoiceExpanded,setPageVoiceExpanded]=React.useState(false);
   const [pageInterpretBusy,setPageInterpretBusy]=React.useState(false);
   const [pageConversation,setPageConversation]=React.useState(null);
+  const [showRejectedPageIdeas,setShowRejectedPageIdeas]=React.useState(false);
+  const pageIdeaSource=React.useRef(null);pageIdeaSource.current={draft,pageId:selectedPageId,ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId};
   const [showRecoveryTools,setShowRecoveryTools]=React.useState(false);
   const [confirmRecoveryRestore,setConfirmRecoveryRestore]=React.useState(false);
   React.useEffect(()=>{
@@ -1010,15 +1054,20 @@ function WebsitePreview({ s }) {
   },[previewSize]);
   React.useEffect(()=>setViewportEvidence(null),[selectedPageId,draft?.id,draft?.generation]);
   React.useEffect(()=>setConfirmRecoveryRestore(false),[draft?.id,draft?.generation]);
-  React.useEffect(()=>{setPagePlanPreview(null);setPagePlanNotice("");setPageInstruction("");
-    setPageConversation(null);setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId]);
+  const instructionIdentity=React.useRef('');
+  React.useEffect(()=>{const key=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,selectedPageId]);
+    setPageGoal(null);setPagePlanPreview(null);setPagePlanNotice('');if(instructionIdentity.current!==key){setPageInstruction('');setPageRequest(null);}instructionIdentity.current=key;
+    setPageConversation(null);setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
+  const requestPageInstruction=(value,after=()=>{})=>{const epoch=++goalInputEpoch.current,identity=instructionIdentity.current,owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;const isCurrent=()=>pageSaveAlive.current&&goalInputEpoch.current===epoch&&instructionIdentity.current===identity&&pageSaveCurrent.current.owner===owner&&pageSaveCurrent.current.business===business;const apply=()=>{if(!isCurrent())return false;setPageInstruction(value);setPageGoal(null);setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice('');after();return true;};if(livePageGoal.current?.contextKind==='enquiries'){if(typeof s.requestOwnerEditTransition!=='function')return false;return s.requestOwnerEditTransition(apply,{isCurrent});}return apply();};
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
   const sourceKey=[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,
     draft?.generation,activePage?.id||"home"].join(":");
   const candidateIsCurrent=currentWebsiteDesignCandidate(designCandidate,{
-    businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",ownerId:s.ownerSession?.userId||""});
+    businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",ownerId:s.ownerSession?.userId||""})&&
+    (!designCandidate?.compositionEvidence||reviewedWebsiteCompositionCurrent(designCandidate.compositionEvidence,
+      {website:draft,app:s.miniAppsView?.app,businessId:s.cloudWorkspace?.businessId}));
   const inspectionKey=["review",captureEpoch.current,"original",captureSequence.original].join(":");
   const candidateKey=designCandidate?
     ["review",captureEpoch.current,"candidate",captureSequence.candidate].join(":"):"";
@@ -1061,6 +1110,7 @@ function WebsitePreview({ s }) {
   },[requestedReview,previewSize,sourceKey,candidateIsCurrent]);
   const candidateHtml=candidateIsCurrent&&designCandidate?.draft
     ?renderWebsiteHtml(designCandidate.draft,activePage?.id||"home"):"";
+  const editableConceptHtml=draft&&tapEditMode?renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}):"";
   const unscaledInteractiveHtml=draft&&candidateIsCurrent
     ?showOriginalComparison?(visualCheckOn?
       makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey):liveConceptHtml):
@@ -1068,7 +1118,7 @@ function WebsitePreview({ s }) {
     :draft&&visualCheckOn
     ?makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey)
     :draft&&tapEditMode
-    ?makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}))
+    ?makeTapToEditHtml(editableConceptHtml,websiteMovementOptions(draft,activePage?.id||"home",sourceKey,editableConceptHtml))
     :liveConceptHtml;
   const interactiveHtml=unscaledInteractiveHtml
     ?withWebsitePreviewViewport(unscaledInteractiveHtml,previewSize):"";
@@ -1122,6 +1172,11 @@ function WebsitePreview({ s }) {
       // Selection alone never opens a large editing modal. The context
       // toolbar is the single obvious action surface; every message is
       // revalidated against the exact enabled website page and element.
+      if(raw?.channel==="busy.website.section-move.v1"){
+        const movement=resolveWebsiteMovement(draft,activePage?.id||"home",sourceKey,raw,editableConceptHtml);
+        if(movement)s.applySelectedWebsiteInstruction?.(movement);
+        return;
+      }
       const resolved=resolveTapToolbarAction(draft,activePage?.id||"home",raw);
       if(resolved)setSelectedEdit({...resolved.selection,
         initialMode:resolved.action,draftId:draft.id,
@@ -1174,17 +1229,31 @@ function WebsitePreview({ s }) {
         captureSource:"current_private_webview_dom",
         original:visualCheckResult,candidate:candidateCheckResult}]
     }):null;
-  const coordinatedAdvice=coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult);
+  const coordinatedAdvice=React.useMemo(()=>coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult,{renderedHtml:liveConceptHtml}),[draft,activePage?.id,visualCheckResult,liveConceptHtml]);
+  const rejectedPageIdeas=React.useMemo(()=>showRejectedPageIdeas?coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult,{includeRejected:true,renderedHtml:liveConceptHtml}).filter(idea=>idea.ownerPreference==='disliked'):[],[draft,activePage?.id,visualCheckResult,showRejectedPageIdeas,liveConceptHtml]);
+  const pageIdeaBinding=pageIdeaSource.current;
+  const showPageIdeaAgain=idea=>{
+    if(pageIdeaSource.current!==pageIdeaBinding||!originalReportIsCurrent||designCandidate)return false;
+    const saved=s.recordMeasuredWebsiteFeedback?.({draftId:draft.id,pageId:activePage?.id,changeId:idea.id,operation:idea.operation,expectedSource:draft,choice:'liked'});
+    if(saved)setDesignCandidateNotice('This idea can be suggested again. Your website layout is unchanged; compare and approve separately.');
+    return saved;
+  };
   const tryCandidate=(advice=layoutAdvice)=>{
     if(!advice||!draft)return;
-    const result=applyWebsiteLayoutChange(draft,advice.operation);
+    if(selectedWordingDirty.current){setDesignCandidateNotice('Your selected wording is not saved. Keep editing, then save or discard it in the text editor before comparing a different layout.');return;}
+    if(advice.compositionEvidence){
+      const prepared=prepareReviewedWebsiteComposition(advice.compositionEvidence,{website:draft,app:s.miniAppsView?.app,
+        businessId:s.cloudWorkspace?.businessId},{layoutEdit:applyWebsiteLayoutChange});
+      if(!prepared.ok){setDesignCandidateNotice(prepared.reason);return;}advice=prepared;
+    }
+    const result=advice.compositionEvidence?{applied:true,draft:advice.draft}:applyWebsiteLayoutChange(draft,advice.operation);
     if(!result?.applied){
       setDesignCandidateNotice(result?.reason||"That layout alternative could not be prepared.");
       return;
     }
     // Don't modify the owner's real draft. Recheck the entire rendered private
     // candidate on the SAME page and viewport, then offer an explicit Keep.
-    setDesignCandidate({...advice,draft:result.draft,pageId:activePage?.id,
+    setDesignCandidate({...advice,sourceDraft:draft,draft:result.draft,pageId:activePage?.id,
       businessId:s.cloudWorkspace?.businessId,websiteId:draft.id,ownerId:s.ownerSession?.userId||"",
       baseGeneration:draft.generation});
     const baseline=recordPrivateWebsiteCandidateWidthV3239(null,{
@@ -1203,25 +1272,28 @@ function WebsitePreview({ s }) {
     setShowOriginalComparison(false);
     if(designCandidate&&draft&&s.recordMeasuredWebsiteFeedback)
       s.recordMeasuredWebsiteFeedback({draftId:draft.id,pageId:activePage?.id,
-        changeId:designCandidate.id,choice:"disliked"});
+        changeId:designCandidate.id,operation:designCandidate.operation,expectedSource:designCandidate.sourceDraft,choice:"disliked"});
     setDesignCandidate(null);setCandidateCheckOn(false);
     setCandidateCheckResult(null);setPrivateWidthEvidence(null);
     setDesignCandidateNotice("Original design restored. Your preference stays with this draft only.");
   };
   const keepCandidate=()=>{
+    if(selectedWordingDirty.current){setDesignCandidateNotice('Finish or discard your unsaved wording before keeping another layout. Nothing was saved.');return;}
     if(visualCheckOn||candidateCheckOn||requestedReview||!candidateIsCurrent||!designReviewProgress.mayKeep||
        !candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
        privateWidthReview?.hasRegressions===true||
        currentCandidateEvidence?.ok===true&&
         currentCandidateEvidence.safeForPrivateApproval!==true||
        designCandidate?.baseGeneration!==draft?.generation)return;
-    const saved=s.applyWebsiteLayoutAction(designCandidate.operation,{
+    const saveOptions={
       baseGeneration:designCandidate.baseGeneration,
       expectedBusinessId:designCandidate.businessId,expectedWebsiteId:designCandidate.websiteId,
       expectedGeneration:designCandidate.baseGeneration,
       ownerFeedback:{draftId:draft.id,pageId:activePage?.id,
         changeId:designCandidate.id,choice:"liked"}
-    });
+    };
+    const saved=designCandidate.compositionEvidence?s.applyReviewedWebsiteComposition?.(designCandidate.compositionEvidence,saveOptions):
+      s.applyWebsiteLayoutAction(designCandidate.operation,saveOptions);
     if(saved){setDesignCandidate(null);setCandidateCheckResult(null);
       setPrivateWidthEvidence(null);
       setDesignCandidateNotice("Saved in your private draft. Undo remains available. Recheck other screen sizes before publishing.");}
@@ -1272,33 +1344,43 @@ function WebsitePreview({ s }) {
       <Card eyebrow="Select a page" title="Preview the actual page content"
         body="Choose a page below. BUSY uses your saved page sections, headings and page-specific SEO in the private design preview."
         tone="blue">
+        <View style={styles.navigationSelection}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>{"Current page: "+(activePage?.title||activePage?.id||"No page selected")}</Text><Text style={styles.workspaceMeta}>{activePage?.path||"/"}</Text></View>
+        <View style={styles.choiceGrid}>
         {(draft.pages||[]).map(page=>(
-          <Button key={page.id} label={(activePage?.id===page.id?"✓ ":"")+
+          <View key={page.id} style={styles.choiceCell}><Button compact selected={activePage?.id===page.id} label={(activePage?.id===page.id?"✓ ":"")+
             (page.title||page.id)+" • "+(page.path||"/")}
-            onPress={()=>setSelectedPageId(page.id)}/>
+            onPress={()=>setSelectedPageId(page.id)}/></View>
         ))}
+        </View>
       </Card>
+
+      {!designCandidate?<WebsiteCompositionReview key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')}
+        website={draft} app={s.miniAppsView?.app} businessId={s.cloudWorkspace?.businessId} pageId={activePage?.id||'home'}
+        canCompare={['phone','tablet','desktop'].includes(previewSize)&&!visualCheckOn&&!candidateCheckOn&&!requestedReview}
+        onCompare={tryCandidate}/>:null}
 
       <Card eyebrow="Edit by tapping" title="Tap anything you want to change"
         body="Start editing, tap the exact picture or words, then use the small floating toolbar to edit, talk to BUSY or see more options. Everything stays private."
         tone="blue">
         <Button primary label={tapEditMode?"Finish tapping — view normally":"Start editing by tapping"}
           onPress={()=>{setSelectedEdit(null);setVisualCheckOn(false);setTapEditMode(x=>!x);}}/>
-        {tapEditMode?<Text style={styles.cardBody}>Tap any picture or words. A subtle outline and three small controls appear beside your selection. Nothing is published automatically.</Text>:null}
+        {tapEditMode?<Text style={styles.cardBody}>Tap pictures or words to edit. On the home page or owner-created pages, use a Move section handle to drag to a highlighted edge, or focus it and press an arrow key. Locks and the first hero stay protected. Undo restores a saved move. Nothing is published automatically.</Text>:null}
       </Card>
 
       <Card eyebrow="Change several parts together"
-        title="Tell BUSY which sections to adjust"
-        body="Use the section names visible on this page. BUSY checks each instruction, shows the original beside the proposed result and asks you to approve before saving. Unsupported or unclear instructions change nothing."
+        title="What would you like to improve?"
+        body="Tell Busy the result you want, such as making your website easier to use on a phone. You can also give exact wording. Review the proposed result before saving; unclear or unsupported requests change nothing."
         tone="blue">
-        <Text style={styles.cardBody}>Try: Move the services section up; make the hero heading smaller on phones; give the about section more space.</Text>
+        <Details label="Examples of changes BUSY can preview">
+        <Text style={styles.cardBody}>Try: Change the hero heading to "Welcome to our workshop"; move the about section above services. Or add question "Do you travel?" answer "Ask us about your location." For phone reading: make the whole page easier to read only on phones. For a calmer mobile layout: give the whole page less space on phones. For composition: make the hero centred; or move the hero photo left when an approved hero image exists. Shared theme changes affect all pages; always preview first.</Text>
+        </Details>
         <TextInput value={pageInstruction}
-          onChangeText={value=>{setPageInstruction(value);setPagePlanPreview(null);setPagePlanNotice("");}}
-          multiline maxLength={400}
-          accessibilityLabel="Describe up to five named website page changes"
+          onChangeText={value=>requestPageInstruction(value)}
+          multiline maxLength={6000}
+          accessibilityLabel="Describe your website page changes"
           placeholder="Move the services section up; make the hero heading smaller on phones"
-          placeholderTextColor="#97A7BD"
-          style={{minHeight:95,padding:12,borderRadius:12,backgroundColor:"#202D40",color:"#F4F7FE",textAlignVertical:"top"}}/>
+          placeholderTextColor={C.muted}
+          style={{minHeight:95,padding:12,borderRadius:12,backgroundColor:C.input,color:C.ink,borderWidth:1,borderColor:C.controlBorder,textAlignVertical:"top"}}/>
         <Button label={pageVoiceExpanded?"Hide page microphone":"🎙 Talk to BUSY about this whole page"}
           onPress={()=>setPageVoiceExpanded(value=>!value)}/>
         {pageVoiceExpanded?(
@@ -1308,7 +1390,7 @@ function WebsitePreview({ s }) {
             selection={{draftId:draft.id,generation:draft.generation,pageId:activePage?.id||"home"}}
             onTranscribe={s.transcribeWebsitePageAudio}
             onTranscript={words=>{
-              setPageInstruction(String(words||"").slice(0,400));
+              requestPageInstruction(String(words||"").slice(0,400));
               setPagePlanPreview(null);
               setPagePlanNotice("Please read the transcript, then preview the proposed edits. No website changes were made.");
             }}/>
@@ -1336,7 +1418,7 @@ function WebsitePreview({ s }) {
                 instruction:pageInstruction,conversationContext:context
               });
               if(result?.ok){
-                setPageInstruction(result.canonical);
+                requestPageInstruction(result.canonical);
                 setPageConversation(addWebsiteConversationTurn(asked,scope,{
                   role:"busy",text:"Here is a safe draft plan to preview. Shall we try this design?"
                 }));
@@ -1350,7 +1432,7 @@ function WebsitePreview({ s }) {
                 setPagePlanNotice(response);
                 // Keep the response visible. The next typed or spoken
                 // message becomes a follow-up with this scoped context.
-                if(result?.clarification)setPageInstruction("");
+                if(result?.clarification)requestPageInstruction("");
               }
             }finally{setPageInterpretBusy(false);}
           }}/>
@@ -1379,14 +1461,24 @@ function WebsitePreview({ s }) {
         <Button label="Preview changes — do not save"
           onPress={()=>{
             setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);
-            const result=s.previewWebsitePageInstruction?.({
-              pageId:activePage?.id||"home",generation:draft.generation,
-              instruction:pageInstruction
-            });
-            setPagePlanPreview(result?.ok?result:null);
+            const goal=planBusyGoal({request:pageInstruction,ownerId:s.connectedRuntime?.ownerId,profileRevision:s.connectedRuntime?.profileRevision,surface:'website',website:draft,businessId:s.cloudWorkspace?.businessId,pageId:activePage?.id||"home",profile:s.connectedRuntime?.profile},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
+            setPageGoal(goal.recognised?goal:null);
+            if(goal.recognised&&!goal.ready){setPagePlanPreview(null);setPageRequest(null);setPagePlanNotice(goal.question||goal.nextAction);return;}
+            const reviewedWords=goal.ready?goal.instruction:pageInstruction;
+            const planned=goal.ready?goal.prepared:prepareWebsiteRequest(draft,{draftId:draft.id,pageId:activePage?.id||"home",generation:draft.generation,instruction:reviewedWords},{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft});
+            if(planned.ok&&planned.groups.length>1){setPageRequest({...planned,ownerId:s.ownerSession?.userId,ownerScope:s.ownerWorkspaceScope});setPagePlanPreview(null);setPagePlanNotice('Review the whole result, then approve each part separately.');return;}
+            setPageRequest(null);
+            const result=planned.ok?s.previewWebsitePageInstruction?.({pageId:activePage?.id||"home",generation:draft.generation,instruction:reviewedWords}):planned;
+            setPagePlanPreview(result?.ok?{...result,instruction:reviewedWords}:null);
             setPagePlanNotice(result?.ok?"Original unchanged — review below.":result?.reason||"This request could not be previewed.");
             setShowPagePlanOriginal(false);
           }}/>
+        {pageGoal?.recognised&&pageGoal.ownerWording===pageInstruction?<WorkflowStatus title="Here’s how I can help" body={[...(pageGoal.findings||pageGoal.steps||[]),pageGoal.question,...(pageGoal.limitations||[])].filter(Boolean).join(' ')}/>:null}
+        {pageGoal?.contextKind==='correction'&&pageGoal.ownerWording===pageInstruction?<BusyOwnerCorrection key={['correction',s.ownerSession?.userId,s.cloudWorkspace?.businessId,pageInstruction].join(':')} s={s} inputText={pageInstruction}/>:null}
+        {pageGoal?.contextKind&&pageGoal.ownerWording===pageInstruction?<BusyGoalRecords key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,pageGoal.goal,pageInstruction].join(':')} s={s} goal={pageGoal} inputText={pageInstruction}/>:null}
+        {pageGoal?.route&&pageGoal.ownerWording===pageInstruction?<Button label={pageGoal.nextAction} onPress={()=>s.go(pageGoal.route)}/>:null}
+        <WebsiteRequestRecovery key={['request-recovery',s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id].join(':')} s={s} plan={pageRequest} inputText={pageInstruction} onRestore={plan=>requestPageInstruction(plan.instruction,()=>setPageRequest({...plan,ownerId:s.ownerSession?.userId,ownerScope:s.ownerWorkspaceScope}))}/>
+        {pageRequest?.ok&&pageRequest.ownerId===s.ownerSession?.userId&&pageRequest.ownerScope===s.ownerWorkspaceScope&&pageRequest.businessId===s.websiteDraft?.businessId&&pageRequest.instruction===pageInstruction?<WebsiteGroupedReview key={pageRequest.generation+':'+pageRequest.instruction} s={s} plan={pageRequest} onDiscard={()=>setPageRequest(null)}/>:null}
         {pagePlanPreview?.ok&&pagePlanPreview.draftId===draft.id&&
          pagePlanPreview.generation===draft.generation&&
          pagePlanPreview.pageId===(activePage?.id||"home")?(
@@ -1411,15 +1503,18 @@ function WebsitePreview({ s }) {
            </View>
            <Text style={styles.cardBody}>Previewing does not save, consume AI credits or publish. Use the screen-size choices below to compare phone and desktop layouts.</Text>
            <Button primary label={"Apply "+pagePlanPreview.steps.length+" reviewed changes together"}
-             onPress={()=>{
-              const result=s.applyWebsitePageInstruction?.({
+             disabled={pageSaveBusy}
+             onPress={async()=>{
+              if(pageSaveFlight.current)return;pageSaveFlight.current=true;const captured=pageSaveCurrent.current;setPageSaveBusy(true);
+              let result;try{result=await s.applyWebsitePageInstruction?.({
                pageId:pagePlanPreview.pageId,generation:pagePlanPreview.generation,
-               instruction:pageInstruction
-              });
+               instruction:pagePlanPreview.instruction||pageInstruction
+              });}catch{result={reason:'Save not confirmed. Keep your words and inspect the account.'};}finally{pageSaveFlight.current=false;if(pageSaveAlive.current)setPageSaveBusy(false);}
+              const live=pageSaveCurrent.current;if(!pageSaveAlive.current||live.owner!==captured.owner||live.business!==captured.business||live.instruction!==captured.instruction||live.preview!==captured.preview)return;
               setPagePlanNotice(result?.reason||"No changes were saved.");
-              setPagePlanPreview(null);
+              if(result?.applied)setPagePlanPreview(null);
              }}/>
-           <Button label="Discard — keep original" onPress={()=>{
+           <Button label="Discard — keep original" disabled={pageSaveBusy} onPress={()=>{
              setPagePlanPreview(null);setPagePlanNotice("No changes made.");
            }}/>
           </View>
@@ -1434,14 +1529,16 @@ function WebsitePreview({ s }) {
         tone="blue"
       >
         <Text style={styles.sectionLabel}>Preview screen size</Text>
-        <Button label={(previewSize==="full"?"✓ ":"")+"Use this device's screen width"}
-          onPress={()=>{setSelectedEdit(null);setPreviewSize("full");}}/>
-        <Button label={(previewSize==="phone"?"✓ ":"")+"Show phone-width layout"}
-          onPress={()=>{setSelectedEdit(null);setPreviewSize("phone");}}/>
-        <Button label={(previewSize==="tablet"?"✓ ":"")+"Show tablet-width layout"}
-          onPress={()=>{setSelectedEdit(null);setPreviewSize("tablet");}}/>
-        <Button label={(previewSize==="desktop"?"✓ ":"")+"Show desktop-width layout"}
-          onPress={()=>{setSelectedEdit(null);setPreviewSize("desktop");}}/>
+        <View style={styles.choiceGrid}>
+        <View style={styles.choiceCell}><Button compact selected={previewSize==="full"} label={(previewSize==="full"?"✓ ":"")+"Use this device's screen width"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("full");}}/></View>
+        <View style={styles.choiceCell}><Button compact selected={previewSize==="phone"} label={(previewSize==="phone"?"✓ ":"")+"Show phone-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("phone");}}/></View>
+        <View style={styles.choiceCell}><Button compact selected={previewSize==="tablet"} label={(previewSize==="tablet"?"✓ ":"")+"Show tablet-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("tablet");}}/></View>
+        <View style={styles.choiceCell}><Button compact selected={previewSize==="desktop"} label={(previewSize==="desktop"?"✓ ":"")+"Show desktop-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("desktop");}}/></View>
+        </View>
         <Text style={styles.cardBody}>One website adapts to all screens. Tablet and desktop layouts are scaled down on a phone. Use this device view for easier tapping and editing.</Text>
         <Button label={visualCheckOn?"Checking this rendered page…":designCandidate?
           "Check original at this width":"Check this page for layout problems"}
@@ -1488,6 +1585,15 @@ function WebsitePreview({ s }) {
            ):null}
           </View>
         ):null}
+        {originalReportIsCurrent&&!designCandidate&&!visualCheckOn?<View>
+          <Button label={showRejectedPageIdeas?'Hide previous page ideas':'Review previous page ideas'} onPress={()=>{if(pageIdeaSource.current===pageIdeaBinding)setShowRejectedPageIdeas(value=>!value);}}/>
+          {showRejectedPageIdeas&&!rejectedPageIdeas.length?<Text style={styles.cardBody}>No eligible declined page ideas for this current source.</Text>:null}
+          {rejectedPageIdeas.map(idea=><View key={idea.id}>
+            <Text style={styles.sectionLabel}>{idea.label}</Text>
+            <Text style={styles.cardBody}>{'Previously declined. '+idea.explanation+' '+idea.tradeoff}</Text>
+            <Button label={'Show this idea again: '+idea.label} onPress={()=>showPageIdeaAgain(idea)}/>
+          </View>)}
+        </View>:null}
         {visualCheckResult&&!designCandidate&&!visualCheckOn?coordinatedAdvice.map(advice=>(
           <View key={advice.id} style={{marginVertical:8}}>
             <Text style={styles.sectionLabel}>{advice.label}</Text>
@@ -1586,15 +1692,20 @@ function WebsitePreview({ s }) {
         </Text>
       </Card>
 
-      <WebsiteTapEditor draft={draft} selection={selectedEdit}
+      {pendingEdit?<Card title="Keep your unsaved wording" body="Save the wording using its original control, keep editing, or discard it before switching."><Button label="Keep editing website wording" onPress={()=>setPendingEdit(null)}/><Button label="Discard website wording and switch" disabled={pendingEdit.draft!==draft} onPress={()=>{if(pendingEdit.draft!==draft)return;selectedWordingDirty.current=false;setSelectedEditState(pendingEdit.value);setPendingEdit(null);}}/></Card>:null}
+      <WebsiteTapEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')} draft={draft} selection={selectedEdit}
+        exploreContext={{kind:'website',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,project:draft,selection:selectedEdit}}
+        onDraftChange={value=>{reportOwnerDraft(value);selectedWordingDirty.current=!!value;if(!value)setPendingEdit(null);}}
         initialMode={selectedEdit?.initialMode||"edit"}
         onClose={()=>setSelectedEdit(null)}
-        onTextChange={s.applyWebsiteFieldChange}
+        onTextChange={change=>reportOwnerDraft.commit(()=>s.applyWebsiteFieldChange(change))}
         onLayoutChange={s.applyWebsiteLayoutAction}
         onApplyInstruction={s.applySelectedWebsiteInstruction}
         onPreviewInstruction={s.previewSelectedWebsiteInstruction}
+        onDesignFeedback={s.recordMeasuredWebsiteFeedback}
         onTranscribe={s.transcribeSelectedWebsiteAudio}/>
-      {s.websiteBuilderNotice?<Text style={styles.cardBody}>{s.websiteBuilderNotice}</Text>:null}
+      {s.websiteBuilderNotice?<WorkflowStatus title="Website update" body={s.websiteBuilderNotice}/>:null}
+      <ConnectedWebsiteHistory s={s}/>
       {s.canUndoWebsite ? <Button label="Undo last website change" onPress={s.undoWebsiteChange} /> : null}
       {s.canRedoWebsite ? <Button label="Redo website change" onPress={s.redoWebsiteChange} /> : null}
       <Button label={showRecoveryTools?"Hide recovery options":"Protect or restore my website draft"}

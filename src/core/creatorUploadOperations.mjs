@@ -1,0 +1,14 @@
+const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v);
+const valid=v=>v.found===false||uuid(v.operationId)&&/^[A-Za-z0-9_-]{8,120}$/.test(v.requestKey)&&/^[A-Za-z0-9_-]{1,120}$/.test(v.selectionId)&&['pending','committed'].includes(v.state)&&v.revision===(v.state==='pending'?1:2)&&/^[a-f0-9]{64}$/.test(v.sha256)&&Number.isSafeInteger(v.bytes)&&v.bytes>=20&&v.bytes<=9437184&&['image/png','image/jpeg','image/webp'].includes(v.contentType);
+// Original gateway release gate, independent of private draft save/publishing.
+export const CREATOR_UPLOAD_OPERATIONS_ENABLED=false;
+export function createCreatorUploadOperations({enabled=CREATOR_UPLOAD_OPERATIONS_ENABLED,getCurrent,ownerAccessToken,fetchOriginal,baseUrl,apiKey}){
+ const initial=getCurrent();
+ const current=()=>{const s=getCurrent();return enabled&&s.scope===initial.scope&&!!s.scope&&s.ownerId===initial.ownerId&&s.businessId===initial.businessId&&s.role==='owner'&&s.ready;};
+ const io=async(action,body,isCurrent=()=>true)=>{if(!current()||!isCurrent())throw Error('Upload operation disabled or account changed');const token=await ownerAccessToken();if(!current()||!isCurrent()||!token)throw Error('Account changed');const r=await fetchOriginal(baseUrl+'/functions/v1/busy-website-original-media',{method:'POST',headers:{apikey:apiKey,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action,businessId:initial.businessId,...body})},60000);if(!r.ok)throw Error('Upload operation outcome unavailable');const v=await r.json();if(!current()||!isCurrent()||v.businessId!==initial.businessId||v.ownerId!==initial.ownerId)throw Error('Upload operation unavailable');if(action==='creator_upload'&&v.rejected===true)return {rejected:true};if(!v.ok||action!=='creator_upload_list'&&!valid(v))throw Error('Invalid operation projection');return v;};
+ return {enabled:enabled===true,
+  upload:({photoBase64,requestKey,selectionId},isCurrent)=>io('creator_upload',{photoBase64,requestKey,selectionId},isCurrent),
+  async list(after=null){if(after!==null&&!uuid(after))throw Error('Exact operation cursor required');const v=await io('creator_upload_list',{after});if(!Array.isArray(v.items)||v.items.length>20||v.items.some(r=>!uuid(r.operationId)||typeof r.requestKey!=='string'||!['pending','committed'].includes(r.state))||v.nextAfter!==null&&!uuid(v.nextAfter)||v.notOwnReceipt!==true)throw Error('Invalid operation catalogue');return v;},
+  async inspect(requestKey){if(typeof requestKey!=='string'||!/^[A-Za-z0-9_-]{8,120}$/.test(requestKey))throw Error('Exact upload key required');const v=await io('creator_upload_inspect',{requestKey});if(v.found&&v.requestKey!==requestKey||v.ownOperationReceipt===true||v.notOwnReceipt!==true)throw Error('Independent observation required');return v;}
+ };
+}

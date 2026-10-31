@@ -1,3 +1,4 @@
+import {connectedAccountRoutes} from './connectedAccountRoutes.mjs';
 /**
  * V3.131: deliberately narrow real staging Supabase Auth and RLS client.
  * For a separately signed internal staging build ONLY.
@@ -35,19 +36,21 @@ function accountKey(email=""){
   const normalized=String(email||"").trim().toLowerCase();
   return Object.keys(FIXTURES).find(key=>FIXTURES[key].email===normalized)||null;
 }
-function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
+function createStagingAuthInspector({config={},fetchImpl=fetch,now=Date.now}={}){
   const enabled=validateStagingAuthConfig(config);
-  let token="";
+  let token="",expiresAt=0;
   let verifiedKey=null;
   let verifiedUser="";
   let generation=0;
   const clear=()=>{
     generation++;
     const old=token;
-    token="";verifiedKey=null;verifiedUser="";
+    token="";expiresAt=0;verifiedKey=null;verifiedUser="";
     return old;
   };
+  function expire(){if(token&&now()>=expiresAt)clear();}
   function assertConfigured(){
+    expire();
     if(!enabled)throw new Error("staging-not-configured");
   }
   async function call(path,{method="GET",bearer="",body=null}={}){
@@ -57,18 +60,18 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
       ...(body!==null?{"Content-Type":"application/json"}:{}),
       ...(bearer?{Authorization:"Bearer "+bearer}:{})
     };
-    let response;
+    let response;const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),15000);
     try{
       response=await fetchImpl(config.baseUrl+path,{
-        method,headers,redirect:"error",cache:"no-store",
+        method,headers,redirect:"error",cache:"no-store",credentials:"omit",signal:controller.signal,
         ...(body!==null?{body:JSON.stringify(body)}:{})
       });
-    }catch{throw new Error("staging-network-unavailable");}
-    if(!response||!Number.isInteger(response.status))
+        if(!response||!Number.isInteger(response.status))
       throw new Error("staging-network-unavailable");
     let json=null;
     try{json=await response.json();}catch{}
     return {status:response.status,json};
+    }catch{throw new Error("staging-network-unavailable");}finally{clearTimeout(deadline);}
   }
   async function checkIdentity(accessToken,email){
     const user=await call("/auth/v1/user",{bearer:accessToken});
@@ -104,7 +107,9 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
   }
   return {
     get configured(){return enabled;},
-    get signedIn(){return !!token&&!!verifiedKey;},
+    get sessionPolicy(){return {storage:'memory-only',refresh:'fresh-sign-in-required',maxLifetimeSeconds:3600};},
+    get signedIn(){expire();return !!token&&!!verifiedKey;},
+    get sessionVersion(){expire();return generation;},
     async signIn(email,password){
       assertConfigured();
       // Clear previous account, including on failed attempts.
@@ -113,6 +118,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
       const key=accountKey(email);
       if(!key||typeof password!=="string"||password.length<1)
         throw new Error("staging-test-account-required");
+      const started=now();
       const login=await call("/auth/v1/token?grant_type=password",{
         method:"POST",body:{email:FIXTURES[key].email,password}
       });
@@ -127,6 +133,9 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
         const result=await checkIsolation(accessToken,id,key);
         if(generation!==requestGeneration)
           throw new Error("staging-session-cancelled");
+        const seconds=Number.isFinite(login.json.expires_in)?Math.min(3600,Math.max(0,login.json.expires_in)):900;
+        expiresAt=started+seconds*1000;
+        if(now()>=expiresAt)throw Error("staging-session-expired");
         token=accessToken;
         verifiedKey=key;
         verifiedUser=id;
@@ -134,7 +143,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
           account:key==="a"?"Owner A":"Owner B",
           ...result,storedOnDevice:false,hostedPreviewVerified:false};
       }catch(error){
-        clear();
+        if(generation===requestGeneration)clear();
         throw error;
       }
     },
@@ -150,7 +159,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
         return {status:"genuine-staging-auth-and-rls-verified",
           account:key==="a"?"Owner A":"Owner B",
           ...result,storedOnDevice:false,hostedPreviewVerified:false};
-      }catch(error){clear();throw error;}
+      }catch(error){if(activeGeneration===generation)clear();throw error;}
     },
     async signOut(){
       // Local access always ends immediately even if Supabase logout fails.
@@ -163,6 +172,53 @@ function createStagingAuthInspector({config={},fetchImpl=fetch}={}){
       }catch{}
       return {localSessionCleared:true,remoteLogoutVerified:remote,
         accessJwtMayRemainValidUntilExpiry:true};
+    },
+    async requestConnected(action,payload={}){
+      assertConfigured();
+      if(!token||!verifiedKey)throw Error("staging-no-session");
+      const active=generation,bearer=token,userId=verifiedUser,key=verifiedKey;
+      const current=()=>{expire();return generation===active&&token===bearer;};
+      const apps=['owner_status','content_list','build_draft','apply_app_plan','apply_coordinated_edits','save_project_spec','set_module','move_section','set_appearance'];
+      const account=connectedAccountRoutes;
+
+      if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design','website_edit_page','website_edit_instruction','website_undo','website_redo',...apps,'provider_status','provider_prepare','provider_inspect',...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
+      try{
+        const id=await checkIdentity(bearer,FIXTURES[key].email);
+        if(!current())throw Error("staging-session-cancelled");
+        if(id!==userId)throw Error("staging-account-changed");
+        let response;
+        if(action==='workspaces'){
+          response=await call('/rest/v1/rpc/busy_connected_workspaces_v1',{method:'POST',bearer,body:{}});
+        }else{
+          if(!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(payload.businessId||''))throw Error('Verified business required');
+          // Current server-side membership is checked before EVERY operation,
+          // and original write authorities lock/recheck it at commit as well.
+          const basis=await call('/rest/v1/rpc/'+(action==='initialize'?'busy_connected_initialize_v1':'busy_connected_builder_read_v1'),{method:'POST',bearer,body:{p_business_id:payload.businessId}});
+          if(!current())throw Error('staging-session-cancelled');
+          if(basis.status!==200||basis.json?.actorId!==userId||basis.json?.businessId!==payload.businessId)throw Error('staging-business-unavailable');
+          if(action.startsWith('provider_')){
+            const operation=action.slice('provider_'.length);
+            const body=operation==='status'?{action:'status',businessId:payload.businessId}:operation==='prepare'?{action:'prepare',businessId:payload.businessId,provider:payload.provider,expectedRevision:payload.expectedRevision,ownerReviewed:payload.ownerReviewed}:{action:'inspect',businessId:payload.businessId,provider:payload.provider,state:payload.state};
+            response=await call('/functions/v1/busy-social-publish?mode=provider-preparation',{method:'POST',bearer,body});
+            if(response.status===200&&(response.json?.owner?.userId!==userId||response.json?.owner?.businessId!==payload.businessId))throw Error('staging-business-unavailable');
+          }else if(action==='initialize')response=basis;else if(account[action]){
+            const [rpc,keys]=account[action],names={businessId:'p_business_id',requestId:'p_request_id',requestHash:'p_request_hash',expectedRevision:'p_expected_revision',enquiryId:'p_enquiry_id',customerId:'p_customer_id',capture:'p_capture',identityDecision:'p_identity_decision',after:'p_after'};
+            response=await call('/rest/v1/rpc/'+rpc,{method:'POST',bearer,body:Object.fromEntries(keys.map(k=>[names[k]||k,payload[k]??null]))});
+          }else if(action==='builder_read'||action==='initialize')response=basis;
+          else {
+          if(apps.includes(action)&&action!=='owner_status'&&payload.expectedProfileRevision!==basis.json.profileRevision)throw Error('staging-source-changed');
+          response=await call('/functions/v1/'+(apps.includes(action)?'busy-mini-apps':'busy-website-publish'),{method:'POST',bearer,body:{...payload,action,connectedStaging:true}});
+          }
+        }
+        if(!current())throw Error('staging-session-cancelled');
+        if(response.status!==200){const failure=Error('staging-connected-operation-unavailable');failure.status=response.status;failure.payload={code:typeof response.json?.code==='string'?response.json.code:undefined};throw failure;}
+        if(action==='workspaces'&&(response.json?.actorId!==userId||!Array.isArray(response.json?.items)))throw Error('staging-business-unavailable');
+        return response.json;
+      }catch(error){
+        // An obsolete request cannot clear a newer authenticated session.
+        if(current()&&['staging-identity-unverified','staging-business-unavailable','staging-account-changed'].includes(error.message))clear();
+        throw error;
+      }
     },
     clearLocal(){clear();return {localSessionCleared:true};}
   };

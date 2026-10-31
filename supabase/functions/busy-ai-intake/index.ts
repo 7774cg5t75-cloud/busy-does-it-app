@@ -1,3 +1,4 @@
+import {requireCentralAiAdmission,legacyAiAdmissionStatus} from '../_shared/legacyAiAdmission.mjs';
 const OPENAI_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-6-luna";
 const MAX_SCREENSHOTS = 8;
@@ -267,6 +268,7 @@ function enforceServerSafety(result: any, input: any) {
 }
 
 async function analyseWithOpenAI(input: any) {
+ requireCentralAiAdmission();
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured.");
 
@@ -337,6 +339,7 @@ Deno.serve(async (request: Request) => {
   }
   if (request.method !== "POST") return json(405, { error: "POST required" });
 
+  if(!legacyAiAdmissionStatus().allowed)return json(503,{error:"AI preparation is unavailable until secure cost admission is connected. Supported manual preparation remains available."});
   try {
     const publishableKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
     const allowedKeys = Object.values(publishableKeys).filter(

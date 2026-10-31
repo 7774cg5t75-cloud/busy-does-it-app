@@ -1,7 +1,40 @@
+import {EditorToolbar,EditorAction} from '../components/WorkflowChrome';
+import {appColors as C} from "../theme/appearance.mjs";
 import React from "react";
 import {Text,TextInput,View} from "react-native";
 import {Button,Card,Field} from "../components/ui";
 import {styles} from "../theme/styles";
+
+const STYLE_GROUPS = [
+ {title:"Fonts and presentation", choices:[
+  ["Elegant headings", "typography", "refined"],
+  ["Bold clear headings", "typography", "confident"],
+  ["Compact headings", "typography", "compact"],
+  ["Editorial serif headings", "typography", "editorial"],
+  ["Friendly rounded headings", "typography", "friendly"]
+ ]},
+ {title:"Spacing", choices:[
+  ["More breathing space", "spacing", "generous"],
+  ["Comfortable spacing", "spacing", "comfortable"],
+  ["Compact spacing", "spacing", "compact"]
+ ]},
+ {title:"Services and navigation", choices:[
+  ["Service cards", "cardLayout", "cards"],
+  ["Service outlines", "cardLayout", "outlines"],
+  ["Service rows", "cardLayout", "rows"],
+  ["Rounded navigation", "navStyle", "pill"],
+  ["Underlined navigation", "navStyle", "underline"]
+ ]},
+ {title:"Main picture and button", choices:[
+  ["Make the contact button stand out", "ctaEmphasis", "strong"],
+  ["Normal button emphasis", "ctaEmphasis", "normal"],
+  ["Large main photo", "heroSize", "extra-large"],
+  ["Standard main photo", "heroSize", "large"],
+  ["Show top of main photo", "photoFocus", "top"],
+  ["Centre main photo", "photoFocus", "center"],
+  ["Show bottom of main photo", "photoFocus", "bottom"]
+ ]}
+];
 
 /**
  * Optional no-code controls: every action uses the same private undo stack.
@@ -18,6 +51,9 @@ function WebsiteLayoutControls({draft,onApply}){
  const sectionOrder=Array.isArray(draft?.designPlan?.sectionOrder)?draft.designPlan.sectionOrder:[];
  const visible=[...new Set([...sectionOrder,...sections.filter(s=>s.enabled!==false).map(s=>s.id)])]
    .filter(id=>sections.some(s=>s.id===id&&s.enabled!==false));
+ // Display the actual private order; keep hidden sections available to restore.
+ const ranks=new Map(visible.map((id,index)=>[id,index]));
+ const orderedSections=[...sections].sort((a,b)=>(ranks.get(a.id)??visible.length)-(ranks.get(b.id)??visible.length));
  const apply=(change)=>onApply?.(change)===true;
  const add=()=>{
   if(apply({action:"add-text",title:newTitle,body:newBody})){
@@ -41,30 +77,10 @@ function WebsiteLayoutControls({draft,onApply}){
       onPress={()=>setStyling(x=>!x)}/>
      {styling?(
       <View>
-       <Text style={styles.sectionLabel}>Fonts and presentation</Text>
-       <Button label="Elegant headings" onPress={()=>apply({action:"style",field:"typography",value:"refined"})}/>
-       <Button label="Bold clear headings" onPress={()=>apply({action:"style",field:"typography",value:"confident"})}/>
-       <Button label="Compact headings" onPress={()=>apply({action:"style",field:"typography",value:"compact"})}/>
-       <Button label="Editorial serif headings" onPress={()=>apply({action:"style",field:"typography",value:"editorial"})}/>
-       <Button label="Friendly rounded headings" onPress={()=>apply({action:"style",field:"typography",value:"friendly"})}/>
-       <Text style={styles.sectionLabel}>Spacing</Text>
-       <Button label="More breathing space" onPress={()=>apply({action:"style",field:"spacing",value:"generous"})}/>
-       <Button label="Comfortable spacing" onPress={()=>apply({action:"style",field:"spacing",value:"comfortable"})}/>
-       <Button label="Compact spacing" onPress={()=>apply({action:"style",field:"spacing",value:"compact"})}/>
-       <Text style={styles.sectionLabel}>Services and navigation</Text>
-       <Button label="Service cards" onPress={()=>apply({action:"style",field:"cardLayout",value:"cards"})}/>
-       <Button label="Service outlines" onPress={()=>apply({action:"style",field:"cardLayout",value:"outlines"})}/>
-       <Button label="Service rows" onPress={()=>apply({action:"style",field:"cardLayout",value:"rows"})}/>
-       <Button label="Rounded navigation" onPress={()=>apply({action:"style",field:"navStyle",value:"pill"})}/>
-       <Button label="Underlined navigation" onPress={()=>apply({action:"style",field:"navStyle",value:"underline"})}/>
-       <Text style={styles.sectionLabel}>Main picture and button</Text>
-       <Button label="Make the contact button stand out" onPress={()=>apply({action:"style",field:"ctaEmphasis",value:"strong"})}/>
-       <Button label="Normal button emphasis" onPress={()=>apply({action:"style",field:"ctaEmphasis",value:"normal"})}/>
-       <Button label="Large main photo" onPress={()=>apply({action:"style",field:"heroSize",value:"extra-large"})}/>
-       <Button label="Standard main photo" onPress={()=>apply({action:"style",field:"heroSize",value:"large"})}/>
-       <Button label="Show top of main photo" onPress={()=>apply({action:"style",field:"photoFocus",value:"top"})}/>
-       <Button label="Centre main photo" onPress={()=>apply({action:"style",field:"photoFocus",value:"center"})}/>
-       <Button label="Show bottom of main photo" onPress={()=>apply({action:"style",field:"photoFocus",value:"bottom"})}/>
+       {STYLE_GROUPS.map(group=><View key={group.title} style={styles.workspacePanel}>
+        <Text accessibilityRole="header" style={styles.workspacePanelTitle}>{group.title}</Text>
+        <EditorToolbar label={group.title}>{group.choices.map(([label,field,value])=><EditorAction key={label}><Button compact label={label} selected={draft.theme?.[field]===value} onPress={()=>apply({action:"style",field,value})}/></EditorAction>)}</EditorToolbar>
+       </View>)}
        {(sections.find(s=>s.id==="gallery")?.items||[])
         .filter(x=>x?.approved!==false&&x?.storagePath)
         .slice(0,12).map((item,i)=>(
@@ -78,14 +94,11 @@ function WebsiteLayoutControls({draft,onApply}){
      {sectionTools?(
       <View>
        <Text style={styles.cardBody}>Move sections in the order visitors should see them. Hidden sections can be restored.</Text>
-       {sections.map(section=>(
-        <View key={section.id} style={{marginTop:8}}>
+       {orderedSections.map(section=>(
+        <View key={section.id} style={styles.recordRow}>
          <Text style={styles.sectionLabel}>{section.title||section.id}{section.enabled===false?" (hidden)":""}</Text>
          {section.enabled!==false&&section.id!=="hero"?(
-          <View>
-           <Button label="Move up" onPress={()=>apply({action:"move",sectionId:section.id,direction:"up"})}/>
-           <Button label="Move down" onPress={()=>apply({action:"move",sectionId:section.id,direction:"down"})}/>
-          </View>
+          <EditorToolbar label={'Arrange '+(section.title||section.id)}>{['up','down'].map(direction=><EditorAction key={direction}><Button compact label={'Move '+direction} onPress={()=>apply({action:"move",sectionId:section.id,direction})}/></EditorAction>)}</EditorToolbar>
          ):null}
          {!["hero","contact"].includes(section.id)?(
           <Button label={section.enabled===false?"Show section":"Hide section"}
@@ -95,7 +108,7 @@ function WebsiteLayoutControls({draft,onApply}){
           <Button label="Duplicate this text section" onPress={()=>apply({action:"duplicate",sectionId:section.id})}/>
          ):null}
          {section.id.startsWith("custom-")&&section.type==="text"?(
-          <Button label={confirmDelete===section.id?"Confirm delete this extra section":"Delete extra section"}
+          <Button danger={confirmDelete===section.id} label={confirmDelete===section.id?"Confirm delete this extra section":"Delete extra section"}
            onPress={()=>askDelete(section.id)}/>
          ):null}
         </View>
@@ -108,7 +121,7 @@ function WebsiteLayoutControls({draft,onApply}){
         <View style={styles.fieldBox}>
          <TextInput value={newBody} onChangeText={setNewBody} multiline numberOfLines={4}
           textAlignVertical="top" placeholder="Write what you want visitors to know"
-          placeholderTextColor="#9AA3B2"
+          placeholderTextColor={C.muted}
           style={[styles.fieldInput,{minHeight:112,textAlignVertical:"top"}]}/>
         </View>
        </View>

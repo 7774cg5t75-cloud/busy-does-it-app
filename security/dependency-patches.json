@@ -1,0 +1,28 @@
+{
+  "deepmerge": {
+    "version": "4.3.1",
+    "entry": "dist/cjs.js",
+    "originalSha256": "2e5160f84a1141bd927264afe4d15766f1e6cf07daef182b37ff53fea121de7d",
+    "patchedSha256": "f30c7f31ea7f1f2d13662769030826bf3bffc9116c403ee5ef3d2f9226b37bc2",
+    "advisory": "GHSA-gcqx-w48m-w2h4",
+    "policy": "Drop __proto__ on both merge inputs before assignment; preserve package version and audit findings",
+    "upstreamRemediation": false,
+    "files": [
+      {
+        "path": "index.js",
+        "originalSha256": "12440c84957c1990ea2d5e33dc0091722dc1dc1585c6d20e0c780e568ffa9d30",
+        "patchedSha256": "8d4edb7c70ff23dcc2766507b2b17b86b81b81f79032e3ff42c80c872318ccf6"
+      },
+      {
+        "path": "dist/cjs.js",
+        "originalSha256": "2e5160f84a1141bd927264afe4d15766f1e6cf07daef182b37ff53fea121de7d",
+        "patchedSha256": "f30c7f31ea7f1f2d13662769030826bf3bffc9116c403ee5ef3d2f9226b37bc2"
+      },
+      {
+        "path": "dist/umd.js",
+        "originalSha256": "f33e6596482d1fb5c7c427f8ef92f2aa849eea9223acd974176b2fb27ddbf73a",
+        "patchedSha256": "5de5f2fb31289ae2d0fd1cc2bdd766e513bc5f483818d039c88275e79c797033"
+      }
+    ]
+  }
+}

@@ -1,3 +1,11 @@
+import {OrbSafeRegion} from '../components/FloatingOrbAvoidance';
+import {CanonicalWorkPanel} from '../components/CanonicalWorkPanel';
+import {CustomerEngagementReview} from '../components/CustomerEngagementReview';
+import {SavedEnquiryReplyChoices} from '../components/SavedEnquiryReplyChoices';
+import {SavedEnquiryReplyButton} from '../components/SavedEnquiryReplyButton';
+import {QuoteFollowUpRecordReview} from '../components/QuoteFollowUpRecordReview';
+import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
+import {QuotePrivateSaveStatus} from '../components/QuotePrivateSaveStatus';
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -132,6 +140,7 @@ import {
   Card,
   Button,
   SmallLink,
+  Details,
   Field,
   DatePickerField,
   Choice,
@@ -205,7 +214,7 @@ function NewEnquiry({ s }) {
         value={s.newEnquiryNote}
         onChangeText={s.setNewEnquiryNote}
         placeholder="What did they ask for?"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
 
@@ -257,6 +266,29 @@ function CustomerRecords({ s }) {
           right={String(s.eligibleCustomers.length || 0)}
         />
       </Card>
+      {s.enquiryReplyActions?.canDiscoverAccountReplies?<Card title="Saved account replies" body={'Account: '+(s.enquiryReplyActions.accountRecoveryWorkspace?.businessName||'identified business')+'. Private account records are separate from this device. Inspect before Keep or Open; other business data is not restored.'}>
+        <Button label="Find saved account replies" onPress={()=>s.enquiryReplyActions.discoverAccountReplies()}/>
+        {s.enquiryReplyActions.accountRecovery?.status==='checking'?<Text style={styles.cardBody}>Checking eligible account records…</Text>:null}
+        {['unavailable','changed'].includes(s.enquiryReplyActions.accountRecovery?.status)?<Text style={styles.cardBody}>The account or source needs rechecking. Current work was kept.</Text>:null}
+        {s.enquiryReplyActions.accountRecovery?.status==='ready'?<>
+          {s.enquiryReplyActions.accountRecovery.list.items.length===0?<Text style={styles.cardBody}>No eligible account replies were found. This does not prove other saved records are absent.</Text>:null}
+          {s.enquiryReplyActions.accountRecovery.list.items.map(entry=><View key={entry.customerId} style={styles.recordRow}><Text style={styles.workspaceMeta}>{'Enquiry: '+entry.enquiryId}</Text><Button label={'Inspect account reply: '+(entry.customerName||entry.customerId)+' · '+entry.enquiryId} onPress={()=>s.enquiryReplyActions.inspectAccountReply(entry)}/></View>)}
+          {s.enquiryReplyActions.accountRecovery.list.hasMore?<Button label="More account replies" onPress={()=>s.enquiryReplyActions.discoverAccountReplies(s.enquiryReplyActions.accountRecovery.list.nextAfter)}/>:null}
+        </>:null}
+      </Card>:null}
+      {s.firstEnquiryFilingActions?.canDiscover?<Card title="Continue account Enquiries" body="Find supported Pending sources, filed Enquiries and private replies. Account observations do not recover a lost save receipt. Nothing is retried automatically.">
+        <Button label="Find interrupted account Enquiries" onPress={()=>s.firstEnquiryFilingActions.discover()}/>
+        {s.firstEnquiryFilingActions.recovery?.status==='checking'?<Text style={styles.cardBody}>Checking current account records…</Text>:null}
+        {['unavailable','changed'].includes(s.firstEnquiryFilingActions.recovery?.status)?<Text style={styles.cardBody}>Access, source or account version needs rechecking. Your words were kept.</Text>:null}
+        {s.firstEnquiryFilingActions.recovery?.status==='ready'?<>
+          {!s.firstEnquiryFilingActions.recovery.list.items.length?<Text style={styles.cardBody}>No supported records found. Other unsupported records may exist.</Text>:null}
+          {s.firstEnquiryFilingActions.recovery.list.items.map(entry=><View key={entry.enquiryId} style={styles.recordRow}><Text style={styles.workspaceMeta}>{'Enquiry: '+entry.enquiryId}</Text><Button label={'Inspect '+({Pending:'registered source',FiledWithoutReply:'filed Enquiry without saved reply',FiledWithReply:'saved private reply'}[entry.state])+': '+(entry.customerName||entry.enquiryId)} onPress={()=>s.firstEnquiryFilingActions.inspect(entry)}/></View>)}
+          {s.firstEnquiryFilingActions.recovery.list.hasMore?<Button label="More account Enquiries" onPress={()=>s.firstEnquiryFilingActions.discover(s.firstEnquiryFilingActions.recovery.list.nextAfter)}/>:null}
+        </>:null}
+      </Card>:null}
+      <SavedEnquiryReplyChoices s={s}/>
+      <Text accessibilityRole="header" style={styles.sectionLabel}>Customer records on this device</Text>
+      <Text style={styles.workspaceMeta}>The list below is your current device workspace. Account inspection above is separate; opening one reply does not restore the business.</Text>
       <Field
         label="Find a customer"
         value={search}
@@ -333,17 +365,17 @@ function CustomerRecords({ s }) {
                 Next: {journey.nextAction.title}
               </Text>
             ) : null}
-            <View style={styles.customerActionsRow}>
-              <Pressable onPress={() => s.openCustomer(customer.id)} style={styles.customerOpenWrap}>
+            <OrbSafeRegion style={styles.customerActionsRow}>
+              <Pressable accessibilityRole="button" accessibilityLabel={"Open customer "+customer.name} onPress={() => s.openCustomer(customer.id)} style={({pressed})=>[styles.customerOpenWrap,pressed&&styles.pressed]}>
                 <Text style={styles.customerOpenText}>Open customer</Text>
               </Pressable>
-              <Pressable onPress={() => s.startEditCustomer(customer)} style={styles.customerEditWrap}>
+              <Pressable accessibilityRole="button" accessibilityLabel={"Edit customer "+customer.name} onPress={() => s.startEditCustomer(customer)} style={({pressed})=>[styles.customerEditWrap,pressed&&styles.pressed]}>
                 <Text style={styles.customerEditText}>Edit</Text>
               </Pressable>
-              <Pressable onPress={() => s.requestRemoveCustomer(customer.id)} style={styles.removeCustomerWrap}>
+              <Pressable accessibilityRole="button" accessibilityLabel={"Review removing customer "+customer.name} onPress={() => s.requestRemoveCustomer(customer.id)} style={({pressed})=>[styles.removeCustomerWrap,pressed&&styles.pressed]}>
                 <Text style={styles.removeCustomerText}>Remove</Text>
               </Pressable>
-            </View>
+            </OrbSafeRegion>
           </View>
         );
       })}
@@ -413,19 +445,20 @@ function CustomerDetail({ s }) {
       subtitle="Contact details, live work and history in one place."
       brandCue="One customer. One clear history."
     >
+      <SavedEnquiryReplyButton s={s} customer={customer}/>
+      <CustomerEngagementReview s={s} customer={customer}/>
+      <CanonicalWorkPanel s={s} customer={customer}/>
+      {s.customerEnquiryOriginItem?<QuoteEnquiryContext s={s} customerId={customer.id} item={s.customerEnquiryOriginItem} openQuote/>:null}
       <Card
         eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}
         title={customer.service}
-        body={
-          [
-            customer.phone || null,
-            customer.email || null,
-            customer.address || null,
-          ].filter(Boolean).join("\n") || "No contact details saved"
-        }
-        footer={customer.contactOk ? "Contact allowed" : "Do not contact"}
+        body="Recorded customer details. Contact settings are not proof of marketing consent or message delivery."
+        footer={customer.contactOk ? "Recorded contact setting: allowed" : "Do not contact"}
         tone="green"
       >
+        <MetricRow left="Phone" right={customer.phone||"Not recorded"}/>
+        <MetricRow left="Email" right={customer.email||"Not recorded"}/>
+        <MetricRow left="Job location" right={customer.address||"Not recorded"}/>
         <MetricRow
           left="Stage"
           right={
@@ -545,9 +578,9 @@ function CustomerDetail({ s }) {
         <>
           <Text style={styles.sectionLabel}>Full customer journey</Text>
           {journey.timeline.slice(0, 12).map((item) => (
-            <View key={item.id} style={styles.customerTimelineCard}>
-              <View style={styles.activityTopRow}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
+            <View key={item.id} style={styles.workflowCard}>
+              <View style={styles.workflowHeader}>
+                <View style={styles.workflowIdentity}>
                   <Text style={styles.customerTimelineLabel}>
                     {String(item.kind || "activity").replace(/-/g, " ").toUpperCase()}
                   </Text>
@@ -575,7 +608,7 @@ function CustomerDetail({ s }) {
           <Text style={styles.sectionLabel}>Communication history</Text>
           {journey.communicationHistory.slice(0, 8).map((item) => (
             <View key={`communication-${item.id}`} style={styles.customerHistoryRow}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+              <View style={styles.workflowIdentity}>
                 <Text style={styles.customerHistoryTitle}>{item.title}</Text>
                 <Text style={styles.customerMeta}>
                   {item.date ? formatUKDate(item.date) : "Date not recorded"}
@@ -596,10 +629,10 @@ function CustomerDetail({ s }) {
                 ? null
                 : s.openEnquiryFollowUpOutcome(customer.id)
             }
-            style={styles.customerTimelineCard}
+            style={styles.workflowCard}
           >
-            <View style={styles.activityTopRow}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+            <View style={styles.workflowHeader}>
+              <View style={styles.workflowIdentity}>
                 <Text style={styles.customerTimelineLabel}>QUIET ENQUIRY FOLLOW-UP</Text>
                 <Text style={styles.activityName}>
                   {customer.enquiryFollowUpOutcomeRecordedAt ? customer.enquiryFollowUpOutcome : "Awaiting outcome"}
@@ -616,9 +649,9 @@ function CustomerDetail({ s }) {
             ) : null}
           </Pressable>
         ) : daysSinceTimestamp(customer.currentEnquiryAt || customer.createdAt) >= 7 && customer.contactOk !== false ? (
-          <Pressable onPress={() => s.prepareEnquiryFollowUp(customer.id)} style={styles.customerTimelineCard}>
-            <View style={styles.activityTopRow}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+          <Pressable onPress={() => s.prepareEnquiryFollowUp(customer.id)} style={styles.workflowCard}>
+            <View style={styles.workflowHeader}>
+              <View style={styles.workflowIdentity}>
                 <Text style={styles.customerTimelineLabel}>QUIET ENQUIRY</Text>
                 <Text style={styles.activityName}>No next action for {daysSinceTimestamp(customer.currentEnquiryAt || customer.createdAt)} days</Text>
               </View>
@@ -631,9 +664,9 @@ function CustomerDetail({ s }) {
       ) : null}
 
       {action ? (
-        <Pressable onPress={() => s.openSavedReplyAction(customer.id)} style={styles.customerTimelineCard}>
-          <View style={styles.activityTopRow}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
+        <Pressable onPress={() => s.openSavedReplyAction(customer.id)} style={styles.workflowCard}>
+          <View style={styles.workflowHeader}>
+            <View style={styles.workflowIdentity}>
               <Text style={styles.customerTimelineLabel}>CURRENT CUSTOMER ACTION</Text>
               <Text style={styles.activityName}>
                 {action.type === "quote" ? "Quote" : action.type === "booking" ? "Booking" : "Follow-up"}
@@ -670,18 +703,24 @@ function CustomerDetail({ s }) {
         </>
       ) : null}
 
-      <Text style={styles.sectionLabel}>Notes & activity</Text>
+      <View style={styles.workspacePanel}>
+      <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Add a customer note</Text>
+      <Text style={styles.workspaceMeta}>Typing keeps this note in the editor. Use Add note to record it.</Text>
       <TextInput
+        accessibilityLabel="New customer note"
         multiline
         value={s.customerNoteText}
         onChangeText={s.setCustomerNoteText}
         placeholder="Add a quick note about this customer"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
       <Button label="Add note" disabled={!s.customerNoteText.trim()} onPress={() => s.addCustomerNote(customer.id)} />
+      </View>
+      <Text style={styles.sectionLabel}>Recorded notes & activity</Text>
 
-      {activity.length ? activity.slice(0, 12).map((item) => (
+      {activity.length ? <>
+       {activity.slice(0,3).map(item=>(
         <View key={item.id} style={styles.customerHistoryRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.customerHistoryTitle}>{item.title || "Customer update"}</Text>
@@ -690,14 +729,25 @@ function CustomerDetail({ s }) {
           </View>
           {Number(item.value) > 0 ? <Text style={styles.customerHistoryValue}>£{item.value}</Text> : null}
         </View>
-      )) : (
-        <Text style={styles.helper}>No notes or activity saved yet.</Text>
-      )}
+       ))}
+       {activity.length>3?<Details key={customer.id+":activity"} label={"Earlier recorded activity ("+Math.min(activity.length-3,9)+")"}>
+        {activity.slice(3,12).map(item=>(
+        <View key={item.id} style={styles.customerHistoryRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.customerHistoryTitle}>{item.title || "Customer update"}</Text>
+            <Text style={styles.customerMeta}>{item.date ? formatUKDate(item.date) : "Date not recorded"}</Text>
+            {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
+          </View>
+          {Number(item.value) > 0 ? <Text style={styles.customerHistoryValue}>£{item.value}</Text> : null}
+        </View>
+        ))}
+       </Details>:null}
+      </>:<Text style={styles.helper}>No notes or activity saved yet.</Text>}
 
       <Text style={styles.sectionLabel}>Completed job history</Text>
       {timeline.length ? timeline.map((item) => (
         <View key={item.id || `${item.date}-${item.service}`} style={styles.customerHistoryRow}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
+          <View style={styles.workflowIdentity}>
             <Text style={styles.customerHistoryTitle}>{item.service || customer.service}</Text>
             <Text style={styles.customerMeta}>{item.date ? formatUKDate(item.date) : "Date not recorded"}</Text>
             {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
@@ -992,7 +1042,7 @@ function JobPostDraft({ s }) {
     <Shell s={s} title="Finished-job post" subtitle="BUSY DOES IT has prepared the action. You can change the words before approval." brandCue="Prepare underneath. Owner decides what goes public.">
       <Card eyebrow="Prepared for you" title={`${allowedPhotos.length} approved job photo${allowedPhotos.length === 1 ? "" : "s"} + editable wording`} body="The source is a completed job already saved in BUSY DOES IT. No address or private customer detail is added automatically." tone="green" />
       <Text style={styles.fieldLabel}>Post draft</Text>
-      <TextInput multiline value={s.jobPostDraft} onChangeText={s.setJobPostDraft} placeholder="Write the finished-job post" placeholderTextColor="#9AA3B2" style={styles.messageInput} />
+      <TextInput multiline value={s.jobPostDraft} onChangeText={s.setJobPostDraft} placeholder="Write the finished-job post" placeholderTextColor={C.muted} style={styles.messageInput} />
       <Text style={styles.helper}>Saving moves this prepared action to the approval screen. It still does not publish anything.</Text>
       <Button label="Save & review approval" primary disabled={!s.jobPostDraft.trim()} onPress={s.saveJobPostDraft} />
       <Button label="Back to photos" onPress={() => s.go("jobPhotos")} />
@@ -1267,47 +1317,94 @@ function StaleQuotes({ s }) {
 }
 
 function EnquiryFollowUp({ s }) {
-  const customer = s.selectedCustomer;
+  const privateReply=s.enquiryReplyReview;
+  const customer = privateReply?.accountOnly?privateReply.customer:s.selectedCustomer || privateReply?.customer;
   const age = daysSinceTimestamp(customer?.createdAt);
-  if (!customer || customer.lastServiceDate) {
+  if (!customer || !privateReply&&customer.lastServiceDate) {
     return <Shell s={s} title="Enquiry follow-up" subtitle="The enquiry could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
   }
   return (
     <Shell
       s={s}
-      title="Prepared enquiry follow-up"
-      subtitle="BUSY DOES IT has prepared a low-pressure check-in from the actual enquiry record."
+      title={privateReply?"Private enquiry reply":"Prepared enquiry follow-up"}
+      subtitle={privateReply?"Review this private reply against the exact customer message. Nothing is sent or saved by preparation.":"BUSY DOES IT has prepared a low-pressure check-in from the actual enquiry record."}
       brandCue="Existing interest first. Nothing sends without approval."
     >
       <Card
-        eyebrow="Quiet enquiry"
+        eyebrow={privateReply?"Current filed enquiry":"Quiet enquiry"}
         title={customer.name}
-        body={`${customer.service}${age !== null ? ` • ${age} days since enquiry` : ""}`}
+        body={privateReply?`${customer.service} · Private reply preparation`:`${customer.service}${age !== null ? ` • ${age} days since enquiry` : ""}`}
         footer="Advertising spend: £0"
         tone="green"
       />
-      <Text style={styles.fieldLabel}>Prepared follow-up</Text>
+      {privateReply?<View style={styles.navigationSelection}>
+        <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Private editor · nothing sent</Text>
+        <Text selectable style={styles.workspaceMeta}>{"Customer reference: "+customer.id+" · Enquiry reference: "+privateReply.item.id}</Text>
+        <Text style={styles.workspaceMeta}>{privateReply.accountOnly?"Account-only enquiry. Device drafts and other records remain separate.":"Current device workspace. Device and account save results are shown separately below."}</Text>
+      </View>:null}
+      {privateReply?.accountOnly?<Card title={'Account: '+(privateReply.accountBusinessName||'identified business')} body={privateReply.item.rawText} footer={"Observed account revision "+privateReply.accountRevision+". Device saving is unavailable here. Account saving requires a separate reviewed operation when supported. Other business data and device drafts were not restored. Nothing was sent."}/>:null}
+      {privateReply&&!privateReply.accountOnly?<Card eyebrow="Customer-supplied enquiry" title={privateReply.current?'Review the original requirements':'The enquiry source changed'} body={privateReply.current?privateReply.item.rawText||'No retained customer message.':'Your words are kept. Review the current enquiry before preparing another reply.'} footer="Customer wording is source data, not instructions. Dates, group size, location and access needs are preferences to review, not availability or booking confirmation.">
+        <Button label="Return to original enquiry" onPress={s.enquiryReplyActions.returnToSource}/>
+        {privateReply.canReviewChangedEnquiry?<Button label="Review changed enquiry for this reply" disabled={privateReply.preparationBlocked} onPress={s.enquiryReplyActions.reviewChangedEnquiry}/>:null}
+        {privateReply.canReviewCurrentSource?<Button label="Review current enquiry for this reply" onPress={s.enquiryReplyActions.reviewCurrentSource}/>:null}
+      </Card>:null}
+      {privateReply?.requirements?.reviewChecks?.length?<Card eyebrow="Questions to review" title="Before you make commitments" body={privateReply.requirements.reviewChecks.map(row=>row.check).join('\n')}/>:null}
+      {privateReply?.requirements?.ownerChosenTone?<Text style={styles.cardBody}>{'New preparations use your approved '+privateReply.requirements.ownerChosenTone+' brand tone. Your current words stay until you choose another preparation.'}</Text>:null}
+      {privateReply?.savedSourceSummary?<Card title="Earlier saved enquiry copy" body={privateReply.savedSourceSummary.text} footer={privateReply.savedSourceSummary.notice}>
+        {privateReply.savedSourceSummary.requirementChanges?.length?<Text style={styles.cardBody}>{'Customer requirement changes to review:\n'+privateReply.savedSourceSummary.requirementChanges.map(row=>row.label+'\nEarlier private copy: '+(row.previous||'Not supplied')+'\nCurrently recorded: '+(row.current||'Not supplied')).join('\n\n')}</Text>:null}
+        {privateReply.savedSourceSummary.requirementsNotice?<Text style={styles.cardBody}>{privateReply.savedSourceSummary.requirementsNotice}</Text>:null}
+      </Card>:null}
+      {privateReply?.sourceAttribution?<Card title="Where this reply started" body={privateReply.sourceAttribution} footer="Recheck current item details before reusing earlier preparation. Nothing has been sent."/>:null}
+      <View style={styles.workspacePanel}>
+      <Text style={styles.fieldLabel}>{privateReply?'Your private reply':'Prepared follow-up'}</Text>
       <TextInput
         multiline
         value={s.enquiryFollowUpDraft}
         onChangeText={s.setEnquiryFollowUpDraft}
-        style={styles.messageInput}
+        selectionColor={C.blueText}
+        style={[styles.messageInput,styles.replyEditor]}
+        accessibilityLabel={privateReply?"Your private reply wording":"Prepared follow-up wording"}
         placeholder="Follow-up message"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
       />
+      </View>
+      {privateReply?.canReviewCatalogue?<Button label="Review current item details for this reply" disabled={privateReply.preparationBlocked} onPress={s.enquiryReplyActions.prepareCatalogue}/>:null}
+      {privateReply?.catalogueWarning?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateReply.catalogueWarning} Nothing has been sent.</Text>:null}
+      {privateReply?.requirements?.canExplainService?<Button label="Explain the approved service" onPress={()=>s.enquiryReplyActions.prepareQuestion('information')}/>:null}
+      {privateReply?.requirements?.canConfirmRequirements?<Button label="Clarify only missing details" disabled={!privateReply.current||privateReply.preparationBlocked} onPress={()=>s.enquiryReplyActions.prepareQuestion('clarify-missing')}/>:null}
+      {privateReply?.requirements?.canConfirmRequirements&&(customer.privateEnquiryReply||privateReply.purpose==='clarify-missing')?<Button label="Review a fresh clarification" disabled={!privateReply.current||privateReply.preparationBlocked} onPress={s.enquiryReplyActions.reviewFreshRequirements}/>:null}
+      {privateReply?.requirements?.canConfirmRequirements?<Button label="Confirm the supplied requirements" disabled={!privateReply.current||privateReply.preparationBlocked} onPress={()=>s.enquiryReplyActions.prepareQuestion('confirm-requirements')}/>:null}
+      {privateReply&&!privateReply.accountOnly?<View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Prepare another private wording option</Text>{[['acknowledge','Acknowledge the enquiry'],['date','Ask to confirm dates'],['flexibility','Ask whether dates are flexible'],['group','Ask to confirm group size'],['requirements','Ask about location and access']].map(([purpose,label])=><Button selected={privateReply.purpose===purpose} key={purpose} label={(privateReply.purpose===purpose?'✓ ':'')+label} disabled={!privateReply.current||privateReply.preparationBlocked} onPress={()=>s.enquiryReplyActions.prepareQuestion(purpose)}/>)}</View>:null}
+      {privateReply&&!privateReply.accountOnly?<View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Device copy</Text><Text style={styles.cardBody}>{({unsaved:'Changes not saved yet.',saving:'Saving a private device copy…',confirmed:'Saved on this device. Account saving is separate.',failed:'The private save did not start. Your words are kept.',unknown:'Couldn’t confirm the device save. Keep your words and check the copy before retrying.',newer:'Newer wording has not been confirmed saved.',removed:'The saved reply was removed from this device copy. Current words remain; account removal is not confirmed.',reopened:'Reopened a private saved record. Current device/account persistence has not been checked.'})[privateReply.saveStatus]}</Text>
+        {privateReply.saveReason?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateReply.saveReason}</Text>:null}
+        <Button label="Save reply on this device" disabled={privateReply.repeatSaveBlocked||privateReply.preparationBlocked||!privateReply.current||!s.enquiryFollowUpDraft.trim()||['saving','unknown'].includes(privateReply.saveStatus)} onPress={s.enquiryReplyActions.save}/>
+        {privateReply.saveStatus==='unknown'?<Button label="Check private device copy" onPress={s.enquiryReplyActions.checkSave}/>:null}
+      </View>:null}
+      {privateReply?.canSaveAccount?<View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Private account save</Text><Button label="Review private account save" disabled={!privateReply.current||privateReply.preparationBlocked||!s.enquiryFollowUpDraft.trim()} onPress={s.enquiryReplyActions.reviewAccountSave}/>
+        <Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateReply.trustedSaveNewer?'Your newer wording is not confirmed saved.':({otherPending:'Another private account operation is unresolved. Keep current work and check the account before another change.',checking:'Checking the exact private account record…',review:'Review the proposed account change. Nothing is saved yet.',saving:'Saving only the reviewed private wording…',confirmed:'Reviewed wording confirmed in an account-operation receipt; the account revision was rechecked. Device copies and other unsaved work stay separate. Nothing was sent.',reviewRequired:'Keep your current words. The account revision or source needs fresh review before another save. An earlier reply receipt does not save the rest of this workspace.',unknown:'The account outcome is uncertain. Keep your words and check the account before another change. No write was repeated.',failed:'The account change was not confirmed. Keep your words and recheck the source and permissions.',cancelled:'Current wording kept. Nothing was saved.'})[privateReply.trustedSaveStatus]||'This saves an eligible existing private reply only; it does not send a message.'}</Text>
+        {privateReply.canRecheckAccount?<Button label="Recheck account revision" onPress={s.enquiryReplyActions.recheckAccountRevision}/>:null}
+        {privateReply.trustedRecheck?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateReply.trustedRecheck}</Text>:null}
+      </View>:null}
+      {privateReply&&!privateReply.workContext&&!privateReply.trustedAccountMode&&(customer.privateEnquiryReply||privateReply.saveStatus==='removed')?<><Button label={customer.privateEnquiryReply?'Check reply account copy':'Check account after device removal'} disabled={!privateReply.current||privateReply.accountStatus==='checking'} onPress={s.enquiryReplyActions.checkAccount}/>
+        <Text style={styles.cardBody}>{({ownSaved:'The exact private reply was confirmed in an account-save receipt. Nothing was sent.',ownSavedNewer:'The earlier private reply was confirmed in an account-save receipt. Your newer wording is not confirmed saved.',checking:'Checking the account copy…',confirmed:'The exact saved reply and enquiry were read back from your account. This does not send a message.',absent:'This account snapshot currently has no saved reply for the checked enquiry. This does not prove the device removal synced, permanent erasure, or older-client retention.',present:'The checked saved reply remains in this account snapshot. Device removal does not confirm account removal.',different:'The account copy differs or its source needs review. Your current words are kept.',unknown:'Couldn’t confirm the account copy. No save or send was retried.',newer:'The saved account record matched, but your newer wording has not been confirmed saved.'})[privateReply.accountStatus]||'Device saving and account saving are separate. Checking the account never saves or sends.'}</Text>
+      </>:null}
+      {privateReply&&customer.privateEnquiryReply?<Button label="Discard saved private reply" disabled={privateReply.preparationBlocked||!privateReply.current||['saving','unknown'].includes(privateReply.saveStatus)} onPress={s.enquiryReplyActions.removeSaved}/>:null}
+
+      {privateReply?.workContext?<Card eyebrow="Another enquiry, existing customer" title="Current Work is kept" body={'Your recorded '+privateReply.workContext.type+' is '+privateReply.workContext.status+'. These new request words do not replace that action, its dates, amounts or source. History contains recorded job summaries, not complete earlier Work archives.'} tone="blue"/>:null}
+      {privateReply?.repeatSaveBlocked?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>An earlier private reply belongs to another enquiry. This customer has one saved-reply slot. Your new words stay in this editor; saving a separate engagement is not supported yet. The earlier reply and current Work remain unchanged.</Text>:null}
       <Card
         eyebrow="Approval"
-        title="You decide whether this goes"
-        body="The prototype records the approval and later outcome. It does not actually message the customer."
+        title={privateReply?"Private review":"You decide whether this goes"}
+        body={privateReply?.accountOnly?"Keep editing, or review a supported private account save. Device saving remains separate and unavailable in this recovery view.":privateReply?"Save a private copy or keep editing. Sending requires a separate supported approval; this editor does not send customer messages.":"The prototype records the approval and later outcome. It does not actually message the customer."}
         tone="blue"
       />
-      <Button
+      {!privateReply?<Button
         label="Approve simulated send"
         primary
         disabled={!s.enquiryFollowUpDraft.trim()}
         onPress={s.simulateEnquiryFollowUpSend}
-      />
-      <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
+      />:<Text style={styles.cardBody}>Private preparation only. No customer message has been sent; device saving is separate from sending or account persistence.</Text>}
+      {privateReply?.accountOnly?<Button label="Back to account replies" onPress={()=>s.go("customers")}/>:<Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />}
       <Button label="Not now" onPress={s.back} />
     </Shell>
   );
@@ -1381,12 +1478,31 @@ function EnquiryFollowUpOutcome({ s }) {
 }
 
 function QuoteFollowUp({ s }) {
+  const live=React.useRef(s),alive=React.useRef(true);live.current=s;
+  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
   const customer = s.selectedReplyCustomer;
   const action = customer ? s.replyActions?.[customer.id] : null;
   const age = daysSinceTimestamp(action?.details?.quoteSentAt || action?.completedAt);
   if (!customer || action?.type !== "quote") {
     return <Shell s={s} title="Quote follow-up" subtitle="The quote could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
   }
+  const captureDeviceReview=()=>{
+    const epoch=s.getQuoteFollowUpTypingEpoch?.(),scope=s.ownerWorkspaceScope,words=s.quoteFollowUpDraft,origin=s.quoteFollowUpOriginItem,originStamp=JSON.stringify(origin),stamp=JSON.stringify(action);
+    return ()=>{const now=live.current;return alive.current&&!!scope&&Number.isSafeInteger(epoch)&&now.ownerWorkspaceScope===scope&&now.screen===s.screen&&now.ownerSession?.userId===s.ownerSession?.userId&&now.cloudWorkspace?.businessId===s.cloudWorkspace?.businessId&&now.cloudWorkspace?.role===s.cloudWorkspace?.role&&['owner','admin'].includes(now.cloudWorkspace?.role)&&now.selectedReplyCustomer===customer&&now.replyActions?.[customer.id]===action&&JSON.stringify(action)===stamp&&now.quoteFollowUpDraft===words&&now.getQuoteFollowUpTypingEpoch?.()===epoch&&now.quoteFollowUpSourceCurrent!==false&&now.quoteFollowUpOriginItem===origin&&JSON.stringify(now.quoteFollowUpOriginItem)===originStamp&&(!origin||now.inboxItems?.includes(origin)&&origin.status==='Filed'&&origin.filedCustomerId===customer.id);};
+  };
+  const reviewDeviceWording=async()=>{
+    const current=captureDeviceReview();if(!current()||typeof s.checkPrivateQuoteCopy!=='function')return false;
+    try{
+      const checked=await s.checkPrivateQuoteCopy({isCurrent:current,review:true});
+      if(!current())return false;
+      if(checked?.status!=='confirmed'||typeof checked.followUpText!=='string'){Alert.alert('Keep your current wording','A matching private follow-up was not verified on this device. Your words are kept; no account save or delivery is confirmed.');return false;}
+      const words=checked.followUpText;let used=false;
+      Alert.alert('Review checked private wording','Current wording:\n'+s.quoteFollowUpDraft+'\n\nChecked device wording:\n'+words+'\n\nOnly this editor wording will change. Amount, date, quote status and other work stay. Nothing is saved or sent.',[
+        {text:'Keep editing',style:'cancel',onPress:()=>{used=true;}},
+        {text:'Use checked private wording',onPress:async()=>{if(used||!current())return false;used=true;try{const fresh=await s.checkPrivateQuoteCopy({isCurrent:current,review:true});if(!current()||fresh?.status!=='confirmed'||fresh.followUpText!==words)return false;s.setQuoteFollowUpDraft(words);return true;}catch{return false;}}}
+      ]);return true;
+    }catch{return false;}
+  };
   return (
     <Shell
       s={s}
@@ -1397,10 +1513,13 @@ function QuoteFollowUp({ s }) {
       <Card
         eyebrow="Existing customer intent"
         title={customer.name}
-        body={`${customer.service} • quote ${action.details?.quoteAmount ? `£${action.details.quoteAmount}` : "value not recorded"}${age !== null ? ` • quiet for ${age} days` : ""}`}
+        body={`${customer.service} • quote ${action.details?.quoteAmount!=null&&String(action.details.quoteAmount).trim()!=='' ? `£${action.details.quoteAmount}` : "value not recorded"}${age !== null ? ` • ${age} days since the recorded quote date` : ""}`}
         footer="Advertising spend: £0"
         tone="green"
       />
+      <Card eyebrow="Private preparation" title={s.quoteFollowUpSourceCurrent===false?"The saved quote changed":"Your editable follow-up"} body={s.quoteFollowUpSourceCurrent===false?"Your words are kept. Reopen the current saved quote before approving another action.":"This wording is held in the current workspace. No saved-account copy or customer delivery is confirmed."} tone="blue" />
+      <QuoteFollowUpRecordReview s={s}/>
+      <QuoteEnquiryContext s={s} item={s.quoteFollowUpOriginItem||null} />
       <Text style={styles.fieldLabel}>Prepared follow-up</Text>
       <TextInput
         multiline
@@ -1408,7 +1527,7 @@ function QuoteFollowUp({ s }) {
         onChangeText={s.setQuoteFollowUpDraft}
         style={styles.messageInput}
         placeholder="Follow-up message"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
       />
       <Card
         eyebrow="Approval"
@@ -1416,7 +1535,11 @@ function QuoteFollowUp({ s }) {
         body="The prototype records the approval and outcome, but it does not actually message the customer."
         tone="blue"
       />
-      <Button label="Approve simulated send" primary disabled={!s.quoteFollowUpDraft.trim()} onPress={s.simulateQuoteFollowUpSend} />
+      {s.savePrivateQuoteFollowUp?<Button label="Review private wording save" disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.savePrivateQuoteFollowUp}/>:null}
+      {s.quoteFollowUpPrivateRecorded?<Text accessibilityLiveRegion="polite" style={styles.helper}>This exact private wording was observed in the original workspace quote record. Device/account saving and customer delivery remain separate.</Text>:null}
+      <QuotePrivateSaveStatus s={s} record={action} dirty={s.quoteFollowUpDraft!==(action.details?.followUpMessage||'')} check={s.checkPrivateQuoteCopy&&s.getQuoteFollowUpTypingEpoch?()=>{const current=captureDeviceReview();return current()?s.checkPrivateQuoteCopy({isCurrent:current}):false;}:null}/>
+      {typeof action.details?.followUpMessage==='string'&&s.checkPrivateQuoteCopy&&s.getQuoteFollowUpTypingEpoch?<Button label="Review checked private follow-up wording" onPress={reviewDeviceWording}/>:null}
+      <Button label="Approve simulated send" primary disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.simulateQuoteFollowUpSend} />
       <Button label="Open original quote" onPress={() => s.openSavedReplyAction(customer.id)} />
       <Button label="Not now" onPress={s.back} />
     </Shell>
@@ -1486,7 +1609,8 @@ function QuoteFollowUpOutcome({ s }) {
           tone="green"
         />
       ) : null}
-      <Button label="Save outcome" primary onPress={s.saveQuoteFollowUpOutcome} />
+      <Text style={styles.cardBody}>This records your report of the outcome. It is not proof of message delivery, booking confirmation or payment.</Text>
+      <Button label="Save outcome" primary disabled={s.quoteFollowUpSourceCurrent===false} onPress={s.saveQuoteFollowUpOutcome} />
       <Button label="Cancel" onPress={s.back} />
     </Shell>
   );
@@ -1519,7 +1643,7 @@ function ReviewRequest({ s }) {
         onChangeText={s.setReviewRequestDraft}
         style={styles.messageInput}
         placeholder="Review request"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
       />
       <Card
         eyebrow="Trust rule"

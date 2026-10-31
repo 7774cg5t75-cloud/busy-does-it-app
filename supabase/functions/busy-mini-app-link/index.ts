@@ -1,6 +1,6 @@
+import {publicMiniAppDestination} from './publicDestination.mjs';
 import {parseBusinessContentInterest} from '../_shared/businessContentRecords.mjs';
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabaseClient.ts";
 import {verifyPublishedWebsiteIntent} from "./websiteRequestLinkGuardV3215.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
@@ -228,15 +228,12 @@ Deno.serve(async (req: Request) => {
   }
   if (intent) return page(200, handoffPage(app.data, source, intent, contentInterest));
 
-  const publicWebUrl = clean(app.data.public_web_url, 2000);
-  const webReady =
-    app.data.public_web_status === "ready" &&
-    app.data.public_web_version_id === app.data.current_live_version_id &&
-    /^https:\/\//i.test(publicWebUrl);
+  const publicWebUrl = publicMiniAppDestination(app.data,SUPABASE_URL);
+  const webReady = publicWebUrl !== null;
 
   if (webReady) {
     await recordEntry(app.data, source, "web_view");
-    const target = new URL(publicWebUrl);
+    const target = new URL(publicWebUrl!);
     target.searchParams.set("entry", source);
     return redirect(target.toString());
   }

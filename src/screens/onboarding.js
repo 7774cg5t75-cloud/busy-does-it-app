@@ -1,3 +1,4 @@
+import {AppearanceChoices} from "../components/AppearanceChoices";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -153,6 +154,7 @@ function WelcomeScreen({ s }) {
       title="Need more work?"
       subtitle="Tell BUSY what the business needs. It will try the cheapest sensible moves first — and you stay in control."
     >
+      <AppearanceChoices firstRun/>
       <Card eyebrow="The idea" title="More work. Less fuss." tone="green">
         <Text style={styles.tick}>• Start with the business problem, not marketing jargon</Text>
         <Text style={styles.tick}>• Free and low-cost options before paid ads</Text>

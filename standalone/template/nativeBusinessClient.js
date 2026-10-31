@@ -1,3 +1,7 @@
+import {validServicePresentation} from './appServicePresentation.mjs';
+import {validNavigationLabels} from './appNavigationLabels.mjs';
+import {validImageStyles} from './appImageAppearance.mjs';
+import {validComponentStyles} from './appComponentAppearance.mjs';
 import {validContentLayout,validPublicBusinessContent} from './businessContentRecords.mjs';
 import {validServiceDetails} from './publicServiceDetails.mjs';
 import {validPublicCollection} from './appPublicCollections.mjs';
@@ -67,6 +71,10 @@ function validPublicRead(payload,runtime){
   payload.slug!==runtime.slug||
   !Array.isArray(payload.moduleKeys)||!payload.moduleKeys.includes("business_profile")||
   payload.chargesEnabled!==false||payload.doesNotConfirmAppointments!==true||
+  (payload.servicePresentation!==undefined&&!validServicePresentation(payload.servicePresentation))||
+  (payload.navigationLabels!==undefined&&!validNavigationLabels(payload.navigationLabels))||
+  (payload.imageStyles!==undefined&&!validImageStyles(payload.imageStyles))||
+  (payload.componentStyles!==undefined&&!validComponentStyles(payload.componentStyles))||
   (payload.faqs!==undefined&&!validPublicCollection('faqs',payload.faqs))||
   (payload.testimonials!==undefined&&!validPublicCollection('testimonials',payload.testimonials))||
   (!Array.isArray(payload.services)||payload.services.length>40||payload.services.some(s=>!validServiceDetails(s)))||

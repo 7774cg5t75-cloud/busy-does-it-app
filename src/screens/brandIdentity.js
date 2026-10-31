@@ -1,3 +1,5 @@
+import {WorkflowStatus} from '../components/WorkflowChrome';
+import {ConnectedBusinessFacts} from '../components/ConnectedBusinessFacts';
 import React from "react";
 import { Text, View } from "react-native";
 
@@ -12,12 +14,7 @@ import {
   StatusChip,
 } from "../components/ui";
 
-const toneChoices = [
-  "Friendly and professional",
-  "Warm and conversational",
-  "Straightforward and practical",
-  "Premium and polished",
-];
+import {BRAND_TONE_CHOICES as toneChoices} from '../core/brandVoice.mjs';
 
 const visualChoices = [
   "Clean and modern",
@@ -40,6 +37,7 @@ function BrandIdentity({ s }) {
       subtitle="One authoritative public identity for websites, social, customer communication and future marketing."
       brandCue="V3.34 • Brand Brain • tell BUSY once, reuse it everywhere."
     >
+      <ConnectedBusinessFacts s={s}/>
       <Card
         eyebrow="Website-builder foundation"
         title={brain.websiteReadinessLabel || "Build the business identity first"}
@@ -66,6 +64,7 @@ function BrandIdentity({ s }) {
         <MetricRow left="Approved testimonials" right={String(summary.testimonialCount || 0)} />
       </Card>
 
+      <>{s.connectedSaveProfile?<WorkflowStatus tone="warning" title="Working preferences below are device-only" body="Use Approved account facts above for durable shared details. These original brand controls remain local preparation; they do not update saved account facts or existing drafts."/>:null}</>
       <Text style={styles.sectionLabel}>Public business identity</Text>
       <Field label="Business name" value={s.businessName} onChangeText={s.setBusinessName} />
       <Field label="Trade / business type" value={s.trade} onChangeText={s.setTrade} />

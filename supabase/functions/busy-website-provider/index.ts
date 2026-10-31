@@ -1,5 +1,6 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import { createClient } from "../_shared/supabaseClient.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -265,7 +266,7 @@ async function platformPreflight() {
 
 async function validRequest(request: Request) {
   const authorization = request.headers.get("Authorization") || "";
-  if (authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
+  if (SERVICE_ROLE_KEY && authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
 
   const supplied = request.headers.get("x-busy-provider-token") || "";
   if (!supplied) return false;
@@ -1139,8 +1140,9 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16384) as Record<string,unknown>;
     const action = clean(body?.action, 80) || "status";
+    if(!legacyConsequentialAllowed('website_provider',action))return json(503,{ok:false,error:'Provider changes require separately reviewed authority.'});
     if (action === "status") {
       const config = providerConfig();
       const preflight = await platformPreflight();
@@ -1190,6 +1192,7 @@ Deno.serve(async (request: Request) => {
     }
     return json(400, { error: "Unknown website provider action." });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{error:error.message});
     return json(500, {
       error: error instanceof Error ? error.message : "Website provider operation failed.",
     });

@@ -1,4 +1,4 @@
-import {SERVICE_DETAIL_LIMITS,validServiceDetails,publicServiceDetails} from './publicServiceDetails.mjs';
+import {SERVICE_DETAIL_LIMITS,validServiceDetails} from './publicServiceDetails.mjs';
 import {appEditLockReason} from "./appOwnerLocks.mjs";
 /**
  * V3.158 owner-authored public service editing. Pure and private.
@@ -20,8 +20,7 @@ function reviewPrivateAppServices(config,services){
  if(JSON.stringify(before)===JSON.stringify(services))
   return {ok:false,reason:"The service list is already up to date."};
  return {ok:true,nextConfig:{...config,publicProfile:{...config.publicProfile,
-  services:services.map(x=>({...x.id?{id:x.id}:{},name:x.name,
-   description:x.description??"",...publicServiceDetails(x)}))}},
+  services:services.map(x=>({...x}))}},
   previous:before,description:"Updated "+services.length+" owner-approved services",
   publicUntilApproved:false};
 }

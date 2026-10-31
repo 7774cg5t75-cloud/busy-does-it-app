@@ -1,0 +1,328 @@
+{
+  "startingGitHubCommit": "9a90f90d2d310a3fc336d4f5b7501611a42ceee7",
+  "startingTree": "25ffabf8f0dfca7e29bd8e6bd331f776472a9adc",
+  "implementationCommit": "3195bfc9d347be56b91b7e3124226f9c79e9ecf0",
+  "implementationTree": "5b8e464609f170136a39f14cfd81f5b2afbb311b",
+  "equivalentLocalCommit": "96670d2630e9a4042d449472ff3ab8beb3f6cec7",
+  "workflowRun": 41189752362,
+  "changedImplementationFiles": [
+    ".github/workflows/dependency-remediation.yml",
+    ".github/workflows/native-screenshots.yml",
+    "AGENTS.md",
+    "docs/DEPENDENCY_SECURITY_INSTALL.md",
+    "package-lock.json",
+    "package.json",
+    "scripts/apply-tooling-security-patches.mjs",
+    "scripts/check-dependency-security.mjs",
+    "scripts/dependency-compatibility-probe.mjs",
+    "scripts/dependency-evidence-transfer.mjs",
+    "scripts/dependency-policy.mjs",
+    "scripts/lib/expo-safe-arguments.mjs",
+    "scripts/native-capture/package-lock.json",
+    "scripts/native-capture/prepare.py",
+    "scripts/run-expo-safe.mjs",
+    "scripts/testing/regressions.json",
+    "security/dependency-patches.json",
+    "security/dependency-policy.json"
+  ],
+  "registryAudits": {
+    "audit-browser-tools.json": {
+      "exit": 0,
+      "counts": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "nodes": []
+    },
+    "audit-native-capture.json": {
+      "exit": 1,
+      "counts": {
+        "info": 0,
+        "low": 7,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 7
+      },
+      "nodes": [
+        "@expo/cli",
+        "@expo/config",
+        "@expo/local-build-cache-provider",
+        "@expo/metro-config",
+        "@expo/prebuild-config",
+        "deepmerge",
+        "expo"
+      ]
+    },
+    "audit-offline-tools.json": {
+      "exit": 0,
+      "counts": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "nodes": []
+    },
+    "audit-production.json": {
+      "exit": 1,
+      "counts": {
+        "info": 0,
+        "low": 7,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 7
+      },
+      "nodes": [
+        "@expo/cli",
+        "@expo/config",
+        "@expo/local-build-cache-provider",
+        "@expo/metro-config",
+        "@expo/prebuild-config",
+        "deepmerge",
+        "expo"
+      ]
+    },
+    "audit.json": {
+      "exit": 1,
+      "counts": {
+        "info": 0,
+        "low": 7,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 7
+      },
+      "nodes": [
+        "@expo/cli",
+        "@expo/config",
+        "@expo/local-build-cache-provider",
+        "@expo/metro-config",
+        "@expo/prebuild-config",
+        "deepmerge",
+        "expo"
+      ]
+    }
+  },
+  "registryMetadataExits": [
+    {
+      "name": "audit",
+      "exitCode": 1
+    },
+    {
+      "name": "audit-production",
+      "exitCode": 1
+    },
+    {
+      "name": "audit-offline-tools",
+      "exitCode": 0
+    },
+    {
+      "name": "audit-browser-tools",
+      "exitCode": 0
+    },
+    {
+      "name": "audit-native-capture",
+      "exitCode": 1
+    },
+    {
+      "name": "zod@4.6.6",
+      "exitCode": 0
+    },
+    {
+      "name": "glob@14.0.2",
+      "exitCode": 0
+    },
+    {
+      "name": "minimatch@11.0.1",
+      "exitCode": 0
+    },
+    {
+      "name": "deepmerge@latest",
+      "exitCode": 0
+    },
+    {
+      "name": "deepmerge-ts@latest",
+      "exitCode": 0
+    },
+    {
+      "name": "expo@57",
+      "exitCode": 0
+    },
+    {
+      "name": "@expo_config@57",
+      "exitCode": 0
+    },
+    {
+      "name": "@expo_cli@57",
+      "exitCode": 0
+    }
+  ],
+  "localChecks": [
+    {
+      "command": [
+        "node",
+        "scripts/check-dependency-security.mjs"
+      ],
+      "exit": 0,
+      "output": "PASS actual Expo deepmerge entry backport, old counterexample, safe merge semantics, unknown-byte/check-only refusal, deterministic reinstall patch and local-only launcher. Registry findings remain visible.\n"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/dependency-compatibility-probe.mjs"
+      ],
+      "exit": 0,
+      "output": "{\"versions\":{\"expo\":\"57.0.31\",\"@expo/cli\":\"57.0.32\",\"zod\":\"4.6.6\",\"glob\":\"14.0.2\",\"minimatch\":\"11.0.1\",\"deepmerge\":\"4.3.1\"},\"schemas\":\"actual original Expo CLI schemas and MCP schema factory passed\",\"glob\":\"actual Expo config glob and fingerprint minimatch callers passed\",\"config\":\"actual Expo config modification and iOS/Android native-path discovery passed\",\"deepmerge\":{\"prototypePoisoningObserved\":false,\"originalFileSha256\":\"f30c7f31ea7f1f2d13662769030826bf3bffc9116c403ee5ef3d2f9226b37bc2\"},\"providerCalls\":false,\"hosted\":false,\"nativeAcceptance\":false}\n"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/apply-tooling-security-patches.mjs"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/check-dependency-security.mjs"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/dependency-compatibility-probe.mjs"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/dependency-evidence-transfer.mjs"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/dependency-policy.mjs"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/run-expo-safe.mjs"
+      ],
+      "exit": 0,
+      "output": ""
+    }
+  ],
+  "priorSuccessfulWorkflowRuns": [
+    41178340484,
+    41187303823
+  ],
+  "freshPostgreSQL": false,
+  "freshDeno": false,
+  "hostedVerification": false,
+  "physicalDeviceAcceptance": false,
+  "spending": false,
+  "deployment": false,
+  "masterOriginalReopenedThisContinuation": false,
+  "localSecurityChecks": [
+    {
+      "name": "foundation",
+      "exit": 0,
+      "tail": "ive loyalty progress\nPASS  V3.55 booking requests open the real BUSY booking\nPASS  V3.55 customer preview renders real branding media\nPASS  V3.55 payments remain deliberately planned\nPASS  Cloudflare root routes excluded\nPASS  health checks bypass website edge cache\nPASS  website origin rejects storage traversal\nPASS  website origin hardened headers\nProduction foundation check passed: 105 checks.\n"
+    },
+    {
+      "name": "security-baseline",
+      "exit": 0,
+      "tail": "{\"passed\":true,\"sourceFiles\":915,\"lockedPackages\":556,\"secretsLogged\":false,\"registryVulnerabilityAudit\":\"Separate npm audit required; not established by this check\"}\n"
+    },
+    {
+      "name": "security-by-design",
+      "exit": 0,
+      "tail": "le type of file:///workspace/busy-connected-recovery/src/domain/websiteBuilder.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/busy-connected-recovery/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    }
+  ],
+  "application": {
+    "sourceSha": "3195bfc9d347be56b91b7e3124226f9c79e9ecf0",
+    "sourceTree": "5b8e464609f170136a39f14cfd81f5b2afbb311b",
+    "workingTreeChanged": false,
+    "summary": {
+      "passed": 457,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "processExit": 0
+  },
+  "foundation": {
+    "checks": 105,
+    "processExit": 0
+  },
+  "compatibilityJobs": [
+    {
+      "id": 124503970791,
+      "node": "22.13.0",
+      "conclusion": "success",
+      "installationExit": 0,
+      "actualCallerExit": 0,
+      "ownerPreviewHermesExit": 0,
+      "isolatedStagingHermesExit": 0,
+      "sourceMapAssertionExit": 0,
+      "backportRegressionExit": 0
+    },
+    {
+      "id": 124503970795,
+      "node": "24.19.0",
+      "conclusion": "success",
+      "installationExit": 0,
+      "actualCallerExit": 0,
+      "ownerPreviewHermesExit": 0,
+      "isolatedStagingHermesExit": 0,
+      "sourceMapAssertionExit": 0,
+      "backportRegressionExit": 0,
+      "fullRegressionExit": 0,
+      "securityChecksExit": 0,
+      "cleanTreeExit": 0
+    }
+  ],
+  "families": {
+    "zod": "fixed:4.6.6",
+    "glob": "fixed:14.0.2",
+    "minimatch": "fixed:11.0.1/11.0.3",
+    "deepmerge": "mitigated: reviewed three-artifact 4.3.1 backport; upstream GHSA-gcqx-w48m-w2h4 remains"
+  },
+  "localInstallExit": 0,
+  "independentDisposableInstallExit": 0
+}

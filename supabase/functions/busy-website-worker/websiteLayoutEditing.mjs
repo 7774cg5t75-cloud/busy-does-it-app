@@ -1,3 +1,8 @@
+import {validTestimonialSpotlight} from './websiteTestimonials.mjs';
+import {validServiceIndex} from './websiteServiceIndex.mjs';
+import {editWebsitePages} from "./websitePageEditing.mjs";
+import {textTypographyFields,textTypographySupports} from "./websiteTextTypography.mjs";
+import {photographicCount} from './designPlanner.mjs';
 import {websiteLayoutLockReason,protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * V3.134 — exact structural and appearance operations on a PRIVATE website draft.
@@ -9,6 +14,7 @@ const list=x=>Array.isArray(x)?x:[];
 const slug=s=>text(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-+$/g,"").slice(0,52);
 const fail=(draft,reason)=>({applied:false,draft,reason});
 const allow={
+ pageGuide:["none","sections"],
  typography:["confident","refined","compact","editorial","friendly"],
  cardLayout:["cards","outlines","rows"],
  navStyle:["quiet","underline","pill"],
@@ -16,6 +22,7 @@ const allow={
  spacing:["comfortable","generous","compact"],
  ctaEmphasis:["normal","strong"],
  heroSize:["medium","large","extra-large"],
+ heroLayout:["type-left","type-center","type-right","type-poster","image-right","image-left","image-frame","image-feature"],
  photoFocus:["center","top","bottom"],
 };
 function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
@@ -170,6 +177,10 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const {field,value}=operation;
   if(!Object.prototype.hasOwnProperty.call(allow,field)||!allow[field].includes(value))
    return fail(draft,"Choose a supported appearance setting. Arbitrary CSS or remote fonts are not allowed.");
+  if(field==='heroLayout'){
+   const hero=sections.find(section=>section.type==='hero'&&section.enabled!==false),hasImage=photographicCount(hero?[hero]:[])>0;
+   if(!hero||value.startsWith('image-')!==hasImage)return fail(draft,hasImage?'Keep the approved hero photo and choose an image layout.':'Choose a typographic layout or select an approved hero photo first.');
+  }
   if(field==="photoFocus"&&!sections.some(s=>s.type==="hero"&&s.asset?.approved!==false&&text(s.asset?.storagePath)))
    return fail(draft,"Add an approved customer hero photo before changing photo crop.");
   if(field==="ctaEmphasis"&&value==="strong"&&!sections.some(s=>s.type==="hero"&&text(s.cta)&&text(s.ctaHref)))
@@ -210,18 +221,21 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const itemId=operation.itemId;
   const section=sections.find(x=>x?.id===sectionId&&x.enabled!==false);
   if(!section||!["services","faq","testimonials"].includes(section.type)||
-     operation.field!=="headingScale"||
-     !["compact","normal","large"].includes(operation.value))
+     !(operation.field==='headingScale'?['compact','normal','large']:Object.hasOwn(textTypographyFields,operation.field)?textTypographyFields[operation.field]:[]).includes(operation.value))
    return fail(draft,"Select an existing service, question or testimonial heading.");
   const matches=list(section.items).filter(item=>item?.id===itemId);
   if(typeof itemId!=="string"||!itemId||matches.length!==1)
    return fail(draft,"That exact heading no longer exists.");
   const at=list(section.items).findIndex(item=>item.id===itemId);
-  const item=section.items[at],present=text(item?.appearance?.headingScale)||"normal";
-  if(present===operation.value)return fail(draft,"That heading already uses this size.");
+  const field=operation.field,defaultValue=field==='headingScale'?'normal':'brand';
+  const item=section.items[at],present=text(item?.appearance?.[field])||defaultValue;
+  if(present===operation.value)return fail(draft,"That text already uses this setting.");
+  const appearance={};
+  if(['compact','large'].includes(item?.appearance?.headingScale))appearance.headingScale=item.appearance.headingScale;
+  for(const name of Object.keys(textTypographyFields))if(textTypographyFields[name].includes(item?.appearance?.[name])&&item.appearance[name]!=='brand')appearance[name]=item.appearance[name];
+  if(operation.value===defaultValue)delete appearance[field];else appearance[field]=operation.value;
   const nextItem={...item};
-  if(operation.value==="normal")delete nextItem.appearance;
-  else nextItem.appearance={headingScale:operation.value};
+  if(Object.keys(appearance).length)nextItem.appearance=appearance;else delete nextItem.appearance;
   section.items[at]=nextItem;
   return ready("Resized only the selected card heading.");
  }
@@ -232,22 +246,35 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(matched.length!==1)
    return fail(draft,"Choose one visible section of your website.");
   const target=matched[0];
+  if(operation.field==='testimonialsLayout'&&operation.value==='spotlight'&&!validTestimonialSpotlight(target))return fail(draft,'Use at least two complete, distinctly identified supplied testimonials before comparing this layout.');
   const fields={
+   ...textTypographyFields,
+   testimonialsLayout:['brand','spotlight'],serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial','columns'],faqLayout:['brand','questions'],
+   ctaSize:['normal','spacious','wide'],
+   bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],
    textAlign:["left","center"],
    sectionSpacing:["compact","normal","generous"],
+   mobileSectionSpacing:["compact","normal","generous"],desktopSectionSpacing:["compact","normal","generous"],
    photoCrop:["top","center","bottom"],
-   photoSide:["left","right"],
+   photoSide:["left","right"],desktopPhotoSide:["brand","left","right"],
    gallerySize:["comfortable","compact","large"],
    mobileHeadingScale:["normal","compact","large"],desktopHeadingScale:["normal","compact","large"],
    mobileGallerySize:["comfortable","compact","large"],desktopGallerySize:["comfortable","compact","large"]
   };
+  const bodyTypes=['hero','services','about','text','photo-feature','faq','testimonials','contact'];
   const supports={
+   ...textTypographySupports,
+   testimonialsLayout:['testimonials'],serviceLayout:['services'],readingLayout:['about','text'],faqLayout:['faq'],
+   ctaSize:['hero'],
+   bodyScale:bodyTypes,mobileBodyScale:bodyTypes,desktopBodyScale:bodyTypes,
    headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    textAlign:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    sectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   mobileSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact","products","events"],
+   desktopSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact","products","events"],
    photoCrop:["hero","photo-feature","gallery"],
-   photoSide:["photo-feature"],
+   photoSide:["photo-feature"],desktopPhotoSide:["photo-feature"],
    gallerySize:["gallery"],
    mobileHeadingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    desktopHeadingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
@@ -264,6 +291,9 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(!Object.prototype.hasOwnProperty.call(fields,field)||
      !fields[field].includes(value)||!supports[field].includes(target.type))
    return fail(draft,"Choose an available design control for this exact section.");
+  if(field==='serviceLayout'&&value==='index'&&!validServiceIndex(target))return fail(draft,'An indexed service directory needs distinct original service identities, titles and descriptions.');
+  if(field==='faqLayout'&&value==='questions'&&(!list(target.items).length||list(target.items).some(item=>!text(item?.title).trim()||!text(item?.body).trim())))return fail(draft,'Each question needs its original answer before using expandable questions.');
+  if(field==='desktopPhotoSide'&&value!=='brand'&&(target.asset?.approved!==true||!text(target.asset?.storagePath)))return fail(draft,'Choose an approved original picture before comparing its position.');
   if(field==="photoCrop"&&target.type!=="gallery"&&!text(target.asset?.storagePath))
    return fail(draft,"Add an approved original photo before changing its crop.");
   const before=Object.prototype.hasOwnProperty.call(existing,field)?existing[field]:"";
@@ -273,10 +303,10 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   for(const name of Object.keys(fields))
    if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
     next[name]=existing[name];
-  const defaults={headingScale:"normal",textAlign:"left",sectionSpacing:"normal",
-    photoCrop:"center",photoSide:"left",gallerySize:"comfortable",
+  const defaults={testimonialsLayout:'brand',faqLayout:'brand',readingLayout:'brand',serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
+    photoCrop:"center",photoSide:"left",desktopPhotoSide:"brand",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
-  if(value===defaults[field])delete next[field];else next[field]=value;
+  if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;
   if(Object.keys(next).length)target.appearance=next;else delete target.appearance;
   return ready("Changed just this section's "+field+".");
  }
@@ -353,6 +383,44 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   theme.sectionOrder=list(theme.sectionOrder).filter(id=>id!==sectionId);
   return ready("Deleted the extra "+text(chosen.title)+" section.");
  }
+ if(action==="move-relative"){
+  if(Object.keys(operation).some(k=>!['action','kind','sectionId','targetSectionId','position','pageId'].includes(k))||
+    !['before','after'].includes(operation.position)||sectionId==='hero'||
+    sectionId===operation.targetSectionId||chosen.enabled===false)
+   return fail(draft,'Choose two different visible sections and keep the main hero first.');
+  const page=list(draft.pages).filter(p=>p.id===operation.pageId&&p.enabled!==false);
+  if(page.length!==1||![sectionId,operation.targetSectionId].every(id=>list(page[0].sectionIds).includes(id)))
+   return fail(draft,'Both sections must be on the selected current page.');
+  if(operation.pageId!=='home'){
+   const custom=list(draft.customPages).filter(p=>p.id===operation.pageId);
+   if(custom.length!==1||list(custom[0].sectionIds).length>12||
+      JSON.stringify(custom[0].sectionIds)!==JSON.stringify(page[0].sectionIds))
+    return fail(draft,'Choose a current owner-created page before moving its sections.');
+   const ids=custom[0].sectionIds,next=ids.filter(id=>id!==sectionId),at=next.indexOf(operation.targetSectionId);
+   if(at<0)return fail(draft,'Choose a visible destination on this same page.');
+   next.splice(at+(operation.position==='after'?1:0),0,sectionId);
+   let position=ids.indexOf(sectionId),target=next.indexOf(sectionId),working=draft;
+   if(position===target)return fail(draft,'These page sections are already in that order.');
+   const direction=target<position?'up':'down',step=target<position?-1:1;
+   // Reuse the original bounded page edit and lock guard. All intermediate
+   // drafts are private candidates; the caller commits only the final one.
+   while(position!==target){
+    const moved=editWebsitePages(working,{action:'move-page-section',pageId:operation.pageId,sectionId,direction});
+    if(!moved.applied)return fail(draft,moved.reason);
+    working=moved.draft;position+=step;
+   }
+   return {applied:true,draft:working,reason:'Moved the selected section only on its owner-created page. Undo restores the original page order.'};
+  }
+  const rendered=list(draft.designPlan?.sectionOrder).filter(id=>active().includes(id));
+  const ids=list(theme.sectionOrder).length?order():[...new Set([...rendered,...active()])];
+  if(!ids.includes(operation.targetSectionId)||operation.targetSectionId==='hero'&&operation.position==='before')
+   return fail(draft,'Keep the main hero first and choose a visible destination.');
+  const next=ids.filter(id=>id!==sectionId),at=next.indexOf(operation.targetSectionId);
+  next.splice(at+(operation.position==='after'?1:0),0,sectionId);
+  if(JSON.stringify(ids)===JSON.stringify(next))return fail(draft,'These sections are already in that order.');
+  theme.sectionOrder=next;
+  return ready('Moved '+text(chosen.title||sectionId)+' '+operation.position+' '+operation.targetSectionId+'.');
+ }
  if(action==="move"){
   if(chosen.enabled===false||sectionId==="hero")
    return fail(draft,"Show the section before moving it. The main hero must remain first.");
@@ -369,10 +437,29 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
  return fail(draft,"Unsupported layout change. No website content was modified.");
 }
 function applyWebsiteLayoutOperation(draft,operation){
+ if(['page-reading','page-spacing'].includes(operation?.action)){
+  const spacing=operation.action==='page-spacing',value=spacing?operation.value:'large';
+  if(Object.keys(operation).some(k=>!(spacing?['action','kind','pageId','device','value']:['action','kind','pageId','device']).includes(k))||
+   !(spacing?['mobile','desktop']:['mobile','desktop','all']).includes(operation.device)||spacing&&!['compact','generous'].includes(value))return fail(draft,'Choose the page and supported reading size.');
+  const pages=list(draft?.pages).filter(p=>p.id===operation.pageId&&p.enabled!==false);
+  if(pages.length!==1)return fail(draft,'Choose one current page.');
+  const field=spacing?operation.device+'SectionSpacing':operation.device==='all'?'bodyScale':operation.device+'BodyScale';
+  const sections=list(draft.sections).filter(s=>s.enabled!==false&&list(pages[0].sectionIds).includes(s.id)&&
+   ['hero','services','about','text','photo-feature','faq','testimonials','contact',...(spacing?['gallery','products','events']:[])].includes(s.type));
+  if(!sections.length||sections.length>30)return fail(draft,'Review the current page sections first.');
+  let next=draft,changed=false;
+  for(const section of sections){
+   if(section.appearance?.[field]===value)continue;
+   const result=applyWebsiteLayoutOperation(next,{action:'section-style',sectionId:section.id,field,value});
+   if(!result.applied)return fail(draft,result.reason);next=result.draft;changed=true;
+  }
+  return changed?protectWebsiteOwnerLocks(draft,{applied:true,draft:next,reason:(spacing?'Prepared section spacing on ':'Prepared larger body text and reading space on ')+operation.device+' layouts. Wording and other widths stay unchanged.'}):fail(draft,'This page already uses the requested reading size.');
+ }
  if(operation?.action==='style-group'){
   const ops=operation.operations;
   if(!Array.isArray(ops)||!ops.length||ops.length>4||Object.keys(operation).some(k=>!['action','operations','kind'].includes(k))||
-   ops.some(op=>!op||!['style','section-style'].includes(op.action)||Object.keys(op).some(k=>!['action','sectionId','field','value'].includes(k))))
+   ops.some(op=>!op||!['style','section-style','apply-reviewed-composition'].includes(op.action)||
+    Object.keys(op).some(k=>!(op.action==='apply-reviewed-composition'?['action','websiteId','expectedGeneration','expectedBusinessId','before','proposed']:['action','sectionId','field','value']).includes(k))))
    return fail(draft,'Choose up to four supported appearance changes.');
   let next=draft;
   for(const op of ops){const result=applyWebsiteLayoutOperation(next,op);if(!result.applied)return fail(draft,result.reason);next=result.draft;}

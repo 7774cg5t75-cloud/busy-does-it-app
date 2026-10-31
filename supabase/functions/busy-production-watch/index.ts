@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
+const TRUSTED_SNAPSHOT_PROJECTIONS_ENABLED = false; // Separate staged service cutover.
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 
@@ -318,17 +318,17 @@ async function runWatch(
   for (const group of groups.values()) {
     checked += 1;
 
-    const snapshots = await serverRest(
-      `busy_business_snapshots?business_id=eq.${encodeURIComponent(group.businessId)}&select=payload,updated_at&limit=1`
-    );
-
-    const snapshot = Array.isArray(snapshots)
-      ? snapshots[0] || null
-      : null;
-
-    if (!snapshot?.payload) continue;
-
-    const alerts = candidateAlerts(snapshot.payload);
+    let facts;
+    if(TRUSTED_SNAPSHOT_PROJECTIONS_ENABLED){
+      // Server checks current owner-recipient membership and returns only alert facts.
+      // Failure never falls back to raw owner-private JSON.
+      facts=await serverRest('rpc/busy_service_alert_facts_v1',{method:'POST',body:JSON.stringify({p_business_id:group.businessId,p_recipient_id:group.userId})});
+    }else{
+      const snapshots=await serverRest(`busy_business_snapshots?business_id=eq.${encodeURIComponent(group.businessId)}&select=payload,updated_at&limit=1`);
+      facts=(Array.isArray(snapshots)?snapshots[0]:null)?.payload;
+    }
+    if(!facts)continue;
+    const alerts=candidateAlerts(facts);
 
     for (const alert of alerts) {
       const existing = await serverRest(
@@ -345,9 +345,9 @@ async function runWatch(
       const uniqueTokens = [
         ...new Set(group.tokens),
       ].filter(
-        (token: string) =>
-          token.startsWith("ExponentPushToken[") ||
-          token.startsWith("ExpoPushToken[")
+        (token: unknown): token is string =>
+          typeof token === "string" && (token.startsWith("ExponentPushToken[") ||
+          token.startsWith("ExpoPushToken["))
       );
 
       if (!uniqueTokens.length) continue;

@@ -1,3 +1,18 @@
+import {SegmentedControl,EmptyState} from '../components/InteriorChrome';
+import {CreatorDeviceRecovery} from '../components/CreatorDeviceRecovery';
+import {CreatorAccountDrafts} from '../components/CreatorAccountDrafts';
+import {OpportunityDraftContinuity} from '../components/OpportunityDraftContinuity';
+import {GrowthContentOrigin} from '../components/GrowthOpportunities';
+import {readNewsletterWording} from '../core/newsletterWording.mjs';
+import {NewsletterPreview} from '../components/NewsletterPreview';
+import {NewsletterAccountReadback} from '../components/NewsletterAccountReadback';
+import {ContentFormatChoices} from '../components/ContentFormatChoices';
+import {ContentAccountReadback} from '../components/ContentAccountReadback';
+import {ContentWordingChoices} from '../components/ContentWordingChoices';
+import {ContentSourceReview} from '../components/ContentSourceReview';
+import {ContentRecordChoices} from '../components/ContentRecordChoices';
+import {ContentDraftStatus} from "../components/ContentDraftStatus";
+import {buildContentBrandSnapshot} from "../core/businessBrandDnaV3195.mjs";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -134,6 +149,7 @@ import {
   Card,
   Button,
   SmallLink,
+  Details,
   Field,
   DatePickerField,
   Choice,
@@ -235,8 +251,9 @@ function SocialMediaCentre({ s }) {
     return (
       <Pressable
         key={draft.id}
+        accessibilityRole="button" accessibilityLabel={"Open content: "+(draft.service||draft.sourceLabel||"Saved content")}
         onPress={() => s.openSocialDraft(draft.id)}
-        style={styles.activityCard}
+        style={({pressed})=>[styles.activityCard,pressed&&styles.pressed]}
       >
         <View style={styles.activityTopRow}>
           <View style={{ flex: 1, paddingRight: 10 }}>
@@ -307,8 +324,8 @@ function SocialMediaCentre({ s }) {
   return (
     <Shell
       s={s}
-      title="Social Media"
-      subtitle="Create, schedule and manage your posts."
+      title="Content Creator"
+      subtitle="Create something useful. Review your words and photos before sharing."
     >
       <Button label="+ Create a new post" primary onPress={s.startSocialFromPhone} />
 
@@ -341,7 +358,7 @@ function SocialMediaCentre({ s }) {
         </Card>
       ) : null}
 
-      <Card eyebrow="Your accounts" title="Connected accounts" tone="blue">
+      <Details label="Accounts and publishing setup"><Card eyebrow="Your accounts" title="Connected accounts" tone="blue">
         <MetricRow
           left="Facebook / Instagram"
           right={providerLabel(meta, "Facebook / Instagram")}
@@ -355,40 +372,10 @@ function SocialMediaCentre({ s }) {
         <Button label="Manage accounts" onPress={() => s.go("connectedAccounts")} />
       </Card>
 
+      </Details>
       <Text style={styles.sectionLabel}>Your posts</Text>
-      <View style={styles.socialFilterRow}>
-        {socialGroups.map((group) => (
-          <Pressable
-            key={group.key}
-            accessibilityRole="button"
-            accessibilityState={{ selected: socialList === group.key }}
-            onPress={() => {
-              setSocialList(group.key);
-              setShowAllPosts(false);
-            }}
-            style={[styles.socialFilterButton, socialList === group.key && styles.socialFilterSelected]}
-          >
-            <Text style={[styles.socialFilterText, socialList === group.key && styles.socialFilterTextSelected]}>
-              {group.key}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
-      {visibleSocialPosts.length ? visibleSocialPosts.map(renderDraftCard) : (
-        <View style={styles.socialEmptyState}>
-          <Text style={styles.socialEmptyTitle}>
-            {socialList === "Drafts" ? "No drafts yet" : socialList === "Scheduled" ? "Nothing scheduled" : "No published posts yet"}
-          </Text>
-          <Text style={styles.socialEmptyDetail}>
-            {socialList === "Drafts"
-              ? "Create a post from your photos to get started."
-              : socialList === "Scheduled"
-              ? "Posts you approve and schedule will appear here."
-              : "Once a post is published, you can find it here."}
-          </Text>
-        </View>
-      )}
+      <SegmentedControl items={socialGroups.map(group=>group.key)} value={socialList} onChange={value=>{setSocialList(value);setShowAllPosts(false);}} label="Your posts"/>
+      {visibleSocialPosts.length?visibleSocialPosts.map(renderDraftCard):<EmptyState title={socialList==='Drafts'?'What shall we create?':socialList==='Scheduled'?'Nothing scheduled':'No published posts yet'} body={socialList==='Drafts'?'Start with your selected photos or an idea. You review the words before any separate publishing action.':socialList==='Scheduled'?'Only posts you approve and schedule appear here. Account and provider setup may still be required.':'Published results appear here only when their original status is available.'} actionLabel={socialList==='Drafts'?'Create a post':undefined} onAction={socialList==='Drafts'?s.startSocialFromPhone:undefined}/>}
       {currentGroup.items.length > 3 ? (
         <Button
           label={showAllPosts ? "Show fewer posts" : `See all ${currentGroup.items.length} ${socialList.toLowerCase()} posts`}
@@ -477,7 +464,7 @@ function SocialMediaCentre({ s }) {
               <Pressable
                 key={`${customer.id}-${job.id}`}
                 onPress={() => s.startSocialFromJob(customer.id, job.id)}
-                style={styles.activityCard}
+                style={({pressed})=>[styles.activityCard,pressed&&styles.pressed]}
               >
                 <View style={styles.activityTopRow}>
                   <View style={{ flex: 1, paddingRight: 10 }}>
@@ -606,7 +593,7 @@ function SocialMediaCentre({ s }) {
             <Pressable
               key={`social-outcome-${customer.id}-${job.id}`}
               onPress={() => s.openJobPostOutcome(customer.id, job.id)}
-              style={styles.activityCard}
+              style={({pressed})=>[styles.activityCard,pressed&&styles.pressed]}
             >
               <View style={styles.activityTopRow}>
                 <View style={{ flex: 1, paddingRight: 10 }}>
@@ -664,21 +651,54 @@ function SocialCreator({ s }) {
     setBrandReview(null);setBrandedCaptionAccepted(false);
   },[businessId,brandWebsite?.id,brandWebsite?.generation,
     brandApp?.id,brandApp?.draft_revision]);
-  const currentBrandInput=()=>({website:brandWebsite,app:brandApp,businessId});
+  const captionEpoch=React.useRef(0),reviewRef=React.useRef(brandReview),liveCaption=React.useRef(null);
+  liveCaption.current={approvedProfile:s.businessCreationIntelligence?.sharedProfile,ownerId:s.ownerSession?.userId,businessId,website:brandWebsite,app:brandApp,s};
+  const capturedEpoch=captionEpoch.current;
+  const currentCaption=()=>liveCaption.current.ownerId===s.ownerSession?.userId&&liveCaption.current.businessId===businessId&&liveCaption.current.website===brandWebsite&&liveCaption.current.app===brandApp&&captionEpoch.current===capturedEpoch;
+  const review=value=>{reviewRef.current=value;setBrandReview(value);};
+  const currentBrandInput=()=>({website:brandWebsite,app:brandApp,businessId,approvedProfile:liveCaption.current.approvedProfile});
+  const brandSnapshot=buildContentBrandSnapshot(currentBrandInput());
+  const prepareCaption=(serviceName='')=>{
+    if(!currentCaption())return;
+    captionEpoch.current++;setBrandedCaptionAccepted(false);
+    review(prepareSocialBrandHandoff({...currentBrandInput(),serviceName}));
+  };
+  const editCaption=value=>{
+    if(liveCaption.current.ownerId!==s.ownerSession?.userId||liveCaption.current.businessId!==businessId||liveCaption.current.website!==brandWebsite||liveCaption.current.app!==brandApp)return;
+    captionEpoch.current++;review(null);s.setSocialDraftText(value);
+  };
   const applyBrandCaption=()=>{
-    const verified=confirmSocialBrandHandoff({...currentBrandInput(),
-      evidence:brandReview});
-    if(!verified.ok){setBrandReview(verified);setBrandedCaptionAccepted(false);return;}
+    if(!currentCaption()||reviewRef.current!==brandReview)return;
+    const verified=confirmSocialBrandHandoff({...currentBrandInput(),evidence:brandReview});
+    if(!verified.ok){review(verified);setBrandedCaptionAccepted(false);return;}
     const apply=()=>{
-      s.setSocialDraftText(verified.copy);
-      setBrandedCaptionAccepted(true);
-      setBrandReview(null);
+      if(!currentCaption()||reviewRef.current!==brandReview)return;
+      const fresh=confirmSocialBrandHandoff({...currentBrandInput(),evidence:brandReview});
+      if(!fresh.ok){review(fresh);return;}
+      captionEpoch.current++;s.setSocialDraftText(fresh.copy);
+      setBrandedCaptionAccepted(true);review(null);
     };
     if(s.socialDraftText.trim()&&s.socialDraftText.trim()!==verified.copy.trim()){
       Alert.alert("Replace your caption?",
         "You have wording in this post. Using your brand caption will replace those edits.",[
         {text:"Keep my wording",style:"cancel"},
         {text:"Use branded wording",onPress:apply}
+      ]);
+    }else apply();
+  };
+  const pendingIdea=s.socialSourceContext?.pendingContentIdea;
+  const pendingCheck=(pendingIdea?.reuse||pendingIdea?.growthOrigin)&&s.socialContentActions?.pendingSourceCurrent?.(pendingIdea)===false?{ok:false,reason:pendingIdea.growthOrigin?'The opportunity source changed or is unavailable. Keep your current draft and inspect a current opportunity in Get More Customers.':'The saved announcement changed or is unavailable. Keep your current draft and choose its current saved record again.'}:pendingIdea?.evidence?.ok?confirmSocialBrandHandoff({...currentBrandInput(),evidence:pendingIdea.evidence,feed:pendingIdea.feed}):null;
+  const ownerIdea=pendingIdea?.purpose==='owner-announcement';
+  const recordIdea=['product','event'].includes(pendingIdea?.purpose);
+  const incomingSnapshot=buildContentBrandSnapshot({...currentBrandInput(),sourceMode:pendingIdea?.sourceMode||""});
+  const handoffTicket=s.socialContentActions?.capture();
+  const applyIncomingIdea=()=>{
+    if(!s.socialContentActions?.fresh(handoffTicket))return;
+    let used=false;
+    const apply=()=>{if(used||!s.socialContentActions.fresh(handoffTicket))return false;used=true;return s.socialContentActions.accept(pendingIdea,handoffTicket);};
+    if(s.socialDraftText.trim()||s.selectedSocialDraftId){
+      Alert.alert('Keep your current draft?', 'Using this new idea starts a separate private draft. Your selected photos stay; existing saved content is not replaced.',[
+        {text:'Keep my current draft',style:'cancel',onPress:()=>{used=true;}}, {text:'Use this new idea',onPress:apply}
       ]);
     }else apply();
   };
@@ -692,13 +712,34 @@ function SocialCreator({ s }) {
       s={s}
       title="Create social content"
       subtitle={s.socialSourceContext?.label || "Selected photos"}
-      brandCue="BUSY looks only at the photos you deliberately select."
+      brandCue="Your wording and selected photos stay private until separate publishing review."
     >
+      <GrowthContentOrigin s={s}/><OpportunityDraftContinuity s={s}/>
+      {s.socialContentActions?<Card title="What would you like to create?" body="Choose a starting point. Your current words and photos stay until you deliberately use a new idea.">
+        <Button label="Introduce my business" onPress={()=>s.socialContentActions.start('business-introduction')}/>
+        <Button label="Explain a service" onPress={()=>s.socialContentActions.start('service')}/>
+        <Button label="Promote an approved product" onPress={()=>s.socialContentActions.start('product')}/>
+        <Button label="Talk about an approved event" onPress={()=>s.socialContentActions.start('event')}/>
+        <Button label="Write an announcement or offer" onPress={()=>s.socialContentActions.start('owner-announcement')}/>
+      </Card>:null}
+      {!brandSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile&&s.socialContentActions&&!pendingIdea?<Card eyebrow="Choose your content source" title="Review current business facts"
+        body={brandSnapshot.reason} tone="blue"><Button label="Use current approved business profile" onPress={()=>s.socialContentActions.prepare('','','approved-profile')}/></Card>:null}
+      {pendingIdea?<Card eyebrow="Private content idea · not published" title={ownerIdea?'Your announcement or offer':recordIdea?'Choose an approved '+pendingIdea.purpose:pendingIdea.purpose==='business-introduction'?'Introduce your business':pendingIdea.serviceName||'Choose the service for your post'}
+        body={pendingIdea.loading?'Loading current approved records…':pendingIdea.requiresTreatmentSelection?'Your request includes more than one writing style. Choose one below before using the idea.':pendingCheck?.ok?pendingCheck.copy:pendingCheck?.reason||pendingIdea.evidence?.reason||(recordIdea?'Choose the approved item below. Nothing is published.':'Choose one current approved service below. No launch date, offer or availability is inferred.')} tone="blue">
+        {pendingIdea.platform?<Text style={styles.cardBody}>{'Suggested destination: '+pendingIdea.platform+'. Existing channel selections are kept; choose destinations during review.'}</Text>:null}
+        {!incomingSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile?<Button label="Use current approved business profile" onPress={()=>s.socialContentActions?.switchSource(pendingIdea,'approved-profile')}/>:null}
+        {ownerIdea?<><Field label="Your exact announcement or offer details" value={pendingIdea.ownerFacts||''} multiline onChangeText={value=>s.socialContentActions?.editOwnerFacts(pendingIdea,value)} placeholder="Include the dates, terms or prices you want to state."/><Text style={styles.cardBody}>Owner-supplied draft information, not independently verified business facts. Review any missing dates, offer terms or eligibility before publication.</Text></>:null}
+        {recordIdea?<ContentRecordChoices pending={pendingIdea} actions={s.socialContentActions}/>:null}
+        <ContentFormatChoices pending={pendingIdea} actions={s.socialContentActions}/>
+        <ContentWordingChoices pending={pendingIdea} actions={s.socialContentActions}/>
+        {pendingCheck?.ok&&!pendingIdea.requiresTreatmentSelection?<Button label={ownerIdea?'Use my announcement':recordIdea?'Use this item idea':pendingIdea.purpose==='business-introduction'?"Use this introduction":"Use this service idea"} onPress={applyIncomingIdea}/>:!pendingCheck?.ok&&!ownerIdea&&!recordIdea&&incomingSnapshot.ok&&pendingIdea.purpose!=='business-introduction'?incomingSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.selectService(pendingIdea,service.name)}/>):null}
+        <Button label="Keep my current draft" onPress={()=>s.socialContentActions?.keep(pendingIdea)}/>
+      </Card>:null}
       <Card
         eyebrow="Source"
-        title={s.socialSourceContext?.type === "job" ? "Completed job photos" : "Photos from your phone"}
+        title={s.socialSourceContext?.type?.startsWith('approved_')?'Started with approved business information':s.socialSourceContext?.type==='owner_announcement'?'Your own announcement':s.socialSourceContext?.type === "job" ? "Completed job photos" : s.socialDraftText.trim()?'Your private wording and selected photos':"Photos from your phone"}
         body={
-          s.socialSourceContext?.type === "job"
+          s.socialSourceContext?.type?.startsWith('approved_')?'The starting copy uses the business source you reviewed. Your edits remain yours; check current facts before any publication.':s.socialSourceContext?.type==='owner_announcement'?'These are owner-supplied details, not independently verified facts. Check dates and terms before publishing.':s.socialSourceContext?.type === "job"
             ? "These are photos already attached to a completed job and approved for marketing suggestions. Private customer details are not intentionally added to the caption."
             : "Choose up to six photos. BUSY can look for a before/after pair, a finished result, work-in-progress or another useful story."
         }
@@ -714,13 +755,16 @@ function SocialCreator({ s }) {
 
       {photos.length ? (
         <View style={styles.photoGrid}>
-          {photos.map((photo) => (
+          {photos.map((photo,index) => (
             <View key={photo.id || photo.uri} style={styles.photoTile}>
-              <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+              <>{photo.mediaUnavailable?<Text accessibilityLabel={"Selected photo "+(index+1)+" unavailable"} style={styles.cardBody}>Private original unavailable · selection kept</Text>:<Image accessibilityLabel={"Selected photo "+(index+1)} source={{ uri: photo.uri }} style={styles.photoImage} />}</>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={"Remove selected photo "+(index+1)}
+                accessibilityState={{disabled:analysing}}
                 disabled={analysing}
                 onPress={() => s.removeSocialPhoto(photo.id)}
-                style={styles.photoRemove}
+                style={({pressed})=>[styles.photoRemove,pressed&&styles.pressed]}
               >
                 <Text style={styles.photoRemoveText}>Remove</Text>
               </Pressable>
@@ -729,52 +773,58 @@ function SocialCreator({ s }) {
         </View>
       ) : null}
 
+      <View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Your preparation brief</Text>
       <Text style={styles.fieldLabel}>Anything BUSY should know? (optional)</Text>
       <TextInput
+        accessibilityLabel="Your Creator preparation brief"
         multiline
         value={s.socialBrief}
         onChangeText={s.setSocialBrief}
         placeholder="e.g. This was a heavily stained driveway. Keep the wording simple and local."
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
-      />
+      /></View>
 
-      {brandWebsite?.id&&brandApp?.id&&businessId?<Card
+      {brandSnapshot.ok&&businessId?<Card
         eyebrow="Your Business Brand DNA"
         title="Use your existing branding in this post"
-        body="Busy can prepare a caption using the approved details in your website and app. Review it, then use it with your selected photos. This does not call paid AI or publish anything."
+        body="Busy can prepare a caption using your current approved business information. Compatible website and app branding is reused. Review it, then use it with your selected photos. This does not call paid AI or publish anything."
         tone="blue">
         <Button label="Prepare my branded caption"
           disabled={analysing}
-          onPress={()=>{
-            setBrandedCaptionAccepted(false);
-            setBrandReview(prepareSocialBrandHandoff(currentBrandInput()));
-          }}/>
+          onPress={()=>prepareCaption()}/>
+        {brandSnapshot.ok?brandSnapshot.services.map(service=><Button key={service.name}
+          label={'Draft a post about '+service.name} disabled={analysing}
+          onPress={()=>prepareCaption(service.name)}/>):null}
+        <Text style={styles.cardBody}>Service ideas use your current approved wording. No price, offer, availability or new-service announcement is invented. Text preparation is local; selected photos and separate review are still required to save a social post.</Text>
         {brandReview?<View>
           {brandReview.ok?<View>
             <Text style={styles.sectionLabel}>Review your branded wording</Text>
-            <Text selectable style={styles.cardBody}>{brandReview.copy}</Text>
+            <Text selectable style={styles.draftPreview}>{brandReview.copy}</Text>
             <Button label="Use this wording in my post"
               onPress={applyBrandCaption}/>
           </View>:<Text style={styles.cardBody}>{brandReview.reason}</Text>}
         </View>:null}
-        {brandedCaptionAccepted&&!ready?<View>
-          <Text style={styles.fieldLabel}>Your editable branded caption</Text>
+
+      </Card>:null}
+
+        {!ready?<View>
+          <Text style={styles.fieldLabel}>Write your private content</Text>
           <TextInput multiline value={s.socialDraftText}
-            onChangeText={s.setSocialDraftText}
+            onChangeText={editCaption}
             style={styles.messageInput}
-            placeholder="Review and edit your business caption"
-            placeholderTextColor="#9AA3B2"/>
+            accessibilityLabel="Your private content wording"
+            placeholder="Write an announcement, useful information or your own approved offer"
+            placeholderTextColor={C.muted}/>
           <Button primary
-            label={photos.length?"Save branded post draft & review":"Choose photos to save this draft"}
-            disabled={!photos.length||!s.socialDraftText.trim()||analysing}
+            label={brandedCaptionAccepted&&photos.length?"Save branded post draft & review":photos.length?"Prepare private draft & review":"Save text draft & review"}
+            disabled={!s.socialDraftText.trim()||analysing}
             onPress={s.saveGeneratedSocialDraft}/>
           <Text style={styles.cardBody}>
             Nothing is scheduled or published. The existing social workflow
-            currently requires selected photos to save a post draft.
+            keeps text-only drafts privately; approved photos are required before using its publishing queue.
           </Text>
         </View>:null}
-      </Card>:null}
 
       <Button
         label={analysing ? "BUSY is looking at the photos…" : ready ? "Analyse again" : "Create with BUSY AI"}
@@ -783,10 +833,10 @@ function SocialCreator({ s }) {
         onPress={s.runSocialContentAI}
       />
 
-      {s.socialAiStatus === "error" ? (
+      {["error","outdated"].includes(s.socialAiStatus) ? (
         <Card
           eyebrow="Social AI"
-          title="BUSY could not create the content"
+          title={s.socialAiStatus==="outdated"?"Your draft has newer changes":"BUSY could not create the content"}
           body={s.socialAiError || "The analysis did not complete."}
           footer="Nothing was saved or published"
           tone="amber"
@@ -796,15 +846,15 @@ function SocialCreator({ s }) {
       {ready ? (
         <>
           <Card
-            eyebrow="BUSY saw"
+            eyebrow={result.restoredPrivateDraft?"Saved private draft":"BUSY saw"}
             title={result.summary || socialStoryLabel(result.story?.type)}
-            body={result.story?.reason || "BUSY analysed the selected photos as one content set."}
-            footer={`${socialStoryLabel(result.story?.type)} • confidence ${result.story?.confidence || "Low"}`}
+            body={result.restoredPrivateDraft?"Reopening kept the saved wording and photos; it did not inspect the photos again. Review current facts and permissions before publishing.":result.story?.reason || "BUSY analysed the selected photos as one content set."}
+            footer={result.restoredPrivateDraft?"Earlier preparation · not a new inspection or publication":`${socialStoryLabel(result.story?.type)} • confidence ${result.story?.confidence || "Low"}`}
             tone={result.privacyWarnings?.length ? "amber" : "green"}
           >
-            <MetricRow left="Detected service" right={result.detectedService || "Not certain"} />
+            <MetricRow left={result.restoredPrivateDraft?"Saved service":"Detected service"} right={result.detectedService || "Not certain"} />
             {result.story?.type === "before_after" ? (
-              <MetricRow left="Before / after pairing" right="Detected" strong />
+              <MetricRow left="Before / after pairing" right={result.restoredPrivateDraft?"Previously recorded":"Detected"} strong />
             ) : null}
           </Card>
 
@@ -836,10 +886,10 @@ function SocialCreator({ s }) {
           <TextInput
             multiline
             value={s.socialDraftText}
-            onChangeText={s.setSocialDraftText}
+            onChangeText={editCaption}
             style={styles.messageInput}
             placeholder="Edit the caption before saving"
-            placeholderTextColor="#9AA3B2"
+            placeholderTextColor={C.muted}
             textAlignVertical="top"
           />
 
@@ -859,7 +909,7 @@ function SocialCreator({ s }) {
 
 function SocialDraftReview({ s }) {
   useEffect(() => {
-    s.refreshSocialPublishingStatus({ quiet: true });
+    if(s.socialSourceContext?.contentEvidence?.channel!=='newsletter')s.refreshSocialPublishingStatus({ quiet: true });
   }, []);
 
   const photos = s.socialCreatePhotos || [];
@@ -894,6 +944,22 @@ function SocialDraftReview({ s }) {
     ["Draft", "Failed", "Ready to publish"].includes(draftStatus) &&
     !hasPublishedHistory;
 
+  const newsletterFields=readNewsletterWording(s.socialDraftText);
+  if(s.socialSourceContext?.contentEvidence?.channel==='newsletter')return <Shell s={s} title="Review private newsletter" subtitle="Edit your wording and preview it privately. No recipients or sending integration.">
+    <ContentDraftStatus s={s}/><ContentSourceReview s={s}/>
+    {newsletterFields?<>
+      <Field label="Email subject" value={newsletterFields.subject} onChangeText={value=>s.socialContentActions?.editNewsletterPart('subject',value)}/>
+      <Field label="Newsletter body" multiline value={newsletterFields.body} onChangeText={value=>s.socialContentActions?.editNewsletterPart('body',value)}/>
+    </>:<Field label="Subject and newsletter wording" multiline value={s.socialDraftText} onChangeText={s.socialContentActions?.editText}/>}
+
+    <NewsletterPreview s={s}/>
+    <NewsletterAccountReadback s={s}/>
+    <Button label="Save newsletter draft privately" disabled={!s.socialDraftText.trim()} onPress={s.saveGeneratedSocialDraft}/>
+    <Card title="Review before using outside Busy" body="Check the subject, facts, links and offer terms. Recipient eligibility has not been checked. Before sending elsewhere, you need an authorised sender, lawful marketing permission, an unsubscribe method and a review of any costs. An enquiry alone does not grant newsletter permission." footer="No email, campaign, graphic or recurring schedule has been created. Your selected photos and social destinations are kept, but are not attached or used by this text preparation."/>
+    <Text selectable style={styles.draftPreview}>{s.socialDraftText}</Text>
+    <Button label="Back to Content Creator" onPress={()=>s.go('socialCreator')}/>
+  </Shell>;
+
   return (
     <Shell
       s={s}
@@ -901,10 +967,12 @@ function SocialDraftReview({ s }) {
       subtitle="Edit the wording, choose real destinations and decide whether to keep it as a draft, schedule it or publish it."
       brandCue="Preparation can be automatic. Public action still needs explicit owner approval."
     >
+      <ContentDraftStatus s={s}/><ContentSourceReview s={s}/><ContentAccountReadback s={s}/><CreatorDeviceRecovery key={['creator-recovery',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')} s={s}/><CreatorAccountDrafts s={s}/>
+      {s.socialSourceContext?.suggestedPlatform?<Text style={styles.cardBody}>{"Requested destination: "+s.socialSourceContext.suggestedPlatform+". Check your connected destination selections below; nothing is sent automatically."}</Text>:null}
       <Card
         eyebrow="Prepared content"
         title={s.socialSourceContext?.service || s.socialAiResult?.detectedService || "Social post"}
-        body={s.socialAiResult?.story?.reason || "Prepared from selected business photos."}
+        body={!photos.length?"Private text draft. Add approved photos before using the supported publishing queue. Nothing has been scheduled or published.":s.socialAiResult?.story?.reason || "Prepared from selected business photos."}
         footer={s.socialSourceContext?.label || "Selected photos"}
         tone={warnings.length ? "amber" : "green"}
       >
@@ -938,6 +1006,7 @@ function SocialDraftReview({ s }) {
         />
       ) : null}
 
+      <View style={styles.workspacePanel}><Text accessibilityRole="header" style={styles.workspacePanelTitle}>Review your caption</Text>
       <Text style={styles.fieldLabel}>Caption</Text>
       <TextInput
         multiline
@@ -945,12 +1014,16 @@ function SocialDraftReview({ s }) {
         onChangeText={s.setSocialDraftText}
         editable={!recordLocked}
         style={[styles.messageInput, recordLocked && { opacity: 0.7 }]}
+        accessibilityLabel="Post caption"
+        accessibilityState={{disabled:recordLocked}}
         placeholder="Post wording"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         textAlignVertical="top"
-      />
+      /></View>
 
-      <Text style={styles.sectionLabel}>Where should it go?</Text>
+      <View style={styles.workspacePanel}>
+      <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Choose destinations</Text>
+      <Text style={styles.workspaceMeta}>Selections are publishing intentions, not delivery receipts. Review the exact connected account before approval.</Text>
       {hasMeta ? (
         <>
           <ToggleRow
@@ -1000,7 +1073,9 @@ function SocialDraftReview({ s }) {
         </Card>
       ) : null}
 
-      <Text style={styles.sectionLabel}>Schedule</Text>
+      </View>
+      <View style={styles.workspacePanel}>
+      <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Choose a date and time</Text>
       {recordLocked ? (
         <Card
           eyebrow="Publishing record locked"
@@ -1038,6 +1113,7 @@ function SocialDraftReview({ s }) {
         </>
       )}
 
+      </View>
       <Card
         eyebrow="Publishing safety"
         title={liveEnabled ? "Live provider publishing is enabled on the server" : "Live provider publishing is still server-disabled"}
@@ -1094,9 +1170,11 @@ function SocialDraftReview({ s }) {
 
       {!recordLocked ? (
         <>
+          {!photos.length?<Button label="Keep private wording draft" disabled={busy||!s.socialDraftText.trim()} onPress={s.saveGeneratedSocialDraft}/>:null}
+          {!photos.length?<Button label="Add approved photos in Content Creator" onPress={()=>s.go("socialCreator")}/>:null}
           <Button
             label={busy && s.socialPublishingAction === "save" ? "Saving to cloud…" : "Save cloud-backed draft"}
-            disabled={busy || !s.socialDraftText.trim()}
+            disabled={busy || !photos.length || !s.socialDraftText.trim()}
             onPress={s.saveSocialDraftOnly}
           />
           <Button
@@ -1109,7 +1187,7 @@ function SocialDraftReview({ s }) {
                 ? "Schedule real post"
                 : "Schedule in cloud queue"
             }
-            disabled={busy || !selectedCount || !s.socialDraftText.trim()}
+            disabled={busy || !photos.length || !selectedCount || !s.socialDraftText.trim()}
             onPress={s.scheduleSocialDraft}
           />
           <Button
@@ -1123,7 +1201,7 @@ function SocialDraftReview({ s }) {
                 : "Live publishing setup not finished"
             }
             primary={liveEnabled && selectedCount > 0}
-            disabled={busy || !selectedCount || !s.socialDraftText.trim() || !liveEnabled}
+            disabled={busy || !photos.length || !selectedCount || !s.socialDraftText.trim() || !liveEnabled}
             onPress={s.approveSocialDraft}
           />
         </>
@@ -1493,7 +1571,7 @@ function BusinessBrain({ s }) {
         value={s.businessBrainRuleDraft}
         onChangeText={s.setBusinessBrainRuleDraft}
         placeholder="Type a rule BUSY should respect…"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
       <Button
@@ -1524,7 +1602,7 @@ function BusinessBrain({ s }) {
             </Text>
             <Pressable
               onPress={() => s.removeBusinessBrainRule(rule.id)}
-              style={styles.removeCustomerWrap}
+              accessibilityRole="button" accessibilityLabel="Remove this owner rule" style={({pressed})=>[styles.removeCustomerWrap,pressed&&styles.pressed]}
             >
               <Text style={styles.removeCustomerText}>Remove rule</Text>
             </Pressable>

@@ -24,6 +24,7 @@ function busyRuntimeCloudConfig({
  productionAiUrl="",stagingSupabaseUrl="",stagingPublishableKey="",
  otherProtectedSupabaseRef="",expectedStagingSupabaseRef=""
 }={}){
+ if(environment==="owner-preview")return {environment,isolated:true,configured:false,baseUrl:"https://busy-owner-preview.invalid",aiUrl:"https://busy-owner-preview.invalid",publishableKey:"",prodFallbackAllowed:false,mayClaimStaging:false};
  const isolated=environment==="isolated-staging";
  if(!isolated){
   return {environment:"existing-development",isolated:false,

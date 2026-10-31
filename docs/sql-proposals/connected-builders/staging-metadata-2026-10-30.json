@@ -1,0 +1,131 @@
+{
+  "observedAt": "2026-10-30",
+  "project": "pnjdlogwegnqbsfpcofw",
+  "name": "Busy Does It Staging",
+  "status": "ACTIVE_HEALTHY",
+  "publicTables": [
+    {
+      "name": "busy_staging_rls_canary",
+      "rlsEnabled": true,
+      "rows": 2,
+      "columns": [
+        "id uuid primary key",
+        "owner_id uuid references auth.users(id)",
+        "marker text"
+      ],
+      "businessDataRead": false
+    }
+  ],
+  "migrations": [
+    {
+      "version": "20261010224121",
+      "name": "staging_canary_owner_read_v3130"
+    },
+    {
+      "version": "20261010224205",
+      "name": "restrict_staging_rls_event_helper_v3130"
+    }
+  ],
+  "indexes": [
+    {
+      "indexdef": "CREATE UNIQUE INDEX busy_staging_rls_canary_pkey ON public.busy_staging_rls_canary USING btree (id)",
+      "indexname": "busy_staging_rls_canary_pkey",
+      "tablename": "busy_staging_rls_canary",
+      "schemaname": "public"
+    }
+  ],
+  "defaults": [
+    {
+      "role": "supabase_admin",
+      "schema": "public",
+      "defaclacl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+      "defaclobjtype": "S"
+    },
+    {
+      "role": "supabase_admin",
+      "schema": "public",
+      "defaclacl": "{postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}",
+      "defaclobjtype": "r"
+    },
+    {
+      "role": "supabase_admin",
+      "schema": "public",
+      "defaclacl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+      "defaclobjtype": "f"
+    },
+    {
+      "role": "postgres",
+      "schema": "public",
+      "defaclacl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}",
+      "defaclobjtype": "r"
+    },
+    {
+      "role": "postgres",
+      "schema": "public",
+      "defaclacl": "{postgres=rwU/postgres}",
+      "defaclobjtype": "S"
+    },
+    {
+      "role": "postgres",
+      "schema": "public",
+      "defaclacl": "{postgres=X/postgres}",
+      "defaclobjtype": "f"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT auth.uid() AS uid) = owner_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "busy_staging_rls_canary",
+      "policyname": "busy_staging_canary_owner_read",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "triggers": [],
+  "functions": [
+    {
+      "owner": "postgres",
+      "nspname": "public",
+      "proname": "rls_auto_enable",
+      "arguments": "",
+      "proconfig": [
+        "search_path=pg_catalog"
+      ],
+      "prosecdef": true,
+      "role_name": "service_role",
+      "effective_execute": false
+    },
+    {
+      "owner": "postgres",
+      "nspname": "public",
+      "proname": "rls_auto_enable",
+      "arguments": "",
+      "proconfig": [
+        "search_path=pg_catalog"
+      ],
+      "prosecdef": true,
+      "role_name": "authenticated",
+      "effective_execute": false
+    },
+    {
+      "owner": "postgres",
+      "nspname": "public",
+      "proname": "rls_auto_enable",
+      "arguments": "",
+      "proconfig": [
+        "search_path=pg_catalog"
+      ],
+      "prosecdef": true,
+      "role_name": "anon",
+      "effective_execute": false
+    }
+  ],
+  "serverVersion": "17.11",
+  "hostedMutation": false,
+  "productionInspected": false,
+  "rawCanaryRowsRead": false
+}

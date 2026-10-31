@@ -1,0 +1,5175 @@
+{
+  "authority": {
+    "masterVersion": "V22.53",
+    "sha256": "fa9456077fd843f1f04ea450d9e2ec425077695b6b106b91bf7cee150b727f62",
+    "actualOriginalReopened": true,
+    "actualAttachedImagesExamined": true,
+    "imageOrder": "First actual iPhone, second approved multi-screen reference"
+  },
+  "installedBaseline": {
+    "remote": "89cbc7405692f3d0ab98f44fdbfcf4a871a39026",
+    "tree": "aa7b66429df48ac18db1bdeac5d63885e43cecca"
+  },
+  "frozen": {
+    "local": "2690bf3bb4984dac483f99424856724bd7adf1e7",
+    "remote": "9269e318c9952c100886379ec9e367f3882eb19e",
+    "tree": "b4f65507927dc6c5f236f2bdbdae5d93ed3a00b0"
+  },
+  "application": {
+    "sourceSha": "2690bf3bb4984dac483f99424856724bd7adf1e7",
+    "sourceTree": "b4f65507927dc6c5f236f2bdbdae5d93ed3a00b0",
+    "workingTreeEntries": [],
+    "workingTreeChanged": false,
+    "testToolModulePath": "/workspace/mission13-git/scripts/offline-tools/node_modules",
+    "selectionSha256": "3acdf31ce0698ebb190ccbf3d94ef26df8ec86ef5478a87b35a3c106f416963a",
+    "startedAt": "2026-10-28T17:12:19.610681+00:00",
+    "evidence": "Offline original code with inert boundaries; not hosted/native/browser acceptance.",
+    "results": [
+      {
+        "id": "check-mission13-conversations",
+        "args": [
+          "scripts/check-mission13-conversations.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "33e5eea2cc1b4fb5bc0d4d4df99c7c79dd393ae67b8f01f4764d91c64136dadb"
+      },
+      {
+        "id": "check-mission13-private-recovery",
+        "args": [
+          "scripts/check-mission13-private-recovery.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "89607afd018fe69b7cdbae5b7662b73e54e2761e8107a7cc4421178552c70746"
+      },
+      {
+        "id": "check-mission13-customer-surfaces",
+        "args": [
+          "scripts/check-mission13-customer-surfaces.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.77,
+        "outputSha256": "3286172ab14fa121b82495dd9467cca58e89fc8ef9aa4d96ef3b758518f29329"
+      },
+      {
+        "id": "check-mission13-communication-truth",
+        "args": [
+          "scripts/check-mission13-communication-truth.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "40f0f6711a1c61ceced2ade0cbafef08b3cb9996e87b4e2064c60c4b43d3bf7e"
+      },
+      {
+        "id": "check-mission12-content-enquiry",
+        "args": [
+          "scripts/check-mission12-content-enquiry.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.13,
+        "outputSha256": "9532d792869357a65b775eca8cf720a5c1cc4c472f05350ab60f0115818e5ec4"
+      },
+      {
+        "id": "check-mission12-builder-reuse",
+        "args": [
+          "scripts/check-mission12-builder-reuse.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "79ca110156d3a7bc75ed5e7d336d6e56c3d364a453d0124f9c5d6fc7328c3c71"
+      },
+      {
+        "id": "check-mission12-intent",
+        "args": [
+          "scripts/check-mission12-intent.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "318d422af765c9cf833a4dbdd88f5c8baf7afbe23f083cc767c19474aefe7646"
+      },
+      {
+        "id": "check-mission12-live-form-logic",
+        "args": [
+          "scripts/check-mission12-live-form-logic.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "bc4c79a9b99b744e8e52bb9cd268f16ddaf72c3f17fa106f06a8b8bd50b74ab2"
+      },
+      {
+        "id": "check-mission12-public-handoff",
+        "args": [
+          "scripts/check-mission12-public-handoff.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.14,
+        "outputSha256": "38a3b317d4f01c58178b3dfc5d974cba429740616cafb8beb914a72c2e12258f"
+      },
+      {
+        "id": "check-mission12-record-review",
+        "args": [
+          "scripts/check-mission12-record-review.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "9fd6a28c479591daa416471c4a04ad929faad1f3824b225c6f735943d65e08f8"
+      },
+      {
+        "id": "check-mission12-standalone-continuity",
+        "args": [
+          "scripts/check-mission12-standalone-continuity.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "6c717d2600816e9be1a8d8e4c350ab1e1a7b74c4361374845be5df6335d7cc33"
+      },
+      {
+        "id": "check-mission11-records",
+        "args": [
+          "scripts/check-mission11-records.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "dece9d1d253eb42dea31458642304dd015502c7afdeec396f7ee5c423f0d242d"
+      },
+      {
+        "id": "check-mission11-intelligence",
+        "args": [
+          "scripts/check-mission11-intelligence.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "03f130c83b8a02930216834fc0f360fb01a93400bfe9448b4029d0975c6a2921"
+      },
+      {
+        "id": "check-mission11-public-views",
+        "args": [
+          "scripts/check-mission11-public-views.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "71f1dd89947e18caab87ad99fd44ba9e74333ad987c4b6e37d9c5be3cce5ee44"
+      },
+      {
+        "id": "check-app-goal-content",
+        "args": [
+          "scripts/check-app-goal-content.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "f5a88e27afe56af746f3b5c59c5aebae154db4215cc12a4326a5a13814ad7da1"
+      },
+      {
+        "id": "check-app-goal-editing",
+        "args": [
+          "scripts/check-app-goal-editing.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.12,
+        "outputSha256": "6744b4ed3439552f228681d1344bfd6ff452eb7aabf39bd5b2a1db1ef4d09058"
+      },
+      {
+        "id": "check-app-goal-decisions",
+        "args": [
+          "scripts/check-app-goal-decisions.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "bb34a4ae7d608405ecced49ed67a8372743b3af0bc2f1458bdf3c71e6a6de9cb"
+      },
+      {
+        "id": "check-app-builder-dual-track-v3153",
+        "args": [
+          "scripts/check-app-builder-dual-track-v3153.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "a073b2e8c5f81f612c48482bb88851814e64d42b6709e3af2e8bb6c78fd1f5aa"
+      },
+      {
+        "id": "check-mission10-information-reuse",
+        "args": [
+          "scripts/check-mission10-information-reuse.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "63a404cf682b5af3d0266a5220bf97f03f4ec66462e4e1a7291f22de5411837d"
+      },
+      {
+        "id": "check-mission9-builder-language",
+        "args": [
+          "scripts/check-mission9-builder-language.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "646a5b857fdabd9df87cc0f5d346f40c04e0da33e5fb299d08bc510d449dbc09"
+      },
+      {
+        "id": "check-mission10-public-information",
+        "args": [
+          "scripts/check-mission10-public-information.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.78,
+        "outputSha256": "8cf10d70a08f4db4e5428303d194bf52004dd3a64ef0db35b2c91ba0a76ea2ea"
+      },
+      {
+        "id": "check-mission10-service-details",
+        "args": [
+          "scripts/check-mission10-service-details.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "bcc21c9a810278ed1f1b7372faec2243abf71ad4df3b9bf9a559d3b7050d331e"
+      },
+      {
+        "id": "check-owner-outcome-v3235",
+        "args": [
+          "scripts/check-owner-outcome-v3235.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "4468a1d24737fe2f48070f0417bdd3d482cba6ab22a0b073894e25ae8e1e3b0b"
+      },
+      {
+        "id": "check-communications-v3205",
+        "args": [
+          "scripts/check-communications-v3205.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "227385453c59b9da3da6c46ac9bb3418b7d19252eeb862ab1c7cdec5ddcc7ca8"
+      },
+      {
+        "id": "check-customer-journey-v3204",
+        "args": [
+          "scripts/check-customer-journey-v3204.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "bd68209b746a4847fdbbe9112677bb21a73fcd5b18d3432bb84fbdf7438ebccf"
+      },
+      {
+        "id": "check-mission9-reply-continuity",
+        "args": [
+          "scripts/check-mission9-reply-continuity.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 4.2,
+        "outputSha256": "470671c13dd2e502e8b17d5b1fefd3606d05ac26495b05ba239390ade65579a3"
+      },
+      {
+        "id": "check-mission9-request-recovery",
+        "args": [
+          "scripts/check-mission9-request-recovery.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "9b32cdc0576413efa9aea48127945df35926a943597c6f36b3dbd0c464079e53"
+      },
+      {
+        "id": "check-message-integrity-v3185",
+        "args": [
+          "scripts/check-message-integrity-v3185.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "6909ea460078acd6093a2fa86f7a03de63a35a8a32a0c9be001ee74e17ad3032"
+      },
+      {
+        "id": "check-builder-intelligence-v3240",
+        "args": [
+          "scripts/check-builder-intelligence-v3240.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "c5a7e4a82e0579b988695ada5b648cb9701dab5c1c6488a8bd5c8e012afaa1e0"
+      },
+      {
+        "id": "check-mission14-contextual-replies",
+        "args": [
+          "scripts/check-mission14-contextual-replies.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "737df966b12e79e9bc271e580648fcb55f0dad07d48c10be01923c0723e15896"
+      },
+      {
+        "id": "check-mission14-content-intelligence",
+        "args": [
+          "scripts/check-mission14-content-intelligence.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.92,
+        "outputSha256": "2d89fadb2bf4068f30cc5635809eccb0e8ab61d77cedbdef59c28c5b6e8b032c"
+      },
+      {
+        "id": "check-mission14-experience-recovery",
+        "args": [
+          "scripts/check-mission14-experience-recovery.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.84,
+        "outputSha256": "2531ca3a5fdd6c49ac75b954c9e93149029866e2bb01b7d5bc1bc1c37f4edb7a"
+      },
+      {
+        "id": "check-standalone-native-v3154",
+        "args": [
+          "scripts/check-standalone-native-v3154.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "66613ff43d9b391052133db16853ac6a7ec750172f829f72e79d188305a2f1b2"
+      },
+      {
+        "id": "check-mission15-editing-preview",
+        "args": [
+          "scripts/check-mission15-editing-preview.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "8105e06b289a8ef333623e6d851283a5c6cfc338cf9d490db7edd2d69a1a5a7c"
+      },
+      {
+        "id": "check-mission15-app-services",
+        "args": [
+          "scripts/check-mission15-app-services.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "1606165280ff50610d7658ec98e1a530dadbe0528e49810ab2b2907ccdbd8baf"
+      },
+      {
+        "id": "check-mission15-design-candidates",
+        "args": [
+          "scripts/check-mission15-design-candidates.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "27bd6c75ea7ec33db1c2e932f7b84af9ef43c697a94d187a817a196ad40a0a0b"
+      },
+      {
+        "id": "check-mission15-coherence",
+        "args": [
+          "scripts/check-mission15-coherence.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "8b229704a63ce3b5663a34387d685456874140db4a561705e328e66f7153d040"
+      },
+      {
+        "id": "check-website-page-instructions-v3149",
+        "args": [
+          "scripts/check-website-page-instructions-v3149.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "16de89037518bb8dd4193608c3b10627b0df895b87ba7d119f93ff3f19d79e8d"
+      },
+      {
+        "id": "check-website-context-plan-v3147",
+        "args": [
+          "scripts/check-website-context-plan-v3147.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.66,
+        "outputSha256": "ff9c27d2ecb6707b91d0cd74d9f52b721babd95ee7ac520be4910f139db6a36d"
+      },
+      {
+        "id": "check-website-context-v3140",
+        "args": [
+          "scripts/check-website-context-v3140.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "1cfcb5431594f9414449b3d46702cff45fbeb6da9c1031f3f51278626e9f7546"
+      },
+      {
+        "id": "check-website-measured-coach-v3144",
+        "args": [
+          "scripts/check-website-measured-coach-v3144.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "454550e001bf4022b554870da0b6d414bf3933828f0e4e9e2f4f9ea55281a6eb"
+      },
+      {
+        "id": "check-website-coordinated-alternatives",
+        "args": [
+          "scripts/check-website-coordinated-alternatives.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "d328d735d569469f9b17366c957e6b121246feed05e259a168483125022a82c3"
+      },
+      {
+        "id": "check-mission7-website-decisions",
+        "args": [
+          "scripts/check-mission7-website-decisions.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "689ad05e24ae80b39ca43d43c8d06a3fe8d4adfb9061cdf138cd9501e09c042f"
+      },
+      {
+        "id": "check-major-builders-v3195",
+        "args": [
+          "scripts/check-major-builders-v3195.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.47,
+        "outputSha256": "f73815baaae01a0a623e3f8c14141682c418a56cc87960b2ef1049614d6de516"
+      },
+      {
+        "id": "check-mission15-phase2-copy",
+        "args": [
+          "scripts/check-mission15-phase2-copy.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.64,
+        "outputSha256": "f46f60c8585210466ab1d0049e200d373790132124af2324d86d819d4949c182"
+      },
+      {
+        "id": "check-mission15-phase2-responsive",
+        "args": [
+          "scripts/check-mission15-phase2-responsive.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "bc066fb1974cc2ed65b17c96886808690a213703a85d5a667411c9aad3150cdd"
+      },
+      {
+        "id": "check-mission15-phase2-services",
+        "args": [
+          "scripts/check-mission15-phase2-services.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.77,
+        "outputSha256": "9415c8ffb9c9495f029d970877bfac1a01dc3c2def7027021c61dc865a455116"
+      },
+      {
+        "id": "check-mission15-phase2-measured-reading",
+        "args": [
+          "scripts/check-mission15-phase2-measured-reading.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "d8a6d19be7a8adb36acd6b2396896b9d96c156c9a41358a3e8d413de3e0d02b0"
+      },
+      {
+        "id": "check-mission15-phase2-request-intent",
+        "args": [
+          "scripts/check-mission15-phase2-request-intent.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.81,
+        "outputSha256": "8b9ed201b1cf15e262314e9d4f703f181e91da249968933e20c49fea68753de5"
+      },
+      {
+        "id": "check-mission15-phase2-transfer-review",
+        "args": [
+          "scripts/check-mission15-phase2-transfer-review.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.95,
+        "outputSha256": "0414f1364a3ca7d99671dfebb31f4173daf89e1e37002d1abb5eb24ac6049b29"
+      },
+      {
+        "id": "check-app-studio-session",
+        "args": [
+          "scripts/check-app-studio-session.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "adcb33d92aed849b0ae6168138a974ad2f239538cd57c03e1ea664570ae30766"
+      },
+      {
+        "id": "check-app-studio-checkpoint",
+        "args": [
+          "scripts/check-app-studio-checkpoint.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "b8ed408b01d5a48b2c56efc2ef631171df71c60d18bfdd549472cc88e4440344"
+      },
+      {
+        "id": "build-website-design-gallery-v3100",
+        "args": [
+          "scripts/build-website-design-gallery-v3100.mjs",
+          "/tmp/busy-mission15-phase2-gallery"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "469a2f8cecd2adaa4ea55cc574bd70d14bb871afeeb53c55886018ee23be813a"
+      },
+      {
+        "id": "check-builder-visual-receipt-v3238",
+        "args": [
+          "scripts/check-builder-visual-receipt-v3238.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "e10ef09814c71dfec97e9fdf8ccc7dad760acbfaf504f674bee0348e8f05b632"
+      },
+      {
+        "id": "check-mission15-phase3-composition",
+        "args": [
+          "scripts/check-mission15-phase3-composition.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.95,
+        "outputSha256": "d3202d97324e6047979a650e7a127740447557f5a8ae5f99f7c168ca9c5c24d2"
+      },
+      {
+        "id": "check-mission15-phase3-content-review",
+        "args": [
+          "scripts/check-mission15-phase3-content-review.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.74,
+        "outputSha256": "cbf7d8f191ea0b81ea89260f754bda7920675501837727d8240f1944a4f9a307"
+      },
+      {
+        "id": "check-mission15-phase3-gallery",
+        "args": [
+          "scripts/check-mission15-phase3-gallery.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "608b21ff299ada08f015a8b7c955264a411c4fbbea8673e423a4a908ec0d9804"
+      },
+      {
+        "id": "check-mission15-phase3-language",
+        "args": [
+          "scripts/check-mission15-phase3-language.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.12,
+        "outputSha256": "6c130a4bf5b0116b05e48eada8a46449b640fa906054e163ae9cf478d393b477"
+      },
+      {
+        "id": "check-mission15-phase3-studio-recovery",
+        "args": [
+          "scripts/check-mission15-phase3-studio-recovery.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.43,
+        "outputSha256": "5f2f2533c9b622671e7ba8f4e9d8bd899a95e9487f281f238bc36fb4a2d6e688"
+      },
+      {
+        "id": "check-mission15-phase4-app-capabilities",
+        "args": [
+          "scripts/check-mission15-phase4-app-capabilities.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.83,
+        "outputSha256": "d4728edc34e5dd0750c54b557f914a3c7e3eea14b3c0466952de4dc8a7653d90"
+      },
+      {
+        "id": "check-mission15-phase4-requirements",
+        "args": [
+          "scripts/check-mission15-phase4-requirements.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.21,
+        "outputSha256": "4fc647b0e6e997b521a5ea594e4c72f802cccd52e6279edbf440c05b88262054"
+      },
+      {
+        "id": "check-mission15-phase4-website-spacing",
+        "args": [
+          "scripts/check-mission15-phase4-website-spacing.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "66894f6d4d500e9e9408dd5265eb326a43c1d61adc4484fcaea11e1b73e3103e"
+      },
+      {
+        "id": "check-mission15-phase5-approved-records",
+        "args": [
+          "scripts/check-mission15-phase5-approved-records.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.88,
+        "outputSha256": "ffe61978cd582540ee3be281285792ee563b40b634271c883a89d4de836b2827"
+      },
+      {
+        "id": "check-mission15-phase5-catalogue-editing",
+        "args": [
+          "scripts/check-mission15-phase5-catalogue-editing.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "9b5dc0993cab271c2289d04a3f1eee5077839415835898a22990b115f0c4a7c7"
+      },
+      {
+        "id": "check-mission15-phase5-enquiry-review",
+        "args": [
+          "scripts/check-mission15-phase5-enquiry-review.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.87,
+        "outputSha256": "fffadff588398147f9753c46aeb0d23f9a0e55e14f4127b5a6ddcc068c72c278"
+      },
+      {
+        "id": "check-mission11-composition",
+        "args": [
+          "scripts/check-mission11-composition.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.66,
+        "outputSha256": "22ef75b3bf8ee2e38cd7a9aab592d7d21b5c08eea7ef11d0240f6b3fb7a202c5"
+      },
+      {
+        "id": "prepare-standalone-prototype-v3154",
+        "args": [
+          "scripts/prepare-standalone-prototype-v3154.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "65073557a7dacd6069a933e386f14b412715b5599a3e258e77d94d36434947cf"
+      },
+      {
+        "id": "check-mission15-phase6-booking-review",
+        "args": [
+          "scripts/check-mission15-phase6-booking-review.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.98,
+        "outputSha256": "cfcd83a7fb121873ebb725496c8d231eb7d16e7ba1364bfa6edf75e37721c460"
+      },
+      {
+        "id": "check-mission15-phase6-hero-composition",
+        "args": [
+          "scripts/check-mission15-phase6-hero-composition.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.16,
+        "outputSha256": "11cfb7eff02fd587a353d5d56f503ffaa20cb6b392bd5bc81c72a5103bfb6d36"
+      },
+      {
+        "id": "check-distinct-website-designs-v3101",
+        "args": [
+          "scripts/check-distinct-website-designs-v3101.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "fc83610c53fa7872da3d300b2a2bdb1162f0989ace62f04fb50564e9fe179eae"
+      },
+      {
+        "id": "check-website-layout-v3134",
+        "args": [
+          "scripts/check-website-layout-v3134.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "outputSha256": "e4078730c7bea8f5cde02130e4ce2f6ac633bc3e9c76eb22b6c7eabf70acb4da"
+      },
+      {
+        "id": "check-mission8-shared-request-entry",
+        "args": [
+          "scripts/check-mission8-shared-request-entry.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.28,
+        "outputSha256": "82d3c63ae80bf7c370bb2416f2f22d71c82c17fe19de05fc98b85cbb457d85b9"
+      },
+      {
+        "id": "check-mission15-phase7-visual-movement",
+        "args": [
+          "scripts/check-mission15-phase7-visual-movement.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "4e482c9a93c634ba84a710e97da77c4211f6ed994f717e7720417d1f0e300866"
+      },
+      {
+        "id": "check-mission15-phase7-typography",
+        "args": [
+          "scripts/check-mission15-phase7-typography.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.06,
+        "outputSha256": "fca568a83ec1bba19e013ebb72236f30f913491df10877b6005f5a1591b7bbc6"
+      },
+      {
+        "id": "check-mission15-phase7-app-selection",
+        "args": [
+          "scripts/check-mission15-phase7-app-selection.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.72,
+        "outputSha256": "e8bdb78ddbbec6558c95a4cf0481d83cef2dbe1d6933613fa8f62935b1d2928b"
+      },
+      {
+        "id": "check-website-section-styling-v3139",
+        "args": [
+          "scripts/check-website-section-styling-v3139.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.11,
+        "outputSha256": "1bb1421a2c6021a03fd9f96a86fb368b23544d12da43bb6e7c9f97bead9f9a0b"
+      },
+      {
+        "id": "check-mission15-phase7-reviewed-request",
+        "args": [
+          "scripts/check-mission15-phase7-reviewed-request.mjs"
+        ],
+        "phase8Blocked": true,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.54,
+        "outputSha256": "244c39d09ff7c0b9b59fae3a2c811d3b70ace14aa467f530ff7708168efea355"
+      },
+      {
+        "id": "check-mission15-phase7-card-colours",
+        "args": [
+          "scripts/check-mission15-phase7-card-colours.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.21,
+        "outputSha256": "da0e56f6c0e01727b9ba2a9434189f9d55f0da80782c10b379fe42a47960d90f"
+      },
+      {
+        "id": "check-mission15-phase7-page-movement",
+        "args": [
+          "scripts/check-mission15-phase7-page-movement.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "0b1fc18b72d8e3d993848543cb9a1d50be80259f71e0254ed53ab6c53c71c5f3"
+      },
+      {
+        "id": "check-website-pages-v3135",
+        "args": [
+          "scripts/check-website-pages-v3135.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "dd56161d5aa6b018f3d895878bafc709cea483646461338f3d5fe62bdcb6bc20"
+      },
+      {
+        "id": "check-website-tap-editor-v3138",
+        "args": [
+          "scripts/check-website-tap-editor-v3138.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "7d3b7623ae85397ccf8baa616937d70e1c2191bbed0dfe5e37ef80abf793babb"
+      },
+      {
+        "id": "check-mission15-phase8-quality",
+        "args": [
+          "scripts/check-mission15-phase8-quality.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "abd244082467670b65524ed9be4ac2cd7ec49fbb703ce2bbdad1d2df5a23dee7"
+      },
+      {
+        "id": "check-mission15-phase8-sizing",
+        "args": [
+          "scripts/check-mission15-phase8-sizing.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "9e5a2c3f58bc0170edebdbf56c4e8b28b68251103d93a491d25961655bdb7c4e"
+      },
+      {
+        "id": "check-mission15-phase8-service-questions",
+        "args": [
+          "scripts/check-mission15-phase8-service-questions.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "ee300e19f8f56d0934676086b6cb37f97859fa38014f9c6dd5468c9a23af969f"
+      },
+      {
+        "id": "check-mission15-phase8-website-suggestions",
+        "args": [
+          "scripts/check-mission15-phase8-website-suggestions.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.29,
+        "outputSha256": "5f72d100ef9f2ac20590f01c370bd66c76c99165d3cf8b449d4f88bca6366176"
+      },
+      {
+        "id": "check-mission15-phase9-studio-selection",
+        "args": [
+          "scripts/check-mission15-phase9-studio-selection.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.79,
+        "outputSha256": "798f2265526533ac717940304e278390b16c6820c6c3f470a125e6becedb5ccf"
+      },
+      {
+        "id": "check-mission15-phase9-service-details",
+        "args": [
+          "scripts/check-mission15-phase9-service-details.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.61,
+        "outputSha256": "1827ad7266720357964ed4e486f3d4a38e8b0e6b230289806c48291d470f0bb0"
+      },
+      {
+        "id": "check-mission15-phase9-browser-policy",
+        "args": [
+          "scripts/check-mission15-phase9-browser-policy.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "30b2e7d69c3688871a62e02793d0a9486e298b6007b10ab8b8d72126b25614ab"
+      },
+      {
+        "id": "check-mission15-phase10-selected-images",
+        "args": [
+          "scripts/check-mission15-phase10-selected-images.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.79,
+        "outputSha256": "e95beb19591142f7e86d215c686c931c78b48e6bc3beb3b407313735f1b71a83"
+      },
+      {
+        "id": "check-mission15-phase10-website-toolbar",
+        "args": [
+          "scripts/check-mission15-phase10-website-toolbar.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.18,
+        "outputSha256": "a7614a80def74ed6315462a35266994e2547c61820232aedaf2d7d979bb16eb2"
+      },
+      {
+        "id": "check-mission15-phase10-selected-instructions",
+        "args": [
+          "scripts/check-mission15-phase10-selected-instructions.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.77,
+        "outputSha256": "b777144cf0165087864a60b464d36470f732ac29c4e72b05430fd2cc4d6de639"
+      },
+      {
+        "id": "check-mission15-phase10-gallery-parity",
+        "args": [
+          "scripts/check-mission15-phase10-gallery-parity.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.98,
+        "outputSha256": "125e85f32d223eabe8712d19183d3975312f9aa6168d0bd28191b5b49cb8d212"
+      },
+      {
+        "id": "check-app-context-editor-v3155",
+        "args": [
+          "scripts/check-app-context-editor-v3155.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "b1480dbae6d96d5aaf2764d93fb9140a804c115ec36b4c529b21a56e62c99023"
+      },
+      {
+        "id": "check-mission7-app-intent",
+        "args": [
+          "scripts/check-mission7-app-intent.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "77a5cfc8caca5564a78bba0431cce99ad60356d2c9086735cc949b037ff8048c"
+      },
+      {
+        "id": "check-app-voice-layout-v3156",
+        "args": [
+          "scripts/check-app-voice-layout-v3156.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.36,
+        "outputSha256": "f66aa22c912ccabc321dc60c1b780c8b7ba0099de923c55a08154dfbefd799fc"
+      },
+      {
+        "id": "check-mission15-phase11-selected-services",
+        "args": [
+          "scripts/check-mission15-phase11-selected-services.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.91,
+        "outputSha256": "ca4cc846a5aae057fffdee36ae635d27a032115350c82b2eb850f2ff1abfe6d2"
+      },
+      {
+        "id": "check-mission15-phase11-website-pictures",
+        "args": [
+          "scripts/check-mission15-phase11-website-pictures.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.36,
+        "outputSha256": "4ae208358f9a6c0cfeadbbe53ca57acab456f4f205eb2729825bd6322523ba43"
+      },
+      {
+        "id": "check-mission15-phase11-brand-controls",
+        "args": [
+          "scripts/check-mission15-phase11-brand-controls.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.46,
+        "outputSha256": "e7ba56717bb7872070e20c3389b743c975f393111ce87ae570fe284d4b8c65bf"
+      },
+      {
+        "id": "check-app-visual-comparison-v3161",
+        "args": [
+          "scripts/check-app-visual-comparison-v3161.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.13,
+        "outputSha256": "009cd9afe590e272712f9596c05a6e1dcc3fb2df2976d393a85a593bbd9b7a31"
+      },
+      {
+        "id": "check-major-builders-v3193",
+        "args": [
+          "scripts/check-major-builders-v3193.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.64,
+        "outputSha256": "cb6098eff3dccf6a1629993d9049db816f835ac3cf988e3d95a50dcf381ecd99"
+      },
+      {
+        "id": "check-mission15-phase11-selected-faq",
+        "args": [
+          "scripts/check-mission15-phase11-selected-faq.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.15,
+        "outputSha256": "910abe7b2ffb0a3a9db7f79a1451a819c39d6ad731ee12823efba5c268590cda"
+      },
+      {
+        "id": "check-mission15-phase12-component-styles",
+        "args": [
+          "scripts/check-mission15-phase12-component-styles.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.79,
+        "outputSha256": "c0fe3211dbc27102f2664a7719a8b77e5d934a66f7ba106d4d75771b59d1ad1f"
+      },
+      {
+        "id": "check-mission15-phase12-explore",
+        "args": [
+          "scripts/check-mission15-phase12-explore.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.73,
+        "outputSha256": "0c750cec608c415ba5c7ffa2ad89f34cecc6aa7fd2dd1b70f74f38e0e1671728"
+      },
+      {
+        "id": "check-mission15-phase12-explore-handoff",
+        "args": [
+          "scripts/check-mission15-phase12-explore-handoff.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.33,
+        "outputSha256": "4d7d49a4d39a7f4e815d47c3ce5469c8e9f953bce8c8dce8ed20711999e95d90"
+      },
+      {
+        "id": "check-mission15-phase13-explore-experience",
+        "args": [
+          "scripts/check-mission15-phase13-explore-experience.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.26,
+        "outputSha256": "46c07552b8d16ef08ce0c796266e4cd12f6f2fc7809aff01f738c470b3a53f92"
+      },
+      {
+        "id": "check-mission15-phase13-faq-styles",
+        "args": [
+          "scripts/check-mission15-phase13-faq-styles.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.99,
+        "outputSha256": "fd49b1556c951751e936075c85060d999f43bd5d3cc05907b61568dd4f036ec2"
+      },
+      {
+        "id": "check-mission15-phase13-trusted-explore",
+        "args": [
+          "scripts/check-mission15-phase13-trusted-explore.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "750fd05fd453a913705c67dede7d832c3b8266c5d3f8b25d153bb89895494e5c"
+      },
+      {
+        "id": "check-mission15-phase13-website-reading",
+        "args": [
+          "scripts/check-mission15-phase13-website-reading.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.66,
+        "outputSha256": "ef3e753e2b0f7964082a39b23ecc67724dd7b7b82e3cb007c196ee600e3f54ac"
+      },
+      {
+        "id": "check-mission15-phase14-image-styles",
+        "args": [
+          "scripts/check-mission15-phase14-image-styles.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.79,
+        "outputSha256": "e014e3c44468711ac0e6b6f0977d27c6a157e9f4499a93af85592ef19335767f"
+      },
+      {
+        "id": "check-mission15-phase14-explore-context",
+        "args": [
+          "scripts/check-mission15-phase14-explore-context.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.13,
+        "outputSha256": "7e64aae1cc8bfe8af490aaaedbaff3095224695ded9ccf6d3c208baef2d7e8a8"
+      },
+      {
+        "id": "check-mission15-phase14-picture-presets",
+        "args": [
+          "scripts/check-mission15-phase14-picture-presets.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.67,
+        "outputSha256": "73282328a55a02cc230699ea1734e6af21e54285886043673612f7a36b52f51a"
+      },
+      {
+        "id": "check-mission15-phase14-navigation-labels",
+        "args": [
+          "scripts/check-mission15-phase14-navigation-labels.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.58,
+        "outputSha256": "0440345799c9b88f8ec1c337cc13874d043c63a110f3ec2d4ceb27fe363620a0"
+      },
+      {
+        "id": "check-mission15-phase15-service-buttons",
+        "args": [
+          "scripts/check-mission15-phase15-service-buttons.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.57,
+        "outputSha256": "9ea428f9fb5006e44c27530129b96a85609b3252dd8add8abe8dbed58fbf7800"
+      },
+      {
+        "id": "check-mission15-phase15-neutral-planning",
+        "args": [
+          "scripts/check-mission15-phase15-neutral-planning.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "7cb6922b3cf951c345ed957b2b32f2afa05d31a1725c0c181b7cd84306047b25"
+      },
+      {
+        "id": "check-mission15-phase15-brand-typography",
+        "args": [
+          "scripts/check-mission15-phase15-brand-typography.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.61,
+        "outputSha256": "550767542b6a02185b9a590a6152b7bc126a685db50446214c75907dbc0ae1b4"
+      },
+      {
+        "id": "check-mission15-phase18-customer-browsing",
+        "args": [
+          "scripts/check-mission15-phase18-customer-browsing.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.35,
+        "outputSha256": "c8fc6452dbccc4eedd92281665d8daa95053b19e63b2dc064708faba84e7819f"
+      },
+      {
+        "id": "check-mission15-phase19-journeys",
+        "args": [
+          "scripts/check-mission15-phase19-journeys.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.49,
+        "outputSha256": "eee5d319ae273c933d88409612ded64f61f8257f7dba55e2c1692f9d3676ca24"
+      },
+      {
+        "id": "check-mission15-phase19-editing",
+        "args": [
+          "scripts/check-mission15-phase19-editing.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.72,
+        "outputSha256": "942c65f57ca50096e1faadc2b7108d5c08837fc5dfa280378a571ad2970dfac8"
+      },
+      {
+        "id": "check-mission15-phase20-catalogue",
+        "args": [
+          "scripts/check-mission15-phase20-catalogue.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.69,
+        "outputSha256": "55c444327cbecfd59a46ac0ff006e63908b8c40ba9f7f76a1ec14310abf26fee"
+      },
+      {
+        "id": "check-mission15-phase20-editing",
+        "args": [
+          "scripts/check-mission15-phase20-editing.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.74,
+        "outputSha256": "75d74ad690bae2db3bd9e6ddfe182e4c7d969f3a85cc785d0b9fd8eebd50727a"
+      },
+      {
+        "id": "check-mission15-phase21-context",
+        "args": [
+          "scripts/check-mission15-phase21-context.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.86,
+        "outputSha256": "247b0bb45c451c4cb3fa5adf535e0f3b710c059078b4837bbc29e9b19819061c"
+      },
+      {
+        "id": "check-mission15-phase21-editing",
+        "args": [
+          "scripts/check-mission15-phase21-editing.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.76,
+        "outputSha256": "9d3d926220f07dcdccdd99518347cf346c64295d1fd27d4a4a20244e77868933"
+      },
+      {
+        "id": "check-mission15-phase21-draft-choices",
+        "args": [
+          "scripts/check-mission15-phase21-draft-choices.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "ba8f6f8c84e856765333bd8146a07fde7925503eafc6fd24769d29570cd7b230"
+      },
+      {
+        "id": "check-mission15-phase22-removal",
+        "args": [
+          "scripts/check-mission15-phase22-removal.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.99,
+        "outputSha256": "1a7e982fe5bf9a6932ee89a5fa72b522bfd4d4fecd1d5af9ab900bb335827096"
+      },
+      {
+        "id": "check-mission15-phase22-composition",
+        "args": [
+          "scripts/check-mission15-phase22-composition.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "d4bcbd5c8c0519f5d47c76991789ed3c40932e12e3ee870c60e844ec4274987e"
+      },
+      {
+        "id": "check-mission15-phase22-editing",
+        "args": [
+          "scripts/check-mission15-phase22-editing.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.7,
+        "outputSha256": "d6bcf2ced425ae3a5f44db0156f2e87398398b4e2375553cffdbc25d3b615be8"
+      },
+      {
+        "id": "check-mission15-phase23-field-contract",
+        "args": [
+          "scripts/check-mission15-phase23-field-contract.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.72,
+        "outputSha256": "a825a230a79c4742dfa2bfa34d004c0259d1e8ec9a247aa473ab01a8fdf163d3"
+      },
+      {
+        "id": "check-mission15-phase23-focus",
+        "args": [
+          "scripts/check-mission15-phase23-focus.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.6,
+        "outputSha256": "63213bc7cacaabaa98860c128eda4b524e5d52a9ce374e410431c600de27984f"
+      },
+      {
+        "id": "check-mission15-phase23-editorial",
+        "args": [
+          "scripts/check-mission15-phase23-editorial.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "f1f0b00d6e68c929b353980a221036513b28cc52355d0481cdd0380f084fa7f0"
+      },
+      {
+        "id": "check-mission15-phase23-photo-controls",
+        "args": [
+          "scripts/check-mission15-phase23-photo-controls.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.86,
+        "outputSha256": "16dae9633de8019b686c69c281bd6e5017cbc958346b02dfcd89ea9d5f63e0e5"
+      },
+      {
+        "id": "check-mission15-phase23-catalogue-recovery",
+        "args": [
+          "scripts/check-mission15-phase23-catalogue-recovery.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.33,
+        "outputSha256": "8d44a357db4602e6778126b8d11d6873172764695cbfb6749863441eafbf0f05"
+      },
+      {
+        "id": "check-mission15-phase23-explore",
+        "args": [
+          "scripts/check-mission15-phase23-explore.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.09,
+        "outputSha256": "927a53d84db29d7fa6d2ecdd675524992ab81a28d748a0db4c102cf5c66c3983"
+      },
+      {
+        "id": "check-mission15-phase24-comparisons",
+        "args": [
+          "scripts/check-mission15-phase24-comparisons.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.27,
+        "outputSha256": "70a4929ebfe1978ffc320e6cd920ac190870489c4bc3474cf7be2c42049ffe2f"
+      },
+      {
+        "id": "check-mission15-phase24-wording",
+        "args": [
+          "scripts/check-mission15-phase24-wording.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.49,
+        "outputSha256": "a78ef1208f0fe80991eaaa2ecc19d92e3f8ebea131052434033f15f18a492078"
+      },
+      {
+        "id": "check-mission15-phase24-service-composition",
+        "args": [
+          "scripts/check-mission15-phase24-service-composition.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.11,
+        "outputSha256": "5656f7895038473c458a4c7776fd9a383adfe79dbea806c8b3063667d3850701"
+      },
+      {
+        "id": "check-mission15-phase24-catalogue-freshness",
+        "args": [
+          "scripts/check-mission15-phase24-catalogue-freshness.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.35,
+        "outputSha256": "4a31e23a688827de7b9e165d823f5145d2d95065c9ae83920d30e9cd9dbe5017"
+      },
+      {
+        "id": "check-mission15-phase24-editor-scope",
+        "args": [
+          "scripts/check-mission15-phase24-editor-scope.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.63,
+        "outputSha256": "3f39a171c94283faba9bf6cb66d3fc5a0b09bec8589bf18c257af388101258cb"
+      },
+      {
+        "id": "check-mission15-phase24-explore",
+        "args": [
+          "scripts/check-mission15-phase24-explore.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.11,
+        "outputSha256": "81b06359f3d937b72841c6b5afe89002a16f0ef73b5c1222f1401257b9dbe480"
+      },
+      {
+        "id": "check-mission15-phase25-pictures",
+        "args": [
+          "scripts/check-mission15-phase25-pictures.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.26,
+        "outputSha256": "f3598a893cba4d41c15069aed2e2ae9fc5d8e8b8a4cad0ffad32edacc86d5439"
+      },
+      {
+        "id": "check-mission15-phase25-wording",
+        "args": [
+          "scripts/check-mission15-phase25-wording.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.59,
+        "outputSha256": "702dfbc80ab36fac26ef0d4bb7a43dc8b2e0036983c3c0b43096949f4c8a5d6c"
+      },
+      {
+        "id": "check-mission15-phase25-attachment-summary",
+        "args": [
+          "scripts/check-mission15-phase25-attachment-summary.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.8,
+        "outputSha256": "29724a377dbfd7f14d5a92732c1da45334d3906c78fd3350003a49261eeebfe4"
+      },
+      {
+        "id": "check-mission15-phase25-reading",
+        "args": [
+          "scripts/check-mission15-phase25-reading.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "7e1f0d0769445e2e5addf36ade9312e376ac739b3c258e1f0cdc9de85af8e9dc"
+      },
+      {
+        "id": "check-mission15-phase25-coordinated-controls",
+        "args": [
+          "scripts/check-mission15-phase25-coordinated-controls.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.79,
+        "outputSha256": "f8509cc91d13fcbebb0b2213cbffb16d7640cedc374797dadecaeb2b269e06a4"
+      },
+      {
+        "id": "check-mission15-phase25-explore",
+        "args": [
+          "scripts/check-mission15-phase25-explore.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "deb124be2f06d6f3513e783d21c850cb27a2b6aaac5dda2b8b58842780d1c026"
+      },
+      {
+        "id": "check-mission15-phase26-selected-explore",
+        "args": [
+          "scripts/check-mission15-phase26-selected-explore.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.0,
+        "outputSha256": "0652402dc5a929dce14d02e8cf0fafd9a8d1b2e18ad964c388945e22be582c45"
+      },
+      {
+        "id": "check-mission15-phase26-draft-switch",
+        "args": [
+          "scripts/check-mission15-phase26-draft-switch.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.76,
+        "outputSha256": "2e1319a7c1a7157996468639153ba4c3c0bb7fc743d980a6361e3d95fb87f4a7"
+      },
+      {
+        "id": "check-mission15-phase26-request-returns",
+        "args": [
+          "scripts/check-mission15-phase26-request-returns.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.75,
+        "outputSha256": "98645c65eb8f09027a76fc6365439a4a38eb8c713379892d41f81d33dc405f46"
+      },
+      {
+        "id": "check-mission15-phase26-faq-composition",
+        "args": [
+          "scripts/check-mission15-phase26-faq-composition.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "bf1e71b8b09b39da6fc77ab3eed54cf7739cf3af9f2d3429a2c8ed4468c91f3b"
+      },
+      {
+        "id": "check-mission15-phase26-editing-controls",
+        "args": [
+          "scripts/check-mission15-phase26-editing-controls.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.64,
+        "outputSha256": "b1491e04c098db23dc05c69385195c5f7d9b7d8114940359ad0a759f3e5215f0"
+      },
+      {
+        "id": "check-mission15-phase26-selected-advice",
+        "args": [
+          "scripts/check-mission15-phase26-selected-advice.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "fee3010b282e3785b359f87c680b1a206140a244997299189e757001d084604c"
+      },
+      {
+        "id": "mission15-phase27-button-drafts",
+        "args": [
+          "scripts/check-mission15-phase27-button-drafts.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.6,
+        "outputSha256": "bf5b4cce7accf7b08dc0842baf781323ab4e2c90dd6a3e83af478d240a4c7b30"
+      },
+      {
+        "id": "mission15-phase27-design-feedback",
+        "args": [
+          "scripts/check-mission15-phase27-design-feedback.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "42ce8e2072be3154cadfb72075ad9790f2f4bf285b575923009b599c39b14bb1"
+      },
+      {
+        "id": "mission15-phase27-request-return",
+        "args": [
+          "scripts/check-mission15-phase27-request-return.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "d072c328d9c67de83f635f260ee95b597972a215ae7dd850c6e025fc667b5537"
+      },
+      {
+        "id": "mission15-phase27-service-index",
+        "args": [
+          "scripts/check-mission15-phase27-service-index.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.12,
+        "outputSha256": "552eaa1ff70ae642d0ab70c5f9497ec9522c13ef5a366d54cf9c631dedc416fb"
+      },
+      {
+        "id": "mission15-phase27-simple-controls",
+        "args": [
+          "scripts/check-mission15-phase27-simple-controls.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.29,
+        "outputSha256": "9eb427fef7a6f734bf4da133251bb2f5c4d36b8a586e191c886b1c0e15207ef4"
+      },
+      {
+        "id": "mission15-phase27-service-advice",
+        "args": [
+          "scripts/check-mission15-phase27-service-advice.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.13,
+        "outputSha256": "19d6dae42b9a832023007b3a3d07f106b479005f4cce644e0d1b5aeb25624208"
+      },
+      {
+        "id": "mission15-phase27-selected-feedback",
+        "args": [
+          "scripts/check-mission15-phase27-selected-feedback.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.0,
+        "outputSha256": "25c277a0aa2a650a15a6182ee9561d9bc35efc39c6d43d884ef6b4f7dcdb788a"
+      },
+      {
+        "id": "mission15-phase28-navigation",
+        "args": [
+          "scripts/check-mission15-phase28-navigation.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.23,
+        "outputSha256": "6104e4adcff24fd1e2b5cb6288f25ff03671452c8ca90563ffbec116e1e690e5"
+      },
+      {
+        "id": "mission15-phase28-reconsider",
+        "args": [
+          "scripts/check-mission15-phase28-reconsider.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.21,
+        "outputSha256": "885ae9162528fc03263eb5ef8e74242f0e55b98029eb29aef22098a86e48bdc0"
+      },
+      {
+        "id": "mission15-phase28-returns",
+        "args": [
+          "scripts/check-mission15-phase28-returns.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.52,
+        "outputSha256": "01f0e2aa62ed15b96a02f3ad97b86c09ae85476d8593b86e20bfc3cf882ff1c1"
+      },
+      {
+        "id": "mission15-phase28-page-guide",
+        "args": [
+          "scripts/check-mission15-phase28-page-guide.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "452a877ebdc08ba0e0d20d9eb162117e9605a90ff5a2bac400ae3f02109834ae"
+      },
+      {
+        "id": "mission15-phase28-customer-controls",
+        "args": [
+          "scripts/check-mission15-phase28-customer-controls.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.77,
+        "outputSha256": "a0de8df09d1ae6abb434142c3128821c66d10a1e1e0b2fed397522b6bab0b8af"
+      },
+      {
+        "id": "mission15-phase28-explore",
+        "args": [
+          "scripts/check-mission15-phase28-explore.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "4924f2cf7819066196080451dc8744d1619e998b65f27529ce5cdb67652dc382"
+      },
+      {
+        "id": "mission15-phase28-legacy-copy",
+        "args": [
+          "scripts/check-mission15-phase28-legacy-copy.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.53,
+        "outputSha256": "7e94bc047d47238471b70f2827997390df63e644b07ad21e95524c84c5e83ea1"
+      },
+      {
+        "id": "mission15-phase29-legacy-drafts",
+        "args": [
+          "scripts/check-mission15-phase29-legacy-drafts.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.71,
+        "outputSha256": "fe5bfa1d05b71fc754d9556c77b006a0a384a1edce2d396e7162e0df402a34db"
+      },
+      {
+        "id": "mission15-phase29-approval-conflicts",
+        "args": [
+          "scripts/check-mission15-phase29-approval-conflicts.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "05b911cf240056b0f02d9628ac224c01e1150a087254b8a2350e1b7cc7451bbf"
+      },
+      {
+        "id": "mission15-phase29-page-reconsider",
+        "args": [
+          "scripts/check-mission15-phase29-page-reconsider.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.04,
+        "outputSha256": "3ec615d2cc7cad9943031a06126aa3b4766123c0e3b7ac74f700b0a3221438c2"
+      },
+      {
+        "id": "mission15-phase29-article-layout",
+        "args": [
+          "scripts/check-mission15-phase29-article-layout.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "d4449389fbca8b92643c3bed6ba5a34a67f1f7ba1612312863cb268ff5a572ee"
+      },
+      {
+        "id": "mission15-phase29-option-readback",
+        "args": [
+          "scripts/check-mission15-phase29-option-readback.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.33,
+        "outputSha256": "4e461eaec072a65c5d520e786d15515d1a5923d878cc291e2603512883fe49a3"
+      },
+      {
+        "id": "mission15-phase29-source-transitions",
+        "args": [
+          "scripts/check-mission15-phase29-source-transitions.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.46,
+        "outputSha256": "fb838425a700c842011e49425363b74479da62cc8fd34b303ed4691042349992"
+      },
+      {
+        "id": "mission15-phase29-explore-reading",
+        "args": [
+          "scripts/check-mission15-phase29-explore-reading.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.1,
+        "outputSha256": "eafb92ad89a439716a1b54f784633f542881521169119b3decb616d522831911"
+      },
+      {
+        "id": "mission15-phase29-dispatch-epoch",
+        "args": [
+          "scripts/check-mission15-phase29-dispatch-epoch.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "90c8e8e6489ce04f3159b0e0e7cb36470d47ae911ff2ced081156fdab33ab075"
+      },
+      {
+        "id": "mission15-phase29-website-drafts",
+        "args": [
+          "scripts/check-mission15-phase29-website-drafts.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.91,
+        "outputSha256": "ef94932326e4867c602f323ba17556f513f6fe27950cdba7d4ad549684c1aca1"
+      },
+      {
+        "id": "mission15-phase30-website-mutation",
+        "args": [
+          "scripts/check-mission15-phase30-website-mutation.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.97,
+        "outputSha256": "8bde6700cd2cb0ddd5aea12b422a0c225167b978c9253a6d12c418b38afac014"
+      },
+      {
+        "id": "mission15-phase30-history",
+        "args": [
+          "scripts/check-mission15-phase30-history.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "8e5360e0f704175b784919e77c4e4739e9d2bbb13b3c9e7f29f2ab37467a123c"
+      },
+      {
+        "id": "mission15-phase30-save-ack",
+        "args": [
+          "scripts/check-mission15-phase30-save-ack.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.63,
+        "outputSha256": "39cfa361b32339832bd92d59148de7dfa46ddb596aa3defd1bdb7a265b91d5a5"
+      },
+      {
+        "id": "mission15-phase30-testimonials",
+        "args": [
+          "scripts/check-mission15-phase30-testimonials.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.11,
+        "outputSha256": "c601cfb833781e415459da50e996006817f7f924fd5475bdf2a352aa7a80e58c"
+      },
+      {
+        "id": "mission15-phase30-service-return",
+        "args": [
+          "scripts/check-mission15-phase30-service-return.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.58,
+        "outputSha256": "d6c2ae1f66a6303af56ba1d95e492360637321f517f6428a5fa83754ae69b82c"
+      },
+      {
+        "id": "mission15-phase30-photo-backup",
+        "args": [
+          "scripts/check-mission15-phase30-photo-backup.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "ed0a79ec9b9d83a6b8963ca0387ac733d254a86e409267dff0129bdf00f65460"
+      },
+      {
+        "id": "mission15-phase30-explore",
+        "args": [
+          "scripts/check-mission15-phase30-explore.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.04,
+        "outputSha256": "e22b07c6a556c53541461daf82cd91fcd54cb0751b4145126ef129f07ce7e777"
+      },
+      {
+        "id": "mission15-phase31-pages",
+        "args": [
+          "scripts/check-mission15-phase31-pages.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.07,
+        "outputSha256": "a9d70787b7e410aa6209630f49426553a1c3c2e90e66ea5e8c048ad715deb988"
+      },
+      {
+        "id": "mission15-phase31-service-resume",
+        "args": [
+          "scripts/check-mission15-phase31-service-resume.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.29,
+        "outputSha256": "a657de47ee612e4a9b9738843c246ad4834a1ad93f6dcceb92a3f8ae185fb6af"
+      },
+      {
+        "id": "mission15-phase31-cloud-drafts",
+        "args": [
+          "scripts/check-mission15-phase31-cloud-drafts.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.29,
+        "outputSha256": "aa032b3e3b313f77ee2bc5e4c67d13928de72cdc8379e224214931330247aaf2"
+      },
+      {
+        "id": "mission15-phase31-independent-editors",
+        "args": [
+          "scripts/check-mission15-phase31-independent-editors.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.03,
+        "outputSha256": "18b7be2cb6e3546acfb182c65f901bcc5f4d4564e36576f0439c7b5d99e014b1"
+      },
+      {
+        "id": "mission15-phase31-home",
+        "args": [
+          "scripts/check-mission15-phase31-home.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.37,
+        "outputSha256": "0efaac679a564ed730a41da8125d20ecbe057fb59b9011d1c30d795eae62c978"
+      },
+      {
+        "id": "mission15-phase31-service-content",
+        "args": [
+          "scripts/check-mission15-phase31-service-content.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.08,
+        "outputSha256": "fffd3da94be5dbe1d7810d3189b345e4782d80f50862734da6f9f218cb20833b"
+      },
+      {
+        "id": "mission15-phase31-growth-content",
+        "args": [
+          "scripts/check-mission15-phase31-growth-content.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.99,
+        "outputSha256": "47dbc15aac15c95637fd4bb0d7a4fdd4f4cd4ab93d26cf44e193f7518740a64c"
+      },
+      {
+        "id": "mission15-phase31-text-drafts",
+        "args": [
+          "scripts/check-mission15-phase31-text-drafts.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.43,
+        "outputSha256": "8cb8e6bbfe819eb20f4ade219631c3af1aaf5604b541452628c7d56220102070"
+      },
+      {
+        "id": "mission15-phase32-service-intent",
+        "args": [
+          "scripts/check-mission15-phase32-service-intent.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.91,
+        "outputSha256": "58da689c1f60be37bca9f6b68a4b9ef6db1425008f37b77488787ad114532884"
+      },
+      {
+        "id": "mission15-phase32-growth-handoff",
+        "args": [
+          "scripts/check-mission15-phase32-growth-handoff.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.09,
+        "outputSha256": "f317cea5e50977c643b614794daa01aa2a1ce8cba963814567ce51a653e0ca2d"
+      },
+      {
+        "id": "mission15-phase32-content-save",
+        "args": [
+          "scripts/check-mission15-phase32-content-save.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.11,
+        "outputSha256": "30bdd229946e3e1674a752b71c236f6bd54ae6fe743e6ba2d7cb07450300e57a"
+      },
+      {
+        "id": "mission15-phase32-approved-profile",
+        "args": [
+          "scripts/check-mission15-phase32-approved-profile.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.27,
+        "outputSha256": "7f4a79f021be1b54ab36497411d26eb1b03ff3b82ea67ef0cbdaa4a0aefd16ae"
+      },
+      {
+        "id": "mission15-phase32-home-content",
+        "args": [
+          "scripts/check-mission15-phase32-home-content.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.62,
+        "outputSha256": "ee17d4409d191f21886996301c04345ff1e26e28b7bc642d496d99fdb56f239b"
+      },
+      {
+        "id": "mission15-phase32-marketing-goals",
+        "args": [
+          "scripts/check-mission15-phase32-marketing-goals.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.23,
+        "outputSha256": "9856478615162d6f196e72487c2c23f7d1d241860fdba627019f5657b1531743"
+      },
+      {
+        "id": "mission15-phase32-manual-content",
+        "args": [
+          "scripts/check-mission15-phase32-manual-content.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.03,
+        "outputSha256": "e49273c79f8ee9739ebe2b0c9c38069b3fd35577890284aa76ef04515ca79f3e"
+      },
+      {
+        "id": "mission15-phase32-caption-races",
+        "args": [
+          "scripts/check-mission15-phase32-caption-races.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.7,
+        "outputSha256": "15914853b3a67a92d8e212d40e9da727e903d3154ae4b5e6fe60e620a2412ab1"
+      },
+      {
+        "id": "mission15-phase32-source-choice",
+        "args": [
+          "scripts/check-mission15-phase32-source-choice.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.1,
+        "outputSha256": "7d0ae66f6fbced6ac3abe756371e3f1969cd096a363e57f8bde3d0f638d92d20"
+      },
+      {
+        "id": "mission15-phase32-transcript-parity",
+        "args": [
+          "scripts/check-mission15-phase32-transcript-parity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.66,
+        "outputSha256": "9e744a230d937f51d7f57c17ec82aa27677b8e919c8e20b334bf8348528ed9bb"
+      },
+      {
+        "id": "mission15-phase32-save-freshness",
+        "args": [
+          "scripts/check-mission15-phase32-save-freshness.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.52,
+        "outputSha256": "deb1d56457a80f531da6ea9e7143c081168d71a6b90c1db063cd76c484059b56"
+      },
+      {
+        "id": "mission15-phase33-introduction",
+        "args": [
+          "scripts/check-mission15-phase33-introduction.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.38,
+        "outputSha256": "a4a3bfa973a77a5d04c26a1ff50c2c6d8ccc0ba23bb5ca72ff16b3ea4a1daf33"
+      },
+      {
+        "id": "mission15-phase33-approved-records",
+        "args": [
+          "scripts/check-mission15-phase33-approved-records.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.5,
+        "outputSha256": "d582245ab6d78f909262b94995f204e6a468e10b081a2b571cab15708377fd09"
+      },
+      {
+        "id": "mission15-phase33-device-recovery",
+        "args": [
+          "scripts/check-mission15-phase33-device-recovery.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.84,
+        "outputSha256": "d339cd49ab021af8f55ed1d0b412ed6f2e17af0576b85b6e8a4941b8396673d3"
+      },
+      {
+        "id": "mission15-phase33-announcements",
+        "args": [
+          "scripts/check-mission15-phase33-announcements.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.19,
+        "outputSha256": "f6d23f8b8ac454a0c9f8753a5a79e7dfa6d9e2e6515ec40abe7096046d8dea36"
+      },
+      {
+        "id": "mission15-phase33-growth-home",
+        "args": [
+          "scripts/check-mission15-phase33-growth-home.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.2,
+        "outputSha256": "1b33a31d21ec64c72e0c61b1da31d762e624007cc1fa512b8f0dfa89798bba59"
+      },
+      {
+        "id": "mission15-phase33-creator-starts",
+        "args": [
+          "scripts/check-mission15-phase33-creator-starts.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.09,
+        "outputSha256": "0129471e320aff75281f72b5c26341b126a1cd9e3dfccdacfcd53cbc3b4d68da"
+      },
+      {
+        "id": "mission15-phase33-new-post-safety",
+        "args": [
+          "scripts/check-mission15-phase33-new-post-safety.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.3,
+        "outputSha256": "2a9a4e711662e2593629d046351de093ea26c321e24eb5b38623e0f1d66c16e5"
+      },
+      {
+        "id": "mission15-phase33-cloud-freshness",
+        "args": [
+          "scripts/check-mission15-phase33-cloud-freshness.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.7,
+        "outputSha256": "fa67cd3574b37e9d84d42d6589c9e63e6a71e3cc1d84c87f233f0a47f45367ef"
+      },
+      {
+        "id": "mission15-phase33-growth-records",
+        "args": [
+          "scripts/check-mission15-phase33-growth-records.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.05,
+        "outputSha256": "8d6280c3de91430ea4e107caf8130a994520dadd4554b1bfbefee37c1a637035"
+      },
+      {
+        "id": "mission15-phase33-source-continuity",
+        "args": [
+          "scripts/check-mission15-phase33-source-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.24,
+        "outputSha256": "63d8da47caac492579c483412a87d430ff3057958146e94699f47add26889041"
+      },
+      {
+        "id": "mission15-phase33-talk-parity",
+        "args": [
+          "scripts/check-mission15-phase33-talk-parity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.67,
+        "outputSha256": "9c68929efcb81874f70554185705a9a0f000c86c2087b0b072e7d33a21e8c7d3"
+      },
+      {
+        "id": "mission15-phase34-natural-content",
+        "args": [
+          "scripts/check-mission15-phase34-natural-content.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.69,
+        "outputSha256": "84817c3b3df95b1edfea223be5c3b2e83b98dc6d6088c85e6cea81693c73297f"
+      },
+      {
+        "id": "mission15-phase34-wording",
+        "args": [
+          "scripts/check-mission15-phase34-wording.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.16,
+        "outputSha256": "c7941614d719f0c4374cd5281fb30aa8f0c3cd113c612d3370f3f89befd4cd5d"
+      },
+      {
+        "id": "mission15-phase34-publication-freshness",
+        "args": [
+          "scripts/check-mission15-phase34-publication-freshness.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.35,
+        "outputSha256": "a43b43ac2f304b2cfbc6ed7a21097d340feb8dee82f454848adb28dc48c32759"
+      },
+      {
+        "id": "mission15-phase34-management-actions",
+        "args": [
+          "scripts/check-mission15-phase34-management-actions.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.78,
+        "outputSha256": "5d300a695cf1ce416edb822a21f97caa477182cfcf8d6b77d4d62aa28da3cd2b"
+      },
+      {
+        "id": "mission15-phase34-job-start",
+        "args": [
+          "scripts/check-mission15-phase34-job-start.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.65,
+        "outputSha256": "cbe86091a021df061fb7c56a1c7ea0511f0cd8f7d35cf2c5cd8bc9db6eab7aca"
+      },
+      {
+        "id": "mission15-phase34-account-readback",
+        "args": [
+          "scripts/check-mission15-phase34-account-readback.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.16,
+        "outputSha256": "40504a7c69dc9ac027c7324c0a4edc53a5d81d712e1b178a894967bf7fb558cb"
+      },
+      {
+        "id": "mission15-phase34-queue-continuity",
+        "args": [
+          "scripts/check-mission15-phase34-queue-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.26,
+        "outputSha256": "0ad4f200581b8f892b9174595ae0fdbaf2adab0c281ba5ddc21ef0681cb6416f"
+      },
+      {
+        "id": "mission15-phase34-inbox-quote",
+        "args": [
+          "scripts/check-mission15-phase34-inbox-quote.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.31,
+        "outputSha256": "130eaa584355ef9f23b6a4b03bec5aabf269bec698dec20bba411a9c454d2ab3"
+      },
+      {
+        "id": "mission15-phase34-record-wording",
+        "args": [
+          "scripts/check-mission15-phase34-record-wording.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.84,
+        "outputSha256": "9c6fd50c080e1beda5f284568947dcfdea0f4ea48b6a6f8d8c31726acc0f7d8f"
+      },
+      {
+        "id": "mission15-phase34-home-quote",
+        "args": [
+          "scripts/check-mission15-phase34-home-quote.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.77,
+        "outputSha256": "3c459906e669ef390d7075e7512f0150fc2f61dde420bf1d4a28b50575eb2150"
+      },
+      {
+        "id": "mission15-phase34-receipt-identity",
+        "args": [
+          "scripts/check-mission15-phase34-receipt-identity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.83,
+        "outputSha256": "f24b8c7d6fb28f0ea4335a112f6d743248d29fec10867951336cdf5ea08a9650"
+      },
+      {
+        "id": "mission15-phase34-quote-scope",
+        "args": [
+          "scripts/check-mission15-phase34-quote-scope.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.28,
+        "outputSha256": "98573a2b19500ee945ecc391c3386d6363019a2775c94153e67113cc8b96f2dc"
+      },
+      {
+        "id": "mission15-phase35-growth-treatment",
+        "args": [
+          "scripts/check-mission15-phase35-growth-treatment.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.08,
+        "outputSha256": "6b0093beeb01ea523114d0c44a7edd30edc8ab9c572c27296b4bc0c91d45fc7f"
+      },
+      {
+        "id": "mission15-phase35-catalogue-treatment",
+        "args": [
+          "scripts/check-mission15-phase35-catalogue-treatment.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.12,
+        "outputSha256": "1a7cb5f39c4c06e59faf750f501369b0946a9d492293a85b6f2cefb0534e47a1"
+      },
+      {
+        "id": "mission15-phase35-publish-claims",
+        "args": [
+          "scripts/check-mission15-phase35-publish-claims.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.28,
+        "outputSha256": "f391b50f127f8982389a79a50677a189266f5ac7d6efad92671f10f3505ee443"
+      },
+      {
+        "id": "mission15-phase35-quote-transition",
+        "args": [
+          "scripts/check-mission15-phase35-quote-transition.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.22,
+        "outputSha256": "3e374b5ca075b7cdfd6fe2d0de2b1943a7de1b8cbd3bb5c17269a1687f5e49fd"
+      },
+      {
+        "id": "mission15-phase35-quote-outcome",
+        "args": [
+          "scripts/check-mission15-phase35-quote-outcome.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.31,
+        "outputSha256": "7bacbd49e84f03388e67bddc2e6c7e601dd28f8b14afc53075c3339a9ce8a6be"
+      },
+      {
+        "id": "mission15-phase35-catalogue-option",
+        "args": [
+          "scripts/check-mission15-phase35-catalogue-option.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.11,
+        "outputSha256": "28f1522543b1d2e29b621cb0529b5cd217e14fb4d4c5df48f8d67c2796d5b294"
+      },
+      {
+        "id": "mission15-phase36-source-treatment",
+        "args": [
+          "scripts/check-mission15-phase36-source-treatment.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.29,
+        "outputSha256": "87f14e1ac8669f7dd18c602ef62a72490f40e30557442baeab0cc2fd599d4d1f"
+      },
+      {
+        "id": "mission15-phase36-talk-treatment",
+        "args": [
+          "scripts/check-mission15-phase36-talk-treatment.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.4,
+        "outputSha256": "e3ee9b28556f899c5251aa268ddcf3a17290bf3c8ea71ac931a063d04262b63e"
+      },
+      {
+        "id": "mission15-phase36-quote-review",
+        "args": [
+          "scripts/check-mission15-phase36-quote-review.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.59,
+        "outputSha256": "c7a4074046b042c0eb615eb0956953ea0697fa0da81b77856515cd97b3fee504"
+      },
+      {
+        "id": "mission15-phase36-record-continuity",
+        "args": [
+          "scripts/check-mission15-phase36-record-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.19,
+        "outputSha256": "d4d1d225fe145828a1de52e9bc2f3e2ac2217fe078f0c494486ca39a7f3655bc"
+      },
+      {
+        "id": "mission15-phase36-quote-navigation",
+        "args": [
+          "scripts/check-mission15-phase36-quote-navigation.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.31,
+        "outputSha256": "df400ace5a2930c9a2ebdaedf4370aa1abd943128401ba72c097e03915406909"
+      },
+      {
+        "id": "mission15-phase36-quote-device-copy",
+        "args": [
+          "scripts/check-mission15-phase36-quote-device-copy.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.41,
+        "outputSha256": "83e2d39a11f4814a7148e26269b1d77da55927459bcb09866f3f0629e9405767"
+      },
+      {
+        "id": "mission15-phase36-cancel-revision",
+        "args": [
+          "scripts/check-mission15-phase36-cancel-revision.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.9,
+        "outputSha256": "41486b026007e5a829bdf4135656e8cc79fc95d506fc7d72359eb7427a272938"
+      },
+      {
+        "id": "check-mission15-phase36-home-prepared-quote",
+        "args": [
+          "scripts/check-mission15-phase36-home-prepared-quote.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.85,
+        "outputSha256": "ab6713be66ad934443e4073e39e60ffffd44b23ae5b5e98cab938063d3e82dd9"
+      },
+      {
+        "id": "check-mission15-phase36-core-routing",
+        "args": [
+          "scripts/check-mission15-phase36-core-routing.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.26,
+        "outputSha256": "c90dd0d1e34976fa212ec0007bde780de19f60bf3f66ca58acc1ff5e6909bdab"
+      },
+      {
+        "id": "mission15-phase37-enquiry-quote-return",
+        "args": [
+          "scripts/check-mission15-phase37-enquiry-quote-return.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.58,
+        "outputSha256": "3389790318ab29a99c249c58ef73df8977511af9ca460ceb184bbff2ba9a61ec"
+      },
+      {
+        "id": "mission15-phase37-customer-enquiry",
+        "args": [
+          "scripts/check-mission15-phase37-customer-enquiry.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.52,
+        "outputSha256": "8dc7f285158c31f97e42345ff9fdd2e45366942e994fbafb3ad57997bd946c6f"
+      },
+      {
+        "id": "mission15-phase37-talk-quote",
+        "args": [
+          "scripts/check-mission15-phase37-talk-quote.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.71,
+        "outputSha256": "9f63395229bb9135fd26c43c83d0a253315f36b5c54cf536904b051f596103db"
+      },
+      {
+        "id": "mission15-phase37-content-reprepare",
+        "args": [
+          "scripts/check-mission15-phase37-content-reprepare.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.29,
+        "outputSha256": "dfff685f53aaec21bae67be419e986b42d0319eb9e2776336a3d376bd70d479f"
+      },
+      {
+        "id": "mission15-phase37-home-inbox",
+        "args": [
+          "scripts/check-mission15-phase37-home-inbox.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.37,
+        "outputSha256": "7125e25433d76eeab1c4eb3b2e7a54e3213e0bfd1f9f1592d3b1f62c096cc971"
+      },
+      {
+        "id": "mission15-phase37-reopened-content",
+        "args": [
+          "scripts/check-mission15-phase37-reopened-content.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.27,
+        "outputSha256": "9c123ef99eaf6954743b11d9474f05b7de500637af9e46f7cc9cfd1f28dd552e"
+      },
+      {
+        "id": "mission15-phase37-recorded-quote-status",
+        "args": [
+          "scripts/check-mission15-phase37-recorded-quote-status.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.73,
+        "outputSha256": "8ae497c8112d706d1ad78b7d17a0bd3cdd58fcad62e44dbf9d1eef337d2c16c0"
+      },
+      {
+        "id": "mission15-phase38-quote-reference",
+        "args": [
+          "scripts/check-mission15-phase38-quote-reference.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.42,
+        "outputSha256": "32d55759e77ef219a05f5eb8e21f3389ddedb57f873e5ec135b43b8607352b77"
+      },
+      {
+        "id": "mission15-phase38-quote-recovery",
+        "args": [
+          "scripts/check-mission15-phase38-quote-recovery.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.84,
+        "outputSha256": "41c04ef108481e11398be43b67ce62abc78e8ffcc898897e4eb95bf79969c24b"
+      },
+      {
+        "id": "mission15-phase38-current-enquiry",
+        "args": [
+          "scripts/check-mission15-phase38-current-enquiry.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.38,
+        "outputSha256": "c754161fb9a7ce3c5f21c3d7f83abdd8744f86536381865d4088b9f5275c1620"
+      },
+      {
+        "id": "mission15-phase38-content-draft-fields",
+        "args": [
+          "scripts/check-mission15-phase38-content-draft-fields.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.97,
+        "outputSha256": "caf078b32faef85f6fbdd0cfbcf0cbdce8b9fe4364d092f82f51f92b2f317114"
+      },
+      {
+        "id": "mission15-phase38-followup-enquiry",
+        "args": [
+          "scripts/check-mission15-phase38-followup-enquiry.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.59,
+        "outputSha256": "2602cca329ea7d654a6e20d1eededcfbb38b13270d821f6ffb7e0a3ec92fe743"
+      },
+      {
+        "id": "mission15-phase39-followup-review",
+        "args": [
+          "scripts/check-mission15-phase39-followup-review.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.75,
+        "outputSha256": "465279245e5331700c338a0306b9059307b1b9fadcb3911c09561f4d2379899f"
+      },
+      {
+        "id": "mission15-phase39-home-quote-review",
+        "args": [
+          "scripts/check-mission15-phase39-home-quote-review.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.39,
+        "outputSha256": "6d672aa153ffc0314b0ea6e36d4846b69f4f7b936853ef3de09a501af165004c"
+      },
+      {
+        "id": "mission15-phase39-review-to-followup",
+        "args": [
+          "scripts/check-mission15-phase39-review-to-followup.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.04,
+        "outputSha256": "4a2abeeb1ac7bf25a90ea84e76b1307fc7ddebc8977ca96b3fd52b16718ecdd6"
+      },
+      {
+        "id": "mission15-phase39-unsaved-content-home",
+        "args": [
+          "scripts/check-mission15-phase39-unsaved-content-home.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.53,
+        "outputSha256": "674c78e7d4f0d69579ec954c9ef4d9af84952daacb57b7b53f06e9ac6c896df1"
+      },
+      {
+        "id": "mission15-phase39-talk-current-content",
+        "args": [
+          "scripts/check-mission15-phase39-talk-current-content.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.97,
+        "outputSha256": "069012986c9c6c6530aa4d0a7011c8345b2954741228ae41c856fda7a2377b65"
+      },
+      {
+        "id": "mission15-phase40-quote-selection",
+        "args": [
+          "scripts/check-mission15-phase40-quote-selection.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 7.57,
+        "outputSha256": "f35dc0a167d9c33e51e6db8951016808bb7cf0a365e39581db254651b575e071"
+      },
+      {
+        "id": "mission15-phase40-creator-formats",
+        "args": [
+          "scripts/check-mission15-phase40-creator-formats.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.26,
+        "outputSha256": "015851e199fffb4d0d222472b2182aa8f1685aef4c81d2d67980dd5bda0d51ed"
+      },
+      {
+        "id": "mission15-phase40-growth-formats",
+        "args": [
+          "scripts/check-mission15-phase40-growth-formats.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.84,
+        "outputSha256": "d45086a293bb6217bb24db9e61a828329acb5d26ee3b80cef939013e84ee78b0"
+      },
+      {
+        "id": "mission15-phase40-talk-formats",
+        "args": [
+          "scripts/check-mission15-phase40-talk-formats.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.67,
+        "outputSha256": "6f821111406c29f0d1f32bcde675b6774b0f1580c2cd3dc1569cf54611713127"
+      },
+      {
+        "id": "mission15-phase40-followup-context",
+        "args": [
+          "scripts/check-mission15-phase40-followup-context.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.59,
+        "outputSha256": "dff4a738ca10be7d9bf4bc39bbd7b6efc93b73306207f2914e3ac8c07e4f3d0d"
+      },
+      {
+        "id": "mission15-phase40-growth-source-choice",
+        "args": [
+          "scripts/check-mission15-phase40-growth-source-choice.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.81,
+        "outputSha256": "018c8fecce4b6cc069854d35276be5363a8387d01ab1fcb71077b0fca4b2a418"
+      },
+      {
+        "id": "mission15-phase40-home-quote-selection",
+        "args": [
+          "scripts/check-mission15-phase40-home-quote-selection.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 8.04,
+        "outputSha256": "4ee4835c573448801d22613ecbc0f5ed4ea8b343ca1612458d921ab98fc538f3"
+      },
+      {
+        "id": "mission15-phase40-followup-authority",
+        "args": [
+          "scripts/check-mission15-phase40-followup-authority.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.9,
+        "outputSha256": "4605a96928f107653f56ec8874320913fb2aaa904d31a7945d76936958dc0991"
+      },
+      {
+        "id": "mission15-phase41-item-formats",
+        "args": [
+          "scripts/check-mission15-phase41-item-formats.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.61,
+        "outputSha256": "aba57598a4cbee0168ace74a5e12a77178a028c0257fcc50575978a43ac49fd3"
+      },
+      {
+        "id": "mission15-phase41-growth-item-formats",
+        "args": [
+          "scripts/check-mission15-phase41-growth-item-formats.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.14,
+        "outputSha256": "6b5baa373562519a5d71d2bdc32d3368ac77a342566715c2e8362a9c9657be45"
+      },
+      {
+        "id": "mission15-phase41-talk-item-formats",
+        "args": [
+          "scripts/check-mission15-phase41-talk-item-formats.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.54,
+        "outputSha256": "9ec8833d45191cf9f73503efd638b5d153d4804cfa2c057a0d31a21b036fcfe1"
+      },
+      {
+        "id": "mission15-phase41-enquiry-replies",
+        "args": [
+          "scripts/check-mission15-phase41-enquiry-replies.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.7,
+        "outputSha256": "6a53d240dd4f8637443be829e9b03e5aa015f70ea4bd0d1eb278e9ccf455d38d"
+      },
+      {
+        "id": "mission15-phase41-reply-questions",
+        "args": [
+          "scripts/check-mission15-phase41-reply-questions.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.43,
+        "outputSha256": "604d592a70ad74a87a4d8532bdc51c04cb48819f22792267a4776e3c80f2a601"
+      },
+      {
+        "id": "mission15-phase41-talk-replies",
+        "args": [
+          "scripts/check-mission15-phase41-talk-replies.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.44,
+        "outputSha256": "24eb553ec29bf6dc91b7f91d13b57ff2a0299bc47f45f779794b9e26af9e80ab"
+      },
+      {
+        "id": "mission15-phase41-home-replies",
+        "args": [
+          "scripts/check-mission15-phase41-home-replies.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 7.34,
+        "outputSha256": "a4067b6e7544cc0591e658db0c6ef79a35e5ec17dd9c917fe97e6e12257c9ef8"
+      },
+      {
+        "id": "mission15-phase41-reply-source-removal",
+        "args": [
+          "scripts/check-mission15-phase41-reply-source-removal.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.35,
+        "outputSha256": "d492667ab16b7946f581ab5d0a71233ea89f7127cb0e5c9eca981d4e8757aa73"
+      },
+      {
+        "id": "mission15-phase42-reply-save",
+        "args": [
+          "scripts/check-mission15-phase42-reply-save.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.24,
+        "outputSha256": "4c066271f0964bdf93a353ee07a4b8305336a943f7b18dc38e5b247d365a6a95"
+      },
+      {
+        "id": "mission15-phase42-owner-formats",
+        "args": [
+          "scripts/check-mission15-phase42-owner-formats.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.22,
+        "outputSha256": "390cc1f086086c48a61c117844e4edd6741260abd7b88b3c5e896aee4dcce6d2"
+      },
+      {
+        "id": "mission15-phase42-reply-information",
+        "args": [
+          "scripts/check-mission15-phase42-reply-information.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.44,
+        "outputSha256": "c9a4af2d5e0b463ce5b057241c2245c5d07c87163b4e57b67cf59b3016a862ef"
+      },
+      {
+        "id": "mission15-phase42-saved-reply-home",
+        "args": [
+          "scripts/check-mission15-phase42-saved-reply-home.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.97,
+        "outputSha256": "9226c0b342a830e8dd65253bd57e7cec64bde9c4864c4969c80cbedeacc400aa"
+      },
+      {
+        "id": "mission15-phase42-reply-recovery",
+        "args": [
+          "scripts/check-mission15-phase42-reply-recovery.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.51,
+        "outputSha256": "a6d0ad8f16ad2a3aac59a415f43aa1f3ffc59894de7ca648b3ac95f67476804c"
+      },
+      {
+        "id": "mission15-phase43-growth-announcement",
+        "args": [
+          "scripts/check-mission15-phase43-growth-announcement.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.55,
+        "outputSha256": "a047195c17e42bb1c464d10c101d7be6238e0df6257c212b8d0617c27251ad8c"
+      },
+      {
+        "id": "mission15-phase43-reply-canonical",
+        "args": [
+          "scripts/check-mission15-phase43-reply-canonical.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.04,
+        "outputSha256": "8abc1dcc6158017e8e0ef4c35242e9d13239cf51a073c1f05c26eea4d13e4e18"
+      },
+      {
+        "id": "mission15-phase43-reply-account",
+        "args": [
+          "scripts/check-mission15-phase43-reply-account.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.34,
+        "outputSha256": "d424c581c9166e912a60212d1638199f17cab632b14b66fdebcfa95b65b5dd31"
+      },
+      {
+        "id": "mission15-phase43-reply-management",
+        "args": [
+          "scripts/check-mission15-phase43-reply-management.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.31,
+        "outputSha256": "2d1d4de8cc7ca318c27a560429a6ede9f2ce6bd08f2390161e625ef8bad2055a"
+      },
+      {
+        "id": "mission15-phase43-connected-routing",
+        "args": [
+          "scripts/check-mission15-phase43-connected-routing.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.39,
+        "outputSha256": "42111f4af0c2be42351ec1737b9f1c24997fb95ed76ced63f3a6f0ede8f4d3da"
+      },
+      {
+        "id": "mission15-phase43-date-flexibility",
+        "args": [
+          "scripts/check-mission15-phase43-date-flexibility.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.52,
+        "outputSha256": "ae63b37525ec8cb2bc02f116e0c8489c49644312dc4783d2028c52821d6bd88f"
+      },
+      {
+        "id": "mission15-phase44-announcement-reuse",
+        "args": [
+          "scripts/check-mission15-phase44-announcement-reuse.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "416cfbe44b6388c2dc8fb1e07e6115919ecda91ffa1b438db7ffab4383ca1ede"
+      },
+      {
+        "id": "mission15-phase44-removal-account",
+        "args": [
+          "scripts/check-mission15-phase44-removal-account.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "9097b739afd64d26a58b4e9a7c8a34f41fe844bb0a7217bdfe6c750fdd5a7a58"
+      },
+      {
+        "id": "mission15-phase44-own-revision",
+        "args": [
+          "scripts/check-mission15-phase44-own-revision.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.26,
+        "outputSha256": "827c63acb68f7e6d02481c88e292299f334184c825f28a733ca9f467c954ff19"
+      },
+      {
+        "id": "mission15-phase44-newsletter",
+        "args": [
+          "scripts/check-mission15-phase44-newsletter.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.3,
+        "outputSha256": "c113d62c1a9af49dd4f8d980cec0439b4e56cf7719e1719fd3c3632cc14edbff"
+      },
+      {
+        "id": "mission15-phase44-newsletter-talk",
+        "args": [
+          "scripts/check-mission15-phase44-newsletter-talk.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.5,
+        "outputSha256": "42111f4af0c2be42351ec1737b9f1c24997fb95ed76ced63f3a6f0ede8f4d3da"
+      },
+      {
+        "id": "mission15-phase44-removal-parent",
+        "args": [
+          "scripts/check-mission15-phase44-removal-parent.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.48,
+        "outputSha256": "d424c581c9166e912a60212d1638199f17cab632b14b66fdebcfa95b65b5dd31"
+      },
+      {
+        "id": "mission15-phase44-home-newsletter",
+        "args": [
+          "scripts/check-mission15-phase44-home-newsletter.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 7.28,
+        "outputSha256": "d20bff30c418def9ad68d92120192ca51f2304ad7e35ae7ead0fefaddefdadcd"
+      },
+      {
+        "id": "mission15-phase45-approved-newsletters",
+        "args": [
+          "scripts/check-mission15-phase45-approved-newsletters.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.43,
+        "outputSha256": "b3bd5de826ac775b9a404706042da74aa553c0f0d238397f4aaa5ca8c2b694a9"
+      },
+      {
+        "id": "mission15-phase45-newsletter-editing",
+        "args": [
+          "scripts/check-mission15-phase45-newsletter-editing.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.48,
+        "outputSha256": "2b3c4dec0083a4ea0455e4efc2a7f7d53c9d6108dfd32765dadb5bd902b6d212"
+      },
+      {
+        "id": "mission15-phase45-reply-receipt",
+        "args": [
+          "scripts/check-mission15-phase45-reply-receipt.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.54,
+        "outputSha256": "b09e06fa789a2166a5096d6621164183ca5c64b1a4058d2e57fdd009d7817dbd"
+      },
+      {
+        "id": "mission15-phase45-newsletter-parent",
+        "args": [
+          "scripts/check-mission15-phase45-newsletter-parent.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.76,
+        "outputSha256": "390972a85442b54dec7c101de01b20edd50b585b34dfb4ddfb3fde2c6242cc9b"
+      },
+      {
+        "id": "mission15-phase46-newsletter-preview",
+        "args": [
+          "scripts/check-mission15-phase46-newsletter-preview.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.03,
+        "outputSha256": "066e6215ff9671d99a8338af0c2e7133ee35fbb8de6c57eb956c5bb47fe63e9f"
+      },
+      {
+        "id": "mission15-phase46-newsletter-account",
+        "args": [
+          "scripts/check-mission15-phase46-newsletter-account.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.04,
+        "outputSha256": "8a94bbd4dbf2d82532e28efc0d8f6c2e5bb677f34b167a20581e78b65edbe33e"
+      },
+      {
+        "id": "mission15-phase46-reply-adapter",
+        "args": [
+          "scripts/check-mission15-phase46-reply-adapter.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.51,
+        "outputSha256": "32cee8831338732b386b558a8527f18f8ee0569ae210fd49f2b846f0246f639b"
+      },
+      {
+        "id": "mission15-phase46-newsletter-exact",
+        "args": [
+          "scripts/check-mission15-phase46-newsletter-exact.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.79,
+        "outputSha256": "db76afaf9fe71d4e65efe0b2d044edc1f49610c37fdad9a1540a89ea597a6cc5"
+      },
+      {
+        "id": "mission15-phase47-newsletter-recovery",
+        "args": [
+          "scripts/check-mission15-phase47-newsletter-recovery.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.21,
+        "outputSha256": "32df323620a4c719538a3814a9d8425a099f05f0b5f28ccccf72b6db73683800"
+      },
+      {
+        "id": "mission15-phase47-content-restoration",
+        "args": [
+          "scripts/check-mission15-phase47-content-restoration.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.52,
+        "outputSha256": "e04748acb6effe24befa4599aaf2b12262535791348ea9153413568eb2f9e9f1"
+      },
+      {
+        "id": "mission15-phase47-enquiry-requirements",
+        "args": [
+          "scripts/check-mission15-phase47-enquiry-requirements.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.1,
+        "outputSha256": "bcfe442306a5f0b6fbc3f6ad5a12c6facbd341d0995df2a9a4f2318acd072c0e"
+      },
+      {
+        "id": "mission15-phase48-enquiry-quote",
+        "args": [
+          "scripts/check-mission15-phase48-enquiry-quote.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.75,
+        "outputSha256": "4f7516bab60d2c8e0ea89da81e551006a417c015bb60d2a576b1c30a32d39da1"
+      },
+      {
+        "id": "mission15-phase48-approved-knowledge",
+        "args": [
+          "scripts/check-mission15-phase48-approved-knowledge.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.45,
+        "outputSha256": "c9bcb068859ada3b9a40a99a224a783b44c70d76a34bf61dfa87387aef120e81"
+      },
+      {
+        "id": "mission15-phase48-newsletter-copy",
+        "args": [
+          "scripts/check-mission15-phase48-newsletter-copy.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.04,
+        "outputSha256": "409aedcf78df10f35fb2f7a7cdc2b71f1784be25a87e6161e10cf7d32fd567fc"
+      },
+      {
+        "id": "mission15-phase48-quote-boundary",
+        "args": [
+          "scripts/check-mission15-phase48-quote-boundary.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "5f36d97bd66a86e539b1a9ab30d235bcc4dd0d99d5cde76f7bf1982a384dd5f5"
+      },
+      {
+        "id": "mission15-phase49-catalogue-quote",
+        "args": [
+          "scripts/check-mission15-phase49-catalogue-quote.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.1,
+        "outputSha256": "2041dbd00f1de3b72e9d43c643e3648396b1462d70268a6a9f84e6bd4c23f6cd"
+      },
+      {
+        "id": "mission15-phase49-newsletter-source",
+        "args": [
+          "scripts/check-mission15-phase49-newsletter-source.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.9,
+        "outputSha256": "ddc71602fe2c05bfb223e7df3d306cadb52c9e3a46132149aad21556ad3b2433"
+      },
+      {
+        "id": "mission15-phase49-enquiry-projection",
+        "args": [
+          "scripts/check-mission15-phase49-enquiry-projection.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.32,
+        "outputSha256": "24045fa3a03863fefb5d7ee312a80621da8d513e35b393d4c4291f622c56c29f"
+      },
+      {
+        "id": "mission15-phase50-older-enquiry",
+        "args": [
+          "scripts/check-mission15-phase50-older-enquiry.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.46,
+        "outputSha256": "c8cb10b1a4112f8b4e411ad4d527a47b3f8f7ee45f95afc29964bf977dfb5ee9"
+      },
+      {
+        "id": "mission15-phase50-newsletter-dirty",
+        "args": [
+          "scripts/check-mission15-phase50-newsletter-dirty.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.99,
+        "outputSha256": "6e858070829cb0d4734d4eda94f51dc8682e7a8484c0ce45f64633db85407d28"
+      },
+      {
+        "id": "mission15-phase50-quote-fields",
+        "args": [
+          "scripts/check-mission15-phase50-quote-fields.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.89,
+        "outputSha256": "cdbabccd168a728104a3b645cfc48d67827b855d2af3df95c10ffaacb94b8be3"
+      },
+      {
+        "id": "mission15-phase50-runtime-loading",
+        "args": [
+          "scripts/check-mission15-phase50-runtime-loading.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.81,
+        "outputSha256": "b228868adaa299c0f6358f32c55875a905c291211559ca1f9d0b74ae1e2fc9fa"
+      },
+      {
+        "id": "mission15-phase51-catalogue-reply",
+        "args": [
+          "scripts/check-mission15-phase51-catalogue-reply.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.55,
+        "outputSha256": "8e6cd485a12d34e3150839f9f4f97864c54976210e91d96b69eac72613ae9328"
+      },
+      {
+        "id": "mission15-phase51-newsletter-recovery",
+        "args": [
+          "scripts/check-mission15-phase51-newsletter-recovery.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.17,
+        "outputSha256": "bddf2e86cdc9847a1357e753c906bc56d42c352d24cd6e7047e182c96be2355b"
+      },
+      {
+        "id": "mission15-phase51-known-requirements",
+        "args": [
+          "scripts/check-mission15-phase51-known-requirements.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.42,
+        "outputSha256": "63664179a8dc07d8f0908b469cc3c6624950f32eda816bb98c2cd1dbd0df5591"
+      },
+      {
+        "id": "mission15-phase52-reply-provenance",
+        "args": [
+          "scripts/check-mission15-phase52-reply-provenance.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.41,
+        "outputSha256": "b6e060a2b263008fe75ab4d423f497098fa1e963d146591493e9692019b7edf6"
+      },
+      {
+        "id": "mission15-phase52-newsletter-versions",
+        "args": [
+          "scripts/check-mission15-phase52-newsletter-versions.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.82,
+        "outputSha256": "519239b4ee29b79ba786a5e4d64fc681b86f0e9293aa4eee90271371cba7d592"
+      },
+      {
+        "id": "mission15-phase52-owner-tone",
+        "args": [
+          "scripts/check-mission15-phase52-owner-tone.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.64,
+        "outputSha256": "32b1951fe85ee71135fd1540d701e7c1b7c5e36181a9020420fe4166b459c9f2"
+      },
+      {
+        "id": "mission15-phase52-retention-contract",
+        "args": [
+          "scripts/check-mission15-phase52-retention-contract.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "outputSha256": "bf5d87d0738d12b28b92c88451a75d3da59fbd67ab090795f978537586e53e05"
+      },
+      {
+        "id": "mission15-phase52-newsletter-boundary",
+        "args": [
+          "scripts/check-mission15-phase52-newsletter-boundary.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.73,
+        "outputSha256": "1514b878d188409aed9af966bde774af2c27b265b5c6b83f5f8a479bd75fbc11"
+      },
+      {
+        "id": "mission15-phase53-reply-recovery",
+        "args": [
+          "scripts/check-mission15-phase53-reply-recovery.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.42,
+        "outputSha256": "57c72aa20d1e56563354f98cf16f333b61ea80bcaf69a36345717e42bb4bf272"
+      },
+      {
+        "id": "mission15-phase53-newsletter-comparison",
+        "args": [
+          "scripts/check-mission15-phase53-newsletter-comparison.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.85,
+        "outputSha256": "b3f3781bc762b798c47cdbd11f5a16ad3af3f8157e74d85dd61b7eddb5a521e3"
+      },
+      {
+        "id": "mission15-phase53-snapshot-compatibility",
+        "args": [
+          "scripts/check-mission15-phase53-snapshot-compatibility.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.45,
+        "outputSha256": "5c4c6e7a9fab8994dd38d1df8edbd8dc7d0ce1f07f06e50ffa0bbb8e88dbd655"
+      },
+      {
+        "id": "mission15-phase53-approved-area",
+        "args": [
+          "scripts/check-mission15-phase53-approved-area.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.54,
+        "outputSha256": "4965ff37115bb04743ad7d67eb6c5073095d41b250b60f425eb9008ee8df9f77"
+      },
+      {
+        "id": "mission15-phase54-private-write-boundary",
+        "args": [
+          "scripts/check-mission15-phase54-private-write-boundary.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.5,
+        "outputSha256": "1ab32ebd71ac615ebdc3c058b43a7f62a2f6d40169586ceeadc1975cb9034b4d"
+      },
+      {
+        "id": "mission15-phase54-reply-evidence",
+        "args": [
+          "scripts/check-mission15-phase54-reply-evidence.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.35,
+        "outputSha256": "57c72aa20d1e56563354f98cf16f333b61ea80bcaf69a36345717e42bb4bf272"
+      },
+      {
+        "id": "mission15-phase54-newsletter-device",
+        "args": [
+          "scripts/check-mission15-phase54-newsletter-device.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.99,
+        "outputSha256": "31d734624633cf3e38bd913568098fe0b708370a32e8e1c373209568a68175ab"
+      },
+      {
+        "id": "mission15-phase54-approved-contact",
+        "args": [
+          "scripts/check-mission15-phase54-approved-contact.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.46,
+        "outputSha256": "e3b321bfbadd7719e78674bdf96d354f0ed3e46d5390d479f4ab8ebfc15813d0"
+      },
+      {
+        "id": "mission15-phase55-recovery-explanations",
+        "args": [
+          "scripts/check-mission15-phase55-recovery-explanations.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.86,
+        "outputSha256": "e93e8125a45c59be7f28eba73c624fd7acc26b65f4a17055ddea957985c41482"
+      },
+      {
+        "id": "mission15-phase56-reply-requirements",
+        "args": [
+          "scripts/check-mission15-phase56-reply-requirements.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.67,
+        "outputSha256": "4b6ac9e64c13a75f719fc3d35a34de26c9cce54e0ec6cd6679ee7bef7f9a6bfb"
+      },
+      {
+        "id": "mission15-phase56-newsletter-inspection",
+        "args": [
+          "scripts/check-mission15-phase56-newsletter-inspection.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.8,
+        "outputSha256": "b82eeec51fdad06835f2ff19ec2f7d8b3ea95fefd6935c228da095cea2e33776"
+      },
+      {
+        "id": "mission15-phase57-fresh-clarification",
+        "args": [
+          "scripts/check-mission15-phase57-fresh-clarification.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.53,
+        "outputSha256": "130b1ee09a66c3624185fce83b129c37f021ef2a179d3cb0bf85462462dade74"
+      },
+      {
+        "id": "mission15-phase58-writer-proposal",
+        "args": [
+          "scripts/check-mission15-phase58-writer-proposal.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "7ce9d90e4433b1b643c244fba843537b8a196b8b77295730ebfb0dcaba914573"
+      },
+      {
+        "id": "mission15-phase59-cutover",
+        "args": [
+          "scripts/check-mission15-phase59-cutover.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.5,
+        "outputSha256": "0d59caede14b458d3f81c015dc13563d8647448711dee4c2e4181de1bf645a1c"
+      },
+      {
+        "id": "mission15-phase60-account-reply",
+        "args": [
+          "scripts/check-mission15-phase60-account-reply.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.68,
+        "outputSha256": "8472212589d36b431c6e206d4b59ae34b12d4ac056b0eeed8b008810fed9539e"
+      },
+      {
+        "id": "mission15-phase61-reconciliation",
+        "args": [
+          "scripts/check-mission15-phase61-reconciliation.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.7,
+        "outputSha256": "5ced1dff7d8ab5a7aaf810151e4930b952c9060fea9f5bbf1eb76a0261a3a881"
+      },
+      {
+        "id": "mission15-phase62-bootstrap",
+        "args": [
+          "scripts/check-mission15-phase62-bootstrap.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.51,
+        "outputSha256": "17e1277cbb77bd9a257a5fc62c2494ea455b0f4a279622fe7379c31ae43b77fa"
+      },
+      {
+        "id": "mission15-phase62-services",
+        "args": [
+          "scripts/check-mission15-phase62-services.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.33,
+        "outputSha256": "a4068ac7bda6094fa3368c787801533aa73d1f7fad5ba187b05d10b01ea0be32"
+      },
+      {
+        "id": "mission15-phase63-recovery",
+        "args": [
+          "scripts/check-mission15-phase63-recovery.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.59,
+        "outputSha256": "88cd1c99e8b5b492c4e8f1fd443247ae66c112f3e27e865883b7eca58655332c"
+      },
+      {
+        "id": "mission15-phase64-recovered-save",
+        "args": [
+          "scripts/check-mission15-phase64-recovered-save.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.8,
+        "outputSha256": "66bae7b686cfc3abebd58fd25f06351ab2a03ffb71cb4c3b22aaaa6e2cd0d75e"
+      },
+      {
+        "id": "mission15-phase64-filing-parent",
+        "args": [
+          "scripts/check-mission15-phase64-filing-parent.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.57,
+        "outputSha256": "17b341358933c741b8b88ccb7648670fadc894a178563e9dfc05fec2ff0eac71"
+      },
+      {
+        "id": "mission15-phase65-first-journey",
+        "args": [
+          "scripts/check-mission15-phase65-first-journey.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.49,
+        "outputSha256": "4d2c5e00cdec425300e72a66ac9d44f4d70d48bf92ca6139d241cda8e4946ea2"
+      },
+      {
+        "id": "check-mission15-phase66-interrupted-enquiries",
+        "args": [
+          "scripts/check-mission15-phase66-interrupted-enquiries.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.08,
+        "outputSha256": "2c9d91af43b16ee8efe4ba22a8eefe489f82639ea59f6c38443a4dc766f50b8d"
+      },
+      {
+        "id": "mission15-phase67-appearance",
+        "args": [
+          "scripts/check-mission15-phase67-appearance.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.53,
+        "outputSha256": "5ffd02b8786500dec566d5a67f1a1427b2275ce37c2ca3f770a1b9b0167f5199"
+      },
+      {
+        "id": "mission15-phase67-parent",
+        "args": [
+          "scripts/check-mission15-phase67-parent.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 7.02,
+        "outputSha256": "3c16dab8e63f62a6d44e2a3615ee896185f55565c5f709c5ead2724abb1169fb"
+      },
+      {
+        "id": "mission15-phase68-working-surfaces",
+        "args": [
+          "scripts/check-mission15-phase68-working-surfaces.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.56,
+        "outputSha256": "94847f35aa0f1647714701009f4e4df18c4f27a45bcd31e8f60a858f90f459fa"
+      },
+      {
+        "id": "mission15-phase69-workspaces",
+        "args": [
+          "scripts/check-mission15-phase69-workspaces.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.2,
+        "outputSha256": "53df56e591703147003bf8fb98ecdf46ab721ac7577044cdbe229e41ca666d05"
+      },
+      {
+        "id": "native-screenshot-pipeline",
+        "args": [
+          "scripts/check-native-screenshot-pipeline.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "4c85771280f6adfc5bbd88e4c97644f6418490f5101d288752ece22df79b9d44"
+      },
+      {
+        "id": "mission15-working-surface-continuity",
+        "args": [
+          "scripts/check-mission15-working-surface-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.7,
+        "outputSha256": "2e47dcf8b7e7e2e0cfaaab57b8cec03841ca56721beaf5197d3ba2ef438d1cb2"
+      },
+      {
+        "id": "mission15-contact-editor-continuity",
+        "args": [
+          "scripts/check-mission15-contact-editor-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.58,
+        "outputSha256": "d8e675821880289c87684c79c851703e53a680949e16836b2d9c4129b73b57b2"
+      },
+      {
+        "id": "mission15-navigation-workspaces",
+        "args": [
+          "scripts/check-mission15-navigation-workspaces.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.23,
+        "outputSha256": "c178a1f598f82cb2d7c980fd0bf6d53cd9a8979054b03a6c0eebfeab7a12b3b9"
+      },
+      {
+        "id": "mission15-conversation-workspaces",
+        "args": [
+          "scripts/check-mission15-conversation-workspaces.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.5,
+        "outputSha256": "85a16c9b9acb734e601cbff5fcbd9d56499c2e2292adf51fe9bfe33c30a049a6"
+      },
+      {
+        "id": "mission15-gallery-recovery-ui",
+        "args": [
+          "scripts/check-mission15-gallery-recovery-ui.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.86,
+        "outputSha256": "87b78feaba41383614d35ed6d78a12c3b88b6e2b30d5f817addb5397c084e65a"
+      },
+      {
+        "id": "mission15-booking-edit-continuity",
+        "args": [
+          "scripts/check-mission15-booking-edit-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.25,
+        "outputSha256": "60c7d9e9cd4e71743359b4c5f360d7907ba5523842c215191ecec008f70f9b19"
+      },
+      {
+        "id": "mission15-connected-booking-status",
+        "args": [
+          "scripts/check-mission15-connected-booking-status.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.73,
+        "outputSha256": "b6cebbba76e1ca19c4158af17fb6889073009a5360bc8314b379f9ee86081ee9"
+      },
+      {
+        "id": "mission15-useful-customer-continuity",
+        "args": [
+          "scripts/check-mission15-useful-customer-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.91,
+        "outputSha256": "9d3af4bfd85cf6fc35fe814dd7d2d11fd719cba5ba4af8c14de94b66b71bcc62"
+      },
+      {
+        "id": "mission15-source-bound-bookings",
+        "args": [
+          "scripts/check-mission15-source-bound-bookings.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.61,
+        "outputSha256": "35c9ee05a2a04331dd253d5dc0da606832740ef8f2823b3f8be1af54130bcb62"
+      },
+      {
+        "id": "mission15-saturday-work-quotes",
+        "args": [
+          "scripts/check-mission15-saturday-work-quotes.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.4,
+        "outputSha256": "687be7b4e1457111fb359d72fcfff8613528556819258c162a5832723cd98536"
+      },
+      {
+        "id": "mission15-saturday-content-builders",
+        "args": [
+          "scripts/check-mission15-saturday-content-builders.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.33,
+        "outputSha256": "3b3a6ee3d1dd57dc2dbfcd5712b78231e894185ebb34a786770fd8568e064058"
+      },
+      {
+        "id": "mission15-returning-private-followup",
+        "args": [
+          "scripts/check-mission15-returning-private-followup.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.8,
+        "outputSha256": "75888558fb06d37dfc894febf73f2fa24fb5a818cdcdb9e11b95d0333ac1a96d"
+      },
+      {
+        "id": "mission15-returning-content-builders",
+        "args": [
+          "scripts/check-mission15-returning-content-builders.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.38,
+        "outputSha256": "fc3db7a2eb650f70de077ba04116d6d518bf677deb2e15bee0ac1fa51f497e13"
+      },
+      {
+        "id": "mission15-account-work-reader",
+        "args": [
+          "scripts/check-mission15-account-work-reader.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.45,
+        "outputSha256": "fc383b39d2961c2073257d33b9a919410539076ac30b97bcfc552121b5b77081"
+      },
+      {
+        "id": "mission15-followup-device-continuity",
+        "args": [
+          "scripts/check-mission15-followup-device-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.65,
+        "outputSha256": "1b0d1a751e6ee671e5db59cd41b6e77aea3ff7a13b881b00917c67ad73ac6f27"
+      },
+      {
+        "id": "mission15-content-target-continuity",
+        "args": [
+          "scripts/check-mission15-content-target-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.87,
+        "outputSha256": "687c38d6c9b918178d8b886164aa6ab2627f2cc9d07850b723feecef037bcaa2"
+      },
+      {
+        "id": "mission15-request-draft-continuity",
+        "args": [
+          "scripts/check-mission15-request-draft-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.92,
+        "outputSha256": "40e9a748f65adb9ede8b9ce503d215cd70af56df00cbce3015dc614a8d6c736f"
+      },
+      {
+        "id": "mission15-returning-account-context",
+        "args": [
+          "scripts/check-mission15-returning-account-context.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.75,
+        "outputSha256": "ea1f4f960d2692538a7c8c9d3d17f15bf55b7a4df92f7b7bd0756412f2126690"
+      },
+      {
+        "id": "mission15-followup-checked-reopen",
+        "args": [
+          "scripts/check-mission15-followup-checked-reopen.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.79,
+        "outputSha256": "caf8c4c82e3b0c419067d75cfc9112e68ffaf5dc40e1827cc1686c3977213fe1"
+      },
+      {
+        "id": "mission15-social-wording-continuation",
+        "args": [
+          "scripts/check-mission15-social-wording-continuation.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.06,
+        "outputSha256": "5056aa1817e9d2f1d2261c7f39efe7d2f9da11bacc4f9714a66ef00b57de09d3"
+      },
+      {
+        "id": "mission15-builder-recovery-readback",
+        "args": [
+          "scripts/check-mission15-builder-recovery-readback.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "c85011e7e3bc5c6e85f6432c6f856e2488d65ad6d8d8ef4163dd4293badcfaa6"
+      },
+      {
+        "id": "mission15-enquiry-quote-work-entry",
+        "args": [
+          "scripts/check-mission15-enquiry-quote-work-entry.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.8,
+        "outputSha256": "fbef2fac2c8915e0cd063c4d0ae87de13f6eb13a4dbd6bb6cb5f2fc276c83d01"
+      },
+      {
+        "id": "mission15-creator-independent-device-read",
+        "args": [
+          "scripts/check-mission15-creator-independent-device-read.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.33,
+        "outputSha256": "5ae993de23c77010cd7ceb5df5aa880f53586bccd7becbd0ade0137792f0415c"
+      },
+      {
+        "id": "mission15-service-selection-decisions",
+        "args": [
+          "scripts/check-mission15-service-selection-decisions.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.94,
+        "outputSha256": "1ba13eb874a64d1f6b9ab77102f15a72ca194dd4414970880143e8d65fefa596"
+      },
+      {
+        "id": "mission15-recorded-quote-work-draft",
+        "args": [
+          "scripts/check-mission15-recorded-quote-work-draft.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.51,
+        "outputSha256": "b7b6be5815a7e4193a07654cd484c97878214b50bc797a4bfe58396d96012b42"
+      },
+      {
+        "id": "mission15-repeat-customer-preparation",
+        "args": [
+          "scripts/check-mission15-repeat-customer-preparation.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.99,
+        "outputSha256": "2a8abe6bcc547fc1993288b4c7b2349f2b10edc980d8f8b63112922fda8c434b"
+      },
+      {
+        "id": "mission15-corrected-social-variation",
+        "args": [
+          "scripts/check-mission15-corrected-social-variation.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.18,
+        "outputSha256": "a72d5f4853e265b3e97e605126e069a770e2d6ed49391a020a95b7c8f720d178"
+      },
+      {
+        "id": "mission15-public-wording-continuity",
+        "args": [
+          "scripts/check-mission15-public-wording-continuity.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.75,
+        "outputSha256": "a0bb823fabbba5b54c4f9406b96435d84ef2f42871d4739d132d70f9c6207acd"
+      },
+      {
+        "id": "mission15-work-engagement-model",
+        "args": [
+          "scripts/check-mission15-work-engagement-model.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "9094b4d2d0c56a19d7f86e05f059c5e7f210a0dae4ec782e62e64c7bbcedda03"
+      },
+      {
+        "id": "mission15-work-engagement-parent",
+        "args": [
+          "scripts/check-mission15-work-engagement-parent.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.48,
+        "outputSha256": "12f822e7f3855dd893c0a9a040574b4191508a4bcbe94523264fb668732ae969"
+      },
+      {
+        "id": "mission15-canonical-work-client",
+        "args": [
+          "scripts/check-mission15-canonical-work-client.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "6c0b24843c58821ae335bb8b481e69b78c2c91c2898c4707380c11d2a1434bdc"
+      },
+      {
+        "id": "mission15-canonical-work-parent",
+        "args": [
+          "scripts/check-mission15-canonical-work-parent.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.91,
+        "outputSha256": "3a2a0bdbbab1917ba8e34e5d6255f8c8898ef41bdf0e0efc5e97ed6e281b33fb"
+      },
+      {
+        "id": "mission15-canonical-work-continuation",
+        "args": [
+          "scripts/check-mission15-canonical-work-continuation.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.02,
+        "outputSha256": "9f625e16711acf6e70d6173d81f3d7ac26f052cc36d92ade4440efa90d02e4ff"
+      },
+      {
+        "id": "mission15-account-engagement-continuity",
+        "args": [
+          "scripts/check-mission15-account-engagement-continuity.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.91,
+        "outputSha256": "e85435fd95db6c96f58898bdbf95c09ebe8a78918208c940e9713a28a22607ce"
+      },
+      {
+        "id": "mission15-returning-account-editor",
+        "args": [
+          "scripts/check-mission15-returning-account-editor.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.96,
+        "outputSha256": "f0de0843f4463a1b1300964219b65d37d3d1c9766cd859840a02a0368df5fa90"
+      },
+      {
+        "id": "mission15-agreement-evidence",
+        "args": [
+          "scripts/check-mission15-agreement-evidence.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.59,
+        "outputSha256": "bf6032c92ea0ec766d11e23e7069245e7dd99dcf1aa6d5ee80a2681ce1178235"
+      },
+      {
+        "id": "check-mission15-agreement-decisions",
+        "args": [
+          "scripts/check-mission15-agreement-decisions.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.64,
+        "outputSha256": "5e890c07f9df5cbc406ebc614fead2912335825977ea59e701338b2127a45972"
+      },
+      {
+        "id": "mission15-quote-reference",
+        "args": [
+          "scripts/check-mission15-quote-reference.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.73,
+        "outputSha256": "68f84d3ffa68cb2a4752a710838f42ee9c58f7346e29ab78cf04ca4868e80c3d"
+      },
+      {
+        "id": "mission15-quote-recipient",
+        "args": [
+          "scripts/check-mission15-quote-recipient.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.67,
+        "outputSha256": "bd8a8d81bcb424d1a7693973efa2774e5dff4daac2944dc66db848b36ba19ea1"
+      },
+      {
+        "id": "mission15-quote-binding",
+        "args": [
+          "scripts/check-mission15-quote-binding.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.72,
+        "outputSha256": "c0be68b30c6abb3352e2931b2b2942fc65d716fc6b0840a93552e40a54f17ce9"
+      },
+      {
+        "id": "mission15-recipient-management",
+        "args": [
+          "scripts/check-mission15-recipient-management.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.65,
+        "outputSha256": "e46b90f090c9d09dafffc2b90642f83146e80352ab35e6188d3480afb1be2bbc"
+      },
+      {
+        "id": "check-mission15-quote-grants",
+        "args": [
+          "scripts/check-mission15-quote-grants.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.59,
+        "outputSha256": "410447ca8e434373eb7774c691cb0bfc39361eed4fb85efe0ab2c1c61a8ece48"
+      },
+      {
+        "id": "check-mission15-quote-access-policy",
+        "args": [
+          "scripts/check-mission15-quote-access-policy.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.64,
+        "outputSha256": "af54cb459953a8db8e9ac793683262fadb875e883895a0a404118ae8b2777460"
+      },
+      {
+        "id": "check-mission15-business-app-quotes",
+        "args": [
+          "scripts/check-mission15-business-app-quotes.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.6,
+        "outputSha256": "be9597e532a68af12695cd4ad7699248ea204a0420d6e370430de38d901c6963"
+      },
+      {
+        "id": "check-mission15-quote-itemisation",
+        "args": [
+          "scripts/check-mission15-quote-itemisation.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.56,
+        "outputSha256": "d738dd0b01301d125660b07a7817e88d6744299e6101585cb0bd54a62c26f480"
+      },
+      {
+        "id": "mission15-growth-opportunities",
+        "args": [
+          "scripts/check-mission15-growth-opportunities.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.27,
+        "outputSha256": "1879de71bb1eb0f4ed34b6af70f90850c2c073b621b808c1f598a5d599a93ad6"
+      },
+      {
+        "id": "mission15-returning-growth",
+        "args": [
+          "scripts/check-mission15-returning-growth.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.43,
+        "outputSha256": "dfae120f74ad1d48e319afa90c598c2a3a6d60a1c45cfaab31b923f4af3567fe"
+      },
+      {
+        "id": "mission15-connected-service-enquiry",
+        "args": [
+          "scripts/check-mission15-connected-service-enquiry.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.79,
+        "outputSha256": "eef3034fa6e79bb4a7a3d3cf405843af4677adf70bc426cea8a09c42c31112e6"
+      },
+      {
+        "id": "mission15-owner-opportunity",
+        "args": [
+          "scripts/check-mission15-owner-opportunity.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.77,
+        "outputSha256": "723fd672342bc26df946896bcbd36d03009f5add41665c245aabce54fd7feb55"
+      },
+      {
+        "id": "mission15-growth-account",
+        "args": [
+          "scripts/check-mission15-growth-account.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.86,
+        "outputSha256": "afbf506c629be53bcb1152a6085fbaedebfdbb17a24d9e032e5e5d33c683217f"
+      },
+      {
+        "id": "mission15-opportunity-creator-continuity",
+        "args": [
+          "scripts/check-mission15-opportunity-creator-continuity.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.86,
+        "outputSha256": "e196bbb788ee36d147b28ada1e3c34578c3ee1b61cd308b632da420e85a50254"
+      },
+      {
+        "id": "mission15-app-enquiry-setup",
+        "args": [
+          "scripts/check-mission15-app-enquiry-setup.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.85,
+        "outputSha256": "dcd3a768cd86d83fda09a26f3be5df52fa2693cd9efd1206e89b9b55b08902cd"
+      },
+      {
+        "id": "mission15-growth-activity-evidence",
+        "args": [
+          "scripts/check-mission15-growth-activity-evidence.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "outputSha256": "aac97cd219ff524f794775dd13954cd678c69742d5a0c93cce2baecd4f7c6f9a"
+      },
+      {
+        "id": "mission15-professional-website-generation",
+        "args": [
+          "scripts/check-mission15-professional-website-generation.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "7942bbb8db23d91aff3a1a12d5b9e2294072eab479193f292c0c22cecf03a607"
+      },
+      {
+        "id": "mission15-returning-builder-work",
+        "args": [
+          "scripts/check-mission15-returning-builder-work.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.94,
+        "outputSha256": "4516cf68f045093e01dcd1b6bdf9239b299f68c819b994b9fa87e72b4992b2ed"
+      },
+      {
+        "id": "check-mission15-complete-enquiry-journey",
+        "args": [
+          "scripts/check-mission15-complete-enquiry-journey.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.99,
+        "outputSha256": "094b4a088df61f4676f15c002253385c60a45fe40c0f3c29a82b79869a84cff7"
+      },
+      {
+        "id": "check-mission15-website-evidence-quality",
+        "args": [
+          "scripts/check-mission15-website-evidence-quality.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "90cdfd98ac5f4c0953e72e846c99cafe3d338d629042e1a970ac88f05f3788c8"
+      },
+      {
+        "id": "check-mission15-creator-account-continuity",
+        "args": [
+          "scripts/check-mission15-creator-account-continuity.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "95fc759a01f887efdc87ce6284ae7366b5377d6dae13e9429bbd92438eeb0009"
+      },
+      {
+        "id": "check-mission15-creator-media-state",
+        "args": [
+          "scripts/check-mission15-creator-media-state.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.54,
+        "outputSha256": "f364c4f2cba16f8892b3dbfe89536e16f126a77a546794fd5959e9204ea1e219"
+      },
+      {
+        "id": "check-mission15-app-enquiry-rehearsal",
+        "args": [
+          "scripts/check-mission15-app-enquiry-rehearsal.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.57,
+        "outputSha256": "9be1428964f6937a2a7d32222ccb907e52d119128bb52ed0b3192b7e6828e058"
+      },
+      {
+        "id": "check-mission15-creator-rich-variants",
+        "args": [
+          "scripts/check-mission15-creator-rich-variants.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.59,
+        "outputSha256": "33e9ab7cecbb80bca0a45c2773dc5d434bec557b7ca81567ace0e5bf1fe5d03c"
+      },
+      {
+        "id": "check-mission15-approved-enquiry-creation",
+        "args": [
+          "scripts/check-mission15-approved-enquiry-creation.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.16,
+        "outputSha256": "81c02ebbcd65daf04db78d8e3d7d5345f5b0b71fdc6b06ffcb6e696bbd4ecd7c"
+      },
+      {
+        "id": "mission15-creator-onboarding",
+        "args": [
+          "scripts/check-mission15-creator-onboarding.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.78,
+        "outputSha256": "f96de3815dc985646b0b8182d04364479b81da81ad89f3ba7d18e642db5106eb"
+      },
+      {
+        "id": "mission15-app-service-answers",
+        "args": [
+          "scripts/check-mission15-app-service-answers.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.81,
+        "outputSha256": "e20ac39a5e9785a03396605d4c7a8af55f121c2efa2fd80bb6915fbf55a9437e"
+      },
+      {
+        "id": "mission15-creator-reconciliation",
+        "args": [
+          "scripts/check-mission15-creator-reconciliation.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.96,
+        "outputSha256": "c06b43ebc4506c6c02a3e4cad164c0dbc693244eb2a16c74c937fd36a73866fb"
+      },
+      {
+        "id": "mission15-connected-app-enquiry",
+        "args": [
+          "scripts/check-mission15-connected-app-enquiry.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 2.86,
+        "outputSha256": "d5ec53a22718af0a64695dbd13e61007240b51155107c03975053d0a09c5879c"
+      },
+      {
+        "id": "mission15-website-page-headings",
+        "args": [
+          "scripts/check-mission15-website-page-headings.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.11,
+        "outputSha256": "a13c9ed73e8ed5af3f196572bc3ff64e85e9f843ddd5606d753cf4ccff647fe2"
+      },
+      {
+        "id": "mission15-upload-operation-client",
+        "args": [
+          "scripts/check-mission15-upload-operation-client.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.85,
+        "outputSha256": "65c35619e0bc371a19d9e37b9e937b16996c8641be61883c0348ef80b6127181"
+      },
+      {
+        "id": "mission15-complete-enquiry-stages",
+        "args": [
+          "scripts/check-mission15-complete-enquiry-stages.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.06,
+        "outputSha256": "d4925a428b15c277bfbdab93f7fd2633d2d9cab5d5ab2a601bf0113263cda945"
+      },
+      {
+        "id": "mission15-website-service-contact",
+        "args": [
+          "scripts/check-mission15-website-service-contact.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "outputSha256": "592382f46fcf8fec27ee53925b97ad55df85efe9fdba928dbf8cc19ff4861832"
+      },
+      {
+        "id": "mission15-owner-app-goals",
+        "args": [
+          "scripts/check-mission15-owner-app-goals.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.05,
+        "outputSha256": "ec4028abd1d408ac832d713dd68270ffb19aef92005796db12987b9962e47cdd"
+      },
+      {
+        "id": "mission15-premium-homepage-sample",
+        "args": [
+          "scripts/check-mission15-premium-homepage-sample.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.0,
+        "outputSha256": "01900cd4e3ad6fab9f0535afe8bc5a31eb289749de260c09b9d69b47c96d1227"
+      },
+      {
+        "id": "mission15-creator-device-intent",
+        "args": [
+          "scripts/check-mission15-creator-device-intent.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.05,
+        "outputSha256": "17f99b6ab80e41d755e09ab85940ff853391122b9c5e2f0db6a8b0dbfb5ba694"
+      },
+      {
+        "id": "mission15-goal-new-private-app",
+        "args": [
+          "scripts/check-mission15-goal-new-app.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 3.51,
+        "outputSha256": "dd0ba3e2ee2b338d9179e24e450db49092e7e4138ce59ebb373defe630a332ed"
+      },
+      {
+        "id": "mission15-premium-sample-revisions",
+        "args": [
+          "scripts/check-mission15-premium-sample-revision.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.92,
+        "outputSha256": "68f834669acebd576b11f8f891eecf33f655847d96df2b2f81a21716832c26ac"
+      },
+      {
+        "id": "premium-motion-lifecycle",
+        "args": [
+          "scripts/check-premium-motion-lifecycle.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.39,
+        "outputSha256": "3b346377a0d35d2ea0972441ae063628919bc4c279b299f309ed7727f64addd3"
+      },
+      {
+        "id": "premium-workspace-interactions",
+        "args": [
+          "scripts/check-premium-workspace-interactions.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.18,
+        "outputSha256": "6c4524c6901d4adb42f9f2d9c7649cc241a4b323cd3e00b9c6943c8b20d3030f"
+      },
+      {
+        "id": "premium-builder-sheets",
+        "args": [
+          "scripts/check-premium-builder-sheets.mjs"
+        ],
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 1.47,
+        "outputSha256": "8bb958ab4d283f6fd1056c989796e5aaf460221042e5bcc6f2d1a2601e3c5126"
+      },
+      {
+        "id": "check-owner-preview",
+        "args": [
+          "scripts/check-owner-preview.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 6.56,
+        "outputSha256": "d7613d0a832734756142f20b0a9a4b174b504b0d875542f7ad0ad1e250d86289"
+      },
+      {
+        "id": "check-approved-design-fidelity",
+        "args": [
+          "scripts/check-approved-design-fidelity.mjs"
+        ],
+        "phase8Blocked": false,
+        "status": "passed",
+        "reason": "",
+        "exitCode": 0,
+        "seconds": 0.96,
+        "outputSha256": "0f95e22be5a7c4a2e4c54ce978d002c67be60bcd4efbe1f7702944a81c50b26e"
+      }
+    ],
+    "selectedCount": 426,
+    "finalSourceSha": "2690bf3bb4984dac483f99424856724bd7adf1e7",
+    "finalWorkingTreeEntries": [],
+    "summary": {
+      "passed": 426,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "finishedAt": "2026-10-28T17:22:01.208611+00:00"
+  },
+  "outerRunner": {
+    "command": [
+      "python3",
+      "scripts/testing/regressions.py",
+      "--output",
+      ".test-artifacts/design-fidelity/verified-application.json"
+    ],
+    "exitCode": 0
+  },
+  "quality": [
+    {
+      "name": "verified-ios",
+      "command": [
+        "node",
+        "node_modules/expo/bin/cli",
+        "export",
+        "--platform",
+        "ios",
+        "--output-dir",
+        ".test-artifacts/design-fidelity/verified-ios"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "verified-config",
+      "command": [
+        "node",
+        "node_modules/expo/bin/cli",
+        "config",
+        "--type",
+        "introspect",
+        "--json"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "verified-dependencies",
+      "command": [
+        "node",
+        "node_modules/expo/bin/cli",
+        "install",
+        "--check"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "verified-foundation",
+      "command": [
+        "node",
+        "scripts/check-production.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "verified-health",
+      "command": [
+        "node",
+        "scripts/testing/health.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "verified-architecture",
+      "command": [
+        "node",
+        "scripts/audit-architecture-v3195.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "verified-parser",
+      "command": [
+        "node",
+        "scripts/testing/syntax.mjs",
+        "app.config.js",
+        "src/app/AppController.js",
+        "src/components/BusyHomeEntry.js",
+        "src/components/BusyOrb.js",
+        "src/components/HomeCoreAreas.js",
+        "src/components/PremiumAtmosphere.js",
+        "src/components/ui.js",
+        "src/ownerPreview/OwnerPreview.js",
+        "src/ownerPreview/OwnerPreviewNotice.js",
+        "src/screens/appVisualSelection.js",
+        "src/screens/home.js",
+        "src/screens/websiteTapEditor.js",
+        "src/theme/appearance.mjs",
+        "src/theme/styles.js"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "verified-snack",
+      "command": [
+        "node",
+        "scripts/check-snack-dependencies.mjs"
+      ],
+      "exitCode": 1
+    }
+  ],
+  "firstFocused": [
+    {
+      "name": "check-mission15-phase67-appearance",
+      "exitCode": 0
+    },
+    {
+      "name": "check-mission15-phase67-parent",
+      "exitCode": 0
+    },
+    {
+      "name": "check-premium-motion-lifecycle",
+      "exitCode": 0
+    },
+    {
+      "name": "check-premium-workspace-interactions",
+      "exitCode": 0
+    },
+    {
+      "name": "check-premium-builder-sheets",
+      "exitCode": 0
+    },
+    {
+      "name": "check-owner-preview",
+      "exitCode": 0
+    }
+  ],
+  "fidelityFocused": {
+    "exitCode": 0
+  },
+  "unsuccessfulCandidates": {
+    "askContrastCounterexample": {
+      "exitCode": 1
+    },
+    "interruptedFullSelection": {
+      "summary": {
+        "passed": 156,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 270
+      },
+      "outer": 2
+    }
+  },
+  "snack": {
+    "exitCode": 1,
+    "count": 27,
+    "unchanged": true,
+    "diagnostics": [
+      "src/components/businessContentView.js imports missing ../../standalone/template/businessContentView (searched standalone/template/businessContentView.js, standalone/template/businessContentView/index.js)",
+      "src/components/serviceCategoryFilter.js imports missing ../../standalone/template/serviceCategoryFilter (searched standalone/template/serviceCategoryFilter.js, standalone/template/serviceCategoryFilter/index.js)",
+      "src/core/builderExploreAnswers.js imports missing ../../supabase/functions/busy-website-worker/websiteTestimonials.js (searched supabase/functions/busy-website-worker/websiteTestimonials.js)",
+      "src/core/privateWebsiteDraftCommit.js imports missing ../../supabase/functions/busy-website-worker/websiteEditingQuality.js (searched supabase/functions/busy-website-worker/websiteEditingQuality.js)",
+      "src/core/selectedWebsiteExploreAdvice.js imports missing ../../supabase/functions/busy-website-worker/websiteEditingQuality.js (searched supabase/functions/busy-website-worker/websiteEditingQuality.js)",
+      "src/core/websiteContextualEdit.js imports missing ../../supabase/functions/busy-website-worker/websiteTextTypography.js (searched supabase/functions/busy-website-worker/websiteTextTypography.js)",
+      "src/core/websiteCoordinatedAlternatives.js imports missing ../../supabase/functions/busy-website-worker/websitePageGuide.js (searched supabase/functions/busy-website-worker/websitePageGuide.js)",
+      "src/core/websiteSelectedChangePreview.js imports missing ../../supabase/functions/busy-website-worker/websiteEditingQuality.js (searched supabase/functions/busy-website-worker/websiteEditingQuality.js)",
+      "src/domain/websiteBuilder.js imports missing ../../supabase/functions/busy-website-worker/websiteTestimonials.js (searched supabase/functions/busy-website-worker/websiteTestimonials.js)",
+      "src/domain/websiteBuilder.js imports missing ../../supabase/functions/busy-website-worker/websitePageGuide.js (searched supabase/functions/busy-website-worker/websitePageGuide.js)",
+      "src/domain/websiteBuilder.js imports missing ../../supabase/functions/busy-website-worker/websiteServiceIndex.js (searched supabase/functions/busy-website-worker/websiteServiceIndex.js)",
+      "src/domain/websiteBuilder.js imports missing ../../supabase/functions/busy-website-worker/websiteFaqPresentation.js (searched supabase/functions/busy-website-worker/websiteFaqPresentation.js)",
+      "src/domain/websiteBuilder.js imports missing ../../supabase/functions/busy-website-worker/websiteTextTypography.js (searched supabase/functions/busy-website-worker/websiteTextTypography.js)",
+      "src/domain/websiteBuilder.js imports missing ../../supabase/functions/busy-website-worker/websiteAppearanceClasses.js (searched supabase/functions/busy-website-worker/websiteAppearanceClasses.js)",
+      "src/screens/businessAppCustomerRequestFields.js imports missing ../../standalone/template/requestDraftStatus (searched standalone/template/requestDraftStatus.js, standalone/template/requestDraftStatus/index.js)",
+      "src/screens/businessAppCustomerRequestFields.js imports missing ../../standalone/template/selectedListingSummary (searched standalone/template/selectedListingSummary.js, standalone/template/selectedListingSummary/index.js)",
+      "src/screens/businessAppCustomerRequestFields.js imports missing ../../standalone/template/enquiryTopicShortcuts (searched standalone/template/enquiryTopicShortcuts.js, standalone/template/enquiryTopicShortcuts/index.js)",
+      "src/screens/miniApps.js imports missing ../../standalone/template/useServiceBrowseReturn (searched standalone/template/useServiceBrowseReturn.js, standalone/template/useServiceBrowseReturn/index.js)",
+      "src/screens/miniApps.js imports missing ../../standalone/template/serviceActionButton (searched standalone/template/serviceActionButton.js, standalone/template/serviceActionButton/index.js)",
+      "src/screens/miniApps.js imports missing ../../standalone/template/serviceDetails (searched standalone/template/serviceDetails.js, standalone/template/serviceDetails/index.js)",
+      "src/screens/miniApps.js imports missing ../../standalone/template/appFaqCard (searched standalone/template/appFaqCard.js, standalone/template/appFaqCard/index.js)",
+      "src/screens/websiteTypographyControls.js imports missing ../../supabase/functions/busy-website-worker/websiteTextTypography.js (searched supabase/functions/busy-website-worker/websiteTextTypography.js)",
+      "supabase/functions/busy-website-worker/designSystem.js imports missing ./websiteTextColours.js (searched supabase/functions/busy-website-worker/websiteTextColours.js)",
+      "supabase/functions/busy-website-worker/designSystem.js imports missing ./websiteTextTypography.js (searched supabase/functions/busy-website-worker/websiteTextTypography.js)",
+      "supabase/functions/busy-website-worker/websiteLayoutEditing.js imports missing ./websiteTestimonials.js (searched supabase/functions/busy-website-worker/websiteTestimonials.js)",
+      "supabase/functions/busy-website-worker/websiteLayoutEditing.js imports missing ./websiteServiceIndex.js (searched supabase/functions/busy-website-worker/websiteServiceIndex.js)",
+      "supabase/functions/busy-website-worker/websiteLayoutEditing.js imports missing ./websiteTextTypography.js (searched supabase/functions/busy-website-worker/websiteTextTypography.js)"
+    ]
+  },
+  "preservation": {
+    "privacyAndProvidersUnchanged": true,
+    "customerRenderersUnchanged": true,
+    "previewTransportAndNativeDenialUnchanged": true,
+    "credentialsAndWorkflowSourcesUnchanged": true,
+    "dependenciesUnchanged": true
+  },
+  "preview": {
+    "bundleIdentifier": "com.busydoesit.app.ownerpreview",
+    "buildNumber": "26",
+    "productionBuildNumber": "25",
+    "profile": "owner-preview",
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "NEVER"
+    },
+    "entitlements": {},
+    "buildWorktree": "/workspace/busy-owner-preview-design-build",
+    "newSignedBuildProduced": false,
+    "newPhysicalAcceptance": false,
+    "paidBuildOrDistributionAuthorised": false
+  },
+  "database": {
+    "executed": false,
+    "reason": "No SQL/database/persistence/permission contract changed"
+  },
+  "artifactHashes": {
+    "application-exit.json": "bf45d7486261b2631bd88572b728d47569e1cf05125fb5b3ab5378d464a81fd3",
+    "application.json": "72504b348d9aab61887330b75ee4377528e0419659e2945b98c8c0af8036ea28",
+    "application.log": "49a351e79dfbabe8e7d31e67dcf0c4497f570ad8fb8114c4df94195bc6dcbeb4",
+    "architecture.log": "6863fcc3675c9153102de6aae70285b83c8a398ded32ca5a60b78620e807b88d",
+    "ask-contrast-corrected-exit.json": "47b8b6b49d4695fe6e036bd916538aff4f46773e212ca0d429db80f3963e2cfe",
+    "ask-contrast-corrected.log": "0f95e22be5a7c4a2e4c54ce978d002c67be60bcd4efbe1f7702944a81c50b26e",
+    "ask-contrast-counterexample-exit.json": "f468f8bf84d59a390a40e5d5ac0291111e0e6eeb79821864810ae628cbd3507e",
+    "ask-contrast-counterexample.log": "b206ded25384e351221276ef45f4967e01b8e95a75592029f48835bc3aebab33",
+    "builder-checkpoint-exit.json": "47b8b6b49d4695fe6e036bd916538aff4f46773e212ca0d429db80f3963e2cfe",
+    "builder-checkpoint.log": "8bb958ab4d283f6fd1056c989796e5aaf460221042e5bcc6f2d1a2601e3c5126",
+    "check-mission15-phase67-appearance.log": "5ffd02b8786500dec566d5a67f1a1427b2275ce37c2ca3f770a1b9b0167f5199",
+    "check-mission15-phase67-parent.log": "3c16dab8e63f62a6d44e2a3615ee896185f55565c5f709c5ead2724abb1169fb",
+    "check-owner-preview.log": "d7613d0a832734756142f20b0a9a4b174b504b0d875542f7ad0ad1e250d86289",
+    "check-premium-builder-sheets.log": "8bb958ab4d283f6fd1056c989796e5aaf460221042e5bcc6f2d1a2601e3c5126",
+    "check-premium-motion-lifecycle.log": "3b346377a0d35d2ea0972441ae063628919bc4c279b299f309ed7727f64addd3",
+    "check-premium-workspace-interactions.log": "6c4524c6901d4adb42f9f2d9c7649cc241a4b323cd3e00b9c6943c8b20d3030f",
+    "config.log": "85a94c9bfe8f350cd757edcfe32366c59933e7c3ebaa2f058749b69cf2a141cf",
+    "dependencies.log": "28adcc05dfc4b32af564b8765a9b02b663448cfb9640eefa9b9a48494f703f91",
+    "fidelity-first-exit.json": "47b8b6b49d4695fe6e036bd916538aff4f46773e212ca0d429db80f3963e2cfe",
+    "fidelity-first.log": "0f95e22be5a7c4a2e4c54ce978d002c67be60bcd4efbe1f7702944a81c50b26e",
+    "first-focused-exits.json": "4bb443afe4fe4488e459df13e84f197809e783ea19f68ab823129c8a7ea30129",
+    "foundation.log": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e",
+    "health.log": "b3e56c222a705fd99687c3d0e74866412bd8506c6861eb33c083ba32cf6562b0",
+    "ios.log": "f5b6523f8fcb2683419c68d47e90742e0d7579ea5f89d6338eac74a172d71f1d",
+    "parser.log": "067bc1482c85c4206bf65d381485ca52e471bf5a063a65dbc46408daededaa33",
+    "preservation.json": "685110749eef25c6bbf77ebb8081b5e23965a72986e0372fd9aa4e2fabc20b9e",
+    "quality-exits.json": "7bfee18a372f89ae28590c72181961243535e4406eed2ac1d9f09af4caabb7e3",
+    "recovery.bundle": "d06f93adc1f39514f63c68688a8a67600cc2ca3ff2f1c3de46a22914430f67d9",
+    "snack-comparison.json": "9fee700fe70d263990d2ba17f278818bb5c50e55bf75db15241e4f7c21eadc2d",
+    "snack.log": "18fd2e069125d1bec56369b323ba4b7ee2da3bdb56bc05aec167d2f5376d6228",
+    "verified-application-exit.json": "a2fc955b24ffbb215328d5d69027ffb2b2d697251d794d62b16de4b14ce27728",
+    "verified-application.json": "67ca88c42227192a2d6dda58c24166812ec9634ade8f7f4ff3f56d0ddea4485c",
+    "verified-application.log": "3b748f1f3b941389980d17de44a230705ffbaab97dfb5d3a827289619036be12",
+    "verified-architecture.log": "6863fcc3675c9153102de6aae70285b83c8a398ded32ca5a60b78620e807b88d",
+    "verified-config.log": "85a94c9bfe8f350cd757edcfe32366c59933e7c3ebaa2f058749b69cf2a141cf",
+    "verified-dependencies.log": "28adcc05dfc4b32af564b8765a9b02b663448cfb9640eefa9b9a48494f703f91",
+    "verified-foundation.log": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e",
+    "verified-health.log": "b3e56c222a705fd99687c3d0e74866412bd8506c6861eb33c083ba32cf6562b0",
+    "verified-ios.log": "a503892f68b9023a855153914d7369e86b831184b9d63e2b3585515095fca619",
+    "verified-parser.log": "067bc1482c85c4206bf65d381485ca52e471bf5a063a65dbc46408daededaa33",
+    "verified-quality-exits.json": "c8485d23d44eb3200e813efae115b3a3aada7ed643def770dcdffcf8a465fc49",
+    "verified-snack.log": "18fd2e069125d1bec56369b323ba4b7ee2da3bdb56bc05aec167d2f5376d6228"
+  },
+  "hermes": [
+    {
+      "path": ".test-artifacts/design-fidelity/verified-ios/_expo/static/js/ios/AppEntry-dab722b89d4f47217fc56f2d04a7a091.hbc",
+      "bytes": 7801576,
+      "sha256": "afa2b9f83d2e4ef66e2c70d781efaf2649cb5882ea4824f22b3c6107f7db2c8a"
+    }
+  ],
+  "sourceSynchronisation": {
+    "cliPushSucceeded": false,
+    "cliError": "Git could not read Username; remote remained at installed baseline",
+    "recovery": "Existing GitHub connection; verified exact blob SHAs and functional tree; expected-head additive ref update, no force",
+    "expectedHead": "89cbc7405692f3d0ab98f44fdbfcf4a871a39026"
+  }
+}

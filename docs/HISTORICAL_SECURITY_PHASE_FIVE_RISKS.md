@@ -1,0 +1,20 @@
+# Phase Five risk register and development decisions
+
+**A — Continue substantial source feature development: yes, within the reviewed boundaries.** Confirmed selected defects are corrected or source-quarantined; no newly confirmed, uncontained critical/high issue in these reviewed paths requires freezing unrelated source work. This is a bounded engineering judgement, not complete historical coverage or a security guarantee. Preserve regression/adversarial checks and re-review each touched trust boundary.
+
+**B — Hosted activation/public release: no.** Authentic hosted schema/ACL/RLS/Storage, genuine Auth/JWT, managed provider credentials, native behaviour and appropriate independent assurance are not accepted. No calendar/social/model/payment/communication/publication activation is authorised.
+
+| Priority/category | Status | Required continuation |
+| --- | --- | --- |
+| Corrected: uncertain original-media acknowledgement | Objects are retained; no destructive cleanup on an error that may follow commit; independently scoped operation readback | Real Storage interruption/recovery acceptance before activation |
+| Corrected: original media path/size/current authority | Strict original path, pre-allocation size check, fresh operation checks; post-transfer authentication prevents observed revoked-read responses | Hosted IAM/immutability, rate infrastructure and retention/erasure |
+| Corrected: authenticated builder resource bounds | Original Website/Mini App handlers now use the existing incremental 16 MB/10-second JSON reader; directory query receives a bounded string | Real infrastructure rate controls remain a hosted gate |
+| Corrected: original message revocation race | Membership row participates in original transaction; raw/column message/outbox mutations and inner writer bypass closed in fused proposal | Install only after explicit approval and effective hosted role inspection |
+| Isolated: legacy upload and private preview/public asset preparation | Unsafe legacy upload route and consequential hosted preview/promotion routes source-quarantined; finite operation switches remain false | Independently approved finite media/preview/promotion boundary |
+| Isolated: publication/customer lifecycle/provider worker/push test | Enumerated per-action source denials have no runtime enable switch; private planning/editing/read contracts remain | Individually reviewed exact approval/source revision, dispatch, revocation and receipt authority |
+| Activation blocker: provider confidentiality/PKCE | No invented key or secret manager; real exchanges remain closed | Select managed key/secret infrastructure, inspect decrypt ACLs, verify subject/rotation/revocation/retention/restore |
+| Activation blocker: dependency advisories | Four retained advisory families; no validated compatible patch in chosen majors; fresh audit may be environment-blocked | Recheck registry before activation; prevent untrusted dependency/config input and publicly exposed dev/build services; do not suppress reports |
+| Activation blocker: remaining historical/hosted/native uncertainty | Full Storage policies/default grants, all worker/provider details, native storage and independent assurance not proven | Narrow acceptance/security work alongside feature development, not an arbitrary further audit phase |
+| Lower-priority ongoing work | Image decoder/pixel limits, original metadata disclosure, orphan reconciliation and deletion policy; finer operational metrics | Add only through original authorities with explicit privacy/recovery contracts |
+
+Resume the approved governed AI-assisted Website Builder, bespoke App Builder private planning/configuration and goal-driven Busy intelligence next. Keep live model/provider access, release, publication, communication and financial boundaries disabled. Security remains part of each feature mission; reopen targeted remediation if new evidence exposes an uncontained serious defect. Do not prolong retrospective auditing to achieve a phase count.

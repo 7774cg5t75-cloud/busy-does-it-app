@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from '../src/core/websitePageInstructions.mjs';
+import {prepareSelectedWebsiteTransaction} from '../src/core/websiteContextPlan.mjs';
+import {verifyOriginalWebsiteInstructionRuntime} from './lib/original-website-instruction-runtime.mjs';
+const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml}=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyWebsiteLayoutChange','applyStructuredWebsiteEdit','renderWebsiteHtml']);
+const d=buildWebsiteDraft({businessId:'business-a',brandBrain:{websiteReady:true,websiteBrief:{businessName:'Example studio',businessType:'Workshop',description:'Original description',about:'Existing text',email:'hello@example.test',services:[{name:'Survey',description:'Discuss the project'}]}}});
+const req=instruction=>({draftId:d.id,pageId:'home',generation:d.generation,instruction});
+const instruction='change the hero heading to "Welcome and then explore"; change the hero text to "Send us your requirements"; make the hero heading smaller on phones';
+const plan=planWebsitePageInstructions(d,req(instruction));assert.equal(plan.ok,true,plan.reason);assert.deepEqual(plan.steps.map(s=>s.type),['field','field','layout']);
+const before=JSON.stringify(d),deps={fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml};
+const preview=prepareWebsitePageInstructionPreview(d,req(instruction),deps);assert.equal(preview.ok,true,preview.reason);assert.ok(preview.candidateHtml.includes('Welcome and then explore'));assert.equal(JSON.stringify(d),before);
+const applied=prepareSelectedWebsiteTransaction(d,plan,deps);assert.equal(applied.applied,true);assert.equal(applied.draft.publicStatus,d.publicStatus);assert.equal(applied.draft.sections.find(s=>s.id==='hero').appearance.mobileHeadingScale,'compact');
+const faq=prepareWebsitePageInstructionPreview(d,req('add question "Do you travel?" answer "Ask us about your location."'),deps);assert.equal(faq.ok,true,faq.reason);assert.ok(faq.candidateHtml.includes('Do you travel?'));assert.ok(faq.candidateHtml.includes('Ask us about your location.'));
+for(const words of ['change the hero heading to "Hello"; publish website','change the hero heading to "<script>"','change the missing heading to "Hello"','change the hero heading to "Hello"; change the hero heading to "Again"'])assert.equal(prepareWebsitePageInstructionPreview(d,req(words),deps).ok,false,words);
+assert.equal(prepareWebsitePageInstructionPreview({...d,theme:{...d.theme,lockedSections:['hero']}},req(instruction),deps).ok,false);
+assert.equal(JSON.stringify(d),before);verifyOriginalWebsiteInstructionRuntime();
+console.log('PASS actual page copy + appearance transaction, quoted conjunctions, visible owner-written FAQ, original controller runtime/history/tenant/stale guards; offline renderer, no device claim.');

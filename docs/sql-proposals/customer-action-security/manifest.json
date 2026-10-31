@@ -1,0 +1,9 @@
+{
+  "stagingProject": "pnjdlogwegnqbsfpcofw",
+  "hostedApproved": false,
+  "files": {
+    "install.sql": "1948768033e8cc5a5c73b8eb38e180808f5d3cf16658a8ab6ed591bfc8243404",
+    "rollback-retain.sql": "2011df323d833008f411927d2b79ceafee5021f9043d61aed2f71517f060f0d9"
+  },
+  "originalMediaCandidateSha256": "1d73f4e499043dd6698791c10f4efa498b999070c47afd05e99996939409e59e"
+}

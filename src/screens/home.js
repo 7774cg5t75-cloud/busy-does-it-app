@@ -1,3 +1,9 @@
+import {workspaceDensity} from '../theme/interaction.mjs';
+import {BusyHomeEntry} from "../components/BusyHomeEntry";
+import {homeEnquiryReview,homeEnquiryReplyReview,homeSavedEnquiryReplyReview} from '../core/homeEnquiryReview.mjs';
+import {homeQuoteReview,homePreparedQuoteReview,homeFollowUpQuoteReview,homeQuoteSelectionReview} from '../core/homeQuoteReview.mjs';
+import {homeContentReview,homeUnsavedContentReview} from "../core/homeContentReview.mjs";
+import {HomeCoreAreas} from "../components/HomeCoreAreas";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -16,6 +22,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -146,40 +153,45 @@ import {
 
 
 
-const homeDark = StyleSheet.create({
-  panel: { backgroundColor: "#171F2D", borderColor: "#2B384C", borderWidth: 1, borderRadius: 20, padding: 17, marginBottom: 12 },
-  hero: { backgroundColor: "#17243A", borderColor: "#35527C" },
-  kicker: { color: "#90B8FF", fontSize: 12, fontWeight: "800", letterSpacing: 0.7, marginBottom: 7, flexShrink: 1 },
-  heading: { color: "#F4F7FE", fontSize: 21, lineHeight: 28, fontWeight: "900", marginBottom: 6 },
-  description: { color: "#B4C0D2", fontSize: 14, lineHeight: 21 },
-  micro: { color: "#9AAAC2", fontSize: 12, lineHeight: 18, marginTop: 9 },
+const makeHomeStyles=()=>StyleSheet.create({
+  panel: { backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 20, padding: 13, marginBottom: 10 },
+  hero: { backgroundColor: C.blueSoft, borderColor: C.border },
+  kicker: { color: C.blueText, fontSize: 12, fontWeight: "800", letterSpacing: 0.7, marginBottom: 7, flexShrink: 1 },
+  heading: { color: C.ink, fontSize: 17, lineHeight: 24, fontWeight: "700", marginBottom: 6 },
+  description: { color: C.muted, fontSize: 13, lineHeight: 19 },
+  micro: { color: C.muted, fontSize: 12, lineHeight: 18, marginTop: 9 },
   micRow: { flexDirection: "row", alignItems: "center", gap: 13, marginTop: 16 },
-  micCircle: { width: 58, height: 58, borderRadius: 29, backgroundColor: "#3671E3", alignItems: "center", justifyContent: "center" },
+  micCircle: { width: 58, height: 58, borderRadius: 29, backgroundColor: C.blue, alignItems: "center", justifyContent: "center" },
   micIcon: { fontSize: 29 },
   voiceCopy: { flex: 1, minWidth: 0 },
-  voiceTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "900" },
-  voiceDetail: { color: "#B7C9E9", fontSize: 13, marginTop: 3, lineHeight: 18 },
-  outlineButton: { marginTop: 13, minHeight: 44, borderWidth: 1, borderColor: "#465872", borderRadius: 13, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
-  outlineText: { color: "#E4ECFD", fontSize: 15, fontWeight: "800", textAlign: "center" },
-  actionButton: { marginTop: 13, minHeight: 48, borderRadius: 13, backgroundColor: "#3671E3", alignItems: "center", justifyContent: "center", paddingHorizontal: 13 },
-  actionText: { color: "#FFFFFF", fontSize: 15, fontWeight: "900", textAlign: "center" },
-  sectionHeading: { color: "#EAF0FC", fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 10 },
-  statRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
-  stat: { flex: 1, minWidth: 0, backgroundColor: "#171F2D", borderColor: "#2B384C", borderWidth: 1, borderRadius: 16, padding: 15 },
-  statValue: { color: "#FFFFFF", fontSize: 24, fontWeight: "900", marginBottom: 4 },
-  statLabel: { color: "#B4C0D2", fontSize: 12, fontWeight: "700", lineHeight: 17 },
+  voiceTitle: { color: C.ink, fontSize: 17, fontWeight: "900" },
+  voiceDetail: { color: C.muted, fontSize: 13, marginTop: 3, lineHeight: 18 },
+  outlineButton: { marginTop: 13, minHeight: 44, borderWidth: 1, borderColor: C.border, borderRadius: 13, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
+  outlineText: { color: C.ink, fontSize: 15, fontWeight: "800", textAlign: "center" },
+  actionButton: { marginTop: 13, minHeight: 48, borderRadius: 13, backgroundColor: C.blue, alignItems: "center", justifyContent: "center", paddingHorizontal: 13 },
+  actionText: { color: C.ink, fontSize: 15, fontWeight: "900", textAlign: "center" },
+  sectionHeading: { color: C.ink, fontSize: 16, fontWeight: "700", marginTop: 6, marginBottom: 8 },
+  statRow: { flexDirection: "row", flexWrap:"wrap", gap: 8, marginBottom: 10 },
+  stat: { flex: 1, minWidth: 0, backgroundColor: C.card, borderColor: C.border, borderWidth: 1, borderRadius: 16, padding: 10 },
+  statValue: { color: C.ink, fontSize: 21, fontWeight: "700", marginBottom: 4 },
+  statLabel: { color: C.muted, fontSize: 12, fontWeight: "700", lineHeight: 17 },
   inlineRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  badge: { color: "#7BE0AE", fontSize: 12, fontWeight: "800", flexShrink: 1, maxWidth: "35%", textAlign: "right" },
-  divider: { height: 1, backgroundColor: "#303D52", marginVertical: 12 },
-  toolRow: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#303D52", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
-  toolText: { color: "#EAF0FC", fontSize: 15, fontWeight: "700", flexShrink: 1 },
-  chevron: { color: "#8EAADE", fontSize: 20, fontWeight: "900" },
+  badge: { color: C.green, fontSize: 12, fontWeight: "800", flexShrink: 1, maxWidth: "35%", textAlign: "right" },
+  divider: { height: 1, backgroundColor: C.border, marginVertical: 12 },
+  toolRow: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  toolText: { color: C.ink, fontSize: 15, fontWeight: "700", flexShrink: 1 },
+  chevron: { color: C.blueText, fontSize: 20, fontWeight: "900" },
   smallActionRow: { flexDirection: "row", gap: 10, marginTop: 12 },
-  smallAction: { flex: 1, backgroundColor: "#26344A", borderRadius: 13, paddingVertical: 13, paddingHorizontal: 8, alignItems: "center" },
-  smallActionText: { color: "#D7E7FF", fontSize: 13, fontWeight: "800", textAlign: "center" },
+  smallAction: { flex: 1, backgroundColor: C.surface, borderRadius: 13, paddingVertical: 13, paddingHorizontal: 8, alignItems: "center" },
+  smallActionText: { color: C.blueText, fontSize: 13, fontWeight: "800", textAlign: "center" },
 });
 
+const homeStylesCache=new Map();
+const homeDark=new Proxy({}, {get:(_,key)=>{if(!homeStylesCache.has(C.bg))homeStylesCache.set(C.bg,makeHomeStyles());return homeStylesCache.get(C.bg)[key];}});
+
 function HomeScreen({ s }) {
+  const dashboardLayout=workspaceDensity(useWindowDimensions());
+  const currentHomeSource=React.useRef(s);currentHomeSource.current=s;
   const [showOtherMoves, setShowOtherMoves] = useState(false);
   const [verifiedAppBenefit,setVerifiedAppBenefit]=useState(null);
   // One read-only, tenant-scoped check while an opportunity is relevant.
@@ -793,7 +805,10 @@ function HomeScreen({ s }) {
         !s.dismissedOpportunities.includes(item.id)
     );
 
-  const rankedMoves = [...operationalMoves, ...marketingMoves]
+  const enquiryReview=homeEnquiryReplyReview(s,()=>currentHomeSource.current)||homeEnquiryReview(s,()=>currentHomeSource.current)||homeSavedEnquiryReplyReview(s,()=>currentHomeSource.current);
+  const privateContentReview=homeUnsavedContentReview(s,()=>currentHomeSource.current)||homeContentReview(s,()=>currentHomeSource.current);
+  const privateQuoteReview=homeQuoteReview(s,()=>currentHomeSource.current)||homePreparedQuoteReview(s,()=>currentHomeSource.current)||homeFollowUpQuoteReview(s,()=>currentHomeSource.current)||homeQuoteSelectionReview(s,()=>currentHomeSource.current);
+  const rankedMoves = [...operationalMoves, ...marketingMoves, ...(enquiryReview?[enquiryReview]:[]), ...(privateQuoteReview?[privateQuoteReview]:[]), ...(privateContentReview?[privateContentReview]:[])]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .map((item, index) => {
       const evidenceRows = Object.fromEntries(
@@ -995,7 +1010,7 @@ function HomeScreen({ s }) {
     ["Find more work", () => s.go("workNow")],
     ["Build my business", () => s.openBusinessCreationJourney()],
     [s.websiteDraft ? "Continue my website" : "Build my website", () => s.openWebsiteBuilder()],
-    ["Build a customer app", () => s.openBusyAppsMarketplace()],
+    ["Build a customer app", () => s.openMiniAppBuilder()],
     ["What BUSY remembers", () => s.go("businessMemory")],
     ["Grow my business", () => s.go("growthCommandCentre")],
     ["System health", () => s.go("selfRunningOperations")],
@@ -1007,53 +1022,37 @@ function HomeScreen({ s }) {
       noBack
       dark
       hideDevBadge
-      title={s.homeCommandCentre?.greeting || "Hello"}
-      subtitle="What can BUSY help you with today?"
-    >
-      <View style={[homeDark.panel, homeDark.hero]}>
-        <Text style={homeDark.kicker}>YOUR BUSINESS ASSISTANT</Text>
-        <Text style={homeDark.description}>Ask, plan or get something done. BUSY keeps the complicated bits behind the scenes.</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Talk to BUSY"
-          onPress={() => s.openTalkToBusy(true)}
-          style={({ pressed }) => [homeDark.micRow, pressed && styles.pressed]}
-        >
-          <View style={homeDark.micCircle}><Text style={homeDark.micIcon}>🎙</Text></View>
-          <View style={homeDark.voiceCopy}>
-            <Text style={homeDark.voiceTitle}>Talk to BUSY</Text>
-            <Text style={homeDark.voiceDetail}>Tap to speak naturally</Text>
-          </View>
-          <Text style={homeDark.chevron}>›</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Create a new social media post"
-          accessibilityHint="Opens the post creator to choose photos and prepare a post"
-          onPress={s.startSocialFromPhone}
-          style={({ pressed }) => [homeDark.actionButton, pressed && styles.pressed]}
-        >
-          <Text style={homeDark.actionText}>+ Create a post</Text>
-        </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => s.openTalkToBusy(false)} style={homeDark.outlineButton}>
-          <Text style={homeDark.outlineText}>Type to BUSY instead</Text>
-        </Pressable>
-        <Text style={homeDark.micro}>Nothing is sent or published without the required approval.</Text>
-      </View>
 
-      <View style={homeDark.panel}>
-        <View style={homeDark.inlineRow}>
-          <Text style={homeDark.heading}>Quick access</Text>
-          <Text style={homeDark.badge}>Your tools</Text>
-        </View>
+    >
+      <BusyHomeEntry s={s}/>
+
+      <View style={{marginBottom:12}}>
+        <HomeCoreAreas s={s}/>
+<View style={{marginTop:10,padding:10,borderRadius:16,borderWidth:1,borderColor:C.border,backgroundColor:C.card}}>
+      <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}><Text style={[homeDark.sectionHeading,{fontSize:14,marginTop:0}]}>Your day at a glance</Text><Pressable accessibilityRole="button" accessibilityLabel="View detailed results" onPress={() => s.jump("results", "Results")} style={{minHeight:44,justifyContent:"center"}}><Text style={{color:C.cyan,fontSize:12,fontWeight:"700"}}>View results →</Text></Pressable></View>
+      <View style={[homeDark.statRow,{marginBottom:0}]}>
+        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={[homeDark.stat,{backgroundColor:"transparent",borderWidth:0,padding:6},dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
+          <Text style={homeDark.statValue}>{homeWeekBookings.length}</Text>
+          <Text style={homeDark.statLabel}>Confirmed bookings · next 7 days</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={[homeDark.stat,{backgroundColor:"transparent",borderWidth:0,padding:6},dashboardLayout.metricStack&&{flexBasis:"100%"}]}>
+          <Text style={homeDark.statValue}>{attentionCount}</Text>
+          <Text style={homeDark.statLabel}>Items needing review</Text>
+        </Pressable>
+      </View>
+</View>
         <View style={homeDark.smallActionRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Diary" onPress={() => s.go("bookings")} style={homeDark.smallAction}><Text style={homeDark.smallActionText}>Diary</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Inbox" onPress={s.openBusyInbox} style={homeDark.smallAction}><Text style={homeDark.smallActionText}>Inbox</Text></Pressable>
+        </View>
+        {showOtherMoves?<View style={homeDark.smallActionRow}>
           <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={homeDark.smallAction}>
             <Text style={homeDark.smallActionText}>Work & diary</Text>
           </Pressable>
           <Pressable accessibilityRole="button" onPress={s.openSocialCentre} style={homeDark.smallAction}>
             <Text style={homeDark.smallActionText}>Social Media</Text>
           </Pressable>
-        </View>
+        </View>:null}
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ expanded: showOtherMoves }}
@@ -1102,17 +1101,7 @@ function HomeScreen({ s }) {
         ) : null}
       </View>
 
-      <Text style={homeDark.sectionHeading}>Your day at a glance</Text>
-      <View style={homeDark.statRow}>
-        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={homeDark.stat}>
-          <Text style={homeDark.statValue}>{homeWeekBookings.length}</Text>
-          <Text style={homeDark.statLabel}>Confirmed bookings · next 7 days</Text>
-        </Pressable>
-        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={homeDark.stat}>
-          <Text style={homeDark.statValue}>{attentionCount}</Text>
-          <Text style={homeDark.statLabel}>Items needing review</Text>
-        </Pressable>
-      </View>
+
 
       {needsAttention || bestMove || s.activeWorkGoal || homeProactiveNotice ? (
         <View style={homeDark.panel}>

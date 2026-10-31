@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),{createRuntime}=require('./lib/offline-component-runtime.cjs'),babel=require('@babel/core');
+const source=fs.readFileSync('standalone/template/App.js','utf8'),services=[{id:'a',name:'Advice',category:'Planning'},{id:'b',name:'Repair',category:'Home'}];let saved;
+function mount(context='published-v1',rows=services){const rt=createRuntime(),{useServiceBrowseReturn}=rt.load('standalone/template/useServiceBrowseReturn.js');let query='',category='';function Component(){return useServiceBrowseReturn({services:rows,contextKey:context,query,category,setQuery:v=>query=v,setCategory:v=>category=v,savedBrowseState:saved,onSaveBrowseState:v=>saved=v});}return {render:()=>rt.render(Component,{}),unmount:()=>rt.effects[0]()()};}
+let first=mount(),browse=first.render();browse.onQuery('Advice');browse=first.render();browse.onCategory('Planning');browse=first.render();assert.deepEqual(Object.keys(saved).sort(),['category','query','source']);const oldQuery=browse.onQuery;first.unmount();oldQuery('Late request-screen callback');assert.equal(saved.query,'Advice');
+let resumed=mount(),restored=resumed.render();assert.equal(restored.query,'Advice');assert.equal(restored.category,'Planning');assert.equal(mount('published-v2').render().query,'');assert.equal(mount('published-v1',[...services,{id:'c',name:'New service'}]).render().query,'');
+// Execute actual native LiveInfo services branch: same existing parent catalogue map, no private request state.
+const a=source.indexOf('function LiveInfo('),b=source.indexOf('export default',a);assert.ok(b>a);
+const code=babel.transformSync(source.slice(a,b),{babelrc:false,configFile:false,plugins:[[require('@babel/plugin-transform-react-jsx'),{runtime:'classic'}]]}).code;
+const ServicesInfo=()=>{};const LiveInfo=Function('React','ServicesInfo',code+';return LiveInfo;')({createElement:(type,props,...children)=>({type,props:{...props,children}})},ServicesInfo);
+let kind,value;const element=LiveInfo({screen:{key:'services'},app:{services},catalogueContextKey:'published-v1',catalogueStates:{services:saved},onCatalogueStateChange:(k,v)=>{kind=k;value=v;}});
+assert.equal(element.type,ServicesInfo);assert.equal(element.props.savedBrowseState,saved);element.props.onSaveBrowseState(saved);assert.equal(kind,'services');assert.equal(value,saved);
+// Execute the genuine App parent persistence callback with inert route/runtime refs.
+const marker='onCatalogueStateChange={(kind,value)=>',start=source.indexOf(marker)+marker.length,end=source.indexOf('}\n      onOpenOfferEnquiry',start);
+const callbackCode=source.slice(start,end);let cache={scope:'published-v1',states:{}};const live={},runtimeScreen={current:{live,screen:'services'}},chosen={key:'services'};
+const callback=Function('catalogueCache','publicViewContext','runtimeScreen','live','chosen','return (kind,value)=>'+callbackCode)({current:cache},'published-v1',runtimeScreen,live,chosen);
+callback('services',saved);assert.equal(cache.states.services,saved);runtimeScreen.current.screen='enquiry';callback('services',{query:'stale'});assert.equal(cache.states.services,saved);runtimeScreen.current.screen='services';cache.scope='other-tenant';callback('services',{query:'foreign'});assert.equal(cache.states.services,saved);
+console.log('PASS public native service filters survive request-screen unmount/return in existing catalogue map; actual LiveInfo/parent callback wiring, removed-source/version isolation and late callback denial. Private forms, review and receipts untouched; native navigation/IO inert.');

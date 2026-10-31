@@ -1,5 +1,6 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient} from "jsr:@supabase/supabase-js@2";
+import {requireCentralAiAdmission,legacyAiAdmissionStatus} from '../_shared/legacyAiAdmission.mjs';
+import {builderExploreRemoteGuard} from '../_shared/builderExploreRemoteGuard.mjs';
+import {createClient} from '../_shared/supabaseClient.ts';
 import {normalizeVisualCritique} from "./visualCriticContract.mjs";
 import {checkScreenshotProof} from "./screenshotProof.mjs";
 import {runPrivateWebsiteDesignLoop,MAX_PASSES,validSource} from "./designLoop.mjs";
@@ -27,7 +28,7 @@ const json=(status:number,payload:unknown)=>new Response(JSON.stringify(payload)
     "Access-Control-Allow-Methods":"POST,OPTIONS"}});
 const pngHeader=[137,80,78,71,13,10,26,10];
 const validUuid=(value:string)=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-const ready=()=>globallyEnabled&&!!RENDERER_URL&&!!RENDERER_SECRET&&
+const ready=()=>legacyAiAdmissionStatus().allowed&&globallyEnabled&&!!RENDERER_URL&&!!RENDERER_SECRET&&
  !!VISION_KEY&&/^gpt-[a-z0-9.-]+$/i.test(VISION_MODEL)&&
  /^https:\/\//i.test(RENDERER_URL) && new URL(RENDERER_URL).username==="" &&
  new URL(RENDERER_URL).password==="";
@@ -51,7 +52,7 @@ async function imageFromTrustedRenderer(signedUrl:string,viewport:{width:number,
  const bytes=new Uint8Array(await render.arrayBuffer());
  const proof=checkScreenshotProof({
    bytes,headers:render.headers,deploymentId:expectedDeployment,viewport});
- if(!proof.valid)throw Error(proof.reason);
+ if(!proof.valid)throw Error("reason" in proof?proof.reason:"Screenshot proof is unavailable.");
  let output="";for(let i=0;i<bytes.length;i+=32768)
    output+=String.fromCharCode(...bytes.subarray(i,i+32768));
  return btoa(output);
@@ -77,6 +78,7 @@ const prompt=[
  "Return JSON ONLY in the exact format {\"summary\":\"brief review\",\"proposals\":[{\"path\":\"theme.cardLayout\",\"value\":\"rows\",\"reason\":\"brief visual reason\"}]}."
 ].join("\n");
 async function runVision(mobile:string,desktop:string,approvedPhotos:number){
+ requireCentralAiAdmission();
  const response=await fetch("https://api.openai.com/v1/responses",{
   method:"POST",
   headers:{"Authorization":"Bearer "+VISION_KEY,"Content-Type":"application/json"},
@@ -96,6 +98,7 @@ async function runVision(mobile:string,desktop:string,approvedPhotos:number){
 
 /** Model-only comparison of TWO separately captured private website states. */
 async function compareVision(before:any,after:any,approvedPhotos:number){
+ requireCentralAiAdmission();
  const instruction=[
   "You are BUSY DOES IT's safety-conscious website design critic.",
   "Images 1-2 show original mobile and desktop. Images 3-4 show new rendered mobile and desktop.",
@@ -135,6 +138,8 @@ Deno.serve(async(request:Request)=>{
   const user=await supabase.auth.getUser(token);
   if(user.error||!user.data.user?.id)return json(401,{error:"Sign-in expired"});
   const body=await request.json();
+  const exploreGate=builderExploreRemoteGuard(body);
+  if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
   const businessId=asText(body.businessId,90),deploymentId=asText(body.deploymentId,90);
   if(!validUuid(businessId))return json(400,{error:"Select a valid business workspace"});
   const membership=await supabase.from("busy_business_memberships")
@@ -263,7 +268,7 @@ Deno.serve(async(request:Request)=>{
         compareScreenshots:async({baseline,candidate,pass}:any)=>
           executeCharge("compare-"+pass,()=>compareVision(baseline,candidate,approvedPhotos))
       });
-      if(!result.ok)throw Error(result.reason);
+      if(!result.ok||!("completedPasses" in result))throw Error("reason" in result?result.reason:"Design review result is unavailable.");
       return json(200,{ok:true,businessId,deploymentId,
         sourceGeneration:deployment.data.source_generation,
         passes:result.passes,completedPasses:result.completedPasses,

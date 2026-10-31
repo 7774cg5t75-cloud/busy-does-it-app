@@ -4,7 +4,7 @@
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
+    "start": "node scripts/run-expo-safe.mjs start",
     "check:production": "node scripts/check-production.mjs",
     "check:website-scale": "node scripts/website-platform-simulation.mjs"
   },
@@ -25,9 +25,30 @@
     "expo-dev-client": "~57.0.19",
     "react-native-webview": "13.16.1",
     "react-native-qrcode-svg": "^6.3.15",
-    "react-native-svg": "^15.12.1",
+    "react-native-svg": "15.15.4",
     "expo-file-system": "~57.0.7",
     "expo-sharing": "~57.0.19",
-    "react-native-view-shot": "4.0.3"
+    "react-native-view-shot": "5.1.0",
+    "expo-asset": "~57.0.20",
+    "expo-application": "~57.0.3"
+  },
+  "overrides": {
+    "@expo/cli@57.0.32": {
+      "zod": "4.6.6",
+      "glob": "14.0.2"
+    },
+    "@expo/config@57.0.10": {
+      "glob": "14.0.2"
+    },
+    "@expo/config-plugins@57.0.11": {
+      "glob": "14.0.2"
+    },
+    "@expo/fingerprint@0.20.14": {
+      "glob": "14.0.2",
+      "minimatch": "11.0.1"
+    },
+    "@expo/metro-config@57.0.13": {
+      "glob": "14.0.2"
+    }
   }
 }

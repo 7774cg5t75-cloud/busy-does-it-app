@@ -3,6 +3,7 @@
  * NOT proof that an external host will be reachable after the job completes.
  * It never publishes, bills, suspends, or changes any customer content.
  */
+/** @param {{website?: Record<string,unknown>|null,deployment?: Record<string,unknown>|null}} [input] */
 function evaluateLaunchPreflight({website=null,deployment=null}={}){
   const siteValid=typeof website?.id==="string"&&website.id.length>0&&
     typeof website?.business_id==="string"&&website.business_id.length>0;

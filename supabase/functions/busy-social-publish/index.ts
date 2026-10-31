@@ -1,4 +1,9 @@
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {createProviderPreparationGateway} from '../_shared/providerPreparationGateway.mjs';
+import {legacyProviderAdmission} from '../_shared/legacyProviderAdmission.mjs';
+import {providerMessagePage} from '../_shared/providerMessagePage.mjs';
+import {matchesConfiguredPrototypeOwner,matchesConfiguredProviderSubject,providerEventAppliesToConnection} from '../_shared/legacyWorkspaceIdentity.mjs';
+import {createClient} from '../_shared/supabaseClient.ts';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -25,10 +30,7 @@ function json(status: number, body: unknown) {
 }
 
 function html(status: number, title: string, body: string) {
-  return new Response(
-    `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:32px;max-width:600px;margin:auto"><h1>${title}</h1><p>${body}</p><p>You can close this page and return to BUSY.</p></body></html>`,
-    { status, headers: { "Content-Type": "text/html; charset=utf-8" } }
-  );
+  return providerMessagePage(status,title,body);
 }
 
 function cleanText(value: unknown, max = 5000) {
@@ -76,20 +78,20 @@ async function verifyMetaSignedRequest(value: string) {
   return JSON.parse(new TextDecoder().decode(base64UrlBytes(payloadPart)));
 }
 
-async function removeMetaConnection() {
-  const connection = await supabase
-    .from("busy_social_connections")
-    .delete()
-    .eq("workspace_key", WORKSPACE)
-    .eq("provider", "meta");
-  if (connection.error) throw connection.error;
-
-  const states = await supabase
-    .from("busy_social_oauth_states")
-    .delete()
-    .eq("workspace_key", WORKSPACE)
-    .eq("provider", "meta");
-  if (states.error) throw states.error;
+async function removeMetaConnection(payload:unknown) {
+  const expected=Deno.env.get("BUSY_SOCIAL_PROTOTYPE_META_USER_ID")||"";
+  if(!matchesConfiguredProviderSubject(payload,expected))throw new Error("Provider subject verification is unavailable.");
+  const current=await getConnection("meta");
+  if(!current)return;
+  if(!providerEventAppliesToConnection(payload,expected,current))throw new Error("Provider event does not match the current connection.");
+  const connection=await supabase.from("busy_social_connections").delete()
+    .eq("workspace_key",WORKSPACE).eq("provider","meta").eq("id",current.id)
+    .eq("updated_at",current.updated_at).select("id");
+  if(connection.error||connection.data?.length!==1)throw new Error("Connection changed; no unrelated provider state was removed.");
+  const issuedAt=new Date((payload as {issued_at:number}).issued_at*1000).toISOString();
+  const states=await supabase.from("busy_social_oauth_states").delete()
+    .eq("workspace_key",WORKSPACE).eq("provider","meta").lte("created_at",issuedAt);
+  if(states.error)throw new Error("Provider state cleanup needs review.");
 }
 
 function requirePrototypeCaller(request: Request) {
@@ -101,17 +103,6 @@ function requirePrototypeCaller(request: Request) {
   if (!supplied || !allowed.includes(supplied)) {
     throw new Error("Unauthorised BUSY prototype request.");
   }
-}
-
-async function getWorkspaceOwner() {
-  const { data, error } = await supabase
-    .from("busy_workspace_owners")
-    .select("workspace_key,owner_email")
-    .eq("workspace_key", WORKSPACE)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data?.owner_email) throw new Error("BUSY owner access is not configured.");
-  return data;
 }
 
 async function getWorkspaceSettings() {
@@ -134,12 +125,11 @@ async function requireOwner(request: Request) {
 
   const { data, error } = await supabase.auth.getUser(token);
   const user = data?.user;
-  if (error || !user?.email) throw new Error("Owner sign-in has expired. Sign in again.");
-
-  const owner = await getWorkspaceOwner();
-  if (user.email.trim().toLowerCase() !== String(owner.owner_email).trim().toLowerCase()) {
-    throw new Error("This signed-in account is not the BUSY owner for this workspace.");
-  }
+  if (error || !user?.id) throw new Error("Owner sign-in has expired. Sign in again.");
+  // Deliberately no email bootstrap. A server operator must independently bind
+  // this historical prototype workspace; it is not a production tenant route.
+  if(!matchesConfiguredPrototypeOwner(user,Deno.env.get("BUSY_SOCIAL_PROTOTYPE_OWNER_ID")||""))
+    throw new Error("Verified workspace ownership is not configured for this provider.");
   return user;
 }
 
@@ -1051,10 +1041,14 @@ async function publishPost(post: any, channelsOverride: string[] | null = null) 
         (failedChannels.length && channelsOverride ? 1 : failedChannels.length ? 1 : 0),
       updated_at: now,
     })
+    .eq("workspace_key", WORKSPACE)
     .eq("id", post.id)
+    .eq("status", "Publishing")
+    .eq("updated_at", post.updated_at)
     .select("*")
-    .single();
+    .maybeSingle();
   if (error) throw error;
+  if (!data) throw new Error("Publication result could not be recorded against its claimed revision. Do not resend; reconcile provider results first.");
   return data;
 }
 
@@ -1076,24 +1070,38 @@ async function processDuePosts() {
 
   let processed = 0;
   for (const post of data || []) {
-    await supabase
+    // A scanned row is not a claim. Only the worker that changes this exact
+    // approved revision may enter the provider path; a cancellation wins safely.
+    if (!post.updated_at) throw new Error("Scheduled post revision is missing. Review it before publishing.");
+    const { data: claimed, error: claimError } = await supabase
       .from("busy_social_posts")
       .update({ status: "Publishing", updated_at: new Date().toISOString() })
+      .eq("workspace_key", WORKSPACE)
       .eq("id", post.id)
-      .eq("status", "Scheduled");
+      .eq("status", "Scheduled")
+      .eq("owner_approved", true)
+      .eq("updated_at", post.updated_at)
+      .select("*")
+      .maybeSingle();
+    if (claimError) throw claimError;
+    if (!claimed) continue;
     try {
-      await publishPost({ ...post, status: "Publishing" });
+      await publishPost(claimed);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await supabase
         .from("busy_social_posts")
         .update({
-          status: "Failed",
-          last_error: message,
-          retry_count: Number(post.retry_count || 0) + 1,
+          // An exception may follow a provider send or an uncertain result write.
+          // Keep the claim non-retryable until the original outcome is reconciled.
+          status: "Publishing",
+          last_error: "Could not confirm publication outcome. Do not resend. " + message,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", post.id);
+        .eq("workspace_key", WORKSPACE)
+        .eq("id", claimed.id)
+        .eq("status", "Publishing")
+        .eq("updated_at", claimed.updated_at);
     }
     processed += 1;
   }
@@ -1161,9 +1169,12 @@ async function deleteDraft(clientDraftId: string) {
   return { deleted: true, cloudRecordFound: true };
 }
 
-async function cancelScheduledPost(clientDraftId: string) {
+async function cancelScheduledPost(clientDraftId: string, expectedUpdatedAt: unknown = undefined) {
   const post = await getPostByClientDraftId(clientDraftId);
   if (!post) throw new Error("That scheduled post no longer exists.");
+  if (!post.updated_at || expectedUpdatedAt !== undefined && (typeof expectedUpdatedAt !== "string" || expectedUpdatedAt !== post.updated_at)) {
+    throw new Error("That scheduled revision changed. Read its current account status before cancelling.");
+  }
   if (!["Scheduled", "Held for setup"].includes(String(post.status || ""))) {
     throw new Error(
       post.status === "Publishing" || post.status === "Published"
@@ -1183,12 +1194,14 @@ async function cancelScheduledPost(clientDraftId: string) {
     })
     .eq("workspace_key", WORKSPACE)
     .eq("client_draft_id", post.client_draft_id)
-    .in("status", ["Scheduled", "Held for setup"])
+    .eq("id", post.id)
+    .eq("status", post.status)
+    .eq("updated_at", post.updated_at)
     .select("*")
     .maybeSingle();
   if (error) throw error;
   if (!data) {
-    throw new Error("That post started publishing before BUSY could cancel it.");
+    throw new Error("That schedule changed or started publishing before BUSY could cancel this revision.");
   }
   return data;
 }
@@ -1262,16 +1275,25 @@ Deno.serve(async (request: Request) => {
 
   try {
     const url = new URL(request.url);
+    if(url.searchParams.get('mode')==='provider-preparation'){
+      const handler=createProviderPreparationGateway({enabled:Deno.env.get('BUSY_PROVIDER_PREPARATION_ENABLED')||'',projectUrl:SUPABASE_URL,readJson:boundedJson,
+       authenticate:async(token:string)=>{const r=await supabase.auth.getUser(token);if(r.error||!r.data.user)throw Error('Unverified');return {id:r.data.user.id,isAnonymous:r.data.user.is_anonymous===true};},
+       rpc:async(name:string,args:unknown[])=>{const fields=name==='busy_provider_status_v1'?['a','b','p','h']:name==='busy_provider_begin_v1'?['a','b','p','h','r','u']:null;if(!fields)throw Error('Unsupported');const r=await supabase.rpc(name,Object.fromEntries(fields.map((key,i)=>[key,args[i]])));if(r.error)throw Error('Provider preparation unavailable');return r.data;}});
+      return handler(request);
+    }
+    const callbackAction=url.searchParams.get("action");
+    if(!legacyProviderAdmission().allowed&&((request.method==="GET"&&(url.searchParams.has("provider")||callbackAction==="callback"))||["deauthorize","data_delete"].includes(callbackAction||"")))return json(503,{error:"Provider connection changes are unavailable pending security review."});
     const pathParts = url.pathname.split("/").filter(Boolean);
     const callbackProvider =
       pathParts.at(-2) === "callback" ? cleanText(pathParts.at(-1), 40) : "";
 
+    if(callbackProvider&&!legacyProviderAdmission().allowed)return json(503,{error:"Provider connection changes are unavailable pending security review."});
     if (request.method === "POST" && url.searchParams.get("action") === "deauthorize") {
       const form = await request.formData();
       const signedRequest = cleanText(form.get("signed_request"), 10000);
       if (!signedRequest) return json(400, { error: "Missing signed_request." });
-      await verifyMetaSignedRequest(signedRequest);
-      await removeMetaConnection();
+      const verified=await verifyMetaSignedRequest(signedRequest);
+      await removeMetaConnection(verified);
       return json(200, { success: true });
     }
 
@@ -1279,8 +1301,8 @@ Deno.serve(async (request: Request) => {
       const form = await request.formData();
       const signedRequest = cleanText(form.get("signed_request"), 10000);
       if (!signedRequest) return json(400, { error: "Missing signed_request." });
-      await verifyMetaSignedRequest(signedRequest);
-      await removeMetaConnection();
+      const verified=await verifyMetaSignedRequest(signedRequest);
+      await removeMetaConnection(verified);
       const confirmationCode = crypto.randomUUID();
       return json(200, {
         url: `${SUPABASE_URL}/functions/v1/busy-social-publish?action=data_deletion_status&code=${confirmationCode}`,
@@ -1289,7 +1311,7 @@ Deno.serve(async (request: Request) => {
     }
 
     if (request.method === "GET" && url.searchParams.get("action") === "data_deletion_status") {
-      return html(200, "BUSY data deletion complete", "Meta connection data was deleted.");
+      return html(200, "BUSY deletion status", "A completed deletion cannot be independently verified from this page. Contact the business for confirmation.");
     }
 
     if (
@@ -1323,23 +1345,14 @@ Deno.serve(async (request: Request) => {
 
     if (request.method !== "POST") return json(405, { error: "POST required" });
     requirePrototypeCaller(request);
-    const body = await request.json();
+    // Verify the configured historical owner before consuming any inline media.
+    const owner = await requireOwner(request);
+    const body = await boundedJson(request, 8 * 1024 * 1024) as Record<string, unknown>;
     const action = cleanText(body?.action, 80);
-    const owner = action === "process_due" ? null : await requireOwner(request);
+    if(!legacyProviderAdmission().allowed&&["set_live_publishing","begin_oauth","select_asset","verify_provider","disconnect","schedule","publish_now","retry_post","process_due"].includes(action))return json(503,{error:"Provider actions are unavailable pending security review. Private draft editing remains available."});
 
     if (action === "status") {
-      const [credentials, meta, google, queue] = await Promise.all([
-        credentialStatus(),
-        connectionSummary("meta"),
-        connectionSummary("google_business"),
-        listQueue(),
-      ]);
-      return json(200, {
-        credentials,
-        owner: { authenticated: true, email: owner?.email || "" },
-        connections: { meta, google_business: google },
-        queue,
-      });
+      return json(503,{error:"Scoped connection metadata is required. Legacy prototype status is unavailable."});
     }
 
     if (action === "set_live_publishing") {
@@ -1414,7 +1427,7 @@ Deno.serve(async (request: Request) => {
 
     if (action === "cancel_schedule") {
       const clientDraftId = cleanText(body?.clientDraftId, 180);
-      return json(200, { ok: true, post: await cancelScheduledPost(clientDraftId) });
+      return json(200, { ok: true, post: await cancelScheduledPost(clientDraftId, body?.expectedUpdatedAt) });
     }
 
     if (action === "schedule") {
@@ -1491,6 +1504,7 @@ Deno.serve(async (request: Request) => {
         throw new Error("All selected destinations already have successful provider receipts.");
       }
       await assertChannelsConnected(failedChannels);
+      if (!existing.updated_at) throw new Error("Post revision is missing. Review its account record before retrying.");
       const { data: publishing, error: updateError } = await supabase
         .from("busy_social_posts")
         .update({
@@ -1498,10 +1512,15 @@ Deno.serve(async (request: Request) => {
           last_error: null,
           updated_at: new Date().toISOString(),
         })
+        .eq("workspace_key", WORKSPACE)
         .eq("id", existing.id)
+        .eq("status", existing.status)
+        .eq("updated_at", existing.updated_at)
+        .eq("owner_approved", true)
         .select("*")
-        .single();
+        .maybeSingle();
       if (updateError) throw updateError;
+      if (!publishing) throw new Error("That post changed or another operation claimed it. Read its current status before retrying.");
       return json(200, {
         ok: true,
         retriedChannels: failedChannels,
@@ -1519,7 +1538,7 @@ Deno.serve(async (request: Request) => {
     return json(400, { error: "Unknown action." });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Social publishing request failed.";
-    console.error("BUSY social publish error:", message);
-    return json(400, { error: message });
+    console.error("BUSY social publish request failed");
+    return json(error instanceof BoundedRequestError ? error.status : 400, { error: message });
   }
 });

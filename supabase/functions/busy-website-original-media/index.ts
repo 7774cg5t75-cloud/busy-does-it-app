@@ -1,5 +1,6 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient} from "jsr:@supabase/supabase-js@2";
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {originalUploadOperations} from './uploadOperations.mjs';
+import {createClient} from "../_shared/supabaseClient.ts";
 
 /**
  * Explicit, authenticated business-owned original-photo transfer.
@@ -12,9 +13,11 @@ const BUCKET="busy-website-originals";
 const TABLE="busy_website_original_media";
 const AUDIT="busy_website_original_media_audit";
 const MAX=9*1024*1024;
+const UPLOAD_OPERATIONS_ENABLED=false;
 const supabase=createClient(URL,KEY,{auth:{persistSession:false}});
 const cors={"Access-Control-Allow-Origin":"*",
  "Access-Control-Allow-Methods":"POST, OPTIONS",
+ "Access-Control-Expose-Headers":"X-Busy-Original-Sha256,Content-Length,Content-Type",
  "Access-Control-Allow-Headers":"authorization, apikey, content-type, x-busy-request-id"};
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const fail=(status:number,message:string)=>new Response(JSON.stringify({ok:false,error:message}),{
@@ -65,6 +68,7 @@ async function audit(userId:string,businessId:string,path:string,action:string,b
   storage_path:path,action,byte_length:bytes});
  if(r.error)throw r.error;
 }
+const uploadOperations=originalUploadOperations({supabase,inspect,rateGate,audit,digest:async(bytes:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Uint8Array.from(bytes)))).map(x=>x.toString(16).padStart(2,'0')).join('')});
 async function upload(req:Request,raw:any,userId:string,businessId:string){
  const encoded=raw?.photoBase64;
  if(typeof encoded!=="string"||encoded.length<28||encoded.length>12_600_000||
@@ -92,8 +96,9 @@ async function upload(req:Request,raw:any,userId:string,businessId:string){
  const inserted=await supabase.from(TABLE).insert({business_id:businessId,
   uploaded_by:userId,storage_path:path,content_type:mime,byte_length:bytes.length,sha256:digest});
  if(inserted.error){
-  await supabase.storage.from(BUCKET).remove([path]);
-  throw inserted.error;
+  // An error can follow a committed metadata write. Never destroy the object
+  // on an unknown acknowledgement; use the finite operation's inspection.
+  throw Error("Original upload outcome is unconfirmed. Keep the object for reviewed reconciliation.");
  }
  await audit(userId,businessId,path,"upload",bytes.length);
  return success({storagePath:path,reused:false,bytes:bytes.length,contentType:mime});
@@ -102,19 +107,22 @@ async function download(raw:any,userId:string,businessId:string){
  const path=typeof raw?.storagePath==="string"?raw.storagePath:"";
  if(!pathAllowed(path,businessId))return fail(403,"This is not a verified original from the selected business.");
  await rateGate(userId,businessId,"download");
- const record=await supabase.from(TABLE).select("content_type,byte_length")
+ const record=await supabase.from(TABLE).select("content_type,byte_length,sha256")
   .eq("business_id",businessId).eq("storage_path",path).maybeSingle();
  if(record.error)throw record.error;
  if(!record.data||record.data.byte_length>MAX)return fail(404,"Approved cloud original was not found.");
  const result=await supabase.storage.from(BUCKET).download(path);
  if(result.error||!result.data)return fail(404,"The original photograph is not available.");
+ if(result.data.size>MAX||result.data.size!==record.data.byte_length)return fail(409,"The original size changed. Review the saved asset.");
  const bytes=new Uint8Array(await result.data.arrayBuffer());
  if(bytes.length!==record.data.byte_length||inspect(bytes)!==record.data.content_type)
   return fail(409,"The backed-up original did not pass the integrity checks.");
+ const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Uint8Array.from(bytes)))).map(x=>x.toString(16).padStart(2,'0')).join('');
+ if(sha!==record.data.sha256||raw.expectedSha256!==undefined&&raw.expectedSha256!==sha)return fail(409,"The original digest did not match the reviewed asset.");
  await audit(userId,businessId,path,"download",bytes.length);
  return new Response(bytes,{status:200,headers:{...cors,
   "Content-Type":record.data.content_type,"Content-Length":String(bytes.length),
-  "Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"}});
+  "Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff","X-Busy-Original-Sha256":sha}});
 }
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
@@ -123,15 +131,22 @@ Deno.serve(async req=>{
  try{
   if(Number(req.headers.get("content-length")||0)>12_800_000)
    return fail(413,"Photo transfer request is too large.");
-  const text=await req.text();
-  if(text.length>12_800_000)return fail(413,"Photo transfer request is too large.");
-  const raw=JSON.parse(text);
+  const raw=await boundedJson(req,12_800_000) as Record<string,unknown>;
   const businessId=typeof raw?.businessId==="string"?raw.businessId:"";
   const userId=await auth(req,businessId);
-  if(raw?.action==="upload")return await upload(req,raw,userId,businessId);
-  if(raw?.action==="download")return await download(raw,userId,businessId);
+  if(typeof raw?.action==='string'&&['creator_upload','creator_upload_inspect','creator_upload_list'].includes(raw?.action)){
+   if(!UPLOAD_OPERATIONS_ENABLED)return fail(503,'Creator upload operations are not activated.');
+   const value=raw.action==='creator_upload'?await uploadOperations.upload(raw,userId,businessId):raw.action==='creator_upload_inspect'?await uploadOperations.inspect(raw,userId,businessId):await uploadOperations.list(raw,userId,businessId);if(await auth(req,businessId)!==userId)throw Error("Your session expired. Sign in again.");return success(value);
+  }
+  if(raw?.action==="upload")return fail(503,"Legacy original uploads are unavailable. Use the separately reviewed private upload operation when activated.");
+  if(raw?.action==="download"){
+   const result=await download(raw,userId,businessId);
+   if(await auth(req,businessId)!==userId)throw Error("Your session expired. Sign in again.");
+   return result;
+  }
   return fail(400,"Unknown photo transfer action.");
  }catch(error){
+  if(error instanceof BoundedRequestError)return fail(error.status,error.message);
   const message=String((error as Error)?.message||"Private original transfer failed.");
   if(/only a business owner|not a verified|select a valid|sign in|session expired/i.test(message))
    return fail(403,message);

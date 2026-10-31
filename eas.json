@@ -40,6 +40,20 @@
         "EXPO_PUBLIC_BUSY_STAGING_PUBLISHABLE_KEY": "sb_publishable__rDDelvdDmVIz5D_hcs4kw_YKDAxIxi"
       },
       "environment": "preview"
+    },
+    "owner-preview": {
+      "developmentClient": false,
+      "distribution": "internal",
+      "node": "22.13.0",
+      "environment": "preview",
+      "env": {
+        "BUSY_BUILD_PROFILE": "owner-preview",
+        "EXPO_PUBLIC_BUSY_ENVIRONMENT": "owner-preview"
+      },
+      "ios": {
+        "simulator": false,
+        "image": "latest"
+      }
     }
   },
   "submit": {

@@ -1,3 +1,5 @@
+import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
+import {InboxCustomerContinuation} from '../components/InboxCustomerContinuation';
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -145,13 +147,19 @@ import {
 
 
 function BusyInbox({ s }) {
+  const [search,setSearch]=useState("");
+  const [lane,setLane]=useState("All");
+  const query=search.trim().toLocaleLowerCase("en");
+  const matches=item=>!query||[item.parsed?.name,item.parsed?.phone,item.parsed?.email,item.parsed?.service,item.source,item.status].some(value=>String(value||"").toLocaleLowerCase("en").includes(query));
   const pending = s.inboxPendingItems || [];
   const attention = s.inboxNeedsAttentionItems || [];
   const ready = s.inboxReadyItems || [];
   const processed = [...(s.inboxItems || [])]
     .filter((item) => item.status !== "Pending")
-    .sort((a, b) => String(b.reviewedAt || b.queuedAt || "").localeCompare(String(a.reviewedAt || a.queuedAt || "")))
-    .slice(0, 6);
+    .sort((a, b) => String(b.reviewedAt || b.queuedAt || "").localeCompare(String(a.reviewedAt || a.queuedAt || "")));
+  const shownAttention=attention.filter(matches),shownReady=ready.filter(matches),shownProcessed=processed.filter(matches).slice(0,6);
+  const showAttention=lane==="All"||lane==="Needs attention",showReady=lane==="All"||lane==="Ready to review",showProcessed=lane==="All"||lane==="Processed";
+  const shownCount=(showAttention?shownAttention.length:0)+(showReady?shownReady.length:0)+(showProcessed?shownProcessed.length:0);
 
   const ItemCard = ({ item }) => {
     const parsed = item.parsed || {};
@@ -160,12 +168,13 @@ function BusyInbox({ s }) {
     const service = parsed.service || "Service not detected";
     const contact = parsed.phone || parsed.email || "Contact detail missing";
     return (
-      <View key={item.id} style={styles.activityCard}>
-        <View style={styles.activityTopRow}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
+      <View key={item.id} style={styles.workflowCard}>
+        <View style={styles.workflowHeader}>
+          <View style={styles.workflowIdentity}>
             <Text style={styles.customerTimelineLabel}>{String(parsed.stage || "Incoming").toUpperCase()}</Text>
             <Text style={styles.activityName}>{title}</Text>
-            <Text style={styles.activityService}>{service} • {item.source}</Text>
+            <Text style={styles.activityService}>{service}</Text>
+            <Text style={styles.workspaceMeta}>{"Source: "+(item.source||"Not recorded")+" · "+(item.status||"Status not recorded")}</Text>
           </View>
           <StatusChip
             label={
@@ -173,7 +182,7 @@ function BusyInbox({ s }) {
                 ? "Continue"
                 : triage.lane === "Needs attention"
                 ? "Check"
-                : "Ready"
+                : triage.lane === "Ready to review" ? "Ready to review" : "Review needed"
             }
             tone={
               triage.reconciliation?.progression
@@ -184,7 +193,7 @@ function BusyInbox({ s }) {
             }
           />
         </View>
-        <Text style={styles.activitySummary}>{contact}</Text>
+        <View style={styles.workspacePanel}><Text style={styles.workspaceMeta}>Customer contact</Text><Text selectable style={styles.activitySummary}>{contact}</Text></View>
         {item.screenshots?.length ? (
           <Text style={styles.customerHistoryPhotoMeta}>
             {item.screenshots.length} screenshot{item.screenshots.length === 1 ? "" : "s"} attached • order {String(item.screenshotOrderConfidence || "check").toLowerCase()}
@@ -244,6 +253,7 @@ function BusyInbox({ s }) {
       subtitle="Incoming information is triaged first. Only strict, low-risk record updates can be filed automatically."
       brandCue="BUSY handles the obvious admin. You handle exceptions and approvals."
     >
+      {s.quoteEnquiryOriginItem?<><QuoteEnquiryContext s={{...s,returnToQuoteEnquiry:null}}/><InboxCustomerContinuation s={s} item={s.quoteEnquiryOriginItem}/></>:null}
       <Card
         eyebrow="Inbox triage"
         title={
@@ -275,11 +285,19 @@ function BusyInbox({ s }) {
       />
       <Button label="Automatic record filing settings" onPress={() => s.go("recordFilingSettings")} />
 
-      {attention.length ? <Text style={styles.sectionLabel}>Needs attention</Text> : null}
-      {attention.map((item) => <ItemCard key={item.id} item={item} />)}
+      <View style={styles.workspacePanel}>
+       <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Find an enquiry</Text>
+       <Field label="Find an Inbox item" value={search} onChangeText={setSearch} placeholder="Customer, contact, service or source"/>
+       <View style={styles.choiceGrid}>{["All","Needs attention","Ready to review","Processed"].map(value=><View key={value} style={styles.choiceCell}><Button compact selected={lane===value} label={(lane===value?"✓ ":"")+value} onPress={()=>setLane(value)}/></View>)}</View>
+       <Text accessibilityLiveRegion="polite" style={styles.workspaceMeta}>{shownCount+" visible items. Filtering changes this list only; it does not file, dismiss or send anything."}</Text>
+       {query||lane!=="All"?<Button label="Clear Inbox filters" onPress={()=>{setSearch("");setLane("All");}}/>:null}
+      </View>
+      {showAttention&&shownAttention.length ? <Text style={styles.sectionLabel}>Needs attention</Text> : null}
+      {showAttention&&shownAttention.map((item) => <ItemCard key={item.id} item={item} />)}
 
-      {ready.length ? <Text style={styles.sectionLabel}>Ready to review</Text> : null}
-      {ready.map((item) => <ItemCard key={item.id} item={item} />)}
+      {showReady&&shownReady.length ? <Text style={styles.sectionLabel}>Ready to review</Text> : null}
+      {showReady&&shownReady.map((item) => <ItemCard key={item.id} item={item} />)}
+      {!shownCount&&(query||lane!=="All")?<Text style={styles.helper}>No items match these filters. Clear them to see the other recorded items.</Text>:null}
 
       {!pending.length ? (
         <Card
@@ -303,15 +321,15 @@ function BusyInbox({ s }) {
       <Button label="Load 4 ordinary test Inbox items" onPress={s.queueInboxTestBatch} />
       <Text style={styles.helper}>The ordinary Inbox examples are test-only and are designed to exercise the review/exception lanes.</Text>
 
-      {processed.length ? (
+      {showProcessed&&shownProcessed.length ? (
         <>
           <Text style={styles.sectionLabel}>Recently processed</Text>
-          {processed.map((item) => (
-            <View key={item.id} style={styles.activityCard}>
-              <View style={styles.activityTopRow}>
-                <View style={{ flex: 1, paddingRight: 10 }}>
+          {shownProcessed.map((item) => (
+            <View key={item.id} style={styles.workflowCard}>
+              <View style={styles.workflowHeader}>
+                <View style={styles.workflowIdentity}>
                   <Text style={styles.activityName}>{item.parsed?.name || "Incoming item"}</Text>
-                  <Text style={styles.activityService}>{item.parsed?.stage || "Incoming"} • {item.source}</Text>
+                  <Text style={styles.activityService}>{item.parsed?.stage || "Incoming"} • {item.source||"Source not recorded"}</Text>
                 </View>
                 <StatusChip
                   label={item.autoFiled ? "Auto-filed" : item.status}
@@ -321,11 +339,12 @@ function BusyInbox({ s }) {
               {item.autoFiled ? (
                 <>
                   <Text style={styles.activitySummary}>{item.autoFileReason || "Passed Safe Autopilot rules"}</Text>
-                  <Pressable onPress={() => s.openCustomer(item.filedCustomerId)} style={styles.customerOpenWrap}>
+                  <Pressable onPress={() => s.openCustomer(item.filedCustomerId,item.id)} style={styles.customerOpenWrap}>
                     <Text style={styles.customerOpenText}>Open filed customer →</Text>
                   </Pressable>
                 </>
               ) : null}
+              <InboxCustomerContinuation s={s} item={item}/>
               {item.status === "Dismissed" ? (
                 <Pressable onPress={() => s.reopenInboxItem(item.id)} style={styles.customerEditWrap}>
                   <Text style={styles.customerEditText}>Put back in Inbox</Text>
@@ -435,7 +454,7 @@ function QuickCapture({ s }) {
         value={s.captureRawText}
         onChangeText={s.setCaptureRawText}
         placeholder={"Optional text:\nSophie Green\nCould I get a quote for driveway cleaning?\n07700 900111"}
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
         style={styles.messageInput}
       />
 
@@ -578,7 +597,8 @@ function QuickCapture({ s }) {
   );
 }
 function QuickCaptureReview({ s }) {
-  const match = s.captureMatch;
+  const accountMode=s.firstEnquiryFilingActions?.enabled===true;
+  const match = accountMode?null:s.captureMatch;
   const brainThread =
     s.captureBrainAnalysis?.thread ||
     s.captureBrainAnalysis?.threads?.[0] ||
@@ -679,7 +699,7 @@ function QuickCaptureReview({ s }) {
         tone={s.captureConfidence === "High" ? "green" : s.captureConfidence === "Medium" ? "blue" : "amber"}
       />
 
-      {match ? (
+      {accountMode?<Card eyebrow="Account eligibility is rechecked" title="First account filing only" body="This requires empty account customer/intake history. A device match is not account evidence; existing account customers need their original matching workflow."/>:match ? (
         <Card
           eyebrow="Possible existing customer"
           title={match.customer.name}
@@ -744,7 +764,7 @@ function QuickCaptureReview({ s }) {
           tone="amber"
         />
       ) : null}
-      <DatePickerField label={s.captureStage === "Booking" ? "Booking date" : s.captureStage === "Completed job" ? "Job date" : s.captureStage === "Quote sent" ? "Quote sent date" : "Enquiry received"} value={s.captureDate} onChange={s.setCaptureDate} allowFuture={s.captureStage === "Booking"} />
+      <DatePickerField label={accountMode?"Owner-recorded enquiry date (UTC)":s.captureStage === "Booking" ? "Booking date" : s.captureStage === "Completed job" ? "Job date" : s.captureStage === "Quote sent" ? "Quote sent date" : "Enquiry received"} value={s.captureDate} onChange={s.setCaptureDate} allowFuture={s.captureStage === "Booking"} />
 
       {s.captureStage === "Booking" ? (
         <Field label="Booking time" value={s.captureTime} onChangeText={s.setCaptureTime} placeholder="14:00" />
@@ -768,14 +788,14 @@ function QuickCaptureReview({ s }) {
         onChangeText={s.setCaptureNote}
         style={styles.messageInput}
         placeholder="Original message / note"
-        placeholderTextColor="#9AA3B2"
+        placeholderTextColor={C.muted}
       />
 
       <Card
         eyebrow="What Save will do"
-        title={match ? "Merge into the existing customer" : "Create one customer record"}
+        title={accountMode?"Review a first account Enquiry":match ? "Merge into the existing customer" : "Create one customer record"}
         body={
-          s.captureStage === "Enquiry"
+          accountMode?"This text-only path registers an owner-supplied source separately, then reviews filing the first Enquiry. It does not merge a local match or restore other account data. Other stages and media imports are unsupported.":s.captureStage === "Enquiry"
             ? "Save the enquiry date and start the normal 7-day lifecycle watch."
             : s.captureStage === "Quote sent"
             ? "Create/update the customer and save a sent quote with its automatic follow-up date."
@@ -787,13 +807,18 @@ function QuickCaptureReview({ s }) {
         tone="green"
       />
 
-      <Button label={match ? "Approve merge into customer" : "Approve & create record"} primary disabled={!canSave} onPress={s.saveQuickCapture} />
+      {s.firstEnquiryFilingActions?.enabled?<Card title="Private account filing" body={({checking:'Checking current account source…',review:'Review the exact account proposal before proceeding.',saving:'Checking this finite account operation…',registered:'Owner-supplied source confirmed. Review again to file the first Enquiry.',filed:'This Enquiry filing has an exact account receipt.',unknown:'Account outcome uncertain. Keep these words. Do not retry; no operation was repeated.',reviewRequired:'Account/source review is required or this capture is unsupported. Your fields are kept.',cancelled:'Current capture kept. Nothing further was filed.'})[s.firstEnquiryFilingActions.state?.status]||'Text-only first Enquiry, with separate source registration and filing approval. Other customer stages remain unsupported.'} footer="Account receipts do not save this entire workspace or contact a customer."/>:null}
+      {s.firstEnquiryFilingActions?.enabled?<Button label="Inspect interrupted account work" onPress={()=>s.go('customerRecords')}/>:null}
+      <Button label={s.firstEnquiryFilingActions?.enabled?"Review first account Enquiry":match ? "Approve merge into customer" : "Approve & create record"} primary disabled={!canSave||accountMode&&(s.captureStage!=='Enquiry'||s.captureScreenshots?.length>0||!!s.captureBrainAnalysis||['checking','saving','unknown'].includes(s.firstEnquiryFilingActions.state?.status))} onPress={s.saveQuickCapture} />
       <Button label="Back to pasted text" onPress={s.back} />
     </Shell>
   );
 }
 
 function QuickCaptureSaved({ s }) {
+  const account=s.firstEnquiryFilingActions?.state;
+  if(account?.status==='filed')return <Shell s={s} title="Enquiry filed to this account" subtitle="Only this reviewed filing is confirmed. Device work and other unsaved fields remain separate."><Card title={account.workspace.businessName} body={'Customer '+account.receipt.customerId+' · enquiry '+account.receipt.enquiryId} footer={'Committed account revision '+account.receipt.revision+'. No reply, quote, booking or message was created.'}/><Button label="Prepare first private reply" primary onPress={s.firstEnquiryFilingActions.openReply}/><Button label="Back to capture" onPress={()=>s.go('quickCaptureReview')}/></Shell>;
+
   const customer = s.selectedCustomer;
   const latest = s.intakeLog?.[s.intakeLog.length - 1] || null;
   if (!customer || !latest) {
