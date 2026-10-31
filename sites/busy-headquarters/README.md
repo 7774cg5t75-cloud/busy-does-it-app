@@ -51,3 +51,20 @@ The owner requested a visually compelling example for prospective website custom
 No source-generated features, provider connections, customer forms, payments, live booking or public domain configuration were activated by the showcase update. Styling does not borrow Busy’s Midnight chrome: the example is deliberately a customer-specific cream/pine/teal visual identity, demonstrating variety. It includes three credited illustrative Unsplash image URLs; actual remote image loading and license/source verification should be checked in the hosted preview. If external images fail, the background and text remain visible, but photographic presentation is incomplete. Real before/after work photos, insurer claims, local trading history, phone numbers and testimonials must be supplied and approved by a genuine customer before any real deployment.
 
 **Review / next steps:** View `https://busydoesit-preview.pages.dev/showcase/` once Cloudflare Pages finishes deploying this review branch. Exercise the menu, comparison slider, anchor links, 390px/mobile layout and full-sized desktop composition. Verify asset loading in Safari. This review link is a public `pages.dev` preview, not `busydoesit.co.uk` and not a password-protected private preview. Protect access via Cloudflare Access if privacy is desired. No public release readiness is inferred from GitHub commits or local screenshots.
+
+
+## Focused landing-page refinement — 31 October 2026
+
+Owner-approved changes to the **existing Git-connected Cloudflare Pages preview** (review branch `site/busy-homepage-v2270-review`):
+
+- Shorter, immediately understandable homepage lead: websites, apps and business support. Preserve the approved orb, headline, Midnight branding and first six compact capability tiles.
+- Replace the second repetitive six large-card section with six native HTML `details` disclosures. The quick cards open the corresponding explanation, including on hash navigation. Keep useful descriptions and honest feature status without forcing every visitor to scroll through them.
+- Replace the CSS-constructed miniature ClearFlow facsimile with a **read-only, same-origin embedded view of the actual sample page** (with an accessible independent overlay link). The view reflects the current sample source, not a separately drawn mock-up or an invented screenshot. Its external photos still require browser-level asset checks.
+- Tighten the authentic founder story around Slow Roast festival catering and link to the real business website. **No fabricated founder photo** or stock photo is substituted for an actual trading image. Add a genuinely approved photo later; the public placeholder note is visually hidden.
+- Replace the wordy trust section with the owner-approved “Powerful underneath. Simple on the surface” principle and concise transparency copy.
+- Provide a visible, accurate “Early access — Not open yet” status rather than a fake waitlist form, checkout or collection of personal data. A real consent-based signup requires reviewed backend, retention and privacy work.
+- Keep noindex development state, separate `busydoesit.co.uk` domain and original generated `demo/index.html` evidence unchanged. Premium `showcase/index.html` remains a separate aspirational concept, not evidence of current automatic-generation quality.
+
+Security/release: none of the changes authorise live AI, spending, customer communication, payments or production domain connection. The `pages.dev` address is Internet-accessible until Cloudflare Access is configured, and no new private customer data is included. This is a static website preview; release acceptance, legal review, real photo selection, public analytics and signup consent are still separate.
+
+Expected review URLs: `https://busydoesit-preview.pages.dev/` and `https://busydoesit-preview.pages.dev/showcase/`. GitHub commit does not by itself prove Cloudflare has finished deployment; inspect the actual browser after the build. Compare desktop and phone layout, tap all six quick links and verify the sample preview matches the actual sample.
