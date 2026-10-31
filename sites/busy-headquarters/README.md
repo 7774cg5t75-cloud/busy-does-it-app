@@ -23,3 +23,9 @@ Formal founder review of visual fidelity, correct and accessible copy, approved 
 - Website source reference: `sites/busy-headquarters/` from the Mission 15 branch.
 - Native orb source: `src/components/BusyOrb.js` and `src/components/BusyOrbConstellation.js`; native palette: `src/theme/appearance.mjs`.
 - Art direction: approved BUSY business-card visual and Premium Midnight design. Owner review pending.
+
+## Website V2 — clear value above the fold (31 October 2026)
+
+Owner feedback: visitors should immediately understand that BUSY aims to build websites and apps, and see the six core benefit areas without significant scrolling. The review branch now leads with the explicit website/app headline and an app-inspired 2-column-on-mobile / 3-column-on-desktop six-card feature navigation, while keeping the approved native-derived orb, Midnight brand and fuller detail sections below. The six cards link to existing feature details. Content remains explicitly in development; no registration, live voice, DNS, payment or public deployment is authorised. This is not the customer's app Home and does not introduce new product navigation tiles.
+
+Local Chromium layout review used the real static HTML/CSS and original derived SVG assets with browser-rendered screen captures at 1440×1000, 390×844, 375×812 and 768×1024. All six card anchors resolve, images load, no local page errors or horizontal overflow were observed. This is a local static browser check, not hosted acceptance, native device testing or a live DNS/site health receipt. The local exported preview was assembled from the review source; the current GitHub branch is authoritative for the committed implementation. Publication, legal review and domain work remain separate gates.
