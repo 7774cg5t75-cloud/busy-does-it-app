@@ -3,7 +3,7 @@ import {stableJson} from '../core/stableJson.mjs';
 // Review tickets own no records. Original request, snapshot and Customer records
 // remain the authorities; no customer matching, booking or send is inferred.
 export function createConnectedEnquiryJourney({request,businessId,ownerId,isCurrent=()=>true}){
- const tickets=new WeakMap();let busy=false,unknown=false;
+ const tickets=new WeakMap();let busy=false,unknown=false,uncertainSource=null;
  const verified=r=>r?.businessId===businessId&&(r.ownerId||r.actorId)===ownerId&&isCurrent();
  async function review(requestId){
   if(busy||unknown||!isCurrent())throw Error('Inspect the current account before another review');
@@ -19,7 +19,7 @@ export function createConnectedEnquiryJourney({request,businessId,ownerId,isCurr
    const pending=await request('pending_review',{businessId,expectedRevision:r.revision,enquiryId:r.enquiryId});
    if(!verified(pending)||pending.pending?.rawText!==value.source.message)throw Error('Pending source changed');
    const checked={source:value.source,pending,revision:r.revision};tickets.set(checked,stableJson(checked));return {ok:true,review:checked,observedOnly:r.observedOnly===true};
-  }catch{unknown=true;return {ok:false,unknown:true,mayReplay:false};}finally{busy=false;}
+  }catch{unknown=true;uncertainSource=value.source;return {ok:false,unknown:true,mayReplay:false};}finally{busy=false;}
  }
  async function file(value,fields){
   if(busy||unknown||!isCurrent()||tickets.get(value)!==stableJson(value))throw Error('Review current contact details again');
@@ -35,7 +35,15 @@ export function createConnectedEnquiryJourney({request,businessId,ownerId,isCurr
    const observed=await request('filed_review',{businessId,expectedRevision:r.revision,customerId:r.customerId,enquiryId:r.enquiryId});
    if(!verified(observed)||observed.customer?.id!==r.customerId||observed.enquiry?.filedCustomerId!==r.customerId||observed.enquiry.rawText!==value.source.message||(value.source.message.includes('Listing reference:')&&(!observed.enquiry.listingProvenance||observed.enquiry.listingProvenance.requestHash!==value.source.requestHash)))throw Error('Filing readback unavailable');
    return {ok:true,receipt:r,observed,source:{...value.source,listingProvenance:observed.enquiry.listingProvenance||null,filed:true},requestOrigin:{requestId:value.source.requestId,appId:value.source.appId}};
-  }catch{unknown=true;return {ok:false,unknown:true,mayReplay:false};}finally{busy=false;}
+  }catch{unknown=true;uncertainSource=value.source;return {ok:false,unknown:true,mayReplay:false};}finally{busy=false;}
  }
- return {review,importSource,file,get uncertain(){return unknown;}};
+ async function recover(requestId){
+  if(!unknown||busy||!isCurrent()||uncertainSource?.requestId!==requestId)throw Error('Inspect the exact uncertain enquiry.');
+  busy=true;try{
+   const value=await request('app_enquiry_state',{businessId,requestId}),record=value?.record,item=value?.state==='Filed'?record?.enquiry:value?.state==='Pending'?record?.pending:null;
+   if(!verified(value)||!item||item.rawText!==uncertainSource.message||item.miniAppOrigin?.requestId!==requestId||item.miniAppOrigin.appId!==uncertainSource.appId||item.miniAppOrigin.requestHash!==uncertainSource.requestHash)throw Error('Original outcome could not be confirmed. Keep your words.');
+   unknown=false;uncertainSource=null;return {...value,notOwnReceipt:true};
+  }finally{busy=false;}
+ }
+ return {review,importSource,file,recover,get uncertain(){return unknown;}};
 }
