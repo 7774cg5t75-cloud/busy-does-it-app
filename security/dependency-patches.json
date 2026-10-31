@@ -1,0 +1,11 @@
+{
+  "deepmerge": {
+    "version": "4.3.1",
+    "entry": "dist/cjs.js",
+    "originalSha256": "2e5160f84a1141bd927264afe4d15766f1e6cf07daef182b37ff53fea121de7d",
+    "patchedSha256": "f30c7f31ea7f1f2d13662769030826bf3bffc9116c403ee5ef3d2f9226b37bc2",
+    "advisory": "GHSA-gcqx-w48m-w2h4",
+    "policy": "Drop __proto__ on both merge inputs before assignment; preserve package version and audit findings",
+    "upstreamRemediation": false
+  }
+}

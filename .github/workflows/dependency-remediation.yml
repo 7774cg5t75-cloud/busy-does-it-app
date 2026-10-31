@@ -6,6 +6,9 @@ on:
       - '.github/workflows/dependency-remediation.yml'
       - 'scripts/dependency-*.mjs'
       - 'scripts/apply-tooling-security-patches.mjs'
+      - 'scripts/check-dependency-security.mjs'
+      - 'scripts/run-expo-safe.mjs'
+      - 'scripts/lib/expo-safe-arguments.mjs'
       - 'security/dependency-*'
       - 'package.json'
       - 'package-lock.json'
@@ -47,6 +50,8 @@ jobs:
           mkdir -p dependency-evidence/tarballs
           npm pack zod@4.6.6 glob@14.0.2 minimatch@11.0.1 --ignore-scripts --pack-destination dependency-evidence/tarballs --json > dependency-evidence/registry/packs.json
           echo 'candidates=true' >> "$GITHUB_OUTPUT"
+      - name: Readable public registry metadata for restricted source workspace
+        run: node scripts/dependency-evidence-transfer.mjs --registry
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -58,7 +63,11 @@ jobs:
     needs: registry
     if: needs.registry.outputs.candidates == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.13.0', '24.19.0']
     env:
       CI: '1'
       EXPO_OFFLINE: '1'
@@ -70,22 +79,30 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '24.19.0'
+          node-version: ${{ matrix.node }}
       - name: Baseline lock-only installation, no lifecycle scripts
         run: npm ci --ignore-scripts --no-audit
+      - name: Apply reviewed offline backport when present
+        run: |
+          if test -f scripts/apply-tooling-security-patches.mjs; then node scripts/apply-tooling-security-patches.mjs; fi
       - name: Actual baseline Expo caller probe
         run: |
           node scripts/dependency-compatibility-probe.mjs
           mv dependency-evidence/compatibility.json dependency-evidence/compatibility-baseline.json
+      - name: Record baseline lock
+        run: cp package-lock.json dependency-evidence/package-lock-baseline.json
       - name: Disposable scoped-major compatibility experiment (not an approved source override)
+        if: hashFiles('security/dependency-policy.json') == ''
         run: |
-          cp package-lock.json dependency-evidence/package-lock-baseline.json
           node - <<'JS'
           const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));p.overrides={...p.overrides,'@expo/cli':{zod:'4.6.6',glob:'14.0.2'},'@expo/config':{glob:'14.0.2'},'@expo/config-plugins':{glob:'14.0.2'},'@expo/fingerprint':{glob:'14.0.2',minimatch:'11.0.1'},'@expo/metro-config':{glob:'14.0.2'}};fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');
           JS
           npm install --package-lock-only --ignore-scripts --no-audit
           npm ci --ignore-scripts --no-audit
           cp package-lock.json dependency-evidence/package-lock-candidate.json
+      - name: Reapply reviewed backport after fresh install
+        run: |
+          if test -f scripts/apply-tooling-security-patches.mjs; then node scripts/apply-tooling-security-patches.mjs; node scripts/apply-tooling-security-patches.mjs --check; fi
       - name: Actual candidate Expo caller probe
         run: node scripts/dependency-compatibility-probe.mjs
       - name: Candidate genuine audit (retain exit and findings)
@@ -96,11 +113,21 @@ jobs:
           p=pathlib.Path('dependency-evidence');p.mkdir(exist_ok=True);r=subprocess.run(['npm','audit','--json','--ignore-scripts'],capture_output=True,text=True);(p/'audit-candidate.json').write_text(r.stdout);(p/'audit-candidate-exit.json').write_text(json.dumps({'exitCode':r.returncode}));print(r.stdout)
           PY
       - name: Unsigned native compatibility export, no cloud build or distribution
-        run: node node_modules/expo/bin/cli export --platform ios --source-maps --output-dir /tmp/busy-dependency-candidate-ios > dependency-evidence/hermes-owner-preview.log 2>&1
+        run: |
+          if test -f scripts/run-expo-safe.mjs; then
+            node scripts/run-expo-safe.mjs export --platform ios --source-maps --output-dir /tmp/busy-dependency-candidate-ios > dependency-evidence/hermes-owner-preview.log 2>&1
+          else
+            node node_modules/expo/bin/cli export --platform ios --source-maps --output-dir /tmp/busy-dependency-candidate-ios > dependency-evidence/hermes-owner-preview.log 2>&1
+          fi
       - name: Isolated staging unsigned export
         env:
           EXPO_PUBLIC_BUSY_ENVIRONMENT: isolated-staging
-        run: node node_modules/expo/bin/cli export --platform ios --source-maps --output-dir /tmp/busy-dependency-staging-ios > dependency-evidence/hermes-isolated-staging.log 2>&1
+        run: |
+          if test -f scripts/run-expo-safe.mjs; then
+            node scripts/run-expo-safe.mjs export --platform ios --source-maps --output-dir /tmp/busy-dependency-staging-ios > dependency-evidence/hermes-isolated-staging.log 2>&1
+          else
+            node node_modules/expo/bin/cli export --platform ios --source-maps --output-dir /tmp/busy-dependency-staging-ios > dependency-evidence/hermes-isolated-staging.log 2>&1
+          fi
       - name: Prove affected tooling packages are absent from mobile source maps
         run: |
           python3 - <<'PY'
@@ -114,10 +141,24 @@ jobs:
             result.append({'environment':root,'maps':len(files),'affectedRuntimeSources':hits});assert not hits,hits
           pathlib.Path('dependency-evidence/mobile-reachability.json').write_text(json.dumps(result,indent=2))
           PY
+      - name: Reviewed backport regression
+        if: hashFiles('scripts/check-dependency-security.mjs') != ''
+        run: node scripts/check-dependency-security.mjs
+      - name: Full offline source regressions on final dependency policy
+        if: matrix.node == '24.19.0' && hashFiles('security/dependency-policy.json') != ''
+        run: |
+          npm ci --prefix scripts/offline-tools --ignore-scripts --no-audit
+          python3 scripts/testing/regressions.py --output dependency-evidence/application.json > dependency-evidence/application.log 2>&1
+          node scripts/check-production.mjs > dependency-evidence/foundation.log
+          node scripts/check-security-baseline.mjs > dependency-evidence/security-baseline.log
+          node scripts/check-security-by-design.mjs > dependency-evidence/security-by-design.log
+      - name: Transfer public lockfile and exact package evidence through readable job logs
+        if: matrix.node == '24.19.0'
+        run: node scripts/dependency-evidence-transfer.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: dependency-compatibility-${{ github.sha }}
+          name: dependency-compatibility-${{ matrix.node }}-${{ github.sha }}
           path: dependency-evidence/
           retention-days: 7
           if-no-files-found: error
