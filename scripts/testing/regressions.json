@@ -2911,6 +2911,12 @@
       "args": [
         "scripts/check-edge-audit-phase2.mjs"
       ]
+    },
+    {
+      "id": "security-phase3",
+      "args": [
+        "scripts/check-security-phase3.mjs"
+      ]
     }
   ]
 }

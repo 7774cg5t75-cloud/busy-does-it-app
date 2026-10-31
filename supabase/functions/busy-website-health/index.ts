@@ -1,3 +1,4 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import { createClient } from "../_shared/supabaseClient.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
@@ -489,7 +490,7 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16384) as Record<string,unknown>;
     const websiteId = clean(body?.websiteId, 80);
     const limit = Math.min(40, Math.max(1, Number(body?.limit) || 20));
     const websites = await websitesToCheck(websiteId, limit);
@@ -510,6 +511,7 @@ Deno.serve(async (request: Request) => {
       results,
     });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{error:error.message});
     return json(500, {
       error:
         error instanceof Error

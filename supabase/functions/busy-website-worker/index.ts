@@ -1,3 +1,4 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from './websitePageGuide.mjs';
 import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from './websiteServiceIndex.mjs';
@@ -1246,7 +1247,7 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16384) as Record<string,unknown>;
     const limit = Math.min(12, Math.max(1, Number(body?.limit) || 5));
 
     const stale = await supabase.rpc(
@@ -1290,6 +1291,7 @@ Deno.serve(async (request: Request) => {
       results,
     });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{error:error.message});
     return json(500, {
       error:
         error instanceof Error

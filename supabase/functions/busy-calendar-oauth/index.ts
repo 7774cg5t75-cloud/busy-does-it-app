@@ -1,3 +1,4 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {legacyProviderAdmission} from '../_shared/legacyProviderAdmission.mjs';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
@@ -241,7 +242,8 @@ Deno.serve(async (req: Request) => {
   const user = await currentUser(req);
   if (!user?.id) return json(401, { error: "Authenticated BUSY owner required." });
 
-  const body: any = await req.json().catch(() => ({}));
+  let body: Record<string,unknown>;
+  try{body=await boundedJson(req,8192) as Record<string,unknown>;}catch(error){return json(error instanceof BoundedRequestError?error.status:400,{error:"Calendar request could not be read safely."});}
   const action = String(body?.action || "");
   if(action!=="status"&&!legacyProviderAdmission().allowed)return json(503,{error:"Calendar connection changes are unavailable pending security review."});
   const businessId = String(body?.businessId || "");

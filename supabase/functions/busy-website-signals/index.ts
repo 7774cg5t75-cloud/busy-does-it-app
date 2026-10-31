@@ -1,3 +1,4 @@
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import { createClient } from "../_shared/supabaseClient.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
@@ -291,7 +292,7 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16384) as Record<string,unknown>;
     const action = clean(body?.action, 80) || "status";
     if (action === "status") {
       return json(200, {
@@ -321,6 +322,7 @@ Deno.serve(async (request: Request) => {
     }
     return json(400, { error: "Unknown website signals action." });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{error:error.message});
     return json(500, {
       error: error instanceof Error ? error.message : "Website signal sync failed.",
     });
