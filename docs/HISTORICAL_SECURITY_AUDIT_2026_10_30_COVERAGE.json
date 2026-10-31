@@ -641,8 +641,11 @@
     "sourceDevelopmentDecision": "Yes, bounded reviewed paths with permanent security checks and quarantines",
     "activationDecision": "No hosted or release readiness",
     "media": "Original finite coordinator/SQL plus original endpoint readback/revocation/path/size review; no parallel registry; legacy upload source-quarantined",
-    "publicationAndCustomerActions": "Enumerated consequential Website/MiniApp actions, publication worker, provider mutations and legacy push test source-quarantined; original message membership transaction corrected in fused SQL",
+    "publicationAndCustomerActions": "Enumerated consequential Website/MiniApp actions, both customer message ingresses, shared App push dispatcher, publication worker/provider mutations and legacy push test source-quarantined; original message transaction corrected in fused SQL",
     "credentials": "Managed Vault/KMS lifecycle reviewed; no live persistence/PKCE exchange/key provisioning implemented",
-    "limitations": "No complete line-by-line historical/native review; actual hosted Storage/IAM, provider acceptance and independent assurance remain open"
+    "limitations": "No complete line-by-line historical/native review; actual hosted Storage/IAM, provider acceptance and independent assurance remain open",
+    "implementationCommit": "9656e6ec5f360b9a49fd39499425cc5791874e76",
+    "implementationTree": "ec0da9ff9c9f3cd102663a01a34bc4d68ddd9b52",
+    "evidence": "docs/HISTORICAL_SECURITY_AUDIT_PHASE_FIVE_2026_10_31_CHECKS.json"
   }
 }
