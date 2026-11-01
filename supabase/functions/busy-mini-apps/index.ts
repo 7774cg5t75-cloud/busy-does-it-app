@@ -1,3 +1,4 @@
+import {workPreparationService} from './workPreparationService.mjs';
 import {publicScreenArrangement} from './publicScreenArrangement.mjs';
 import {privateScreenService} from './privateScreenService.mjs';
 import {privateFunctionService} from './privateFunctionService.mjs';
@@ -4218,6 +4219,11 @@ Deno.serve(async (request: Request) => {
     const resolvedBusinessId = member.business_id;
     const connectedProject=SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co";
     if(connectedProject&&member.role!=='owner')return json(403,{ok:false,error:'Current owner access is required in connected staging'});
+    if(action==='private_work_preparation'){
+      if(member.role!=='owner')throw Error('Current owner required');
+      const userClient=createClient(SUPABASE_URL,SERVICE_ROLE_KEY,{global:{headers:{Authorization:request.headers.get('authorization')||''}},auth:{persistSession:false,autoRefreshToken:false}});
+      return json(200,await workPreparationService({client:supabase,actorId:user.id,businessId:resolvedBusinessId,body,enabled:Deno.env.get('BUSY_PRIVATE_WORK_PREPARATION_ENABLED'),sourceRead:async(args)=>{const r=await userClient.rpc('busy_work_source_review_v1',args);if(r.error)throw Error('Original source review denied');return r.data;}}));
+    }
     const readCurrentStatus=()=>connectedProject?scopedOwnerStatus({read:()=>ownerStatus(resolvedBusinessId),verify:async()=>{const current=await membership(user.id,resolvedBusinessId,true);if(current.role!=='owner')throw Error('Current owner access changed');}}):ownerStatus(resolvedBusinessId);
 
     if(['content_list','content_save','content_publish','content_undo'].includes(action)){

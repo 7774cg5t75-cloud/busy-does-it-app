@@ -3078,6 +3078,12 @@
         "scripts/check-public-collection-parity.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "work-preparation",
+      "args": [
+        "scripts/check-work-preparation.mjs"
+      ]
     }
   ]
 }

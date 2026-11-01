@@ -4,6 +4,15 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - 'src/core/workPreparation*'
+      - 'src/components/CanonicalWorkPreparation.js'
+      - 'src/components/CanonicalWorkPanel.js'
+      - 'supabase/functions/busy-mini-apps/workPreparationService.mjs'
+      - 'supabase/functions/_shared/connectedStagingActions.mjs'
+      - 'src/staging/connectedApplicationRuntime.mjs'
+      - 'src/staging/stagingAuthInspectorV3131.mjs'
+      - 'docs/sql-proposals/canonical-work/preparation*'
+      - 'scripts/check-work-preparation*'
       - 'src/core/customerFormDiscovery.mjs'
       - 'src/core/customerFormRecovery.mjs'
       - 'src/core/customerFormTransport.mjs'
@@ -130,6 +139,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-work-preparation.mjs
           node scripts/check-customer-form-discovery.mjs
           node scripts/check-public-collection-parity.mjs
           node scripts/check-customer-form-journey.mjs
@@ -195,6 +205,12 @@ jobs:
           if [ "$FORM_CHECK_EXIT" -ne 0 ]; then tail -n 35 .test-artifacts/app-goal-composition/public-form-postgres.log; exit "$FORM_CHECK_EXIT"; fi
           cp .test-artifacts/public-form/postgres.json .test-artifacts/app-goal-composition/public-form-postgres.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/public-form-postgres.json'));print('BUSY_PUBLIC_FORM_POSTGRES '+json.dumps(d['summary']))"
+          set +e
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-work-preparation-postgres.mjs > .test-artifacts/app-goal-composition/work-preparation-postgres.log 2>&1
+          PREPARATION_CHECK_EXIT=$?
+          set -e
+          if [ "$PREPARATION_CHECK_EXIT" -ne 0 ]; then tail -n 40 .test-artifacts/app-goal-composition/work-preparation-postgres.log; exit "$PREPARATION_CHECK_EXIT"; fi
+          cp .test-artifacts/work-preparation/postgres.json .test-artifacts/app-goal-composition/work-preparation-postgres.json
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1
