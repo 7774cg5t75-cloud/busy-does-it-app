@@ -1,0 +1,4953 @@
+{
+  "mission": "Owner-defined private Work preparations",
+  "date": "2026-11-01",
+  "startingRemoteCommit": "998c2ed381cfeb4326146477729635f24374b02a",
+  "startingTree": "454c747da99656fadc755a60246dc553e75b5543",
+  "functionalRemoteCommit": "7f08f873d82f6251e57d255b5b4ecb362cf3e60b",
+  "functionalLocalEquivalent": "01f1a339ae24cd05011b257f6330bbc2f8db5f3a",
+  "functionalTree": "93def3fda2243b68cc73215869d7355418d406df",
+  "master": {
+    "version": "22.73",
+    "originalSha256": "23793f82b471328bdd216897c212999a430652e19228fcb221a8ee16a7ddc272",
+    "paragraphs": 2904,
+    "tables": 19,
+    "privateBytesCommitted": false
+  },
+  "authorities": {
+    "record": "public.business_work_engagements",
+    "originalSource": "busy_work_source_review_v1 under verified owner JWT",
+    "transport": "original busy-mini-apps owner boundary, finite private_work_preparation action",
+    "persistence": "service-only preparation read/write; membership/snapshot/quote CAS",
+    "storage": "private columns on original Work row; no second Work or customer database",
+    "state": "Prepared quote, owner-only preparation; never booking/job/financial status",
+    "undoDepth": 5,
+    "maxStages": 8,
+    "maxTasksPerStage": 12,
+    "maxOperations": 512,
+    "automaticActions": false,
+    "liveEnabled": false,
+    "basis": "Service-only busy_work_preparation_basis_v1; no raw table reads",
+    "rawServiceWorkGrants": "Closed and regression asserted"
+  },
+  "localEvidence": {
+    "workPreparationPostgresBeforeFinalRefinements": {
+      "hosted": false,
+      "syntheticAuth": true,
+      "results": [
+        {
+          "id": "review-fuse-atomic-install-and-default-closed",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-0",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-1",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-2",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "cross-business-owner-membership-and-raw-grants-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "malformed-duplicate-unknown-action-and-stage-transition-denials",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "concurrent-CAS-exact-once-and-explicit-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "lost-acknowledgement-readback-without-replay-and-stale-source-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "direct-sql-malformed-plan-and-unknown-business-actions-refused",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "revocation-serializes-with-current-preparation-read",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "quote-revision-changes-require-fresh-preparation-review",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "retaining-rollback-closes-preparation-with-original-records-intact",
+          "passed": true,
+          "exitCode": 0
+        }
+      ],
+      "summary": {
+        "passed": 12,
+        "failed": 0
+      }
+    },
+    "coreRegression": {
+      "exitCode": 0
+    },
+    "originalWorkParent": {
+      "exitCode": 0
+    },
+    "originalWorkContinuation": {
+      "exitCode": 0
+    },
+    "foundation": {
+      "assertions": 105,
+      "exitCode": 0
+    },
+    "syntax": {
+      "files": 9,
+      "exitCode": 0,
+      "subsequentCorrectionFiles": 3,
+      "subsequentCorrectionExit": 0
+    },
+    "architecture": {
+      "exitCode": 0
+    },
+    "securityBaseline": {
+      "exitCode": 0,
+      "sourceFiles": 968,
+      "lockedPackages": 557
+    },
+    "securityByDesign": {
+      "exitCode": 0
+    },
+    "dependencyGuard": {
+      "exitCode": 0,
+      "lockChanged": false,
+      "newDependencies": false
+    },
+    "proposalHashes": {
+      "matched": 2
+    },
+    "browser": {
+      "exitCode": 1,
+      "reason": "Missing Playwright Chromium executable; sandbox enabled; no bypass/download/retry",
+      "screenshots": []
+    }
+  },
+  "failedOrSuperseded": [
+    {
+      "runId": 41351309261,
+      "source": "7c14e0b25186ca938627936a55a0114fbc24b8b9",
+      "exitCode": 1,
+      "stage": "genuine Deno checking",
+      "error": "TS7006 implicit-any callback parameter",
+      "correction": "Explicit Record<string,unknown> annotation; no validation/assertion weakening",
+      "artifactDigest": "sha256:f2e3c16083361cd1e1397aef1e9679157014c5513ef821698470b98bbf971e9a"
+    },
+    {
+      "runId": 41351442747,
+      "source": "005f110fee1e9b43d1ab5dcc4e47d9b9b3d4449b",
+      "conclusion": "cancelled",
+      "reason": "Superseded by Deno annotation correction"
+    },
+    {
+      "scope": "private master extraction command",
+      "exitCode": 1,
+      "error": "Python syntax typo",
+      "correctedExitCode": 0
+    },
+    {
+      "scope": "changelog fetch",
+      "observedCurlError": 7,
+      "reason": "restricted proxy connection unavailable; current docs search succeeded"
+    },
+    {
+      "scope": "last local permission-enabled test/fetch tool requests",
+      "status": "interrupted",
+      "exitCode": null,
+      "passingClaim": false
+    },
+    {
+      "scope": "initial raw service read integration",
+      "status": "corrected",
+      "reason": "Original Work raw service grants deliberately closed; old fixture used privileged raw reads",
+      "correction": "Service-only finite basis RPC, original grants unchanged; fixture rejects raw access and asserts real role denial"
+    },
+    {
+      "runId": 41351512187,
+      "source": "d2dd08f64f387f859eedc5efe273b08add451cba",
+      "conclusion": "cancelled",
+      "reason": "Superseded by closed-grant finite basis correction; never final evidence"
+    }
+  ],
+  "preserved": {
+    "publicFormsAndReceiptRecovery": true,
+    "customerInboxWorkProvenance": true,
+    "privateArtifacts": true,
+    "websiteAndAppBuilder": true,
+    "sixHomeAreasAndPremiumMidnight": true,
+    "nativeCrypto": true,
+    "deepmergeGuard": true,
+    "centralAiBudget": true
+  },
+  "remainingGates": [
+    "No hosted SQL installation or activation",
+    "No hosted JWT/RLS/PostgREST acceptance",
+    "No device or browser pixel acceptance",
+    "No generic job lifecycle or staff permissions",
+    "No external actions or automated workflow",
+    "No cross-session own-operation receipt reconstruction",
+    "Separate privacy/retention/erasure and independent release assurance"
+  ],
+  "nextPriority": "Original canonical private preparation kind directly from filed enquiries without placeholder quotes, then owner-only App operational screen; separately reviewed job/staff/automation lifecycle",
+  "ci": {
+    "runs": [
+      {
+        "id": 41352577640,
+        "name": "V3.66 voice and project Operator checks",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41352577640"
+      },
+      {
+        "id": 41352577663,
+        "name": "V3.64 private growth workspace checks",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41352577663"
+      },
+      {
+        "id": 41352577642,
+        "name": "V3.65 Growth Command Centre checks",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41352577642"
+      },
+      {
+        "id": 41352577693,
+        "name": "V3.69 Founder Operations Security",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41352577693"
+      },
+      {
+        "id": 41352577657,
+        "name": "V3.70 Platform Autopilot checks",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41352577657"
+      },
+      {
+        "id": 41352577662,
+        "name": "V3.63 coordinated editable growth checks",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41352577662"
+      },
+      {
+        "id": 41352573925,
+        "name": "Private App goal composition and original authority verification",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41352573925"
+      }
+    ],
+    "prs": [
+      {
+        "number": 26,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "7f08f873d82f6251e57d255b5b4ecb362cf3e60b",
+        "base": "codex/builder-mission14-intelligent-followups"
+      },
+      {
+        "number": 25,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+        "base": "codex/builder-mission13-customer-conversations"
+      },
+      {
+        "number": 24,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+        "base": "codex/builder-mission12-connected-journeys"
+      },
+      {
+        "number": 23,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "f9b11034449a8d401ea71afe27627c5715325c72",
+        "base": "codex/disposable-supabase-review"
+      },
+      {
+        "number": 21,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "55db12d247b149aa2052fc17f5d5dc536a77b8a7",
+        "base": "codex/builder-mission11-shared-records"
+      }
+    ],
+    "artifact": {
+      "id": 13102676803,
+      "digest": "sha256:79ac961aeebe4299ec653675c3bb6669922c10864e2c27ac0c295d35a6994c00",
+      "size": 72721
+    },
+    "ancestry": {
+      "status": "ahead",
+      "ahead": 4,
+      "behind": 0,
+      "commits": [
+        "7c14e0b25186ca938627936a55a0114fbc24b8b9",
+        "005f110fee1e9b43d1ab5dcc4e47d9b9b3d4449b",
+        "d2dd08f64f387f859eedc5efe273b08add451cba",
+        "7f08f873d82f6251e57d255b5b4ecb362cf3e60b"
+      ],
+      "changedFiles": 19
+    },
+    "sourceEvidence": {
+      "sourceSha": "7f08f873d82f6251e57d255b5b4ecb362cf3e60b",
+      "sourceTree": "93def3fda2243b68cc73215869d7355418d406df",
+      "finalSourceSha": "7f08f873d82f6251e57d255b5b4ecb362cf3e60b",
+      "finalSourceTree": "93def3fda2243b68cc73215869d7355418d406df",
+      "sourceStable": true,
+      "workingTreeChanged": false,
+      "finalWorkingTreeEntries": [],
+      "summary": {
+        "passed": 477,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      },
+      "selectionSha256": "c0a1d339c64490c6dbc04e18d20ac53fc97311e1648e89f6069ec09f6da5f54f",
+      "startedAt": "2026-11-01T21:36:07.907913+00:00",
+      "finishedAt": "2026-11-01T21:48:17.075407+00:00"
+    },
+    "applicationExitCode": 0,
+    "applicationChecks": [
+      {
+        "id": "check-connected-gateway-readiness",
+        "args": [
+          "scripts/check-connected-gateway-readiness.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-workflow-interiors",
+        "args": [
+          "scripts/check-workflow-interiors.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission13-conversations",
+        "args": [
+          "scripts/check-mission13-conversations.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission13-private-recovery",
+        "args": [
+          "scripts/check-mission13-private-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission13-customer-surfaces",
+        "args": [
+          "scripts/check-mission13-customer-surfaces.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission13-communication-truth",
+        "args": [
+          "scripts/check-mission13-communication-truth.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission12-content-enquiry",
+        "args": [
+          "scripts/check-mission12-content-enquiry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission12-builder-reuse",
+        "args": [
+          "scripts/check-mission12-builder-reuse.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission12-intent",
+        "args": [
+          "scripts/check-mission12-intent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission12-live-form-logic",
+        "args": [
+          "scripts/check-mission12-live-form-logic.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission12-public-handoff",
+        "args": [
+          "scripts/check-mission12-public-handoff.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission12-record-review",
+        "args": [
+          "scripts/check-mission12-record-review.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission12-standalone-continuity",
+        "args": [
+          "scripts/check-mission12-standalone-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission11-records",
+        "args": [
+          "scripts/check-mission11-records.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission11-intelligence",
+        "args": [
+          "scripts/check-mission11-intelligence.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission11-public-views",
+        "args": [
+          "scripts/check-mission11-public-views.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-goal-content",
+        "args": [
+          "scripts/check-app-goal-content.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-goal-editing",
+        "args": [
+          "scripts/check-app-goal-editing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-goal-decisions",
+        "args": [
+          "scripts/check-app-goal-decisions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-builder-dual-track-v3153",
+        "args": [
+          "scripts/check-app-builder-dual-track-v3153.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission10-information-reuse",
+        "args": [
+          "scripts/check-mission10-information-reuse.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission9-builder-language",
+        "args": [
+          "scripts/check-mission9-builder-language.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission10-public-information",
+        "args": [
+          "scripts/check-mission10-public-information.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission10-service-details",
+        "args": [
+          "scripts/check-mission10-service-details.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-owner-outcome-v3235",
+        "args": [
+          "scripts/check-owner-outcome-v3235.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-communications-v3205",
+        "args": [
+          "scripts/check-communications-v3205.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-customer-journey-v3204",
+        "args": [
+          "scripts/check-customer-journey-v3204.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission9-reply-continuity",
+        "args": [
+          "scripts/check-mission9-reply-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission9-request-recovery",
+        "args": [
+          "scripts/check-mission9-request-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-message-integrity-v3185",
+        "args": [
+          "scripts/check-message-integrity-v3185.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-builder-intelligence-v3240",
+        "args": [
+          "scripts/check-builder-intelligence-v3240.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission14-contextual-replies",
+        "args": [
+          "scripts/check-mission14-contextual-replies.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission14-content-intelligence",
+        "args": [
+          "scripts/check-mission14-content-intelligence.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission14-experience-recovery",
+        "args": [
+          "scripts/check-mission14-experience-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-standalone-native-v3154",
+        "args": [
+          "scripts/check-standalone-native-v3154.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-editing-preview",
+        "args": [
+          "scripts/check-mission15-editing-preview.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-app-services",
+        "args": [
+          "scripts/check-mission15-app-services.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-design-candidates",
+        "args": [
+          "scripts/check-mission15-design-candidates.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-coherence",
+        "args": [
+          "scripts/check-mission15-coherence.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-page-instructions-v3149",
+        "args": [
+          "scripts/check-website-page-instructions-v3149.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-context-plan-v3147",
+        "args": [
+          "scripts/check-website-context-plan-v3147.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-context-v3140",
+        "args": [
+          "scripts/check-website-context-v3140.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-measured-coach-v3144",
+        "args": [
+          "scripts/check-website-measured-coach-v3144.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-coordinated-alternatives",
+        "args": [
+          "scripts/check-website-coordinated-alternatives.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission7-website-decisions",
+        "args": [
+          "scripts/check-mission7-website-decisions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-major-builders-v3195",
+        "args": [
+          "scripts/check-major-builders-v3195.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase2-copy",
+        "args": [
+          "scripts/check-mission15-phase2-copy.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase2-responsive",
+        "args": [
+          "scripts/check-mission15-phase2-responsive.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase2-services",
+        "args": [
+          "scripts/check-mission15-phase2-services.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase2-measured-reading",
+        "args": [
+          "scripts/check-mission15-phase2-measured-reading.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase2-request-intent",
+        "args": [
+          "scripts/check-mission15-phase2-request-intent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase2-transfer-review",
+        "args": [
+          "scripts/check-mission15-phase2-transfer-review.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-studio-session",
+        "args": [
+          "scripts/check-app-studio-session.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-studio-checkpoint",
+        "args": [
+          "scripts/check-app-studio-checkpoint.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "build-website-design-gallery-v3100",
+        "args": [
+          "scripts/build-website-design-gallery-v3100.mjs",
+          "/tmp/busy-mission15-phase2-gallery"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-builder-visual-receipt-v3238",
+        "args": [
+          "scripts/check-builder-visual-receipt-v3238.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase3-composition",
+        "args": [
+          "scripts/check-mission15-phase3-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase3-content-review",
+        "args": [
+          "scripts/check-mission15-phase3-content-review.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase3-gallery",
+        "args": [
+          "scripts/check-mission15-phase3-gallery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase3-language",
+        "args": [
+          "scripts/check-mission15-phase3-language.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase3-studio-recovery",
+        "args": [
+          "scripts/check-mission15-phase3-studio-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase4-app-capabilities",
+        "args": [
+          "scripts/check-mission15-phase4-app-capabilities.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase4-requirements",
+        "args": [
+          "scripts/check-mission15-phase4-requirements.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase4-website-spacing",
+        "args": [
+          "scripts/check-mission15-phase4-website-spacing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase5-approved-records",
+        "args": [
+          "scripts/check-mission15-phase5-approved-records.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase5-catalogue-editing",
+        "args": [
+          "scripts/check-mission15-phase5-catalogue-editing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase5-enquiry-review",
+        "args": [
+          "scripts/check-mission15-phase5-enquiry-review.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission11-composition",
+        "args": [
+          "scripts/check-mission11-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "prepare-standalone-prototype-v3154",
+        "args": [
+          "scripts/prepare-standalone-prototype-v3154.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase6-booking-review",
+        "args": [
+          "scripts/check-mission15-phase6-booking-review.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase6-hero-composition",
+        "args": [
+          "scripts/check-mission15-phase6-hero-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-distinct-website-designs-v3101",
+        "args": [
+          "scripts/check-distinct-website-designs-v3101.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-layout-v3134",
+        "args": [
+          "scripts/check-website-layout-v3134.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission8-shared-request-entry",
+        "args": [
+          "scripts/check-mission8-shared-request-entry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase7-visual-movement",
+        "args": [
+          "scripts/check-mission15-phase7-visual-movement.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase7-typography",
+        "args": [
+          "scripts/check-mission15-phase7-typography.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase7-app-selection",
+        "args": [
+          "scripts/check-mission15-phase7-app-selection.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-section-styling-v3139",
+        "args": [
+          "scripts/check-website-section-styling-v3139.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase7-reviewed-request",
+        "args": [
+          "scripts/check-mission15-phase7-reviewed-request.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase7-card-colours",
+        "args": [
+          "scripts/check-mission15-phase7-card-colours.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase7-page-movement",
+        "args": [
+          "scripts/check-mission15-phase7-page-movement.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-pages-v3135",
+        "args": [
+          "scripts/check-website-pages-v3135.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-website-tap-editor-v3138",
+        "args": [
+          "scripts/check-website-tap-editor-v3138.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase8-quality",
+        "args": [
+          "scripts/check-mission15-phase8-quality.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase8-sizing",
+        "args": [
+          "scripts/check-mission15-phase8-sizing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase8-service-questions",
+        "args": [
+          "scripts/check-mission15-phase8-service-questions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase8-website-suggestions",
+        "args": [
+          "scripts/check-mission15-phase8-website-suggestions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase9-studio-selection",
+        "args": [
+          "scripts/check-mission15-phase9-studio-selection.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase9-service-details",
+        "args": [
+          "scripts/check-mission15-phase9-service-details.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase9-browser-policy",
+        "args": [
+          "scripts/check-mission15-phase9-browser-policy.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase10-selected-images",
+        "args": [
+          "scripts/check-mission15-phase10-selected-images.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase10-website-toolbar",
+        "args": [
+          "scripts/check-mission15-phase10-website-toolbar.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase10-selected-instructions",
+        "args": [
+          "scripts/check-mission15-phase10-selected-instructions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase10-gallery-parity",
+        "args": [
+          "scripts/check-mission15-phase10-gallery-parity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-context-editor-v3155",
+        "args": [
+          "scripts/check-app-context-editor-v3155.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission7-app-intent",
+        "args": [
+          "scripts/check-mission7-app-intent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-voice-layout-v3156",
+        "args": [
+          "scripts/check-app-voice-layout-v3156.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase11-selected-services",
+        "args": [
+          "scripts/check-mission15-phase11-selected-services.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase11-website-pictures",
+        "args": [
+          "scripts/check-mission15-phase11-website-pictures.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase11-brand-controls",
+        "args": [
+          "scripts/check-mission15-phase11-brand-controls.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-visual-comparison-v3161",
+        "args": [
+          "scripts/check-app-visual-comparison-v3161.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-major-builders-v3193",
+        "args": [
+          "scripts/check-major-builders-v3193.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase11-selected-faq",
+        "args": [
+          "scripts/check-mission15-phase11-selected-faq.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase12-component-styles",
+        "args": [
+          "scripts/check-mission15-phase12-component-styles.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase12-explore",
+        "args": [
+          "scripts/check-mission15-phase12-explore.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase12-explore-handoff",
+        "args": [
+          "scripts/check-mission15-phase12-explore-handoff.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase13-explore-experience",
+        "args": [
+          "scripts/check-mission15-phase13-explore-experience.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase13-faq-styles",
+        "args": [
+          "scripts/check-mission15-phase13-faq-styles.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase13-trusted-explore",
+        "args": [
+          "scripts/check-mission15-phase13-trusted-explore.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase13-website-reading",
+        "args": [
+          "scripts/check-mission15-phase13-website-reading.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase14-image-styles",
+        "args": [
+          "scripts/check-mission15-phase14-image-styles.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase14-explore-context",
+        "args": [
+          "scripts/check-mission15-phase14-explore-context.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase14-picture-presets",
+        "args": [
+          "scripts/check-mission15-phase14-picture-presets.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase14-navigation-labels",
+        "args": [
+          "scripts/check-mission15-phase14-navigation-labels.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase15-service-buttons",
+        "args": [
+          "scripts/check-mission15-phase15-service-buttons.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase15-neutral-planning",
+        "args": [
+          "scripts/check-mission15-phase15-neutral-planning.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase15-brand-typography",
+        "args": [
+          "scripts/check-mission15-phase15-brand-typography.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase18-customer-browsing",
+        "args": [
+          "scripts/check-mission15-phase18-customer-browsing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase19-journeys",
+        "args": [
+          "scripts/check-mission15-phase19-journeys.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase19-editing",
+        "args": [
+          "scripts/check-mission15-phase19-editing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase20-catalogue",
+        "args": [
+          "scripts/check-mission15-phase20-catalogue.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase20-editing",
+        "args": [
+          "scripts/check-mission15-phase20-editing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase21-context",
+        "args": [
+          "scripts/check-mission15-phase21-context.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase21-editing",
+        "args": [
+          "scripts/check-mission15-phase21-editing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase21-draft-choices",
+        "args": [
+          "scripts/check-mission15-phase21-draft-choices.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase22-removal",
+        "args": [
+          "scripts/check-mission15-phase22-removal.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase22-composition",
+        "args": [
+          "scripts/check-mission15-phase22-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase22-editing",
+        "args": [
+          "scripts/check-mission15-phase22-editing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase23-field-contract",
+        "args": [
+          "scripts/check-mission15-phase23-field-contract.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase23-focus",
+        "args": [
+          "scripts/check-mission15-phase23-focus.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase23-editorial",
+        "args": [
+          "scripts/check-mission15-phase23-editorial.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase23-photo-controls",
+        "args": [
+          "scripts/check-mission15-phase23-photo-controls.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase23-catalogue-recovery",
+        "args": [
+          "scripts/check-mission15-phase23-catalogue-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase23-explore",
+        "args": [
+          "scripts/check-mission15-phase23-explore.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase24-comparisons",
+        "args": [
+          "scripts/check-mission15-phase24-comparisons.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase24-wording",
+        "args": [
+          "scripts/check-mission15-phase24-wording.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase24-service-composition",
+        "args": [
+          "scripts/check-mission15-phase24-service-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase24-catalogue-freshness",
+        "args": [
+          "scripts/check-mission15-phase24-catalogue-freshness.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase24-editor-scope",
+        "args": [
+          "scripts/check-mission15-phase24-editor-scope.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase24-explore",
+        "args": [
+          "scripts/check-mission15-phase24-explore.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase25-pictures",
+        "args": [
+          "scripts/check-mission15-phase25-pictures.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase25-wording",
+        "args": [
+          "scripts/check-mission15-phase25-wording.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase25-attachment-summary",
+        "args": [
+          "scripts/check-mission15-phase25-attachment-summary.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase25-reading",
+        "args": [
+          "scripts/check-mission15-phase25-reading.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase25-coordinated-controls",
+        "args": [
+          "scripts/check-mission15-phase25-coordinated-controls.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase25-explore",
+        "args": [
+          "scripts/check-mission15-phase25-explore.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase26-selected-explore",
+        "args": [
+          "scripts/check-mission15-phase26-selected-explore.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase26-draft-switch",
+        "args": [
+          "scripts/check-mission15-phase26-draft-switch.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase26-request-returns",
+        "args": [
+          "scripts/check-mission15-phase26-request-returns.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase26-faq-composition",
+        "args": [
+          "scripts/check-mission15-phase26-faq-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase26-editing-controls",
+        "args": [
+          "scripts/check-mission15-phase26-editing-controls.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase26-selected-advice",
+        "args": [
+          "scripts/check-mission15-phase26-selected-advice.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase27-button-drafts",
+        "args": [
+          "scripts/check-mission15-phase27-button-drafts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase27-design-feedback",
+        "args": [
+          "scripts/check-mission15-phase27-design-feedback.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase27-request-return",
+        "args": [
+          "scripts/check-mission15-phase27-request-return.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase27-service-index",
+        "args": [
+          "scripts/check-mission15-phase27-service-index.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase27-simple-controls",
+        "args": [
+          "scripts/check-mission15-phase27-simple-controls.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase27-service-advice",
+        "args": [
+          "scripts/check-mission15-phase27-service-advice.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase27-selected-feedback",
+        "args": [
+          "scripts/check-mission15-phase27-selected-feedback.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase28-navigation",
+        "args": [
+          "scripts/check-mission15-phase28-navigation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase28-reconsider",
+        "args": [
+          "scripts/check-mission15-phase28-reconsider.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase28-returns",
+        "args": [
+          "scripts/check-mission15-phase28-returns.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase28-page-guide",
+        "args": [
+          "scripts/check-mission15-phase28-page-guide.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase28-customer-controls",
+        "args": [
+          "scripts/check-mission15-phase28-customer-controls.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase28-explore",
+        "args": [
+          "scripts/check-mission15-phase28-explore.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase28-legacy-copy",
+        "args": [
+          "scripts/check-mission15-phase28-legacy-copy.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-legacy-drafts",
+        "args": [
+          "scripts/check-mission15-phase29-legacy-drafts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-approval-conflicts",
+        "args": [
+          "scripts/check-mission15-phase29-approval-conflicts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-page-reconsider",
+        "args": [
+          "scripts/check-mission15-phase29-page-reconsider.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-article-layout",
+        "args": [
+          "scripts/check-mission15-phase29-article-layout.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-option-readback",
+        "args": [
+          "scripts/check-mission15-phase29-option-readback.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-source-transitions",
+        "args": [
+          "scripts/check-mission15-phase29-source-transitions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-explore-reading",
+        "args": [
+          "scripts/check-mission15-phase29-explore-reading.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-dispatch-epoch",
+        "args": [
+          "scripts/check-mission15-phase29-dispatch-epoch.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase29-website-drafts",
+        "args": [
+          "scripts/check-mission15-phase29-website-drafts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase30-website-mutation",
+        "args": [
+          "scripts/check-mission15-phase30-website-mutation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase30-history",
+        "args": [
+          "scripts/check-mission15-phase30-history.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase30-save-ack",
+        "args": [
+          "scripts/check-mission15-phase30-save-ack.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase30-testimonials",
+        "args": [
+          "scripts/check-mission15-phase30-testimonials.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase30-service-return",
+        "args": [
+          "scripts/check-mission15-phase30-service-return.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase30-photo-backup",
+        "args": [
+          "scripts/check-mission15-phase30-photo-backup.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase30-explore",
+        "args": [
+          "scripts/check-mission15-phase30-explore.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase31-pages",
+        "args": [
+          "scripts/check-mission15-phase31-pages.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase31-service-resume",
+        "args": [
+          "scripts/check-mission15-phase31-service-resume.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase31-cloud-drafts",
+        "args": [
+          "scripts/check-mission15-phase31-cloud-drafts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase31-independent-editors",
+        "args": [
+          "scripts/check-mission15-phase31-independent-editors.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase31-home",
+        "args": [
+          "scripts/check-mission15-phase31-home.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase31-service-content",
+        "args": [
+          "scripts/check-mission15-phase31-service-content.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase31-growth-content",
+        "args": [
+          "scripts/check-mission15-phase31-growth-content.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase31-text-drafts",
+        "args": [
+          "scripts/check-mission15-phase31-text-drafts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-service-intent",
+        "args": [
+          "scripts/check-mission15-phase32-service-intent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-growth-handoff",
+        "args": [
+          "scripts/check-mission15-phase32-growth-handoff.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-content-save",
+        "args": [
+          "scripts/check-mission15-phase32-content-save.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-approved-profile",
+        "args": [
+          "scripts/check-mission15-phase32-approved-profile.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-home-content",
+        "args": [
+          "scripts/check-mission15-phase32-home-content.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-marketing-goals",
+        "args": [
+          "scripts/check-mission15-phase32-marketing-goals.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-manual-content",
+        "args": [
+          "scripts/check-mission15-phase32-manual-content.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-caption-races",
+        "args": [
+          "scripts/check-mission15-phase32-caption-races.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-source-choice",
+        "args": [
+          "scripts/check-mission15-phase32-source-choice.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-transcript-parity",
+        "args": [
+          "scripts/check-mission15-phase32-transcript-parity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase32-save-freshness",
+        "args": [
+          "scripts/check-mission15-phase32-save-freshness.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-introduction",
+        "args": [
+          "scripts/check-mission15-phase33-introduction.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-approved-records",
+        "args": [
+          "scripts/check-mission15-phase33-approved-records.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-device-recovery",
+        "args": [
+          "scripts/check-mission15-phase33-device-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-announcements",
+        "args": [
+          "scripts/check-mission15-phase33-announcements.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-growth-home",
+        "args": [
+          "scripts/check-mission15-phase33-growth-home.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-creator-starts",
+        "args": [
+          "scripts/check-mission15-phase33-creator-starts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-new-post-safety",
+        "args": [
+          "scripts/check-mission15-phase33-new-post-safety.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-cloud-freshness",
+        "args": [
+          "scripts/check-mission15-phase33-cloud-freshness.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-growth-records",
+        "args": [
+          "scripts/check-mission15-phase33-growth-records.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-source-continuity",
+        "args": [
+          "scripts/check-mission15-phase33-source-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase33-talk-parity",
+        "args": [
+          "scripts/check-mission15-phase33-talk-parity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-natural-content",
+        "args": [
+          "scripts/check-mission15-phase34-natural-content.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-wording",
+        "args": [
+          "scripts/check-mission15-phase34-wording.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-publication-freshness",
+        "args": [
+          "scripts/check-mission15-phase34-publication-freshness.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-management-actions",
+        "args": [
+          "scripts/check-mission15-phase34-management-actions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-job-start",
+        "args": [
+          "scripts/check-mission15-phase34-job-start.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-account-readback",
+        "args": [
+          "scripts/check-mission15-phase34-account-readback.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-queue-continuity",
+        "args": [
+          "scripts/check-mission15-phase34-queue-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-inbox-quote",
+        "args": [
+          "scripts/check-mission15-phase34-inbox-quote.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-record-wording",
+        "args": [
+          "scripts/check-mission15-phase34-record-wording.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-home-quote",
+        "args": [
+          "scripts/check-mission15-phase34-home-quote.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-receipt-identity",
+        "args": [
+          "scripts/check-mission15-phase34-receipt-identity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase34-quote-scope",
+        "args": [
+          "scripts/check-mission15-phase34-quote-scope.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase35-growth-treatment",
+        "args": [
+          "scripts/check-mission15-phase35-growth-treatment.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase35-catalogue-treatment",
+        "args": [
+          "scripts/check-mission15-phase35-catalogue-treatment.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase35-publish-claims",
+        "args": [
+          "scripts/check-mission15-phase35-publish-claims.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase35-quote-transition",
+        "args": [
+          "scripts/check-mission15-phase35-quote-transition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase35-quote-outcome",
+        "args": [
+          "scripts/check-mission15-phase35-quote-outcome.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase35-catalogue-option",
+        "args": [
+          "scripts/check-mission15-phase35-catalogue-option.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase36-source-treatment",
+        "args": [
+          "scripts/check-mission15-phase36-source-treatment.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase36-talk-treatment",
+        "args": [
+          "scripts/check-mission15-phase36-talk-treatment.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase36-quote-review",
+        "args": [
+          "scripts/check-mission15-phase36-quote-review.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase36-record-continuity",
+        "args": [
+          "scripts/check-mission15-phase36-record-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase36-quote-navigation",
+        "args": [
+          "scripts/check-mission15-phase36-quote-navigation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase36-quote-device-copy",
+        "args": [
+          "scripts/check-mission15-phase36-quote-device-copy.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase36-cancel-revision",
+        "args": [
+          "scripts/check-mission15-phase36-cancel-revision.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase36-home-prepared-quote",
+        "args": [
+          "scripts/check-mission15-phase36-home-prepared-quote.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase36-core-routing",
+        "args": [
+          "scripts/check-mission15-phase36-core-routing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase37-enquiry-quote-return",
+        "args": [
+          "scripts/check-mission15-phase37-enquiry-quote-return.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase37-customer-enquiry",
+        "args": [
+          "scripts/check-mission15-phase37-customer-enquiry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase37-talk-quote",
+        "args": [
+          "scripts/check-mission15-phase37-talk-quote.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase37-content-reprepare",
+        "args": [
+          "scripts/check-mission15-phase37-content-reprepare.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase37-home-inbox",
+        "args": [
+          "scripts/check-mission15-phase37-home-inbox.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase37-reopened-content",
+        "args": [
+          "scripts/check-mission15-phase37-reopened-content.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase37-recorded-quote-status",
+        "args": [
+          "scripts/check-mission15-phase37-recorded-quote-status.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase38-quote-reference",
+        "args": [
+          "scripts/check-mission15-phase38-quote-reference.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase38-quote-recovery",
+        "args": [
+          "scripts/check-mission15-phase38-quote-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase38-current-enquiry",
+        "args": [
+          "scripts/check-mission15-phase38-current-enquiry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase38-content-draft-fields",
+        "args": [
+          "scripts/check-mission15-phase38-content-draft-fields.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase38-followup-enquiry",
+        "args": [
+          "scripts/check-mission15-phase38-followup-enquiry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase39-followup-review",
+        "args": [
+          "scripts/check-mission15-phase39-followup-review.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase39-home-quote-review",
+        "args": [
+          "scripts/check-mission15-phase39-home-quote-review.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase39-review-to-followup",
+        "args": [
+          "scripts/check-mission15-phase39-review-to-followup.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase39-unsaved-content-home",
+        "args": [
+          "scripts/check-mission15-phase39-unsaved-content-home.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase39-talk-current-content",
+        "args": [
+          "scripts/check-mission15-phase39-talk-current-content.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase40-quote-selection",
+        "args": [
+          "scripts/check-mission15-phase40-quote-selection.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase40-creator-formats",
+        "args": [
+          "scripts/check-mission15-phase40-creator-formats.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase40-growth-formats",
+        "args": [
+          "scripts/check-mission15-phase40-growth-formats.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase40-talk-formats",
+        "args": [
+          "scripts/check-mission15-phase40-talk-formats.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase40-followup-context",
+        "args": [
+          "scripts/check-mission15-phase40-followup-context.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase40-growth-source-choice",
+        "args": [
+          "scripts/check-mission15-phase40-growth-source-choice.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase40-home-quote-selection",
+        "args": [
+          "scripts/check-mission15-phase40-home-quote-selection.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase40-followup-authority",
+        "args": [
+          "scripts/check-mission15-phase40-followup-authority.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase41-item-formats",
+        "args": [
+          "scripts/check-mission15-phase41-item-formats.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase41-growth-item-formats",
+        "args": [
+          "scripts/check-mission15-phase41-growth-item-formats.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase41-talk-item-formats",
+        "args": [
+          "scripts/check-mission15-phase41-talk-item-formats.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase41-enquiry-replies",
+        "args": [
+          "scripts/check-mission15-phase41-enquiry-replies.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase41-reply-questions",
+        "args": [
+          "scripts/check-mission15-phase41-reply-questions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase41-talk-replies",
+        "args": [
+          "scripts/check-mission15-phase41-talk-replies.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase41-home-replies",
+        "args": [
+          "scripts/check-mission15-phase41-home-replies.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase41-reply-source-removal",
+        "args": [
+          "scripts/check-mission15-phase41-reply-source-removal.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase42-reply-save",
+        "args": [
+          "scripts/check-mission15-phase42-reply-save.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase42-owner-formats",
+        "args": [
+          "scripts/check-mission15-phase42-owner-formats.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase42-reply-information",
+        "args": [
+          "scripts/check-mission15-phase42-reply-information.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase42-saved-reply-home",
+        "args": [
+          "scripts/check-mission15-phase42-saved-reply-home.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase42-reply-recovery",
+        "args": [
+          "scripts/check-mission15-phase42-reply-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase43-growth-announcement",
+        "args": [
+          "scripts/check-mission15-phase43-growth-announcement.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase43-reply-canonical",
+        "args": [
+          "scripts/check-mission15-phase43-reply-canonical.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase43-reply-account",
+        "args": [
+          "scripts/check-mission15-phase43-reply-account.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase43-reply-management",
+        "args": [
+          "scripts/check-mission15-phase43-reply-management.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase43-connected-routing",
+        "args": [
+          "scripts/check-mission15-phase43-connected-routing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase43-date-flexibility",
+        "args": [
+          "scripts/check-mission15-phase43-date-flexibility.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase44-announcement-reuse",
+        "args": [
+          "scripts/check-mission15-phase44-announcement-reuse.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase44-removal-account",
+        "args": [
+          "scripts/check-mission15-phase44-removal-account.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase44-own-revision",
+        "args": [
+          "scripts/check-mission15-phase44-own-revision.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase44-newsletter",
+        "args": [
+          "scripts/check-mission15-phase44-newsletter.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase44-newsletter-talk",
+        "args": [
+          "scripts/check-mission15-phase44-newsletter-talk.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase44-removal-parent",
+        "args": [
+          "scripts/check-mission15-phase44-removal-parent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase44-home-newsletter",
+        "args": [
+          "scripts/check-mission15-phase44-home-newsletter.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase45-approved-newsletters",
+        "args": [
+          "scripts/check-mission15-phase45-approved-newsletters.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase45-newsletter-editing",
+        "args": [
+          "scripts/check-mission15-phase45-newsletter-editing.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase45-reply-receipt",
+        "args": [
+          "scripts/check-mission15-phase45-reply-receipt.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase45-newsletter-parent",
+        "args": [
+          "scripts/check-mission15-phase45-newsletter-parent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase46-newsletter-preview",
+        "args": [
+          "scripts/check-mission15-phase46-newsletter-preview.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase46-newsletter-account",
+        "args": [
+          "scripts/check-mission15-phase46-newsletter-account.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase46-reply-adapter",
+        "args": [
+          "scripts/check-mission15-phase46-reply-adapter.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase46-newsletter-exact",
+        "args": [
+          "scripts/check-mission15-phase46-newsletter-exact.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase47-newsletter-recovery",
+        "args": [
+          "scripts/check-mission15-phase47-newsletter-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase47-content-restoration",
+        "args": [
+          "scripts/check-mission15-phase47-content-restoration.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase47-enquiry-requirements",
+        "args": [
+          "scripts/check-mission15-phase47-enquiry-requirements.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase48-enquiry-quote",
+        "args": [
+          "scripts/check-mission15-phase48-enquiry-quote.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase48-approved-knowledge",
+        "args": [
+          "scripts/check-mission15-phase48-approved-knowledge.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase48-newsletter-copy",
+        "args": [
+          "scripts/check-mission15-phase48-newsletter-copy.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase48-quote-boundary",
+        "args": [
+          "scripts/check-mission15-phase48-quote-boundary.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase49-catalogue-quote",
+        "args": [
+          "scripts/check-mission15-phase49-catalogue-quote.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase49-newsletter-source",
+        "args": [
+          "scripts/check-mission15-phase49-newsletter-source.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase49-enquiry-projection",
+        "args": [
+          "scripts/check-mission15-phase49-enquiry-projection.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase50-older-enquiry",
+        "args": [
+          "scripts/check-mission15-phase50-older-enquiry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase50-newsletter-dirty",
+        "args": [
+          "scripts/check-mission15-phase50-newsletter-dirty.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase50-quote-fields",
+        "args": [
+          "scripts/check-mission15-phase50-quote-fields.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase50-runtime-loading",
+        "args": [
+          "scripts/check-mission15-phase50-runtime-loading.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase51-catalogue-reply",
+        "args": [
+          "scripts/check-mission15-phase51-catalogue-reply.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase51-newsletter-recovery",
+        "args": [
+          "scripts/check-mission15-phase51-newsletter-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase51-known-requirements",
+        "args": [
+          "scripts/check-mission15-phase51-known-requirements.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase52-reply-provenance",
+        "args": [
+          "scripts/check-mission15-phase52-reply-provenance.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase52-newsletter-versions",
+        "args": [
+          "scripts/check-mission15-phase52-newsletter-versions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase52-owner-tone",
+        "args": [
+          "scripts/check-mission15-phase52-owner-tone.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase52-retention-contract",
+        "args": [
+          "scripts/check-mission15-phase52-retention-contract.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase52-newsletter-boundary",
+        "args": [
+          "scripts/check-mission15-phase52-newsletter-boundary.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase53-reply-recovery",
+        "args": [
+          "scripts/check-mission15-phase53-reply-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase53-newsletter-comparison",
+        "args": [
+          "scripts/check-mission15-phase53-newsletter-comparison.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase53-snapshot-compatibility",
+        "args": [
+          "scripts/check-mission15-phase53-snapshot-compatibility.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase53-approved-area",
+        "args": [
+          "scripts/check-mission15-phase53-approved-area.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase54-private-write-boundary",
+        "args": [
+          "scripts/check-mission15-phase54-private-write-boundary.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase54-reply-evidence",
+        "args": [
+          "scripts/check-mission15-phase54-reply-evidence.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase54-newsletter-device",
+        "args": [
+          "scripts/check-mission15-phase54-newsletter-device.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase54-approved-contact",
+        "args": [
+          "scripts/check-mission15-phase54-approved-contact.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase55-recovery-explanations",
+        "args": [
+          "scripts/check-mission15-phase55-recovery-explanations.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase56-reply-requirements",
+        "args": [
+          "scripts/check-mission15-phase56-reply-requirements.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase56-newsletter-inspection",
+        "args": [
+          "scripts/check-mission15-phase56-newsletter-inspection.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase57-fresh-clarification",
+        "args": [
+          "scripts/check-mission15-phase57-fresh-clarification.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase58-writer-proposal",
+        "args": [
+          "scripts/check-mission15-phase58-writer-proposal.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase59-cutover",
+        "args": [
+          "scripts/check-mission15-phase59-cutover.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase60-account-reply",
+        "args": [
+          "scripts/check-mission15-phase60-account-reply.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase61-reconciliation",
+        "args": [
+          "scripts/check-mission15-phase61-reconciliation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase62-bootstrap",
+        "args": [
+          "scripts/check-mission15-phase62-bootstrap.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase62-services",
+        "args": [
+          "scripts/check-mission15-phase62-services.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase63-recovery",
+        "args": [
+          "scripts/check-mission15-phase63-recovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase64-recovered-save",
+        "args": [
+          "scripts/check-mission15-phase64-recovered-save.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase64-filing-parent",
+        "args": [
+          "scripts/check-mission15-phase64-filing-parent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase65-first-journey",
+        "args": [
+          "scripts/check-mission15-phase65-first-journey.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-phase66-interrupted-enquiries",
+        "args": [
+          "scripts/check-mission15-phase66-interrupted-enquiries.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase67-appearance",
+        "args": [
+          "scripts/check-mission15-phase67-appearance.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase67-parent",
+        "args": [
+          "scripts/check-mission15-phase67-parent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase68-working-surfaces",
+        "args": [
+          "scripts/check-mission15-phase68-working-surfaces.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-phase69-workspaces",
+        "args": [
+          "scripts/check-mission15-phase69-workspaces.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "native-screenshot-pipeline",
+        "args": [
+          "scripts/check-native-screenshot-pipeline.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-working-surface-continuity",
+        "args": [
+          "scripts/check-mission15-working-surface-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-contact-editor-continuity",
+        "args": [
+          "scripts/check-mission15-contact-editor-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-navigation-workspaces",
+        "args": [
+          "scripts/check-mission15-navigation-workspaces.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-conversation-workspaces",
+        "args": [
+          "scripts/check-mission15-conversation-workspaces.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-gallery-recovery-ui",
+        "args": [
+          "scripts/check-mission15-gallery-recovery-ui.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-booking-edit-continuity",
+        "args": [
+          "scripts/check-mission15-booking-edit-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-connected-booking-status",
+        "args": [
+          "scripts/check-mission15-connected-booking-status.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-useful-customer-continuity",
+        "args": [
+          "scripts/check-mission15-useful-customer-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-source-bound-bookings",
+        "args": [
+          "scripts/check-mission15-source-bound-bookings.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-saturday-work-quotes",
+        "args": [
+          "scripts/check-mission15-saturday-work-quotes.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-saturday-content-builders",
+        "args": [
+          "scripts/check-mission15-saturday-content-builders.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-returning-private-followup",
+        "args": [
+          "scripts/check-mission15-returning-private-followup.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-returning-content-builders",
+        "args": [
+          "scripts/check-mission15-returning-content-builders.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-account-work-reader",
+        "args": [
+          "scripts/check-mission15-account-work-reader.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-followup-device-continuity",
+        "args": [
+          "scripts/check-mission15-followup-device-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-content-target-continuity",
+        "args": [
+          "scripts/check-mission15-content-target-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-request-draft-continuity",
+        "args": [
+          "scripts/check-mission15-request-draft-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-returning-account-context",
+        "args": [
+          "scripts/check-mission15-returning-account-context.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-followup-checked-reopen",
+        "args": [
+          "scripts/check-mission15-followup-checked-reopen.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-social-wording-continuation",
+        "args": [
+          "scripts/check-mission15-social-wording-continuation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-builder-recovery-readback",
+        "args": [
+          "scripts/check-mission15-builder-recovery-readback.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-enquiry-quote-work-entry",
+        "args": [
+          "scripts/check-mission15-enquiry-quote-work-entry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-creator-independent-device-read",
+        "args": [
+          "scripts/check-mission15-creator-independent-device-read.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-service-selection-decisions",
+        "args": [
+          "scripts/check-mission15-service-selection-decisions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-recorded-quote-work-draft",
+        "args": [
+          "scripts/check-mission15-recorded-quote-work-draft.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-repeat-customer-preparation",
+        "args": [
+          "scripts/check-mission15-repeat-customer-preparation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-corrected-social-variation",
+        "args": [
+          "scripts/check-mission15-corrected-social-variation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-public-wording-continuity",
+        "args": [
+          "scripts/check-mission15-public-wording-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-work-engagement-model",
+        "args": [
+          "scripts/check-mission15-work-engagement-model.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-work-engagement-parent",
+        "args": [
+          "scripts/check-mission15-work-engagement-parent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-canonical-work-client",
+        "args": [
+          "scripts/check-mission15-canonical-work-client.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-canonical-work-parent",
+        "args": [
+          "scripts/check-mission15-canonical-work-parent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-canonical-work-continuation",
+        "args": [
+          "scripts/check-mission15-canonical-work-continuation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-account-engagement-continuity",
+        "args": [
+          "scripts/check-mission15-account-engagement-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-returning-account-editor",
+        "args": [
+          "scripts/check-mission15-returning-account-editor.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-agreement-evidence",
+        "args": [
+          "scripts/check-mission15-agreement-evidence.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-agreement-decisions",
+        "args": [
+          "scripts/check-mission15-agreement-decisions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-quote-reference",
+        "args": [
+          "scripts/check-mission15-quote-reference.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-quote-recipient",
+        "args": [
+          "scripts/check-mission15-quote-recipient.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-quote-binding",
+        "args": [
+          "scripts/check-mission15-quote-binding.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-recipient-management",
+        "args": [
+          "scripts/check-mission15-recipient-management.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-quote-grants",
+        "args": [
+          "scripts/check-mission15-quote-grants.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-quote-access-policy",
+        "args": [
+          "scripts/check-mission15-quote-access-policy.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-business-app-quotes",
+        "args": [
+          "scripts/check-mission15-business-app-quotes.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-quote-itemisation",
+        "args": [
+          "scripts/check-mission15-quote-itemisation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-growth-opportunities",
+        "args": [
+          "scripts/check-mission15-growth-opportunities.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-returning-growth",
+        "args": [
+          "scripts/check-mission15-returning-growth.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-connected-service-enquiry",
+        "args": [
+          "scripts/check-mission15-connected-service-enquiry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-owner-opportunity",
+        "args": [
+          "scripts/check-mission15-owner-opportunity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-growth-account",
+        "args": [
+          "scripts/check-mission15-growth-account.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-opportunity-creator-continuity",
+        "args": [
+          "scripts/check-mission15-opportunity-creator-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-app-enquiry-setup",
+        "args": [
+          "scripts/check-mission15-app-enquiry-setup.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-growth-activity-evidence",
+        "args": [
+          "scripts/check-mission15-growth-activity-evidence.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-professional-website-generation",
+        "args": [
+          "scripts/check-mission15-professional-website-generation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-returning-builder-work",
+        "args": [
+          "scripts/check-mission15-returning-builder-work.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-complete-enquiry-journey",
+        "args": [
+          "scripts/check-mission15-complete-enquiry-journey.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-website-evidence-quality",
+        "args": [
+          "scripts/check-mission15-website-evidence-quality.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-creator-account-continuity",
+        "args": [
+          "scripts/check-mission15-creator-account-continuity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-creator-media-state",
+        "args": [
+          "scripts/check-mission15-creator-media-state.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-app-enquiry-rehearsal",
+        "args": [
+          "scripts/check-mission15-app-enquiry-rehearsal.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-creator-rich-variants",
+        "args": [
+          "scripts/check-mission15-creator-rich-variants.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-mission15-approved-enquiry-creation",
+        "args": [
+          "scripts/check-mission15-approved-enquiry-creation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-creator-onboarding",
+        "args": [
+          "scripts/check-mission15-creator-onboarding.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-app-service-answers",
+        "args": [
+          "scripts/check-mission15-app-service-answers.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-creator-reconciliation",
+        "args": [
+          "scripts/check-mission15-creator-reconciliation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-connected-app-enquiry",
+        "args": [
+          "scripts/check-mission15-connected-app-enquiry.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-website-page-headings",
+        "args": [
+          "scripts/check-mission15-website-page-headings.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-upload-operation-client",
+        "args": [
+          "scripts/check-mission15-upload-operation-client.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-complete-enquiry-stages",
+        "args": [
+          "scripts/check-mission15-complete-enquiry-stages.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-website-service-contact",
+        "args": [
+          "scripts/check-mission15-website-service-contact.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-owner-app-goals",
+        "args": [
+          "scripts/check-mission15-owner-app-goals.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-premium-homepage-sample",
+        "args": [
+          "scripts/check-mission15-premium-homepage-sample.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-creator-device-intent",
+        "args": [
+          "scripts/check-mission15-creator-device-intent.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-goal-new-private-app",
+        "args": [
+          "scripts/check-mission15-goal-new-app.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "mission15-premium-sample-revisions",
+        "args": [
+          "scripts/check-mission15-premium-sample-revision.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "premium-motion-lifecycle",
+        "args": [
+          "scripts/check-premium-motion-lifecycle.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "premium-workspace-interactions",
+        "args": [
+          "scripts/check-premium-workspace-interactions.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "premium-builder-sheets",
+        "args": [
+          "scripts/check-premium-builder-sheets.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-owner-preview",
+        "args": [
+          "scripts/check-owner-preview.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-approved-design-fidelity",
+        "args": [
+          "scripts/check-approved-design-fidelity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-floating-owner-ui-v3",
+        "args": [
+          "scripts/check-floating-owner-ui-v3.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-home-orbital-fidelity",
+        "args": [
+          "scripts/check-home-orbital-fidelity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-home-final-composition",
+        "args": [
+          "scripts/check-home-final-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-orb-position-retention",
+        "args": [
+          "scripts/check-orb-position-retention.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-living-home-motion",
+        "args": [
+          "scripts/check-living-home-motion.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-four-edge-results",
+        "args": [
+          "scripts/check-four-edge-results.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-four-edge-retention-motion",
+        "args": [
+          "scripts/check-four-edge-retention-motion.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-build-identity",
+        "args": [
+          "scripts/check-app-build-identity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "connected-builders",
+        "args": [
+          "scripts/check-connected-builders.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "connected-six-area",
+        "args": [
+          "scripts/check-connected-six-area.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "owner-status-closure",
+        "args": [
+          "scripts/check-owner-status-closure.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "durable-journeys",
+        "args": [
+          "scripts/check-durable-journeys.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "premium-interiors",
+        "args": [
+          "scripts/check-premium-interiors.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "whole-app-connected-authorities",
+        "args": [
+          "scripts/check-whole-app-connections.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "security-by-design-adversarial",
+        "args": [
+          "scripts/check-security-by-design.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "security-baseline",
+        "args": [
+          "scripts/check-security-baseline.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "connected-website-history",
+        "args": [
+          "scripts/check-connected-website-history.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "website-request-capacity",
+        "args": [
+          "scripts/check-website-request-capacity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "busy-goals",
+        "args": [
+          "scripts/check-busy-goals.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "natural-goal-context",
+        "args": [
+          "scripts/check-natural-goal-context.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "governed-builder-proposals",
+        "args": [
+          "scripts/check-governed-builder-proposals.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "ai-proposal-gateway",
+        "args": [
+          "scripts/check-ai-proposal-gateway.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "historical-security-boundaries",
+        "args": [
+          "scripts/check-historical-security-boundaries.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "edge-audit-phase2",
+        "args": [
+          "scripts/check-edge-audit-phase2.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "security-phase3",
+        "args": [
+          "scripts/check-security-phase3.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-security-phase4",
+        "args": [
+          "scripts/check-security-phase4.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-security-phase5",
+        "args": [
+          "scripts/check-security-phase5.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "dependency-security",
+        "args": [
+          "scripts/check-dependency-security.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "dependency-compatibility",
+        "args": [
+          "scripts/dependency-compatibility-probe.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "app-goal-composition",
+        "args": [
+          "scripts/check-app-goal-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "app-record-composition",
+        "args": [
+          "scripts/check-app-record-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "contextual-app-enquiries",
+        "args": [
+          "scripts/check-contextual-app-enquiries.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "frozen-source-evidence",
+        "args": [
+          "scripts/check-frozen-source-evidence.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "private-app-project",
+        "args": [
+          "scripts/check-private-app-project.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-project-continuation",
+        "args": [
+          "scripts/check-app-project-continuation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-screen-composition",
+        "args": [
+          "scripts/check-app-screen-composition.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-private-calculation-pilot",
+        "args": [
+          "scripts/check-private-calculation-pilot.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-private-function-artifacts",
+        "args": [
+          "scripts/check-private-function-artifacts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-app-builder-v3158",
+        "args": [
+          "scripts/check-app-builder-v3158.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-private-forms-native",
+        "args": [
+          "scripts/check-private-forms-native.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-private-screen-editor",
+        "args": [
+          "scripts/check-private-screen-editor.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-private-form-enquiries",
+        "args": [
+          "scripts/check-private-form-enquiries.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-growth-drafts",
+        "args": [
+          "scripts/check-growth-drafts.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-growth-operator",
+        "args": [
+          "scripts/check-growth-operator.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-public-form-disclosure",
+        "args": [
+          "scripts/check-public-form-disclosure.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-customer-form-journey",
+        "args": [
+          "scripts/check-customer-form-journey.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-customer-form-discovery",
+        "args": [
+          "scripts/check-customer-form-discovery.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "check-public-collection-parity",
+        "args": [
+          "scripts/check-public-collection-parity.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "id": "work-preparation",
+        "args": [
+          "scripts/check-work-preparation.mjs"
+        ],
+        "status": "passed",
+        "exitCode": 0
+      }
+    ],
+    "postgres": {
+      "postgres.json": {
+        "exitCode": 0,
+        "database": "busy_whole_app_disposable",
+        "results": [
+          {
+            "id": "fresh-disposable-auth-shim-not-hosted-auth",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "exact-source-fuse-denies-install",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "missing-genuine-auth-prerequisite-refused-without-partial-schema",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "preexisting-view-and-definer-entry-refused-not-silently-retained",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "late-install-failure-rolls-back-schema-and-privilege-changes",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "complete-atomic-fresh-staging-install-not-fixture",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "one-time-install-never-overwrites-existing-records",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "hostile-default-grants-closed-for-future-tables-sequences-and-routines",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "fictional-two-business-memberships-prepared-only-locally",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "bounded-original-workspace-initialize-and-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "approved-profile-create-save-hash-and-fresh-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "profile-stale-source-and-unapproved-fields-denied",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-website-create-wording-style-save-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-pages-create-revise-and-fresh-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-ten-step-page-save-is-one-atomic-generation-and-history-entry",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "ten-step-revocation-between-gateway-read-and-atomic-save-denies-all",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "whole-transaction-undo-redo-and-fresh-session-history-retention",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "whole-request-group-checkpoints-lost-ack-recovery-and-no-blind-replay",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "history-cross-tenant-source-and-direct-writer-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "unsupported-batch-is-atomic-and-forged-history-candidate-denied",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "real-concurrent-website-writers-create-only-one-history-step",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "undo-acknowledgement-loss-never-replays-and-restores-on-deliberate-review",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "revocation-between-history-read-and-transition-denies-undo",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "bounded-persistent-history-and-redo-branch-invalidation",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "approved-context-revision-does-not-rewrite-existing-website",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-config-first-app-authority-client-and-fresh-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-studio-private-edit-undo-independent-read",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "goal-composition-original-writer-saves-reopens-and-undoes-exactly",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "goal-composition-revoked-member-denied-by-original-transaction",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-approved-business-records-into-private-layout-reopen-and-undo",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-bespoke-project-original-app-save-fresh-reopen-and-undo",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-project-history-bounded-and-original-config-retained",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-project-server-member-scope-and-malformed-descriptions-denied",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "saved-project-corrections-original-spec-studio-reopen-and-exact-undo",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "typed-screen-composition-original-writer-readback-exact-undo-and-unknown-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-calculation-descriptive-intent-only-original-save-readback-undo",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-growth-context-record-review-no-provider-claims",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "growth-dropped-ack-blocks-pre-reviewed-second-write-until-exact-observation",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "creator-original-durable-save-with-reviewed-growth-source-and-fresh-read",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "reviewed-current-creator-copy-private-website-save-fresh-reopen-and-undo",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "creator-lost-ack-exact-observation-and-no-blind-replay",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "fictional-original-enquiry-provisioned-locally-not-consumer-acceptance",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-enquiry-reviewed-import-explicit-customer-filing",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "canonical-private-quote-save-and-fresh-session-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "contextual-product-original-request-inbox-and-supported-customer-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "contextual-event-original-request-inbox-and-supported-customer-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "contextual-service-original-request-inbox-and-supported-customer-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "product-event-service-source-canonical-private-quotes-confirmed",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "typed-listing-server-denials-preserve-pending-and-independent-source-history",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "listing-changed-withdrawn-and-corrupted-history-never-becomes-new-work-authority",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "untyped-prefix-direct-writer-refused-before-customer-write",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "listing-concurrent-filing-once-and-unknown-ack-independent-recovery",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "listing-source-change-and-membership-revocation-before-filing-deny-all",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "all-private-authorities-cross-owner-and-anonymous-denials",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "separate-business-initialize-facts-and-content-not-shared",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "separate-retail-product-enquiry-original-inbox-and-tenant-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "membership-revoked-before-persisted-content-write-denied",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "closed-lifecycle-and-internal-service-execution",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-immutable-guards-indexes-and-final-effective-grants",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "finite-facts-preserve-unexposed-profile-service-and-contact-extensions",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-business-facts-cannot-edit-an-already-public-profile",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "concurrent-exact-profile-cas-only-one-owner-write-commits",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "profile-dropped-acknowledgement-preserves-intent-without-success-or-replay",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "goal-saved-wording-selection-original-copy-save-and-fresh-reopen",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "goal-enquiry-exact-source-to-canonical-private-quote-revision",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "owner-corrections-use-original-facts-cas-and-confirmed-readback",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "actual-builder-read-contract-allows-scoped-recovery-without-fictitious-marker",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "governed-offline-proposal-original-website-save-readback-and-undo",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "owner-correction-revocation-after-review-denies-write",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-function-exact-fuse-and-atomic-install",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-function-real-save-readback-two-owner-distinct-graphs",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-function-immutable-revision-supersession-and-independent-results",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-function-acl-tenant-revoked-owner-and-invalid-rule-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-function-lost-ack-no-replay-and-disable-lockdown",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-form-exact-fuse-and-failed-install-transaction-restores-original-validator",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "third-independent-private-form-app-through-original-business-profile-and-first-app-authorities",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "three-independent-private-forms-real-save-native-adapter-readback-and-original-app-separation",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "form-canonical-unicode-native-web-and-postgresql-hash-agreement-and-bounded-invalid-values",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "form-invalid-conditional-foreign-revoked-stale-unapproved-and-default-off-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-screen-fused-atomic-install-failure-and-final-least-privilege",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "three-original-private-form-edits-new-approved-versions-and-exact-screen-placement-readback",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-placement-removal-and-reviewed-undo-retain-original-immutable-artifact",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-screen-stale-version-foreign-owner-malformed-binding-and-revoked-member-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-screen-real-concurrent-cas-once-and-uncertain-save-without-replay",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-form-enquiry-fused-atomic-install-rollback-and-effective-permissions",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-form-to-enquiry-inbox-customer-work-journey-catering",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-form-to-enquiry-inbox-customer-work-journey-gardening",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-form-to-enquiry-inbox-customer-work-journey-website-brief",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-form-to-enquiry-inbox-customer-work-journey-retail",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "form-enquiry-forgery-inactive-values-revocation-and-original-request-hash-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "form-enquiry-original-association-and-current-listing-freshness-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "historical-form-labels-retained-after-successor-and-disabled-artifact-new-filing-refused",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "form-enquiry-lost-original-filing-acknowledgement-readback-and-no-replay",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "filed-form-history-survives-original-request-status-changes-and-rejects-corrupted-provenance",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "form-enquiry-retaining-rollback-blocks-new-path-retains-historical-readback",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-screen-default-off-and-retaining-rollback-preserve-artifact-authority",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "form-retaining-lockdown-preserves-immutable-rows-and-scoped-read",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "private-function-fused-retaining-rollback-closes-writes-retains-scoped-read",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "retaining-rollback-fused-and-real-write-denial-with-fresh-readers",
+            "passed": true,
+            "exitCode": 0
+          }
+        ],
+        "summary": {
+          "passed": 99,
+          "failed": 0
+        },
+        "hosted": false,
+        "syntheticAuthUid": true
+      },
+      "public-form-postgres.json": {
+        "exitCode": 0,
+        "database": "busy_public_forms_disposable",
+        "hosted": false,
+        "syntheticAuth": true,
+        "publication": "Explicit simulated original live App/version rows only; no publication operation",
+        "originalGuestWriter": true,
+        "results": [
+          {
+            "id": "isolated-original-package-auth-shim-and-original-guest-dependencies",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "disclosure-default-off-fuses-and-atomic-failure-retain-original-authorities",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-customer-safe-form-and-request-journey-catering",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-customer-safe-form-and-request-journey-gardening",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-customer-safe-form-and-request-journey-retail",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-customer-safe-form-and-request-journey-website",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-prune-counterexample-and-retained-form-proof-history-without-crm-erasure",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "foreign-owner-tenant-disclosure-and-private-storage-access-denied",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "malformed-hidden-values-consent-stale-forms-and-source-selection-denied",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "guest-ingress-independent-switches-publication-and-proof-review-quotas",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "dispatch-recovery-independent-of-new-disclosure-and-no-marketing-or-wrong-app-write",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "expired-forged-proof-and-separate-disclosure-permission-denied",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-guest-atomic-concurrent-submit-exact-once-and-no-legacy-marker-bypass",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "unknown-submission-acknowledgement-inspected-without-replay-and-bound-approval-recovery",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-contact-and-fingerprint-quotas-and-expired-receipt-access",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "atomic-original-challenge-opening-quota-bounds-anonymous-reset-attempts",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "catalog-current-app-source-validation-and-public-privacy",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "receipt-recovery-inspection-quota-and-reset-without-submission",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "successor-form-withdraws-navigation-but-preserves-original-questions-and-work-history",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "separate-publication-display-only-and-lost-owner-approval-acknowledgement",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "revocation-membership-and-retaining-rollback-preserve-history-and-exact-receipts",
+            "passed": true,
+            "exitCode": 0
+          }
+        ],
+        "summary": {
+          "passed": 21,
+          "failed": 0
+        }
+      },
+      "work-preparation-postgres.json": {
+        "exitCode": 0,
+        "hosted": false,
+        "syntheticAuth": true,
+        "results": [
+          {
+            "id": "review-fuse-atomic-install-and-default-closed",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-enquiry-prepared-quote-and-component-preparation-0",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-enquiry-prepared-quote-and-component-preparation-1",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "original-enquiry-prepared-quote-and-component-preparation-2",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "cross-business-owner-membership-and-raw-grants-denied",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "malformed-duplicate-unknown-action-and-stage-transition-denials",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "concurrent-CAS-exact-once-and-explicit-undo",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "lost-acknowledgement-readback-without-replay-and-stale-source-denial",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "direct-sql-malformed-plan-and-unknown-business-actions-refused",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "revocation-serializes-with-current-preparation-read",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "quote-revision-changes-require-fresh-preparation-review",
+            "passed": true,
+            "exitCode": 0
+          },
+          {
+            "id": "retaining-rollback-closes-preparation-with-original-records-intact",
+            "passed": true,
+            "exitCode": 0
+          }
+        ],
+        "summary": {
+          "passed": 12,
+          "failed": 0
+        }
+      }
+    },
+    "deno": {
+      "exitCode": 0,
+      "version": "2.5.6",
+      "entries": [
+        "busy-ai-intake",
+        "busy-builder-proposals",
+        "busy-calendar-oauth",
+        "busy-calendar-sync",
+        "busy-command",
+        "busy-conversation-extract",
+        "busy-founder-ops",
+        "busy-mini-app-guest-alert-dispatch",
+        "busy-mini-app-guest-alert-receipts",
+        "busy-mini-app-guest",
+        "busy-mini-app-link",
+        "busy-mini-apps",
+        "busy-production-watch",
+        "busy-push-dispatch",
+        "busy-social-content",
+        "busy-social-publish",
+        "busy-website-design-review",
+        "busy-website-form",
+        "busy-website-health",
+        "busy-website-origin",
+        "busy-website-original-media",
+        "busy-website-provider",
+        "busy-website-publish",
+        "busy-website-signals",
+        "busy-website-worker"
+      ],
+      "supabaseVerificationDependency": "2.118.0",
+      "byteComparedSourceCopy": true
+    },
+    "foundation": {
+      "assertions": 105,
+      "exitCode": 0
+    },
+    "securityBaseline": {
+      "exitCode": 0,
+      "sourceFiles": 968,
+      "lockedPackages": 557,
+      "registryAudit": false
+    },
+    "securityByDesign": {
+      "exitCode": 0
+    },
+    "syntax": {
+      "exitCode": 0
+    },
+    "guardedInstall": {
+      "exitCode": 0,
+      "ignoreScripts": true
+    },
+    "nativeAutolinking": {
+      "exitCode": 0,
+      "expo-crypto": "57.0.4",
+      "expo-secure-store": "57.0.4",
+      "deviceAcceptance": false
+    },
+    "unsignedIosExports": [
+      {
+        "environment": "owner-preview",
+        "moduleCount": 1540,
+        "exitCode": 0,
+        "signed": false,
+        "deviceRuntime": false
+      },
+      {
+        "environment": "isolated-staging",
+        "moduleCount": 1599,
+        "exitCode": 0,
+        "signed": false,
+        "deviceRuntime": false
+      }
+    ],
+    "legacyExitCodes": {
+      "V3.66 voice and project Operator checks": 0,
+      "V3.64 private growth workspace checks": 0,
+      "V3.65 Growth Command Centre checks": 0,
+      "V3.69 Founder Operations Security": 0,
+      "V3.70 Platform Autopilot checks": 0,
+      "V3.63 coordinated editable growth checks": 0
+    }
+  },
+  "dependencyExposure": {
+    "versionsChanged": false,
+    "guardedDeepmergeBackportPassed": true,
+    "registryAuditRepeatedThisMission": false,
+    "lastVerifiedRegistryResult": "31 low affected nodes, one deepmerge advisory family; upstream metadata finding remains",
+    "cleanAuditClaim": false
+  },
+  "reportCommit": "Documentation-only child of functionalRemoteCommit; SHA/tree supplied in delivery because self-reference cannot be embedded"
+}
