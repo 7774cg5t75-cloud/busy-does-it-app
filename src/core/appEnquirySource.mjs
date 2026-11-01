@@ -12,7 +12,7 @@ const servicePattern=/^Service reference: ([A-Za-z0-9_-]{1,80}) \/ app draft rev
 export function filedAppEnquirySource(item,businessId){
  const origin=item?.miniAppOrigin;
  if(!origin||typeof item.rawText!=='string'||!['requestId','appId'].every(k=>typeof origin[k]==='string'&&uuid.test(origin[k]))||typeof origin.requestHash!=='string'||!/^[0-9a-f]{64}$/i.test(origin.requestHash))return null;
- return {businessId,appId:origin.appId,requestId:origin.requestId,requestHash:origin.requestHash,message:item.rawText,ownerId:item.registeredBy||item.listingProvenance?.ownerId,listingProvenance:item.listingProvenance||null,filed:item.status==='Filed'};
+ return {businessId,appId:origin.appId,requestId:origin.requestId,requestHash:origin.requestHash,message:item.rawText,ownerId:item.registeredBy||item.listingProvenance?.ownerId||item.formContext?.ownerId,formContext:item.formContext||null,listingProvenance:item.listingProvenance||null,filed:item.status==='Filed'};
 }
 // Original message references are customer assertions, never authorisation or
 // proof of submission-time facts. Do not parse names/prices from free text.
@@ -67,6 +67,7 @@ export function resolveAppEnquirySource({source,app,feed}={}){
 // projection. No app ID inference from a name or current selected application.
 export function canonicalAppEnquirySource(source,inboxItems,businessId){
  const e=source?.enquiry,c=source?.customer;
+ if(source?.businessId===businessId&&e?.formContext&&e?.miniAppOrigin){const bound=filedAppEnquirySource({...e,status:'Filed'},businessId);if(bound&&e.formContext.businessId===businessId&&e.formContext.requestId===bound.requestId&&e.formContext.requestHash===bound.requestHash)return bound;}
  if(source?.businessId===businessId&&e?.listingProvenance&&e?.miniAppOrigin){const bound=filedAppEnquirySource({...e,status:'Filed'},businessId);if(bound&&supportedListingFiling(bound))return bound;}
  if(!e||!c||!Array.isArray(inboxItems))return null;
  const rows=inboxItems.filter(r=>r.id===e.id&&r.status==='Filed'&&r.filedCustomerId===c.id&&r.rawText===e.rawText&&r.reviewedAt===e.reviewedAt);

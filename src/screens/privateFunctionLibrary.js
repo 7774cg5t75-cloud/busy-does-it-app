@@ -9,7 +9,7 @@ import {styles} from '../theme/styles';
 import {createPrivateFunctionAccount} from '../core/privateFunctionAccount.mjs';
 import {explainCalculation} from '../core/privateCalculation.mjs';
 // A PRIVATE owner composition wrapper. References never enter public draft_config.
-export function PrivateFunctionLibrary({context,isCurrent,request,candidate,Surface,config,onReopenRule,onReopenForm,onUseCalculation,screenRequest,onDraftChange=()=>{},integrity=privateArtifactCrypto}){
+export function PrivateFunctionLibrary({context,isCurrent,request,candidate,Surface,config,feed=null,onReopenRule,onReopenForm,onUseCalculation,screenRequest,onDraftChange=()=>{},integrity=privateArtifactCrypto}){
  const live=React.useRef(null);live.current={context,isCurrent,request};const account=React.useRef(null);if(!account.current)account.current=createPrivateFunctionAccount({integrity,getCurrent:()=>live.current.context,isCurrent:()=>live.current.isCurrent?.()===true,request:body=>live.current.request(body)});
  const rowsScope=React.useRef(null);
  const [rows,setRows]=React.useState([]),[selected,setSelected]=React.useState(null),[values,setValues]=React.useState({}),[result,setResult]=React.useState(null),[notice,setNotice]=React.useState(''),[pending,setPending]=React.useState(false),[showPreview,setShowPreview]=React.useState(false);
@@ -44,7 +44,7 @@ export function PrivateFunctionLibrary({context,isCurrent,request,candidate,Surf
     </View>:null}
    </>:null}
   </>}
-  <PrivateScreenLibrary onDraftChange={onDraftChange} context={context} isCurrent={()=>current()&&!pending} request={screenRequest} artifacts={account.current} selected={sameApp?selected:null} integrity={integrity} Surface={Surface} config={config}/>
+  <PrivateScreenLibrary feed={feed} onDraftChange={onDraftChange} context={context} isCurrent={()=>current()&&!pending} request={screenRequest} artifacts={account.current} selected={sameApp?selected:null} integrity={integrity} Surface={Surface} config={config}/>
   {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
  </Card></Details>;
 }

@@ -3356,6 +3356,7 @@ async function submitRequest(
 
   const rawPayload =
     body?.payload && typeof body.payload === "object" ? body.payload : {};
+  if (Object.hasOwn(rawPayload,"privateForm") || Object.hasOwn(rawPayload,"formContext")) throw new Error("Private form submission is not activated.");
   const contactName = clean(rawPayload?.name || rawPayload?.contactName, 160);
   const contactEmail = clean(rawPayload?.email || rawPayload?.contactEmail, 240);
   const contactPhone = clean(rawPayload?.phone || rawPayload?.contactPhone, 80);

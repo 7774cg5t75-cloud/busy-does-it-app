@@ -7,6 +7,8 @@
     "forms.sql": "d10e6f25e1ab48decdb8ecd58d77d5bc36d7e5f43bf3f0b8891c9af40613fff4",
     "forms-retaining-rollback.sql": "9a8922750c4f559921ee986bbc9f38f131c1b1672961897b0b8a4ab2a5aa8a4f",
     "screens.sql": "a6283394e741e3d01c060eee32b54a594df5ed66a27216001fcf7f50a529ae92",
-    "screens-retaining-rollback.sql": "440380ab4a49dc69f7ff041e10ab8407b4fe7d89210e6b43b5f8ba2949e0891e"
+    "screens-retaining-rollback.sql": "440380ab4a49dc69f7ff041e10ab8407b4fe7d89210e6b43b5f8ba2949e0891e",
+    "enquiries.sql": "a70de937da4e98eeb30495a673f2b0c85959c77a77666c4c00cd750bb0c88922",
+    "enquiries-retaining-rollback.sql": "8f2a6116e1688910712a6b90c5d77f13dab0458ac36360c7dec7fe27b9181a8f"
   }
 }

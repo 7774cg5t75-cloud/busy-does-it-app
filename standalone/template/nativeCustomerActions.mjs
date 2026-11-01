@@ -30,6 +30,7 @@ function searchPublicNativeServices(services,query=""){
 }
 const clean=(v,max)=>typeof v==="string"?v.trim().slice(0,max):"";
 function validateNativeGuestRequest(type,payload){
+ if(payload&&typeof payload==='object'&&(Object.hasOwn(payload,'privateForm')||Object.hasOwn(payload,'formContext')))return {ok:false,reason:'Private form submission is not activated. Keep this reviewed preparation private.'};
  if(!["enquiry","booking_request"].includes(type))
   return {ok:false,reason:"Choose an enquiry or booking request."};
  const limits={name:160,email:240,phone:80,service:240,preferredDate:240,message:5000,note:3000};

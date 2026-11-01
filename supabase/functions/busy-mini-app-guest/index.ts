@@ -227,6 +227,7 @@ async function validProof(
 
 function sanitizePayload(requestType: string, raw: any) {
   const source = raw && typeof raw === "object" ? raw : {};
+  if (Object.hasOwn(source,"privateForm") || Object.hasOwn(source,"formContext")) throw new Error("Private form submission is not activated.");
   const name = clean(source.name || source.contactName, 160);
   const email = normalizeEmail(source.email || source.contactEmail);
   const phone = normalizePhone(source.phone || source.contactPhone);

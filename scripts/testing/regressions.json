@@ -3029,6 +3029,13 @@
         "scripts/check-private-screen-editor.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-private-form-enquiries",
+      "args": [
+        "scripts/check-private-form-enquiries.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

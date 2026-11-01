@@ -23,7 +23,7 @@ export function createConnectedEnquiryJourney({request,businessId,ownerId,isCurr
  }
  async function file(value,fields){
   if(busy||unknown||!isCurrent()||tickets.get(value)!==stableJson(value))throw Error('Review current contact details again');
-  // Original filed-reader and canonical Work contracts exclude listing sources.
+  // Listing sources require the exact original versioned provenance contract.
   // Refuse BEFORE a write rather than create an unreopenable Customer.
   if(value.source.message.includes('Listing reference:')&&!supportedListingFiling(value.source))throw Error('Keep this listing enquiry in Inbox; Customer filing needs its original listing-source contract.');
   tickets.delete(value);busy=true;
@@ -34,7 +34,8 @@ export function createConnectedEnquiryJourney({request,businessId,ownerId,isCurr
    if(!verified(r)||r.customerId!==capture.customerId||r.enquiryId!==capture.enquiryId||r.revision!==value.revision+1)throw Error('Filing receipt unavailable');
    const observed=await request('filed_review',{businessId,expectedRevision:r.revision,customerId:r.customerId,enquiryId:r.enquiryId});
    if(!verified(observed)||observed.customer?.id!==r.customerId||observed.enquiry?.filedCustomerId!==r.customerId||observed.enquiry.rawText!==value.source.message||(value.source.message.includes('Listing reference:')&&(!observed.enquiry.listingProvenance||observed.enquiry.listingProvenance.requestHash!==value.source.requestHash)))throw Error('Filing readback unavailable');
-   return {ok:true,receipt:r,observed,source:{...value.source,listingProvenance:observed.enquiry.listingProvenance||null,filed:true},requestOrigin:{requestId:value.source.requestId,appId:value.source.appId}};
+   if(value.source.formContext&&stableJson(value.source.formContext)!==stableJson(observed.enquiry.formContext))throw Error('Exact historical form readback unavailable');
+   return {ok:true,receipt:r,observed,source:{...value.source,listingProvenance:observed.enquiry.listingProvenance||null,formContext:observed.enquiry.formContext||null,filed:true},requestOrigin:{requestId:value.source.requestId,appId:value.source.appId}};
   }catch{unknown=true;uncertainSource=value.source;return {ok:false,unknown:true,mayReplay:false};}finally{busy=false;}
  }
  async function recover(requestId){

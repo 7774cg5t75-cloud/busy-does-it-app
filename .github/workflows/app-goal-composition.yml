@@ -17,6 +17,13 @@ on:
       - 'src/core/appScreenComposition.mjs'
       - 'src/staging/connectedApplicationRuntime.mjs'
       - 'src/staging/stagingAuthInspectorV3131.mjs'
+      - 'src/core/privateFormEnquiry.mjs'
+      - 'src/screens/privateFormEnquiryPreview.js'
+      - 'src/components/FormEnquiryContext.js'
+      - 'src/components/AppEnquirySourceContext.js'
+      - 'standalone/template/nativeCustomerActions.mjs'
+      - 'supabase/functions/busy-mini-app-guest/index.ts'
+      - 'scripts/check-private-form-enquiries.mjs'
       - 'src/core/privateScreenBindings.mjs'
       - 'src/screens/privateScreenLibrary.js'
       - 'src/screens/privateArtifactFields.js'
@@ -99,6 +106,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-private-form-enquiries.mjs
           node scripts/check-private-screen-editor.mjs
           node scripts/check-private-forms-native.mjs
           node node_modules/expo-modules-autolinking/bin/expo-modules-autolinking resolve --platform apple --json > .test-artifacts/app-goal-composition/native-autolinking.json
