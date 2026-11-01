@@ -1,0 +1,30 @@
+name: Marketing website form security checks
+on:
+  pull_request:
+    paths:
+      - 'sites/busy-headquarters/**'
+      - '.github/workflows/marketing-form-checks.yml'
+  push:
+    branches:
+      - 'site/secure-contact-waitlist-20261101'
+    paths:
+      - 'sites/busy-headquarters/**'
+      - '.github/workflows/marketing-form-checks.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check static and server-side JS
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check sites/busy-headquarters/marketing-intake.js
+          for f in sites/busy-headquarters/functions/api/*.js; do node --input-type=module --check < "$f"; done
+      - name: Fail-closed form contract tests
+        run: node --test sites/busy-headquarters/tests/marketing-contract.test.mjs
