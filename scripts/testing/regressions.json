@@ -3001,6 +3001,20 @@
         "scripts/check-private-calculation-pilot.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-private-function-artifacts",
+      "args": [
+        "scripts/check-private-function-artifacts.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-app-builder-v3158",
+      "args": [
+        "scripts/check-app-builder-v3158.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

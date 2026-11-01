@@ -1,3 +1,4 @@
+import {privateFunctionService} from './privateFunctionService.mjs';
 import {savePrivateProject} from './privateProjectService.mjs';
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
@@ -4358,6 +4359,10 @@ Deno.serve(async (request: Request) => {
       return json(200,{ok:true,
         ...(await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
         status:await readCurrentStatus()});
+    }
+    if(action==='private_function'){
+      const app=await appForBusiness(resolvedBusinessId);
+      return json(200,await privateFunctionService({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,body,enabled:Deno.env.get('BUSY_PRIVATE_FUNCTIONS_ENABLED'),projectUrl:SUPABASE_URL}));
     }
     if (action === "save_project_spec") {
       if(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co")throw Error("Private project specification authority is unavailable in this environment.");

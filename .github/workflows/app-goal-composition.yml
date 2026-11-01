@@ -15,6 +15,11 @@ on:
       - 'scripts/check-contextual-app-enquiries.mjs'
       - 'src/core/privateAppProject.mjs'
       - 'src/core/appScreenComposition.mjs'
+      - 'src/core/privateFunctionAccount.mjs'
+      - 'src/screens/privateFunctionLibrary.js'
+      - 'supabase/functions/busy-mini-apps/privateFunctionService.mjs'
+      - 'docs/sql-proposals/private-app-functions/**'
+      - 'scripts/check-private-function-artifacts.mjs'
       - 'src/core/privateCalculation.mjs'
       - 'src/core/privateCalculationPilot.mjs'
       - 'src/screens/privateCalculationPilot.js'
@@ -78,6 +83,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-private-function-artifacts.mjs
           node scripts/check-private-calculation-pilot.mjs
           node scripts/check-mission15-phase10-gallery-parity.mjs
           node scripts/check-mission15-phase31-service-resume.mjs

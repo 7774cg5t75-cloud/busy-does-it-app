@@ -41,3 +41,16 @@ export function retainCalculationRequirement({context,proposal,goal}){
  const base=proposal?validateBuilderProposal(proposal,context):proposeLocalAppGoal(context,'Show business information and contact details');if(!base.ok)return base;
  const next=JSON.parse(stableJson(base.proposal));if(!next.app.screens.some(s=>s.id==='private_calculation'))next.app.screens.push({id:'private_calculation',title:'Private planning calculation — experimental',module:null,next:[]});if(!next.app.workflows.includes(goal.trim()))next.app.workflows.push(goal.trim());if(!next.app.unsupported.includes('Private calculation rules are session-only; no public calculator or executable artifact is saved.'))next.app.unsupported.push('Private calculation rules are session-only; no public calculator or executable artifact is saved.');if(!proposal)next.app.purpose=goal.trim();return validateBuilderProposal(next,context);
 }
+
+export function revisePrivateCalculation(spec,words,context){
+ const valid=validateCalculation(spec);if(!valid.ok||!context?.ok||typeof words!=='string'||words.length>160)return fail('Open a current function and describe one assumption.');
+ const next=JSON.parse(stableJson(spec));next.scope=calculationScope(context);const t=words.toLowerCase();let match;
+ if((match=/(\d+(?:\.\d+)?)\s*servings?\s*(?:per|a)\s*(?:person|guest)/.exec(t))&&next.inputs.some(f=>f.id==='servings'))next.inputs.find(f=>f.id==='servings').default=Number(match[1]);
+ else if((match=/include\s+(\d+(?:\.\d+)?)\s*%.*allowance/.exec(t))&&next.inputs.some(f=>f.id==='spare'))next.inputs.find(f=>f.id==='spare').default=Number(match[1]);
+ else if(/remove.*allowance|without.*allowance/.test(t)&&next.inputs.some(f=>f.id==='spare')){const replace=e=>e.op==='input'&&e.id==='spare'?{op:'literal',value:0}:e.args?{...e,args:e.args.map(replace)}:e;next.outputs=next.outputs.map(o=>({...o,expression:replace(o.expression)}));next.inputs=next.inputs.filter(f=>f.id!=='spare');next.cases=next.cases.map(c=>{const inputs={...c.inputs};delete inputs.spare;return {...c,inputs};});}
+ else if(/round.*up.*whole/.test(t))next.outputs=next.outputs.map(o=>o.type==='number'?{...o,decimals:0,expression:{op:'ceil',args:[o.expression]}}:o);
+ else return fail('Describe one supported assumption: servings per guest, an existing extra-material percentage, no allowance, or rounding up.');
+ // Recompute examples for review, never silently approve changed expected results.
+ for(const c of next.cases){const result=calculatePrivateRules(next,c.inputs);if(!result.ok)return result;c.expected=result.outputs;}
+ return validateCalculation(next);
+}
