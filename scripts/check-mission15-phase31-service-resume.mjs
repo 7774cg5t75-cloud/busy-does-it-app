@@ -1,3 +1,4 @@
+import {appScreenSections} from '../src/core/appScreenComposition.mjs';
 import assert from 'node:assert/strict';import fs from 'node:fs';import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),{createRuntime}=require('./lib/offline-component-runtime.cjs'),babel=require('@babel/core');
 const source=fs.readFileSync('standalone/template/App.js','utf8'),services=[{id:'a',name:'Advice',category:'Planning'},{id:'b',name:'Repair',category:'Home'}];let saved;
@@ -7,7 +8,7 @@ let resumed=mount(),restored=resumed.render();assert.equal(restored.query,'Advic
 // Execute actual native LiveInfo services branch: same existing parent catalogue map, no private request state.
 const a=source.indexOf('function LiveInfo('),b=source.indexOf('export default',a);assert.ok(b>a);
 const code=babel.transformSync(source.slice(a,b),{babelrc:false,configFile:false,plugins:[[require('@babel/plugin-transform-react-jsx'),{runtime:'classic'}]]}).code;
-const ServicesInfo=()=>{};const LiveInfo=Function('React','ServicesInfo',code+';return LiveInfo;')({createElement:(type,props,...children)=>({type,props:{...props,children}})},ServicesInfo);
+const ServicesInfo=()=>{};const LiveInfo=Function('appScreenSections','React','ServicesInfo',code+';return LiveInfo;')(appScreenSections,{createElement:(type,props,...children)=>({type,props:{...props,children}})},ServicesInfo);
 let kind,value;const element=LiveInfo({screen:{key:'services'},app:{services},catalogueContextKey:'published-v1',catalogueStates:{services:saved},onCatalogueStateChange:(k,v)=>{kind=k;value=v;}});
 assert.equal(element.type,ServicesInfo);assert.equal(element.props.savedBrowseState,saved);element.props.onSaveBrowseState(saved);assert.equal(kind,'services');assert.equal(value,saved);
 // Execute the genuine App parent persistence callback with inert route/runtime refs.

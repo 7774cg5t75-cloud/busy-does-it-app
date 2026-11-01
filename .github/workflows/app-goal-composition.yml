@@ -74,6 +74,8 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-mission15-phase10-gallery-parity.mjs
+          node scripts/check-mission15-phase31-service-resume.mjs
           node scripts/check-app-screen-composition.mjs
           node scripts/check-app-project-continuation.mjs
           node scripts/check-private-app-project.mjs
