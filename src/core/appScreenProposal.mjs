@@ -15,6 +15,11 @@ export function prepareScreenAppComposition(args){
  if(requested){
   if((visual.includes(MARKERS.categories)||visual.includes(MARKERS.details))&&!choices.some(c=>c.kind==='product'))return {ok:false,reason:'Load current approved products before reviewing these screen changes.'};
   let sections=screenComposition.screens.find(s=>s.moduleKey==='business_profile')?.sections||[...collections.map(b=>b.kind==='product'?'products':'events'),'introduction','faqs','testimonials'];
+  if(choices.length){
+   const wanted=collections.map(b=>b.kind==='product'?'products':'events');let index=0;
+   sections=sections.map(k=>['products','events'].includes(k)?wanted[index++]:k).filter(Boolean);
+   const missing=wanted.filter(k=>!sections.includes(k));sections.splice(Math.max(0,sections.indexOf('introduction')),0,...missing);
+  }
   if(visual.includes(MARKERS.faq)){if(!publicCollection('faqs',config.publicProfile?.faqs||[]).length)return {ok:false,reason:'Add and approve your FAQ wording through the original information editor first.'};sections=['faqs',...sections.filter(k=>k!=='faqs')];}
   if(visual.includes(MARKERS.contact)){if(!enabled('contact'))return {ok:false,reason:'Contact needs its original enabled feature.'};sections=[...sections.filter(k=>k!=='contact'),'contact'];}
   if(choices.length||visual.includes(MARKERS.faq)||visual.includes(MARKERS.contact)){const row={moduleKey:'business_profile',sections};screenComposition.screens=[...screenComposition.screens.filter(s=>s.moduleKey!=='business_profile'),row];}

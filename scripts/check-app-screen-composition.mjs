@@ -1,3 +1,5 @@
+import {readFileSync,existsSync,readdirSync} from 'node:fs';
+import path from 'node:path';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import * as screens from '../src/core/appScreenComposition.mjs';
@@ -25,6 +27,7 @@ for(const [n,goal,records,corrections]of [
  examples.push({B,app,feed,plan});
 }
 const custom=structuredClone(examples[1].app);custom.private_project_spec.app.screens.push({id:'staff_job_updates',title:'Field-team job updates',module:null,next:[]});custom.private_project_spec.app.unsupported.push('Staff identity and job updates need development.');const customInput={ownerId:O,businessId:custom.business_id,app:custom,catalog},customIdea=continueSavedAppProject(customInput);assert.equal(customIdea.ok,true);assert.ok(customIdea.summary.planned.includes('Field-team job updates'));assert.equal(JSON.stringify(custom.draft_config).includes('staff_job_updates'),false);assert.ok(customIdea.proposal.app.screens.some(s=>s.id==='staff_job_updates'&&s.module===null));
+const changedFood={...examples[0].app,draft_revision:6,draft_config:examples[0].plan.nextConfig};let foodAgain=continueSavedAppProject({ownerId:O,businessId:changedFood.business_id,app:changedFood,catalog,feed:examples[0].feed});foodAgain={...foodAgain,...correctAppProject({...foodAgain,current:foodAgain.context,feed:examples[0].feed,words:'Put the menu before the events'})};assert.equal(foodAgain.ok,true);const reordered=prepareContinuedAppProject({...foodAgain,current:foodAgain.context,feed:examples[0].feed,expected:foodAgain.recordBasis});assert.equal(reordered.ok,true,reordered.reason);assert.deepEqual(reordered.nextConfig.screenComposition.screens.find(s=>s.moduleKey==='business_profile').sections.filter(k=>['products','events'].includes(k)),['products','events'],'A later correction updates an already saved typed screen plan');
 assert.equal(examples[0].plan.nextConfig.screenComposition.screens[0].sections[0],'events');
 assert.deepEqual(examples[1].plan.nextConfig.screenComposition.screens.find(s=>s.moduleKey==='services').sections.slice(0,2),['gallery','services']);
 assert.equal(examples[2].plan.nextConfig.contentLayout[0].interestEntry,'details');
@@ -39,3 +42,8 @@ for(const e of examples){const rt=createRuntime();Object.assign(rt.load('src/cor
  const live={...e.app,status:'live',public_slug:'fictional-'+e.B[0],current_live_version_id:O},projection=publicNativeMiniAppProjection(live,{id:O,state:'live',config:e.plan.nextConfig},{expectedAppId:e.app.id,expectedVersionId:O});assert.equal(projection.ok,true,projection.reason);assert.deepEqual(projection.screenComposition,e.plan.nextConfig.screenComposition);
 }
 console.log('PASS three separately scoped original app runtimes: food categories/events/contact, trades gallery-before-service-questions/FAQs, retail category/detail-first exact interest; original atomic plans/Undo/reopen, original source IDs/revisions, stale callback/foreign/unknown/locked/rebuild denial. No hosted, native pixels or public submission acceptance.');
+
+await import('./prepare-standalone-prototype-v3154.mjs');
+const generated='.tmp/standalone-prototype-v3154';assert.equal(readFileSync(generated+'/appScreenComposition.mjs','utf8'),readFileSync('standalone/template/appScreenComposition.mjs','utf8'));
+for(const f of readdirSync(generated).filter(f=>/\.(?:mjs|js)$/.test(f)))for(const match of readFileSync(generated+'/'+f,'utf8').matchAll(/(?:from|import)\s*['"](\.\/[^'"]+)['"]/g)){const target=path.join(generated,match[1]);assert.ok(['','.js','.mjs','.json'].some(ext=>existsSync(target+ext)),'Original generated shell import missing: '+match[1]);}
+console.log('PASS original unsigned standalone generator includes the exact typed screen helper and complete local import closure; no build/signing/distribution.');
