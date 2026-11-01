@@ -17,6 +17,12 @@ on:
       - 'src/core/appScreenComposition.mjs'
       - 'src/staging/connectedApplicationRuntime.mjs'
       - 'src/staging/stagingAuthInspectorV3131.mjs'
+      - 'src/core/privateScreenBindings.mjs'
+      - 'src/screens/privateScreenLibrary.js'
+      - 'src/screens/privateArtifactFields.js'
+      - 'supabase/functions/busy-mini-apps/privateScreenService.mjs'
+      - 'supabase/functions/busy-mini-apps/publicScreenArrangement.mjs'
+      - 'scripts/check-private-screen-editor.mjs'
       - 'src/core/privateForm*'
       - 'src/core/privateArtifact*'
       - 'src/core/artifactIntegrity.mjs'
@@ -93,6 +99,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-private-screen-editor.mjs
           node scripts/check-private-forms-native.mjs
           node node_modules/expo-modules-autolinking/bin/expo-modules-autolinking resolve --platform apple --json > .test-artifacts/app-goal-composition/native-autolinking.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/native-autolinking.json'));assert any(m['packageName']=='expo-crypto' and m['packageVersion']=='57.0.4' for m in d['modules'])"

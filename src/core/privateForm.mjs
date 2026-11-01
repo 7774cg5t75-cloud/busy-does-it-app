@@ -4,7 +4,7 @@ const bad=message=>{throw Error(message);},plain=x=>x&&typeof x==='object'&&!Arr
 const keys=(x,allowed,required=allowed)=>{if(!plain(x)||Object.keys(x).some(k=>!allowed.includes(k))||required.some(k=>!Object.hasOwn(x,k)))bad('Unexpected or missing private form fields.');};
 const id=x=>typeof x==='string'&&/^[a-z][a-z0-9_]{0,31}$/.test(x)&&!['constructor','prototype'].includes(x);
 export const formRelevant=(field,values)=>!field.when||values[field.when.field]===field.when.equals;
-function checked(spec){
+function checked(spec,verifyExamples=true){
  assertFiniteData(spec);keys(spec,['version','kind','title','purpose','scope','fields','calculation','cases']);if(spec.version!==1||spec.kind!=='private-form'||!text(spec.title,80)||!text(spec.purpose,240)||!Array.isArray(spec.fields)||spec.fields.length<1||spec.fields.length>8||!Array.isArray(spec.cases)||spec.cases.length<1||spec.cases.length>4)bad('Use the supported bounded private form format.');
  // The original calculation validator owns the shared exact scope contract.
  const scopeCheck={version:1,kind:'private-calculation',title:'Scope check',purpose:'Validate current private scope',scope:spec.scope,inputs:[{id:'n',label:'Number',type:'number',unit:'units',min:0,max:1,default:0}],outputs:[{id:'n',label:'Number',type:'number',unit:'units',decimals:0,expression:{op:'input',id:'n'}}],cases:[{label:'Scope example',inputs:{n:0},expected:{n:0}}]};if(!validateCalculation(scopeCheck).ok)bad('Open the exact current private App.');
@@ -16,7 +16,7 @@ function checked(spec){
   if(f.type==='boolean'&&typeof f.default!=='boolean')bad('Use a yes/no starting value.');fields.set(f.id,f);
  }
  if(spec.calculation!==null){const c=validateCalculation(spec.calculation);if(!c.ok||stableJson(c.spec.scope)!==stableJson(spec.scope))bad('Review the original scoped finite calculation separately.');for(const input of c.spec.inputs){const f=fields.get(input.id);if(!f||f.required!==true||f.when||f.type!==input.type||f.type==='number'&&(f.min!==input.min||f.max!==input.max||f.unit!==input.unit))bad('Calculated inputs must match unconditional reviewed numeric or yes/no fields.');}for(const example of c.spec.cases){const r=calculatePrivateRules(c.spec,example.inputs);if(!r.ok||stableJson(r.outputs)!==stableJson(example.expected))bad('Calculation acceptance example mismatch.');}}
- for(const c of spec.cases){keys(c,['label','values','valid','outputs']);if(!text(c.label,80)||typeof c.valid!=='boolean')bad('Review typed form examples.');const r=evaluate(spec,c.values);if(r.valid!==c.valid||stableJson(r.outputs)!==stableJson(c.outputs))bad('Form acceptance example mismatch.');}
+ for(const c of spec.cases){keys(c,['label','values','valid','outputs']);if(!text(c.label,80)||typeof c.valid!=='boolean')bad('Review typed form examples.');const r=evaluate(spec,c.values);if(verifyExamples&&(r.valid!==c.valid||stableJson(r.outputs)!==stableJson(c.outputs)))bad('Form acceptance example mismatch.');}
  return JSON.parse(stableJson(spec));
 }
 function evaluate(spec,values){assertFiniteData(values);keys(values,spec.fields.map(f=>f.id),[]);const errors={},active=[];for(const f of spec.fields){if(!formRelevant(f,values))continue;active.push(f.id);const v=values[f.id],missing=v===null||v===undefined||typeof v==='string'&&!v.trim();if(missing){if(f.required||spec.calculation?.inputs.some(i=>i.id===f.id))errors[f.id]='Please enter '+f.label.toLowerCase()+'.';continue;}
@@ -31,3 +31,6 @@ function evaluate(spec,values){assertFiniteData(values);keys(values,spec.fields.
 export function validatePrivateForm(spec){try{return {ok:true,spec:checked(spec)};}catch(e){return {ok:false,reason:e.message};}}
 export function evaluatePrivateForm(spec,values){try{return evaluate(checked(spec),values);}catch(e){return {ok:false,reason:e.message,outputs:null};}}
 export const privateFormDefaults=spec=>Object.fromEntries(spec.fields.map(f=>[f.id,f.default]));
+
+// Draft preparation only: changed expectations must be shown and freshly approved.
+export function preparePrivateFormExamples(spec){try{const draft=checked(spec,false);for(const c of draft.cases){const r=evaluate(draft,c.values);c.valid=r.valid;c.outputs=r.outputs;}return {ok:true,spec:checked(draft),examplesNeedReview:true};}catch(e){return {ok:false,reason:e.message};}}

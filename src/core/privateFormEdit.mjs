@@ -1,0 +1,40 @@
+import {verifyPrivateFunction} from './privateFunctionAccount.mjs';
+import {validatePrivateForm,preparePrivateFormExamples} from './privateForm.mjs';
+import {assertFiniteData} from './privateCalculation.mjs';
+import {calculationScope} from './privateCalculationPilot.mjs';
+import {stableJson} from './stableJson.mjs';
+const fail=reason=>({ok:false,reason});
+const fields={text:()=>({type:'text',required:false,default:'',maxLength:160}),number:()=>({type:'number',required:true,default:0,unit:'units',min:0,max:1000000}),choice:()=>({type:'choice',required:true,default:'',options:[{value:'first',label:'First option'},{value:'second',label:'Second option'}]}),boolean:()=>({type:'boolean',required:false,default:false})};
+export function editPrivateForm(spec,operation,context){
+ try{assertFiniteData(operation);const valid=validatePrivateForm(spec);if(!valid.ok||!context?.ok||stableJson(spec.scope)!==stableJson(calculationScope(context)))return fail('Reopen this form against the current App before changing it.');const next=JSON.parse(stableJson(valid.spec)),f=next.fields.find(f=>f.id===operation.fieldId),calculated=id=>next.calculation?.inputs.some(i=>i.id===id),keys=allowed=>{if(Object.keys(operation).some(k=>!allowed.includes(k)))throw Error('Unsupported form change fields.');};
+ switch(operation.kind){
+ case 'add':{keys(['kind','field']);if(next.fields.length>=8)return fail('This form is full. Remove a question before adding another.');next.fields.push(operation.field);break;}
+ case 'remove':keys(['kind','fieldId']);if(!f)return fail('Choose the exact question to remove.');if(calculated(f.id)||next.fields.some(x=>x.when?.field===f.id))return fail('This question is used by a calculation or conditional question. Change that connection first.');next.fields=next.fields.filter(x=>x.id!==f.id);for(const c of next.cases)delete c.values[f.id];break;
+ case 'move':{keys(['kind','fieldId','direction']);const at=next.fields.indexOf(f),to=at+(operation.direction==='up'?-1:operation.direction==='down'?1:0);if(at<0||to<0||to>=next.fields.length||to===at)return fail('Choose a supported move within this form.');[next.fields[at],next.fields[to]]=[next.fields[to],next.fields[at]];break;}
+ case 'update':{keys(['kind','fieldId','changes']);if(!f||!operation.changes||Object.keys(operation.changes).some(k=>!['label','required','default','unit','min','max','maxLength','options','when'].includes(k)))return fail('Choose a supported question setting.');Object.assign(f,operation.changes);if(calculated(f.id)){const input=next.calculation.inputs.find(i=>i.id===f.id);for(const k of ['min','max','unit','default'])if(Object.hasOwn(operation.changes,k)&&operation.changes[k]!==null)input[k]=operation.changes[k];}break;}
+ case 'unconditional':keys(['kind','fieldId']);if(!f)return fail('Choose a question.');delete f.when;break;
+ case 'type':{keys(['kind','fieldId','type']);if(!f||calculated(f.id)||next.fields.some(x=>x.when?.field===f.id)||!Object.hasOwn(fields,operation.type))return fail('Detach dependent rules before changing this question type.');next.fields[next.fields.indexOf(f)]={id:f.id,label:f.label,...fields[operation.type]()};break;}
+ case 'detach_calculation':keys(['kind']);next.calculation=null;break;
+ default:return fail('That change is not supported by this private form editor.');
+ }
+ const changed=preparePrivateFormExamples(next);return changed.ok?{...changed,summary:'Review the changed questions, conditions and example outcomes. Nothing is saved.'}:changed;
+ }catch(e){return fail(e.message);}
+}
+export function formInstruction(spec,words,context){
+ if(typeof words!=='string'||words.length>240)return fail('Briefly describe one change.');const t=words.trim().toLowerCase();if(/staff|send|message.*automatically|inventory|payment|booking/.test(t))return fail('Live permissions, communications, stock and transactions are unavailable.');
+ if(/^(?:ask for|add)(?: their| an? optional)? postcode(?: as well)?[.!]?$/.test(t)){if(spec.fields.some(f=>f.id==='postcode'))return fail('The postcode question is already present.');return editPrivateForm(spec,{kind:'add',field:{id:'postcode',label:'Postcode',type:'text',required:false,default:'',maxLength:12}},context);}
+ if(/^(?:put|move) (?:the )?(?:number of guests|guest count) (?:at|to) the top[.!]?$/.test(t)){let draft=spec;const index=spec.fields.findIndex(f=>f.id==='guests');if(index<0)return fail('This form has no guest-count question.');for(let i=0;i<index;i++){const r=editPrivateForm(draft,{kind:'move',fieldId:'guests',direction:'up'},context);if(!r.ok)return r;draft=r.spec;}return {ok:true,spec:draft,examplesNeedReview:true};}
+ if(/^show (?:the )?estimated portions underneath[.!]?$/.test(t)&&spec.calculation)return {ok:true,spec:JSON.parse(stableJson(spec)),summary:'Read-only results are already shown underneath the questions. No submission or business action is added.'};
+ const condition=/^only ask (?:about )?(.+?) if they choose (.+?)[.!]?$/.exec(t);if(condition){const target=condition[1]==='special requirements'?'requirements':condition[1],matches=spec.fields.filter(f=>f.id===target||f.label.toLowerCase()===target),parents=spec.fields.flatMap(p=>p.type==='choice'&&!p.when?p.options.filter(o=>o.label.toLowerCase()===condition[2]).map(o=>({field:p.id,equals:o.value})):[]);return matches.length===1&&parents.length===1?editPrivateForm(spec,{kind:'update',fieldId:matches[0].id,changes:{when:parents[0]}},context):fail('Choose the exact question and an existing reviewed choice before adding this condition.');}
+ const remove=/^remove (?:the )?(?:optional )?(.+?) question[.!]?$/.exec(t);if(remove){const found=spec.fields.filter(f=>f.label.toLowerCase()===remove[1]||f.id===remove[1]);return found.length===1?editPrivateForm(spec,{kind:'remove',fieldId:found[0].id},context):fail('Choose the exact question to remove.');}
+ const allowance=/^(?:use|include|make)(?: an?)? (\d+(?:\.\d+)?)\s*% (?:materials? )?allowance[.!]?$/.exec(t);if(allowance&&spec.fields.some(f=>f.id==='spare'))return editPrivateForm(spec,{kind:'update',fieldId:'spare',changes:{default:Number(allowance[1])}},context);
+ return fail('Use the question controls for that change, or describe adding a postcode, moving guests first, removing an exact question, or changing an allowance.');
+}
+export function newPrivateFormField(spec,type,label){if(!Object.hasOwn(fields,type))return null;let n=1;while(spec.fields.some(f=>f.id==='question_'+n))n++;return {id:'question_'+n,label,...fields[type]()};}
+// A reviewed copy, never a live link or inherited execution permission.
+export async function copyPrivateCalculationIntoForm(spec,record,context,integrity){
+ const source=await verifyPrivateFunction(record,context,integrity),valid=validatePrivateForm(spec);if(!valid.ok||!source.ok||!source.eligible||source.artifact.spec.kind!=='private-calculation'||stableJson(spec.scope)!==stableJson(calculationScope(context)))return fail('Choose a freshly verified eligible calculation from this exact App.');
+ const next=JSON.parse(stableJson(spec)),calculation=JSON.parse(stableJson(source.artifact.spec));calculation.scope={...next.scope};
+ for(const input of calculation.inputs){const f=next.fields.find(f=>f.id===input.id);if(f){if(f.when||f.type!==input.type||f.type==='number'&&(f.min!==input.min||f.max!==input.max||f.unit!==input.unit))return fail('An existing question differs from a calculation input. Review that question first.');f.required=true;}else next.fields.push({...input,required:true});}
+ next.calculation=calculation;const r=preparePrivateFormExamples(next);return r.ok?{...r,summary:'The reviewed calculation was copied into a new form draft. Its inputs and examples need new approval; it is not a live link.'}:r;
+}

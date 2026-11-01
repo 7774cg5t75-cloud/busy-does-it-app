@@ -1,3 +1,5 @@
+import {publicScreenArrangement} from './publicScreenArrangement.mjs';
+import {privateScreenService} from './privateScreenService.mjs';
 import {privateFunctionService} from './privateFunctionService.mjs';
 import {savePrivateProject} from './privateProjectService.mjs';
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
@@ -2436,12 +2438,15 @@ function publicMiniAppWebHtml(app: any, version: any) {
       : "";
 
   const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
-  const publicInformationHtml = enabled.has('business_profile') ? ([['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']] as const).map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);return rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map((row:Record<string,string>)=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';}).join('') : '';
-  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map((block:{kind:string,title:string,featuredId?:string})=>businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}})).join(''):'';
+  const publicInformationBlocks:Record<string,string>={};
+  const publicInformationHtml = enabled.has('business_profile') ? ([['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']] as const).map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);const html=rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map((row:Record<string,string>)=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';publicInformationBlocks[field]=html;return html;}).join('') : '';
+  const publicContentBlocks:Record<string,string>={};
+  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map((block:{kind:string,title:string,featuredId?:string,layout?:'rows'|'cards'})=>{const html=businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',contentLayout:block.layout,featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}});publicContentBlocks[block.kind==='product'?'products':'events']=html;return html;}).join(''):'';
   const aboutHtml = enabled.has("business_profile")
     ? `<section id="about"><div class="wrap"><p class="eyebrow">About</p><h2>${escapeHtml(name)}</h2>${about ? `<p>${escapeHtml(about)}</p>` : ""}${serviceArea ? `<p class="muted">Service area: ${escapeHtml(serviceArea)}</p>` : ""}</div></section>`
     : "";
 
+  const arrangedPublicHtml=publicScreenArrangement(config,{introduction:aboutHtml,...publicInformationBlocks,...publicContentBlocks,services:servicesHtml,gallery:galleryHtml,contact:contactHtml,offers:offersHtml,loyalty:loyaltyHtml});
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -2466,14 +2471,14 @@ function publicMiniAppWebHtml(app: any, version: any) {
 </head>
 <body>
   <header class="hero"><div class="wrap"><div class="brand">BUSY DOES IT</div>${category ? `<p class="eyebrow" style="margin-top:22px">${escapeHtml(category)}</p>` : ""}<h1>${escapeHtml(name)}</h1>${tagline ? `<p class="lead">${escapeHtml(tagline)}</p>` : description ? `<p class="lead">${escapeHtml(description)}</p>` : ""}${serviceArea ? `<p class="muted">${escapeHtml(serviceArea)}</p>` : ""}${heroHtml}<div class="hero-actions"><a class="button" href="${escapeHtml(actionUrl("open"))}">Open in BUSY DOES IT</a></div><span class="browse-note">No app or sign-in needed to browse</span></div></header>
-  ${aboutHtml}
+${arrangedPublicHtml===null?`  ${aboutHtml}
   ${sharedContentHtml}
   ${publicInformationHtml}
   ${servicesHtml}
   ${galleryHtml}
   ${offersHtml}
   ${loyaltyHtml}
-  ${contactHtml}
+  ${contactHtml}`:arrangedPublicHtml}
   ${actionHtml}
   <footer>Powered by <strong>BUSY DOES IT</strong> • Public information from the business's approved live Business App.</footer>
   <script>
@@ -4360,6 +4365,7 @@ Deno.serve(async (request: Request) => {
         ...(await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
         status:await readCurrentStatus()});
     }
+    if(action==='private_screen'){const app=await appForBusiness(resolvedBusinessId);return json(200,await privateScreenService({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,body,enabled:Deno.env.get('BUSY_PRIVATE_SCREENS_ENABLED'),functionsEnabled:Deno.env.get('BUSY_PRIVATE_FUNCTIONS_ENABLED'),formsEnabled:Deno.env.get('BUSY_PRIVATE_FORMS_ENABLED'),projectUrl:SUPABASE_URL}));}
     if(action==='private_function'){
       const app=await appForBusiness(resolvedBusinessId);
       return json(200,await privateFunctionService({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,body,enabled:Deno.env.get('BUSY_PRIVATE_FUNCTIONS_ENABLED'),formsEnabled:Deno.env.get('BUSY_PRIVATE_FORMS_ENABLED'),projectUrl:SUPABASE_URL}));

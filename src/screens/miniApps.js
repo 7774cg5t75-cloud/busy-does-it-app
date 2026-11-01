@@ -280,6 +280,7 @@ function MeasuredNavLabel({label,index,isList,onObservation}){
 
 function MiniAppSurface({
   config,
+  privatePreviewSection = '',
   interactive = false,
   s = null,
   loyaltyProgress = null,
@@ -305,7 +306,7 @@ function MiniAppSurface({
   const [serviceCategory,setServiceCategory]=React.useState('');
   const [questionService,setQuestionService]=React.useState('');
   const [selectedSection,setSelectedSection]=React.useState('');
-  const currentSection=modules.some(m=>m.key===selectedSection)?selectedSection:'';
+  const currentSection=['business_profile','services','contact'].includes(privatePreviewSection)&&modules.some(m=>m.key===privatePreviewSection)?privatePreviewSection:modules.some(m=>m.key===selectedSection)?selectedSection:'';
   const allServices=Array.isArray(profile?.services)?profile.services:[];
   const serviceReturn=useServiceBrowseReturn({services:allServices,contextKey:catalogueContextKey,query:serviceQuery,category:serviceCategory,setQuery:setServiceQuery,setCategory:setServiceCategory});
   // Marketplace has legacy 50-row profiles; retain the native helper's 40-row bound.
@@ -1271,6 +1272,7 @@ function MiniAppBuilder({ s }) {
       <Button label="Talk & Explore — no project changes" disabled={!app||!view.draftConfig||!!s.miniAppsAction||studio.pending||studio.uncertain} onPress={()=>s.requestOwnerEditTransition?s.requestOwnerEditTransition(()=>setExplore(true)):setExplore(true)}/>
       {app?<AppGoalCompositionEditor key={['goal-composition',s.ownerSession?.userId,s.cloudWorkspace?.businessId,ownerEditorEpoch].join(':')}
         ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} app={app} catalog={view.catalog||[]}
+        screenRequest={s.connectedRuntime?.active?body=>s.miniAppsRequest('private_screen',body):undefined}
         functionRequest={s.connectedRuntime?.active?body=>s.miniAppsRequest('private_function',body):undefined}
         onProjectObserved={s.connectedRuntime?.active?()=>s.refreshMiniAppsStatus({quiet:true}):undefined}
         onSaveProject={s.connectedRuntime?.active?args=>savePrivateAppProject({...args,ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,catalog:view.catalog||[],write:payload=>s.miniAppsRequest('save_project_spec',payload),readStatus:()=>s.miniAppsRequest('owner_status')}):undefined}

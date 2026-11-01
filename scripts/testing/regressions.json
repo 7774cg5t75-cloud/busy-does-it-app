@@ -3022,6 +3022,13 @@
         "scripts/check-private-forms-native.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-private-screen-editor",
+      "args": [
+        "scripts/check-private-screen-editor.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
