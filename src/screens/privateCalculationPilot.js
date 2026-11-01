@@ -4,7 +4,7 @@ import {Card,Button,Field,Details} from '../components/ui';
 import {styles} from '../theme/styles';
 import {createPrivateCalculationPilot,proposePrivateCalculation} from '../core/privateCalculationPilot.mjs';
 import {explainCalculation} from '../core/privateCalculation.mjs';
-export function PrivateCalculationPilot({context,isCurrent,initialGoal='',onRetainRequirement,onDraftChange=()=>{}}){
+export function PrivateCalculationPilot({enabled=false,context,isCurrent,initialGoal='',onRetainRequirement,onDraftChange=()=>{}}){
  const [goal,setGoal]=React.useState(initialGoal.slice(0,240)),[candidate,setCandidate]=React.useState(null),[review,setReview]=React.useState(null),[accepted,setAccepted]=React.useState(false),[values,setValues]=React.useState({}),[result,setResult]=React.useState(null),[notice,setNotice]=React.useState('');
  const authored=React.useRef(false);React.useEffect(()=>{if(!authored.current&&!candidate)setGoal(initialGoal.slice(0,240));},[initialGoal,candidate]);
  const live=React.useRef(null);live.current={context,isCurrent};const session=React.useRef(null);if(!session.current)session.current=createPrivateCalculationPilot({getCurrent:()=>live.current.context,isCurrent:()=>live.current.isCurrent?.()===true});
@@ -12,6 +12,7 @@ export function PrivateCalculationPilot({context,isCurrent,initialGoal='',onReta
  const reviewCurrent=!review||['ownerId','businessId','projectId','sourceRevision'].every(k=>review.spec.scope[k]===context?.scope?.[k])&&review.pilotEpoch===context?.pilotEpoch;
  const active=()=>live.current.isCurrent?.()===true&&live.current.context?.ok===true;
  const parse=()=>{const data={};for(const f of candidate.spec.inputs){if(f.type==='boolean')data[f.id]=values[f.id]===true;else{const v=values[f.id];if(typeof v!=='string'||!/^[-]?\d+(?:\.\d{1,6})?$/.test(v)||v.length>32)return null;data[f.id]=Number(v);}}return data;};
+ if(enabled!==true)return null;
  return <Details label="Private calculation experiment">
   <Card title="Try a calculation made for your business" body="A private, offline experiment. It calculates numbers only; it cannot order, quote, promise capacity, manage stock, send messages or change your app.">
    <Field label="What would you like to calculate?" value={goal} maxLength={240} onChangeText={v=>{authored.current=true;reset();setGoal(v);setCandidate(null);}}/>
