@@ -1,3 +1,4 @@
+import {CustomerAppForm} from './customerAppForm';
 import {appScreenSections} from '../core/appScreenComposition.mjs';
 import {savePrivateAppProject} from '../core/privateAppProject.mjs';
 import {approvedCompositionFeed,appRecordReview,currentAppRecordReview} from '../core/appRecordComposition.mjs';
@@ -293,6 +294,7 @@ function MiniAppSurface({
   ownerEdit = null,
   catalogueContextKey = '',
   requestPreview = null,
+  customerForm = null,
 }) {
   const catalogueCache=React.useRef({scope:catalogueContextKey,states:{}});
   if(catalogueCache.current.scope!==catalogueContextKey)catalogueCache.current={scope:catalogueContextKey,states:{}};
@@ -664,6 +666,7 @@ function MiniAppSurface({
       {modules.filter(module=>!interactive||!currentSection||module.key===currentSection).map(module=>{
         const sectionKeys=appScreenSections(config,module.key);
         if(!sectionKeys)return <Text key={module.key} style={styles.cardBody}>This screen layout needs a supported review.</Text>;
+        if(module.key==='contact'&&customerForm)return <View key={module.key}>{renderModule(module)}<CustomerAppForm {...customerForm}/></View>;
         return module.key==='services'&&config.screenComposition?.screens.some(row=>row.moduleKey==='services')?<View key={module.key}>{sectionKeys.map(key=><View key={key} accessibilityLabel={'Service section: '+key}>{renderModule({key})}</View>)}</View>:renderModule(module);
       })}    </View>
   );
@@ -3152,7 +3155,7 @@ function MiniAppBuilder({ s }) {
                 ? view.previewVersion.change_label || "Prepared Business App version"
                 : "BUSY freezes the current private app into an immutable customer preview so the exact version you approve is the version that goes live."
             }
-            footer="Draft edits remain private until another version is prepared and explicitly approved."
+            footer="Draft edits remain private until another version is prepared and explicitly approved. Bespoke form disclosure and enquiry permissions require their own exact review and server activation; Go Live alone does not enable them."
             tone={view.previewVersion ? "green" : "blue"}
           >
             <Button

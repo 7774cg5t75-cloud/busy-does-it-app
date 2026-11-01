@@ -3057,6 +3057,13 @@
         "scripts/check-public-form-disclosure.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-customer-form-journey",
+      "args": [
+        "scripts/check-customer-form-journey.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

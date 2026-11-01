@@ -4,6 +4,11 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - 'src/core/customerFormJourney.mjs'
+      - 'src/screens/customerAppForm.js'
+      - 'supabase/functions/busy-mini-app-guest/formGuestDispatcher.mjs'
+      - 'scripts/check-customer-form-journey.mjs'
+      - 'scripts/lib/original-form-guest-handler.mjs'
       - 'src/core/publicFormDisclosure.mjs'
       - 'src/core/privateDisclosureAccount.mjs'
       - 'src/screens/customerFormRehearsal.js'
@@ -115,6 +120,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-customer-form-journey.mjs
           node scripts/check-public-form-disclosure.mjs
           node scripts/check-growth-drafts.mjs
           node scripts/check-growth-operator.mjs
