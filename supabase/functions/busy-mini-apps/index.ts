@@ -3356,7 +3356,7 @@ async function submitRequest(
 
   const rawPayload =
     body?.payload && typeof body.payload === "object" ? body.payload : {};
-  if (Object.hasOwn(rawPayload,"privateForm") || Object.hasOwn(rawPayload,"formContext")) throw new Error("Private form submission is not activated.");
+  if (Object.hasOwn(rawPayload,"privateForm") || Object.hasOwn(rawPayload,"formContext") || Object.hasOwn(rawPayload,"formDisclosure") || Object.hasOwn(rawPayload,"formSubmission")) throw new Error("Private form submission is not activated.");
   const contactName = clean(rawPayload?.name || rawPayload?.contactName, 160);
   const contactEmail = clean(rawPayload?.email || rawPayload?.contactEmail, 240);
   const contactPhone = clean(rawPayload?.phone || rawPayload?.contactPhone, 80);
@@ -4366,7 +4366,7 @@ Deno.serve(async (request: Request) => {
         ...(await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)),
         status:await readCurrentStatus()});
     }
-    if(action==='private_screen'){const app=await appForBusiness(resolvedBusinessId);return json(200,await privateScreenService({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,body,enabled:Deno.env.get('BUSY_PRIVATE_SCREENS_ENABLED'),functionsEnabled:Deno.env.get('BUSY_PRIVATE_FUNCTIONS_ENABLED'),formsEnabled:Deno.env.get('BUSY_PRIVATE_FORMS_ENABLED'),projectUrl:SUPABASE_URL}));}
+    if(action==='private_screen'){const app=await appForBusiness(resolvedBusinessId);return json(200,await privateScreenService({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,body,enabled:Deno.env.get('BUSY_PRIVATE_SCREENS_ENABLED'),functionsEnabled:Deno.env.get('BUSY_PRIVATE_FUNCTIONS_ENABLED'),formsEnabled:Deno.env.get('BUSY_PRIVATE_FORMS_ENABLED'),disclosureEnabled:Deno.env.get('BUSY_PRIVATE_DISCLOSURE_PREPARATION_ENABLED'),projectUrl:SUPABASE_URL}));}
     if(action==='private_function'){
       const app=await appForBusiness(resolvedBusinessId);
       return json(200,await privateFunctionService({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,body,enabled:Deno.env.get('BUSY_PRIVATE_FUNCTIONS_ENABLED'),formsEnabled:Deno.env.get('BUSY_PRIVATE_FORMS_ENABLED'),projectUrl:SUPABASE_URL}));

@@ -4,6 +4,15 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - 'src/core/publicFormDisclosure.mjs'
+      - 'src/core/privateDisclosureAccount.mjs'
+      - 'src/screens/customerFormRehearsal.js'
+      - 'src/screens/privateDisclosureReview.js'
+      - 'supabase/functions/busy-mini-apps/formDisclosureService.mjs'
+      - 'scripts/check-public-form*'
+      - 'scripts/lib/public-form-components.mjs'
+      - 'scripts/check-growth-drafts.mjs'
+      - 'scripts/check-growth-operator.mjs'
       - 'src/core/appEnquirySource.mjs'
       - 'src/components/AppEnquirySourceContext.js'
       - 'src/components/CanonicalWorkPanel.js'
@@ -106,6 +115,9 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-public-form-disclosure.mjs
+          node scripts/check-growth-drafts.mjs
+          node scripts/check-growth-operator.mjs
           node scripts/check-private-form-enquiries.mjs
           node scripts/check-private-screen-editor.mjs
           node scripts/check-private-forms-native.mjs
@@ -157,6 +169,13 @@ jobs:
           if [ "$PG_CHECK_EXIT" -ne 0 ]; then tail -n 35 .test-artifacts/app-goal-composition/postgres.log; exit "$PG_CHECK_EXIT"; fi
           cp .test-artifacts/whole-app/postgres.json .test-artifacts/app-goal-composition/postgres.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/postgres.json'));print('BUSY_APP_POSTGRES '+json.dumps(d['summary']))"
+          set +e
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-public-form-postgres.mjs > .test-artifacts/app-goal-composition/public-form-postgres.log 2>&1
+          FORM_CHECK_EXIT=$?
+          set -e
+          if [ "$FORM_CHECK_EXIT" -ne 0 ]; then tail -n 35 .test-artifacts/app-goal-composition/public-form-postgres.log; exit "$FORM_CHECK_EXIT"; fi
+          cp .test-artifacts/public-form/postgres.json .test-artifacts/app-goal-composition/public-form-postgres.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/public-form-postgres.json'));print('BUSY_PUBLIC_FORM_POSTGRES '+json.dumps(d['summary']))"
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1

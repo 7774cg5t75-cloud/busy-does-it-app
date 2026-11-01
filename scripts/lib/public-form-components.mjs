@@ -1,0 +1,27 @@
+// Execute original component bodies with inert React/native boundaries, not pixels.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {requireTools} from '../testing/tooling.mjs';
+import {stableJson} from '../../src/core/stableJson.mjs';
+import {formRelevant,privateFormDefaults} from '../../src/core/privateForm.mjs';
+import {validatePublicFormProjection,publicFormStartingValues,validatePublicAnswers,createCustomerFormReview,preparePublicFormCandidate} from '../../src/core/publicFormDisclosure.mjs';
+import {createPrivateDisclosureAccount} from '../../src/core/privateDisclosureAccount.mjs';
+const babel=requireTools('@babel/core');
+export const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[];
+export function hooks(){let slots=[],i=0;const React={createElement:(type,props,...children)=>({type,props:{...props,children}}),Fragment:'Fragment',useState(v){const n=i++;if(!(n in slots))slots[n]=typeof v==='function'?v():v;return [slots[n],v=>slots[n]=typeof v==='function'?v(slots[n]):v];},useRef(v){const n=i++;return slots[n]||(slots[n]={current:v});},useEffect(){i++;}};return {React,render:(C,p)=>{i=0;return C(p);}};}
+export function originalComponent(file,name,deps){const s=readFileSync(file,'utf8'),a=babel.parseSync(s,{babelrc:false,configFile:false,parserOpts:{plugins:['jsx']}}),n=a.program.body.find(n=>n.type==='ExportNamedDeclaration'&&n.declaration?.id?.name===name)?.declaration;assert.ok(n);const c=babel.transformSync(s.slice(n.start,n.end),{babelrc:false,configFile:false,plugins:[[requireTools('@babel/plugin-transform-react-jsx'),{runtime:'classic'}]]}).code;return Function(...Object.keys(deps),c+';return '+name+';')(...Object.values(deps));}
+const common={Text:'Text',Card:'Card',Button:'Button',Field:'Field',Details:'Details',styles:{},stableJson,formRelevant,privateFormDefaults,publicFormStartingValues,validatePublicFormProjection,validatePublicAnswers,createCustomerFormReview,preparePublicFormCandidate,createPrivateDisclosureAccount};
+export async function exerciseCustomerForm({projection,values,contact,interest,review}){
+ const h=hooks(),f=hooks(),C=originalComponent('src/screens/customerFormRehearsal.js','CustomerFormRehearsal',{...common,React:h.React,PrivateFormPreview:'OriginalFormFields'}),F=originalComponent('src/screens/privateFormPreview.js','PrivateFormPreview',{...common,React:f.React});let active=true;const p={projection,review,interest,isCurrent:()=>active},draw=()=>h.render(C,p),fields=()=>walk(draw()).find(n=>n.type==='OriginalFormFields'),parts=()=>f.render(F,fields().props),find=(label)=>walk(draw()).find(n=>n.props?.label===label);
+ for(const field of projection.fields){if(!formRelevant(field,values))continue;const value=values[field.id];if(value===undefined)continue;const fragment=walk(parts()).find(n=>n.props?.key===field.id);assert.ok(fragment,'Original field '+field.id);const nodes=walk(fragment);
+  if(field.type==='choice')nodes.find(n=>n.props?.label===field.options.find(o=>o.value===value).label).props.onPress();else if(field.type==='boolean')nodes.find(n=>n.props?.label===(value?'Yes':'No')).props.onPress();else nodes.find(n=>n.type==='Field').props.onChangeText(String(value));
+ }
+ for(const [key,label] of [['name','Your name'],['email','Your email'],['phone','Your phone (optional)'],['message','Your question']])find(label).props.onChangeText(contact[key]);
+ find(projection.privacy.consentText).props.onPress();assert.equal(await fields().props.onEvaluate(),true);const result=fields().props.result;assert.equal(result.ok,true);assert.equal(result.stage,'review_prepared');assert.equal(result.submitted,false);assert.ok(!walk(draw()).some(n=>/^(Submit|Send|Book|Order|Pay)/.test(n.props?.label||'')));
+ find('Your question').props.onChangeText('Newer unfinished words');assert.equal(fields().props.result,null);active=false;assert.equal(draw(),null);return result;
+}
+export async function exerciseOwnerDisclosure({context,isCurrent,request,screens,artifacts,integrity,opened,approval}){
+ const h=hooks(),C=originalComponent('src/screens/privateDisclosureReview.js','PrivateDisclosureReview',{...common,React:h.React,PrivateFormPreview:'OriginalFormFields',CustomerFormRehearsal:'OriginalCustomerRehearsal'}),p={context,isCurrent,request,screens,artifacts,integrity,opened},draw=()=>h.render(C,p),find=label=>walk(draw()).find(n=>n.props?.label===label);
+ for(const [label,value] of [['Public title',approval.title],['Public explanation',approval.explanation],['How the enquiry information will be used',approval.privacyNotice],['Privacy acknowledgement wording',approval.consentText]])find(label).props.onChangeText(value);
+ assert.equal(await find('Preview only the customer-safe questions').props.onPress(),true);assert.equal(await find('Approve and save this disclosure preparation').props.onPress(),true);const child=walk(draw()).find(n=>n.type==='OriginalCustomerRehearsal');assert.ok(child);assert.equal(child.props.projection.title,approval.title);assert.equal(await find('Reopen the saved disclosure preparation').props.onPress(),true);assert.equal(await find('Revoke this disclosure preparation').props.onPress(),true);assert.ok(!walk(draw()).some(n=>n.type==='OriginalCustomerRehearsal'));return child.props.projection;
+}

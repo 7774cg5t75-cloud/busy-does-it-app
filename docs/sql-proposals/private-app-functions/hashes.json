@@ -9,6 +9,9 @@
     "screens.sql": "a6283394e741e3d01c060eee32b54a594df5ed66a27216001fcf7f50a529ae92",
     "screens-retaining-rollback.sql": "440380ab4a49dc69f7ff041e10ab8407b4fe7d89210e6b43b5f8ba2949e0891e",
     "enquiries.sql": "1e1b5090ef1a1885d46323e46a3e06df2bdb7308d729d34032401f32f9303639",
-    "enquiries-retaining-rollback.sql": "8f2a6116e1688910712a6b90c5d77f13dab0458ac36360c7dec7fe27b9181a8f"
+    "enquiries-retaining-rollback.sql": "8f2a6116e1688910712a6b90c5d77f13dab0458ac36360c7dec7fe27b9181a8f",
+    "disclosure.sql": "d1e52eb6939f37c7f03b233ce735507362ea1bdd23c2bcd5f51b77eddc43e072",
+    "disclosure-requests.sql": "c6778c2c8f37eb84f3d14d7a240457f40e2dad6118475454a6db0cdf6070d8ee",
+    "disclosure-retaining-rollback.sql": "0655440b47e33ea9ed68bd9a6d2969cc77c389423e06b3ecdeef3343eb0cafc8"
   }
 }

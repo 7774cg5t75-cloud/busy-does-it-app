@@ -3036,6 +3036,27 @@
         "scripts/check-private-form-enquiries.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-growth-drafts",
+      "args": [
+        "scripts/check-growth-drafts.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-growth-operator",
+      "args": [
+        "scripts/check-growth-operator.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-public-form-disclosure",
+      "args": [
+        "scripts/check-public-form-disclosure.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
