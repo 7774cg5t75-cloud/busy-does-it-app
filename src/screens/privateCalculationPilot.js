@@ -44,7 +44,7 @@ export function PrivateCalculationPilot({enabled=false,context,isCurrent,initial
    </>:null}
    <Button label="Discard private experiment" onPress={()=>{reset();setCandidate(null);setNotice('Private experiment discarded. Your saved app and original requirements are unchanged.');}}/>
    {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
-   <Details label="Experiment limits"><Text style={styles.cardBody}>Finite interpreter, not a general code sandbox. No customer data, network, database, filesystem, provider, publication or payment connection. Accepted rules disappear when this session closes.</Text></Details>
+   <Details label="Experiment limits"><Text style={styles.cardBody}>Finite interpreter, not a general code sandbox. No customer data, network, database, filesystem, provider, publication or payment connection. Session acceptance alone does not save rules. Use the separate reviewed private-function save, when available, to keep an exact version.</Text></Details>
   </Card>
  </Details>;
 }

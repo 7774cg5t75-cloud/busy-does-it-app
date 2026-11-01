@@ -43,7 +43,7 @@ export function retainCalculationRequirement({context,proposal,goal}){
 }
 
 export function revisePrivateCalculation(spec,words,context){
- const valid=validateCalculation(spec);if(!valid.ok||!context?.ok||typeof words!=='string'||words.length>160)return fail('Open a current function and describe one assumption.');
+ const valid=validateCalculation(spec);if(!valid.ok||!context?.ok||['ownerId','businessId','projectId'].some(k=>spec.scope[k]!==calculationScope(context)[k])||spec.scope.sourceRevision>calculationScope(context).sourceRevision||typeof words!=='string'||words.length>160)return fail('Open a current function and describe one assumption.');
  const next=JSON.parse(stableJson(spec));next.scope=calculationScope(context);const t=words.toLowerCase();let match;
  if((match=/(\d+(?:\.\d+)?)\s*servings?\s*(?:per|a)\s*(?:person|guest)/.exec(t))&&next.inputs.some(f=>f.id==='servings'))next.inputs.find(f=>f.id==='servings').default=Number(match[1]);
  else if((match=/include\s+(\d+(?:\.\d+)?)\s*%.*allowance/.exec(t))&&next.inputs.some(f=>f.id==='spare'))next.inputs.find(f=>f.id==='spare').default=Number(match[1]);
