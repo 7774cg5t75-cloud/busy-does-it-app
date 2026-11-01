@@ -68,3 +68,12 @@ Owner-approved changes to the **existing Git-connected Cloudflare Pages preview*
 Security/release: none of the changes authorise live AI, spending, customer communication, payments or production domain connection. The `pages.dev` address is Internet-accessible until Cloudflare Access is configured, and no new private customer data is included. This is a static website preview; release acceptance, legal review, real photo selection, public analytics and signup consent are still separate.
 
 Expected review URLs: `https://busydoesit-preview.pages.dev/` and `https://busydoesit-preview.pages.dev/showcase/`. GitHub commit does not by itself prove Cloudflare has finished deployment; inspect the actual browser after the build. Compare desktop and phone layout, tap all six quick links and verify the sample preview matches the actual sample.
+
+
+## 1 November 2026 — email contact and manual early-interest (review only)
+
+- Add the new founder-controlled business mailbox address to the contact section and footer, with a mailto link.
+- A compact accessible contact form **only prepares** a message in the visitor's email application. It does not POST to a backend, store addresses, or claim successful delivery. The visitor must press Send in the email app.
+- Early access remains **not open**. A separate email link allows voluntary expressions of interest, explicitly without automatic signup or a confirmed place.
+- Clarify the draft privacy notice to describe voluntary email enquiries. This is not approved legal text; an approved notice, retention process and any automated signup service require legal/security review before launch.
+- No provider secrets, live website DNS changes, AI operations or payments are introduced. Keep noindex and existing development notices; review actual renders before production publication.
