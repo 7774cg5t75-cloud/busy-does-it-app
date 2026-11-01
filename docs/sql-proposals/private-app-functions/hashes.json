@@ -14,6 +14,7 @@
     "disclosure-requests.sql": "c6778c2c8f37eb84f3d14d7a240457f40e2dad6118475454a6db0cdf6070d8ee",
     "disclosure-retaining-rollback.sql": "0655440b47e33ea9ed68bd9a6d2969cc77c389423e06b3ecdeef3343eb0cafc8",
     "guest-ingress.sql": "a7c05a9b96fb5d4b9151aa28a9a09d45160491afa743db72b7e98d8f37f7d5b6",
-    "guest-ingress-retaining-rollback.sql": "15ab18c58d5d055bf613aebbe640428db786369fb8ae7d8b5680965fd6f7de47"
+    "guest-ingress-retaining-rollback.sql": "15ab18c58d5d055bf613aebbe640428db786369fb8ae7d8b5680965fd6f7de47",
+    "guest-retention.sql": "0dca65004ba2d4b3d423bd20e6136b747ef0e0ec08677941eddd4d4d0601f1ce"
   }
 }

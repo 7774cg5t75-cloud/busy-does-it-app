@@ -81,6 +81,15 @@ try{
   const ownerProjection=await exerciseOwnerDisclosure({context:context(),isCurrent:()=>true,request:screenRequest,screens,artifacts,integrity,opened:{key:app.id,screenId:'contact',placement,artifact},approval:{...approval,title:'Separate owner-reviewed display '+i}});assert.notEqual(ownerProjection.id,projection.id);assert.equal(sql('SELECT count(*) FROM public.busy_mini_app_requests WHERE mini_app_id='+q(app.id)),'1');
   entries.push({...entry,evidence,receipt,filed,dispatch,identity,flags});
  });
+ await stage('original-prune-counterexample-and-retained-form-proof-history-without-crm-erasure',async()=>{
+  const e=entries[3],original=sqlStatements(readFileSync('supabase/migrations/20261007161000_v3_45_guest_mini_app_requests.sql','utf8')).find(x=>/create or replace function public\.busy_prune_mini_app_guest_challenges\(\)/i.test(x));assert.ok(original);sql(original);
+  const args=[e.evidence.challengeId,e.evidence.token,e.evidence.fingerprintHash,e.evidence.solution,e.evidence.requestKey],call='public.busy_form_guest_receipt_v1('+args.map(q).join(',')+')',expire="UPDATE public.busy_mini_app_guest_challenges SET expires_at=now()-interval '25 hours' WHERE id="+q(e.evidence.challengeId)+';';
+  // Same-transaction, retaining counterexample: old cleanup makes an otherwise eligible receipt unreadable.
+  sql(`BEGIN;${expire}SELECT public.busy_prune_mini_app_guest_challenges();DO $$ DECLARE refused boolean:=false;BEGIN BEGIN PERFORM ${call};EXCEPTION WHEN OTHERS THEN refused:=true;END;IF NOT refused THEN RAISE EXCEPTION 'Expected original receipt-loss counterexample';END IF;END $$;ROLLBACK;`);assert.equal((await e.guest.receipt(e.evidence)).requestId,e.receipt.requestId);
+  assert.throws(()=>sql(readFileSync(root+'guest-retention.sql','utf8')));sql(stripped(root+'guest-retention.sql','FORM RETENTION REVIEW FUSE:'));
+  const kept=packet('BEGIN;'+expire+'SELECT public.busy_prune_mini_app_guest_challenges();SELECT '+call+';ROLLBACK;');assert.equal(kept.requestId,e.receipt.requestId);
+  const pending=await e.dispatch({action:'form_open',...e.identity});sql("UPDATE public.busy_mini_app_guest_challenges SET expires_at=now()-interval '25 hours' WHERE id="+q(pending.challenge.challengeId));sql('SELECT public.busy_prune_mini_app_guest_challenges()');assert.equal(sql('SELECT count(*) FROM public.busy_mini_app_guest_challenges WHERE id='+q(pending.challenge.challengeId)),'0');assert.equal((await e.guest.receipt(e.evidence)).requestId,e.receipt.requestId);
+ });
  await stage('foreign-owner-tenant-disclosure-and-private-storage-access-denied',async()=>{
   const e=entries[0];assert.throws(()=>service('busy_private_form_disclosure_v1',[e.business,entries[1].owner,e.app.id,'read',{id:e.disclosure.id}]));for(const role of ['anon','authenticated'])assert.throws(()=>packet('BEGIN;SET ROLE '+role+';SELECT public.busy_form_disclosure_read_v1('+q(e.disclosure.id)+');COMMIT;'));await assert.rejects(()=>createFormGuestService({client}).read(e.disclosure.id));assert.throws(()=>sql('UPDATE busy_app_function_private.disclosures SET projection=\'{}\' WHERE id='+q(e.disclosure.id)));
  });
