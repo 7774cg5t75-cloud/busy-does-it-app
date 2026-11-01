@@ -15,6 +15,10 @@ on:
       - 'scripts/check-contextual-app-enquiries.mjs'
       - 'src/core/privateAppProject.mjs'
       - 'src/core/appScreenComposition.mjs'
+      - 'src/core/privateCalculation.mjs'
+      - 'src/core/privateCalculationPilot.mjs'
+      - 'src/screens/privateCalculationPilot.js'
+      - 'scripts/check-private-calculation-pilot.mjs'
       - 'src/core/appScreenProposal.mjs'
       - 'src/core/appCoordinatedStudio.mjs'
       - 'src/core/appDraftComposition.mjs'
@@ -74,6 +78,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-private-calculation-pilot.mjs
           node scripts/check-mission15-phase10-gallery-parity.mjs
           node scripts/check-mission15-phase31-service-resume.mjs
           node scripts/check-app-screen-composition.mjs

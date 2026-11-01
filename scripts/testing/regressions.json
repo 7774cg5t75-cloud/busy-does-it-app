@@ -2994,6 +2994,13 @@
         "scripts/check-app-screen-composition.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-private-calculation-pilot",
+      "args": [
+        "scripts/check-private-calculation-pilot.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
