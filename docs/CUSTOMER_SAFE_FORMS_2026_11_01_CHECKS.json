@@ -1,0 +1,532 @@
+{
+  "mission": "Customer-safe bespoke forms and legacy CI repair \u2014 1 November2026",
+  "startingGitHub": {
+    "sha": "5a91b5bbf463ff8c47cdd040645be854ce491b97",
+    "tree": "745e1c400a08cdf92285ec37c9cb9748f7e6a493"
+  },
+  "legacyRepairGitHub": {
+    "sha": "2b1a7e20b12809dc24ea1cc412ca8e3390000853",
+    "tree": "f03bb8f3c6f159381953239f2256d32584aed551"
+  },
+  "functionalGitHub": {
+    "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+    "tree": "7ac3e72c7c4dbae4ca58a697bf4a562a7603b303"
+  },
+  "localEquivalent": {
+    "sha": "81dbfe77ffd8d242961b26528306c626f9292a26",
+    "tree": "7ac3e72c7c4dbae4ca58a697bf4a562a7603b303"
+  },
+  "master": {
+    "version": "22.73",
+    "originalSHA256": "23793f82b471328bdd216897c212999a430652e19228fcb221a8ee16a7ddc272",
+    "bytesReverified": true,
+    "fullPrivateContentsCommitted": false
+  },
+  "localFrozenRegressions": {
+    "sourceSha": "81dbfe77ffd8d242961b26528306c626f9292a26",
+    "sourceTree": "7ac3e72c7c4dbae4ca58a697bf4a562a7603b303",
+    "finalSourceSha": "81dbfe77ffd8d242961b26528306c626f9292a26",
+    "finalSourceTree": "7ac3e72c7c4dbae4ca58a697bf4a562a7603b303",
+    "sourceStable": true,
+    "workingTreeChanged": false,
+    "selectionSha256": "cdf47de1c43a87b7fe7e93296d94790b4421aebbf4cb59cbdf0a571ad0b932ac",
+    "selectedCount": 473,
+    "summary": {
+      "passed": 472,
+      "failed": 0,
+      "blocked": 1,
+      "unexecuted": 0
+    },
+    "startedAt": "2026-11-01T17:59:48.180000+00:00",
+    "finishedAt": "2026-11-01T18:12:18.612213+00:00"
+  },
+  "localFrozenRunnerExit": 2,
+  "localBlockedCheck": {
+    "id": "frozen-source-evidence",
+    "actualExit": 1,
+    "cause": "spawnSync git EPERM in disposable Git fixture",
+    "permittedLocalRetestExit": 0,
+    "assertionsChanged": false
+  },
+  "localLegacyScripts": [
+    {
+      "script": "check-coordinated-growth",
+      "exitCode": 0
+    },
+    {
+      "script": "check-growth-drafts",
+      "exitCode": 0
+    },
+    {
+      "script": "check-growth-workspace",
+      "exitCode": 0
+    },
+    {
+      "script": "check-growth-command-centre",
+      "exitCode": 0
+    },
+    {
+      "script": "check-growth-operator",
+      "exitCode": 0
+    },
+    {
+      "script": "check-conversation-understanding",
+      "exitCode": 0
+    },
+    {
+      "script": "check-self-running-operations",
+      "exitCode": 0
+    },
+    {
+      "script": "check-verified-activity",
+      "exitCode": 0
+    },
+    {
+      "script": "check-founder-operations",
+      "exitCode": 0
+    }
+  ],
+  "localPostgres": {
+    "original": {
+      "passed": 99,
+      "failed": 0
+    },
+    "publicForms": {
+      "database": "busy_public_forms_disposable",
+      "hosted": false,
+      "syntheticAuth": true,
+      "publication": "Explicit simulated original live App/version rows only; no publication operation",
+      "originalGuestWriter": true,
+      "results": [
+        {
+          "id": "isolated-original-package-auth-shim-and-original-guest-dependencies",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "disclosure-default-off-fuses-and-atomic-failure-retain-original-authorities",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-catering",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-gardening",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-retail",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-website",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "foreign-owner-tenant-disclosure-and-private-storage-access-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "malformed-hidden-values-consent-stale-forms-and-source-selection-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "expired-forged-proof-and-separate-disclosure-permission-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-guest-atomic-concurrent-submit-exact-once-and-no-legacy-marker-bypass",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "unknown-submission-acknowledgement-inspected-without-replay-and-bound-approval-recovery",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-contact-and-fingerprint-quotas-and-expired-receipt-access",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "revocation-membership-and-retaining-rollback-preserve-history-and-exact-receipts",
+          "passed": true,
+          "exitCode": 0
+        }
+      ],
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      }
+    },
+    "bothProcessExits": 0,
+    "network": "Owned Unix socket only; no TCP; no hosted database"
+  },
+  "targeted": {
+    "publicFormSourceAndComponentsExit": 0,
+    "originalScreenEditorExit": 0,
+    "originalFormEnquiriesExit": 0,
+    "foundationAssertions": 105,
+    "foundationExit": 0,
+    "securityBaselineExit": 0,
+    "securityByDesignExit": 0,
+    "dependencyBackportGuardExit": 0,
+    "architectureExit": 0,
+    "staticRelativeImportCycles": 0,
+    "changedSourceSyntax": {
+      "passed": 17,
+      "failed": 0,
+      "exitCode": 0
+    }
+  },
+  "registryAudit": {
+    "registryResponded": true,
+    "processExit": 1,
+    "findings": {
+      "info": 0,
+      "low": 31,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 31
+    },
+    "underlyingFamilies": [
+      {
+        "id": "GHSA-gcqx-w48m-w2h4",
+        "package": "deepmerge",
+        "version": "4.3.1",
+        "severity": "low",
+        "upstreamFixAvailable": false,
+        "reviewedBackportCounterexampleAndRuntimeGuardExit": 0
+      }
+    ],
+    "affectedNodes": [
+      "@expo/cli",
+      "@expo/config",
+      "@expo/dom-webview",
+      "@expo/local-build-cache-provider",
+      "@expo/log-box",
+      "@expo/metro-config",
+      "@expo/prebuild-config",
+      "@expo/router-server",
+      "babel-preset-expo",
+      "deepmerge",
+      "expo",
+      "expo-application",
+      "expo-asset",
+      "expo-audio",
+      "expo-calendar",
+      "expo-constants",
+      "expo-crypto",
+      "expo-dev-client",
+      "expo-dev-launcher",
+      "expo-dev-menu",
+      "expo-dev-menu-interface",
+      "expo-file-system",
+      "expo-font",
+      "expo-image-loader",
+      "expo-image-picker",
+      "expo-keep-awake",
+      "expo-manifests",
+      "expo-notifications",
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-updates-interface"
+    ],
+    "zodGlobMinimatchReported": false,
+    "dependencyVersionsChanged": false,
+    "freshAuditSHA256": "f1d6a2ba2229655fa7854adc07c2cad648b41e96627caea459551c1bb4475642"
+  },
+  "initialUnsuccessfulEvidence": [
+    {
+      "check": "new SQL rehearsal",
+      "exit": 1,
+      "reason": "CASE-parenthesis syntax; corrected before freeze"
+    },
+    {
+      "check": "new original-journey test harness",
+      "exit": 1,
+      "reason": "Missing original builder_read route; corrected before freeze"
+    },
+    {
+      "check": "new JSX source syntax",
+      "exit": 1,
+      "reason": "Missing closing brace; corrected before freeze"
+    },
+    {
+      "check": "additional syntax invocation",
+      "exit": 1,
+      "reason": "No file selection supplied; corrected selection passed17/17"
+    },
+    {
+      "check": "full local regression runner",
+      "exit": 2,
+      "reason": "472 pass; one Git-process EPERM blocked; independent permitted retest passed"
+    },
+    {
+      "check": "registry vulnerability audit",
+      "exit": 1,
+      "reason": "31 low affected nodes; one deepmerge advisory family; guarded backport retained"
+    },
+    {
+      "check": "browser launch default IPC",
+      "exit": 1,
+      "reason": "setsockopt EPERM"
+    },
+    {
+      "check": "sandbox-enabled browser with permitted IPC",
+      "exit": 1,
+      "reason": "Chromium SUID sandbox helper not configured; no sandbox bypass or screenshots"
+    }
+  ],
+  "gates": {
+    "hostedInstalled": false,
+    "publicDisclosureActivated": false,
+    "publicSubmitActivated": false,
+    "guestEdgeDispatcherConnected": false,
+    "privateOwnerPreparationEnabled": false,
+    "syntheticAuthOnly": true,
+    "simulatedPublishedRowsOnly": true,
+    "actualProviderCalls": false,
+    "paidAI": false,
+    "customerCommunication": false,
+    "publication": false,
+    "signedBuild": false,
+    "nativePhysicalAcceptance": false,
+    "screenshotsAvailable": false,
+    "canonicalRetentionDeletionImplemented": false,
+    "receiptAccessLeaseDays": [
+      14,
+      30,
+      90
+    ],
+    "publicHtmlPrivateFormExposure": false
+  },
+  "ci": {
+    "runId": 41334277296,
+    "jobId": 124930677190,
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41334277296",
+    "conclusion": "success",
+    "artifactId": 13094737821,
+    "artifactSHA256": "cf9dbf86ac0a714e740c9ac0e41a09a4e83ad496be6d4e505fc8f1da527175bc",
+    "artifactDigestIndependentlyVerified": true,
+    "artifactByteDigests": {
+      "application.json": "7d6b5fe42f9fc5ca21e866251705b8ab490b0fbc6571313ec161326d3566e808",
+      "postgres.json": "80b64c2b37c2dc9f5fde24b8092acd470f4b44851c17d31f312ac5160f0ff85a",
+      "public-form-postgres.json": "ab6636cacd58c19f62cf363ea366667d3e738b8263ed49c9965f73b505212189",
+      "deno.log": "a7bb29bb6288a12868a2c791b55ee5f6a1d852e54bbb92f354a47fbc1ad7c92f",
+      "owner-export.log": "cdc062f823acfebe5a9af5cfa05aaac77678bd8a6467d35b0230fa4f0bca297f",
+      "staging-export.log": "a0d6ac28145f92bfcaca675c186b8f9ba1a880c31ee056adf821f94478efaef8",
+      "native-autolinking.json": "e853b1c369d816145999da4a6737167ced0d8530d6a4e73fae768b727732d0e1"
+    },
+    "application": {
+      "sourceSha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "sourceTree": "7ac3e72c7c4dbae4ca58a697bf4a562a7603b303",
+      "finalSourceSha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "finalSourceTree": "7ac3e72c7c4dbae4ca58a697bf4a562a7603b303",
+      "sourceStable": true,
+      "workingTreeChanged": false,
+      "selectionSha256": "cdf47de1c43a87b7fe7e93296d94790b4421aebbf4cb59cbdf0a571ad0b932ac",
+      "summary": {
+        "passed": 473,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      }
+    },
+    "allSelectedChecksExit": 0,
+    "postgres": {
+      "original": {
+        "passed": 99,
+        "failed": 0
+      },
+      "publicForms": {
+        "passed": 13,
+        "failed": 0
+      },
+      "processExit": 0
+    },
+    "deno": {
+      "originalEntryPoints": [
+        "busy-ai-intake",
+        "busy-builder-proposals",
+        "busy-calendar-oauth",
+        "busy-calendar-sync",
+        "busy-command",
+        "busy-conversation-extract",
+        "busy-founder-ops",
+        "busy-mini-app-guest-alert-dispatch",
+        "busy-mini-app-guest-alert-receipts",
+        "busy-mini-app-guest",
+        "busy-mini-app-link",
+        "busy-mini-apps",
+        "busy-production-watch",
+        "busy-push-dispatch",
+        "busy-social-content",
+        "busy-social-publish",
+        "busy-website-design-review",
+        "busy-website-form",
+        "busy-website-health",
+        "busy-website-origin",
+        "busy-website-original-media",
+        "busy-website-provider",
+        "busy-website-publish",
+        "busy-website-signals",
+        "busy-website-worker"
+      ],
+      "count": 25,
+      "processExit": 0
+    },
+    "foundationAssertions": 105,
+    "foundationExit": 0,
+    "securityAndDependencyGuardExit": 0,
+    "unsignedExports": {
+      "ownerPreview": {
+        "hermes": true,
+        "modules": 1530,
+        "processExit": 0
+      },
+      "isolatedStaging": {
+        "hermes": true,
+        "modules": 1589,
+        "processExit": 0
+      }
+    },
+    "expoCrypto": {
+      "version": "57.0.4",
+      "appleAutolinkingVerified": true,
+      "physicalRuntimeVerified": false
+    }
+  },
+  "observedFunctionalWorkflowRuns": [
+    {
+      "id": 41334281120,
+      "name": "V3.64 private growth workspace checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41334281120"
+    },
+    {
+      "id": 41334281192,
+      "name": "V3.69 Founder Operations Security",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41334281192"
+    },
+    {
+      "id": 41334281128,
+      "name": "V3.65 Growth Command Centre checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41334281128"
+    },
+    {
+      "id": 41334281039,
+      "name": "V3.63 coordinated editable growth checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41334281039"
+    },
+    {
+      "id": 41334281131,
+      "name": "V3.66 voice and project Operator checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41334281131"
+    },
+    {
+      "id": 41334281079,
+      "name": "V3.70 Platform Autopilot checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41334281079"
+    },
+    {
+      "id": 41334277296,
+      "name": "Private App goal composition and original authority verification",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41334277296"
+    }
+  ],
+  "remoteAncestry": {
+    "status": "ahead",
+    "aheadBy": 2,
+    "behindBy": 0,
+    "commits": [
+      {
+        "sha": "2b1a7e20b12809dc24ea1cc412ca8e3390000853",
+        "tree": "f03bb8f3c6f159381953239f2256d32584aed551"
+      },
+      {
+        "sha": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+        "tree": "7ac3e72c7c4dbae4ca58a697bf4a562a7603b303"
+      }
+    ]
+  },
+  "verifiedDraftDependencies": [
+    {
+      "number": 26,
+      "draft": true,
+      "state": "open",
+      "merged": false,
+      "head": "395eb3c0e338fa0d26dc2b7cb0d77749f5fab272",
+      "base": "codex/builder-mission14-intelligent-followups",
+      "baseSha": "3e64352e7e043812b1ba79a0609b64c251a0f4bd"
+    },
+    {
+      "number": 25,
+      "draft": true,
+      "state": "open",
+      "merged": false,
+      "head": "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+      "base": "codex/builder-mission13-customer-conversations",
+      "baseSha": "2358f2ab0ba53e312a5da8de9e08e1d566966ace"
+    },
+    {
+      "number": 24,
+      "draft": true,
+      "state": "open",
+      "merged": false,
+      "head": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+      "base": "codex/builder-mission12-connected-journeys",
+      "baseSha": "f9b11034449a8d401ea71afe27627c5715325c72"
+    },
+    {
+      "number": 23,
+      "draft": true,
+      "state": "open",
+      "merged": false,
+      "head": "f9b11034449a8d401ea71afe27627c5715325c72",
+      "base": "codex/disposable-supabase-review",
+      "baseSha": "55db12d247b149aa2052fc17f5d5dc536a77b8a7"
+    },
+    {
+      "number": 21,
+      "draft": true,
+      "state": "open",
+      "merged": false,
+      "head": "55db12d247b149aa2052fc17f5d5dc536a77b8a7",
+      "base": "codex/builder-mission11-shared-records",
+      "baseSha": "a0a3b949f97721187d0eaa66b409310f6089c8e2"
+    }
+  ],
+  "evidenceBoundary": "CI evidence belongs to the exact frozen functional commit/tree. Later report-only commits have different documentation trees and do not claim repeated source verification."
+}
