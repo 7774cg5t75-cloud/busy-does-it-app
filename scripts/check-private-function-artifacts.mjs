@@ -1,3 +1,4 @@
+import {createConnectedApplicationRuntime} from '../src/staging/connectedApplicationRuntime.mjs';
 import assert from 'node:assert/strict';
 import {createHash,randomUUID} from 'node:crypto';
 import {readFileSync} from 'node:fs';
@@ -34,3 +35,7 @@ let slots=[],index=0;const React={createElement:(type,props,...children)=>({type
 const props={context,isCurrent:()=>true,request,candidate:null,Surface:'OriginalAppSurface',config:a.app.draft_config},walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[],draw=()=>{index=0;return Component(props);},find=label=>walk(draw()).find(n=>n.props?.label===label);
 await find('Load saved private functions').props.onPress();await find('Open saved function version 2').props.onPress();await find('Prepare this exact version in my private app preview').props.onPress();assert.ok(walk(draw()).some(n=>n.type==='OriginalAppSurface'));await find('Calculate with the verified saved version').props.onPress();assert.ok(walk(draw()).some(n=>JSON.stringify(n.props?.children).includes('200')));assert.equal(JSON.stringify(a.app.draft_config).includes('private-calculation'),false);
 console.log('PASS durable account lifecycle, two distinct rule graphs, independent numeric outputs, immutable revisions, exact private preview binding, actual library component, foreign/stale/tamper/replay/default-off/uncertain-save and uncertain-disable containment. Transport fixtures are not PostgreSQL or hosted acceptance.');
+
+let routed=null;const inspector={configured:true,signedIn:true,sessionVersion:1,requestConnected:async(action,payload)=>{routed={action,payload};return {ok:true};}},runtime=createConnectedApplicationRuntime({environment:'isolated-staging',inspector,basis:{actorId:a.ownerId,businessId:a.businessId,profileRevision:1,profile:{businessName:'Fictional'},revision:1},appStatus:{app:a.app}});
+assert.equal((await runtime.requestApp('private_function',{operation:'list',appId:a.app.id})).ok,true);assert.equal(routed.action,'private_function');assert.equal(routed.payload.businessId,a.businessId);inspector.sessionVersion++;await assert.rejects(()=>runtime.requestApp('private_function',{operation:'list'}));
+assert.ok(readFileSync('src/staging/stagingAuthInspectorV3131.mjs','utf8').includes("'save_project_spec','private_function'"));
