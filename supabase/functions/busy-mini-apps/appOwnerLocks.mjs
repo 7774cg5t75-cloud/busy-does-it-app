@@ -24,6 +24,7 @@ function appEditLockReason(config,op){
  if(op?.kind==='image_appearance')targets.push('appearance','gallery','photos','imageStyles');
  if(op?.kind==='component_appearance')targets.push(...componentLockTargets(String(op.field||'')));
  if(['content_layout','restore_content_layout'].includes(op?.kind))targets.push('business_profile','copy','navigation','products','events');
+ if(['screen_composition','restore_screen_composition'].includes(op?.kind))targets.push('business_profile','services','gallery','photos','contact','faq','faqs','copy','navigation','products','events');
  if(op?.kind==="appearance")targets.push("appearance",op.field,...(groups[op.field]||[]));
  else if(op?.kind==="restore_appearance"){
   const before=config?.presentation||{},after=op.value||{};

@@ -2987,6 +2987,13 @@
         "scripts/check-app-project-continuation.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-app-screen-composition",
+      "args": [
+        "scripts/check-app-screen-composition.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

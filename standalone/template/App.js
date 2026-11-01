@@ -1,3 +1,4 @@
+import {appScreenSections} from './appScreenComposition.mjs';
 import {useServiceBrowseReturn} from './useServiceBrowseReturn';
 import {createNativeRequestScreen} from './nativeRequestScreen';
 import {ServiceActionButton} from './serviceActionButton';
@@ -98,9 +99,14 @@ function ServicesInfo({app,layout,onRequestService,contextKey='',savedBrowseStat
   </View>:<Text style={sub}>{query?"No services match your search.":"No public services are listed."}</Text>}
  </View>;
 }
-function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferEnquiry,contactNotice,catalogueContextKey='',catalogueStates={},onCatalogueStateChange}){
+function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferEnquiry,contactNotice,catalogueContextKey='',catalogueStates={},onCatalogueStateChange,raw=false}){
+ const config={screenComposition:app.screenComposition,contentLayout:app.contentLayout,modules:(app.moduleKeys||[]).map(key=>({key,enabled:true}))};
+ const sectionKeys=appScreenSections(config,screen.key);if(!sectionKeys)return <Text style={sub}>This screen layout needs review.</Text>;
+ const child=key=><LiveInfo key={key} screen={{key}} app={app} layout={layout} onRequestService={onRequestService} onOpenContact={onOpenContact} onOpenOfferEnquiry={onOpenOfferEnquiry} contactNotice={contactNotice} catalogueContextKey={catalogueContextKey} catalogueStates={catalogueStates} onCatalogueStateChange={onCatalogueStateChange} raw={true}/>;
+ if(!raw&&screen.key==='services'&&app.screenComposition?.screens.some(row=>row.moduleKey==='services'))return <View>{sectionKeys.map(child)}</View>;
  if(screen.key==="business_profile")return <View style={box}>
-  <Text style={{...t,fontSize:21,fontWeight:"700",...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-title',{colors:COLORS,baseSize:21})}}>{app.title}</Text>
+  {sectionKeys.map(section=><View key={section} accessibilityLabel={'Information section: '+section}>
+{section==='introduction'?<>  <Text style={{...t,fontSize:21,fontWeight:"700",...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-title',{colors:COLORS,baseSize:21})}}>{app.title}</Text>
   <Text style={{...sub,...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-tagline',{colors:COLORS,baseSize:VISUAL.type.bodySize})}}>{app.tagline||app.about||"Contact this business for more information."}</Text>
   {app.heroUrl?<Image source={{uri:app.heroUrl}} accessible
     accessibilityRole="image" accessibilityLabel="Business cover photo"
@@ -108,9 +114,15 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
       borderRadius:LOOK.imageCorners==="square"?2:12,marginTop:12}}
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
-  {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueStates[block.kind]} onSaveBrowseState={value=>onCatalogueStateChange?.(block.kind,value)} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?(name,prepared)=>onRequestService?.(name,'enquiry',prepared):null}/>)}
-  {(app.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={COLORS} componentStyles={app.componentStyles||LOOK.componentStyles} bodySize={VISUAL.type.bodySize}/>)}
-  {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
+</>:null}
+{['products','events'].includes(section)?<>  {(app.contentLayout||[]).filter(block=>block.kind===(section==='products'?'product':'event')).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueStates[block.kind]} onSaveBrowseState={value=>onCatalogueStateChange?.(block.kind,value)} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?(name,prepared)=>onRequestService?.(name,'enquiry',prepared):null}/>)}
+</>:null}
+{section==='faqs'?<>  {(app.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={COLORS} componentStyles={app.componentStyles||LOOK.componentStyles} bodySize={VISUAL.type.bodySize}/>)}
+</>:null}
+{section==='testimonials'?<>  {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
+</>:null}
+{['gallery','contact'].includes(section)?child(section):null}
+</View>)}
  </View>;
  if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService} contextKey={catalogueContextKey} savedBrowseState={catalogueStates.services} onSaveBrowseState={value=>onCatalogueStateChange?.('services',value)}/>;
  if(screen.key==="gallery")return <View style={box}>

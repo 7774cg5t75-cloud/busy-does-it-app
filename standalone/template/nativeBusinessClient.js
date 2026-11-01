@@ -1,3 +1,4 @@
+import {validScreenComposition} from './appScreenComposition.mjs';
 import {validServicePresentation} from './appServicePresentation.mjs';
 import {validNavigationLabels} from './appNavigationLabels.mjs';
 import {validImageStyles} from './appImageAppearance.mjs';
@@ -78,6 +79,7 @@ function validPublicRead(payload,runtime){
   (payload.faqs!==undefined&&!validPublicCollection('faqs',payload.faqs))||
   (payload.testimonials!==undefined&&!validPublicCollection('testimonials',payload.testimonials))||
   (!Array.isArray(payload.services)||payload.services.length>40||payload.services.some(s=>!validServiceDetails(s)))||
+  (payload.screenComposition!==undefined&&!validScreenComposition(payload.screenComposition,{modules:payload.moduleKeys.map(key=>({key,enabled:true})),contentLayout:payload.contentLayout}))||
   (payload.contentLayout!==undefined&&!validContentLayout(payload.contentLayout))||
   (payload.businessContent!==undefined&&payload.businessContent!==null&&!validPublicBusinessContent(payload.businessContent))||
   !validNativeExtras(payload)||!validPublicGallery(payload))

@@ -1,3 +1,4 @@
+import {validScreenComposition} from './appScreenComposition.mjs';
 import {previewServicePresentation} from './appServicePresentation.mjs';
 import {prepareNavigationLabel} from './appNavigationLabels.mjs';
 import {previewAppImageAppearance} from './appImageAppearance.mjs';
@@ -124,11 +125,18 @@ function proposeCoordinatedAppChanges(config,operations){
    if(next.publicProfile?.contact?.[op.field]===value)return {ok:/** @type {const} */ (false),reason:'This contact detail is already saved.'};
    after={...next,publicProfile:{...next.publicProfile,contact:{...next.publicProfile?.contact,[op.field]:value}}};
    undo={kind:'restore_public_field',field:'contact',value:snapshot};description='Updated public '+op.field;
+  }else if(['screen_composition','restore_screen_composition'].includes(op.kind)){
+   if(Object.keys(op).some(k=>!['kind','value'].includes(k)))return {ok:/** @type {const} */ (false),reason:'Unknown screen operation fields were refused.'};
+   const present=own(next,'screenComposition'),before=next.screenComposition,restore=op.kind==='restore_screen_composition',value=restore?op.value?.value:op.value;
+   if(present&&!validScreenComposition(before)||restore&&(!op.value||typeof op.value.present!=='boolean'||op.value.present===false&&own(op.value,'value')||Object.keys(op.value).some(k=>!['present','value'].includes(k)))||(!restore||op.value.present)&&!validScreenComposition(value))return {ok:/** @type {const} */ (false),reason:'Review supported sections and enabled original screens.'};
+   after={...next};if(restore&&!op.value.present)delete after.screenComposition;else after.screenComposition=JSON.parse(JSON.stringify(value));
+   if(JSON.stringify(before)===JSON.stringify(after.screenComposition))return {ok:/** @type {const} */ (false),reason:'These screen sections are already saved.'};
+   undo={kind:'restore_screen_composition',value:{present,...present?{value:JSON.parse(JSON.stringify(before))}:{}}};description='Screen reading order: '+(after.screenComposition?.screens||[]).map(s=>(s.moduleKey==='business_profile'?'Information':'Services')+' — '+s.sections.map(k=>({introduction:'About the business',products:'Products / menu',events:'Upcoming events',faqs:'Questions and answers',testimonials:'Approved testimonials',gallery:'Approved photos',contact:'Contact details',services:'Services and questions'}[k])).join(' → ')).join('; ');
   }else if(['content_layout','restore_content_layout'].includes(op.kind)){
    const present=Object.hasOwn(next,'contentLayout'),before=present?next.contentLayout:undefined;
    if(present&&!validContentLayout(before))return {ok:/** @type {const} */ (false),reason:'Review the existing content layout.'};
    const restore=op.kind==='restore_content_layout',value=restore?op.value?.value:op.value;
-   if(restore?(!op.value||typeof op.value.present!=='boolean'||Object.keys(op.value).some(k=>!['present','value'].includes(k))||op.value.present!==Object.hasOwn(op.value,'value')||op.value.present&&!validContentLayout(value)):!validContentLayout(value))return {ok:/** @type {const} */ (false),reason:'Choose supported product/event blocks and layouts.'};
+   if(restore?(!op.value||typeof op.value.present!=='boolean'||op.value.present===false&&own(op.value,'value')||Object.keys(op.value).some(k=>!['present','value'].includes(k))||op.value.present!==Object.hasOwn(op.value,'value')||op.value.present&&!validContentLayout(value)):!validContentLayout(value))return {ok:/** @type {const} */ (false),reason:'Choose supported product/event blocks and layouts.'};
    after={...next};if(restore&&!op.value.present)delete after.contentLayout;else after.contentLayout=JSON.parse(JSON.stringify(value));
    if(JSON.stringify(after.contentLayout)===JSON.stringify(before))return {ok:/** @type {const} */ (false),reason:'This composition is already saved.'};
    undo={kind:'restore_content_layout',value:{present,...present?{value:JSON.parse(JSON.stringify(before))}:{}}};description='Updated reusable product/event composition';
@@ -172,6 +180,7 @@ function proposeCoordinatedAppChanges(config,operations){
   if(!after||!undo)return {ok:/** @type {const} */ (false),reason:"No safe change was prepared."};
   next=after;inverse.unshift(undo);changes.push(description);
  }
+ if(next.screenComposition!==undefined&&!validScreenComposition(next.screenComposition,next))return {ok:/** @type {const} */ (false),reason:'Screen sections must use enabled original modules and configured collections.'};
  const quality=reviewAppEditingQuality(next);
  if(!quality.mayCommit)return {ok:/** @type {const} */ (false),reason:quality.explanation,quality};
  return {ok:/** @type {const} */ (true),quality,changes,operations:operations.map(x=>({...x})),undoOperations:inverse,

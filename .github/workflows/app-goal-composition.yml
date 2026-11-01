@@ -14,6 +14,15 @@ on:
       - 'src/screens/appEnquiryRequestPreview.js'
       - 'scripts/check-contextual-app-enquiries.mjs'
       - 'src/core/privateAppProject.mjs'
+      - 'src/core/appScreenComposition.mjs'
+      - 'src/core/appScreenProposal.mjs'
+      - 'src/core/appCoordinatedStudio.mjs'
+      - 'src/core/appDraftComposition.mjs'
+      - 'src/core/appOwnerLocks.mjs'
+      - 'standalone/template/App.js'
+      - 'standalone/template/nativeBusinessClient.js'
+      - 'supabase/functions/busy-mini-app-guest/publicNativeProjection.mjs'
+      - 'scripts/check-app-screen-composition.mjs'
       - 'src/core/appProjectContinuation.mjs'
       - 'src/core/businessContentRecords.mjs'
       - 'standalone/template/businessContentView.js'
@@ -65,6 +74,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-app-screen-composition.mjs
           node scripts/check-app-project-continuation.mjs
           node scripts/check-private-app-project.mjs
           node scripts/check-frozen-source-evidence.mjs
@@ -76,6 +86,19 @@ jobs:
           node scripts/check-security-baseline.mjs
           node scripts/check-security-by-design.mjs
           node scripts/testing/syntax.mjs src/core/appGoalComposition.mjs src/core/governedBuilderProposal.mjs src/core/universalBuilderPlanV3210.mjs src/screens/appGoalCompositionEditor.js src/screens/miniApps.js src/staging/ConnectedBuilderWorkspace.js
+      - name: Genuine original Edge checks with pinned official verification tools
+        run: |
+          EDGE_TOOLS="$RUNNER_TEMP/busy-screen-edge-tools"
+          EDGE_SOURCE="$RUNNER_TEMP/busy-screen-edge-source"
+          npm install --prefix "$EDGE_TOOLS" --ignore-scripts --no-audit --no-fund --package-lock=false deno@2.5.6 @supabase/supabase-js@2.118.0
+          mkdir -p "$EDGE_SOURCE"
+          cp -R src supabase standalone "$EDGE_SOURCE/"
+          ln -s "$EDGE_TOOLS/node_modules" "$EDGE_SOURCE/node_modules"
+          diff -qr src "$EDGE_SOURCE/src"
+          diff -qr supabase "$EDGE_SOURCE/supabase"
+          diff -qr standalone "$EDGE_SOURCE/standalone"
+          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts > .test-artifacts/app-goal-composition/deno.log 2>&1
+          echo "BUSY_EDGE_RESULT all_25_original_entrypoints_exit_0"
       - name: Disposable local PostgreSQL, no TCP or hosted connection
         run: |
           PG_BIN="$(pg_config --bindir)"

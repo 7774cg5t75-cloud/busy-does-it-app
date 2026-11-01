@@ -1,12 +1,15 @@
+import {validScreenComposition} from './appScreenComposition.mjs';
 import {appEditLockReason,appOwnerLocks} from './appOwnerLocks.mjs';
 import {enabledAppKeys} from './appSectionOrder.mjs';
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 function appConfigLockReason(before,after){
+ if(after?.screenComposition!==undefined&&!validScreenComposition(after.screenComposition,after))return 'Review screen sections before removing a referenced feature.';
  const locks=appOwnerLocks(before);if(!locks.ok)return locks.reason;
  if(!same(before?.presentation?.ownerLockedElements,after?.presentation?.ownerLockedElements))return 'Owner locks cannot be replaced by a rebuild.';
  if(!locks.locks.length)return '';
  if(locks.locks.includes('all')&&!same(before,after))return 'Unlock the app before rebuilding it.';
  const operations=[];
+ if(!same(before.screenComposition,after.screenComposition))operations.push({kind:'screen_composition'});
  if(!same(before.contentLayout,after.contentLayout))operations.push({kind:'content_layout'});
  for(const field of ['faqs','testimonials'])if(!same(before.publicProfile?.[field],after.publicProfile?.[field]))operations.push({kind:'public_collection',field});
  if(!same(before.navigation,after.navigation))operations.push({kind:'navigation',value:after.navigation});
@@ -24,7 +27,7 @@ function retainAppDraftDesign(previous,rebuilt){
  const next={...rebuilt};
  // Keep the established Studio, plan and distribution settings when refreshing
  // approved business facts. Applying a new plan explicitly replaces its fields.
- for(const key of ['schemaVersion','surface','presentation','builderPlan','offers','loyalty','contentLayout'])
+ for(const key of ['schemaVersion','surface','presentation','builderPlan','offers','loyalty','contentLayout','screenComposition'])
   if(Object.prototype.hasOwnProperty.call(previous,key))next[key]=previous[key];
  // Owner-authored information survives business-fact rebuilds; edit it explicitly.
  if(previous.publicProfile)for(const field of ['faqs','testimonials'])if(Object.hasOwn(previous.publicProfile,field))next.publicProfile={...next.publicProfile,[field]:previous.publicProfile[field]};

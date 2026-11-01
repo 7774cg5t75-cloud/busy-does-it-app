@@ -3,7 +3,7 @@ import {SelectedListingSummary} from './selectedListingSummary';
 import {View,Text,Image,TextInput,Pressable,useWindowDimensions,Linking} from 'react-native';
 import {contentPrice,contentEventSchedule,prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {catalogueState,catalogueSource,catalogueView,transitionCatalogue} from './catalogueState.mjs';
-function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSaveBrowseState,layout='cards',imageScale='regular',title,onInterest,featuredId='',colors={text:'#16253a',muted:'#46556a',surface:'#fff',line:'#8b93a3'}}){
+function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSaveBrowseState,layout='cards',imageScale='regular',browseMode='list',interestEntry='inline',title,onInterest,featuredId='',colors={text:'#16253a',muted:'#46556a',surface:'#fff',line:'#8b93a3'}}){
  const [storedState,setStoredState]=React.useState(savedBrowseState),[notice,setNotice]=React.useState(''),[pageSize,setPageSize]=React.useState(12),[categoryCount,setCategoryCount]=React.useState(8);
  const width=useWindowDimensions().width;
  const interactionEpoch=React.useRef(0),renderedEpoch=interactionEpoch.current;
@@ -18,7 +18,8 @@ function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSa
  const {rows,categories,detail,detailChanged,related,category:activeCategory}=catalogueView(state,feed,kind);
  const showNotice=message=>{if(current())setNotice({scope:state.scope,message});},noticeText=notice?.scope===state.scope?notice.message:'';
  if(featuredId){const index=rows.findIndex(r=>r.id===featuredId);if(index>0)rows.unshift(...rows.splice(index,1));}
- const visible=detail?[detail]:rows.slice(0,pageSize);
+ const categoryOverview=browseMode==='categories'&&categories.length>0&&!activeCategory&&!query&&!selected;
+ const visible=detail?[detail]:categoryOverview?[]:rows.slice(0,pageSize);
  const openDetail=row=>change({type:'open',recordId:row.id,revision:row.revision});
  const button=(label,onPress,selected)=><Pressable accessibilityRole="button" accessibilityState={typeof selected==='boolean'?{selected}:undefined} onPress={()=>{if(current()&&interactionEpoch.current===renderedEpoch)onPress();}} style={{padding:12,minHeight:48,borderWidth:1,borderColor:colors.line,borderRadius:8,marginVertical:4}}><Text style={{color:colors.text}}>{label}</Text></Pressable>;
  return <View style={{padding:12,backgroundColor:colors.surface,borderRadius:12,marginVertical:10}}>
@@ -33,6 +34,7 @@ function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSa
   {query||category?button('Clear search and categories',()=>{change({type:'clear'});setPageSize(12);}):null}
   {selected&&!detail?<View><Text accessibilityLiveRegion="polite" style={{color:colors.muted}}>The selected listing is no longer in these current results. Review the current listings before enquiring.</Text>{button('Back to current results',()=>change({type:'back'}))}</View>:null}
   {feed?.ok?<Text accessibilityLiveRegion="polite" style={{color:colors.muted}}>{rows.length+' matching '+(kind==='product'?'products':'events')+' in results'+(activeCategory?' · '+activeCategory:'')+'.'}</Text>:null}
+  {categoryOverview?<View accessibilityLabel="Browse approved categories" style={{gap:12}}>{categories.slice(0,categoryCount).map(c=><View key={c} style={{padding:12,borderWidth:1,borderColor:colors.line,borderRadius:12}}>{button('Browse '+c,()=>change({type:'category',value:c}))}<Text style={{color:colors.muted}}>{rows.filter(r=>r.data.category===c).length+' approved items'}</Text></View>)}</View>:null}
   <View style={{flexDirection:'row',flexWrap:'wrap',gap:12}}>
    {visible.map(row=>{const data=row.data;return <View key={row.id} style={{width:layout==='cards'&&width>=700&&!detail?'48%':'100%',padding:14,borderWidth:1,borderColor:'#cbd2dc',borderRadius:10}}>
     {data.image?<Image source={{uri:data.image.uri}} accessibilityLabel={data.image.alt} accessible style={{height:imageScale==='large'?280:180,width:'100%',borderRadius:8}}/>:null}
@@ -46,7 +48,7 @@ function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSa
     </>}
     {detail&&!detailChanged&&onInterest&&data.status!=='cancelled'&&(!options[row.id]||optionRevisions[row.id]===row.revision)?<SelectedListingSummary feed={feed} businessId={feed?.businessId} selection={{recordId:row.id,revision:row.revision,...options[row.id]?{variantId:options[row.id]}:{}}} colors={colors} mode="browsing"/>:null}
     {!detail?button('View '+data.name,()=>openDetail(row)):null}
-    {onInterest&&!detailChanged&&data.status!=='cancelled'?button('Ask about '+data.name,()=>{if(options[row.id]&&optionRevisions[row.id]!==row.revision){showNotice('This option has changed. Review the details and choose an option again.');return;}const prepared=prepareBusinessContentEnquiry(feed,feed?.businessId,{recordId:row.id,revision:row.revision,...options[row.id]?{variantId:options[row.id]}:{}});if(prepared.ok)onInterest(prepared.service,prepared);else showNotice(prepared.reason);}):null}
+    {onInterest&&(interestEntry!=='details'||!!detail)&&!detailChanged&&data.status!=='cancelled'?button('Ask about '+data.name,()=>{if(options[row.id]&&optionRevisions[row.id]!==row.revision){showNotice('This option has changed. Review the details and choose an option again.');return;}const prepared=prepareBusinessContentEnquiry(feed,feed?.businessId,{recordId:row.id,revision:row.revision,...options[row.id]?{variantId:options[row.id]}:{}});if(prepared.ok)onInterest(prepared.service,prepared);else showNotice(prepared.reason);}):null}
    </View>;})}
   </View>
   {related.length?<View><Text style={{color:colors.text,fontWeight:'700'}}>More in this category</Text>{related.map(row=><View key={row.id}>{button('Explore '+row.data.name,()=>openDetail(row))}</View>)}</View>:null}

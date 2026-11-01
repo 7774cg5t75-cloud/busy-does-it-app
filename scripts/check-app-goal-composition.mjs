@@ -1,3 +1,5 @@
+import * as screens from '../src/core/appScreenComposition.mjs';
+import * as screenProposal from '../src/core/appScreenProposal.mjs';
 import assert from 'node:assert/strict';
 import * as composition from '../src/core/appGoalComposition.mjs';
 import {createRequire} from 'node:module';
@@ -50,7 +52,7 @@ const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-ru
 // Use the actual Node-loaded contract across the inert VM boundary. Each fixture
 // VM has a different Object prototype; that must not change production validation.
 Object.assign(rt.load('src/core/appGoalComposition.mjs'),composition);
-const Editor=rt.load('src/screens/appGoalCompositionEditor.js').AppGoalCompositionEditor;
+const Editor=(Object.assign(rt.load('src/core/appScreenComposition.mjs'),screens),Object.assign(rt.load('src/core/appScreenProposal.mjs'),screenProposal),rt.load('src/screens/appGoalCompositionEditor.js')).AppGoalCompositionEditor;
 let handed,dirty=false;const props={...input,Surface:'OriginalSurface',onPreview:p=>{handed=p;return true;},onDraftChange:v=>dirty=v};
 const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[],draw=()=>rt.render(Editor,props),find=label=>walk(draw()).find(n=>n.props?.label===label);
 find('What would you like people to see or do?').props.onChangeText(examples[1][1]);find('Prepare my app idea').props.onPress();find('Screen name: services').props.onChangeText('Owner menu');find('Compact rows').props.onPress();const staleHandler=find('Review these supported changes in Studio').props.onPress;find('Spacious').props.onPress();assert.equal(staleHandler(),false);find('Review these supported changes in Studio').props.onPress();assert.equal(handed.ok,true);assert.equal(handed.nextConfig.modules.find(r=>r.key==='services').label,'Owner menu');assert.equal(dirty,true);

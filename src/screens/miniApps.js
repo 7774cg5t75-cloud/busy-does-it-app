@@ -1,3 +1,4 @@
+import {appScreenSections} from '../core/appScreenComposition.mjs';
 import {savePrivateAppProject} from '../core/privateAppProject.mjs';
 import {approvedCompositionFeed,appRecordReview,currentAppRecordReview} from '../core/appRecordComposition.mjs';
 import {AppGoalCompositionEditor} from './appGoalCompositionEditor';
@@ -327,104 +328,11 @@ function MiniAppSurface({
   const visual=appVisualPresentation(presentation);
   const componentStyle=(key,baseSize)=>appComponentTextStyle(presentation.componentStyles,key,{colors:brandColours,baseSize});
 
-  return (
-    <View style={{width:"100%"}} onLayout={({nativeEvent})=>{
-      const width=Math.floor(nativeEvent.layout.width);
-      if(width>=250&&width!==contentWidth){
-        setContentWidth(width);
-        onMeasuredWidth?.(width);
-      }
-    }}>
-      <Header accessibilityRole={ownerSelection?'button':undefined}
-        accessibilityLabel={ownerSelection?'Select app header typography':undefined}
-        accessibilityState={ownerSelection?{selected:ownerSelection.selection?.part==='header'}:undefined}
-        onPress={ownerSelection?()=>ownerSelection.onSelect({part:'header'}):undefined}
-        style={{backgroundColor:brandColours.bg,padding:14,
-        ...(ownerSelection?{borderWidth:2,borderColor:ownerSelection.selection?.part==='header'?'#4489ed':brandColours.muted}:{}),
-        borderRadius:14,marginBottom:10}}>
-        <Text style={{color:brandColours.muted,fontSize:12}}>
-          {config?.display?.category||profile.businessType||"Business"}
-        </Text>
-        <Text style={{color:brandColours.text,
-          fontSize:visual.headerCompact?visual.type.titleSize-5:
-            visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize,
-          fontWeight:visual.type.titleWeight,
-          letterSpacing:visual.type.titleSpacing,
-          textAlign:visual.headerCentered?"center":"left",marginTop:5,...componentStyle('header-title',visual.headerCompact?visual.type.titleSize-5:visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize)}}>
-          {config?.display?.name||profile.businessName||"Business"}
-        </Text>
-        <Text style={{color:brandColours.muted,marginTop:5,...componentStyle('header-tagline',visual.type.bodySize)}}>
-          {config?.display?.tagline||profile.tagline||profile.description||"Your Business App"}
-        </Text>
-        <View style={{backgroundColor:brandColours.accent,
-          height:4,borderRadius:3,marginTop:14}}/>
-      </Header>
-      <Card
-        eyebrow={config?.display?.category || profile.businessType || "Business App"}
-        title={config?.display?.name || profile.businessName || "Business"}
-        body={
-          config?.display?.tagline ||
-          profile.tagline ||
-          profile.description ||
-          "Public business information"
-        }
-        footer={profile.serviceArea || ""}
-        tone={headerStyle==="bold"?"green":headerStyle==="quiet"?"blue":"green"}
-      >
-        {!interactive?<Text style={styles.cardBody}>{"App layout: "+density+" • Header: "+headerStyle+
-          " • Navigation: "+(responsive.ok?responsive.navigation:"list")+
-          " ("+(responsive.ok?responsive.tier.replaceAll("_"," "):"not measured")+")"}</Text>:null}
-        {!interactive&&responsive.ok?(
-          <Text style={styles.cardBody}>
-            {"Layout width "+responsive.width+" points • "+
-              responsive.galleryColumns+" gallery column(s) • "+
-              responsive.serviceColumns+" service column(s)."}
-          </Text>
-        ):null}
-        {interactive?<AppSectionNavigation modules={modules.map(module=>({...module,label:module.label||module.title||miniAppModuleLabel(module.key)}))} selected={currentSection} colors={brandColours}
-          onSelect={key=>{setSelectedSection(key);if(['enquiry','booking_request'].includes(key)){if(!interactive&&key==='enquiry')requestPreview?.onNavigate?.(key);else onRequestNavigation?.(key);}}}/>:modules.length?(
-          <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
-            "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
-            {modules.map((module,index)=>(
-              ownerSelection?<Pressable key={"select-navigation-"+module.key}
-                accessibilityRole="button" accessibilityLabel={"Select "+module.key.replaceAll("_"," ")+" navigation"}
-                accessibilityState={{selected:ownerSelection.selection?.moduleKey===module.key}}
-                onPress={()=>ownerSelection.onSelect({part:'navigation',moduleKey:module.key})}
-                style={{minHeight:44,padding:8,borderRadius:8,borderWidth:2,
-                  borderColor:ownerSelection.selection?.moduleKey===module.key?'#4489ed':brandColours.muted}}>
-                <MeasuredNavLabel label={module.label||module.title||module.key.replaceAll("_"," ")}
-                  index={index} isList={responsive.ok&&responsive.navigation==="list"} onObservation={onQualityObservation}/>
-              </Pressable>:<MeasuredNavLabel key={"preview-navigation-"+module.key}
-                label={module.label||module.title||module.key.replaceAll("_"," ")}
-                index={index} isList={responsive.ok&&responsive.navigation==="list"} onObservation={onQualityObservation}/>
-            ))}
-          </View>
-        ):null}
-        {!interactive?<Text style={styles.cardBody}>
-          Navigation labels are a visual preview; tap behaviour still needs device testing.
-        </Text>:null}
-        {heroUri.startsWith("https://") ? (
-          <MeasuredPublicImage
-            source={{ uri: heroUri }}
-            observationKey="hero" observationKind="hero_image"
-            onObservation={onQualityObservation}
-            accessibilityLabel={String(profile.assets?.hero?.alt||
-              "Business cover photo").slice(0,140)}
-            style={{
-              width: "100%",
-              height:responsive.ok?responsive.heroHeight:230,
-              borderRadius:presentation.imageCorners==="square"?2:18,
-              marginBottom: 14,
-            }}
-          />
-        ) : null}
-        <MetricRow left="Powered by" right="BUSY DOES IT" strong />
-      </Card>
-
-      {modules.filter(module=>!interactive||!currentSection||module.key===currentSection).map((module) => {
+  const renderModule=(module)=>{
         if (module.key === "business_profile") {
           return (
-            <View key={module.key}><Card
+            <View key={module.key}>{(appScreenSections(config,'business_profile')||[]).map(section=><View key={section} accessibilityLabel={'Information section: '+section}>
+              {section==='introduction'?<><Card
               eyebrow="About"
               title={profile.businessName || "About this business"}
               body={
@@ -435,17 +343,18 @@ function MiniAppSurface({
               footer={profile.differentiators || ""}
               tone="blue"
             />
-            {ownerSelection?<Button label="Edit this business description" onPress={()=>ownerSelection.onSelect({part:'wording',field:profile.about?'about':'description'})}/>:null}
-            {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueCache.current.states[block.kind]} onSaveBrowseState={value=>{if(catalogueCache.current.scope===catalogueContextKey)catalogueCache.current.states[block.kind]=value;}} feed={businessContent} colors={brandColours} {...block} onInterest={modules.some(m=>m.key==='enquiry')?(interactive?(onSelectContent||onSelectService):!ownerSelection&&requestPreview?.onSelectContent||null):null}/>)}
-            {publicCollection('faqs',profile.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={brandColours} componentStyles={presentation.componentStyles} bodySize={visual.type.bodySize}>
+            {ownerSelection?<Button label="Edit this business description" onPress={()=>ownerSelection.onSelect({part:'wording',field:profile.about?'about':'description'})}/>:null}</>:null}
+              {['products','events'].includes(section)?<>{(validContentLayout(config.contentLayout)?config.contentLayout:[]).filter(block=>block.kind===(section==='products'?'product':'event')).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueCache.current.states[block.kind]} onSaveBrowseState={value=>{if(catalogueCache.current.scope===catalogueContextKey)catalogueCache.current.states[block.kind]=value;}} feed={businessContent} colors={brandColours} {...block} onInterest={modules.some(m=>m.key==='enquiry')?(interactive?(onSelectContent||onSelectService):!ownerSelection&&requestPreview?.onSelectContent||null):null}/>)}</>:null}
+              {section==='faqs'?<>{publicCollection('faqs',profile.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={brandColours} componentStyles={presentation.componentStyles} bodySize={visual.type.bodySize}>
               {ownerSelection?<AppEntryEditButton label={'Edit answer: '+row.question} colors={brandColours} selected={ownerSelection.selection?.part==='faq'&&ownerSelection.selection.index===i} onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
-             </AppFaqCard>)}
-            {['testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
+             </AppFaqCard>)}</>:null}
+              {section==='testimonials'?<>{['testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
               eyebrow="Customer testimonial"
               title={row.attribution} body={row.text}>
 
-             </Card>))}
-            </View>
+             </Card>))}</>:null}
+              {['gallery','contact'].includes(section)?renderModule({key:section}):null}
+            </View>)}</View>
           );
         }
 
@@ -655,8 +564,107 @@ function MiniAppSurface({
         }
 
         return null;
-      })}
-    </View>
+
+  };
+  return (
+    <View style={{width:"100%"}} onLayout={({nativeEvent})=>{
+      const width=Math.floor(nativeEvent.layout.width);
+      if(width>=250&&width!==contentWidth){
+        setContentWidth(width);
+        onMeasuredWidth?.(width);
+      }
+    }}>
+      <Header accessibilityRole={ownerSelection?'button':undefined}
+        accessibilityLabel={ownerSelection?'Select app header typography':undefined}
+        accessibilityState={ownerSelection?{selected:ownerSelection.selection?.part==='header'}:undefined}
+        onPress={ownerSelection?()=>ownerSelection.onSelect({part:'header'}):undefined}
+        style={{backgroundColor:brandColours.bg,padding:14,
+        ...(ownerSelection?{borderWidth:2,borderColor:ownerSelection.selection?.part==='header'?'#4489ed':brandColours.muted}:{}),
+        borderRadius:14,marginBottom:10}}>
+        <Text style={{color:brandColours.muted,fontSize:12}}>
+          {config?.display?.category||profile.businessType||"Business"}
+        </Text>
+        <Text style={{color:brandColours.text,
+          fontSize:visual.headerCompact?visual.type.titleSize-5:
+            visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize,
+          fontWeight:visual.type.titleWeight,
+          letterSpacing:visual.type.titleSpacing,
+          textAlign:visual.headerCentered?"center":"left",marginTop:5,...componentStyle('header-title',visual.headerCompact?visual.type.titleSize-5:visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize)}}>
+          {config?.display?.name||profile.businessName||"Business"}
+        </Text>
+        <Text style={{color:brandColours.muted,marginTop:5,...componentStyle('header-tagline',visual.type.bodySize)}}>
+          {config?.display?.tagline||profile.tagline||profile.description||"Your Business App"}
+        </Text>
+        <View style={{backgroundColor:brandColours.accent,
+          height:4,borderRadius:3,marginTop:14}}/>
+      </Header>
+      <Card
+        eyebrow={config?.display?.category || profile.businessType || "Business App"}
+        title={config?.display?.name || profile.businessName || "Business"}
+        body={
+          config?.display?.tagline ||
+          profile.tagline ||
+          profile.description ||
+          "Public business information"
+        }
+        footer={profile.serviceArea || ""}
+        tone={headerStyle==="bold"?"green":headerStyle==="quiet"?"blue":"green"}
+      >
+        {!interactive?<Text style={styles.cardBody}>{"App layout: "+density+" • Header: "+headerStyle+
+          " • Navigation: "+(responsive.ok?responsive.navigation:"list")+
+          " ("+(responsive.ok?responsive.tier.replaceAll("_"," "):"not measured")+")"}</Text>:null}
+        {!interactive&&responsive.ok?(
+          <Text style={styles.cardBody}>
+            {"Layout width "+responsive.width+" points • "+
+              responsive.galleryColumns+" gallery column(s) • "+
+              responsive.serviceColumns+" service column(s)."}
+          </Text>
+        ):null}
+        {interactive?<AppSectionNavigation modules={modules.map(module=>({...module,label:module.label||module.title||miniAppModuleLabel(module.key)}))} selected={currentSection} colors={brandColours}
+          onSelect={key=>{setSelectedSection(key);if(['enquiry','booking_request'].includes(key)){if(!interactive&&key==='enquiry')requestPreview?.onNavigate?.(key);else onRequestNavigation?.(key);}}}/>:modules.length?(
+          <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
+            "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
+            {modules.map((module,index)=>(
+              ownerSelection?<Pressable key={"select-navigation-"+module.key}
+                accessibilityRole="button" accessibilityLabel={"Select "+module.key.replaceAll("_"," ")+" navigation"}
+                accessibilityState={{selected:ownerSelection.selection?.moduleKey===module.key}}
+                onPress={()=>ownerSelection.onSelect({part:'navigation',moduleKey:module.key})}
+                style={{minHeight:44,padding:8,borderRadius:8,borderWidth:2,
+                  borderColor:ownerSelection.selection?.moduleKey===module.key?'#4489ed':brandColours.muted}}>
+                <MeasuredNavLabel label={module.label||module.title||module.key.replaceAll("_"," ")}
+                  index={index} isList={responsive.ok&&responsive.navigation==="list"} onObservation={onQualityObservation}/>
+              </Pressable>:<MeasuredNavLabel key={"preview-navigation-"+module.key}
+                label={module.label||module.title||module.key.replaceAll("_"," ")}
+                index={index} isList={responsive.ok&&responsive.navigation==="list"} onObservation={onQualityObservation}/>
+            ))}
+          </View>
+        ):null}
+        {!interactive?<Text style={styles.cardBody}>
+          Navigation labels are a visual preview; tap behaviour still needs device testing.
+        </Text>:null}
+        {heroUri.startsWith("https://") ? (
+          <MeasuredPublicImage
+            source={{ uri: heroUri }}
+            observationKey="hero" observationKind="hero_image"
+            onObservation={onQualityObservation}
+            accessibilityLabel={String(profile.assets?.hero?.alt||
+              "Business cover photo").slice(0,140)}
+            style={{
+              width: "100%",
+              height:responsive.ok?responsive.heroHeight:230,
+              borderRadius:presentation.imageCorners==="square"?2:18,
+              marginBottom: 14,
+            }}
+          />
+        ) : null}
+        <MetricRow left="Powered by" right="BUSY DOES IT" strong />
+      </Card>
+
+      {modules.filter(module=>!interactive||!currentSection||module.key===currentSection).map(module=>{
+        const sectionKeys=appScreenSections(config,module.key);
+        if(!sectionKeys)return <Text key={module.key} style={styles.cardBody}>This screen layout needs a supported review.</Text>;
+        return module.key==='services'&&config.screenComposition?.screens.some(row=>row.moduleKey==='services')?<View key={module.key}>{sectionKeys.map(key=><View key={key} accessibilityLabel={'Service section: '+key}>{renderModule({key})}</View>)}</View>:renderModule(module);
+      })}    </View>
   );
 }
 
