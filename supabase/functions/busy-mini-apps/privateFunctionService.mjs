@@ -2,7 +2,7 @@ import {validateCalculation,calculatePrivateRules} from '../../../src/core/priva
 import {stableJson} from '../../../src/core/stableJson.mjs';
 export async function privateFunctionService({client,businessId,actorId,app,body,enabled,projectUrl}){
  if(enabled!=='true'||projectUrl!=='https://pnjdlogwegnqbsfpcofw.supabase.co')throw Error('Private function authority is not activated.');
- if(!actorId||app?.business_id!==businessId||app.created_by!==actorId||Object.keys(body).some(k=>!['action','connectedStaging','businessId','appId','operation','functionId','version','expectedState','expectedRevision','requestKey','spec','ownerApproved'].includes(k))||body.appId!==app.id||!['save','read','list','disable'].includes(body.operation))throw Error('Open the exact current owned App.');
+ if(!actorId||app?.business_id!==businessId||app.created_by!==actorId||Object.keys(body).some(k=>!['action','connectedStaging','expectedProfileRevision','businessId','appId','operation','functionId','version','expectedState','expectedRevision','requestKey','spec','ownerApproved'].includes(k))||body.appId!==app.id||!['save','read','list','disable'].includes(body.operation))throw Error('Open the exact current owned App.');
  if(['save','disable'].includes(body.operation)&&(body.ownerApproved!==true||body.expectedRevision!==app.draft_revision))throw Error('Review the exact current App revision.');
  if(body.operation==='save'){
   const checked=validateCalculation(body.spec);if(!checked.ok)throw Error(checked.reason);

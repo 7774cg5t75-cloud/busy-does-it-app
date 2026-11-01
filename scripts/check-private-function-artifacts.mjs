@@ -43,3 +43,8 @@ assert.ok(readFileSync('src/staging/stagingAuthInspectorV3131.mjs','utf8').inclu
 assert.equal(revisePrivateCalculation(food.spec,'Use 2 servings per guest',appCompositionContext(b)).ok,false,'Foreign rules cannot be re-scoped through a correction');
 const future=structuredClone(food.spec);future.scope.sourceRevision=999;assert.equal(revisePrivateCalculation(future,'Use 2 servings per guest',appCompositionContext(a)).ok,false,'Future source revisions cannot be approved through a correction');
 const oldContext=context;context={...appCompositionContext(a),scope:{...appCompositionContext(a).scope,sourceRevision:5}};assert.equal((await account.run(v2.reference,food.spec.cases[0].inputs)).ok,false,'Old rendered references cannot execute against a changed App revision');context=oldContext;
+
+// Original runtime envelopes must reach the actual service, not just a route spy.
+const serviceInspector={configured:true,signedIn:true,sessionVersion:1,requestConnected:async(action,payload)=>privateFunctionService({client,businessId:a.businessId,actorId:a.ownerId,app:a.app,body:{...payload,action,connectedStaging:true},enabled:'true',projectUrl:'https://pnjdlogwegnqbsfpcofw.supabase.co'})};
+const linked=createConnectedApplicationRuntime({environment:'isolated-staging',inspector:serviceInspector,basis:{actorId:a.ownerId,businessId:a.businessId,profileRevision:1,profile:{businessName:'Fictional'},revision:1},appStatus:{app:a.app}});
+const linkedRead=await linked.requestApp('private_function',{operation:'read',appId:a.app.id,functionId:v2.reference.functionId,version:2});assert.equal(linkedRead.artifact.spec_hash,v2.artifact.spec_hash);assert.equal(rpcCalls,1,'Only the exact authenticated-source envelope reaches the finite RPC');
