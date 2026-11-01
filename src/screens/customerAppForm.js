@@ -6,7 +6,7 @@ import {createCustomerFormJourney,solveCustomerFormProof} from '../core/customer
 import {CustomerFormRehearsal} from './customerFormRehearsal';
 import {stableJson} from '../core/stableJson.mjs';
 export function CustomerAppForm({identity,request,integrity,isCurrent,interest=null}){
- const stamp=stableJson(identity),initial=React.useRef(stamp),live=React.useRef(null);live.current={stamp,isCurrent};const current=()=>initial.current===live.current.stamp&&live.current.isCurrent?.()===true;
+ const stamp=stableJson([identity,interest]),initial=React.useRef(stamp),live=React.useRef(null),alive=React.useRef(true);React.useEffect(()=>{alive.current=true;return ()=>{alive.current=false;};},[]);live.current={stamp,isCurrent};const current=()=>alive.current&&initial.current===live.current.stamp&&live.current.isCurrent?.()===true;
  const api=React.useRef(null);if(!api.current)api.current=createCustomerFormJourney({identity,request,integrity,isCurrent:current,solve:(c,check)=>solveCustomerFormProof(c,check,integrity)});
  const [state,setState]=React.useState(api.current.state()),[busy,setBusy]=React.useState(false);const run=async fn=>{if(busy||!current())return false;setBusy(true);try{const promise=fn();if(current())setState(api.current.state());return await promise;}finally{if(current()){setState(api.current.state());setBusy(false);}}};if(!current())return null;
  return <Card title="Enquire with this business" body="An enquiry helps the business understand your needs. It is not an order, booking, payment or marketing subscription.">
