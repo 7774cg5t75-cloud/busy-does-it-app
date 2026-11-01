@@ -4362,7 +4362,7 @@ Deno.serve(async (request: Request) => {
     }
     if(action==='private_function'){
       const app=await appForBusiness(resolvedBusinessId);
-      return json(200,await privateFunctionService({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,body,enabled:Deno.env.get('BUSY_PRIVATE_FUNCTIONS_ENABLED'),projectUrl:SUPABASE_URL}));
+      return json(200,await privateFunctionService({client:supabase,businessId:resolvedBusinessId,actorId:user.id,app,body,enabled:Deno.env.get('BUSY_PRIVATE_FUNCTIONS_ENABLED'),formsEnabled:Deno.env.get('BUSY_PRIVATE_FORMS_ENABLED'),projectUrl:SUPABASE_URL}));
     }
     if (action === "save_project_spec") {
       if(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co")throw Error("Private project specification authority is unavailable in this environment.");

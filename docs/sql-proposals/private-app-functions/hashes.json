@@ -3,6 +3,8 @@
   "hostedAuthorised": false,
   "files": {
     "artifacts.sql": "87f0138490d0904fa2d912364646bcd32d04d663d642f0dc59604b0a972d9c2e",
-    "retaining-rollback.sql": "ff4cd235e53b312b1fd4eba010aee11b37e4aab2c317e0de75a485dec82379b5"
+    "retaining-rollback.sql": "ff4cd235e53b312b1fd4eba010aee11b37e4aab2c317e0de75a485dec82379b5",
+    "forms.sql": "a0278bfde3e37f440fa9f3e40716a794f9ee9c78aa67befc5144b3032e2d9971",
+    "forms-retaining-rollback.sql": "9a8922750c4f559921ee986bbc9f38f131c1b1672961897b0b8a4ab2a5aa8a4f"
   }
 }

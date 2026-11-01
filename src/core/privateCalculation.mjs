@@ -55,3 +55,6 @@ export function explainCalculation(expr,inputs){const names=new Map(inputs.map(f
 
 // Future untrusted provider output must enter through a size-bound JSON parse.
 export function parsePrivateCalculationJSON(text){if(typeof text!=='string'||text.length>16384)return {ok:false,reason:'Calculation JSON exceeds its input limit.'};try{return validateCalculation(JSON.parse(text));}catch{return {ok:false,reason:'Use a valid bounded JSON calculation proposal.'};}}
+
+export function assertFiniteData(value){dataTree(value);return value;}
+export function validPrivateNumber(value){try{fixed(value);return true;}catch{return false;}}

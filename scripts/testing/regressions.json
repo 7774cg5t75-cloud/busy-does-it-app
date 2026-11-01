@@ -3015,6 +3015,13 @@
         "scripts/check-app-builder-v3158.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-private-forms-native",
+      "args": [
+        "scripts/check-private-forms-native.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
