@@ -4,6 +4,10 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - 'src/components/OwnerOperationalPreview.js'
+      - 'supabase/functions/busy-mini-apps/enquiryPreparationService.mjs'
+      - 'docs/sql-proposals/canonical-work/enquiry-preparation*'
+      - 'scripts/check-enquiry-preparation*'
       - 'src/core/workPreparation*'
       - 'src/components/CanonicalWorkPreparation.js'
       - 'src/components/CanonicalWorkPanel.js'
@@ -139,6 +143,7 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-enquiry-preparation.mjs
           node scripts/check-work-preparation.mjs
           node scripts/check-customer-form-discovery.mjs
           node scripts/check-public-collection-parity.mjs
@@ -206,6 +211,10 @@ jobs:
           cp .test-artifacts/public-form/postgres.json .test-artifacts/app-goal-composition/public-form-postgres.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/public-form-postgres.json'));print('BUSY_PUBLIC_FORM_POSTGRES '+json.dumps(d['summary']))"
           set +e
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-enquiry-preparation-postgres.mjs > .test-artifacts/app-goal-composition/enquiry-preparation-postgres.log 2>&1
+          ENQUIRY_PREPARATION_EXIT=$?
+          if [ "$ENQUIRY_PREPARATION_EXIT" -ne 0 ]; then tail -n 45 .test-artifacts/app-goal-composition/enquiry-preparation-postgres.log; exit "$ENQUIRY_PREPARATION_EXIT"; fi
+          cp .test-artifacts/enquiry-preparation/postgres.json .test-artifacts/app-goal-composition/enquiry-preparation-postgres.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-work-preparation-postgres.mjs > .test-artifacts/app-goal-composition/work-preparation-postgres.log 2>&1
           PREPARATION_CHECK_EXIT=$?
           set -e

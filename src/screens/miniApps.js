@@ -1,3 +1,4 @@
+import {OwnerOperationalPreview} from '../components/OwnerOperationalPreview';
 import {CustomerFormNavigation} from './customerFormNavigation';
 import {privateArtifactCrypto} from '../core/privateArtifactCrypto';
 import {CustomerAppForm} from './customerAppForm';
@@ -1293,6 +1294,7 @@ function MiniAppBuilder({ s }) {
         initialGoal={s.miniAppBuildBrief||''} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
         Surface={MiniAppSurface} recordsFeed={approvedRecords.feed} onRefreshRecords={async()=>{try{const result=await s.businessContentRequest('content_list');const feed=approvedCompositionFeed(result,s.cloudWorkspace?.businessId);approvedRecords.onApprovedRecords(feed.ok?feed:null);return feed;}catch(error){approvedRecords.onApprovedRecords(null);throw error;}}} onDraftChange={value=>markOwnerDirty('goal-composition',value)}
         onPreview={plan=>plan?setStudioPreview(plan,'goal-composition'):proposalDraft.current?.part==='goal-composition'?setStudioPreview(null,'goal-composition'):false}/>:null}
+      {app?<OwnerOperationalPreview key={['owner-work',app.id,app.draft_revision,s.ownerSession?.userId].join(':')} s={s} app={app} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}/>:null}
       <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
         onApprovedRecords={approvedRecords.onApprovedRecords}

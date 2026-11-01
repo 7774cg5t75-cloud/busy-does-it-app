@@ -3084,6 +3084,12 @@
       "args": [
         "scripts/check-work-preparation.mjs"
       ]
+    },
+    {
+      "id": "enquiry-preparation",
+      "args": [
+        "scripts/check-enquiry-preparation.mjs"
+      ]
     }
   ]
 }

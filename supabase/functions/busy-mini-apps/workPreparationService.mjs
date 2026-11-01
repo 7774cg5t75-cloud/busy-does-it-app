@@ -1,7 +1,9 @@
+import {enquiryPreparationService} from './enquiryPreparationService.mjs';
 import {validWorkPreparation} from '../../../src/core/workPreparation.mjs';
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(x);
-export async function workPreparationService({client,sourceRead,actorId,businessId,body,enabled}){
+export async function workPreparationService({client,sourceRead,actorId,businessId,body,enabled,enquiryEnabled}){
  if(enabled!=='true')throw Error('Private Work preparation is not enabled');
+ if(body?.targetKind==='filed_enquiry')return enquiryPreparationService({client,sourceRead,actorId,businessId,body,enabled:enquiryEnabled});
  const read=body?.operation==='read',undo=body?.operation==='undo',allowed=read?['action','businessId','operation','customerId','engagementId','quoteRevision']:['action','businessId','operation','customerId','engagementId','quoteRevision','snapshotRevision','expectedRevision','operationId','ownerApproved',...(undo?[]:['plan'])];
  allowed.push('connectedStaging','expectedProfileRevision');
  if(body?.connectedStaging!==undefined&&body.connectedStaging!==true||body?.expectedProfileRevision!==undefined&&(!Number.isSafeInteger(body.expectedProfileRevision)||body.expectedProfileRevision<1))throw Error('Invalid original connected context');
@@ -17,5 +19,7 @@ export async function workPreparationService({client,sourceRead,actorId,business
  if(source?.businessId!==businessId||source.ownerId!==actorId||source.customerId!==body.customerId||source.enquiryId!==row.enquiryId||source.snapshotRevision!==revision||source.sourceHash!==row.sourceHash||source.customerHash!==row.customerHash)throw Error('Original customer/enquiry source is stale or foreign');
  const args={b:businessId,c:body.customerId,e:body.engagementId,a:actorId,q:body.quoteRevision,snap:revision};
  const r=await client.rpc(read?'busy_work_preparation_read_v1':'busy_work_preparation_write_v1',read?args:{...args,expected:body.expectedRevision,p:undo?null:body.plan,op:body.operationId,mode:body.operation});
- if(r.error)throw Error('Private preparation could not be independently confirmed');return {ok:true,...r.data,...(read?{sourceContext:{customerName:source.customer.name,service:source.customer.service,customerMessage:source.enquiry.rawText}}:{})};
+ if(r.error)throw Error('Private preparation could not be independently confirmed');
+ if(read&&enquiryEnabled==='true'){const linked=await client.rpc('busy_work_enquiry_plan_marker_v1',{b:businessId,c:body.customerId,e:row.enquiryId,a:actorId});if(linked.error)throw Error('Enquiry continuity unavailable');r.data.enquiryPreparationExists=linked.data.existingEnquiryPlan===true;r.data.enquiryId=row.enquiryId;}
+ return {ok:true,...r.data,...(read?{sourceContext:{customerName:source.customer.name,service:source.customer.service,customerMessage:source.enquiry.rawText}}:{})};
 }
