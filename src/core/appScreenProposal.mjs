@@ -8,7 +8,7 @@ export {MARKERS};
 export function prepareScreenAppComposition(args){
  const {context,proposal,choices=[],feed}=args,config=context?.anchor?.project?.draft_config;if(!config)return {ok:false,reason:'Open the current private app.'};
  const base=choices.length?prepareRecordAppComposition(args):prepareAppComposition(args);
- if(!base.ok&&base.code!=='no_changes'&&base.reason!=='These approved collections already match your saved layout.')return base;
+ if(!base.ok&&base.code!=='no_changes')return base;
  const visual=proposal.app.visual,enabled=key=>config.modules.some(m=>m.key===key&&m.enabled===true),operations=base.ok?[...base.operations]:[];
  let next=base.ok?base.nextConfig:config,screenComposition=JSON.parse(JSON.stringify(config.screenComposition||{version:1,screens:[]}));
  const collections=next.contentLayout||[],requested=choices.length||Object.values(MARKERS).some(m=>visual.includes(m));

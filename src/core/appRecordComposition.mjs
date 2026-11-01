@@ -44,7 +44,7 @@ export function prepareRecordAppComposition({context,current,proposal,selection,
  if(!validContentLayout(old)||!config.modules.some(m=>m.key==='business_profile'&&m.enabled===true))return no('Open the existing business-information screen and supported content layout.');
  const next=[...choices.map(c=>({...old.find(b=>b.kind===c.kind),...c})),...old.filter(b=>!choices.some(c=>c.kind===b.kind))];
  const operations=[...(base.ok?base.operations:[]),...equal(old,next)?[]:[{kind:'content_layout',value:next}]];
- if(!operations.length)return no('These approved collections already match your saved layout.');
+ if(!operations.length)return {...no('These approved collections already match your saved layout.'),code:'no_changes',recordReview:review,businessContentPreview:feed};
  const checked=proposeCoordinatedAppChanges(config,operations);if(!checked.ok)return checked;
  const bound=bindPrivateAppProposal(checked,{businessId,app:context.anchor.project});
  return bound?{...bound,recordReview:review,businessContentPreview:feed,mayExecute:false,explanation:{summary:'Only the collection layout and listed design choices are saved. Prices, dates and photographs remain in the original approved records; future refreshes use their latest approved revisions.'}}:no('The private app changed. Prepare a fresh review.');
