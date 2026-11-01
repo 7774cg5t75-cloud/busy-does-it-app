@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import {runInNewContext} from "node:vm";
 import {readFileSync} from "node:fs";
 import {prepareCoordinatedGrowthDrafts} from "../src/domain/coordinatedGrowthDrafts.mjs";
 import {createGrowthProject,reviewGrowthProject} from "../src/domain/growthProjectWorkspace.mjs";
@@ -107,8 +108,20 @@ for(const requirement of [
  "setGrowthProjectFocus(command.growthProjectName)",
  'go("businessCreationJourney")',
 ]) assert.ok(app.includes(requirement),requirement);
-assert.ok(talk.includes("s.submitBusyCommand({ audioUri: audioRecorder.uri })"));
-assert.ok(talk.includes("s.submitBusyCommand({ text })"));
+// Execute the original current voice/typing handlers; no microphone/provider IO.
+const stopStart=talk.indexOf('  const stopRecording = async () => {'),stopEnd=talk.indexOf('\n  useEffect(() => {',stopStart);
+const typedStart=talk.indexOf('  const submitTyped = async ('),typedEnd=talk.indexOf('\n  useEffect(',typedStart);
+assert.ok(stopStart>=0&&stopEnd>stopStart&&typedStart>=0&&typedEnd>typedStart);
+const calls=[],stages=[],notices=[],alerts=[],transition={current:false},started={current:true},epoch={current:0},currentTyped={current:'  A reviewed goal  '};let clearCount=0,finish=null;
+const recorder={uri:'fixture://before-stop',stop:async()=>{recorder.uri='fixture://captured-after-stop';}};
+const env={recorderTransitionRef:transition,recordingStartedRef:started,recorderState:{isRecording:false},audioRecorder:recorder,setVoiceStage:v=>stages.push(v),setVoiceMessage:v=>notices.push(v),setAudioModeAsync:async()=>{recorder.uri='fixture://changed-after-mode';},Alert:{alert:(...v)=>alerts.push(v)},typingEpoch:epoch,currentTyped,typedCommand:currentTyped.current,setTypedCommand:()=>clearCount++,s:{submitBusyCommand:async p=>{calls.push(p);return true;}}};
+runInNewContext(talk.slice(stopStart,stopEnd)+'\nglobalThis.stopForTest=stopRecording;\n'+talk.slice(typedStart,typedEnd)+'\nglobalThis.typeForTest=submitTyped;',env);
+await env.stopForTest();assert.equal(calls.length,1);assert.equal(calls[0].audioUri,'fixture://captured-after-stop');assert.equal(transition.current,false);assert.equal(stages.at(-1),'idle');
+await env.stopForTest();assert.equal(calls.length,1,'No recording must never dispatch');
+started.current=true;recorder.stop=async()=>{recorder.uri=null;};await env.stopForTest();assert.equal(calls.length,1);assert.ok(alerts.length>0);
+transition.current=true;started.current=true;await env.stopForTest();assert.equal(calls.length,1);transition.current=false;
+await env.typeForTest();assert.equal(calls.at(-1).text,'A reviewed goal');assert.equal(clearCount,1);
+env.s.submitBusyCommand=async p=>{calls.push(p);return new Promise(r=>{finish=r;});};const pending=env.typeForTest('A later goal');epoch.current++;currentTyped.current='Keep my newer words';finish(true);await pending;assert.equal(clearCount,1,'Late completion cannot clear newer wording');
 assert.ok(core.includes("BUSY_COMMAND_URL"));
 assert.ok(app.includes("growthProjectTarget"));
 assert.ok(app.includes("setGrowthProjectTarget(result.growthProjectTarget"));
