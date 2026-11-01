@@ -1,5 +1,5 @@
-# Busy Does It — dedicated automated email sender (PENDING DNS)
-Created in Resend EU region: notify.busydoesit.co.uk. This is a send-only subdomain; the existing Namecheap inbox remains hello@busydoesit.co.uk. Do not touch its root-domain MX, SPF, or DKIM records.
+# Busy Does It — dedicated automated email sender (DNS VERIFIED 1 November 2026)
+Created in Resend EU region: notify.busydoesit.co.uk. Resend independently verified all four records and reports Sending: enabled, Receiving: disabled. This is a send-only subdomain; the existing Namecheap inbox remains hello@busydoesit.co.uk. Do not touch its root-domain MX, SPF, or DKIM records.
 
 ## Required Cloudflare records (at busydoesit.co.uk zone)
 
@@ -9,7 +9,7 @@ Created in Resend EU region: notify.busydoesit.co.uk. This is a send-only subdom
 3. TXT / name `send.notify` / content `v=spf1 include:amazonses.com ~all`
 4. CNAME / name `rsend.notify` / destination `send.forge.rmta.net` (DNS only, not proxied).
 
-Set TTL Auto. Copy and verify exact records in Resend before deploying. Resend may update required records; the account dashboard is authoritative. Do not enable the automated forms until verified.
+Set TTL Auto. Copy and verify exact records in Resend before deploying. Resend may update required records; the account dashboard is authoritative. DNS verified in Resend. Do not enable automatic website forms until service secrets, data retention, rate limits, legal notice, owner approval and end-to-end delivery tests are complete.
 
 Expected sender after verification: `Busy Does It <updates@notify.busydoesit.co.uk>`.
 Recipient for contact notifications: `hello@busydoesit.co.uk`, mailbox hosted at Namecheap.
