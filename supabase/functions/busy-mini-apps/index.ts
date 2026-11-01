@@ -2441,7 +2441,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
   const publicInformationBlocks:Record<string,string>={};
   const publicInformationHtml = enabled.has('business_profile') ? ([['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']] as const).map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);const html=rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map((row:Record<string,string>)=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';publicInformationBlocks[field]=html;return html;}).join('') : '';
   const publicContentBlocks:Record<string,string>={};
-  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map((block:{kind:string,title:string,featuredId?:string,layout?:'rows'|'cards'})=>{const html=businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',contentLayout:block.layout,featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}});publicContentBlocks[block.kind==='product'?'products':'events']=html;return html;}).join(''):'';
+  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map((block:{kind:string,title:string,featuredId?:string,layout?:'rows'|'cards',browseMode?:string,interestEntry?:string,imageScale?:string})=>{const html=businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',contentLayout:block.layout,featuredId:block.featuredId,browseMode:block.browseMode,interestEntry:block.interestEntry,imageScale:block.imageScale},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}});publicContentBlocks[block.kind==='product'?'products':'events']=html;return html;}).join(''):'';
   const aboutHtml = enabled.has("business_profile")
     ? `<section id="about"><div class="wrap"><p class="eyebrow">About</p><h2>${escapeHtml(name)}</h2>${about ? `<p>${escapeHtml(about)}</p>` : ""}${serviceArea ? `<p class="muted">Service area: ${escapeHtml(serviceArea)}</p>` : ""}</div></section>`
     : "";
@@ -3288,6 +3288,7 @@ async function appDetail(
       favorite,
     },
     version: version.data,
+    formDiscoveryAvailable:Deno.env.get('BUSY_CUSTOMER_FORM_DISCOVERY_ENABLED')==='true',
     requestReview:{schema:"published-version.v1",appId:app.data.id,versionId:version.data.id},
     loyaltyProgress,
     businessContent:version.data.config?.contentLayout?.length?await readBusinessContent(supabase,app.data.business_id,{publicOnly:true}):null,

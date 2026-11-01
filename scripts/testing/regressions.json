@@ -3064,6 +3064,20 @@
         "scripts/check-customer-form-journey.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-customer-form-discovery",
+      "args": [
+        "scripts/check-customer-form-discovery.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-public-collection-parity",
+      "args": [
+        "scripts/check-public-collection-parity.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

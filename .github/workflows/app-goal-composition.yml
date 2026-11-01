@@ -4,6 +4,16 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - 'src/core/customerFormDiscovery.mjs'
+      - 'src/core/customerFormRecovery.mjs'
+      - 'src/core/customerFormTransport.mjs'
+      - 'src/native/customerFormRecovery.js'
+      - 'src/screens/customerFormNavigation.js'
+      - 'src/core/businessContentHtml.mjs'
+      - 'supabase/functions/_shared/businessContentHtml.mjs'
+      - 'scripts/check-customer-form-discovery.mjs'
+      - 'scripts/check-public-collection-parity.mjs'
+      - 'src/app/AppController.js'
       - 'src/core/customerFormJourney.mjs'
       - 'src/screens/customerAppForm.js'
       - 'supabase/functions/busy-mini-app-guest/formGuestDispatcher.mjs'
@@ -120,6 +130,8 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-customer-form-discovery.mjs
+          node scripts/check-public-collection-parity.mjs
           node scripts/check-customer-form-journey.mjs
           node scripts/check-public-form-disclosure.mjs
           node scripts/check-growth-drafts.mjs
@@ -129,6 +141,7 @@ jobs:
           node scripts/check-private-forms-native.mjs
           node node_modules/expo-modules-autolinking/bin/expo-modules-autolinking resolve --platform apple --json > .test-artifacts/app-goal-composition/native-autolinking.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/native-autolinking.json'));assert any(m['packageName']=='expo-crypto' and m['packageVersion']=='57.0.4' for m in d['modules'])"
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/native-autolinking.json'));assert any(m['packageName']=='expo-secure-store' and m['packageVersion']=='57.0.4' for m in d['modules'])"
           node scripts/check-private-function-artifacts.mjs
           node scripts/check-private-calculation-pilot.mjs
           node scripts/check-mission15-phase10-gallery-parity.mjs

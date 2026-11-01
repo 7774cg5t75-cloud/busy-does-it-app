@@ -1,3 +1,4 @@
+import {requestCustomerForm} from '../core/customerFormTransport.mjs';
 import {isConnectedApplicationRuntime} from '../staging/connectedApplicationRuntime.mjs';
 import {OwnerPreviewNotice} from '../ownerPreview/OwnerPreviewNotice';
 import {executeGoalToPrivateApp} from '../core/goalToPrivateApp.mjs';
@@ -17602,6 +17603,7 @@ function App({connectedRuntime=null}={}) {
     confirmRollbackMiniApp,
     searchBusyApps,
     openBusyAppDetail,
+    customerFormsRequest:body=>requestCustomerForm(BUSY_SUPABASE_URL,body,fetchWithTimeout),
     openMiniAppShareCentre,
     shareMiniAppCustomerLink,
     openMiniAppCustomerLink,

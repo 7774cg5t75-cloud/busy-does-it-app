@@ -519,7 +519,7 @@ Deno.serve(async (req: Request) => {
     const body = await boundedJson(req,32768) as Record<string,unknown>;
     const action = clean(body?.action, 40);
 
-    if(['form_open','form_review','form_submit','form_receipt'].includes(action)){
+    if(['form_catalog','form_open','form_review','form_submit','form_receipt'].includes(action)){
       const yes=(name:string)=>Deno.env.get(name)==='true';
       const dispatch=createFormGuestDispatcher({client:supabase,flags:{ingress:yes('BUSY_FORM_INGRESS_REVIEWED'),publication:yes('BUSY_FORM_PUBLICATION_AUTHORISED'),disclosure:yes('BUSY_CUSTOMER_FORMS_ENABLED'),submission:yes('BUSY_CUSTOMER_FORM_SUBMISSION_ENABLED'),receipts:yes('BUSY_CUSTOMER_FORM_RECEIPTS_ENABLED')},randomToken,sha256:sha256Text,hmac:hmacText});
       try{return json(200,await dispatch(body));}catch{return json(409,{error:'This form action is unavailable or could not be verified. Nothing is automatically retried; inspect any existing receipt.'});}

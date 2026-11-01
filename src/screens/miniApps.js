@@ -1,3 +1,5 @@
+import {CustomerFormNavigation} from './customerFormNavigation';
+import {privateArtifactCrypto} from '../core/privateArtifactCrypto';
 import {CustomerAppForm} from './customerAppForm';
 import {appScreenSections} from '../core/appScreenComposition.mjs';
 import {savePrivateAppProject} from '../core/privateAppProject.mjs';
@@ -295,12 +297,17 @@ function MiniAppSurface({
   catalogueContextKey = '',
   requestPreview = null,
   customerForm = null,
+  customerForms = null,
 }) {
   const catalogueCache=React.useRef({scope:catalogueContextKey,states:{}});
   if(catalogueCache.current.scope!==catalogueContextKey)catalogueCache.current={scope:catalogueContextKey,states:{}};
   const ownerSelection=!interactive&&typeof ownerEdit?.onSelect==='function'?ownerEdit:null;
   const previewService=!interactive&&!ownerSelection&&typeof requestPreview?.onSelectService==='function'?requestPreview.onSelectService:null;
   const serviceAction=interactive?onSelectService:previewService;
+  const formScope=JSON.stringify([customerForms?.accountId||'',customerForms?.appId||'',customerForms?.versionId||'']),formLive=React.useRef(formScope);formLive.current=formScope;
+  const [formAvailability,setFormAvailability]=React.useState(null),[formInterest,setFormInterest]=React.useState(null),hasCustomForms=!!customerForms&&formAvailability?.scope===formScope,serviceFormScreen=hasCustomForms?(formAvailability.screens.services?'services':formAvailability.screens.contact?'contact':null):null,listingFormScreen=hasCustomForms?(formAvailability.screens.business_profile?'business_profile':formAvailability.screens.contact?'contact':null):null;
+  const chooseCustom=interest=>{if(formLive.current===formScope)setFormInterest({scope:formScope,value:interest});};
+  const contentInterest=listingFormScreen?(_name,prepared)=>{if(prepared?.ok)chooseCustom({kind:'listing',...prepared.selection});}:null;
   const Header=ownerSelection?Pressable:View;
   const profile = config?.publicProfile || {};
   const modules = orderedAppModules(config);
@@ -347,7 +354,7 @@ function MiniAppSurface({
               tone="blue"
             />
             {ownerSelection?<Button label="Edit this business description" onPress={()=>ownerSelection.onSelect({part:'wording',field:profile.about?'about':'description'})}/>:null}</>:null}
-              {['products','events'].includes(section)?<>{(validContentLayout(config.contentLayout)?config.contentLayout:[]).filter(block=>block.kind===(section==='products'?'product':'event')).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueCache.current.states[block.kind]} onSaveBrowseState={value=>{if(catalogueCache.current.scope===catalogueContextKey)catalogueCache.current.states[block.kind]=value;}} feed={businessContent} colors={brandColours} {...block} onInterest={modules.some(m=>m.key==='enquiry')?(interactive?(onSelectContent||onSelectService):!ownerSelection&&requestPreview?.onSelectContent||null):null}/>)}</>:null}
+              {['products','events'].includes(section)?<>{(validContentLayout(config.contentLayout)?config.contentLayout:[]).filter(block=>block.kind===(section==='products'?'product':'event')).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueCache.current.states[block.kind]} onSaveBrowseState={value=>{if(catalogueCache.current.scope===catalogueContextKey)catalogueCache.current.states[block.kind]=value;}} feed={businessContent} colors={brandColours} {...block} onInterest={modules.some(m=>m.key==='enquiry')?(interactive?(contentInterest||onSelectContent||onSelectService):!ownerSelection&&requestPreview?.onSelectContent||null):null}/>)}{listingFormScreen&&formInterest?.scope===formScope&&formInterest.value.kind==='listing'?<CustomerFormNavigation key={JSON.stringify(formInterest)} {...customerForms} screenId={listingFormScreen} interest={formInterest.value}/>:null}</>:null}
               {section==='faqs'?<>{publicCollection('faqs',profile.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={brandColours} componentStyles={presentation.componentStyles} bodySize={visual.type.bodySize}>
               {ownerSelection?<AppEntryEditButton label={'Edit answer: '+row.question} colors={brandColours} selected={ownerSelection.selection?.part==='faq'&&ownerSelection.selection.index===i} onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
              </AppFaqCard>)}</>:null}
@@ -402,6 +409,8 @@ function MiniAppSurface({
                         {ownerSelection?<AppEntryEditButton label={'Edit service '+service.name} colors={brandColours}
                           selected={ownerSelection.selection?.part==='service'&&ownerSelection.selection.index===allServices.indexOf(service)}
                           onPress={()=>ownerSelection.onSelect({part:'service',index:allServices.indexOf(service),expectedService:JSON.stringify(service)})}/>:null}
+                        {serviceFormScreen?<Button label={'Enquiry questions for '+service.name} onPress={()=>chooseCustom({kind:'service',serviceId:service.id})}/>:null}
+                        {serviceFormScreen&&formInterest?.scope===formScope&&formInterest.value.kind==='service'&&formInterest.value.serviceId===service.id?<CustomerFormNavigation key={JSON.stringify(formInterest)} {...customerForms} screenId={serviceFormScreen} interest={formInterest.value}/>:null}
                         {(ownerSelection||typeof serviceAction==='function')&&modules.some(m=>m.key==='enquiry')?<ServiceActionButton serviceId={service.id} action="enquiry" presentation={presentation.servicePresentation} colors={brandColours} label={'Ask about '+service.name}
                           onPress={()=>ownerSelection?ownerSelection.onSelect({part:'service-button',action:'enquiry',index:allServices.indexOf(service),expectedService:JSON.stringify(service)}):serviceAction(service.name,'enquiry')}/>:null}
                         {typeof serviceAction==='function'&&modules.some(m=>m.key==='enquiry')?<View>
@@ -666,6 +675,7 @@ function MiniAppSurface({
       {modules.filter(module=>!interactive||!currentSection||module.key===currentSection).map(module=>{
         const sectionKeys=appScreenSections(config,module.key);
         if(!sectionKeys)return <Text key={module.key} style={styles.cardBody}>This screen layout needs a supported review.</Text>;
+        if(customerForms&&['business_profile','services','contact'].includes(module.key))return <View key={module.key}>{renderModule(module)}<CustomerFormNavigation key={formScope+module.key} {...customerForms} screenId={module.key} onAvailability={available=>{if(formLive.current===formScope)setFormAvailability(old=>({scope:formScope,screens:{...(old?.scope===formScope?old.screens:{}),[module.key]:available}}));}}/></View>;
         if(module.key==='contact'&&customerForm)return <View key={module.key}>{renderModule(module)}<CustomerAppForm {...customerForm}/></View>;
         return module.key==='services'&&config.screenComposition?.screens.some(row=>row.moduleKey==='services')?<View key={module.key}>{sectionKeys.map(key=><View key={key} accessibilityLabel={'Service section: '+key}>{renderModule({key})}</View>)}</View>:renderModule(module);
       })}    </View>
@@ -4853,6 +4863,7 @@ function BusyAppDetailForm({ s }) {
           s={s}
           loyaltyProgress={detail?.loyaltyProgress || null}
           businessContent={detail.businessContent}
+          customerForms={s.customerFormsRequest?{appId:detail.app.id,versionId:detail.version.id,accountId:s.ownerSession?.userId||null,request:s.customerFormsRequest,integrity:privateArtifactCrypto,discoveryEnabled:detail.formDiscoveryAvailable===true,isCurrent:()=>s.selectedBusyAppDetail===detail&&s.ownerSession?.userId===requestUserId}:null}
           catalogueContextKey={JSON.stringify([s.ownerSession?.userId||'',detail.app?.business_id||'',detail.app?.id||'',detail.version?.id||''])}
           onSelectService={enabled.has('enquiry')||enabled.has('booking_request')?chooseService:null}
           onRequestNavigation={goToRequest}
