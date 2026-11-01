@@ -30,13 +30,23 @@ BEGIN
  RETURN jsonb_build_object('version',1,'authority','busy_private_form_enquiry_v1','businessId',b,'ownerId',actor,'appId',app,'definition',d-'answers','title',v.spec->'title','fields',active_fields,'answers',vals,'outputs',r->'outputs','sourceCurrent',current_ok,'privateOnly',true,'submissionVerified',false);
 END $$;
 CREATE FUNCTION busy_snapshot_private.form_enquiry_context(b uuid,rid uuid,expected_hash text,require_current boolean) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
-DECLARE actor uuid:=busy_snapshot_private.lock_writer(b);r public.busy_mini_app_requests%ROWTYPE;hash text;context jsonb;
+DECLARE actor uuid:=busy_snapshot_private.lock_writer(b);r public.busy_mini_app_requests%ROWTYPE;hash text;context jsonb;a public.busy_mini_apps%ROWTYPE;refs text[];n int;service_name text;
 BEGIN
  IF NOT EXISTS(SELECT 1 FROM public.busy_business_memberships WHERE business_id=b AND user_id=actor AND role='owner') THEN RAISE EXCEPTION 'Current owner required' USING ERRCODE='42501';END IF;
  SELECT * INTO r FROM public.busy_mini_app_requests WHERE business_id=b AND id=rid FOR SHARE;
  IF NOT FOUND OR r.request_type<>'enquiry' OR r.module_key<>'enquiry' THEN RAISE EXCEPTION 'Exact original enquiry required' USING ERRCODE='42501';END IF;
  hash:=encode(sha256(convert_to(to_jsonb(r)::text,'UTF8')),'hex');IF expected_hash IS NOT NULL AND expected_hash IS DISTINCT FROM hash THEN RAISE EXCEPTION 'Original request changed' USING ERRCODE='40001';END IF;
  IF NOT(r.payload ? 'privateForm') THEN RETURN NULL;END IF;
+ IF require_current AND position('Service reference:' IN coalesce(r.payload->>'message',''))>0 THEN
+  -- The reference is only a selector. Current original App records establish the facts.
+  SELECT count(*) INTO n FROM regexp_matches(r.payload->>'message','^Service reference: ([A-Za-z0-9_-]{1,80}) / app draft revision ([1-9][0-9]{0,9})\.$','gn');
+  SELECT x INTO refs FROM regexp_matches(r.payload->>'message','^Service reference: ([A-Za-z0-9_-]{1,80}) / app draft revision ([1-9][0-9]{0,9})\.$','n')x;
+  IF n<>1 OR (length(r.payload->>'message')-length(replace(r.payload->>'message','Service reference:','')))<>length('Service reference:') OR position('Listing reference:' IN r.payload->>'message')>0 THEN RAISE EXCEPTION 'Exact unambiguous service selector required' USING ERRCODE='22023';END IF;
+  SELECT * INTO a FROM public.busy_mini_apps WHERE id=r.mini_app_id AND business_id=b AND created_by=actor FOR SHARE;
+  IF NOT FOUND OR a.draft_revision::text IS DISTINCT FROM refs[2] OR jsonb_typeof(a.draft_config#>'{publicProfile,services}') IS DISTINCT FROM 'array' OR jsonb_array_length(a.draft_config#>'{publicProfile,services}')>40 OR NOT EXISTS(SELECT 1 FROM jsonb_array_elements(a.draft_config->'modules')m WHERE m->>'key'='services' AND m->'enabled'='true') THEN RAISE EXCEPTION 'Current original service source required' USING ERRCODE='40001';END IF;
+  SELECT count(*),min(x->>'name') INTO n,service_name FROM jsonb_array_elements(a.draft_config#>'{publicProfile,services}')x WHERE x->>'id'=refs[1] AND jsonb_typeof(x->'name')='string';
+  IF n<>1 OR service_name IS DISTINCT FROM r.service_name OR service_name IS DISTINCT FROM r.payload->>'service' THEN RAISE EXCEPTION 'Exact original service identity required' USING ERRCODE='42501';END IF;
+ END IF;
  context:=busy_app_function_private.enquiry_form(b,actor,r.mini_app_id,r.payload->'privateForm',require_current);
  RETURN context||jsonb_build_object('requestId',rid,'requestHash',hash);
 END $$;
