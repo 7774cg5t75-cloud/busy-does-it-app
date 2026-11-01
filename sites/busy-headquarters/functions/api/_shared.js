@@ -65,7 +65,7 @@ export async function supabase(env,table,method,query,body,returnRepresentation=
     method,headers:{apikey:env.SUPABASE_SERVICE_ROLE_KEY,
       Authorization:'Bearer '+env.SUPABASE_SERVICE_ROLE_KEY,
       'Content-Type':'application/json',
-      Prefer:returnRepresentation?'return=representation':'return=minimal'},
+      Prefer:(method==='POST'?'resolution=merge-duplicates,':'')+(returnRepresentation?'return=representation':'return=minimal')},
     body:body===undefined?undefined:JSON.stringify(body)});
   if(!r.ok)throw new Error('database_unavailable');
   return returnRepresentation?await r.json():null;
