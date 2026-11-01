@@ -37,6 +37,19 @@ BEGIN
  IF NOT FOUND OR r.created_by<>a OR r.kind<>'quote' OR r.status<>'Prepared' OR q IS NULL OR r.revision IS DISTINCT FROM q THEN RAISE EXCEPTION 'Exact private Prepared quote required' USING ERRCODE='40001';END IF;
  RETURN r;
 END $$;
+-- Minimal exact source basis, not a raw table reader. Preserve original closed ACLs.
+CREATE FUNCTION public.busy_work_preparation_basis_v1(b uuid,c text,e uuid,a uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;snap bigint;
+BEGIN
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=b AND customer_id=c AND id=e AND created_by=a;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Exact original Work unavailable';END IF;
+ SELECT revision INTO snap FROM public.busy_business_snapshots WHERE business_id=b;
+ r:=busy_work_private.preparation_target(b,c,e,a,r.revision,snap);
+ RETURN jsonb_build_object('businessId',b,'customerId',c,'engagementId',e,'ownerId',a,'enquiryId',r.enquiry_id,'quoteRevision',r.revision,'snapshotRevision',snap,'sourceHash',r.source_hash,'customerHash',r.customer_hash);
+END $$;
+REVOKE ALL ON FUNCTION public.busy_work_preparation_basis_v1(uuid,text,uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
+GRANT EXECUTE ON FUNCTION public.busy_work_preparation_basis_v1(uuid,text,uuid,uuid) TO service_role;
+ALTER FUNCTION public.busy_work_preparation_basis_v1(uuid,text,uuid,uuid) OWNER TO postgres;
 CREATE FUNCTION public.busy_work_preparation_read_v1(b uuid,c text,e uuid,a uuid,q bigint,snap bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
 DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.preparation_target(b,c,e,a,q,snap);
 BEGIN RETURN jsonb_build_object('businessId',b,'customerId',c,'engagementId',e,'enquiryId',r.enquiry_id,'ownerId',a,'quoteRevision',r.revision,'snapshotRevision',snap,'revision',r.preparation_revision,'plan',r.preparation_plan,'needsReview',r.preparation_plan IS NOT NULL AND r.preparation_quote_revision IS DISTINCT FROM r.revision,'canUndo',jsonb_array_length(r.preparation_history)>0,'undoPlan',r.preparation_history->0,'privateOnly',true,'businessStatus','Prepared','notOwnReceipt',true);END $$;

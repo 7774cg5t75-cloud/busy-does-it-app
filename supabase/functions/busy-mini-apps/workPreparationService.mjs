@@ -8,14 +8,13 @@ export async function workPreparationService({client,sourceRead,actorId,business
  if(!body||Object.keys(body).some(k=>!allowed.includes(k))||body.action!=='private_work_preparation'||!['read','save','undo'].includes(body.operation)||!uuid(businessId)||!uuid(actorId)||!uuid(body.engagementId)||typeof body.customerId!=='string'||!body.customerId.length||body.customerId.length>240||!Number.isSafeInteger(body.quoteRevision)||body.quoteRevision<1||JSON.stringify(body).length>16000)throw Error('Unsupported private preparation request');
  if(body.businessId!==undefined&&body.businessId!==businessId)throw Error('Business changed');
  if(!read&&(body.ownerApproved!==true||!Number.isSafeInteger(body.snapshotRevision)||!Number.isSafeInteger(body.expectedRevision)||body.expectedRevision<0||typeof body.operationId!=='string'||!/^work_[a-f0-9-]{36}$/i.test(body.operationId)||!undo&&!validWorkPreparation(body.plan)))throw Error('Exact reviewed preparation required');
- // Called only after original requireUser/current owner membership. These minimal
- // service reads disclose nothing until original authenticated source_review passes.
- const row=await client.from('business_work_engagements').select('id,business_id,customer_id,enquiry_id,created_by,revision,source_hash,customer_hash').eq('business_id',businessId).eq('customer_id',body.customerId).eq('id',body.engagementId).eq('created_by',actorId).maybeSingle();
- if(row.error||!row.data||row.data.revision!==body.quoteRevision)throw Error('Exact original Work record is unavailable');
- const snapshot=await client.from('busy_business_snapshots').select('revision').eq('business_id',businessId).maybeSingle();if(snapshot.error||!snapshot.data)throw Error('Current source unavailable');
- const revision=snapshot.data.revision;if(!read&&body.snapshotRevision!==revision)throw Error('Source changed since review');
- const source=await sourceRead({p_business_id:businessId,p_customer_id:body.customerId,p_enquiry_id:row.data.enquiry_id,p_expected_snapshot_revision:revision});
- if(source?.businessId!==businessId||source.ownerId!==actorId||source.customerId!==body.customerId||source.enquiryId!==row.data.enquiry_id||source.snapshotRevision!==revision||source.sourceHash!==row.data.source_hash||source.customerHash!==row.data.customer_hash)throw Error('Original customer/enquiry source is stale or foreign');
+ // Called only after original requireUser/current owner membership. Original
+ // raw table grants stay closed; the finite basis reader locks exact scope.
+ const basis=await client.rpc('busy_work_preparation_basis_v1',{b:businessId,c:body.customerId,e:body.engagementId,a:actorId});
+ const row=basis.data;if(basis.error||!row||row.businessId!==businessId||row.customerId!==body.customerId||row.engagementId!==body.engagementId||row.ownerId!==actorId||row.quoteRevision!==body.quoteRevision)throw Error('Exact original Work record is unavailable');
+ const revision=row.snapshotRevision;if(!Number.isSafeInteger(revision)||!read&&body.snapshotRevision!==revision)throw Error('Source changed since review');
+ const source=await sourceRead({p_business_id:businessId,p_customer_id:body.customerId,p_enquiry_id:row.enquiryId,p_expected_snapshot_revision:revision});
+ if(source?.businessId!==businessId||source.ownerId!==actorId||source.customerId!==body.customerId||source.enquiryId!==row.enquiryId||source.snapshotRevision!==revision||source.sourceHash!==row.sourceHash||source.customerHash!==row.customerHash)throw Error('Original customer/enquiry source is stale or foreign');
  const args={b:businessId,c:body.customerId,e:body.engagementId,a:actorId,q:body.quoteRevision,snap:revision};
  const r=await client.rpc(read?'busy_work_preparation_read_v1':'busy_work_preparation_write_v1',read?args:{...args,expected:body.expectedRevision,p:undo?null:body.plan,op:body.operationId,mode:body.operation});
  if(r.error)throw Error('Private preparation could not be independently confirmed');return {ok:true,...r.data,...(read?{sourceContext:{customerName:source.customer.name,service:source.customer.service,customerMessage:source.enquiry.rawText}}:{})};
