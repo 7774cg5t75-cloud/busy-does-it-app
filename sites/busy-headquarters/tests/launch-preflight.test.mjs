@@ -23,7 +23,8 @@ test('launch code remains in review and does not accidentally collect data',()=>
 });
 test('early contact uses actual authorised business address',()=>{
   assert.match(home,/mailto:hello@busydoesit\.co\.uk/);
-  assert.match(home,/id="busy-early-access-form" hidden/);
+  assert.doesNotMatch(home,/<form\b/);
+  assert.doesNotMatch(home,/marketing-intake\.js" defer/);
   assert.match(home,/This does not create an account or an automatic waitlist signup/);
 });
 test('privacy is explicitly UNAPPROVED and fictional demo remains disclosed',()=>{
