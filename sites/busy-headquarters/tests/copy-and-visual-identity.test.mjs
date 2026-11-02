@@ -5,7 +5,7 @@ import {test} from 'node:test';
 const root='sites/busy-headquarters/';
 const home=readFileSync(root+'index.html','utf8');
 const sample=readFileSync(root+'showcase/index.html','utf8');
-const scripts=readFileSync(root+'marketing-intake.js','utf8');
+const scripts=readFileSync(root+'marketing-intake.js','utf8'); // retained for a future separately approved feature, not loaded on this site
 
 test('Busy headline and approved product identity remain intact',()=>{
   assert.match(home,/Build a website\.<br><span class="gradient-text">Create your own app\.<\/span><br>Run your business\./);
@@ -23,7 +23,8 @@ test('Marketing copy is natural and accurate for a not-yet-launched product',()=
   assert.doesNotMatch(home,/Yes, that's a major part of our vision/);
 });
 test('Gated early access and email fallback still describe truthful actions',()=>{
-  assert.match(home,/id="busy-early-access-form" hidden/);
+  assert.doesNotMatch(home,/<form\b/);
+  assert.doesNotMatch(home,/<script src="marketing-intake\.js"/);
   assert.match(home,/id="busy-interest-intro"/);
   assert.match(home,/id="busy-interest-note"/);
   assert.match(home,/mailto:hello@busydoesit.co.uk/);
