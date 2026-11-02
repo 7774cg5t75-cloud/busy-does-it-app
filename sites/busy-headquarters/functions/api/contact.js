@@ -11,6 +11,6 @@ export async function onRequestPost({request,env}){
     if(!await verifyHuman(env,request,p.turnstileToken,'contact'))return json({ok:false,error:'Please complete the security check and try again.'},400);
     await resend(env,{to:'hello@busydoesit.co.uk',replyTo:email,subject:'Busy Does It website enquiry',
       text:['New website enquiry','Name: '+name,'Reply-to: '+email,'','Message:',message].join('\n')});
-    return json({ok:true,message:'Your message has been sent.'});
+    return json({ok:true,message:'Your message was accepted for delivery. We will respond by email.'});
   }catch(e){return errorResponse(e);}
 }
