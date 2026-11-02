@@ -45,6 +45,8 @@ async function useNetwork(fn) {
   }
   if(url.startsWith('https://fake.supabase.local/rest/v1/busy_marketing_waitlist')){
    const u=new URL(url), method=init.method||'GET';
+   assert.equal(init.headers.apikey,'sb_secret_fake_role');
+   assert.equal(init.headers.Authorization,undefined,'Do not send opaque secret keys as Bearer JWTs');
    if(method==='GET'){
     const email=decodeURIComponent((u.searchParams.get('email')||'').replace(/^eq\./,''));
     return Response.json(db.has(email)?[{status:db.get(email).status}]:[]);
