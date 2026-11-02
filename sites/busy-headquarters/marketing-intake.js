@@ -84,7 +84,11 @@
       const submit=contact.querySelector('button[type=submit]');if(submit)submit.textContent='Send message';
       waitlist.hidden=false;
       if(link)link.hidden=true;
-      if(earlyStatus)earlyStatus.textContent='Email interest list now open — subscriptions are not yet available';
+      const intro=document.getElementById('busy-interest-intro');
+      const note=document.getElementById('busy-interest-note');
+      if(intro)intro.textContent='Interested in trying Busy when early access opens? Enter your email below to receive a confirmation link.';
+      if(note)note.textContent='A confirmation email is required before joining the interest list. No subscription or guaranteed invitation is created.';
+      if(earlyStatus)earlyStatus.textContent='Interest list open — subscriptions are not yet available';
     }catch(_){ /* keep manual fallback and no waitlist */ }
   };
   fetch('/api/config',{cache:'no-store',credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(config=>{
