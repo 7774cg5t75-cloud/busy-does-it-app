@@ -25,12 +25,17 @@ const results=[];try{
     const overflow=[...document.querySelectorAll('main *,nav *')].filter(visible).filter(el=>{const r=el.getBoundingClientRect();return r.left< -1||r.right>innerWidth+1;}).map(el=>el.tagName+'.'+el.className).slice(0,20);
     const unreadable=text.filter(el=>parseFloat(getComputedStyle(el).fontSize)<14).map(el=>el.tagName);
     const targets=[...document.querySelectorAll('a[href^="#"]')].filter(a=>!document.getElementById(a.getAttribute('href').slice(1))).map(a=>a.getAttribute('href'));
+    const rgb=s=>{const m=s.match(/^rgba?\(([^)]+)\)$/);if(!m)return null;const a=m[1].split(/[, /]+/).map(Number);return a.length===3||a[3]===1?a.slice(0,3):null;};
+    const luminance=c=>c.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
+    const contrastFailures=[],contrastUnmeasured=[];
+    for(const el of text){const style=getComputedStyle(el),fg=rgb(style.color);let parent=el,bg=null;while(parent&&!bg){bg=rgb(getComputedStyle(parent).backgroundColor);parent=parent.parentElement;}if(!fg||!bg){contrastUnmeasured.push(el.tagName);continue;}const a=luminance(fg),b=luminance(bg),value=(Math.max(a,b)+.05)/(Math.min(a,b)+.05),large=parseFloat(style.fontSize)>=24||parseFloat(style.fontSize)>=18.66&&Number(style.fontWeight)>=700;if(value<(large?3:4.5))contrastFailures.push({tag:el.tagName,text:el.textContent.slice(0,60),ratio:value});}
+    const ctaTargets=[...document.querySelectorAll('.hero .cta')].filter(visible).map(el=>({width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
     const headings=[...document.querySelectorAll('h1')].filter(visible).map(el=>({width:el.getBoundingClientRect().width,fontSize:parseFloat(getComputedStyle(el).fontSize),text:el.textContent}));
-    return {documentWidth:document.documentElement.scrollWidth,viewport:innerWidth,overflow,broken,unreadable,targets,headings,imageCount:document.images.length,height:document.documentElement.scrollHeight};
+    return {contrastFailures,contrastUnmeasured,ctaTargets,documentWidth:document.documentElement.scrollWidth,viewport:innerWidth,overflow,broken,unreadable,targets,headings,imageCount:document.images.length,height:document.documentElement.scrollHeight};
    });
    const filename=scenario.id+'-'+stage+'-'+label+'.png';await page.screenshot({path:folder+'/'+filename,fullPage:true,animations:'disabled'});
    results.push({business:scenario.business,family:scenario.family,stage,viewport,label,filename,sha256:hash(readFileSync(folder+'/'+filename)),metrics,blockedRequests:blocked});
-   assert.equal(blocked,0,'Unexpected browser network request');assert.equal(metrics.broken.length,0,filename+' broken image');assert.equal(metrics.targets.length,0,filename+' bad anchor');assert.equal(metrics.unreadable.length,0,filename+' small text');assert.equal(metrics.documentWidth<=viewport.width+1,true,filename+' horizontal page overflow');assert.equal(metrics.overflow.length,0,filename+' overflowing content: '+metrics.overflow.join(','));assert.equal(metrics.headings.length,1);
+   assert.equal(blocked,0,'Unexpected browser network request');assert.equal(metrics.broken.length,0,filename+' broken image');assert.equal(metrics.targets.length,0,filename+' bad anchor');assert.equal(metrics.unreadable.length,0,filename+' small text');assert.equal(metrics.documentWidth<=viewport.width+1,true,filename+' horizontal page overflow');assert.equal(metrics.overflow.length,0,filename+' overflowing content: '+metrics.overflow.join(','));assert.equal(metrics.headings.length,1);assert.equal(metrics.contrastFailures.length,0,filename+' computed contrast: '+JSON.stringify(metrics.contrastFailures));assert.ok(metrics.ctaTargets.every(t=>t.height>=44&&t.width>=44),filename+' small primary action');
    await context.close();
   }
  }}

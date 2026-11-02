@@ -4,6 +4,7 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - '.github/workflows/website-design-browser.yml'
       - 'src/core/premiumWebsite*.mjs'
       - 'src/domain/websiteBuilder.js'
       - 'src/domain/premiumHomepagePreview.js'

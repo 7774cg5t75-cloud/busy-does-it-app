@@ -31,6 +31,7 @@ jobs:
           node-version: '24.19.0'
       - name: Reviewed installation without package lifecycle scripts
         run: |
+          npm install --global npm@11.9.0 --ignore-scripts --no-audit --no-fund
           npm ci --ignore-scripts --no-audit --no-fund
           node scripts/apply-tooling-security-patches.mjs
           node scripts/check-dependency-security.mjs
