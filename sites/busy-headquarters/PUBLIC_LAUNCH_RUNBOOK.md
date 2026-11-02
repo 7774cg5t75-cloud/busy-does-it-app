@@ -28,3 +28,9 @@ Cloudflare Pages documentation: https://developers.cloudflare.com/pages/configur
 Cloudflare branch controls: https://developers.cloudflare.com/pages/configuration/branch-build-controls/
 
 Passing a Cloudflare preview build is NOT proof that the live public domain is correct.
+
+## Owner privacy boundary — confirmed 2 November 2026
+
+The owner explicitly does **not** want their home address published. Never put a residential address or an inferred address in the public website, privacy notice, metadata, GitHub source, DNS description, contact footer or company registration simply to complete the launch. Do not make the public-domain cutover until applicable identity/address disclosures have been determined and any non-residential address has been approved explicitly. A cheap virtual mailbox or PO Box is not automatically a compliant geographic establishment address under the Electronic Commerce Regulations. Evaluate a suitable professional business address with appropriate authority and mail handling, or obtain UK legal advice on applicability to a strictly prelaunch informational page. Keep the current review preview and forms disabled in the meantime.
+
+References: https://www.legislation.gov.uk/uksi/2002/2013/regulation/6 ; https://www.gov.uk/limited-company-formation/company-address
