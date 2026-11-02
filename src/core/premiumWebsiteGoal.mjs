@@ -9,6 +9,8 @@ export function premiumWebsiteGoal({request,website,businessId,pageId='home',sou
  const design=/^(?:i need|i want) a professional website(?: for (?:my |our )?(.+))?$|^give (?:the |my )?(?:homepage|website) a more premium appearance$/i.exec(words);
  if(design){
   if(/\b(publish|send|pay|purchase|buy|invoice|charge|execute|javascript|sql|script)\b/i.test(words)||/\b(?:and|then|also|plus)\s+(?:book|order|email|message|notify|take payments|accept payments|sell)\b/i.test(words))return {recognised:true,ready:false,question:'That request includes an unavailable action. Choose a private website design change first; nothing is sent, booked, published or paid.',providerCalls:0,mayExecute:false};
+  const vocabulary=new Set([...(String(website?.businessType||'').toLowerCase().match(/[a-z]+/g)||[]),'business','company','studio','practice','shop','independent','small','local','my','our','and','the']);
+  if(design[1]&&(design[1].toLowerCase().match(/[a-z]+/g)||[]).some(word=>!vocabulary.has(word)))return {recognised:true,ready:false,question:'Please clarify the extra requirements or review your current business information first. I have not prepared a partial change.',providerCalls:0,mayExecute:false};
   const sector=deriveSector(website?.businessType||'');
   if(design[1]&&deriveSector(design[1])!==sector)return {recognised:true,ready:false,question:'Your saved business information describes a different kind of business. Review that information first; I have not changed it.',providerCalls:0,mayExecute:false};
   const kind=sector==='hospitality'?'food story':sector==='wellness'?'calm portrait':'service-led';
