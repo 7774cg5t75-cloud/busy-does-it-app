@@ -34,3 +34,12 @@ Passing a Cloudflare preview build is NOT proof that the live public domain is c
 The owner explicitly does **not** want their home address published. Never put a residential address or an inferred address in the public website, privacy notice, metadata, GitHub source, DNS description, contact footer or company registration simply to complete the launch. Do not make the public-domain cutover until applicable identity/address disclosures have been determined and any non-residential address has been approved explicitly. A cheap virtual mailbox or PO Box is not automatically a compliant geographic establishment address under the Electronic Commerce Regulations. Evaluate a suitable professional business address with appropriate authority and mail handling, or obtain UK legal advice on applicability to a strictly prelaunch informational page. Keep the current review preview and forms disabled in the meantime.
 
 References: https://www.legislation.gov.uk/uksi/2002/2013/regulation/6 ; https://www.gov.uk/limited-company-formation/company-address
+
+
+## 2 November — new owner preference: email-only coming-soon website
+
+The owner prefers **no web contact form and no automated interest form**, only the published business email. The launch-candidate homepage removes both form elements and does not load the marketing-intake JavaScript. Contact and early interest are manual mailto links only. Automatic endpoint source remains isolated and fail-closed with `MARKETING_FORMS_ENABLED=0` while we retain it for a future reviewed launch.
+
+The owner also now prefers **not to publish their personal name or residential address**. This preference supersedes previous tentative approval of a discreet legal-page name. Do not publish a personal name/address simply by copying the earlier privacy draft. Regulatory obligations may still apply to a commercially promotional coming-soon site (Electronic Commerce Regulations 2002 reg. 6). An email-only design is **not** an exemption. Hold the public-domain cutover pending a valid compliance approach or professional legal advice; do not disguise the controller with an invented legal entity.
+
+Earlier Git history and externally accessible preview revisions may still contain prior proposed operator wording. Do not claim it has been completely erased from public history. Do not force-rewrite history without separately approved repository hygiene and coordination.
