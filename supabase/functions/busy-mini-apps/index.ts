@@ -4222,7 +4222,7 @@ Deno.serve(async (request: Request) => {
     if(action==='private_work_preparation'){
       if(member.role!=='owner')throw Error('Current owner required');
       const userClient=createClient(SUPABASE_URL,SERVICE_ROLE_KEY,{global:{headers:{Authorization:request.headers.get('authorization')||''}},auth:{persistSession:false,autoRefreshToken:false}});
-      return json(200,await workPreparationService({client:supabase,actorId:user.id,businessId:resolvedBusinessId,body,enabled:Deno.env.get('BUSY_PRIVATE_WORK_PREPARATION_ENABLED'),enquiryEnabled:Deno.env.get('BUSY_ENQUIRY_PREPARATION_ENABLED'),sourceRead:async(args:Record<string,unknown>)=>{const r=await userClient.rpc('busy_work_source_review_v1',args);if(r.error)throw Error('Original source review denied');return r.data;}}));
+      return json(200,await workPreparationService({client:supabase,actorId:user.id,businessId:resolvedBusinessId,body,enabled:Deno.env.get('BUSY_PRIVATE_WORK_PREPARATION_ENABLED'),enquiryEnabled:Deno.env.get('BUSY_ENQUIRY_PREPARATION_ENABLED'),operationalEnabled:Deno.env.get('BUSY_PRIVATE_OPERATIONAL_APP_ENABLED'),sourceRead:async(args:Record<string,unknown>)=>{const r=await userClient.rpc('busy_work_source_review_v1',args);if(r.error)throw Error('Original source review denied');return r.data;}}));
     }
     const readCurrentStatus=()=>connectedProject?scopedOwnerStatus({read:()=>ownerStatus(resolvedBusinessId),verify:async()=>{const current=await membership(user.id,resolvedBusinessId,true);if(current.role!=='owner')throw Error('Current owner access changed');}}):ownerStatus(resolvedBusinessId);
 

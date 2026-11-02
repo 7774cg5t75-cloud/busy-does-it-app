@@ -1,8 +1,10 @@
+import {operationalWorkService} from './operationalWorkService.mjs';
 import {enquiryPreparationService} from './enquiryPreparationService.mjs';
 import {validWorkPreparation} from '../../../src/core/workPreparation.mjs';
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(x);
-export async function workPreparationService({client,sourceRead,actorId,businessId,body,enabled,enquiryEnabled}){
+export async function workPreparationService({client,sourceRead,actorId,businessId,body,enabled,enquiryEnabled,operationalEnabled}){
  if(enabled!=='true')throw Error('Private Work preparation is not enabled');
+ if(['operational_app','preparation_overview'].includes(body?.targetKind))return operationalWorkService({client,actorId,businessId,body,enabled:enquiryEnabled==='true'?operationalEnabled:undefined,readWork:b=>workPreparationService({client,sourceRead,actorId,businessId,body:b,enabled,enquiryEnabled})});
  if(body?.targetKind==='filed_enquiry')return enquiryPreparationService({client,sourceRead,actorId,businessId,body,enabled:enquiryEnabled});
  const read=body?.operation==='read',undo=body?.operation==='undo',allowed=read?['action','businessId','operation','customerId','engagementId','quoteRevision']:['action','businessId','operation','customerId','engagementId','quoteRevision','snapshotRevision','expectedRevision','operationId','ownerApproved',...(undo?[]:['plan'])];
  allowed.push('connectedStaging','expectedProfileRevision');
@@ -21,5 +23,5 @@ export async function workPreparationService({client,sourceRead,actorId,business
  const r=await client.rpc(read?'busy_work_preparation_read_v1':'busy_work_preparation_write_v1',read?args:{...args,expected:body.expectedRevision,p:undo?null:body.plan,op:body.operationId,mode:body.operation});
  if(r.error)throw Error('Private preparation could not be independently confirmed');
  if(read&&enquiryEnabled==='true'){const linked=await client.rpc('busy_work_enquiry_plan_marker_v1',{b:businessId,c:body.customerId,e:row.enquiryId,a:actorId});if(linked.error)throw Error('Enquiry continuity unavailable');r.data.enquiryPreparationExists=linked.data.existingEnquiryPlan===true;r.data.enquiryId=row.enquiryId;}
- return {ok:true,...r.data,...(read?{sourceContext:{customerName:source.customer.name,service:source.customer.service,customerMessage:source.enquiry.rawText}}:{})};
+ return {ok:true,...r.data,...(read?{filedSource:source,sourceContext:{customerName:source.customer.name,service:source.customer.service,customerMessage:source.enquiry.rawText}}:{})};
 }

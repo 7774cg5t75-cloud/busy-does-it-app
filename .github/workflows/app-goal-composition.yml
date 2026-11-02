@@ -8,6 +8,13 @@ on:
       - 'supabase/functions/busy-mini-apps/enquiryPreparationService.mjs'
       - 'docs/sql-proposals/canonical-work/enquiry-preparation*'
       - 'scripts/check-enquiry-preparation*'
+      - 'scripts/check-operational-work*'
+      - 'src/core/operationalScreen.mjs'
+      - 'src/components/DurableOperationalScreen.js'
+      - 'src/components/WorkPreparationOverview.js'
+      - 'src/components/CanonicalWorkEntry.js'
+      - 'supabase/functions/busy-mini-apps/operationalWorkService.mjs'
+      - 'docs/sql-proposals/private-app-functions/operational*'
       - 'src/core/workPreparation*'
       - 'src/components/CanonicalWorkPreparation.js'
       - 'src/components/CanonicalWorkPanel.js'
@@ -144,6 +151,7 @@ jobs:
         run: |
           mkdir -p .test-artifacts/app-goal-composition
           node scripts/check-enquiry-preparation.mjs
+          node scripts/check-operational-work.mjs
           node scripts/check-work-preparation.mjs
           node scripts/check-customer-form-discovery.mjs
           node scripts/check-public-collection-parity.mjs
@@ -172,7 +180,7 @@ jobs:
           node scripts/check-production.mjs
           node scripts/check-security-baseline.mjs
           node scripts/check-security-by-design.mjs
-          node scripts/testing/syntax.mjs src/core/appGoalComposition.mjs src/core/governedBuilderProposal.mjs src/core/universalBuilderPlanV3210.mjs src/screens/appGoalCompositionEditor.js src/screens/miniApps.js src/staging/ConnectedBuilderWorkspace.js
+          node scripts/testing/syntax.mjs src/core/operationalScreen.mjs src/components/DurableOperationalScreen.js src/components/WorkPreparationOverview.js src/core/appGoalComposition.mjs src/core/governedBuilderProposal.mjs src/core/universalBuilderPlanV3210.mjs src/screens/appGoalCompositionEditor.js src/screens/miniApps.js src/staging/ConnectedBuilderWorkspace.js
       - name: Genuine original Edge checks with pinned official verification tools
         run: |
           EDGE_TOOLS="$RUNNER_TEMP/busy-screen-edge-tools"
@@ -215,6 +223,7 @@ jobs:
           ENQUIRY_PREPARATION_EXIT=$?
           if [ "$ENQUIRY_PREPARATION_EXIT" -ne 0 ]; then tail -n 45 .test-artifacts/app-goal-composition/enquiry-preparation-postgres.log; exit "$ENQUIRY_PREPARATION_EXIT"; fi
           cp .test-artifacts/enquiry-preparation/postgres.json .test-artifacts/app-goal-composition/enquiry-preparation-postgres.json
+          cp .test-artifacts/operational-work/postgres.json .test-artifacts/app-goal-composition/operational-work-postgres.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-work-preparation-postgres.mjs > .test-artifacts/app-goal-composition/work-preparation-postgres.log 2>&1
           PREPARATION_CHECK_EXIT=$?
           set -e

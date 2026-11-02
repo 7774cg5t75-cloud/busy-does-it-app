@@ -3090,6 +3090,12 @@
       "args": [
         "scripts/check-enquiry-preparation.mjs"
       ]
+    },
+    {
+      "id": "operational-work",
+      "args": [
+        "scripts/check-operational-work.mjs"
+      ]
     }
   ]
 }
