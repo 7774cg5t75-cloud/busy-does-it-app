@@ -6,7 +6,7 @@ export function ready(env,host) {
   return env.MARKETING_FORMS_ENABLED==='1' && env.MARKETING_PRIVACY_APPROVED==='1'
     && allowed.includes(host.toLowerCase()) && !!env.TURNSTILE_SITE_KEY
     && !!env.TURNSTILE_SECRET && !!env.MARKETING_RATE_KV && !!env.MARKETING_IP_PEPPER
-    && !!env.SUPABASE_URL && !!env.SUPABASE_SERVICE_ROLE_KEY && !!env.RESEND_API_KEY
+    && !!env.SUPABASE_URL && /^sb_secret_[A-Za-z0-9_\-]+$/.test(env.SUPABASE_SECRET_KEY||'') && !!env.RESEND_API_KEY
     && !!env.MARKETING_FROM && !!env.MARKETING_PUBLIC_ORIGIN
     && /^https:\/\//.test(env.MARKETING_PUBLIC_ORIGIN)
     && new URL(env.MARKETING_PUBLIC_ORIGIN).hostname===host;
@@ -62,8 +62,7 @@ export async function resend(env,{to,subject,text,replyTo}){
 export async function supabase(env,table,method,query,body,returnRepresentation=false){
   const base=env.SUPABASE_URL.replace(/\/$/,'');
   const r=await fetch(base+'/rest/v1/'+table+(query?'?'+query:''),{
-    method,headers:{apikey:env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization:'Bearer '+env.SUPABASE_SERVICE_ROLE_KEY,
+    method,headers:{apikey:env.SUPABASE_SECRET_KEY,
       'Content-Type':'application/json',
       Prefer:(method==='POST'?'resolution=merge-duplicates,':'')+(returnRepresentation?'return=representation':'return=minimal')},
     body:body===undefined?undefined:JSON.stringify(body)});
