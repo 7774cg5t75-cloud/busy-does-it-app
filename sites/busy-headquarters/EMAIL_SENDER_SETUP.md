@@ -14,6 +14,6 @@ Set TTL Auto. Copy and verify exact records in Resend before deploying. Resend m
 Expected sender after verification: `Busy Does It <updates@notify.busydoesit.co.uk>`.
 Recipient for contact notifications: `hello@busydoesit.co.uk`, mailbox hosted at Namecheap.
 
-*Remaining operator-only configuration*: bind Resend API key and Supabase service-role key as server-only Cloudflare Pages secrets; site Turnstile key/secret, rate-limit KV, host allowlist and public origin; strict Cloudflare WAF limits. Do not share secrets in chat/screenshots or put them in Git.
+*Remaining operator-only configuration*: bind Resend API key and Supabase server-only secret key as server-only Cloudflare Pages secrets; site Turnstile key/secret, rate-limit KV, host allowlist and public origin; strict Cloudflare WAF limits. Do not share secrets in chat/screenshots or put them in Git.
 
 *Operational*: Draft UK privacy text must be approved, live messaging must be delivery-tested, and suppression / erasure handling must be established. Form switches are OFF by default, and real signups should not be claimed active yet.
