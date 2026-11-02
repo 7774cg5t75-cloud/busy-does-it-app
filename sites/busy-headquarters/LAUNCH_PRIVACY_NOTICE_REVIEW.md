@@ -5,7 +5,7 @@ STATUS: REVIEW COPY — DO NOT PUBLISH UNTIL OPERATOR INFORMATION AND PROCEDURES
 ## Who operates the website
 Busy Does It is a small-business software project in development, operated at present by an individual. **Busy Does It Limited has not yet been incorporated** and must not be described as an existing company.
 
-Data controller: **Jasper Janes**, trading as **Busy Does It** (coming soon). The individual operator supplied this spelling and expressly chose to show the name discreetly on the legal/privacy page rather than in the public marketing copy.
+Data controller: **[WITHHELD PENDING LEGAL IDENTITY DISCLOSURE DECISION]**. The individual owner has withdrawn their earlier preference to display their personal name, and does not want their residential address online. The present site is a review only. Any required public identity/address disclosures must be resolved lawfully before publication.
 
 Contact for privacy enquiries and rights: hello@busydoesit.co.uk.
 
@@ -36,7 +36,7 @@ People may contact hello@busydoesit.co.uk to request access, correction, deletio
 The website is not intended to use non-essential analytics or advertising cookies at launch. Hosting may use essential security mechanisms. Check actual site behaviour and disclose it accurately. Update this notice before enabling accounts, marketing signups, analytics, automated forms or payments.
 
 ## Owner review checklist
-- [x] Confirm the **individual** legal operator's full name and explicit permission to display it discreetly on the legal/privacy page: Jasper Janes. Busy Does It Limited does not yet exist.
+- [ ] Confirm lawful public operator identification without publishing an unapproved personal name; prior tentative approval has been withdrawn. Busy Does It Limited does not yet exist.
 - [ ] Confirm whether a UK correspondence/service address must be disclosed for this launch, and select a suitable address without automatically exposing a private residence.
 - [ ] Approve lawful bases, retention, provider transfers, complaint/right processes.
 - [ ] Complete the ICO data protection fee self-assessment (fee may be exempt for some marketing/public relations activities; not automatic).
