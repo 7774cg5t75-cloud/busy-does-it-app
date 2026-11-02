@@ -37,7 +37,8 @@ test('input bounds and message validation are fail closed',()=>{
 });
 test('UI and API do not pretend disabled capture is a functioning signup',()=>{
   const html=read('index.html'),js=read('marketing-intake.js'),privacy=read('privacy.html');
-  assert.match(html,/id="busy-early-access-form" hidden/);
+  assert.doesNotMatch(html,/<form\b/);
+  assert.doesNotMatch(html,/<script src="marketing-intake\.js"/);
   assert.match(html,/Not open yet/);
   assert.match(html,/hello@busydoesit\.co\.uk/);
   assert.match(js,/if\(!config\?\.enabled\|\|!config\.siteKey\)return/);
