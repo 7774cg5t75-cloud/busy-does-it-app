@@ -3102,6 +3102,12 @@
       "args": [
         "scripts/check-premium-website-experience.mjs"
       ]
+    },
+    {
+      "id": "website-design-expansion",
+      "args": [
+        "scripts/check-website-design-expansion.mjs"
+      ]
     }
   ]
 }

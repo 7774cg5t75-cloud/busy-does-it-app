@@ -1,14 +1,19 @@
-// Finite shared presentation only. The caller supplies already escaped original
-// copy, verified actions and approved media. No new facts or execution authority.
-export const PREMIUM_HERO_COMPOSITIONS=Object.freeze(['story-spread','service-led','quiet-portrait']);
-export function premiumHeroInner(kind,{copy='',image='',services='',hasImage=false}={}){
- if(!PREMIUM_HERO_COMPOSITIONS.includes(kind))return '';
+import {heroFamilies,heroFamilyCss} from './websiteHeroFamilies.mjs';
+// Trusted checked-in presentation modules only, never a client plugin registry.
+// Add reviewed families without changing operation/request limits or old IDs.
+export const PREMIUM_HERO_COMPOSITIONS=Object.freeze(heroFamilies.map(f=>f.id));
+export const PREMIUM_HERO_VARIATIONS=Object.freeze(['signature','airy','compact']);
+export function premiumHeroInner(kind,{copy='',image='',images=[],services='',hasImage=false,variation='signature'}={}){
+ const family=heroFamilies.find(f=>f.id===kind);if(!family)return '';
+ const treatment=PREMIUM_HERO_VARIATIONS.includes(variation)?variation:'signature';
  const media=hasImage?`<figure class="premium-visual">${image}</figure>`:'';
- if(kind==='story-spread')return `<div class="wrap premium-story-spread"><div class="premium-intro">${copy}</div>${media}${services?`<div class="premium-orientation">${services}</div>`:''}</div>`;
- if(kind==='service-led')return `<div class="wrap premium-service-led"><div class="premium-intro">${copy}</div>${services?`<aside class="premium-service-panel" aria-label="Our services">${services}</aside>`:''}${media}</div>`;
- return `<div class="wrap premium-quiet-portrait"><div class="premium-intro">${copy}${services}</div>${media}</div>`;
+ const extra=Array.isArray(images)?images.slice(0,2):[];
+ const body=family.render({copy,media,extra,services});
+ // Signature preserves exact historical markup. Variations are finite CSS.
+ return treatment==='signature'?body:body.replace('class="wrap ',`class="wrap premium-variation-${treatment} `);
 }
-export const premiumHeroCss=`
+export const premiumHeroCss=`${heroFamilyCss}
+
 /* Deliberately different DOM/grid compositions; no fonts, scripts or remote assets. */
 .hero [class*="premium-"]{min-width:0;box-sizing:border-box}
 .hero .premium-intro{position:relative;z-index:2;max-width:72ch}

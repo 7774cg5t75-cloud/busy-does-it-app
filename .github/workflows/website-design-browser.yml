@@ -1,0 +1,53 @@
+name: Premium Website original-renderer browser evidence
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths:
+      - 'supabase/functions/busy-website-worker/**'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/core/premiumWebsite*.mjs'
+      - 'scripts/check-website-design-expansion.mjs'
+      - 'scripts/capture-website-design.mjs'
+      - 'scripts/fetch-website-test-assets.py'
+      - 'scripts/fixtures/website-design/**'
+      - '.github/workflows/website-design-browser.yml'
+permissions:
+  contents: read
+concurrency:
+  group: premium-website-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  fictional-renderer:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    env:
+      CI: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: Reviewed installation without package lifecycle scripts
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/apply-tooling-security-patches.mjs
+          node scripts/check-dependency-security.mjs
+          python3 scripts/testing/bootstrap.py --allow-network
+      - name: Original renderer and pinned CC0 demonstration assets
+        run: |
+          node scripts/check-website-design-expansion.mjs
+          python3 scripts/fetch-website-test-assets.py
+      - name: Install browser from existing exact Playwright dependency
+        run: node_modules/.bin/playwright install --with-deps chromium
+      - name: Capture with required Chromium sandbox and no external browser requests
+        run: node scripts/capture-website-design.mjs
+      - name: Retain synthetic HTML, original pixels and exact provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: premium-website-browser-${{ github.sha }}
+          path: .test-artifacts/website-expansion/
+          retention-days: 7
+          if-no-files-found: error

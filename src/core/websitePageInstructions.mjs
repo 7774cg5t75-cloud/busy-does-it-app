@@ -1,3 +1,4 @@
+import {heroFamilies} from '../../supabase/functions/busy-website-worker/websiteHeroFamilies.mjs';
 /**
  * V3.149 finite multi-section website conversation.
  * A page, owner and draft generation must be named explicitly. No LLM
@@ -86,9 +87,13 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    if(!section||section.contentSource!=='business_records_v1')return fail('Open the current page containing the approved-record section first.');
    change={action:'content-section',sectionId:section.id,title:section.title,layout:m[2].toLowerCase(),featuredId:section.featuredId||''};
    type='field';description='Change only the record presentation; keep this destination heading, featured item, styling and approved-record source';
-  }else if((m=clause.match(/^prepare a (food story|service-led|calm portrait) homepage$/i))){
+  }else if((m=clause.match(/^(give the opening more breathing room|make the opening more compact|restore the opening spacing)$/i))){
+   if(!findSection('hero')||!draft.theme?.heroComposition)return fail('Prepare a reviewed premium opening first.');
+   change={action:'style',field:'heroVariation',value:m[1].toLowerCase().startsWith('give')?'airy':m[1].toLowerCase().startsWith('make')?'compact':'signature'};description='Compare a coherent opening rhythm without changing copy, branding or photographs';
+  }else if((m=clause.match(/^prepare a ([a-z -]+) homepage$/i))){
    if(pageId!=='home'||!findSection('hero'))return fail('Open your existing homepage to review this composition.');
-   const kind={'food story':'story-spread','service-led':'service-led','calm portrait':'quiet-portrait'}[m[1].toLowerCase()];
+   const wanted=m[1].toLowerCase(),kind=({'food story':'story-spread','calm portrait':'quiet-portrait'}[wanted]||wanted);
+   if(!heroFamilies.some(f=>f.id===kind))return fail('Choose a supported reviewed design direction.');
    const values={heroComposition:kind,typography:kind==='service-led'?'confident':'refined',spacing:'generous',cardLayout:kind==='story-spread'?'rows':kind==='service-led'?'outlines':'cards'};
    const operations=Object.entries(values).map(([field,value])=>({action:'style',field,value})).filter(op=>draft.theme?.[op.field]!==op.value);
    if(!operations.length)return fail('This composition is already active. Keep it or describe a specific correction.');

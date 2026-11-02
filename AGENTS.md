@@ -1,3 +1,7 @@
+## Permanent expandable Website design — owner instruction,2 November2026
+
+Busy is an increasingly capable professional website designer, never a fixed template catalogue. Eight hero families are an initial milestone, not a ceiling. Add purposeful independently reviewed/tested families through the original finite registry; no permanent family-count maximum. Keep requests/operations bounded separately. Preserve coherent responsive variations, original facts/branding/corrections, free/paid design parity, real renderer evidence and all activation/cost/security gates. Source registration is reviewed code, never a public plugin or arbitrary CSS/JavaScript mechanism.
+
 ## Current genuine private Product Master — V22.73,1 November2026
 
 Owner-supplied original reopened: SHA256 `23793f82b471328bdd216897c212999a430652e19228fcb221a8ee16a7ddc272`,2,904 paragraphs/19 tables; cover22.73. Relevant inherited builder/security/continuity/cost requirements and the new Section83 premium genuine website-preview quality gate reviewed. It supersedes22.72 below. This private offline calculation pilot does not activate website generation, providers, publication or spending. Keep original/extraction outside Git and distinguish interpreter limits from OS isolation.

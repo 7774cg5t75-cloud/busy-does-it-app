@@ -13,6 +13,7 @@ on:
       - 'src/core/busyGoalPlan.mjs'
       - 'supabase/functions/busy-website-worker/**'
       - 'scripts/check-premium-website-experience.mjs'
+      - 'scripts/check-website-design-expansion.mjs'
       - 'src/components/OwnerOperationalPreview.js'
       - 'supabase/functions/busy-mini-apps/enquiryPreparationService.mjs'
       - 'docs/sql-proposals/canonical-work/enquiry-preparation*'
@@ -162,6 +163,7 @@ jobs:
           node scripts/check-enquiry-preparation.mjs
           node scripts/check-operational-work.mjs
           node scripts/check-premium-website-experience.mjs
+          node scripts/check-website-design-expansion.mjs
           node scripts/check-work-preparation.mjs
           node scripts/check-customer-form-discovery.mjs
           node scripts/check-public-collection-parity.mjs

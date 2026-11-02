@@ -1,3 +1,5 @@
+import {heroFamilies} from './websiteHeroFamilies.mjs';
+import {PREMIUM_HERO_COMPOSITIONS,PREMIUM_HERO_VARIATIONS} from './websitePremiumHero.mjs';
 import {validTestimonialSpotlight} from './websiteTestimonials.mjs';
 import {validServiceIndex} from './websiteServiceIndex.mjs';
 import {editWebsitePages} from "./websitePageEditing.mjs";
@@ -14,7 +16,8 @@ const list=x=>Array.isArray(x)?x:[];
 const slug=s=>text(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-+$/g,"").slice(0,52);
 const fail=(draft,reason)=>({applied:false,draft,reason});
 const allow={
- heroComposition:["story-spread","service-led","quiet-portrait"],
+ heroComposition:PREMIUM_HERO_COMPOSITIONS,
+ heroVariation:PREMIUM_HERO_VARIATIONS,
  pageGuide:["none","sections"],
  typography:["confident","refined","compact","editorial","friendly"],
  cardLayout:["cards","outlines","rows"],
@@ -178,6 +181,12 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const {field,value}=operation;
   if(!Object.prototype.hasOwnProperty.call(allow,field)||!allow[field].includes(value))
    return fail(draft,"Choose a supported appearance setting. Arbitrary CSS or remote fonts are not allowed.");
+  if(field==='heroComposition'){
+   const required=heroFamilies.find(f=>f.id===value)?.media||0;
+   const photos=sections.flatMap(s=>s.type==='hero'?[s.asset]:s.type==='gallery'?list(s.items):[]).filter(a=>a?.approved===true&&typeof a.uri==='string'&&/^https:\/\/[^\s"'<>]+$/.test(a.uri));
+   if(new Set(photos.map(a=>a.uri)).size<required)return fail(draft,'Choose enough distinct approved photographs before preparing this direction. A typography-first design is available without photographs.');
+   if(value==='product-showcase'&&!sections.some(s=>s.type==='products'&&s.enabled!==false&&s.contentSource==='business_records_v1'))return fail(draft,'Add an original approved product collection before preparing this direction.');
+  }
   if(field==='heroLayout'){
    const hero=sections.find(section=>section.type==='hero'&&section.enabled!==false),hasImage=photographicCount(hero?[hero]:[])>0;
    if(!hero||value.startsWith('image-')!==hasImage)return fail(draft,hasImage?'Keep the approved hero photo and choose an image layout.':'Choose a typographic layout or select an approved hero photo first.');

@@ -1,3 +1,7 @@
+## Latest original and prepared private successor —2 November2026
+
+Genuine owner-supplied V22.73 was reopened: SHA256 `23793f82b471328bdd216897c212999a430652e19228fcb221a8ee16a7ddc272`,2,904 paragraphs/19 tables. It remains the latest supplied original. A private V22.74 successor was prepared under the owner's current instruction, adding the permanent expandable Website design direction. Byte/package and ordered paragraph checks preserve all inherited requirements except the cover version; no private master bytes or full extraction are committed here. The prepared derivative is not a newly supplied/independently owner-reviewed original. Future work must distinguish the two. Root AGENTS and ARCHITECTURE record the public implementation principle only.
+
 ## Current private Product Master — V22.70,31 October2026
 
 The newly supplied Word original identifies V22.70 (filename shortened to22.7): SHA256 `32a8931437dbeef7c9d76030e2f3abdf6296777f30029f1e0744f2605e2d6ab5`,2,813 paragraphs/19 tables. The original was reopened and the new Section80 reviewed; private bytes/extraction remain outside Git. It supersedes V22.69 named in the mission prose. Preserve the canonical approved app orb across future channels; this content-composition mission does not redesign Home/orbs, implement marketing assets or authorise publishing/spending. All inherited security, continuity, cost and release gates remain in force.

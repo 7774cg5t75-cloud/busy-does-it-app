@@ -1,3 +1,4 @@
+import {premiumWebsiteDirections} from './premiumWebsiteDirections.mjs';
 import {deriveSector} from '../../supabase/functions/busy-website-worker/designPlanner.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 import {prepareWebsiteRequest} from './websiteRequestPlan.mjs';
@@ -15,9 +16,12 @@ export function premiumWebsiteGoal({request,website,businessId,pageId='home',sou
   if(design[1]&&deriveSector(design[1])!==sector)return {recognised:true,ready:false,question:'Your saved business information describes a different kind of business. Review that information first; I have not changed it.',providerCalls:0,mayExecute:false};
   const kind=sector==='hospitality'?'food story':sector==='wellness'?'calm portrait':'service-led';
   instruction='prepare a '+kind+' homepage';explanation='Compare a '+kind+' opening using your current wording, services and approved photographs. Colours and customer destinations stay unchanged.';
- }else if(/^make (?:my|our|the) services easier for customers to understand$/i.test(words)){instruction='show services as a directory';explanation='Give the existing services a clearer directory layout without rewriting their scope.';}
+ }else if(/^(?:try a completely different design|give (?:the |my )?homepage more personality|make it more premium)$/i.test(words)){
+  const next=premiumWebsiteDirections(website)[0];if(!next)return {recognised:true,ready:false,mayExecute:false,question:'No suitable different direction is available with the current approved content. Your design is unchanged.',providerCalls:0};
+  instruction='prepare a '+next.id+' homepage';explanation=next.reason;
+ }else if(/^(?:make (?:my|our|the) services easier for customers to understand|make (?:my|our|the) services clearer)$/i.test(words)){instruction='show services as a directory';explanation='Give the existing services a clearer directory layout without rewriting their scope.';}
  else if(/^put (?:my|our|the) best photographs near the top$/i.test(words))return {recognised:true,ready:false,question:'Which approved photograph is your best? Choose its exact image in the existing photo controls; I will not guess.',providerCalls:0,mayExecute:false};
- else if(/^make it easier for customers to request a quote$/i.test(words)){instruction='make the main button stand out';explanation='Emphasise the existing verified contact destination. This does not create a quote or send an enquiry.';}
+ else if(/^make it easier for customers to (?:request a quote|contact us)$/i.test(words)){instruction='make the main button stand out';explanation='Emphasise the existing verified contact destination. This does not create a quote or send an enquiry.';}
  else if(/^make the mobile version look less crowded$/i.test(words)){instruction='give the page more space on phones';explanation='Compare more breathing room on phones without changing desktop spacing or your wording.';}
  else return null;
  const base={recognised:true,goal:'premium-website-presentation',ownerWording:request,providerCalls:0,mayExecute:false,requiresReview:true,verifiedOutcome:false,findings:[explanation],limitations:['Private design proposal only. Review actual mobile and desktop rendering before customer use. Nothing is saved or published.']};
