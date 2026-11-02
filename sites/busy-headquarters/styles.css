@@ -405,3 +405,19 @@ a.founder-business:focus-visible{outline:2px solid #83eaff;outline-offset:4px}
 .contact-feedback:not(:empty){color:#b4f0ff}
 @media(max-width:790px){.contact-layout{grid-template-columns:1fr}.contact-section{padding-block:72px}.contact-intro h2{margin-bottom:13px}}
 @media(max-width:550px){.contact-section{padding-block:58px}.contact-form{padding:21px}.contact-form .button{width:100%}}
+
+/* Secure early-access form, only shown when the server verifies release readiness. */
+.early-interest-link[hidden],.early-access-form[hidden]{display:none!important}
+.early-access-form{margin:18px auto 16px;padding:24px;max-width:590px;display:grid;gap:12px;background:#101f39;border:1px solid #315070;border-radius:20px;text-align:left}
+.early-access-form>label{font-size:12px;color:#d9e8f8;font-weight:750}
+.early-access-form>input{width:100%;padding:13px;background:#0a1529;color:#f2f5fc;border:1px solid #3a5377;border-radius:10px;font:inherit}
+.early-access-consent{display:flex;gap:11px;align-items:flex-start;line-height:1.6;font-weight:500!important}
+.early-access-consent input{flex:none;min-width:18px;min-height:18px;margin-top:2px;accent-color:#55d6f3}
+.early-access-privacy,.early-access-form #early-access-form-status{font-size:11px!important;color:#adbfdb!important;margin:0!important;line-height:1.5}
+.early-access-privacy a{color:#84e4fb;text-decoration:underline}
+.early-access-form .button{border:0;cursor:pointer;justify-content:center}
+.early-access-form .button:disabled,.contact-form button:disabled{opacity:.6;cursor:wait}
+.busy-honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.busy-turnstile{min-height:0}
+.early-access-form input:focus-visible,.early-access-form button:focus-visible{outline:2px solid #80ecff;outline-offset:3px}
+@media(max-width:550px){.early-access-form{padding:18px}.early-access-form .button{width:100%}}

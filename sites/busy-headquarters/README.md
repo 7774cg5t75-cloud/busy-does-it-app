@@ -77,3 +77,22 @@ Expected review URLs: `https://busydoesit-preview.pages.dev/` and `https://busyd
 - Early access remains **not open**. A separate email link allows voluntary expressions of interest, explicitly without automatic signup or a confirmed place.
 - Clarify the draft privacy notice to describe voluntary email enquiries. This is not approved legal text; an approved notice, retention process and any automated signup service require legal/security review before launch.
 - No provider secrets, live website DNS changes, AI operations or payments are introduced. Keep noindex and existing development notices; review actual renders before production publication.
+
+
+## Gated automatic forms: review / activation checklist
+
+Cloudflare Pages Functions routes under `functions/api/` are deployed but **fail closed**. The source-only review has no real registration without explicit secret bindings and flags. A real consent-based waitlist uses private Supabase storage and double opt-in. Contact messages go through a verified business sender to the Namecheap mailbox. Resend is currently configured for a *different business's* domain and must NOT be used for this brand.
+
+Required Pages variables/bindings (set as production secrets, NEVER commit): `MARKETING_FORMS_ENABLED=1`, `MARKETING_PRIVACY_APPROVED=1`, `MARKETING_WAF_APPROVED=1`, `MARKETING_RETENTION_APPROVED=1`, `MARKETING_ALLOWED_HOSTS=busydoesit.co.uk`, `MARKETING_PUBLIC_ORIGIN=https://busydoesit.co.uk`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET`, `MARKETING_RATE_KV` (KV namespace binding), `MARKETING_IP_PEPPER`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `RESEND_API_KEY`, `MARKETING_FROM` (on a verified **Busy-owned** sending domain). The optional site key is public; the secret and server-only secret key must remain server-only.
+
+**Before enabling**: apply and test the separate marketing schema in approved production environment; verify RLS deny-by-default and owner-only data access; configure Turnstile domain and Cloudflare WAF rate limiting (KV rate gate is non-atomic defense in depth); verify the Busy sender's DNS, delivery and reply-to; publish founder-reviewed UK privacy notice identifying controller/legal basis, processors, retention/deletion rights and contact; implement the operating procedure for deleting unconfirmed entries after seven days and respecting erasure requests; confirm email and sender journeys with test accounts; final approval before changing live hostname and flags. No bulk launch notices, newsletters or automatic follow-ups are included. An unsubscribe/suppression facility is required before any campaigns beyond the single expressly consented launch notification.
+
+Manual mailto fallback remains when the safe form is unavailable. Early-access email link is explicitly NOT a stored or confirmed registration. Preview and production website must be rendered on actual devices. No DNS/provider/production releases are authorised by this code alone.
+
+
+## 2 November 2026 — signup integrity follow-up
+
+- Replaced read-then-upsert with insert-first, conflict-aware logic: duplicate requests may refresh **pending only**. A confirmed or unsubscribed record is never silently reset to pending, even if two requests race to insert the same email.
+- The draft privacy notice explicitly explains the temporary pending address created to send a verification email; confirmation determines launch-notification eligibility.
+- A provider's email acceptance is not a delivery receipt. The contact form accordingly reports acceptance for delivery, not that the email reached the recipient. End-to-end delivery to Namecheap remains a separate release gate.
+- Before activation, approve an automated, audited purge of pending records older than seven days and an erasure/suppression workflow for confirmed records. Test with fictional data in staging and check consent scope against the ICO's current PECR guidance. No live marketing or capture has been enabled.
