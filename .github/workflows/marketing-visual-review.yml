@@ -1,0 +1,42 @@
+name: Marketing website visual evidence
+on:
+  pull_request:
+    paths:
+      - 'sites/busy-headquarters/**'
+      - '.github/workflows/marketing-visual-review.yml'
+  push:
+    branches:
+      - 'site/copy-and-colour-refresh-20261102'
+    paths:
+      - 'sites/busy-headquarters/**'
+      - '.github/workflows/marketing-visual-review.yml'
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated screenshot browser
+        run: |
+          npm install --prefix "$RUNNER_TEMP/site-visual" --no-save --no-package-lock playwright@1.58.2
+          "$RUNNER_TEMP/site-visual/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Render actual website locally at desktop and mobile widths
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/site-visual/node_modules/playwright
+        run: |
+          python3 -m http.server 8765 --directory sites/busy-headquarters >/tmp/busy-site-server.log 2>&1 &
+          sleep 2
+          node sites/busy-headquarters/tests/visual-review.cjs
+      - name: Upload real rendered screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: busy-marketing-visual-review
+          path: marketing-visual-evidence/*.png
+          if-no-files-found: warn
+          retention-days: 14

@@ -96,3 +96,26 @@ Manual mailto fallback remains when the safe form is unavailable. Early-access e
 - The draft privacy notice explicitly explains the temporary pending address created to send a verification email; confirmation determines launch-notification eligibility.
 - A provider's email acceptance is not a delivery receipt. The contact form accordingly reports acceptance for delivery, not that the email reached the recipient. End-to-end delivery to Namecheap remains a separate release gate.
 - Before activation, approve an automated, audited purge of pending records older than seven days and an erasure/suppression workflow for confirmed records. Test with fictional data in staging and check consent scope against the ICO's current PECR guidance. No live marketing or capture has been enabled.
+
+
+## 2 November 2026 — customer-first copy and ClearFlow colour refresh
+
+**Owner approval:** implement the recommendations from the full homepage copy review and improve the excessive white background in the premium example website. This change is visual/copy only and deliberately stacked on the gated website branch. It does not make the website or forms publicly active.
+
+Homepage:
+- Keep the owner-approved headline, “Busy Does It — the team behind your one-person business,” “You tell Busy. Busy does it,” founder story/Slow Roast link, six feature categories and nine FAQs.
+- Replace technical terms with examples: websites on phones/computers, booking or bespoke apps, posts and printed marketing, finding work, organised messages/bookings, clear quotes and invoices.
+- Make the development status and manual-versus-verified early-access email action truthful without repeatedly interrupting the main narrative.
+- Update early-access introduction/note dynamically if the verified form is eventually enabled.
+
+ClearFlow:
+- Keep the fictional demonstration label and important claims that it was hand-designed rather than actual current automated builder output.
+- Replace the all-white look with a professionally coherent pine/teal/seafoam + warm sand/clay palette, layered hero glow, contrasting service cards, distinct process/reviews/gallery/FAQ sections and a stronger closing call-to-action.
+- Preserve section navigation, service offerings, accessible comparison slider, photographic attribution and responsive breakpoints; avoid invented results, businesses or customer reviews.
+- Replace “curb appeal” with natural UK wording.
+- New screenshots are captured by the `marketing-visual-review.yml` workflow directly from browser-rendered local source at 1440px and 390px for both pages. They are NOT AI mockups or claims of a completed deployed-site acceptance review. Compare with the approved preview before merging.
+
+Security/release:
+- The manual contact email remains available; gated automatic collection remains OFF by default.
+- Do not change Cloudflare DNS, keys, payment integrations, customer records or marketing service flags.
+- Cloudflare production branch and public domain are unchanged; the screenshot workflow and PR are review evidence only.

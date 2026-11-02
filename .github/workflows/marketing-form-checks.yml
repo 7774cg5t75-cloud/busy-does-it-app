@@ -27,4 +27,4 @@ jobs:
           node --check sites/busy-headquarters/marketing-intake.js
           for f in sites/busy-headquarters/functions/api/*.js; do node --input-type=module --check < "$f"; done
       - name: Fail-closed form contract tests
-        run: node --test sites/busy-headquarters/tests/marketing-contract.test.mjs
+        run: node --test sites/busy-headquarters/tests/*.test.mjs
