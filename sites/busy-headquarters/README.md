@@ -88,3 +88,11 @@ Required Pages variables/bindings (set as production secrets, NEVER commit): `MA
 **Before enabling**: apply and test the separate marketing schema in approved production environment; verify RLS deny-by-default and owner-only data access; configure Turnstile domain and Cloudflare WAF rate limiting (KV rate gate is non-atomic defense in depth); verify the Busy sender's DNS, delivery and reply-to; publish founder-reviewed UK privacy notice identifying controller/legal basis, processors, retention/deletion rights and contact; implement the operating procedure for deleting unconfirmed entries after seven days and respecting erasure requests; confirm email and sender journeys with test accounts; final approval before changing live hostname and flags. No bulk launch notices, newsletters or automatic follow-ups are included. An unsubscribe/suppression facility is required before any campaigns beyond the single expressly consented launch notification.
 
 Manual mailto fallback remains when the safe form is unavailable. Early-access email link is explicitly NOT a stored or confirmed registration. Preview and production website must be rendered on actual devices. No DNS/provider/production releases are authorised by this code alone.
+
+
+## 2 November 2026 — signup integrity follow-up
+
+- Replaced read-then-upsert with insert-first, conflict-aware logic: duplicate requests may refresh **pending only**. A confirmed or unsubscribed record is never silently reset to pending, even if two requests race to insert the same email.
+- The draft privacy notice explicitly explains the temporary pending address created to send a verification email; confirmation determines launch-notification eligibility.
+- A provider's email acceptance is not a delivery receipt. The contact form accordingly reports acceptance for delivery, not that the email reached the recipient. End-to-end delivery to Namecheap remains a separate release gate.
+- Before activation, approve an automated, audited purge of pending records older than seven days and an erasure/suppression workflow for confirmed records. Test with fictional data in staging and check consent scope against the ICO's current PECR guidance. No live marketing or capture has been enabled.
