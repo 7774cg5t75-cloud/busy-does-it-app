@@ -13,7 +13,7 @@ const full={
   TURNSTILE_SITE_KEY:'test_key',TURNSTILE_SECRET:'test_secret',
   MARKETING_RATE_KV:{},MARKETING_IP_PEPPER:'pepper',
   SUPABASE_URL:'https://example.supabase.co',
-  SUPABASE_SERVICE_ROLE_KEY:'server_only',
+  SUPABASE_SECRET_KEY:'sb_secret_test_key',
   RESEND_API_KEY:'test_secret',
   MARKETING_FROM:'Busy Does It <updates@notify.busydoesit.co.uk>'
 };
