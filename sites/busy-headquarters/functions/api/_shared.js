@@ -69,6 +69,28 @@ export async function supabase(env,table,method,query,body,returnRepresentation=
   if(!r.ok)throw new Error('database_unavailable');
   return returnRepresentation?await r.json():null;
 }
+
+/**
+ * Insert a new unconfirmed interest record, or refresh ONLY an existing pending one.
+ * A unique-email conflict must never demote a confirmed or unsubscribed record.
+ * Generic outward responses prevent address enumeration.
+ */
+export async function queuePendingInterest(env,pending) {
+  const base=env.SUPABASE_URL.replace(/\\/$/,'')+'/rest/v1/busy_marketing_waitlist';
+  const headers={
+    apikey:env.SUPABASE_SECRET_KEY,
+    'Content-Type':'application/json'
+  };
+  const created=await fetch(base,{method:'POST',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify(pending)});
+  if(created.ok)return true;
+  if(created.status!==409)throw new Error('database_unavailable');
+  const url=base+'?email=eq.'+encodeURIComponent(pending.email)+'&status=eq.pending';
+  const updated=await fetch(url,{method:'PATCH',headers:{...headers,Prefer:'return=representation'},body:JSON.stringify(pending)});
+  if(!updated.ok)throw new Error('database_unavailable');
+  const rows=await updated.json();
+  return Array.isArray(rows)&&rows.length===1;
+}
+
 export function errorResponse(err){
   if(err instanceof SyntaxError || err.message==='invalid_payload')return json({ok:false,error:'Please check the form and try again.'},400);
   return json({ok:false,error:'We could not complete that request. Please try again later.'},503);
