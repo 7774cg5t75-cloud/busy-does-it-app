@@ -450,7 +450,7 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
  .nav-wrap{align-items:flex-start;flex-direction:column;justify-content:center;gap:15px;padding-block:21px;min-height:0}
  .nav-links{justify-content:flex-start;gap:12px 20px}
  .hero-with-image .wrap{grid-template-columns:1fr}
- .hero-art{width:60vw;opacity:.12;right:-8%}
+ .hero.hero-no-image .hero-art{width:50vw;max-width:100%;opacity:.12;right:0;top:14%;transform:none}
  .hero-image{height:clamp(240px,65vw,430px);border-radius:20px}
  .hero h1{font-size:clamp(2.7rem,10.4vw,4.4rem)}
  .hero .wrap{padding-block:clamp(68px,11vw,95px)}

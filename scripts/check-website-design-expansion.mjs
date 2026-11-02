@@ -26,7 +26,7 @@ const images=['grass','gravel','coffee'];const result=[];
 for(const [i,[name,type,family,variation,typography,cards,services,emphasis,description]] of cases.entries()){
  const businessId='aaaaaaaa-aaaa-4aaa-8aaa-'+String(i).padStart(12,'0');
  const photoNames=i===2?[]:i<5?['grass','gravel','brick']:i===5?['coffee','gravel','grass']:['gravel','grass','coffee'];
- const photos=photoNames.map((n,j)=>({uri:'https://assets.example.invalid/'+n+'.png',storagePath:'licensed/'+n+'-'+j+'.png',approved:true,alt:(n==='coffee'?'CC0 coffee cup study':n==='grass'?'CC0 grass texture study':n==='brick'?'CC0 brick texture study':'CC0 gravel texture study')+' — licensed demonstration, not this business’s work'}));
+ const photos=photoNames.map((n,j)=>({uri:'https://assets.example.invalid/'+n+'.png',storagePath:'licensed/'+n+'-'+j+'.png',approved:true,...(j===1?{appearance:{photoCrop:'top'}}:j===2?{appearance:{photoFit:'contain'}}:{}),alt:(n==='coffee'?'CC0 coffee cup study':n==='grass'?'CC0 grass texture study':n==='brick'?'CC0 brick texture study':'CC0 gravel texture study')+' — licensed demonstration, not this business’s work'}));
  const brief={businessName:name,businessType:type,description,about:description+' Contact the fictional business to discuss your needs. Demonstration photographs are licensed studies, not evidence of completed work.',serviceArea:'Fictional local area',email:'example@example.invalid',phone:'',heroAsset:photos[0],photos,services:services.map((name,j)=>({id:'s'+j,name,description:'Owner supplied scope for '+name+'. Please enquire for details.'}))};
  let draft=api.buildWebsiteDraft({businessId,brandBrain:{websiteBrief:brief}});
  if(emphasis==='products'){
@@ -46,7 +46,7 @@ for(const [i,[name,type,family,variation,typography,cards,services,emphasis,desc
  assert.equal((draft.theme.sectionOrder||draft.designPlan.sectionOrder)[1],emphasis);
  }
  const html=api.renderWebsiteHtml(draft),hero=draft.sections.find(s=>s.type==='hero'),urls=Object.fromEntries(photos.map(p=>[p.storagePath,p.uri]));
- assert.match(html,new RegExp('premium-'+family));const workerHtml=worker(draft,hero,urls,true,'#contact');assert.match(workerHtml,new RegExp('premium-'+family));
+ assert.match(html,new RegExp('premium-'+family));const workerHtml=worker(draft,hero,urls,true,'#contact');assert.match(workerHtml,new RegExp('premium-'+family));if(family==='editorial-collage'){assert.ok(html.includes('hero-image owner-image-crop-top'));assert.ok(workerHtml.includes('hero-image owner-image-crop-top'));assert.ok(html.includes('hero-image owner-image-fit-contain'));assert.ok(workerHtml.includes('hero-image owner-image-fit-contain'));}
  assert.ok(html.includes(name.replaceAll('&','&amp;')));assert.equal(draft.publish.enabled,false);
  for(const variation of ['signature','airy','compact']){const h=premiumHeroInner(family,{copy:'<h1>Reviewed copy</h1>',services:'<p>Reviewed scope</p>',image:'<img alt="Approved fixture">',hasImage:true,variation});assert.ok(h.includes('premium-'+family));assert.equal(/undefined|NaN/.test(h),false);}
  const locked={...draft,theme:{...draft.theme,lockedSections:['hero']}};assert.equal(api.applyWebsiteLayoutChange(locked,{action:'style',field:'heroVariation',value:'compact'}).applied,false);
