@@ -20,7 +20,7 @@ const makeEnv=()=>({
    get:async k=>items.get(k)||null,put:async(k,v)=>{items.set(k,v);}
  };})(),
  MARKETING_IP_PEPPER:'fake_pepper',SUPABASE_URL:'https://fake.supabase.local',
- SUPABASE_SERVICE_ROLE_KEY:'fake_role',RESEND_API_KEY:'fake_email_key',
+ SUPABASE_SECRET_KEY:'sb_secret_fake_role',RESEND_API_KEY:'fake_email_key',
  MARKETING_FROM:'Busy Does It <updates@notify.busydoesit.co.uk>'
 });
 const post=(route,payload,options={})=>new Request(origin+route,{
