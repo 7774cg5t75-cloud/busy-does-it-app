@@ -6,7 +6,7 @@ Target public domain: https://busydoesit.co.uk/.
 Keep the Busy app, paid subscriptions and automatic marketing forms OFF.
 
 ## Must pass BEFORE touching public domain
-1. Approve legal controller identity and final privacy notice (privacy.html still says draft; review copy: LAUNCH_PRIVACY_NOTICE_REVIEW.md).
+1. Busy Does It Limited is **not yet incorporated**. The operator is currently an individual. Obtain their explicit approval before publishing the individual's legal name as data controller, verify any trading-name/correspondence-address disclosure, and approve the final privacy notice (privacy.html still says draft; review copy: LAUNCH_PRIVACY_NOTICE_REVIEW.md).
 2. Confirm workable enquiry-email retention/erasure process. Verify hello@busydoesit.co.uk sends and receives.
 3. Approve final website copy, ClearFlow fictional provenance, mobile visual review, link integrity, Unsplash image source/attribution.
 4. Confirm the intended Cloudflare production deployment and DNS/Worker route state.
