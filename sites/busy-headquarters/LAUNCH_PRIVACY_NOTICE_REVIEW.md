@@ -43,3 +43,7 @@ The website is not intended to use non-essential analytics or advertising cookie
 - [ ] Ensure the privacy notice is freely and prominently available when someone contacts us.
 - [ ] Verify the website's actual cookies, scripts and third-party resources.
 - [ ] Convert this copy into a finished privacy.html only after owner approval.
+
+## Explicit owner address preference (confirmed)
+
+The owner does not consent to publishing their home address on this website. There is no approved street address for this draft. Do not invent one, use an address from account/location context, or publish an unapproved residential address. The geographic-address requirement for commercial websites must be checked and, if applicable, met via a legally suitable non-residential establishment/business address chosen by the owner. A virtual mailbox or PO Box alone may not qualify. The current legal page remains a review draft until this is resolved. This note is an operator instruction and must not itself be copied into a public privacy notice.
