@@ -23,15 +23,15 @@ export const heroFamilyCss=heroFamilies.map(f=>f.css).join('\n')+`
 :where(.hero .premium-variation-airy) h1{line-height:1.12;max-width:14ch}
 :where(.hero .premium-variation-compact) h1{font-size:clamp(2.4rem,5vw,4.8rem);max-width:22ch}
 /* Coherent support rhythm, scoped to reviewed families. Existing owner controls win. */
-:where(.premium-site-typography-first) #services article{border:0;border-top:1px solid currentColor;border-radius:0;box-shadow:none}
+:where(.premium-site-typography-first #services) h2{max-width:24ch}
 :where(.premium-site-asymmetric-split) .photo-feature-grid{grid-template-columns:minmax(0,1.4fr) minmax(0,.6fr)}
-:where(.premium-site-quiet-portrait,.premium-site-editorial-collage) #about .wrap{max-width:900px}
-:where(.premium-site-cinematic-full-bleed) #contact .wrap{border-top:1px solid currentColor;padding-top:48px}
+:where(.premium-site-quiet-portrait,.premium-site-editorial-collage) :where(#about) .wrap{max-width:900px}
+:where(.premium-site-cinematic-full-bleed) :where(#contact) .wrap{border-top:1px solid currentColor;padding-top:48px}
 @media(max-width:800px){
 .hero .premium-asymmetric-split,.hero .premium-product-showcase,.hero .premium-editorial-collage{grid-template-columns:minmax(0,1fr)!important;gap:28px!important}
 .premium-asymmetric-split .premium-offset{padding-top:0}.premium-showcase-index .hero-service-overview ul{grid-template-columns:minmax(0,1fr)}
-.hero .premium-typography-first{grid-template-columns:minmax(0,1fr)!important;gap:20px!important}.premium-type-rule{width:72px;height:3px;grid-row:auto}.premium-type-index{grid-column:1}
-.hero .premium-cinematic-full-bleed{min-height:560px;padding:20px!important}.hero .premium-cinema-copy{padding:24px;align-self:end}.premium-cinema-caption{padding:0 16px}
+.hero .premium-typography-first{grid-template-columns:minmax(0,1fr)!important;gap:20px!important}.premium-type-rule{display:none}.premium-type-index{grid-column:1}
+.hero .premium-cinematic-full-bleed{min-height:560px;padding:20px!important}.hero .premium-cinema-copy{padding:24px;align-self:end}.hero .premium-cinematic-full-bleed>.premium-visual{max-height:none!important}.premium-cinema-caption{padding:0 16px}
 .hero .premium-variation-airy{padding-block:56px!important}.hero .premium-variation-compact{padding-block:32px!important}
 .premium-collage-board{max-width:600px}.hero .premium-collage-board>.premium-visual{max-height:none!important;aspect-ratio:3/5!important;grid-row:1/3!important;grid-column:1!important}
 :where(.premium-site-asymmetric-split) .photo-feature-grid{grid-template-columns:minmax(0,1fr)}

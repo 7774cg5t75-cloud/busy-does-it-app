@@ -9,7 +9,7 @@ const images=new Map(assets.images.map(a=>{const b=readFileSync(folder+'/assets/
 // Sandbox must remain enabled. Missing OS support fails capture; never falls
 // back to --no-sandbox or a privileged browser/service.
 const browser=await chromium.launch({headless:true,chromiumSandbox:true});
-const results=[];try{
+const results=[],failures=[];const check=(condition,message)=>{if(!condition)failures.push(message);};try{
  for(const scenario of manifest.scenarios){for(const [label,viewport]of [['mobile',{width:390,height:844}],['desktop',{width:1440,height:1000}]]){
   for(const stage of ['before','after']){
    const context=await browser.newContext({viewport,deviceScaleFactor:1,javaScriptEnabled:false,serviceWorkers:'block',reducedMotion:'reduce'});const page=await context.newPage();let blocked=0;
@@ -23,7 +23,7 @@ const results=[];try{
     const text=[...document.querySelectorAll('h1,h2,h3,p,a,li')].filter(visible);
     const broken=[...document.images].filter(img=>!img.complete||img.naturalWidth===0).map(img=>img.src);
     const overflow=[...document.querySelectorAll('main *,nav *')].filter(visible).filter(el=>{const r=el.getBoundingClientRect();return r.left< -1||r.right>innerWidth+1;}).map(el=>el.tagName+'.'+el.className).slice(0,20);
-    const unreadable=text.filter(el=>parseFloat(getComputedStyle(el).fontSize)<14).map(el=>el.tagName);
+    const unreadable=text.filter(el=>parseFloat(getComputedStyle(el).fontSize)<14).map(el=>({tag:el.tagName,text:el.textContent.slice(0,60),fontSize:getComputedStyle(el).fontSize}));
     const targets=[...document.querySelectorAll('a[href^="#"]')].filter(a=>!document.getElementById(a.getAttribute('href').slice(1))).map(a=>a.getAttribute('href'));
     const rgb=s=>{const m=s.match(/^rgba?\(([^)]+)\)$/);if(!m)return null;const a=m[1].split(/[, /]+/).map(Number);return a.length===3||a[3]===1?a.slice(0,3):null;};
     const luminance=c=>c.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
@@ -35,9 +35,11 @@ const results=[];try{
    });
    const filename=scenario.id+'-'+stage+'-'+label+'.png';await page.screenshot({path:folder+'/'+filename,fullPage:true,animations:'disabled'});
    results.push({business:scenario.business,family:scenario.family,stage,viewport,label,filename,sha256:hash(readFileSync(folder+'/'+filename)),metrics,blockedRequests:blocked});
-   assert.equal(blocked,0,'Unexpected browser network request');assert.equal(metrics.broken.length,0,filename+' broken image');assert.equal(metrics.targets.length,0,filename+' bad anchor');assert.equal(metrics.unreadable.length,0,filename+' small text');assert.equal(metrics.documentWidth<=viewport.width+1,true,filename+' horizontal page overflow');assert.equal(metrics.overflow.length,0,filename+' overflowing content: '+metrics.overflow.join(','));assert.equal(metrics.headings.length,1);assert.equal(metrics.contrastFailures.length,0,filename+' computed contrast: '+JSON.stringify(metrics.contrastFailures));assert.ok(metrics.ctaTargets.every(t=>t.height>=44&&t.width>=44),filename+' small primary action');
+   check(blocked===0,filename+' unexpected browser request');check(metrics.broken.length===0,filename+' broken images');check(metrics.targets.length===0,filename+' bad anchors');check(metrics.unreadable.length===0,filename+' small text '+JSON.stringify(metrics.unreadable));check(metrics.documentWidth<=viewport.width+1,filename+' horizontal page overflow');check(metrics.overflow.length===0,filename+' overflowing content '+metrics.overflow.join(','));check(metrics.headings.length===1,filename+' heading count');check(metrics.contrastFailures.length===0,filename+' computed contrast '+JSON.stringify(metrics.contrastFailures));check(metrics.ctaTargets.every(t=>t.height>=44&&t.width>=44),filename+' small primary action');
+
    await context.close();
   }
  }}
-}finally{writeFileSync(folder+'/browser-results.json',JSON.stringify({source,browser:browser.version(),sandboxRequired:true,renderer:'Original src/domain/websiteBuilder.js renderWebsiteHtml',assetManifest:assets,results,hostedAcceptance:false},null,2));await browser.close();}
+}finally{writeFileSync(folder+'/browser-results.json',JSON.stringify({source,browser:browser.version(),sandboxRequired:true,renderer:'Original src/domain/websiteBuilder.js renderWebsiteHtml',assetManifest:assets,results,failures,hostedAcceptance:false},null,2));await browser.close();}
+assert.deepEqual(failures,[], 'All browser counterexamples retained: '+failures.join('; '));
 assert.equal(source.commit,git(['rev-parse','HEAD']));assert.equal(source.tree,git(['rev-parse','HEAD^{tree}']));console.log('PASS genuine sandboxed browser before/after mobile/desktop screenshots; decoded licensed assets, no external browser requests, overflow/text/anchor/image checks. Professional judgement and hosted/native acceptance remain separate.');

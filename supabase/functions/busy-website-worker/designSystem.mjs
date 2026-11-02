@@ -158,7 +158,7 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .hero .kicker{color:var(--glow)}
 /* Same service orientation and readable rhythm in paid and private samples. */
 .hero-service-overview{max-width:64ch;margin-top:clamp(28px,4vw,48px);padding-top:20px;border-top:1px solid currentColor}
-.hero .hero-services-label{font-size:.8rem;letter-spacing:.09em;text-transform:uppercase;margin:0 0 12px;color:inherit}
+.hero .hero-services-label{font-size:.875rem;letter-spacing:.09em;text-transform:uppercase;margin:0 0 12px;color:inherit}
 .hero-service-overview ul{display:flex;flex-wrap:wrap;gap:8px 24px;padding:0;margin:0;list-style:none}
 .hero-service-overview li{max-width:100%;font-size:clamp(.9rem,1.2vw,1rem);line-height:1.5;overflow-wrap:anywhere}
 .hero-service-overview li::before{content:'— ';opacity:.65}
