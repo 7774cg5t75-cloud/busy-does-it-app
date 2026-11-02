@@ -25,7 +25,7 @@ const cases=[
 const images=['grass','gravel','coffee'];const result=[];
 for(const [i,[name,type,family,variation,typography,cards,services,emphasis,description]] of cases.entries()){
  const businessId='aaaaaaaa-aaaa-4aaa-8aaa-'+String(i).padStart(12,'0');
- const photoNames=i<5?['grass','gravel','brick']:i===5?['coffee','gravel','grass']:['gravel','grass','coffee'];
+ const photoNames=i===2?[]:i<5?['grass','gravel','brick']:i===5?['coffee','gravel','grass']:['gravel','grass','coffee'];
  const photos=photoNames.map((n,j)=>({uri:'https://assets.example.invalid/'+n+'.png',storagePath:'licensed/'+n+'-'+j+'.png',approved:true,alt:(n==='coffee'?'CC0 coffee cup study':n==='grass'?'CC0 grass texture study':n==='brick'?'CC0 brick texture study':'CC0 gravel texture study')+' — licensed demonstration, not this business’s work'}));
  const brief={businessName:name,businessType:type,description,about:description+' Contact the fictional business to discuss your needs. Demonstration photographs are licensed studies, not evidence of completed work.',serviceArea:'Fictional local area',email:'example@example.invalid',phone:'',heroAsset:photos[0],photos,services:services.map((name,j)=>({id:'s'+j,name,description:'Owner supplied scope for '+name+'. Please enquire for details.'}))};
  let draft=api.buildWebsiteDraft({businessId,brandBrain:{websiteBrief:brief}});
@@ -33,6 +33,7 @@ for(const [i,[name,type,family,variation,typography,cards,services,emphasis,desc
  const feed=publicBusinessContent([{id:'product_example_001',kind:'product',business_id:businessId,revision:1,published_revision:1,published:{name:i===5?'Festival bowl':'Decorative gravel sample',description:'Fictional owner-approved collection information.',category:i===5?'Food':'Materials',status:'active',amountMinor:800,currency:'GBP',availability:'not_tracked',image:null}}],businessId);
  const r=api.applyStructuredWebsiteEdit(draft,{action:'content-section',sectionId:'products',title:i===5?'Food collection':'Our collection',layout:i===5?'rows':'cards',previewFeed:feed});assert.equal(r.applied,true,r.reason);draft=r.draft;
  }
+ const initialSuggestion=premiumWebsiteDirections(draft)[0]?.id;assert.equal(initialSuggestion,family,name+' should use its own approved context, not an industry-wide default');
  const before=api.renderWebsiteHtml(draft);const changes=[['heroComposition',family],['heroVariation',variation],['typography',typography],['cardLayout',cards]];
  for(const [field,value]of changes){if(draft.theme[field]===value)continue;const c=api.applyWebsiteLayoutChange(draft,{action:'style',field,value});assert.equal(c.applied,true,c.reason);draft=c.draft;}
  // Real section-order authority, independent of hero styling. No facts invented.
@@ -54,7 +55,7 @@ for(const [i,[name,type,family,variation,typography,cards,services,emphasis,desc
  const directions=premiumWebsiteDirections(draft);assert.equal(directions.some(d=>d.id===family),false);if(directions[0])assert.equal(premiumWebsiteDirections(draft,{rejected:[directions[0].id]}).some(d=>d.id===directions[0].id),false);
  const goal=planBusyGoal({request:'Try a completely different design',surface:'website',website:draft,businessId},deps);assert.equal(goal.ready,true,goal.question);assert.notEqual(goal.prepared.candidateHtml,html);assert.equal(goal.mayExecute,false);assert.equal(planBusyGoal({request:'Try a completely different design',surface:'website',website:draft,businessId:'foreign'},deps).ready,false);
  writeFileSync(out+'/'+i+'-before.html',before);writeFileSync(out+'/'+i+'-after.html',html);
- result.push({id:i,business:name,industry:type,family,variation,typography,cards,emphasis,sectionOrder:draft.theme.sectionOrder||draft.designPlan.sectionOrder,originalRenderer:'src/domain/websiteBuilder.js:renderWebsiteHtml',before:i+'-before.html',after:i+'-after.html',htmlSha256:createHash('sha256').update(html).digest('hex'),photos:photos.map(p=>p.uri)});
+ result.push({id:i,business:name,industry:type,initialSuggestion,family,variation,typography,cards,emphasis,sectionOrder:draft.theme.sectionOrder||draft.designPlan.sectionOrder,originalRenderer:'src/domain/websiteBuilder.js:renderWebsiteHtml',before:i+'-before.html',after:i+'-after.html',htmlSha256:createHash('sha256').update(html).digest('hex'),photos:photos.map(p=>p.uri)});
 }
 assert.equal(new Set(result.slice(0,5).map(x=>x.family)).size,5);assert.equal(new Set(result.slice(0,5).map(x=>x.typography+'|'+x.cards+'|'+x.emphasis)).size,5);for(const f of heroFamilies)assert.ok(result.some(r=>r.family===f.id),'Every current family must have actual original-renderer evidence: '+f.id);
 assert.equal(premiumHeroInner('unknown',{copy:'bad'}),'');assert.equal(PREMIUM_HERO_COMPOSITIONS.length,heroFamilies.length); // registry agreement, not a permanent count ceiling

@@ -3,7 +3,7 @@ import {heroFamilies,heroFamilyCss} from './websiteHeroFamilies.mjs';
 // Add reviewed families without changing operation/request limits or old IDs.
 export const PREMIUM_HERO_COMPOSITIONS=Object.freeze(heroFamilies.map(f=>f.id));
 export const PREMIUM_HERO_VARIATIONS=Object.freeze(['signature','airy','compact']);
-export function premiumHeroInner(kind,{copy='',image='',images=[],services='',hasImage=false,variation='signature'}={}){
+export function premiumHeroInner(kind,{copy='',image='',images=/** @type {string[]} */([]),services='',hasImage=false,variation='signature'}={}){
  const family=heroFamilies.find(f=>f.id===kind);if(!family)return '';
  const treatment=PREMIUM_HERO_VARIATIONS.includes(variation)?variation:'signature';
  const media=hasImage?`<figure class="premium-visual">${image}</figure>`:'';

@@ -14,7 +14,7 @@ export function premiumWebsiteGoal({request,website,businessId,pageId='home',sou
   if(design[1]&&(design[1].toLowerCase().match(/[a-z]+/g)||[]).some(word=>!vocabulary.has(word)))return {recognised:true,ready:false,question:'Please clarify the extra requirements or review your current business information first. I have not prepared a partial change.',providerCalls:0,mayExecute:false};
   const sector=deriveSector(website?.businessType||'');
   if(design[1]&&deriveSector(design[1])!==sector)return {recognised:true,ready:false,question:'Your saved business information describes a different kind of business. Review that information first; I have not changed it.',providerCalls:0,mayExecute:false};
-  const kind=sector==='hospitality'?'food story':sector==='wellness'?'calm portrait':'service-led';
+  const next=premiumWebsiteDirections(website)[0],id=next?.id||'typography-first',kind=({'story-spread':'food story','quiet-portrait':'calm portrait'}[id]||id);
   instruction='prepare a '+kind+' homepage';explanation='Compare a '+kind+' opening using your current wording, services and approved photographs. Colours and customer destinations stay unchanged.';
  }else if(/^(?:try a completely different design|give (?:the |my )?homepage more personality|make it more premium)$/i.test(words)){
   const next=premiumWebsiteDirections(website)[0];if(!next)return {recognised:true,ready:false,mayExecute:false,question:'No suitable different direction is available with the current approved content. Your design is unchanged.',providerCalls:0};
