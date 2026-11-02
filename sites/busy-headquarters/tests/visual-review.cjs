@@ -19,7 +19,14 @@ const { chromium }=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
     const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     await page.goto('http://127.0.0.1:8765'+url,{waitUntil:'domcontentloaded'});
-    await page.waitForTimeout(1800);
+    // Scroll naturally to trigger lazy-loaded images before the full-page capture.
+    const fullHeight=await page.evaluate(()=>document.documentElement.scrollHeight);
+    for(let y=0;y<fullHeight;y+=Math.max(350,Math.floor(height*.75))){
+      await page.evaluate(y=>window.scrollTo(0,y),y);
+      await page.waitForTimeout(140);
+    }
+    await page.evaluate(()=>window.scrollTo(0,0));
+    await page.waitForTimeout(1100);
     await page.screenshot({path:path.join('marketing-visual-evidence',label+'.png'),fullPage:true,animations:'disabled'});
     const result=await page.evaluate(()=>({
       docWidth:document.documentElement.scrollWidth,
