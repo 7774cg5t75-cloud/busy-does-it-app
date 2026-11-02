@@ -14,6 +14,7 @@ const [contact,early,confirm] = await Promise.all([route('contact'),route('early
 const origin='https://busydoesit.co.uk';
 const makeEnv=()=>({
  MARKETING_FORMS_ENABLED:'1',MARKETING_PRIVACY_APPROVED:'1',
+ MARKETING_WAF_APPROVED:'1',MARKETING_RETENTION_APPROVED:'1',
  MARKETING_ALLOWED_HOSTS:'busydoesit.co.uk',MARKETING_PUBLIC_ORIGIN:origin,
  TURNSTILE_SITE_KEY:'fake_public',TURNSTILE_SECRET:'fake_secret',
  MARKETING_RATE_KV: (()=>{const items=new Map();return {
