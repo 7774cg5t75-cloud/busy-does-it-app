@@ -8,8 +8,8 @@ export function guidedWebsiteCandidate(journey){
  if(!journey?.ok||!journey.plan?.ok)return null;
  try{return {...JSON.parse(journey.plan.boundaries.at(-1)),generation:journey.plan.generation+journey.plan.groups.length};}catch{return null;}
 }
-export function currentGuidedWebsite(journey,{website,businessId,ownerId}){return !!journey?.ok&&journey.plan?.kind==='reviewed_website_request'&&journey.plan.groups?.length===1&&journey.plan.boundaries?.length===2&&journey.ownerId===ownerId&&journey.businessId===businessId&&websiteDraftHasScope(website,businessId)&&website?.id===journey.plan.draftId&&website.generation===journey.plan.generation&&websiteRequestContent(website)===journey.plan.boundaries[0];}
-export function prepareGuidedWebsite({website,businessId,ownerId,goal},deps){
+export function currentGuidedWebsite(journey,{website,businessId,ownerId,profileRevision}){return !!journey?.ok&&journey.plan?.kind==='reviewed_website_request'&&journey.plan.groups?.length===1&&journey.plan.boundaries?.length===2&&journey.profileRevision===profileRevision&&journey.ownerId===ownerId&&journey.businessId===businessId&&websiteDraftHasScope(website,businessId)&&website?.id===journey.plan.draftId&&website.generation===journey.plan.generation&&websiteRequestContent(website)===journey.plan.boundaries[0];}
+export function prepareGuidedWebsite({website,businessId,ownerId,profileRevision,goal},deps){
  if(!ownerId||!websiteDraftHasScope(website,businessId))return fail('Open this business’s current private website first.');
  if(typeof goal!=='string'||goal.length>400)return fail('Describe one supported website goal.');
  const normal=goal.trim().replace(/[.!?]+$/,'').replace(/^I run (?:a|an) (.+?) and need a professional website$/i,'I need a professional website for my $1');
@@ -18,7 +18,7 @@ export function prepareGuidedWebsite({website,businessId,ownerId,goal},deps){
  if(!p.ready||!p.prepared)return fail(p.question||'Describe a supported private website design change. Nothing was changed.');
  const chosen=websitePhotoChoices(website).length?JSON.parse(p.prepared.boundaries.at(-1)).theme?.heroComposition:'typography-first';if(!chosen)return fail('Start with a professional website design goal, then refine it.');
  const instruction='use the reviewed "'+chosen+'" opening',plan=prepareWebsiteRequest(website,{draftId:website.id,pageId:'home',generation:website.generation,instruction},deps);if(!plan.ok)return plan;
- return {ok:true,kind:'guided_private_website',ownerId,businessId,goal,instruction,adjustments:[{kind:'family',instruction}],plan,rejected:[],kept:false,accountSaved:false,publicActivation:false};
+ return {ok:true,kind:'guided_private_website',ownerId,businessId,profileRevision,goal,instruction,adjustments:[{kind:'family',instruction}],plan,rejected:[],kept:false,accountSaved:false,publicActivation:false};
 }
 export function refineGuidedWebsite(journey,context,options={},deps){
  if(!options||Array.isArray(options)||Object.keys(options).some(k=>!['request','photoPath','headline','rejectCurrent'].includes(k)))return fail('Choose one supported correction.');
@@ -39,7 +39,8 @@ export function refineGuidedWebsite(journey,context,options={},deps){
  else if(/^put (?:our|the) menu before (?:the )?story section$/i.test(request.trim())){
   kind='menu';const menu=candidate.sections.filter(s=>s.enabled!==false&&s.type==='products'),story=candidate.sections.filter(s=>s.enabled!==false&&s.type==='about');if(menu.length!==1||story.length!==1)return fail('Choose one existing approved menu and story section on the current page.');instruction='move '+menu[0].id+' before '+story[0].id;
  }else return fail('That change needs clarification or is unavailable. No partial change was prepared.');
- const adjustments=[...journey.adjustments.filter(a=>a.kind!==kind),{kind,instruction}],combined=adjustments.map(a=>a.instruction).join('; '),plan=prepareWebsiteRequest(context.website,{draftId:context.website.id,pageId:'home',generation:context.website.generation,instruction:combined},deps);
+ let baseAdjustments=journey.adjustments;if(kind==='photo'&&candidate.theme?.heroComposition==='typography-first'){const next=premiumWebsiteDirections(candidate,{rejected})[0];if(!next)return fail('Select a suitable photographic direction first.');baseAdjustments=baseAdjustments.map(a=>a.kind==='family'?{kind:'family',instruction:'use the reviewed "'+next.id+'" opening'}:a);}
+ const adjustments=[...baseAdjustments.filter(a=>a.kind!==kind),{kind,instruction}],combined=adjustments.map(a=>a.instruction).join('; '),plan=prepareWebsiteRequest(context.website,{draftId:context.website.id,pageId:'home',generation:context.website.generation,instruction:combined},deps);
  if(!plan.ok)return plan;if(plan.groups.length!==1)return fail('Keep a smaller set of changes in one review. Your website is unchanged.');return {...journey,instruction:combined,adjustments,plan,rejected,kept:false,accountSaved:false};
 }
 // Save only original finite wire groups. A local kept draft is not an account

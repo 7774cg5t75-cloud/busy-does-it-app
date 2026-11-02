@@ -1,8 +1,29 @@
 {
- "license":"CC0 as stated on each source page; illustrative stock selected solely for fictional testing, not these businesses' work or premises",
- "images":[
- {"name":"catering","extension":"jpg","url":"https://c.pxhere.com/photos/fd/03/cakes_sweets_party_service_decor_dining_catering_lunch-1074144.jpg","licenseEvidence":"https://pxhere.com/en/photo/1074144","credit":"PxHere image1074144, unnamed contributor, CC0","sha256":null},
- {"name":"garden","extension":"jpg","url":"https://c.pxhere.com/photos/8b/a1/garden_sunbathing_reading_relaxing_park-112561.jpg","licenseEvidence":"https://pxhere.com/en/photo/112561","credit":"PxHere image112561, unnamed contributor, CC0","sha256":null},
- {"name":"studio","extension":"jpg","url":"https://c.pxhere.com/photos/e2/ef/finnish_sauna_wellness_health_spa_heaters_health-725872.jpg","licenseEvidence":"https://pxhere.com/en/photo/725872","credit":"PxHere image725872, unnamed contributor, CC0","sha256":null}
- ]
+  "license": "CC0 or public-domain dedication as recorded on each Commons file page. Illustrative test photographs, not these fictional businesses\u2019 work or premises.",
+  "images": [
+    {
+      "name": "catering",
+      "extension": "jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Ugandan_food_buffet_serving.jpg",
+      "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Ugandan_food_buffet_serving.jpg&oldid=1210355536",
+      "credit": "Rebeccananonof, Ugandan food buffet serving, CC0",
+      "sha256": null
+    },
+    {
+      "name": "garden",
+      "extension": "jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1600px-Patio_Garden_with_blooming_plants.jpg",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+      "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1600px Commons rendition",
+      "sha256": null
+    },
+    {
+      "name": "studio",
+      "extension": "jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Wax_candles_lit.jpg",
+      "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Wax_candles_lit.jpg&oldid=1223581454",
+      "credit": "Titus Tscharntke, Wax candles lit, public-domain dedication; Commons via Fae",
+      "sha256": null
+    }
+  ]
 }
