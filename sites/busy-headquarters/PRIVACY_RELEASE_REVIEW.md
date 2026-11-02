@@ -15,7 +15,7 @@
 9. **Abuse protection**: require verified Turnstile Siteverify with host/action checks, a dedicated widget for real public hostnames, server-side per-IP throttling, and Cloudflare edge WAF rate limiting. Workers KV limits are non-atomic defense in depth, **not** a substitute for WAF protection.
 10. **Delivery and recovery**: test from a real browser, confirm messages arrive at the Namecheap inbox, confirm opt-in via emailed link and deliberate POST, test replay, expiry, rate limits, sender failures and privacy flow. A Resend acceptance is **not proof of inbox delivery**.
 11. **Secret isolation**: maintain staging-only server secrets, independent from live Busy customer/tenant services. Never store secrets in Git, website assets, chat or screenshots. Rotate compromised tokens.
-12. **Launch authority**: retain explicit launch approval. Do not enable `MARKETING_PRIVACY_APPROVED=1` or `MARKETING_FORMS_ENABLED=1` until all gates above pass; publish/merge separately. Current public domain is outside this draft review.
+12. **Launch authority**: retain explicit launch approval. Do not enable `MARKETING_PRIVACY_APPROVED=1`, `MARKETING_WAF_APPROVED=1`, `MARKETING_RETENTION_APPROVED=1` or `MARKETING_FORMS_ENABLED=1` until their respective gates above pass; publish/merge separately. Current public domain is outside this draft review.
 
 ## Confirmed as of 2 November
 - Both external email domains and routine mailbox have previously been configured; the Business sending subdomain was independently verified by Resend.
