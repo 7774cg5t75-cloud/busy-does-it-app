@@ -25,7 +25,7 @@ test('early contact uses actual authorised business address',()=>{
   assert.match(home,/mailto:hello@busydoesit\.co\.uk/);
   assert.doesNotMatch(home,/<form\b/);
   assert.doesNotMatch(home,/marketing-intake\.js" defer/);
-  assert.match(home,/This does not create an account or an automatic waitlist signup/);
+  assert.match(home,/An email does not create an account or a confirmed place on a waiting list/);
 });
 test('privacy is explicitly UNAPPROVED and fictional demo remains disclosed',()=>{
   assert.match(privacy,/PRIVACY NOTICE DRAFT — NOT APPROVED FOR PUBLIC LAUNCH/);
