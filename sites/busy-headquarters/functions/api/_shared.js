@@ -76,7 +76,7 @@ export async function supabase(env,table,method,query,body,returnRepresentation=
  * Generic outward responses prevent address enumeration.
  */
 export async function queuePendingInterest(env,pending) {
-  const base=env.SUPABASE_URL.replace(/\\/$/,'')+'/rest/v1/busy_marketing_waitlist';
+  const base=env.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/busy_marketing_waitlist';
   const headers={
     apikey:env.SUPABASE_SECRET_KEY,
     'Content-Type':'application/json'
