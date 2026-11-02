@@ -6,6 +6,11 @@ on:
       - '.github/workflows/app-goal-composition.yml'
       - '.github/workflows/website-design-browser.yml'
       - 'src/core/premiumWebsite*.mjs'
+      - 'src/core/guidedWebsiteJourney.mjs'
+      - 'src/core/websitePhotoReview.mjs'
+      - 'src/screens/guidedWebsiteCreation.js'
+      - 'scripts/check-guided-website-creation.mjs'
+      - 'scripts/check-whole-app-postgres.mjs'
       - 'src/domain/websiteBuilder.js'
       - 'src/domain/premiumHomepagePreview.js'
       - 'src/screens/premiumHomepagePreview.js'
@@ -165,6 +170,7 @@ jobs:
           node scripts/check-operational-work.mjs
           node scripts/check-premium-website-experience.mjs
           node scripts/check-website-design-expansion.mjs
+          node scripts/check-guided-website-creation.mjs
           node scripts/check-work-preparation.mjs
           node scripts/check-customer-form-discovery.mjs
           node scripts/check-public-collection-parity.mjs

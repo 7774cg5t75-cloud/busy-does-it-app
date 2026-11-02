@@ -3108,6 +3108,12 @@
       "args": [
         "scripts/check-website-design-expansion.mjs"
       ]
+    },
+    {
+      "id": "guided-website-creation",
+      "args": [
+        "scripts/check-guided-website-creation.mjs"
+      ]
     }
   ]
 }

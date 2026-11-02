@@ -3,9 +3,9 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {chromium} from 'playwright';
-const folder='.test-artifacts/website-expansion',manifest=JSON.parse(readFileSync(folder+'/scenarios.json')),assets=JSON.parse(readFileSync('scripts/fixtures/website-design/assets.json'));
+const guided=process.env.BUSY_GUIDED_BROWSER==='1',folder=guided?'.test-artifacts/guided-websites':'.test-artifacts/website-expansion',manifest=JSON.parse(readFileSync(folder+'/scenarios.json')),assets=JSON.parse(readFileSync(guided?'scripts/fixtures/guided-websites/assets.json':'scripts/fixtures/website-design/assets.json'));
 const hash=b=>createHash('sha256').update(b).digest('hex'),git=args=>execFileSync('git',args,{encoding:'utf8'}).trim(),source={commit:git(['rev-parse','HEAD']),tree:git(['rev-parse','HEAD^{tree}'])};
-const images=new Map(assets.images.map(a=>{const b=readFileSync(folder+'/assets/'+a.name+'.png');assert.equal(hash(b),a.sha256);return ['https://assets.example.invalid/'+a.name+'.png',b];}));
+const images=new Map(assets.images.map(a=>{const b=readFileSync(folder+'/assets/'+a.name+'.'+(a.extension||'png'));const expected=a.sha256||(guided?JSON.parse(readFileSync(folder+'/asset-receipts.json')).find(r=>r.name===a.name)?.sha256:null);assert.equal(hash(b),expected);return ['https://assets.example.invalid/'+a.name+'.'+(a.extension||'png'),b];}));
 // Sandbox must remain enabled. Missing OS support fails capture; never falls
 // back to --no-sandbox or a privileged browser/service.
 const browser=await chromium.launch({headless:true,chromiumSandbox:true});
@@ -13,7 +13,7 @@ const results=[],failures=[];const check=(condition,message)=>{if(!condition)fai
  for(const scenario of manifest.scenarios){for(const [label,viewport]of [['mobile',{width:390,height:844}],['desktop',{width:1440,height:1000}]]){
   for(const stage of ['before','after']){
    const context=await browser.newContext({viewport,deviceScaleFactor:1,javaScriptEnabled:false,serviceWorkers:'block',reducedMotion:'reduce'});const page=await context.newPage();let blocked=0;
-   await page.route('**/*',route=>images.has(route.request().url())?route.fulfill({status:200,contentType:'image/png',body:images.get(route.request().url())}):(blocked++,route.abort('blockedbyclient')));
+   await page.route('**/*',route=>images.has(route.request().url())?route.fulfill({status:200,contentType:route.request().url().endsWith('.jpg')?'image/jpeg':'image/png',body:images.get(route.request().url())}):(blocked++,route.abort('blockedbyclient')));
    const html=readFileSync(folder+'/'+scenario[stage],'utf8');await page.setContent(html,{waitUntil:'load'});
    // Decode all real lazy images by bounded scrolling; no external network.
    const height=await page.locator('body').evaluate(el=>el.scrollHeight);assert.ok(height<18000);
@@ -31,10 +31,12 @@ const results=[],failures=[];const check=(condition,message)=>{if(!condition)fai
     for(const el of text){const style=getComputedStyle(el),fg=rgb(style.color);let parent=el,bg=null;while(parent&&!bg){bg=rgb(getComputedStyle(parent).backgroundColor);parent=parent.parentElement;}if(!fg||!bg){contrastUnmeasured.push(el.tagName);continue;}const a=luminance(fg),b=luminance(bg),value=(Math.max(a,b)+.05)/(Math.min(a,b)+.05),large=parseFloat(style.fontSize)>=24||parseFloat(style.fontSize)>=18.66&&Number(style.fontWeight)>=700;if(value<(large?3:4.5))contrastFailures.push({tag:el.tagName,text:el.textContent.slice(0,60),ratio:value});}
     const ctaTargets=[...document.querySelectorAll('.hero .cta')].filter(visible).map(el=>({width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
     const headings=[...document.querySelectorAll('h1')].filter(visible).map(el=>({width:el.getBoundingClientRect().width,fontSize:parseFloat(getComputedStyle(el).fontSize),text:el.textContent}));
-    return {contrastFailures,contrastUnmeasured,ctaTargets,documentWidth:document.documentElement.scrollWidth,viewport:innerWidth,overflow,broken,unreadable,targets,headings,imageCount:document.images.length,height:document.documentElement.scrollHeight};
+    const imageSizes=[...document.images].map(img=>({src:img.src,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,displayWidth:img.getBoundingClientRect().width,displayHeight:img.getBoundingClientRect().height,objectPosition:getComputedStyle(img).objectPosition,objectFit:getComputedStyle(img).objectFit}));
+    return {imageSizes,contrastFailures,contrastUnmeasured,ctaTargets,documentWidth:document.documentElement.scrollWidth,viewport:innerWidth,overflow,broken,unreadable,targets,headings,imageCount:document.images.length,height:document.documentElement.scrollHeight};
    });
    const filename=scenario.id+'-'+stage+'-'+label+'.png';await page.screenshot({path:folder+'/'+filename,fullPage:true,animations:'disabled'});
    results.push({business:scenario.business,family:scenario.family,stage,viewport,label,filename,sha256:hash(readFileSync(folder+'/'+filename)),metrics,blockedRequests:blocked});
+   if(guided&&stage==='after'){check(metrics.imageSizes[0]?.objectPosition===(label==='mobile'?'50% 0%':'50% 50%'),filename+' reviewed width-specific focal point');}
    check(blocked===0,filename+' unexpected browser request');check(metrics.broken.length===0,filename+' broken images');check(metrics.targets.length===0,filename+' bad anchors');check(metrics.unreadable.length===0,filename+' small text '+JSON.stringify(metrics.unreadable));check(metrics.documentWidth<=viewport.width+1,filename+' horizontal page overflow');check(metrics.overflow.length===0,filename+' overflowing content '+metrics.overflow.join(','));check(metrics.headings.length===1,filename+' heading count');check(metrics.contrastFailures.length===0,filename+' computed contrast '+JSON.stringify(metrics.contrastFailures));check(metrics.ctaTargets.every(t=>t.height>=44&&t.width>=44),filename+' small primary action');
 
    await context.close();

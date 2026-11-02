@@ -267,7 +267,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    textAlign:["left","center"],
    sectionSpacing:["compact","normal","generous"],
    mobileSectionSpacing:["compact","normal","generous"],desktopSectionSpacing:["compact","normal","generous"],
-   photoCrop:["top","center","bottom"],
+   photoCrop:["top","center","bottom"],mobilePhotoCrop:["brand","top","center","bottom"],desktopPhotoCrop:["brand","top","center","bottom"],
    photoSide:["left","right"],desktopPhotoSide:["brand","left","right"],
    gallerySize:["comfortable","compact","large"],
    mobileHeadingScale:["normal","compact","large"],desktopHeadingScale:["normal","compact","large"],
@@ -284,7 +284,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    sectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    mobileSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact","products","events"],
    desktopSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact","products","events"],
-   photoCrop:["hero","photo-feature","gallery"],
+   photoCrop:["hero","photo-feature","gallery"],mobilePhotoCrop:["hero"],desktopPhotoCrop:["hero"],
    photoSide:["photo-feature"],desktopPhotoSide:["photo-feature"],
    gallerySize:["gallery"],
    mobileHeadingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
@@ -315,7 +315,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
     next[name]=existing[name];
   const defaults={testimonialsLayout:'brand',faqLayout:'brand',readingLayout:'brand',serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
-    photoCrop:"center",photoSide:"left",desktopPhotoSide:"brand",gallerySize:"comfortable",
+    mobilePhotoCrop:"brand",desktopPhotoCrop:"brand",photoCrop:"center",photoSide:"left",desktopPhotoSide:"brand",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
   if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;
   if(Object.keys(next).length)target.appearance=next;else delete target.appearance;

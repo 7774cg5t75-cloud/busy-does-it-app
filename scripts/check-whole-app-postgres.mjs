@@ -510,6 +510,19 @@ try{
  await stage('private-function-fused-retaining-rollback-closes-writes-retains-scoped-read',async()=>{
   assert.throws(()=>sql(functionRollback));const count=sql('SELECT count(*) FROM busy_app_function_private.versions');sql(functionRollback.replace(/^DO \$\$ BEGIN RAISE EXCEPTION 'PRIVATE FUNCTION ROLLBACK REVIEW FUSE:.*?\n/m,''));const api=functionAccount(F,P),read=await api.read(tradesFunction.reference.functionId,2);assert.equal(read.ok,true,read.reason);assert.equal(read.status,'locked');assert.equal(read.eligible,false);const review=api.review(read.artifact.spec,read.reference);assert.equal(review.ok,true);assert.equal((await api.save(review.ticket,{ownerApproved:true})).ok,false);assert.equal(sql('SELECT count(*) FROM busy_app_function_private.versions'),count);
  });
+ process.env.BUSY_GUIDED_IMPORTED='1';const {guidedFixture,exerciseGuided}=await import('./check-guided-website-creation.mjs');delete process.env.BUSY_GUIDED_IMPORTED;
+ // Synthetic pre-existing approved gallery fixtures are setup ONLY; this does
+ // not claim hosted storage/upload acceptance or add a production media writer.
+ for(let i=0;i<3;i++)await stage('guided-website-original-authority-save-readback-'+i,async()=>{
+  const context=guidedFixture(i);context.ownerId=i===2?P:O;actor=context.ownerId;
+  sql('INSERT INTO public.busy_businesses(id,name,created_by)VALUES('+[context.businessId,'Guided synthetic business '+i,actor].map(q).join(',')+');INSERT INTO public.busy_business_memberships(business_id,user_id,role)VALUES('+[context.businessId,actor,'owner'].map(q).join(',')+');');
+  rpc('busy_connected_initialize_v1',[context.businessId]);const localSession=createConnectedBuilderSession({request});let now=await localSession.open(context.businessId);
+  const approved={version:1,businessName:context.website.businessName,businessType:context.website.businessType,description:'Synthetic owner-approved website brief.',serviceArea:'Fictional area',services:[{id:'one',name:'Service information',description:'Owner supplied scope.'}],contact:{email:'owner@example.invalid'}};
+  const p=await localSession.profile({basis:now,profile:approved,ownerApproved:true});assert.equal(p.ok,true,p.reason);now=p.observed;
+  const {html,...fixture}=context.website;fixture.generation=1;service('busy_connected_website_commit_v1',[context.businessId,actor,now.revision,null,fixture,now.profileRevision]);now=await localSession.read();context.website=now.websiteDraft;
+  const r=await exerciseGuided(i,context,{getContext:()=>context,apply:async patch=>{const saved=await localSession.website({basis:now,action:'edit_instruction',patch,ownerApproved:true});if(!saved.ok)return {applied:false,reason:saved.reason};now=saved.observed;context.website=now.websiteDraft;return {applied:true,verifiedPrivateReadback:{ownerId:now.actorId,businessId:now.businessId,websiteDraft:now.websiteDraft,recordHash:saved.receipt.recordHash}};}});
+  assert.equal(r.result.accountSaved,true);const reopened=await createConnectedBuilderSession({request}).open(context.businessId);assert.equal(renderWebsiteHtml(reopened.websiteDraft),r.after);const undone=await localSession.website({basis:now,action:'undo',ownerApproved:true});assert.equal(undone.ok,true,undone.reason);assert.notEqual(renderWebsiteHtml(undone.observed.websiteDraft),r.after);const redone=await localSession.website({basis:undone.observed,action:'redo',ownerApproved:true});assert.equal(redone.ok,true,redone.reason);assert.equal(renderWebsiteHtml(redone.observed.websiteDraft),r.after);actor=O;
+ });
  await stage('retaining-rollback-fused-and-real-write-denial-with-fresh-readers',async()=>{
   assert.throws(()=>sql(proposal.rollback));const before=sql("SELECT payload FROM public.busy_business_snapshots WHERE business_id="+q(B));
   sql(proposal.rollback.replace(/^DO \$\$ BEGIN RAISE EXCEPTION 'WHOLE APP ROLLBACK REVIEW FUSE:.*?\n/m,''));

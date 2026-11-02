@@ -6,6 +6,12 @@ on:
       - 'supabase/functions/busy-website-worker/**'
       - 'src/domain/websiteBuilder.js'
       - 'src/core/premiumWebsite*.mjs'
+      - 'src/core/guidedWebsiteJourney.mjs'
+      - 'src/core/websitePhotoReview.mjs'
+      - 'src/screens/guidedWebsiteCreation.js'
+      - 'scripts/check-guided-website-creation.mjs'
+      - 'scripts/fetch-guided-website-assets.py'
+      - 'scripts/fixtures/guided-websites/**'
       - 'scripts/check-website-design-expansion.mjs'
       - 'scripts/capture-website-design.mjs'
       - 'scripts/fetch-website-test-assets.py'
@@ -40,15 +46,21 @@ jobs:
         run: |
           node scripts/check-website-design-expansion.mjs
           python3 scripts/fetch-website-test-assets.py
+          node scripts/check-guided-website-creation.mjs
+          python3 scripts/fetch-guided-website-assets.py
       - name: Install browser from existing exact Playwright dependency
         run: node_modules/.bin/playwright install --with-deps chromium
       - name: Capture with required Chromium sandbox and no external browser requests
-        run: node scripts/capture-website-design.mjs
+        run: |
+          node scripts/capture-website-design.mjs
+          BUSY_GUIDED_BROWSER=1 node scripts/capture-website-design.mjs
       - name: Retain synthetic HTML, original pixels and exact provenance
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: premium-website-browser-${{ github.sha }}
-          path: .test-artifacts/website-expansion/
+          path: |
+            .test-artifacts/website-expansion/
+            .test-artifacts/guided-websites/
           retention-days: 7
           if-no-files-found: error

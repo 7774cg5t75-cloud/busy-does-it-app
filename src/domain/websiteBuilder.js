@@ -743,7 +743,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url
-        ? `<img class="hero-image" loading="eager" decoding="async" fetchpriority="high"${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
+        ? `<img class="hero-image${galleryPhotoClass(section.asset)}" loading="eager" decoding="async" fetchpriority="high"${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
         : '<div class="hero-art" aria-hidden="true"></div>';
       const kicker=clean(draft.businessType||draft.businessName);
       const lead=clean(section.body) ? `<p class="lead"${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>` : "";

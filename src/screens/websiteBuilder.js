@@ -1,3 +1,4 @@
+import {GuidedWebsiteCreation} from './guidedWebsiteCreation';
 import {BusyOwnerCorrection} from '../components/BusyOwnerCorrection';
 import {BusyGoalRecords} from '../components/BusyGoalRecords';
 import {WebsiteRequestRecovery} from '../components/WebsiteRequestRecovery';
@@ -299,6 +300,7 @@ function WebsiteBuilder({ s }) {
       subtitle="Tell BUSY about your business, preview your website and make it your own."
       brandCue="Create privately. Review before publishing."
     >
+      <GuidedWebsiteCreation key={['guided-website',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')} s={s}/>
       <PremiumHomepagePreview key={['premium-sample',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')} ownerId={s.ownerSession?.userId} businessId={s.cloudWorkspace?.businessId} approvedFacts={brand.websiteBrief?{businessName:brand.websiteBrief.businessName||'',businessType:brand.websiteBrief.businessType||'',description:brand.websiteBrief.description||'',serviceArea:brand.websiteBrief.serviceArea||'',email:brand.websiteBrief.email||'',phone:brand.websiteBrief.phone||'',services:(Array.isArray(brand.websiteBrief.services)?brand.websiteBrief.services:[]).map(r=>({id:r.id,name:r.name,description:r.description||''}))}:null}/>
       <Button label="Talk & Explore — no project changes" disabled={!draft||!!s.websiteAction} onPress={()=>{
         const current=()=>exploreLive.current.project===exploreContext.project&&exploreLive.current.ownerId===exploreContext.ownerId&&exploreLive.current.businessId===exploreContext.businessId;

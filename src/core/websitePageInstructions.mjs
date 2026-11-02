@@ -1,3 +1,4 @@
+import {reviewWebsitePhoto} from './websitePhotoReview.mjs';
 import {heroFamilies} from '../../supabase/functions/busy-website-worker/websiteHeroFamilies.mjs';
 /**
  * V3.149 finite multi-section website conversation.
@@ -44,7 +45,21 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   }
   const literal=clause.match(/^(?:change|set|update) (?:the )?(.+?) (heading|text|body|button text) (?:to|with) "([^"<>]{1,2500})"$/i);
   let m,change,description,type='layout';
-  if(literal){
+  if((m=clause.match(/^use the reviewed "([a-z-]{1,60})" opening$/i))){
+   if(pageId!=='home'||!findSection('hero')||!heroFamilies.some(f=>f.id===m[1]))return fail('Choose a supported current homepage direction.');
+   change={action:'style',field:'heroComposition',value:m[1]};description='Change only the reviewed opening; retain original brand typography, spacing and words';
+  }else if((m=clause.match(/^use approved photo "([A-Za-z0-9_./-]{1,300})" for the hero$/i))){
+   if(pageId!=='home'||!findSection('hero'))return fail('Open your current homepage first.');
+   const photo=reviewWebsitePhoto(draft,m[1]);if(!photo.ok)return fail(photo.reason);
+   change={action:'choose-hero-photo',storagePath:photo.storagePath};description='Use only the selected current approved gallery original for the homepage';
+  }else if((m=clause.match(/^focus the hero photograph at (top|center|bottom|brand) on (phones|desktop)$/i))){
+   if(!findSection('hero'))return fail('Open your homepage first.');
+   change={action:'section-style',sectionId:'hero',field:m[2].toLowerCase()==='phones'?'mobilePhotoCrop':'desktopPhotoCrop',value:m[1].toLowerCase()};description='Review this photograph focal point only at the chosen width';
+  }else if(/^make the page warmer without changing colours$/i.test(clause)){
+   const operations=[{action:'style',field:'typography',value:'friendly'},{action:'style',field:'spacing',value:'generous'}].filter(op=>draft.theme?.[op.field]!==op.value);
+   if(!operations.length)return fail('These supported welcoming settings are already selected.');
+   change={action:'style-group',operations};description='Compare welcoming type and breathing room; keep approved colours and wording';
+  }else if(literal){
    const section=findSection(literal[1]);if(!section)return fail('Name one exact visible section for your wording.');
    const field={heading:'title',text:'body',body:'body','button text':'cta'}[literal[2].toLowerCase()];
    change={sectionId:section.id,field,value:literal[3]};type='field';

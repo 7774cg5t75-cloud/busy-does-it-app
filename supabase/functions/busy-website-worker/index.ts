@@ -162,7 +162,7 @@ function renderSectionHtml(
   if (section.type === "hero") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     const imageMarkup=image
-      ? `<img class="hero-image" loading="eager" decoding="async" fetchpriority="high" src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
+      ? `<img class="hero-image${["top","bottom"].includes(section.asset?.appearance?.photoCrop)?" owner-image-crop-"+section.asset.appearance.photoCrop:""}${section.asset?.appearance?.photoFit==="contain"?" owner-image-fit-contain":""}" loading="eager" decoding="async" fetchpriority="high" src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
       : '<div class="hero-art" aria-hidden="true"></div>';
     const kicker=clean(draft.businessType,140)||clean(draft.businessName,140);
     const headline=clean(section.title,240)||clean(draft.businessName,240)||"Your business";

@@ -14,6 +14,9 @@ export function premiumHeroInner(kind,{copy='',image='',images=/** @type {string
 }
 export const premiumHeroCss=`${heroFamilyCss}
 
+.hero .hero-image.owner-image-crop-top{object-position:center top}
+.hero .hero-image.owner-image-crop-bottom{object-position:center bottom}
+.hero .hero-image.owner-image-fit-contain{object-fit:contain}
 /* Deliberately different DOM/grid compositions; no fonts, scripts or remote assets. */
 .hero [class*="premium-"]{min-width:0;box-sizing:border-box}
 .hero .premium-intro{position:relative;z-index:2;max-width:72ch}
@@ -54,4 +57,7 @@ export const premiumHeroCss=`${heroFamilyCss}
  .hero .premium-intro .lead{font-size:1.05rem}
 }
 @media(prefers-reduced-motion:reduce){.hero .cta{transition:none}}
+
+@media(max-width:800px){section.hero.owner-mobile-photo-crop-top .hero-image{object-position:center top}section.hero.owner-mobile-photo-crop-center .hero-image{object-position:center center}section.hero.owner-mobile-photo-crop-bottom .hero-image{object-position:center bottom}}
+@media(min-width:801px){section.hero.owner-desktop-photo-crop-top .hero-image{object-position:center top}section.hero.owner-desktop-photo-crop-center .hero-image{object-position:center center}section.hero.owner-desktop-photo-crop-bottom .hero-image{object-position:center bottom}}
 `;
