@@ -1,3 +1,4 @@
+import {premiumHeroCss} from './websitePremiumHero.mjs';
 import {websiteTextColourCss} from "./websiteTextColours.mjs";
 import {textTypographyCss} from "./websiteTextTypography.mjs";
 /**
@@ -500,6 +501,7 @@ section.owner-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 ${websiteTextColourCss(d)}
 section.owner-cta-spacious .cta{min-height:58px;padding:18px 28px;white-space:normal}\nsection.owner-cta-wide .cta{display:flex;width:100%;min-height:50px;max-width:100%;white-space:normal}\n${textTypographyCss}
+${premiumHeroCss}
 `;
 }
 export {PALETTES,designForWebsite,designCss,withWhiteContrast};

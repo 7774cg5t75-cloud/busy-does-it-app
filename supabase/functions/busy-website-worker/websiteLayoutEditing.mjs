@@ -14,6 +14,7 @@ const list=x=>Array.isArray(x)?x:[];
 const slug=s=>text(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-+$/g,"").slice(0,52);
 const fail=(draft,reason)=>({applied:false,draft,reason});
 const allow={
+ heroComposition:["story-spread","service-led","quiet-portrait"],
  pageGuide:["none","sections"],
  typography:["confident","refined","compact","editorial","friendly"],
  cardLayout:["cards","outlines","rows"],
@@ -185,7 +186,8 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    return fail(draft,"Add an approved customer hero photo before changing photo crop.");
   if(field==="ctaEmphasis"&&value==="strong"&&!sections.some(s=>s.type==="hero"&&text(s.cta)&&text(s.ctaHref)))
    return fail(draft,"Add a button with a verified destination before emphasising it.");
-  if(theme[field]===value)return fail(draft,"That appearance setting is already active.");
+  if(theme[field]===value&&!(field==='heroLayout'&&theme.heroComposition))return fail(draft,"That appearance setting is already active.");
+  if(field==='heroLayout'&&theme.heroComposition)delete theme.heroComposition;
   theme[field]=value;
   return ready("Changed the website "+field+" to "+value+".");
  }

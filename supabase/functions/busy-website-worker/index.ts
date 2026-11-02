@@ -1,3 +1,4 @@
+import {premiumHeroInner} from './websitePremiumHero.mjs';
 import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
@@ -161,7 +162,7 @@ function renderSectionHtml(
   if (section.type === "hero") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     const imageMarkup=image
-      ? `<img class="hero-image" loading="eager" decoding="async" src="${escapeHtml(image)}" alt="${escapeHtml(draft.businessName||"Business photograph")}">`
+      ? `<img class="hero-image" loading="eager" decoding="async" fetchpriority="high" src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
       : '<div class="hero-art" aria-hidden="true"></div>';
     const kicker=clean(draft.businessType,140)||clean(draft.businessName,140);
     const headline=clean(section.title,240)||clean(draft.businessName,240)||"Your business";
@@ -170,7 +171,7 @@ function renderSectionHtml(
     const action=clean(section.cta,120)&&clean(section.ctaHref,500)
       ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>`
       : "";
-    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div></section>`;
+    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}">${theme.heroComposition?premiumHeroInner(theme.heroComposition,{copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>`,image:imageMarkup,hasImage:!!image,services:heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div>`}</section>`;
   }
 
   const headingTag = isFirstSection ? "h1" : "h2";

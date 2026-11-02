@@ -4,6 +4,15 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - 'src/core/premiumWebsite*.mjs'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/domain/premiumHomepagePreview.js'
+      - 'src/screens/premiumHomepagePreview.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/core/websitePageInstructions.mjs'
+      - 'src/core/busyGoalPlan.mjs'
+      - 'supabase/functions/busy-website-worker/**'
+      - 'scripts/check-premium-website-experience.mjs'
       - 'src/components/OwnerOperationalPreview.js'
       - 'supabase/functions/busy-mini-apps/enquiryPreparationService.mjs'
       - 'docs/sql-proposals/canonical-work/enquiry-preparation*'
@@ -152,6 +161,7 @@ jobs:
           mkdir -p .test-artifacts/app-goal-composition
           node scripts/check-enquiry-preparation.mjs
           node scripts/check-operational-work.mjs
+          node scripts/check-premium-website-experience.mjs
           node scripts/check-work-preparation.mjs
           node scripts/check-customer-form-discovery.mjs
           node scripts/check-public-collection-parity.mjs
@@ -247,4 +257,5 @@ jobs:
           path: |
             .test-artifacts/app-goal-composition/
             .test-artifacts/whole-app/postgres.json
+            .test-artifacts/premium-websites/
           retention-days: 7

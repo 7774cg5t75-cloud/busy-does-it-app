@@ -86,6 +86,13 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    if(!section||section.contentSource!=='business_records_v1')return fail('Open the current page containing the approved-record section first.');
    change={action:'content-section',sectionId:section.id,title:section.title,layout:m[2].toLowerCase(),featuredId:section.featuredId||''};
    type='field';description='Change only the record presentation; keep this destination heading, featured item, styling and approved-record source';
+  }else if((m=clause.match(/^prepare a (food story|service-led|calm portrait) homepage$/i))){
+   if(pageId!=='home'||!findSection('hero'))return fail('Open your existing homepage to review this composition.');
+   const kind={'food story':'story-spread','service-led':'service-led','calm portrait':'quiet-portrait'}[m[1].toLowerCase()];
+   const values={heroComposition:kind,typography:kind==='service-led'?'confident':'refined',spacing:'generous',cardLayout:kind==='story-spread'?'rows':kind==='service-led'?'outlines':'cards'};
+   const operations=Object.entries(values).map(([field,value])=>({action:'style',field,value})).filter(op=>draft.theme?.[op.field]!==op.value);
+   if(!operations.length)return fail('This composition is already active. Keep it or describe a specific correction.');
+   change={action:'style-group',operations};description='Prepare a distinct '+m[1]+' opening. Keep original facts, colours, photographs, section order and destinations; review both widths before saving';
   }else if((m=clause.match(/^(?:make|set) (?:the )?hero (left aligned|centred|centered|right aligned|a poster)$/i))){
    if(!findSection('hero'))return fail('Open the page containing the current hero before changing its composition.');
    change={action:'style',field:'heroLayout',value:{'left aligned':'type-left',centred:'type-center',centered:'type-center','right aligned':'type-right','a poster':'type-poster'}[m[1].toLowerCase()]};

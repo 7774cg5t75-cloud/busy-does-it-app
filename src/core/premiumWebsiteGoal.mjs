@@ -1,0 +1,23 @@
+import {deriveSector} from '../../supabase/functions/busy-website-worker/designPlanner.mjs';
+import {websiteDraftHasScope} from './websiteDraftScope.mjs';
+import {prepareWebsiteRequest} from './websiteRequestPlan.mjs';
+// Owner-goal recogniser for finite existing builder operations, not a model.
+export function premiumWebsiteGoal({request,website,businessId,pageId='home',source='owner'}={},deps={}){
+ if(source!=='owner'||typeof request!=='string'||request.length>400||/[<>\u0000-\u001f]/.test(request))return null;
+ const words=request.trim().replace(/[.!?]+$/,'');let instruction='',explanation='';
+ const design=/^(?:i need|i want) a professional website(?: for (?:my |our )?(.+))?$|^give (?:the |my )?(?:homepage|website) a more premium appearance$/i.exec(words);
+ if(design){
+  const sector=deriveSector(website?.businessType||'');
+  if(design[1]&&deriveSector(design[1])!==sector)return {recognised:true,ready:false,question:'Your saved business information describes a different kind of business. Review that information first; I have not changed it.',providerCalls:0,mayExecute:false};
+  const kind=sector==='hospitality'?'food story':sector==='wellness'?'calm portrait':'service-led';
+  instruction='prepare a '+kind+' homepage';explanation='Compare a '+kind+' opening using your current wording, services and approved photographs. Colours and customer destinations stay unchanged.';
+ }else if(/^make (?:my|our|the) services easier for customers to understand$/i.test(words)){instruction='show services as a directory';explanation='Give the existing services a clearer directory layout without rewriting their scope.';}
+ else if(/^put (?:my|our|the) best photographs near the top$/i.test(words))return {recognised:true,ready:false,question:'Which approved photograph is your best? Choose its exact image in the existing photo controls; I will not guess.',providerCalls:0,mayExecute:false};
+ else if(/^make it easier for customers to request a quote$/i.test(words)){instruction='make the main button stand out';explanation='Emphasise the existing verified contact destination. This does not create a quote or send an enquiry.';}
+ else if(/^make the mobile version look less crowded$/i.test(words)){instruction='give the page more space on phones';explanation='Compare more breathing room on phones without changing desktop spacing or your wording.';}
+ else return null;
+ const base={recognised:true,goal:'premium-website-presentation',ownerWording:request,providerCalls:0,mayExecute:false,requiresReview:true,verifiedOutcome:false,findings:[explanation],limitations:['Private design proposal only. Review actual mobile and desktop rendering before customer use. Nothing is saved or published.']};
+ if(!websiteDraftHasScope(website,businessId)||!website.pages?.some(p=>p.id===pageId&&p.enabled!==false))return {...base,ready:false,question:'Open the current page of your own business website first.'};
+ const prepared=prepareWebsiteRequest(website,{draftId:website.id,pageId,generation:website.generation,instruction},deps);
+ return {...base,instruction,ready:prepared.ok,prepared:prepared.ok?prepared:null,question:prepared.ok?null:prepared.reason,nextAction:'Compare this private design'};
+}

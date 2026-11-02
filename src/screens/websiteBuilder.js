@@ -1458,6 +1458,8 @@ function WebsitePreview({ s }) {
           </View>
         ):null}
         <Text style={styles.cardBody}>This optional AI interpretation needs an enabled provider and consumes one shared daily website voice/AI request. Typed exact instructions and private previews do not use AI credits. You always approve changes yourself.</Text>
+        <Text style={styles.cardBody}>Tell Busy the result you want. Your existing business details, wording and approved photographs stay the starting point.</Text>
+        {['Give the homepage a more premium appearance','Make my services easier for customers to understand','Make it easier for customers to request a quote','Make the mobile version look less crowded'].map(goal=><Button key={goal} label={goal} onPress={()=>requestPageInstruction(goal)}/>)}
         <Button label="Preview changes — do not save"
           onPress={()=>{
             setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);

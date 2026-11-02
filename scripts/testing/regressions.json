@@ -3096,6 +3096,12 @@
       "args": [
         "scripts/check-operational-work.mjs"
       ]
+    },
+    {
+      "id": "premium-website-experience",
+      "args": [
+        "scripts/check-premium-website-experience.mjs"
+      ]
     }
   ]
 }

@@ -1,3 +1,4 @@
+import {premiumWebsiteGoal} from './premiumWebsiteGoal.mjs';
 import {classifyOwnerCorrection} from './ownerGoalCorrection.mjs';
 import {classifyOwnerGoal} from './ownerGoalIntent.mjs';
 import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
@@ -11,6 +12,7 @@ export function planBusyGoal({request,website,businessId,pageId='home',profile=n
  if(source!=='owner'||typeof request!=='string'||!request.trim()||request.length>400||/[<>\u0000-\u001f\u007f]/.test(request))return unknown('What would you like to achieve?');
  const correction=source==='owner'?classifyOwnerCorrection(request):null;
  if(correction)return {recognised:true,ownerWording:request,goal:'owner-correction',contextKind:'correction',ready:false,mayExecute:false,requiresReview:true,providerCalls:0,verifiedOutcome:false,nextAction:correction.explanation,question:null,limitations:['Nothing is remembered permanently without the supported account review.']};
+ const premium=surface==='website'?premiumWebsiteGoal({request,website,businessId,pageId,source},deps):null;if(premium)return premium;
  const interpretation=classifyOwnerGoal({request,surface,source});
  if(!interpretation.recognised)return unknown(interpretation.reason);
  const base={recognised:true,ownerWording:request,providerCalls:0,mayExecute:false,assumptions:[],verifiedOutcome:false,requiresReview:true,interpretation};

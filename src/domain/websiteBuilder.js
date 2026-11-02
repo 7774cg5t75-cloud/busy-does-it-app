@@ -1,3 +1,4 @@
+import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
 import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
 import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
@@ -220,7 +221,16 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     return prior?{...section,items:prior.items.map(item=>({...item})),
       ownerEditedItems:true}:section;
   };
-  const rawSections=[...generated.map(keepOwnerItems),
+  // Preserve only deliberately edited destination wording in this exact
+  // original business. It is owner copy, not verified canonical business facts.
+  const sameOwnerSource=businessId?previousDraft?.businessId===businessId&&!([previousDraft?.business_id].some(id=>id&&id!==businessId)):!previousDraft?.businessId&&!previousDraft?.business_id&&previousDraft?.businessName===clean(brief.businessName)&&previousDraft?.businessType===clean(brief.businessType);
+  const keepOwnerCopy=section=>{
+    const matches=sameOwnerSource?safeArray(previousDraft?.sections).filter(s=>s.id===section.id&&s.type===section.type):[];
+    const prior=matches.length===1?matches[0]:null;
+    const fields=[...new Set(safeArray(prior?.ownerEditedFields))].filter(f=>['title','body'].includes(f)&&typeof prior[f]==='string'&&prior[f].length<=(f==='title'?140:2500)&&(f!=='title'||!!prior[f].trim())&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(prior[f]));
+    return fields.length?{...section,...Object.fromEntries(fields.map(f=>[f,prior[f]])),ownerEditedFields:fields}:section;
+  };
+  const rawSections=[...generated.map(keepOwnerItems).map(keepOwnerCopy),
     ...ownedCollections.filter(old=>!generated.some(s=>
       s.id===old.id&&s.type===old.type)).map(s=>({...s,
        items:s.items.map(item=>({...item}))})),
@@ -733,7 +743,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url
-        ? `<img class="hero-image"${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(draft.businessName||"Business photograph")}">`
+        ? `<img class="hero-image" loading="eager" decoding="async" fetchpriority="high"${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
         : '<div class="hero-art" aria-hidden="true"></div>';
       const kicker=clean(draft.businessType||draft.businessName);
       const lead=clean(section.body) ? `<p class="lead"${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>` : "";
@@ -749,7 +759,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const actionText=missingTarget?"Explore our services":clean(section.cta);
       const action=actionText&&actualHref
         ? `<a class="cta"${editAttrs(section,"cta")} href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
-      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div></section>`;
+      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}>${draft.theme?.heroComposition?premiumHeroInner(draft.theme.heroComposition,{copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title)}</h1>${lead}${action}</div>`,image:art,hasImage:!!url,services:heroServiceOverview(sections.find(s=>s.type==='services'),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`}</section>`;
     }
     if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
       const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass,contactHref:renderedAnchors.has('contact')?'#contact':''});
@@ -823,7 +833,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
           ?fragment:homePath+fragment):"");
       return href?`<a href="${escapeHtml(href)}">${escapeHtml(item.label)}</a>`:"";
     }).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml)}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml)}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 
