@@ -53,11 +53,19 @@ async function useNetwork(fn) {
    }
    if(method==='POST'){
     const body=JSON.parse(init.body);
-    assert.match(init.headers.Prefer,/resolution=merge-duplicates/);
+    assert.doesNotMatch(init.headers.Prefer||'',/resolution=merge-duplicates/);
+    if(db.has(body.email))return new Response(JSON.stringify({code:'23505'}),{status:409});
     db.set(body.email,body);
     return new Response('',{status:201});
    }
    if(method==='PATCH'){
+    const emailFilter=u.searchParams.get('email');
+    if(emailFilter){
+      const email=emailFilter.slice(3),row=db.get(email);
+      if(!row || row.status!=='pending')return Response.json([]);
+      Object.assign(row,JSON.parse(init.body));
+      return Response.json([row]);
+    }
     const hash=(u.searchParams.get('token_hash')||'').slice(3);
     const row=[...db.values()].find(x=>x.token_hash===hash&&x.status==='pending');
     if(!row)return Response.json([]);
@@ -84,7 +92,7 @@ test('contact: disabled means no external requests; permitted form is validated 
   assert.equal(invalid.status,400);assert.equal(requests.length,0);
   const ok=await contact.onRequestPost({request:post('/api/contact',{name:'Business Owner',email:'owner@example.com',message:'Hello from the website',turnstileToken:'contact-token'}),env});
   assert.equal(ok.status,200);
-  assert.equal((await ok.json()).message,'Your message has been sent.');
+  assert.equal((await ok.json()).message,'Your message was accepted for delivery. We will respond by email.');
   assert.equal(sent.length,1);
   assert.equal(sent[0].to[0],'hello@busydoesit.co.uk');
   assert.equal(sent[0].reply_to,'owner@example.com');
@@ -121,5 +129,30 @@ test('waitlist: consent required, double opt-in and GET cannot confirm',async()=
   const second=await confirm.onRequestPost({env,request:new Request(confirmationURL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token})})});
   assert.match(await second.text(),/expired or was already used/);
   assert.equal(db.get(email).status,'confirmed');
+ });
+});
+
+test('repeated interests cannot demote confirmed or unsubscribed addresses',async()=>{
+ await useNetwork(async({sent,db})=>{
+  const env=makeEnv(),email='returning@example.net';
+  const valid={email,consent:true,consentVersion:'2026-11-01-launch-only',turnstileToken:'early-access-token'};
+  const first=await early.onRequestPost({env,request:post('/api/early-access',valid)});
+  assert.equal(first.status,200);
+  assert.equal(sent.length,1);
+  const originalHash=db.get(email).token_hash;
+  const second=await early.onRequestPost({env,request:post('/api/early-access',valid)});
+  assert.equal(second.status,200);
+  assert.equal(sent.length,2);
+  assert.notEqual(db.get(email).token_hash,originalHash);
+  db.get(email).status='confirmed';db.get(email).token_hash=null;
+  const third=await early.onRequestPost({env,request:post('/api/early-access',valid)});
+  assert.equal(third.status,200);
+  assert.equal(sent.length,2,'no email for confirmed addresses');
+  assert.equal(db.get(email).status,'confirmed');
+  db.get(email).status='unsubscribed';
+  const fourth=await early.onRequestPost({env,request:post('/api/early-access',valid)});
+  assert.equal(fourth.status,200);
+  assert.equal(sent.length,2,'no email for unsubscribed addresses');
+  assert.equal(db.get(email).status,'unsubscribed');
  });
 });
