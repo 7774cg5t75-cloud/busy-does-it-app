@@ -4,6 +4,7 @@ export function json(data,status=200){return new Response(JSON.stringify(data),{
 export function ready(env,host) {
   const allowed=(env.MARKETING_ALLOWED_HOSTS||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
   return env.MARKETING_FORMS_ENABLED==='1' && env.MARKETING_PRIVACY_APPROVED==='1'
+    && env.MARKETING_WAF_APPROVED==='1' && env.MARKETING_RETENTION_APPROVED==='1'
     && allowed.includes(host.toLowerCase()) && !!env.TURNSTILE_SITE_KEY
     && !!env.TURNSTILE_SECRET && !!env.MARKETING_RATE_KV && !!env.MARKETING_IP_PEPPER
     && !!env.SUPABASE_URL && /^sb_secret_[A-Za-z0-9_\-]+$/.test(env.SUPABASE_SECRET_KEY||'') && !!env.RESEND_API_KEY
