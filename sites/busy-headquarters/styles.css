@@ -421,3 +421,13 @@ a.founder-business:focus-visible{outline:2px solid #83eaff;outline-offset:4px}
 .busy-turnstile{min-height:0}
 .early-access-form input:focus-visible,.early-access-form button:focus-visible{outline:2px solid #80ecff;outline-offset:3px}
 @media(max-width:550px){.early-access-form{padding:18px}.early-access-form .button{width:100%}}
+
+
+/* Coming-soon email-only contact: no form and no automatic visitor details collection. */
+.contact-section.email-only .contact-layout{display:block;max-width:850px}
+.contact-section.email-only .contact-intro{max-width:750px;margin-inline:auto;text-align:center}
+.contact-section.email-only .contact-intro .eyebrow{justify-content:center}
+.contact-section.email-only .contact-intro .eyebrow .accent-line{display:none}
+.contact-section.email-only .contact-address{margin:18px 0 23px}
+.contact-section.email-only .contact-email-button{color:#061322;background:linear-gradient(115deg,#8aedff,#90c5ff);width:max-content;max-width:100%;margin-inline:auto}
+@media(max-width:550px){.contact-section.email-only .contact-email-button{width:100%}}
