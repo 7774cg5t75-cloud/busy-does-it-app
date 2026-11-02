@@ -3,11 +3,13 @@
 STATUS: REVIEW COPY — DO NOT PUBLISH UNTIL OPERATOR INFORMATION AND PROCEDURES ARE APPROVED.
 
 ## Who operates the website
-Busy Does It is an independent small-business software project in development. 
-Data controller: [CONFIRM LEGAL OPERATOR FULL NAME OR REGISTERED COMPANY NAME].
+Busy Does It is a small-business software project in development, operated at present by an individual. **Busy Does It Limited has not yet been incorporated** and must not be described as an existing company.
+
+Data controller: **[INSERT INDIVIDUAL OPERATOR'S FULL LEGAL NAME — ONLY AFTER THEIR EXPLICIT APPROVAL FOR PUBLICATION]**. Business name: Busy Does It (coming soon).
+
 Contact for privacy enquiries and rights: hello@busydoesit.co.uk.
 
-Do not claim to be a limited company before incorporation.
+Before publication, confirm any additional trading-name/website disclosures and a suitable business correspondence/service address where applicable. Do not reveal the operator's private home address by default. When a company is eventually incorporated and actually becomes the controller, update this notice and relevant contracts after verifying the change.
 
 ## What information we collect
 The coming-soon website is available without an account or payment. Automatic contact submissions, subscriptions and automated waiting-list registration remain OFF.
@@ -34,8 +36,10 @@ People may contact hello@busydoesit.co.uk to request access, correction, deletio
 The website is not intended to use non-essential analytics or advertising cookies at launch. Hosting may use essential security mechanisms. Check actual site behaviour and disclose it accurately. Update this notice before enabling accounts, marketing signups, analytics, automated forms or payments.
 
 ## Owner review checklist
-- [ ] Confirm legal operator and appropriate contact details (company only once registered).
+- [ ] Confirm the **individual** legal operator's full name and explicit permission to display it publicly; Busy Does It Limited does not yet exist.
+- [ ] Confirm whether a UK correspondence/service address must be disclosed for this launch, and select a suitable address without automatically exposing a private residence.
 - [ ] Approve lawful bases, retention, provider transfers, complaint/right processes.
+- [ ] Complete the ICO data protection fee self-assessment (fee may be exempt for some marketing/public relations activities; not automatic).
 - [ ] Ensure the privacy notice is freely and prominently available when someone contacts us.
 - [ ] Verify the website's actual cookies, scripts and third-party resources.
 - [ ] Convert this copy into a finished privacy.html only after owner approval.
