@@ -8,6 +8,7 @@ const helperSource=read('functions/api/_shared.js');
 const helpers=await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(helperSource));
 const full={
   MARKETING_FORMS_ENABLED:'1',MARKETING_PRIVACY_APPROVED:'1',
+  MARKETING_WAF_APPROVED:'1',MARKETING_RETENTION_APPROVED:'1',
   MARKETING_ALLOWED_HOSTS:'busydoesit.co.uk',
   MARKETING_PUBLIC_ORIGIN:'https://busydoesit.co.uk',
   TURNSTILE_SITE_KEY:'test_key',TURNSTILE_SECRET:'test_secret',
@@ -21,6 +22,8 @@ test('forms are disabled by default, and cannot activate without privacy approva
   assert.equal(helpers.ready({},'busydoesit.co.uk'),false);
   assert.equal(helpers.ready({...full,MARKETING_FORMS_ENABLED:'0'},'busydoesit.co.uk'),false);
   assert.equal(helpers.ready({...full,MARKETING_PRIVACY_APPROVED:'0'},'busydoesit.co.uk'),false);
+  assert.equal(helpers.ready({...full,MARKETING_WAF_APPROVED:'0'},'busydoesit.co.uk'),false);
+  assert.equal(helpers.ready({...full,MARKETING_RETENTION_APPROVED:'0'},'busydoesit.co.uk'),false);
   assert.equal(helpers.ready({...full,TURNSTILE_SECRET:''},'busydoesit.co.uk'),false);
   assert.equal(helpers.ready({...full,MARKETING_RATE_KV:null},'busydoesit.co.uk'),false);
   assert.equal(helpers.ready(full,'attacker.example'),false);
