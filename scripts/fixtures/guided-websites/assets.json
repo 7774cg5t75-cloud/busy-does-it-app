@@ -7,7 +7,9 @@
       "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Ugandan_food_buffet_serving.jpg",
       "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Ugandan_food_buffet_serving.jpg&oldid=1210355536",
       "credit": "Rebeccananonof, Ugandan food buffet serving, CC0",
-      "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+      "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046",
+      "width": 4608,
+      "height": 3456
     },
     {
       "name": "garden",
@@ -15,15 +17,19 @@
       "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
       "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
       "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition",
-      "sha256": null
+      "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+      "width": 1280,
+      "height": 1920
     },
     {
       "name": "studio",
       "extension": "jpg",
-      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Wax_candles_lit.jpg",
-      "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Wax_candles_lit.jpg&oldid=1223581454",
-      "credit": "Titus Tscharntke, Wax candles lit, public-domain dedication; Commons via Fae",
-      "sha256": null
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+      "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+      "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition; explicit illustrative botanical choice for fictional wellness preview, not studio premises",
+      "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+      "width": 1280,
+      "height": 1920
     }
   ]
 }

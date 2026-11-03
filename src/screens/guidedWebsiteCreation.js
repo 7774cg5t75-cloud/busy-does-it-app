@@ -4,7 +4,7 @@ import {Text,Image} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {Card,Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
-import {prepareGuidedWebsite,refineGuidedWebsite,currentGuidedWebsite,keepGuidedWebsite} from '../core/guidedWebsiteJourney.mjs';
+import {prepareGuidedWebsite,refineGuidedWebsite,currentGuidedWebsite,keepGuidedWebsite,guidedWebsiteCandidate} from '../core/guidedWebsiteJourney.mjs';
 import {websitePhotoChoices} from '../core/websitePhotoReview.mjs';
 import {websiteRequestContent} from '../core/websiteRequestPlan.mjs';
 import {withWebsitePreviewViewport} from '../core/websiteResponsivePreview.mjs';
@@ -17,6 +17,7 @@ export function GuidedWebsiteCreation({s}){
  const report=useOwnerEditNavigation(s,{source:context.website,projectId:context.website?.id,revision:context.website?.generation},()=>{if(flight.current)return false;setJourney(null);setGoal('');setChange('');setHeadline('');setHeadlineDirty(false);setChangeDirty(false);return true;});
  const captured=epoch.current,scope=[context.ownerId,context.businessId].join(':'),source=websiteRequestContent(context.website),fresh=journey&&currentGuidedWebsite(journey,context),current=()=>alive.current&&epoch.current===captured&&[live.current.context.ownerId,live.current.context.businessId].join(':')===scope;
  const update=(fn,value)=>{if(!current()||flight.current)return;epoch.current++;fn(value);report(true);if(fn===setGoal)setJourney(null);if(fn===setHeadline)setHeadlineDirty(!!value);if(fn===setChange)setChangeDirty(!!value);};
+ const candidate=guidedWebsiteCandidate(journey),selectedPhoto=candidate?.sections?.find(section=>section.type==='hero')?.asset?.storagePath,blockedPhoto=candidate?.theme?.heroComposition!=='typography-first'&&selectedPhoto&&unavailable.includes(selectedPhoto);
  const refine=options=>{if(!current()||!fresh||flight.current||fenced||options.photoPath&&unavailable.includes(options.photoPath))return false;const next=refineGuidedWebsite(journey,context,options,deps);if(!next.ok){setNotice(next.reason);return false;}setJourney(next);report(true);if(options.headline)setHeadlineDirty(false);if(options.request)setChangeDirty(false);setKept(false);setNotice('Here is the revised design. Your current website is unchanged.');return true;};
  return <Card title="Your business. Your website." body="Tell Busy the outcome you want. We start with this business’s saved facts, wording and approved photographs. Nothing is published.">
   <Field label="What would you like?" value={goal} maxLength={400} onChangeText={v=>update(setGoal,v)}/>
@@ -32,8 +33,8 @@ export function GuidedWebsiteCreation({s}){
    <Button label="Try another design" disabled={busy||fenced} onPress={()=>refine({request:'Try another design',rejectCurrent:true})}/>
    <Field label="What would you change?" value={change} maxLength={400} onChangeText={v=>update(setChange,v)}/><Button label="Review this change" disabled={busy||fenced} onPress={()=>refine({request:change})}/>
    <Field label="Your chosen headline" value={headline} maxLength={140} onChangeText={v=>update(setHeadline,v)}/><Button label="Keep this design and review my headline" disabled={busy||fenced} onPress={()=>refine({headline})}/>
-   <Button label="Keep this design" disabled={busy||fenced||headlineDirty||changeDirty} onPress={async()=>{
-    if(!current()||flight.current||fenced||!fresh||headlineDirty||changeDirty)return false;report(false);flight.current=true;setBusy(true);const reviewed=journey;
+   <Button label="Keep this design" disabled={busy||fenced||headlineDirty||changeDirty||!!blockedPhoto} onPress={async()=>{
+    if(!current()||flight.current||fenced||!fresh||headlineDirty||changeDirty||blockedPhoto)return false;report(false);flight.current=true;setBusy(true);const reviewed=journey;
     let result;try{result=await keepGuidedWebsite(reviewed,{getContext:()=>live.current.context,apply:s.applyWebsitePageInstruction});}catch{result={ok:false,unknown:true,reason:'The outcome is unknown. Inspect the original Studio before any new attempt.'};}finally{flight.current=false;if(alive.current)setBusy(false);}
     if(!current())return false;setNotice(result.reason);setFenced(!result.ok);if(!result.ok)report(true);setKept(result.ok);return result.ok;
    }}/>
