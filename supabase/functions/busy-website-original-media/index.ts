@@ -69,7 +69,7 @@ async function audit(userId:string,businessId:string,path:string,action:string,b
   storage_path:path,action,byte_length:bytes});
  if(r.error)throw r.error;
 }
-const uploadOperations=originalUploadOperations({supabase,inspect:(bytes:Uint8Array)=>{const review=reviewOriginalImageBytes(bytes);return review.ok?review.contentType:"";},rateGate,audit,digest:async(bytes:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Uint8Array.from(bytes)))).map(x=>x.toString(16).padStart(2,'0')).join('')});
+const uploadOperations=originalUploadOperations({supabase,inspect:(bytes:Uint8Array)=>{const review=reviewOriginalImageBytes(bytes);return review.ok&&'contentType' in review?review.contentType:"";},rateGate,audit,digest:async(bytes:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',Uint8Array.from(bytes)))).map(x=>x.toString(16).padStart(2,'0')).join('')});
 async function upload(req:Request,raw:any,userId:string,businessId:string){
  const encoded=raw?.photoBase64;
  if(typeof encoded!=="string"||encoded.length<28||encoded.length>12_600_000||

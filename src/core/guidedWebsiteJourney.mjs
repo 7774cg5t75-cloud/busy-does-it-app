@@ -1,14 +1,14 @@
 import {planBusyGoal} from './busyGoalPlan.mjs';
 import {prepareWebsiteRequest,websiteRequestContent} from './websiteRequestPlan.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
-import {reviewWebsitePhoto,websitePhotoChoices} from './websitePhotoReview.mjs';
+import {reviewWebsitePhoto,websitePhotoChoices,websitePhotoSourcesCurrent} from './websitePhotoReview.mjs';
 import {premiumWebsiteDirections} from './premiumWebsiteDirections.mjs';
 const fail=reason=>({ok:false,reason});
 export function guidedWebsiteCandidate(journey){
  if(!journey?.ok||!journey.plan?.ok)return null;
  try{return {...JSON.parse(journey.plan.boundaries.at(-1)),generation:journey.plan.generation+journey.plan.groups.length};}catch{return null;}
 }
-export function currentGuidedWebsite(journey,{website,businessId,ownerId,profileRevision}){return !!journey?.ok&&journey.plan?.kind==='reviewed_website_request'&&journey.plan.groups?.length===1&&journey.plan.boundaries?.length===2&&journey.profileRevision===profileRevision&&journey.ownerId===ownerId&&journey.businessId===businessId&&websiteDraftHasScope(website,businessId)&&website?.id===journey.plan.draftId&&website.generation===journey.plan.generation&&websiteRequestContent(website)===journey.plan.boundaries[0];}
+export function currentGuidedWebsite(journey,{website,businessId,ownerId,profileRevision}){return websitePhotoSourcesCurrent(website)&&!!journey?.ok&&journey.plan?.kind==='reviewed_website_request'&&journey.plan.groups?.length===1&&journey.plan.boundaries?.length===2&&journey.profileRevision===profileRevision&&journey.ownerId===ownerId&&journey.businessId===businessId&&websiteDraftHasScope(website,businessId)&&website?.id===journey.plan.draftId&&website.generation===journey.plan.generation&&websiteRequestContent(website)===journey.plan.boundaries[0];}
 export function prepareGuidedWebsite({website,businessId,ownerId,profileRevision,goal},deps){
  if(!ownerId||!websiteDraftHasScope(website,businessId))return fail('Open this business’s current private website first.');
  if(typeof goal!=='string'||goal.length>400)return fail('Describe one supported website goal.');

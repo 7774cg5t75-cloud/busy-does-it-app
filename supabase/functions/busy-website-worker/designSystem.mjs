@@ -309,7 +309,7 @@ section.owner-faq-questions details > p{padding:0 20px 20px;margin:0;max-width:7
 .visual-hero-type-right .hero-no-image .hero-content{margin-left:auto}
 .visual-hero-type-right .hero-no-image .lead{margin-left:auto}
 .visual-hero-type-poster .hero-no-image h1{font-size:clamp(3.7rem,11vw,8.5rem);line-height:.95;max-width:1000px}
-.visual-hero-type-poster .hero-no-image .hero-art{right:-8%;top:-35%;width:54vw}
+.visual-hero-type-poster .hero-no-image .hero-art{right:0;top:0;width:min(45vw,600px);transform:none}
 .visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:1}
 .visual-hero-image-left .hero-with-image .hero-content{grid-column:2;grid-row:1}
 /* Framed composition balances longer copy against an inset approved image. */

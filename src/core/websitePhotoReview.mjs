@@ -11,3 +11,10 @@ export function reviewWebsitePhoto(draft,storagePath,{now=Date.now()}={}){
  return {ok:true,asset,storagePath,warning:!width||!height?'Image resolution is unverified. Review the original and both screen sizes before any customer use.':width<1200||height<600?'This image may suit a smaller presentation. Review sharpness and cropping; avoid an enlarged full-width image.':'Review the crop on phone and desktop. Resolution alone does not establish photographic quality or rights.',hasRecordedDimensions:!!width&&!!height,resolutionVerified:false};
 }
 export function websitePhotoChoices(draft){return (draft?.sections||[]).filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>s.items||[]).map(a=>reviewWebsitePhoto(draft,a?.storagePath)).filter(r=>r.ok);}
+// Current scoped source metadata only; not a replacement for original storage
+// membership/registry authorisation or independent copyright acceptance.
+export function websitePhotoSourcesCurrent(draft,{now=Date.now()}={}){
+ if(!draft)return true;
+ const businessId=draft.businessId||draft.business_id;
+ return (draft.sections||[]).filter(s=>s.enabled!==false).flatMap(s=>s.type==='hero'||s.type==='photo-feature'?[s.asset]:s.type==='gallery'?s.items||[]:[]).filter(Boolean).every(a=>![a.businessId,a.business_id].some(id=>id&&id!==businessId)&&!['revoked','withdrawn','deleted'].includes(a.status)&&(!a.expiresAt||Number.isFinite(Date.parse(a.expiresAt))&&Date.parse(a.expiresAt)>now));
+}

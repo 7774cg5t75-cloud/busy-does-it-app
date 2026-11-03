@@ -1,3 +1,4 @@
+import {websitePhotoSourcesCurrent} from '../../../src/core/websitePhotoReview.mjs';
 import {WEBSITE_ATOMIC_CHARACTERS} from '../../../src/core/websiteEditingLimits.mjs';
 import {planWebsitePageInstructions} from '../../../src/core/websitePageInstructions.mjs';
 import {prepareSelectedWebsiteTransaction} from '../../../src/core/websiteContextPlan.mjs';
@@ -48,6 +49,7 @@ export async function privateWebsiteDraftAction({action,body,userId,read,commit,
   if(!edited.applied)throw Error(edited.reason||'This wording change is unsupported');
   candidate=edited.draft;
  }
+ if(!websitePhotoSourcesCurrent(candidate))throw Error('Original photo scope, permission or expiry changed. Review current media before keeping this website.');
  // HTML is reproducible presentation, never an independent stored authority.
  const {html,...model}=candidate;
  const args={p_business_id:body.businessId,p_actor_id:userId,p_expected_revision:basis.revision,p_expected_draft:basis.websiteDraft||null,p_candidate:model,p_profile_revision:basis.profileRevision};

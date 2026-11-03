@@ -6,6 +6,7 @@ export function websitePhotoKeys(asset){
  if(!websiteAssetAvailable(asset))return [];
  return [...new Set([asset.storagePath?'path:'+asset.storagePath:'',asset.uri?'uri:'+asset.uri:'',/^[a-f0-9]{64}$/.test(asset.sha256||'')?'hash:'+asset.sha256:''].filter(Boolean))];
 }
+/** @param {any[]} items @param {{businessId?:string,exclude?:any[]}} [options] */
 export function distinctWebsitePhotos(items,{businessId='',exclude=[]}={}){
  const seen=new Set(exclude.flatMap(websitePhotoKeys)),out=[];
  for(const [index,asset] of (Array.isArray(items)?items:[]).entries()){
