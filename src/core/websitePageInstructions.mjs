@@ -102,9 +102,12 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    if(!section||section.contentSource!=='business_records_v1')return fail('Open the current page containing the approved-record section first.');
    change={action:'content-section',sectionId:section.id,title:section.title,layout:m[2].toLowerCase(),featuredId:section.featuredId||''};
    type='field';description='Change only the record presentation; keep this destination heading, featured item, styling and approved-record source';
+  }else if(/^(?:refine the complete website design|make (?:the )?(?:whole |entire )?website (?:look |feel )?(?:more professional|less generic)|keep the headline but change the layout)$/i.test(clause)){
+   if(!findSection('hero')||!heroFamilies.some(f=>f.id===draft.theme?.heroComposition)&&!steps.flatMap(s=>s.change.action==='style-group'?s.change.operations:[s.change]).some(op=>op.field==='heroComposition'&&heroFamilies.some(f=>f.id===op.value)))return fail('Prepare a reviewed opening before refining the complete page.');
+   change={action:'style',field:'heroVariation',value:'crafted'};description='Prepare a coherent full-page service, story and contact composition. Keep approved words, photos, colours, order and destinations; review actual screens before keeping';
   }else if((m=clause.match(/^(give the opening more breathing room|make the opening more compact|restore the opening spacing)$/i))){
    if(!findSection('hero')||!draft.theme?.heroComposition)return fail('Prepare a reviewed premium opening first.');
-   change={action:'style',field:'heroVariation',value:m[1].toLowerCase().startsWith('give')?'airy':m[1].toLowerCase().startsWith('make')?'compact':'signature'};description='Compare a coherent opening rhythm without changing copy, branding or photographs';
+   change={action:'style',field:'heroVariation',value:(String(draft.theme?.heroVariation||'').startsWith('crafted')?'crafted'+(m[1].toLowerCase().startsWith('give')?'-airy':m[1].toLowerCase().startsWith('make')?'-compact':''):m[1].toLowerCase().startsWith('give')?'airy':m[1].toLowerCase().startsWith('make')?'compact':'signature')};description='Compare a coherent opening rhythm without changing copy, branding or photographs';
   }else if((m=clause.match(/^prepare a ([a-z -]+) homepage$/i))){
    if(pageId!=='home'||!findSection('hero'))return fail('Open your existing homepage to review this composition.');
    const wanted=m[1].toLowerCase(),kind=({'food story':'story-spread','calm portrait':'quiet-portrait'}[wanted]||wanted);

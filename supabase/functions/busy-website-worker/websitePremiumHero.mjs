@@ -2,10 +2,11 @@ import {heroFamilies,heroFamilyCss} from './websiteHeroFamilies.mjs';
 // Trusted checked-in presentation modules only, never a client plugin registry.
 // Add reviewed families without changing operation/request limits or old IDs.
 export const PREMIUM_HERO_COMPOSITIONS=Object.freeze(heroFamilies.map(f=>f.id));
-export const PREMIUM_HERO_VARIATIONS=Object.freeze(['signature','airy','compact']);
+export const PREMIUM_HERO_VARIATIONS=Object.freeze(['signature','airy','compact','crafted','crafted-airy','crafted-compact']);
 export function premiumHeroInner(kind,{copy='',image='',images=/** @type {string[]} */([]),services='',hasImage=false,variation='signature'}={}){
  const family=heroFamilies.find(f=>f.id===kind);if(!family)return '';
- const treatment=PREMIUM_HERO_VARIATIONS.includes(variation)?variation:'signature';
+ const reviewed=PREMIUM_HERO_VARIATIONS.includes(variation)?variation:'signature';
+ const treatment=reviewed==='crafted'?'signature':reviewed.replace(/^crafted-/, '');
  const media=hasImage?`<figure class="premium-visual">${image}</figure>`:'';
  const extra=Array.isArray(images)?images.slice(0,2):[];
  const body=family.render({copy,media,extra,services});

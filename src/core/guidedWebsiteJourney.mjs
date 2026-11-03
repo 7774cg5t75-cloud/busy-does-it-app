@@ -17,7 +17,7 @@ export function prepareGuidedWebsite({website,businessId,ownerId,profileRevision
  const p=planBusyGoal({request:normal,surface:'website',website,businessId},deps);
  if(!p.ready||!p.prepared)return fail(p.question||'Describe a supported private website design change. Nothing was changed.');
  const chosen=websitePhotoChoices(website).length?JSON.parse(p.prepared.boundaries.at(-1)).theme?.heroComposition:'typography-first';if(!chosen)return fail('Start with a professional website design goal, then refine it.');
- const instruction='use the reviewed "'+chosen+'" opening',plan=prepareWebsiteRequest(website,{draftId:website.id,pageId:'home',generation:website.generation,instruction},deps);if(!plan.ok)return plan;
+ const instruction='use the reviewed "'+chosen+'" opening; refine the complete website design',plan=prepareWebsiteRequest(website,{draftId:website.id,pageId:'home',generation:website.generation,instruction},deps);if(!plan.ok)return plan;
  return {ok:true,kind:'guided_private_website',ownerId,businessId,profileRevision,goal,instruction,adjustments:[{kind:'family',instruction}],plan,rejected:[],kept:false,accountSaved:false,publicActivation:false};
 }
 export function refineGuidedWebsite(journey,context,options={},deps){
@@ -27,11 +27,12 @@ export function refineGuidedWebsite(journey,context,options={},deps){
  const candidate=guidedWebsiteCandidate(journey);if(!candidate||candidate.id!==context.website.id||candidate.businessId!==context.businessId)return fail('This preview is malformed. Prepare a fresh review.');let instruction='',kind='';let rejected=journey.rejected||[];
  if(photoPath){kind='photo';const r=reviewWebsitePhoto(context.website,photoPath);if(!r.ok)return r;instruction='use approved photo "'+photoPath+'" for the hero';}
  else if(headline){kind='headline';if(typeof headline!=='string'||!headline.trim()||headline.length>140||/["<>\u0000-\u001f]/.test(headline))return fail('Use a plain headline of up to140 characters.');instruction='change the hero heading to "'+headline+'"';}
- else if(/^(?:try (?:something|a design) completely different|try another design)$/i.test(request.trim())){
+ else if(/^(?:try (?:something|a design) completely different|try another design|try a completely different style)$/i.test(request.trim())){
   kind='family';if(rejectCurrent)rejected=[...new Set([...rejected,candidate.theme?.heroComposition])];
   const next=premiumWebsiteDirections(candidate,{rejected})[0];if(!next)return fail('No new suitable direction with the current approved content. Your design stays unchanged.');instruction='prepare a '+next.id+' homepage';
  }else if(/^(?:frame the photograph higher on phones|move (?:the |this )?picture slightly higher on mobile)$/i.test(request.trim())){if(!candidate.sections.some(s=>s.type==='hero'&&s.asset?.approved===true))return fail('Choose a current approved photograph first.');kind='phoneCrop';instruction='focus the hero photograph at top on phones';}
  else if(/^centre the photograph on desktop$/i.test(request.trim())){if(!candidate.sections.some(s=>s.type==='hero'&&s.asset?.approved===true))return fail('Choose a current approved photograph first.');kind='desktopCrop';instruction='focus the hero photograph at center on desktop';}
+ else if(/^(?:make (?:the )?(?:whole |entire )?website (?:look |feel )?(?:more professional|less generic)|keep the headline but change the layout|make the services stand out)$/i.test(request.trim())){kind='complete-design';instruction='refine the complete website design';}
  else if(/^make it feel warmer and more welcoming$/i.test(request.trim())){kind='warmth';instruction='make the page warmer without changing colours';}
  else if(/^make (?:the )?food photographs bigger$/i.test(request.trim())){kind='gallery';instruction='make the gallery photos bigger';}
  else if(/^make (?:the )?mobile (?:version|layout) less crowded$/i.test(request.trim())){kind='mobile';instruction='give the page more space on phones';}

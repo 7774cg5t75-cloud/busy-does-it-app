@@ -1,7 +1,8 @@
+import {craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';
 import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
 import {websiteGalleryPresentation,distinctWebsitePhotos} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
-import {heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {serviceContactAction,serviceIndexHtml,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
 // Execute actual checked-in section renderer; signed asset URL resolution is
 // an inert map boundary. No Deno entrypoint, HTTP, provider or hosted execution.
@@ -20,5 +21,5 @@ export function originalWebsiteSectionRuntime(){
   return body;
  }).join('\n');
  const js=stripTypeScriptTypes(code);
- return Function('responsivePhotoAttributes','distinctWebsitePhotos','websiteGalleryPresentation','premiumHeroInner','heroServiceOverview','sectionAppearanceClasses','itemTypographyClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(responsivePhotoAttributes,distinctWebsitePhotos,websiteGalleryPresentation,premiumHeroInner,heroServiceOverview,sectionAppearanceClasses,itemTypographyClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
+ return Function('serviceContactAction','serviceIndexHtml','craftedPage','craftedServices','craftedStory','craftedContact','responsivePhotoAttributes','distinctWebsitePhotos','websiteGalleryPresentation','premiumHeroInner','heroServiceOverview','sectionAppearanceClasses','itemTypographyClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(serviceContactAction,serviceIndexHtml,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,distinctWebsitePhotos,websiteGalleryPresentation,premiumHeroInner,heroServiceOverview,sectionAppearanceClasses,itemTypographyClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
 }

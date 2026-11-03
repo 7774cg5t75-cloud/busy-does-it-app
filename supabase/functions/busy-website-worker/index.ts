@@ -1,3 +1,4 @@
+import {craftedPage,craftedServices,craftedStory,craftedContact} from './websiteCraftedPage.mjs';
 import {responsivePhotoAttributes} from './websiteResponsivePhotos.mjs';
 import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from './websitePhotoPresentation.mjs';
 import {premiumHeroInner} from './websitePremiumHero.mjs';
@@ -180,6 +181,10 @@ function renderSectionHtml(
 
   const headingTag = isFirstSection ? "h1" : "h2";
 
+  if(craftedPage(draft)&&section.type==='services'&&section.appearance?.serviceLayout!=='index'){
+    const content=craftedServices(section,draft.theme.heroComposition,{escapeHtml,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:(item:any)=>serviceContactAction(item,contactHref,escapeHtml)});
+    if(content)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${content}</div></section>`;
+  }
   if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
     const indexed=serviceIndexHtml(section,{escapeHtml,itemHeadingClass,contactHref});
     if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
@@ -246,6 +251,7 @@ function renderSectionHtml(
       .join("")}</div></section>`;
   }
 
+  if(craftedPage(draft)&&section.type==='contact')return `<section id="contact"${sectionAttrs}>${craftedContact({family:draft.theme.heroComposition,heading:`<${headingTag}>${escapeHtml(section.title||'Get in touch')}</${headingTag}>`,body:section.body?`<p>${escapeHtml(section.body)}</p>`:'',channels:(section.phone?`<p><a href="tel:${escapeHtml(String(section.phone).replace(/\s+/g,''))}">${escapeHtml(section.phone)}</a></p>`:'')+(section.email?`<p><a href="mailto:${escapeHtml(section.email)}">${escapeHtml(section.email)}</a></p>`:''),extra:section.openingHours?`<p>${escapeHtml(section.openingHours)}</p>`:''})}</section>`;
   if (section.type === "contact") {
     return `<section id="contact"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
@@ -268,6 +274,7 @@ function renderSectionHtml(
     }</div></section>`;
   }
 
+  if(craftedPage(draft)&&section.id==='about'&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{escapeHtml})}</section>`;
   if(draft.theme?.heroComposition&&section.id==='about'&&clean(section.body)){
     const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map((text:string)=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
     return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2>${escapeHtml(section.title)}</h2><div class="story-copy">${paragraphs}</div></div></section>`;
@@ -383,7 +390,7 @@ function renderWebsiteHtml(
   const safeBusiness=escapeHtml(draft?.businessName||"Business website");
   const area=clean(draft?.serviceArea,260);
   const footer=`<footer class="site-footer"><div class="wrap"><strong>${safeBusiness}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${websitePageGuide(draft,sections,sectionHtml,escapeHtml)}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="${craftedPage(draft)?'premium-crafted ':''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${websitePageGuide(draft,sections,sectionHtml,escapeHtml)}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
 
 }
 

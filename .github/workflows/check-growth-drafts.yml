@@ -8,6 +8,7 @@ on:
       - "src/components/ConnectedBusinessPreparation.js"
       - "src/core/photoPurposeAccount.mjs"
       - "src/core/browserBusinessPhotoProcessor.mjs"
+      - "src/core/websiteExcellenceQuality.mjs"
       - "src/domain/coordinatedGrowthDrafts.mjs"
       - "src/domain/coordinatedGrowthPlan.mjs"
       - "src/domain/websiteBuilder.js"

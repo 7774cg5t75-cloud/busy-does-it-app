@@ -45,6 +45,7 @@ for(const [i,[name,type,family,variation,typography,cards,services,emphasis,desc
  }
  assert.equal((draft.theme.sectionOrder||draft.designPlan.sectionOrder)[1],emphasis);
  }
+ writeFileSync(out+'/'+i+'-reviewed.json',JSON.stringify(draft));
  const html=api.renderWebsiteHtml(draft),hero=draft.sections.find(s=>s.type==='hero'),urls=Object.fromEntries(photos.map(p=>[p.storagePath,p.uri]));
  assert.match(html,new RegExp('premium-'+family));const workerHtml=worker(draft,hero,urls,true,'#contact');assert.match(workerHtml,new RegExp('premium-'+family));if(family==='editorial-collage'){assert.ok(html.includes('hero-image owner-image-crop-top'));assert.ok(workerHtml.includes('hero-image owner-image-crop-top'));assert.ok(html.includes('hero-image owner-image-fit-contain'));assert.ok(workerHtml.includes('hero-image owner-image-fit-contain'));}
  assert.ok(html.includes(name.replaceAll('&','&amp;')));assert.equal(draft.publish.enabled,false);

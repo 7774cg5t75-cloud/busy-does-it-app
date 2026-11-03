@@ -3135,6 +3135,13 @@
         "scripts/check-business-photo-continuation.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "website-excellence",
+      "args": [
+        "scripts/check-website-excellence.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

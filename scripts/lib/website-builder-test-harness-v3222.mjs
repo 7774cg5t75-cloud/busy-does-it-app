@@ -1,3 +1,4 @@
+import {craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';
 import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
 import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
@@ -37,6 +38,7 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';",
  "import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';",
  "import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';",
  "import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';",
@@ -72,7 +74,7 @@ function stripKnownModule(file){
 }
 const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
  "\nreturn {syncWebsitePageModel};")();
-const deps=Object.freeze({responsivePhotoAttributes,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable,premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
+const deps=Object.freeze({craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable,premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
  testimonialSpotlightItems,
  websitePageGuide,websitePageHeadingHierarchy,serviceIndexHtml,serviceContactAction,heroServiceOverview,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,

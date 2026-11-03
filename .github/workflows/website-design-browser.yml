@@ -69,6 +69,8 @@ jobs:
           BUSY_GUIDED_BROWSER=1 node scripts/capture-website-design.mjs
           node scripts/process-business-photo-fixtures.mjs
           BUSY_INTRO_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-excellence.mjs
+          BUSY_EXCELLENCE_BROWSER=1 node scripts/capture-website-design.mjs
       - name: Compare real current pixels with the exact previous guided evidence
         if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
         env:
@@ -117,5 +119,14 @@ jobs:
             .test-artifacts/business-introduction/*.html
             .test-artifacts/business-introduction/*.json
             .test-artifacts/business-introduction/derivatives/*.webp
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain controlled complete-page comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-excellence-${{ github.sha }}
+          path: .test-artifacts/website-excellence/
           retention-days: 7
           if-no-files-found: error
