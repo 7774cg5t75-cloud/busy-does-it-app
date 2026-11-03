@@ -16,7 +16,8 @@ export function businessIntroductionQuestions(profile,{forWebsite=false}={}){
  return questions;
 }
 export function reviewBusinessIntroduction(basis,{ownerId,businessId,profile}){
- if(!connectedBuilderObservation(basis,{ownerId,businessId},'profile')||!profile||typeof profile!=='object'||Array.isArray(profile)||businessIntroductionQuestions(profile).some(q=>q.field!=='contact'))return {ok:false,reason:'Review the current account and the essential business details first.'};
+ const first=!!ownerId&&!!businessId&&basis?.actorId===ownerId&&basis.businessId===businessId&&Number.isSafeInteger(basis.revision)&&basis.revision>=1&&basis.profile===null&&basis.profileRevision===null&&basis.profileHash===null&&basis.websiteDraft===null&&basis.websiteDraftHash===null&&!basis.operationId&&basis.ownOperationReceipt!==true;
+ if(!(first||connectedBuilderObservation(basis,{ownerId,businessId},'profile'))||!profile||typeof profile!=='object'||Array.isArray(profile)||businessIntroductionQuestions(profile).some(q=>q.field!=='contact'))return {ok:false,reason:'Review the current account and the essential business details first.'};
  const allowed=['businessName','businessType','tagline','description','serviceArea','services','contact','toneOfVoice'];
  if(Object.keys(profile).some(k=>!allowed.includes(k)))return {ok:false,reason:'Use the original supported business details.'};
  return {ok:true,basis,profile:JSON.parse(stableJson(profile)),sourceRevision:basis.profileRevision,requiresOwnerApproval:true,existingDraftsUnchanged:true};
