@@ -23,6 +23,8 @@ on:
       - 'scripts/fetch-guided-website-assets.py'
       - 'scripts/fixtures/guided-websites/**'
       - 'scripts/check-website-design-expansion.mjs'
+      - 'scripts/check-mission15-phase*.mjs'
+      - 'scripts/check-mission15-website-page-headings.mjs'
       - 'scripts/capture-website-design.mjs'
       - 'scripts/fetch-website-test-assets.py'
       - 'scripts/fixtures/website-design/**'

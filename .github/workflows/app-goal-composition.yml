@@ -217,6 +217,16 @@ jobs:
           node scripts/check-security-baseline.mjs
           node scripts/check-security-by-design.mjs
           node scripts/testing/syntax.mjs src/core/operationalScreen.mjs src/components/DurableOperationalScreen.js src/components/WorkPreparationOverview.js src/core/appGoalComposition.mjs src/core/governedBuilderProposal.mjs src/core/universalBuilderPlanV3210.mjs src/screens/appGoalCompositionEditor.js src/screens/miniApps.js src/staging/ConnectedBuilderWorkspace.js
+      - name: Original legacy Website worker scopes with real shared dependencies
+        run: |
+          node scripts/check-mission15-phase23-editorial.mjs
+          node scripts/check-mission15-phase24-service-composition.mjs
+          node scripts/check-mission15-phase26-faq-composition.mjs
+          node scripts/check-mission15-phase27-service-index.mjs
+          node scripts/check-mission15-phase28-page-guide.mjs
+          node scripts/check-mission15-phase29-article-layout.mjs
+          node scripts/check-mission15-phase30-testimonials.mjs
+          node scripts/check-mission15-website-page-headings.mjs
       - name: Genuine original Edge checks with pinned official verification tools
         run: |
           EDGE_TOOLS="$RUNNER_TEMP/busy-screen-edge-tools"
