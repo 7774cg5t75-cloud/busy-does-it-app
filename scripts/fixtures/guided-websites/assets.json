@@ -17,9 +17,12 @@
       "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
       "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
       "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition",
-      "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+      "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb",
       "width": 1280,
-      "height": 1920
+      "height": 1920,
+      "previousPinnedSha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+      "reviewedLocalPath": "scripts/fixtures/guided-websites/patio-garden-reviewed.jpg",
+      "review": "Actual 1280x1920 JPEG decoded and visually reviewed on 2026-11-03 after run41680754623 failed exact-byte verification. Preserve copyright/artist metadata and CC0 provenance. Checked-in fixture, not automatic acceptance of changed upstream bytes."
     },
     {
       "name": "studio",
@@ -27,9 +30,12 @@
       "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
       "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
       "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition; explicit illustrative botanical choice for fictional wellness preview, not studio premises",
-      "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+      "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb",
       "width": 1280,
-      "height": 1920
+      "height": 1920,
+      "previousPinnedSha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+      "reviewedLocalPath": "scripts/fixtures/guided-websites/patio-garden-reviewed.jpg",
+      "review": "Actual 1280x1920 JPEG decoded and visually reviewed on 2026-11-03 after run41680754623 failed exact-byte verification. Preserve copyright/artist metadata and CC0 provenance. Checked-in fixture, not automatic acceptance of changed upstream bytes."
     }
   ]
 }

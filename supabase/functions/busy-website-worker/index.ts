@@ -274,7 +274,7 @@ function renderSectionHtml(
     }</div></section>`;
   }
 
-  if(craftedPage(draft)&&section.id==='about'&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{escapeHtml})}</section>`;
+  if(craftedPage(draft)&&section.id==='about'&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{escapeHtml,headingTag})}</section>`;
   if(draft.theme?.heroComposition&&section.id==='about'&&clean(section.body)){
     const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map((text:string)=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
     return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2>${escapeHtml(section.title)}</h2><div class="story-copy">${paragraphs}</div></div></section>`;

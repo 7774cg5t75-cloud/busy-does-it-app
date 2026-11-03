@@ -71,6 +71,7 @@ jobs:
           BUSY_INTRO_BROWSER=1 node scripts/capture-website-design.mjs
           node scripts/check-website-excellence.mjs
           BUSY_EXCELLENCE_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/make-excellence-comparison.mjs
       - name: Compare real current pixels with the exact previous guided evidence
         if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
         env:
@@ -126,7 +127,23 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: website-excellence-${{ github.sha }}
-          path: .test-artifacts/website-excellence/
+          name: website-excellence-rich-${{ github.sha }}
+          path: |
+            .test-artifacts/website-excellence/[012]-*.png
+            .test-artifacts/website-excellence/[012]-*.html
+            .test-artifacts/website-excellence/*.json
+            .test-artifacts/website-excellence/*.jpg
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain five same-industry complete-page comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-excellence-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-excellence/[34567]-*.png
+            .test-artifacts/website-excellence/[34567]-*.html
+            .test-artifacts/website-excellence/*.json
           retention-days: 7
           if-no-files-found: error

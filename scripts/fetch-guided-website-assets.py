@@ -3,6 +3,9 @@ import hashlib,json,pathlib,urllib.request
 m=json.loads(pathlib.Path('scripts/fixtures/guided-websites/assets.json').read_text());p=pathlib.Path('.test-artifacts/guided-websites/assets');p.mkdir(parents=True,exist_ok=True);rows=[];reviewed={};changed=[]
 for a in m['images']:
     assert a['name'] in ['catering','garden','studio'] and a['url'].startswith('https://upload.wikimedia.org/wikipedia/commons/') and a['url'].endswith('.jpg')
+    if a.get('reviewedLocalPath'):
+        assert a['reviewedLocalPath']=='scripts/fixtures/guided-websites/patio-garden-reviewed.jpg' and a['name'] in ['garden','studio']
+        reviewed[a['url']]=pathlib.Path(a['reviewedLocalPath']).read_bytes()
     if a['url'] not in reviewed:
         request=urllib.request.Request(a['url'],headers={'User-Agent':'Busy-original-renderer-fixture-verification/1.0'})
         with urllib.request.urlopen(request,timeout=45) as f: data=f.read(12*1024*1024+1)

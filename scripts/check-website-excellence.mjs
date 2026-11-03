@@ -27,3 +27,13 @@ for(let i=0;i<8;i++){
  assert.equal(api.applyWebsiteLayoutChange(before,{action:'style',field:'heroVariation',value:'crafted-execute'}).applied,false);
 }
 assert.equal(new Set(scenarios.slice(3).map(s=>s.family)).size,5);writeFileSync(out+'/scenarios.json',JSON.stringify({scenarios,synthetic:true,publicActivation:false},null,2));writeFileSync(out+'/quality.json',JSON.stringify(quality,null,2));console.log('PASS eight original complete-page comparisons: three rich businesses, five separately scoped gardeners, exact fact/word/photo/order preservation, finite opt-in, original worker parity, source isolation and quality judgements kept separate from technical checks.');
+
+const sample=JSON.parse(readFileSync(out+'/0-approved.json')),sampleHtml=readFileSync(out+'/0-after.html','utf8');
+assert.equal(inspectWebsiteExcellence({draft:sample,html:sampleHtml}).technical.evidenceComplete,false);
+const pixels=[320,390,1440].map(viewport=>({viewport,overflow:[],clipped:[],broken:[],unreadable:[],contrastFailures:[]}));
+assert.equal(inspectWebsiteExcellence({draft:sample,html:sampleHtml,measurements:pixels}).technical.evidenceComplete,true);
+assert.equal(inspectWebsiteExcellence({draft:sample,html:sampleHtml,measurements:[{...pixels[0],broken:['missing-approved-photo']}]}).technical.passed,false);
+assert.equal(inspectWebsiteExcellence({draft:sample,html:sampleHtml.replace('</main>','<form action="/pay"></form></main>')}).technical.passed,false);
+const oldWording=sample.sections.find(s=>s.type==='hero').title;
+const unsupported=planBusyGoal({request:'Make the website professional and send a campaign',surface:'website',website:sample,businessId:sample.businessId},deps);assert.equal(unsupported.mayExecute,false);assert.equal(unsupported.prepared,undefined);assert.equal(unsupported.recognised,false);
+assert.equal(sample.sections.find(s=>s.type==='hero').title,oldWording);

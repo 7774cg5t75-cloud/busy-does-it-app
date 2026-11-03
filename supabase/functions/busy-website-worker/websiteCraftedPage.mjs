@@ -13,9 +13,9 @@ export function craftedServices(section,family,{escapeHtml,editAttrs=(...args)=>
  const layout=craftedServiceLayout(section,family);
  return `<div class="crafted-services crafted-services--${layout}">${items.map((item,index)=>`<article class="crafted-service ${itemClasses(item)}"><span class="crafted-service-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><h3${itemHeadingClass(item)}${editAttrs(section,'title',String(item.id||''))}>${escapeHtml(item.title||'')}</h3>${item.body?`<p class="crafted-service-description"${editAttrs(section,'body',String(item.id||''))}>${escapeHtml(item.body)}</p>`:''}${contactAction(item)}</article>`).join('')}</div>`;
 }
-export function craftedStory(section,{escapeHtml,editAttrs=(...args)=>''}){
+export function craftedStory(section,{escapeHtml,editAttrs=(...args)=>'',headingTag='h2'}){
  const paragraphs=String(section.body||'').split(/\n\s*\n/).filter(x=>x.trim());
- return `<div class="wrap crafted-story story-layout"><div class="crafted-section-heading"><h2${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</h2></div><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="crafted-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
+ return `<div class="wrap crafted-story story-layout"><div class="crafted-section-heading"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></div><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="crafted-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
 }
 // Inputs are escaped markup produced by the ORIGINAL renderer, not customer HTML.
 export function craftedContact({heading,body,channels,extra='',family}){

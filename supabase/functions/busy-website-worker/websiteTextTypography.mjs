@@ -21,7 +21,7 @@ const weights={regular:400,medium:500,bold:700,heavy:800};
 let textTypographyCss='';
 for(const target of Object.keys(textTypes))for(const suffix of Object.keys(choices))for(const value of choices[suffix]){
  if(value==='brand')continue;
- const selector=target==='title'?':is(h1,h2)':':is(.hero-content > .lead,.wrap > p,.photo-feature-grid > div > p)';
+ const selector=target==='title'?':is(h1,h2)':':is(.hero-content > .lead,.wrap > p,.photo-feature-grid > div > p,.story-copy > p,.crafted-contact-heading > p)';
  const declaration=suffix==='Font'?'font-family:'+fonts[value]:suffix==='Weight'?'font-weight:'+weights[value]:
   suffix==='Align'?'text-align:'+value:suffix==='Colour'?'color:var(--owner-text-'+value+')':'line-height:'+(target==='title'?(value==='relaxed'?1.4:1.15):(value==='relaxed'?1.85:1.6));
  // Heading/primary-paragraph scope excludes card text, navigation and facts.
@@ -35,7 +35,7 @@ textTypographyCss+=textTypographyCss.replaceAll(' > h3',' > details > summary > 
 for(const [field,media]of [['bodySize',''],['mobileBodySize','(max-width:600px)'],['desktopBodySize','(min-width:1000px)']]){
  let rules='';
  for(const [value,size]of [['normal','1rem'],['large','1.125rem'],['extra-large','1.25rem']])
-  rules+='section.owner-text-'+field+'-'+value+' :is(.hero-content > .lead,.wrap > p,.photo-feature-grid > div > p),article.owner-text-'+field+'-'+value+' :is(p,details > p){font-size:'+size+';overflow-wrap:anywhere}\n';
+  rules+='section.owner-text-'+field+'-'+value+' :is(.hero-content > .lead,.wrap > p,.photo-feature-grid > div > p,.story-copy > p,.crafted-contact-heading > p),article.owner-text-'+field+'-'+value+' :is(p,details > p){font-size:'+size+';overflow-wrap:anywhere}\n';
  textTypographyCss+=media?'@media'+media+'{'+rules+'}':rules;
 }
 function itemTypographyClasses(item){return textTypographyClasses({type:'text',appearance:item?.appearance});}
