@@ -11,7 +11,7 @@ let cases=0;
 for(const width of [320,393,430])for(const fontScale of [1,2.8])for(const mode of ['midnight','daylight']){
  const rt=createRuntime({width,fontScale}),appearance=rt.load('src/theme/appearance.mjs');await appearance.updateAppearance({mode},async()=>{});
  const {ConnectedBusinessFacts}=rt.load('src/components/ConnectedBusinessFacts.js');
- const original={actorId:O,businessId:B,revision:1,profileRevision:1,profile:{businessName:'Fictional account',services:[],description:'Original facts'}},scope={};let saves=0,dirty=false,release,observations=0;
+ const original={actorId:O,businessId:B,revision:1,profileRevision:1,profileHash:'a'.repeat(64),profile:{businessName:'Fictional account',services:[],description:'Original facts'}},scope={};let saves=0,dirty=false,release,observations=0;
  const s={ownerSession:{userId:O},cloudWorkspace:{businessId:B},ownerWorkspaceScope:scope,setOwnerEditDirty:r=>{dirty=r.dirty;},connectedReadProfile:async()=>{observations++;return original;},connectedSaveProfile:async({profile})=>{saves++;assert.equal(profile.businessName,'Deliberate owner words');return {ok:false,unknown:true};}};
  const render=()=>rt.render(ConnectedBusinessFacts,{s}),button=(tree,label)=>walk(tree).find(x=>x.props?.label===label),field=(tree,label)=>walk(tree).find(x=>x.props?.label===label);
  let tree=render();await button(tree,'Open approved business details').props.onPress();tree=render();assert.equal(field(tree,'Approved business name').props.value,'Fictional account');

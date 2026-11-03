@@ -7,10 +7,11 @@ export function introductionProposal(text,profile={}){
  if(!match)return {ok:false,reason:'Tell me the business type, or edit the exact details below. Nothing has been guessed.'};
  return {ok:true,profile:{...profile,businessType:match[1].trim()},requiresOwnerApproval:true,explanation:'Only the business type you stated is proposed. Your business name, services, contact details and existing wording are kept.'};
 }
-export function businessIntroductionQuestions(profile){
+export function businessIntroductionQuestions(profile,{forWebsite=false}={}){
  const p=profile||{},questions=[];
  if(!String(p.businessName||'').trim())questions.push({field:'businessName',label:'What is your business called?'});
  if(!String(p.description||'').trim()&&!p.services?.some(s=>s.name?.trim()))questions.push({field:'description',label:'What do you offer, and who is it for?'});
+ if(forWebsite&&!p.services?.some(s=>s.name?.trim()))questions.push({field:'services',label:'What is the first service you want customers to understand? Add it under service descriptions.'});
  if(!p.contact?.email&&!p.contact?.phone)questions.push({field:'contact',label:'How should customers contact you? Add a public email or phone when you are ready.'});
  return questions;
 }
