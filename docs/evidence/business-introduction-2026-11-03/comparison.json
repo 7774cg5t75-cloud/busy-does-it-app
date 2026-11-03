@@ -1,0 +1,125 @@
+{
+  "before": {
+    "commit": "4de05a9c51c507f155e40708b4aa772c76025bf1",
+    "tree": "7937b372be35ae9c4d8dfa5422ff5549b75feb4a"
+  },
+  "after": {
+    "commit": "5f0ffe5d75559db2dd34ad642d9a3a9eea0a733d",
+    "tree": "3968fdecc822c097ec4b538725ea7e1fcd8b260c"
+  },
+  "browser": "145.0.7632.6",
+  "comparisons": [
+    {
+      "filename": "comparison-mobile.jpg",
+      "sha256": "600ec685848112e454760587cc88a2902e45b6f5cbf009b48d94b9909d0cc6d5",
+      "inputs": [
+        {
+          "source": {
+            "commit": "4de05a9c51c507f155e40708b4aa772c76025bf1",
+            "tree": "7937b372be35ae9c4d8dfa5422ff5549b75feb4a"
+          },
+          "filename": "0-after-mobile.png",
+          "sha256": "e243944022a0a808790ebfa076a66a8e3cf52b156d39dcee6b3cea66651ca9ab"
+        },
+        {
+          "source": {
+            "commit": "5f0ffe5d75559db2dd34ad642d9a3a9eea0a733d",
+            "tree": "3968fdecc822c097ec4b538725ea7e1fcd8b260c"
+          },
+          "filename": "0-after-mobile.png",
+          "sha256": "4d79783333cd8b7db47cad34e5cbe1788da6eff185bb2f8b45e1a374f2e0930a"
+        },
+        {
+          "source": {
+            "commit": "4de05a9c51c507f155e40708b4aa772c76025bf1",
+            "tree": "7937b372be35ae9c4d8dfa5422ff5549b75feb4a"
+          },
+          "filename": "1-after-mobile.png",
+          "sha256": "c4110ffa15da4c56f292693409c44abcc2bc8a9425aa1f337c61141de11a924e"
+        },
+        {
+          "source": {
+            "commit": "5f0ffe5d75559db2dd34ad642d9a3a9eea0a733d",
+            "tree": "3968fdecc822c097ec4b538725ea7e1fcd8b260c"
+          },
+          "filename": "1-after-mobile.png",
+          "sha256": "9668e07999ada3e64c72b4552b9a145d5a4e6ec335a75b65fb8ba1d870d81582"
+        },
+        {
+          "source": {
+            "commit": "4de05a9c51c507f155e40708b4aa772c76025bf1",
+            "tree": "7937b372be35ae9c4d8dfa5422ff5549b75feb4a"
+          },
+          "filename": "2-after-mobile.png",
+          "sha256": "f9674cc318fb08abc77e55fccfd7a3d4905e636222e964564b9db75e97cca575"
+        },
+        {
+          "source": {
+            "commit": "5f0ffe5d75559db2dd34ad642d9a3a9eea0a733d",
+            "tree": "3968fdecc822c097ec4b538725ea7e1fcd8b260c"
+          },
+          "filename": "2-after-mobile.png",
+          "sha256": "072aad2bd14f38c4734f4fcbd3fb2f85514ce1be11ea7fb5374f596a50f72a58"
+        }
+      ],
+      "scaledEvidence": true
+    },
+    {
+      "filename": "comparison-desktop.jpg",
+      "sha256": "fa4058b6c13fd53187ac1087fe48b12d71179293e7e4266bc4037481f93f840a",
+      "inputs": [
+        {
+          "source": {
+            "commit": "4de05a9c51c507f155e40708b4aa772c76025bf1",
+            "tree": "7937b372be35ae9c4d8dfa5422ff5549b75feb4a"
+          },
+          "filename": "0-after-desktop.png",
+          "sha256": "9e19bd8d567c05b3578f976fbff4570570a56104325122bdb49c5fa461772e6d"
+        },
+        {
+          "source": {
+            "commit": "5f0ffe5d75559db2dd34ad642d9a3a9eea0a733d",
+            "tree": "3968fdecc822c097ec4b538725ea7e1fcd8b260c"
+          },
+          "filename": "0-after-desktop.png",
+          "sha256": "90abae54fe576bc0793fd62ee536519091577f6e77a5e7c62f55aa8259fbe8f2"
+        },
+        {
+          "source": {
+            "commit": "4de05a9c51c507f155e40708b4aa772c76025bf1",
+            "tree": "7937b372be35ae9c4d8dfa5422ff5549b75feb4a"
+          },
+          "filename": "1-after-desktop.png",
+          "sha256": "30f9a1bd6eabea5ff544033c5a821648e10e88ffd471381f02b681d3656967c0"
+        },
+        {
+          "source": {
+            "commit": "5f0ffe5d75559db2dd34ad642d9a3a9eea0a733d",
+            "tree": "3968fdecc822c097ec4b538725ea7e1fcd8b260c"
+          },
+          "filename": "1-after-desktop.png",
+          "sha256": "061bc1130edfd42ce42bc62934e5767a1cd227d96fe12ad0b2c96466f29f023a"
+        },
+        {
+          "source": {
+            "commit": "4de05a9c51c507f155e40708b4aa772c76025bf1",
+            "tree": "7937b372be35ae9c4d8dfa5422ff5549b75feb4a"
+          },
+          "filename": "2-after-desktop.png",
+          "sha256": "11e8e3dce134977607910829baf3c831bb3415afe605f87b89aa67caefeeeb41"
+        },
+        {
+          "source": {
+            "commit": "5f0ffe5d75559db2dd34ad642d9a3a9eea0a733d",
+            "tree": "3968fdecc822c097ec4b538725ea7e1fcd8b260c"
+          },
+          "filename": "2-after-desktop.png",
+          "sha256": "4df80f2fe9542a90af3c38eb092a3432c1082eb83b2551d0b71628374c4b8c43"
+        }
+      ],
+      "scaledEvidence": true
+    }
+  ],
+  "syntheticBusinessData": true,
+  "professionalAcceptance": false
+}
