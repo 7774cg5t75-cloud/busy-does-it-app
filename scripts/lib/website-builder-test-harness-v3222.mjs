@@ -1,3 +1,4 @@
+import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
 import {splitBuilderInstructionClauses} from '../../src/core/builderInstructionClauses.mjs';
 import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../../src/core/websiteEditingLimits.mjs';
@@ -35,6 +36,7 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';",
  "import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';",
  "import {splitBuilderInstructionClauses} from '../core/builderInstructionClauses.mjs';",
  "import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../core/websiteEditingLimits.mjs';",
@@ -68,7 +70,7 @@ function stripKnownModule(file){
 }
 const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
  "\nreturn {syncWebsitePageModel};")();
-const deps=Object.freeze({premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
+const deps=Object.freeze({websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable,premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
  testimonialSpotlightItems,
  websitePageGuide,websitePageHeadingHierarchy,serviceIndexHtml,serviceContactAction,heroServiceOverview,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,

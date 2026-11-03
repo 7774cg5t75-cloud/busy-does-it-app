@@ -6,6 +6,13 @@ on:
       - '.github/workflows/app-goal-composition.yml'
       - '.github/workflows/website-design-browser.yml'
       - 'src/core/premiumWebsite*.mjs'
+      - 'src/core/businessIntroduction.mjs'
+      - 'src/core/connectedBusinessPreparation.mjs'
+      - 'src/core/websiteCopySuggestions.mjs'
+      - 'src/core/websiteOwnedOriginalReview.mjs'
+      - 'scripts/check-business-introduction.mjs'
+      - 'scripts/check-owned-website-media.mjs'
+      - 'scripts/lib/business-introduction-fixtures.mjs'
       - 'src/core/guidedWebsiteJourney.mjs'
       - 'src/core/websitePhotoReview.mjs'
       - 'src/screens/guidedWebsiteCreation.js'
@@ -171,6 +178,8 @@ jobs:
           node scripts/check-premium-website-experience.mjs
           node scripts/check-website-design-expansion.mjs
           node scripts/check-guided-website-creation.mjs
+          node scripts/check-business-introduction.mjs
+          node scripts/check-owned-website-media.mjs
           node scripts/check-work-preparation.mjs
           node scripts/check-customer-form-discovery.mjs
           node scripts/check-public-collection-parity.mjs

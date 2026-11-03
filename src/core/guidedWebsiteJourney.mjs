@@ -35,6 +35,8 @@ export function refineGuidedWebsite(journey,context,options={},deps){
  else if(/^make it feel warmer and more welcoming$/i.test(request.trim())){kind='warmth';instruction='make the page warmer without changing colours';}
  else if(/^make (?:the )?food photographs bigger$/i.test(request.trim())){kind='gallery';instruction='make the gallery photos bigger';}
  else if(/^make (?:the )?mobile (?:version|layout) less crowded$/i.test(request.trim())){kind='mobile';instruction='give the page more space on phones';}
+ else if(/^make (?:our|the) services easier for customers to understand$/i.test(request.trim())){kind='services';instruction='show services as a directory';}
+ else if(/^tell our story more clearly$/i.test(request.trim())){kind='story';instruction='show about text as an editorial layout';}
  else if(/^make it easier for customers to enquire$/i.test(request.trim())){kind='contact';instruction='make the main button stand out';}
  else if(/^put (?:our|the) menu before (?:the )?story section$/i.test(request.trim())){
   kind='menu';const menu=candidate.sections.filter(s=>s.enabled!==false&&s.type==='products'),story=candidate.sections.filter(s=>s.enabled!==false&&s.type==='about');if(menu.length!==1||story.length!==1)return fail('Choose one existing approved menu and story section on the current page.');instruction='move '+menu[0].id+' before '+story[0].id;

@@ -3,9 +3,9 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {chromium} from 'playwright';
-const guided=process.env.BUSY_GUIDED_BROWSER==='1',folder=guided?'.test-artifacts/guided-websites':'.test-artifacts/website-expansion',manifest=JSON.parse(readFileSync(folder+'/scenarios.json')),assets=JSON.parse(readFileSync(guided?'scripts/fixtures/guided-websites/assets.json':'scripts/fixtures/website-design/assets.json'));
+const intro=process.env.BUSY_INTRO_BROWSER==='1',guided=process.env.BUSY_GUIDED_BROWSER==='1',folder=intro?'.test-artifacts/business-introduction':guided?'.test-artifacts/guided-websites':'.test-artifacts/website-expansion',manifest=JSON.parse(readFileSync(folder+'/scenarios.json')),assets=JSON.parse(readFileSync(guided||intro?'scripts/fixtures/guided-websites/assets.json':'scripts/fixtures/website-design/assets.json'));
 const hash=b=>createHash('sha256').update(b).digest('hex'),git=args=>execFileSync('git',args,{encoding:'utf8'}).trim(),source={commit:git(['rev-parse','HEAD']),tree:git(['rev-parse','HEAD^{tree}'])};
-const images=new Map(assets.images.map(a=>{const b=readFileSync(folder+'/assets/'+a.name+'.'+(a.extension||'png'));const expected=a.sha256||(guided?JSON.parse(readFileSync(folder+'/asset-receipts.json')).find(r=>r.name===a.name)?.sha256:null);assert.equal(hash(b),expected);return ['https://assets.example.invalid/'+a.name+'.'+(a.extension||'png'),b];}));
+const images=new Map(assets.images.map(a=>{const b=readFileSync((intro?'.test-artifacts/guided-websites':folder)+'/assets/'+a.name+'.'+(a.extension||'png'));const expected=a.sha256||(guided?JSON.parse(readFileSync(folder+'/asset-receipts.json')).find(r=>r.name===a.name)?.sha256:null);assert.equal(hash(b),expected);return ['https://assets.example.invalid/'+a.name+'.'+(a.extension||'png'),b];}));
 // Sandbox must remain enabled. Missing OS support fails capture; never falls
 // back to --no-sandbox or a privileged browser/service.
 const browser=await chromium.launch({headless:true,chromiumSandbox:true});
@@ -36,7 +36,8 @@ const results=[],failures=[];const check=(condition,message)=>{if(!condition)fai
    });
    const filename=scenario.id+'-'+stage+'-'+label+'.png';await page.screenshot({path:folder+'/'+filename,fullPage:true,animations:'disabled'});
    results.push({business:scenario.business,family:scenario.family,stage,viewport,label,filename,sha256:hash(readFileSync(folder+'/'+filename)),metrics,blockedRequests:blocked});
-   if(guided&&stage==='after'){check(metrics.imageSizes[0]?.objectPosition===(label==='mobile'?'50% 0%':'50% 50%'),filename+' reviewed width-specific focal point');}
+   if((guided||intro&&scenario.photoExpected)&&stage==='after'){check(metrics.imageSizes[0]?.objectPosition===(label==='mobile'?'50% 0%':'50% 50%'),filename+' reviewed width-specific focal point');}
+   if(intro&&stage==='after'){check(metrics.imageCount===(scenario.photoExpected?1:0),filename+' exact sparse-image presentation');check(new Set(metrics.imageSizes.map(i=>i.src)).size===metrics.imageSizes.length,filename+' repeated image filler');}
    check(blocked===0,filename+' unexpected browser request');check(metrics.broken.length===0,filename+' broken images');check(metrics.targets.length===0,filename+' bad anchors');check(metrics.unreadable.length===0,filename+' small text '+JSON.stringify(metrics.unreadable));check(metrics.documentWidth<=viewport.width+1,filename+' horizontal page overflow');check(metrics.overflow.length===0,filename+' overflowing content '+metrics.overflow.join(','));check(metrics.headings.length===1,filename+' heading count');check(metrics.contrastFailures.length===0,filename+' computed contrast '+JSON.stringify(metrics.contrastFailures));check(metrics.ctaTargets.every(t=>t.height>=44&&t.width>=44),filename+' small primary action');
 
    await context.close();

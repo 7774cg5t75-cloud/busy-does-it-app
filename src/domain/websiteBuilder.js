@@ -1,3 +1,4 @@
+import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
 import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
@@ -696,7 +697,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     : "";
   const prefix="../".repeat(clean(page?.outputPath||"index.html").split("/").length-1);
   const approvedImage = asset => {
-    if(asset?.approved===false)return "";
+    if(!websiteAssetAvailable(asset,draft.businessId||draft.business_id))return "";
     if(standalone){
       const key=clean(asset?.storagePath)||clean(asset?.uri);
       const filename=options?.assetFiles?.[key]||"";
@@ -723,7 +724,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     const visible=['products','events'].includes(section.type)?true:section.type==="hero"?false:
       ["services","faq","testimonials"].includes(section.type)?
         safeArray(section.items).some(item=>clean(item?.title||item?.body)):
-      section.type==="gallery"?safeArray(section.items).some(asset=>approvedImage(asset)):
+      section.type==="gallery"?websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).some(row=>approvedImage(row.asset)):
       section.type==="contact"?!!(clean(section.body)||clean(section.phone)||clean(section.email)):
       !!clean(section.body);
     if(visible)renderedAnchors.add(
@@ -759,7 +760,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const actionText=missingTarget?"Explore our services":clean(section.cta);
       const action=actionText&&actualHref
         ? `<a class="cta"${editAttrs(section,"cta")} href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
-      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}>${draft.theme?.heroComposition?premiumHeroInner(draft.theme.heroComposition,{variation:draft.theme?.heroVariation,images:sections.filter(s=>s.type==='gallery').flatMap(s=>safeArray(s.items)).filter(a=>approvedImage(a)&&approvedImage(a)!==url).slice(0,2).map(a=>`<img class="hero-image${galleryPhotoClass(a)}" loading="lazy" decoding="async" src="${escapeHtml(approvedImage(a))}" alt="${escapeHtml(clean(a.alt)||draft.businessName||"Business photograph")}">`),copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title)}</h1>${lead}${action}</div>`,image:art,hasImage:!!url,services:draft.theme?.heroComposition==='product-showcase'&&orderedSections.some(s=>s.type==='products')?`<div class="premium-product-link" role="navigation" aria-label="Product collection"><a href="#products">${escapeHtml(orderedSections.find(s=>s.type==='products').title||'Explore the collection')}</a></div>`:heroServiceOverview(sections.find(s=>s.type==='services'),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`}</section>`;
+      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}>${draft.theme?.heroComposition?premiumHeroInner(draft.theme.heroComposition,{variation:draft.theme?.heroVariation,images:distinctWebsitePhotos(sections.filter(s=>s.type==='gallery').flatMap(s=>safeArray(s.items)).filter(a=>approvedImage(a)),{businessId:draft.businessId,exclude:[section.asset]}).slice(0,2).map(({asset:a})=>`<img class="hero-image${galleryPhotoClass(a)}" loading="lazy" decoding="async" src="${escapeHtml(approvedImage(a))}" alt="${escapeHtml(clean(a.alt)||draft.businessName||"Business photograph")}">`),copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title)}</h1>${lead}${action}</div>`,image:art,hasImage:!!url,services:draft.theme?.heroComposition==='product-showcase'&&orderedSections.some(s=>s.type==='products')?`<div class="premium-product-link" role="navigation" aria-label="Product collection"><a href="#products">${escapeHtml(orderedSections.find(s=>s.type==='products').title||'Explore the collection')}</a></div>`:heroServiceOverview(sections.find(s=>s.type==='services'),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`}</section>`;
     }
     if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
       const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass,contactHref:renderedAnchors.has('contact')?'#contact':''});
@@ -787,8 +788,8 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"${editAttrs(section,"section")}><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></section>`:"";
     }
     if(section.type==="gallery"){
-      const images=safeArray(section.items).map(approvedImage).filter(Boolean);
-      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery${images.length>=3?" gallery-rich":""}">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
+      const selected=websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}),images=selected.map(row=>approvedImage(row.asset)).filter(Boolean);
+      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery${images.length>=3?" gallery-rich":""}">${selected.map(({asset,index:i})=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(clean(asset.alt)||draft.businessName||"Approved photograph")}">`:"";}).join("")}</div></div></section>` : "";
     }
     if(section.type==="contact"){
       if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";
@@ -813,6 +814,10 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
        return `<p><a class="busy-app-request-link" href="${escapeHtml(verified)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></p>`;
      }).filter(Boolean).join("");
      return `<section id="contact"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${handoffs}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
+    }
+    if(draft.theme?.heroComposition&&section.id==='about'&&clean(section.body)){
+      const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map(text=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
+      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2${editAttrs(section,'title')}>${escapeHtml(section.title)}</h2><div class="story-copy"${editAttrs(section,'body')}>${paragraphs}</div></div></section>`;
     }
     return clean(section.body)
       ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`

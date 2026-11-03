@@ -3114,6 +3114,20 @@
       "args": [
         "scripts/check-guided-website-creation.mjs"
       ]
+    },
+    {
+      "id": "check-business-introduction",
+      "args": [
+        "scripts/check-business-introduction.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-owned-website-media",
+      "args": [
+        "scripts/check-owned-website-media.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

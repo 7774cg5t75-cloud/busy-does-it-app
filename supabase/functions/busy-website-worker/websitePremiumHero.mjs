@@ -60,4 +60,17 @@ export const premiumHeroCss=`${heroFamilyCss}
 
 @media(max-width:800px){section.hero.owner-mobile-photo-crop-top .hero-image{object-position:center top}section.hero.owner-mobile-photo-crop-center .hero-image{object-position:center center}section.hero.owner-mobile-photo-crop-bottom .hero-image{object-position:center bottom}}
 @media(min-width:801px){section.hero.owner-desktop-photo-crop-top .hero-image{object-position:center top}section.hero.owner-desktop-photo-crop-center .hero-image{object-position:center center}section.hero.owner-desktop-photo-crop-bottom .hero-image{object-position:center bottom}}
+
+/* Whole-page editorial rhythm. Low specificity lets reviewed owner controls win. */
+:where([class*="premium-site-"]) :where(.story-copy){max-width:66ch}
+:where([class*="premium-site-"]) :where(.story-copy p){line-height:1.85;margin:0 0 1.3em}
+:where([class*="premium-site-"]) :where(.story-copy p:first-child){font-size:clamp(1.15rem,1.7vw,1.45rem);line-height:1.65}
+:where(.premium-site-story-spread,.premium-site-asymmetric-split,.premium-site-typography-first) :where(.story-layout){display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:clamp(24px,6vw,88px);align-items:start}
+:where(.premium-site-story-spread,.premium-site-editorial-collage) :where(#services .grid article){border-top:2px solid var(--line);border-radius:0;box-shadow:none;background:transparent;padding:28px 0}
+:where(.premium-site-story-spread) :where(#services h3){font-family:Georgia,serif;font-size:clamp(1.3rem,2vw,1.8rem)}
+:where(.premium-site-service-led) :where(#services .grid article){border-left:3px solid var(--ink);border-radius:0;padding:28px;box-shadow:none}
+:where(.premium-site-quiet-portrait,.premium-site-typography-first) :where(#contact .wrap){max-width:1000px}
+:where([class*="premium-site-"]) :where(#contact a){text-underline-offset:.25em;overflow-wrap:anywhere}
+:where([class*="premium-site-"]) :where(.gallery-image){background:transparent}
+@media(max-width:800px){:where([class*="premium-site-"]) :where(.story-layout){grid-template-columns:minmax(0,1fr);gap:24px}:where([class*="premium-site-"]) :where(.story-copy){max-width:100%}}
 `;

@@ -1,3 +1,4 @@
+import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from './websitePhotoPresentation.mjs';
 import {premiumHeroInner} from './websitePremiumHero.mjs';
 import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
@@ -109,6 +110,7 @@ function buildAssetMap(manifest: any, field: "previewUrl" | "publicUrl") {
 }
 
 function urlForAsset(asset: any, urls: Record<string, string>, index = 0) {
+  if(!websiteAssetAvailable(asset))return "";
   return (
     urls[assetKey(asset, index)] ||
     urls[clean(asset?.storagePath, 1000)] ||
@@ -171,7 +173,7 @@ function renderSectionHtml(
     const action=clean(section.cta,120)&&clean(section.ctaHref,500)
       ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>`
       : "";
-    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}">${theme.heroComposition?premiumHeroInner(theme.heroComposition,{variation:theme.heroVariation,images:safeArray(draft.sections).filter((s:any)=>s.type==='gallery'&&s.enabled!==false).flatMap((s:any)=>safeArray(s.items)).filter((a:any)=>a?.approved!==false&&urlForAsset(a,urls)&&urlForAsset(a,urls)!==image).slice(0,2).map((a:any)=>`<img class="hero-image${["top","bottom"].includes(a?.appearance?.photoCrop)?" owner-image-crop-"+a.appearance.photoCrop:""}${a?.appearance?.photoFit==="contain"?" owner-image-fit-contain":""}" loading="lazy" decoding="async" src="${escapeHtml(urlForAsset(a,urls))}" alt="${escapeHtml(clean(a.alt)||draft.businessName||"Business photograph")}">`),copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>`,image:imageMarkup,hasImage:!!image,services:theme.heroComposition==='product-showcase'&&safeArray(draft.sections).some((s:any)=>s.type==='products'&&s.enabled!==false)?`<div class="premium-product-link" role="navigation" aria-label="Product collection"><a href="#products">${escapeHtml(safeArray(draft.sections).find((s:any)=>s.type==='products'&&s.enabled!==false).title||'Explore the collection')}</a></div>`:heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div>`}</section>`;
+    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}">${theme.heroComposition?premiumHeroInner(theme.heroComposition,{variation:theme.heroVariation,images:distinctWebsitePhotos(safeArray(draft.sections).filter((s:any)=>s.type==='gallery'&&s.enabled!==false).flatMap((s:any)=>safeArray(s.items)).filter((a:any)=>a?.approved!==false&&urlForAsset(a,urls)),{businessId:draft.businessId||draft.business_id,exclude:[section.asset]}).slice(0,2).map(({asset:a}:any)=>`<img class="hero-image${["top","bottom"].includes(a?.appearance?.photoCrop)?" owner-image-crop-"+a.appearance.photoCrop:""}${a?.appearance?.photoFit==="contain"?" owner-image-fit-contain":""}" loading="lazy" decoding="async" src="${escapeHtml(urlForAsset(a,urls))}" alt="${escapeHtml(clean(a.alt)||draft.businessName||"Business photograph")}">`),copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>`,image:imageMarkup,hasImage:!!image,services:theme.heroComposition==='product-showcase'&&safeArray(draft.sections).some((s:any)=>s.type==='products'&&s.enabled!==false)?`<div class="premium-product-link" role="navigation" aria-label="Product collection"><a href="#products">${escapeHtml(safeArray(draft.sections).find((s:any)=>s.type==='products'&&s.enabled!==false).title||'Explore the collection')}</a></div>`:heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div>`}</section>`;
   }
 
   const headingTag = isFirstSection ? "h1" : "h2";
@@ -201,8 +203,8 @@ function renderSectionHtml(
     return `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></section>`;
   }
   if (section.type === "gallery") {
-    const imageNodes = safeArray(section.items)
-      .map((item: any, index: number) => {
+    const imageNodes = websiteGalleryPresentation(section,draft)
+      .map(({asset:item,index}: any) => {
         const url = urlForAsset(item, urls, index);
         const crop=(["top","bottom"].includes(item?.appearance?.photoCrop)
           ?" owner-image-crop-"+item.appearance.photoCrop:"")+
@@ -210,7 +212,7 @@ function renderSectionHtml(
         return url
           ? `<img class="gallery-image${crop}" src="${escapeHtml(
               url
-            )}" alt="">`
+            )}" alt="${escapeHtml(clean(item.alt)||draft.businessName||"Approved photograph")}">`
           : "";
       })
       .filter(Boolean);
@@ -264,6 +266,10 @@ function renderSectionHtml(
     }</div></section>`;
   }
 
+  if(draft.theme?.heroComposition&&section.id==='about'&&clean(section.body)){
+    const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map((text:string)=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
+    return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2>${escapeHtml(section.title)}</h2><div class="story-copy">${paragraphs}</div></div></section>`;
+  }
   return `<section id="${escapeHtml(
     section.id
   )}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
@@ -319,7 +325,7 @@ function renderWebsiteHtml(
     "photo-focus-" + (["top","bottom","center"].includes(draft?.theme?.photoFocus)?draft.theme.photoFocus:"center"),
   ].join(" ");
   const seo = pageSeo(draft, page);
-  const navigation = safeArray(draft?.navigation);
+  const navigation = safeArray(draft?.navigation).filter((item:any)=>item.id!=="gallery"||allSections.some((section:any)=>section.type==="gallery"&&websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).length>0));
   const navHtml = navigation.length
     ? `<nav aria-label="Main navigation"><div class="nav-wrap"><a class="brand" href="${escapeHtml(pageUrls.home || relativePageHref(page,"/"))}">${escapeHtml(
         draft?.brandLabel || draft?.businessName || "Home"
@@ -342,7 +348,7 @@ function renderWebsiteHtml(
         return safeArray(section.items).some((item:any)=>clean(item?.title||item?.body));
       if(section.type==="photo-feature")return !!urlForAsset(section.asset,urls);
       if(section.type==="gallery")
-        return safeArray(section.items).some((item:any,index:number)=>!!urlForAsset(item,urls,index));
+        return websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).some(({asset,index}:any)=>!!urlForAsset(asset,urls,index));
       if(section.type==="text")return !!clean(section.body);
       if(section.type==="contact")return !!(clean(section.phone)||clean(section.email)||clean(section.body));
       return true;

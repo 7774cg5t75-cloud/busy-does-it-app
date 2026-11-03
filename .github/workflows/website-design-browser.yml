@@ -6,6 +6,13 @@ on:
       - 'supabase/functions/busy-website-worker/**'
       - 'src/domain/websiteBuilder.js'
       - 'src/core/premiumWebsite*.mjs'
+      - 'src/core/businessIntroduction.mjs'
+      - 'src/core/connectedBusinessPreparation.mjs'
+      - 'src/core/websiteOwnedOriginalReview.mjs'
+      - 'src/core/websiteCopySuggestions.mjs'
+      - 'scripts/check-business-introduction.mjs'
+      - 'scripts/lib/business-introduction-fixtures.mjs'
+      - 'scripts/make-business-comparison.mjs'
       - 'src/core/guidedWebsiteJourney.mjs'
       - 'src/core/websitePhotoReview.mjs'
       - 'src/screens/guidedWebsiteCreation.js'
@@ -19,6 +26,7 @@ on:
       - '.github/workflows/website-design-browser.yml'
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: premium-website-browser-${{ github.ref }}
   cancel-in-progress: true
@@ -47,6 +55,8 @@ jobs:
           node scripts/check-website-design-expansion.mjs
           python3 scripts/fetch-website-test-assets.py
           node scripts/check-guided-website-creation.mjs
+          node scripts/check-business-introduction.mjs
+          node scripts/check-owned-website-media.mjs
           python3 scripts/fetch-guided-website-assets.py
       - name: Install browser from existing exact Playwright dependency
         run: node_modules/.bin/playwright install --with-deps chromium
@@ -54,56 +64,45 @@ jobs:
         run: |
           node scripts/capture-website-design.mjs
           BUSY_GUIDED_BROWSER=1 node scripts/capture-website-design.mjs
-      - name: Retain synthetic HTML, original pixels and exact provenance
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: premium-website-browser-${{ github.sha }}
-          path: |
-            .test-artifacts/website-expansion/
-            .test-artifacts/guided-websites/
-          retention-days: 7
-          if-no-files-found: error
-  prior-pixel-review:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 8
-    permissions:
-      actions: read
-      contents: read
-    steps:
-      - name: Retrieve exact prior original-renderer evidence without regeneration
+          BUSY_INTRO_BROWSER=1 node scripts/capture-website-design.mjs
+      - name: Compare real current pixels with the exact previous guided evidence
+        if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download 41618490517 --repo 7774cg5t75-cloud/busy-does-it-app --name premium-website-browser-4de05a9c51c507f155e40708b4aa772c76025bf1 --dir prior-pixels
-          python3 - <<'PY'
-          import pathlib,json,hashlib
-          base=pathlib.Path('prior-pixels')
-          for folder in ['guided-websites','website-expansion']:
-              root=base/folder
-              data=json.loads((root/'browser-results.json').read_text())
-              assert data['source']['commit']=='4de05a9c51c507f155e40708b4aa772c76025bf1'
-              assert data['source']['tree']=='7937b372be35ae9c4d8dfa5422ff5549b75feb4a'
-              for row in data['results']:
-                  assert pathlib.Path(row['filename']).name==row['filename']
-                  assert hashlib.sha256((root/row['filename']).read_bytes()).hexdigest()==row['sha256']
-              print(folder,len(data['results']),'original pixel hashes verified',data['browser'])
-          PY
-      - name: Retain exact guided pixels in a transfer-sized archive
+          gh run download 41624660026 --repo 7774cg5t75-cloud/busy-does-it-app --name prior-guided-pixels-4de05a9c --dir .test-artifacts/prior-guided-pixels
+          node scripts/make-business-comparison.mjs
+      - name: Retain expanded original pixels and HTML in a bounded archive
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: prior-guided-pixels-4de05a9c
+          name: website-expansion-${{ github.sha }}
           path: |
-            prior-pixels/guided-websites/*.png
-            prior-pixels/guided-websites/browser-results.json
+            .test-artifacts/website-expansion/*.png
+            .test-artifacts/website-expansion/*.html
+            .test-artifacts/website-expansion/*.json
           retention-days: 7
           if-no-files-found: error
-      - name: Retain exact expansion pixels without repeated source-photo files
+      - name: Retain guided regression original pixels in a bounded archive
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: prior-expansion-pixels-4de05a9c
+          name: website-guided-${{ github.sha }}
           path: |
-            prior-pixels/website-expansion/*.png
-            prior-pixels/website-expansion/browser-results.json
+            .test-artifacts/guided-websites/*.png
+            .test-artifacts/guided-websites/*.html
+            .test-artifacts/guided-websites/*.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain rich introduction originals and compact owner comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-introduction-${{ github.sha }}
+          path: |
+            .test-artifacts/business-introduction/*.png
+            .test-artifacts/business-introduction/*.jpg
+            .test-artifacts/business-introduction/*.html
+            .test-artifacts/business-introduction/*.json
           retention-days: 7
           if-no-files-found: error
