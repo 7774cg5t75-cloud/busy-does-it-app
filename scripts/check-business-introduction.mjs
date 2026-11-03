@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {originalWebsiteSectionRuntime} from './lib/original-website-section-runtime.mjs';
-import {mkdirSync,writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync,readFileSync} from 'node:fs';
 import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
 import {introductionCases,introducedProfile} from './lib/business-introduction-fixtures.mjs';
 import {introductionProposal,businessIntroductionQuestions,reviewBusinessIntroduction} from '../src/core/businessIntroduction.mjs';
@@ -10,7 +10,8 @@ import {prepareGuidedWebsite,refineGuidedWebsite,keepGuidedWebsite,guidedWebsite
 import {websiteRequestContent} from '../src/core/websiteRequestPlan.mjs';
 import {websiteGalleryPresentation,distinctWebsitePhotos} from '../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 const api=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','renderWebsiteHtml','applyStructuredWebsiteEdit','applyWebsiteLayoutChange','rebuildPrivateWebsiteDraft']),deps={fieldEdit:api.applyStructuredWebsiteEdit,layoutEdit:api.applyWebsiteLayoutChange,renderPage:api.renderWebsiteHtml,rebuild:api.rebuildPrivateWebsiteDraft};
-export function introductionFixture(i){const c=introductionCases[i],profile=introducedProfile(i),businessId='bbbbbbbb-bbbb-4bbb-8bbb-'+String(i+30).padStart(12,'0'),ownerId='cccccccc-cccc-4ccc-8ccc-cccccccccccc',photo=c.image?{uri:'https://assets.example.invalid/'+c.image+'.jpg',storagePath:'approved/'+c.image+'.jpg',businessId,approved:true,sha256:c.image==='catering'?'9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046':'a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3',width:c.image==='catering'?4608:1280,height:c.image==='catering'?3456:1920,alt:'Licensed illustrative '+c.image+' photograph; not this fictional business’s work',appearance:{photoFit:'cover',photoCrop:'center'}}:null;const website=api.buildWebsiteDraft({businessId,brandBrain:{websiteBrief:{...profile,about:c.story,email:profile.contact.email,heroAsset:photo,photos:photo?[photo,{...photo,storagePath:photo.storagePath+'-duplicate'}]:[]}}});return {businessId,ownerId,profile,website,profileRevision:1};}
+const fixturePhotos=JSON.parse(readFileSync('scripts/fixtures/guided-websites/assets.json')).images;
+export function introductionFixture(i){const c=introductionCases[i],profile=introducedProfile(i),businessId='bbbbbbbb-bbbb-4bbb-8bbb-'+String(i+30).padStart(12,'0'),ownerId='cccccccc-cccc-4ccc-8ccc-cccccccccccc',photo=c.image?{uri:'https://assets.example.invalid/'+c.image+'.jpg',storagePath:'approved/'+c.image+'.jpg',businessId,approved:true,sha256:fixturePhotos.find(a=>a.name===c.image).sha256,width:c.image==='catering'?4608:1280,height:c.image==='catering'?3456:1920,alt:'Licensed illustrative '+c.image+' photograph; not this fictional business’s work',appearance:{photoFit:'cover',photoCrop:'center'}}:null;const website=api.buildWebsiteDraft({businessId,brandBrain:{websiteBrief:{...profile,about:c.story,email:profile.contact.email,heroAsset:photo,photos:photo?[photo,{...photo,storagePath:photo.storagePath+'-duplicate'}]:[]}}});return {businessId,ownerId,profile,website,profileRevision:1};}
 export async function exerciseIntroducedWebsite(i,context,{apply,getContext=()=>context}){
  const c=introductionCases[i];let journey=prepareGuidedWebsite({...context,goal:'I run an '+c.goalType+' and need a professional website.'},deps);
  // The ordinary grammar uses a/an; choose the explicitly stated business type.
