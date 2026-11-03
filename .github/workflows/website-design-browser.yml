@@ -76,6 +76,14 @@ jobs:
         run: |
           gh run download 41624660026 --repo 7774cg5t75-cloud/busy-does-it-app --name prior-guided-pixels-4de05a9c --dir .test-artifacts/prior-guided-pixels
           node scripts/make-business-comparison.mjs
+      - name: Retain changed public fixture bytes for explicit review only
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-photo-byte-review-${{ github.sha }}
+          path: .test-artifacts/photo-byte-review/
+          retention-days: 3
+          if-no-files-found: ignore
       - name: Retain expanded original pixels and HTML in a bounded archive
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
