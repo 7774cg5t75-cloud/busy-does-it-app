@@ -76,8 +76,8 @@ export const craftedPageCss=`
 :where(.premium-crafted) .hero-art{display:none}
 @media(max-width:700px){
  :where(.premium-crafted) main>section:where(:not(.hero)){padding-block:56px}
- :where(.premium-crafted) .crafted-service,:where(.premium-crafted) .crafted-services--quiet .crafted-service,:where(.premium-crafted) .crafted-services--spread .crafted-service:first-child{grid-template-columns:26px minmax(0,1fr);gap:12px 16px;padding-block:28px}
- :where(.premium-crafted) .crafted-service-description,:where(.premium-crafted) .crafted-services--spread .crafted-service:first-child .crafted-service-description,:where(.premium-crafted) .crafted-services--spread .service-enquiry-link{grid-column:2}
+ :where(.premium-crafted) .crafted-service,:where(.premium-crafted) .crafted-services--quiet .crafted-service,:where(.premium-crafted) .crafted-services--tiles .crafted-service,:where(.premium-crafted) .crafted-services--spread .crafted-service:first-child{grid-template-columns:26px minmax(0,1fr);gap:12px 16px;padding-block:28px}
+ :where(.premium-crafted) .crafted-service .crafted-service-description,:where(.premium-crafted) .crafted-services--spread .crafted-service:first-child .crafted-service-description,:where(.premium-crafted) .crafted-services--spread .service-enquiry-link{grid-column:2}
  :where(.premium-crafted) .crafted-services--spread,:where(.premium-crafted) .crafted-services--tiles,:where(.premium-crafted) .crafted-story,:where(.premium-crafted) .crafted-contact{grid-template-columns:minmax(0,1fr)}
  :where(.premium-crafted) .crafted-services--split .crafted-service:nth-child(even){margin-left:0}
  :where(.premium-crafted) .crafted-service .service-enquiry-link,:where(.premium-crafted) .crafted-services--spread .crafted-service:first-child .service-enquiry-link{grid-column:2}
