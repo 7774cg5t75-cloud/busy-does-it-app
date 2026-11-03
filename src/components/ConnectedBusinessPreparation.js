@@ -6,7 +6,7 @@ import {continueConnectedBusinessEditor} from '../core/connectedEditorContinuati
 import {prepareConnectedBusinessWork} from '../core/connectedBusinessPreparation.mjs';
 export function ConnectedBusinessPreparation({s}){
  const [value,setValue]=React.useState(null),[notice,setNotice]=React.useState(''),[busy,setBusy]=React.useState(false),alive=React.useRef(true),live=React.useRef(null),flight=React.useRef(false);
- React.useEffect(()=>()=>{alive.current=false;},[]);const owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId,website=s.websiteDraft;live.current={s,owner:s.ownerSession?.userId,business:s.cloudWorkspace?.businessId,website:s.websiteDraft};
+ React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);const owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId,website=s.websiteDraft;live.current={s,owner:s.ownerSession?.userId,business:s.cloudWorkspace?.businessId,website:s.websiteDraft};
  const continueIn=async(destination,serviceId='')=>{if(flight.current||!current()||!value)return false;flight.current=true;setBusy(true);try{const r=await continueConnectedBusinessEditor({review:value.review,destination,serviceId,getState:()=>live.current.s,isCurrent:current});if(current())setNotice(r.ok?'Opened the original private editor. Review there before any save; nothing was published.':r.reason);return r.ok;}catch{if(current())setNotice('Current sources could not be verified. Your work is kept.');return false;}finally{flight.current=false;if(current())setBusy(false);}};
  const current=()=>alive.current&&live.current.owner===owner&&live.current.business===business&&live.current.website===website;
  if(!s.connectedReadProfile)return null;

@@ -60,11 +60,11 @@ CREATE OR REPLACE FUNCTION public.busy_creator_media_review_v1(p_business_id uui
 DECLARE a uuid:=busy_growth_private.authorize(p_business_id);asset record;ref jsonb;projection jsonb;
 BEGIN
  IF p_private_use_reviewed IS DISTINCT FROM true OR p_storage_path IS NULL OR length(p_storage_path)>240 OR to_regclass('public.busy_website_original_media') IS NULL THEN RAISE EXCEPTION 'Review the original private asset' USING ERRCODE='42501';END IF;
- EXECUTE 'SELECT id,sha256 FROM public.busy_website_original_media WHERE business_id=$1 AND uploaded_by=$2 AND storage_path=$3' INTO asset USING p_business_id,a,p_storage_path;
+ EXECUTE 'SELECT m.id,m.sha256,to_jsonb(m)->''private_use_revision'' AS use_revision,to_jsonb(m)->''private_use_decisions'' AS decisions FROM public.busy_website_original_media m WHERE business_id=$1 AND uploaded_by=$2 AND storage_path=$3' INTO asset USING p_business_id,a,p_storage_path;
  IF asset.id IS NULL THEN RAISE EXCEPTION 'Original media unavailable' USING ERRCODE='42501';END IF;
  ref:=jsonb_build_object('assetId',asset.id,'sha256',asset.sha256,'id','review','kind','website_original','privateUseReviewed',true,'width',0,'height',0,'fileName','');projection:=busy_creator_private.media_projection(p_business_id,a,jsonb_build_array(ref),false);
  IF projection->0->>'state' IS DISTINCT FROM 'eligible' THEN RAISE EXCEPTION 'Original media unavailable' USING ERRCODE='42501';END IF;
- RETURN jsonb_build_object('businessId',p_business_id,'ownerId',a,'assetId',asset.id,'sha256',asset.sha256,'notOwnReceipt',true,'privateUseReviewed',true,'publicUseAuthorised',false,'mediaProjection',projection);
+ RETURN jsonb_build_object('businessId',p_business_id,'ownerId',a,'assetId',asset.id,'sha256',asset.sha256,'notOwnReceipt',true,'privateUseReviewed',true,'publicUseAuthorised',false,'mediaProjection',projection,'privatePurposes',CASE WHEN asset.use_revision IS NOT NULL THEN jsonb_build_object('revision',asset.use_revision,'decisions',asset.decisions) ELSE NULL END);
 END $$;
 
 CREATE OR REPLACE FUNCTION busy_creator_private.valid_editor_v3(e jsonb,media jsonb) RETURNS boolean LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $$

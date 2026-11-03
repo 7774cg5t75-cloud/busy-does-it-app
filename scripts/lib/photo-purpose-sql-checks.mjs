@@ -19,8 +19,12 @@ export async function checkPhotoPurposeSQL({sql,packet,q,stage,B,O,F,P}){
  await stage('media-purpose-real-save-independent-readback-reopen-and-withdrawal',async()=>{
   current=await api.inspect(source);assert.equal(current.revision,0);const decisions={website_hero:'approved',creator_draft:'approved',marketing_material:'withdrawn'},saved=await api.commit(api.review(current,decisions));assert.equal(saved.ok,true);current=await api.inspect(source);assert.deepEqual(current.decisions,decisions);assert.equal(current.publicUseAuthorised,false);
   const op=sql('SELECT private_use_history->0->>\'operationId\' FROM public.busy_website_original_media WHERE id='+q(A));const duplicate=call('save',O,A,sha,0,decisions,op);assert.equal(duplicate.duplicate,true);assert.equal(duplicate.revision,1);assert.throws(()=>call('save',O,A,sha,0,{},op));
-  const changed={...decisions,creator_draft:'withdrawn'};const next=await api.commit(api.review(current,changed));assert.equal(next.ok,true);current=next.observed;
   const ref={kind:'website_original',id:'chosen',assetId:A,sha256:sha,fileName:'chosen.png',width:600,height:400,privateUseReviewed:true};
+  const content={schemaVersion:2,text:'Exact reviewed private caption',brief:'Reviewed original',format:'social',treatment:'detailed',channels:[],ownerFacts:'Synthetic owner-reviewed facts',preparedCopy:'Exact reviewed private caption',brandFingerprint:'synthetic',media:[ref],editor:{captions:[],selectedCaptionId:'',privacyWarnings:[],story:null}};
+  const write=(id,key)=>packet('BEGIN;SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+q(O)+';SELECT public.busy_creator_draft_write_v1('+[B,id,0,content,null,null,null,key].map(q).join(',')+');COMMIT;');
+  assert.equal(write('purpose-content','purpose_content_first').revision,1);
+  const changed={...decisions,creator_draft:'withdrawn'};const next=await api.commit(api.review(current,changed));assert.equal(next.ok,true);current=next.observed;
+  assert.throws(()=>write('purpose-refused','purpose_content_denied'));
   assert.throws(()=>sql('SELECT busy_creator_private.media_projection('+[B,O,[ref],true].map(q).join(',')+')'));
   assert.equal(JSON.parse(sql('SELECT busy_creator_private.media_projection('+[B,O,[ref],false].map(q).join(',')+')'))[0].state,'eligible','Historical private read remains; withdrawal denies new Creator writes');
  });

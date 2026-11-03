@@ -39,3 +39,11 @@ console.log('PASS three source-bound original editor continuations, actual compo
  await assert.rejects(()=>inspector.readOriginal({businessId:'foreign',meta}));revoked=true;await assert.rejects(()=>inspector.readOriginal({businessId:B,meta}));assert.equal(inspector.signedIn,false);
  console.log('PASS actual connected original-media stream read: pinned original endpoint, exact scoped path, size bound, fresh membership before/after, revoked account and foreign reference denial. Auth and Storage transport are synthetic.');
 }
+// Actual permission component, original read contract and missing native crypto
+// fail-closed behaviour. No fake native module is installed to manufacture a save.
+{
+ const rt=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs').createRuntime(),Component=rt.load('src/components/BusinessPhotoPermissions.js').BusinessPhotoPermissions,c=introductionFixture(0),scope={},calls=[];
+ const record={ownerId:c.ownerId,businessId:c.businessId,assetId:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',sha256:'a'.repeat(64),revision:0,decisions:{},notOwnReceipt:true,publicUseAuthorised:false,rightsIndependentlyVerified:false},runtime={active:true,requestPhotoPurpose:async(a,p)=>{calls.push([a,p]);assert.equal(a,'media_purpose_inspect');return record;}},s={ownerSession:{userId:c.ownerId},cloudWorkspace:{businessId:c.businessId,role:'owner'},ownerWorkspaceScope:scope,connectedRuntime:runtime,creatorDraftAccount:{reviewMedia:async()=>({ref:record,projection:{state:'eligible'}})}},photo={id:'original',exportOriginalPath:'exact-reviewed-original'},draw=()=>walk(rt.render(Component,{s,photo})),button=label=>draw().find(n=>n.props?.label===label);
+ await button('Inspect current photo permissions').props.onPress();button('Website homepage · not allowed').props.onPress();await button('I have permission — approve and save these private uses').props.onPress();assert.equal(calls.length,1,'Unavailable native cryptography must not dispatch a purpose write');const old=button('Inspect current photo permissions').props.onPress;s.cloudWorkspace={businessId:'foreign',role:'owner'};draw();assert.equal(await old(),false);assert.equal(calls.length,1);
+ console.log('PASS actual photo permission UI: deliberate intended-use selection, no automatic save, missing native cryptography and obsolete foreign-context callbacks fail closed.');
+}

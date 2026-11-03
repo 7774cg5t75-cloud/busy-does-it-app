@@ -4,7 +4,7 @@ const deny=reason=>({ok:false,reason});
 export function reviewOriginalImageBytes(bytes,{forPrivateNormalisation=false}={}){
  if(!(bytes instanceof Uint8Array)||bytes.length<20||bytes.length>9437184)return deny('Choose an image no larger than 9 MB.');
  const n=bytes.length,tag=(a,b)=>String.fromCharCode(...bytes.subarray(a,b)),be=(i)=>bytes[i]*16777216+bytes[i+1]*65536+bytes[i+2]*256+bytes[i+3],le=i=>bytes[i]+bytes[i+1]*256+bytes[i+2]*65536+bytes[i+3]*16777216;
- const finish=(contentType,width,height)=>Number.isSafeInteger(width)&&Number.isSafeInteger(height)&&width>0&&height>0&&width<=20000&&height<=20000&&width*height<=40000000?{ok:true,contentType,width,height,bytes:n,metadataPolicy:'restricted_container_metadata',decodedPixelsVerified:false,requiresDecodedReview:true,publicUseAuthorised:false}:deny('Image dimensions exceed the reviewed limits.');
+ const finish=(contentType,width,height)=>Number.isSafeInteger(width)&&Number.isSafeInteger(height)&&width>0&&height>0&&width<=20000&&height<=20000&&width*height<=40000000?{ok:true,contentType,width,height,bytes:n,metadataPolicy:forPrivateNormalisation?'private_decode_only_metadata_requires_removal':'restricted_container_metadata',decodedPixelsVerified:false,requiresDecodedReview:true,publicUseAuthorised:false}:deny('Image dimensions exceed the reviewed limits.');
  if(bytes[0]===255&&bytes[1]===216){
   if(bytes[n-2]!==255||bytes[n-1]!==217)return deny('JPEG is incomplete.');let p=2,w=0,h=0,nodes=0;
   while(p<n-2&&++nodes<=4096){

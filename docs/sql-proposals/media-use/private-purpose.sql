@@ -19,7 +19,7 @@ BEGIN
  SELECT role INTO role_name FROM public.busy_business_memberships WHERE business_id=p_business_id AND user_id=p_actor_id FOR SHARE;
  IF role_name IS DISTINCT FROM 'owner' THEN RAISE EXCEPTION 'Current owner required' USING ERRCODE='42501';END IF;
  SELECT * INTO a FROM public.busy_website_original_media WHERE id=p_asset_id AND business_id=p_business_id AND uploaded_by=p_actor_id AND sha256=p_sha256 FOR UPDATE;
- IF NOT FOUND THEN RAISE EXCEPTION 'Exact owned original unavailable' USING ERRCODE='42501';END IF;
+ IF NOT FOUND OR a.storage_path !~ ('^'||p_business_id::text||'/'||p_actor_id::text||'/[a-f0-9-]{36}\.(jpg|png|webp)$') THEN RAISE EXCEPTION 'Exact owned original unavailable' USING ERRCODE='42501';END IF;
  PERFORM 1 FROM storage.buckets WHERE id='busy-website-originals' AND public=false FOR SHARE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Private original bucket unavailable' USING ERRCODE='42501';END IF;
  PERFORM 1 FROM storage.objects WHERE bucket_id='busy-website-originals' AND name=a.storage_path FOR SHARE;

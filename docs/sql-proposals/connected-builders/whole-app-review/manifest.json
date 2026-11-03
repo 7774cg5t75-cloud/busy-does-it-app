@@ -77,7 +77,7 @@
     },
     {
       "path": "docs/sql-proposals/creator/private-drafts.sql",
-      "sha256": "bc63aebf02a4cd2ba7fae7b70ca698ec994e48817ff2758b097922adddfc250c"
+      "sha256": "1088595b784eddcdfac041ec340754e0cd9fdce9d35bc245c137e541229611dc"
     },
     {
       "path": "docs/sql-proposals/connected-builders/business-context.sql",
@@ -366,7 +366,7 @@
       "sha256": "722b84a7bbe6dde9fe6e8145a0a9fc64e344e63ad59a3c98bd489cec742f66d5"
     }
   ],
-  "sha256": "a614b3c614cd0fb22411f20e074a90a0e9f21856453ed4fcb94d8d239b2fff98",
+  "sha256": "7eb4fcf0f924d478ffaf34073788d9657becf2d056b9401f89f57567224cac50",
   "rollbackSha256": "f8ae624572303f06f21bf7224b8d8dcbab544be8601c975c70e38374fac40441",
   "retainedReaders": [
     "busy_creator_media_review_v1",
