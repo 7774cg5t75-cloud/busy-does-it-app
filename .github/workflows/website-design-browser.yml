@@ -64,3 +64,46 @@ jobs:
             .test-artifacts/guided-websites/
           retention-days: 7
           if-no-files-found: error
+  prior-pixel-review:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Retrieve exact prior original-renderer evidence without regeneration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 41618490517 --repo 7774cg5t75-cloud/busy-does-it-app --name premium-website-browser-4de05a9c51c507f155e40708b4aa772c76025bf1 --dir prior-pixels
+          python3 - <<'PY'
+          import pathlib,json,hashlib
+          base=pathlib.Path('prior-pixels')
+          for folder in ['guided-websites','website-expansion']:
+              root=base/folder
+              data=json.loads((root/'browser-results.json').read_text())
+              assert data['source']['commit']=='4de05a9c51c507f155e40708b4aa772c76025bf1'
+              assert data['source']['tree']=='7937b372be35ae9c4d8dfa5422ff5549b75feb4a'
+              for row in data['results']:
+                  assert pathlib.Path(row['filename']).name==row['filename']
+                  assert hashlib.sha256((root/row['filename']).read_bytes()).hexdigest()==row['sha256']
+              print(folder,len(data['results']),'original pixel hashes verified',data['browser'])
+          PY
+      - name: Retain exact guided pixels in a transfer-sized archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prior-guided-pixels-4de05a9c
+          path: |
+            prior-pixels/guided-websites/*.png
+            prior-pixels/guided-websites/browser-results.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain exact expansion pixels without repeated source-photo files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prior-expansion-pixels-4de05a9c
+          path: |
+            prior-pixels/website-expansion/*.png
+            prior-pixels/website-expansion/browser-results.json
+          retention-days: 7
+          if-no-files-found: error
