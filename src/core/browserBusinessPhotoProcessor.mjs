@@ -2,9 +2,12 @@ import {reviewOriginalImageBytes} from '../../supabase/functions/busy-website-or
 // Explicit browser implementation only. No Hermes/Web Crypto assumption, remote
 // processing, uploads or storage authority. Native callers fail closed.
 export async function processBrowserBusinessPhoto({bytes,source,isCurrent=()=>true},platform=globalThis){
- if(!source||!source.assetId||!source.businessId||!source.ownerId||!/^[a-f0-9]{64}$/.test(source.sha256||'')||!isCurrent())throw Error('Review the exact current original first');
+ if(!source||Object.keys(source).sort().join('|')!=='assetId|businessId|ownerId|sha256'||!['assetId','businessId','ownerId'].every(k=>typeof source[k]==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(source[k]))||!/^[a-f0-9]{64}$/.test(source.sha256||'')||!isCurrent())throw Error('Review the exact current original first');
  const input=reviewOriginalImageBytes(bytes,{forPrivateNormalisation:true});
  if(!input.ok)throw Error(input.reason);
+ // Own both snapshots before the first await: caller mutation cannot change
+ // the pixels after their digest, or rebind the returned source identity.
+ bytes=new Uint8Array(bytes);source={...source};
  if(typeof platform.createImageBitmap!=='function'||!platform.document?.createElement||!platform.crypto?.subtle||!platform.Blob)throw Error('Trusted browser image processing is unavailable on this platform');
  const digest=async b=>Array.from(new Uint8Array(await platform.crypto.subtle.digest('SHA-256',b))).map(n=>n.toString(16).padStart(2,'0')).join('');
  if(await digest(bytes)!==source.sha256||!isCurrent())throw Error('Original bytes or owner context changed');
