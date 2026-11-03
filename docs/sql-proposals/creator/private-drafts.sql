@@ -48,7 +48,7 @@ BEGIN
   found_asset:=false;
   IF to_regclass('public.busy_website_original_media') IS NOT NULL AND to_regclass('storage.objects') IS NOT NULL AND to_regclass('storage.buckets') IS NOT NULL THEN
    query:='SELECT m.id,m.storage_path,m.sha256,m.content_type,m.byte_length FROM public.busy_website_original_media m JOIN storage.objects o ON o.bucket_id=''busy-website-originals'' AND o.name=m.storage_path JOIN storage.buckets bucket ON bucket.id=o.bucket_id AND bucket.public=false WHERE m.id=$1 AND m.business_id=$2 AND m.uploaded_by=$3 AND m.sha256=$4 AND m.content_type IN (''image/jpeg'',''image/png'',''image/webp'') AND m.byte_length BETWEEN 20 AND 9437184';
-   IF writing THEN query:=query||' FOR SHARE OF m,o,bucket';END IF;
+   IF writing THEN query:=query||' AND (NOT (to_jsonb(m) ? ''private_use_decisions'') OR to_jsonb(m)->''private_use_decisions''->>''creator_draft''=''approved'') FOR SHARE OF m,o,bucket';END IF;
    EXECUTE query INTO asset_id,path,dbhash,ctype,bytes USING (ref->>'assetId')::uuid,b,a,ref->>'sha256';found_asset:=asset_id IS NOT NULL;
    IF found_asset THEN found_asset:=path ~ ('^'||b::text||'/'||a::text||'/[a-f0-9-]{36}\.(jpg|png|webp)$');END IF;
   END IF;

@@ -181,7 +181,7 @@ function createStagingAuthInspector({config={},fetchImpl=fetch,now=Date.now}={})
       const apps=['private_work_preparation','owner_status','content_list','build_draft','apply_app_plan','apply_coordinated_edits','save_project_spec','private_function','private_screen','set_module','move_section','set_appearance'];
       const account=connectedAccountRoutes;
 
-      if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design','website_edit_page','website_edit_instruction','website_undo','website_redo',...apps,'provider_status','provider_prepare','provider_inspect',...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
+      if(!['workspaces','builder_read','website_create','website_edit_text','website_edit_design','website_edit_page','website_edit_instruction','website_undo','website_redo',...apps,'provider_status','provider_prepare','provider_inspect','media_purpose_inspect','media_purpose_save',...Object.keys(account)].includes(action))throw Error("Unsupported staging operation");
       try{
         const id=await checkIdentity(bearer,FIXTURES[key].email);
         if(!current())throw Error("staging-session-cancelled");
@@ -196,7 +196,10 @@ function createStagingAuthInspector({config={},fetchImpl=fetch,now=Date.now}={})
           const basis=await call('/rest/v1/rpc/'+(action==='initialize'?'busy_connected_initialize_v1':'busy_connected_builder_read_v1'),{method:'POST',bearer,body:{p_business_id:payload.businessId}});
           if(!current())throw Error('staging-session-cancelled');
           if(basis.status!==200||basis.json?.actorId!==userId||basis.json?.businessId!==payload.businessId)throw Error('staging-business-unavailable');
-          if(action.startsWith('provider_')){
+          if(['media_purpose_inspect','media_purpose_save'].includes(action)){
+            const fields=['assetId','sha256','expectedRevision','decisions','operationId','rightsAcknowledged'];
+            response=await call('/functions/v1/busy-website-original-media',{method:'POST',bearer,body:{action:action==='media_purpose_save'?'purpose_save':'purpose_inspect',businessId:payload.businessId,...Object.fromEntries(fields.filter(k=>Object.hasOwn(payload,k)).map(k=>[k,payload[k]]))}});
+          }else if(action.startsWith('provider_')){
             const operation=action.slice('provider_'.length);
             const body=operation==='status'?{action:'status',businessId:payload.businessId}:operation==='prepare'?{action:'prepare',businessId:payload.businessId,provider:payload.provider,expectedRevision:payload.expectedRevision,ownerReviewed:payload.ownerReviewed}:{action:'inspect',businessId:payload.businessId,provider:payload.provider,state:payload.state};
             response=await call('/functions/v1/busy-social-publish?mode=provider-preparation',{method:'POST',bearer,body});
@@ -219,6 +222,27 @@ function createStagingAuthInspector({config={},fetchImpl=fetch,now=Date.now}={})
         if(current()&&['staging-identity-unverified','staging-business-unavailable','staging-account-changed'].includes(error.message))clear();
         throw error;
       }
+    },
+    // Exact existing original-media reader only. No token, arbitrary URL or
+    // writable storage capability leaves this authenticated inspector.
+    async readOriginal({businessId,meta,isCurrent=()=>true}){
+      assertConfigured();expire();
+      const bearer=token,version=generation,user=verifiedUser,key=verifiedKey;
+      const current=()=>{expire();return !!bearer&&generation===version&&token===bearer&&isCurrent();};
+      if(!current()||!key||!meta||meta.state!=='eligible'||typeof businessId!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(businessId)||!new RegExp('^'+businessId+'/'+user+'/[a-f0-9-]{36}\\.(jpg|png|webp)$').test(meta.storagePath||'')||!['image/jpeg','image/png','image/webp'].includes(meta.contentType)||!Number.isSafeInteger(meta.byteLength)||meta.byteLength<20||meta.byteLength>9437184||!/^[a-f0-9]{64}$/.test(meta.sha256||''))throw Error('Review a current owned original');
+      await this.requestConnected('builder_read',{businessId});
+      if(!current())throw Error('Account changed');
+      const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),45000);
+      try{
+        const r=await fetchImpl(config.baseUrl+'/functions/v1/busy-website-original-media',{method:'POST',headers:{apikey:config.publishableKey,Authorization:'Bearer '+bearer,'Content-Type':'application/json'},body:JSON.stringify({action:'download',businessId,storagePath:meta.storagePath,expectedSha256:meta.sha256}),redirect:'error',cache:'no-store',credentials:'omit',signal:controller.signal});
+        if(!current()||r.status!==200||r.headers.get('content-type')!==meta.contentType||r.headers.get('x-busy-original-sha256')!==meta.sha256||Number(r.headers.get('content-length'))!==meta.byteLength||!r.body?.getReader)throw Error('Original unavailable');
+        const reader=r.body.getReader(),parts=[];let size=0;
+        try{while(true){const row=await reader.read();if(row.done)break;if(!current()||!(row.value instanceof Uint8Array)||(size+=row.value.length)>meta.byteLength)throw Error('Original size changed');parts.push(row.value);}}catch(error){await reader.cancel();throw error;}
+        if(size!==meta.byteLength||!current())throw Error('Original changed');
+        const bytes=new Uint8Array(size);let at=0;for(const part of parts){bytes.set(part,at);at+=part.length;}
+        // Fresh authenticated membership/source inspection after the byte read.
+        await this.requestConnected('builder_read',{businessId});if(!current())throw Error('Account changed');return bytes;
+      }finally{clearTimeout(deadline);}
     },
     clearLocal(){clear();return {localSessionCleared:true};}
   };

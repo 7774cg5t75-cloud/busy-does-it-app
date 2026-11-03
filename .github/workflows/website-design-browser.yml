@@ -8,6 +8,8 @@ on:
       - 'src/core/premiumWebsite*.mjs'
       - 'src/core/businessIntroduction.mjs'
       - 'src/core/connectedBusinessPreparation.mjs'
+      - 'src/core/browserBusinessPhotoProcessor.mjs'
+      - 'scripts/process-business-photo-fixtures.mjs'
       - 'src/core/websiteOwnedOriginalReview.mjs'
       - 'src/core/websiteCopySuggestions.mjs'
       - 'scripts/check-business-introduction.mjs'
@@ -64,6 +66,7 @@ jobs:
         run: |
           node scripts/capture-website-design.mjs
           BUSY_GUIDED_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/process-business-photo-fixtures.mjs
           BUSY_INTRO_BROWSER=1 node scripts/capture-website-design.mjs
       - name: Compare real current pixels with the exact previous guided evidence
         if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
@@ -104,5 +107,6 @@ jobs:
             .test-artifacts/business-introduction/*.jpg
             .test-artifacts/business-introduction/*.html
             .test-artifacts/business-introduction/*.json
+            .test-artifacts/business-introduction/derivatives/*.webp
           retention-days: 7
           if-no-files-found: error

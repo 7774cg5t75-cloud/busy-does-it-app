@@ -1,0 +1,33 @@
+// Genuine browser codec exercise of the checked-in private processor. Local CC0
+// fixtures only. No upload, privileged service, external browser request or native claim.
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {chromium} from 'playwright';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+import {prepareWebsiteRequest} from '../src/core/websiteRequestPlan.mjs';
+import {guidedWebsiteCandidate} from '../src/core/guidedWebsiteJourney.mjs';
+process.env.BUSY_INTRODUCTION_IMPORTED='1';const {introductionFixture,exerciseIntroducedWebsite}=await import('./check-business-introduction.mjs');delete process.env.BUSY_INTRODUCTION_IMPORTED;
+const folder='.test-artifacts/business-introduction',assets=JSON.parse(readFileSync('scripts/fixtures/guided-websites/assets.json')),api=websiteBuilderTestHarnessV3222(['renderWebsiteHtml','applyStructuredWebsiteEdit','applyWebsiteLayoutChange','rebuildPrivateWebsiteDraft']),deps={fieldEdit:api.applyStructuredWebsiteEdit,layoutEdit:api.applyWebsiteLayoutChange,renderPage:api.renderWebsiteHtml,rebuild:api.rebuildPrivateWebsiteDraft};
+const hash=b=>createHash('sha256').update(b).digest('hex'),outputs=[];mkdirSync(folder+'/derivatives',{recursive:true});
+const modules=['src/core/browserBusinessPhotoProcessor.mjs','supabase/functions/busy-website-original-media/imageByteReview.mjs'];
+const browser=await chromium.launch({headless:true,chromiumSandbox:true});
+try{
+ const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage();page.setDefaultTimeout(20000);let image;
+ await page.route('**/*',async route=>{const u=new URL(route.request().url());if(u.origin!=='http://localhost')return route.abort();const path=u.pathname.slice(1);if(modules.includes(path))return route.fulfill({status:200,contentType:'text/javascript',body:readFileSync(path)});if(path==='original'&&image)return route.fulfill({status:200,contentType:'image/jpeg',body:image});if(path==='')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Private local codec acceptance</title>'});return route.abort();});
+ await page.goto('http://localhost');
+ for(let i=0;i<2;i++){
+  const asset=assets.images[i];image=readFileSync('.test-artifacts/guided-websites/assets/'+asset.name+'.'+asset.extension);assert.equal(hash(image),asset.sha256);
+  const c=introductionFixture(i),source={assetId:'eeeeeeee-eeee-4eee-8eee-'+String(i).padStart(12,'0'),businessId:c.businessId,ownerId:c.ownerId,sha256:asset.sha256};
+  const result=await page.evaluate(async source=>{const {processBrowserBusinessPhoto}=await import('/src/core/browserBusinessPhotoProcessor.mjs'),bytes=new Uint8Array(await (await fetch('/original')).arrayBuffer());const out=await processBrowserBusinessPhoto({bytes,source});let unavailable=false,tampered=false,stale=false;try{await processBrowserBusinessPhoto({bytes,source},{})}catch{unavailable=true;}try{await processBrowserBusinessPhoto({bytes,source:{...source,sha256:'0'.repeat(64)}})}catch{tampered=true;}try{await processBrowserBusinessPhoto({bytes,source,isCurrent:()=>false})}catch{stale=true;}const variants=out.derivatives.map(d=>{let text='';for(let n=0;n<d.bytes.length;n+=8192)text+=String.fromCharCode(...d.bytes.subarray(n,n+8192));return {...d,bytes:undefined,byteLength:d.bytes.length,base64:btoa(text)};});return {...out,derivatives:variants,denials:{unavailable,tampered,stale}};},source);
+  assert.deepEqual(result.denials,{unavailable:true,tampered:true,stale:true});assert.equal(result.decodedPixelsVerified,true);assert.equal(result.publicUseAuthorised,false);const map={},hero=c.website.sections.find(s=>s.type==='hero').asset;
+  for(const d of result.derivatives){const bytes=Buffer.from(d.base64,'base64');assert.equal(hash(bytes),d.sha256);assert.equal(bytes.length,d.byteLength);const name=`${asset.name}-${d.width}.webp`,file='derivatives/'+name;writeFileSync(folder+'/'+file,bytes);d.file=file;d.url='https://assets.example.invalid/'+name;delete d.base64;if([640,1280,1920].includes(d.width))map[hero.storagePath+'#'+d.width]=d.url;}
+  let current=c;const kept=await exerciseIntroducedWebsite(i,current,{getContext:()=>current,apply:async patch=>{const p=prepareWebsiteRequest(current.website,{draftId:current.website.id,pageId:'home',generation:current.website.generation,instruction:patch.instruction},deps);assert.equal(p.ok,true,p.reason);current={...current,website:{...JSON.parse(p.boundaries.at(-1)),generation:current.website.generation+1}};return {applied:true,verifiedPrivateReadback:{ownerId:current.ownerId,businessId:current.businessId,websiteDraft:current.website,recordHash:'a'.repeat(64)}};}});
+  assert.equal(kept.html,readFileSync(folder+'/'+i+'-after.html','utf8'));const responsive=api.renderWebsiteHtml(current.website,'home',{assetVariants:map});assert.ok(responsive.includes('srcset='));assert.equal((responsive.match(/<img\b/g)||[]).length,1);writeFileSync(folder+'/'+i+'-after.html',responsive);
+  const {originalWebsiteSectionRuntime}=await import('./lib/original-website-section-runtime.mjs');const worker=originalWebsiteSectionRuntime();assert.ok(worker(current.website,current.website.sections.find(s=>s.type==='hero'),{[hero.storagePath]:hero.uri,...map},true,'',true).includes('srcset='));
+  outputs.push({business:c.profile.businessName,source,originalBytes:image.length,sourceWidth:result.sourceWidth,sourceHeight:result.sourceHeight,derivatives:result.derivatives,denials:result.denials,decodedPixelsVerified:true,privateOnly:true,publicUseAuthorised:false,notSaved:true,delivery:'Original renderer trusted delivery-map rehearsal, no hosted derivative registration'});
+ }
+ writeFileSync(folder+'/processed-photos.json',JSON.stringify({browser:browser.version(),sandboxRequired:true,sourceModule:modules[0],outputs,nativeAcceptance:false,hostedStorage:false},null,2));
+ console.log('PASS actual original browser processor decoded two CC0 originals, generated and decoded bounded metadata-reduced WebP derivatives, verified hashes and original native/worker responsive presentation; unsupported platform, tampering and stale context denied. No native or hosted processing claim.');
+ await context.close();
+}finally{await browser.close();}

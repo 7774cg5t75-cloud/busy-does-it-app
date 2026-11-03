@@ -15,6 +15,7 @@ const TABLE="busy_website_original_media";
 const AUDIT="busy_website_original_media_audit";
 const MAX=9*1024*1024;
 const UPLOAD_OPERATIONS_ENABLED=false;
+const PRIVATE_PURPOSE_ENABLED=false;
 const supabase=createClient(URL,KEY,{auth:{persistSession:false}});
 const cors={"Access-Control-Allow-Origin":"*",
  "Access-Control-Allow-Methods":"POST, OPTIONS",
@@ -135,6 +136,17 @@ Deno.serve(async req=>{
   const raw=await boundedJson(req,12_800_000) as Record<string,unknown>;
   const businessId=typeof raw?.businessId==="string"?raw.businessId:"";
   const userId=await auth(req,businessId);
+  if(raw.action==='purpose_inspect'||raw.action==='purpose_save'){
+   if(!PRIVATE_PURPOSE_ENABLED)return fail(503,'Private purpose review is not activated.');
+   const writing=raw.action==='purpose_save';
+   const allowed=['action','businessId','assetId','sha256','expectedRevision','decisions','operationId','rightsAcknowledged'];
+   if(Object.keys(raw).some(k=>!allowed.includes(k)))return fail(400,'Unsupported photo purpose field.');
+   if(writing&&(!Number.isSafeInteger(raw.expectedRevision)||Number(raw.expectedRevision)<0||!UUID.test(String(raw.operationId||'')))||raw.operationId&&!UUID.test(String(raw.operationId)))return fail(400,'Exact reviewed photo operation required.');
+
+   if(!UUID.test(String(raw.assetId||''))||typeof raw.sha256!=='string'||!/^[a-f0-9]{64}$/.test(raw.sha256)||writing&&raw.rightsAcknowledged!==true)return fail(400,'Review the exact original and intended use.');
+   const r=await supabase.rpc('busy_original_media_purpose_v1',{p_action:writing?'save':'inspect',p_business_id:businessId,p_actor_id:userId,p_asset_id:raw.assetId,p_sha256:raw.sha256,p_expected_revision:writing?raw.expectedRevision:null,p_decisions:writing?raw.decisions:null,p_operation_id:raw.operationId||null});
+   if(r.error)throw r.error;if(await auth(req,businessId)!==userId)throw Error('Your session expired. Sign in again.');return success(r.data);
+  }
   if(typeof raw?.action==='string'&&['creator_upload','creator_upload_inspect','creator_upload_list'].includes(raw?.action)){
    if(!UPLOAD_OPERATIONS_ENABLED)return fail(503,'Creator upload operations are not activated.');
    const value=raw.action==='creator_upload'?await uploadOperations.upload(raw,userId,businessId):raw.action==='creator_upload_inspect'?await uploadOperations.inspect(raw,userId,businessId):await uploadOperations.list(raw,userId,businessId);if(await auth(req,businessId)!==userId)throw Error("Your session expired. Sign in again.");return success(value);

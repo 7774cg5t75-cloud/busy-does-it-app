@@ -1,3 +1,4 @@
+import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
 import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
 import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
@@ -186,7 +187,7 @@ function buildSections(brief = {}) {
       type: "contact",
       enabled: true,
       title: contactAvailable ? "Get in touch" : "Where we work",
-      body: area ? "Serving " + area : "",
+      body: area ? (/^remote\b/i.test(area)?area:"Serving " + area) : "",
       phone: clean(brief.phone),
       email: clean(brief.email),
       openingHours: clean(brief.openingHours),
@@ -744,7 +745,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url
-        ? `<img class="hero-image${galleryPhotoClass(section.asset)}" loading="eager" decoding="async" fetchpriority="high"${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
+        ? `<img class="hero-image${galleryPhotoClass(section.asset)}" loading="eager" decoding="async" fetchpriority="high"${responsivePhotoAttributes(section.asset,url,options.assetVariants,escapeHtml,{hero:true})}${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
         : '<div class="hero-art" aria-hidden="true"></div>';
       const kicker=clean(draft.businessType||draft.businessName);
       const lead=clean(section.body) ? `<p class="lead"${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>` : "";
@@ -789,7 +790,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }
     if(section.type==="gallery"){
       const selected=websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}),images=selected.map(row=>approvedImage(row.asset)).filter(Boolean);
-      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery${images.length>=3?" gallery-rich":""}">${selected.map(({asset,index:i})=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(clean(asset.alt)||draft.businessName||"Approved photograph")}">`:"";}).join("")}</div></div></section>` : "";
+      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery${images.length>=3?" gallery-rich":""}">${selected.map(({asset,index:i})=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${responsivePhotoAttributes(asset,image,options.assetVariants,escapeHtml)}${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(clean(asset.alt)||draft.businessName||"Approved photograph")}">`:"";}).join("")}</div></div></section>` : "";
     }
     if(section.type==="contact"){
       if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";

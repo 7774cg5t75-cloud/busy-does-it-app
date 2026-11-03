@@ -1,3 +1,4 @@
+import {responsivePhotoAttributes} from './websiteResponsivePhotos.mjs';
 import {websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from './websitePhotoPresentation.mjs';
 import {premiumHeroInner} from './websitePremiumHero.mjs';
 import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
@@ -165,7 +166,7 @@ function renderSectionHtml(
   if (section.type === "hero") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     const imageMarkup=image
-      ? `<img class="hero-image${["top","bottom"].includes(section.asset?.appearance?.photoCrop)?" owner-image-crop-"+section.asset.appearance.photoCrop:""}${section.asset?.appearance?.photoFit==="contain"?" owner-image-fit-contain":""}" loading="eager" decoding="async" fetchpriority="high" src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
+      ? `<img class="hero-image${["top","bottom"].includes(section.asset?.appearance?.photoCrop)?" owner-image-crop-"+section.asset.appearance.photoCrop:""}${section.asset?.appearance?.photoFit==="contain"?" owner-image-fit-contain":""}" loading="eager" decoding="async" fetchpriority="high"${responsivePhotoAttributes(section.asset,image,urls,escapeHtml,{hero:true})} src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
       : '<div class="hero-art" aria-hidden="true"></div>';
     const kicker=clean(draft.businessType,140)||clean(draft.businessName,140);
     const headline=clean(section.title,240)||clean(draft.businessName,240)||"Your business";
@@ -211,7 +212,7 @@ function renderSectionHtml(
           ?" owner-image-crop-"+item.appearance.photoCrop:"")+
           (item?.appearance?.photoFit==="contain"?" owner-image-fit-contain":"");
         return url
-          ? `<img class="gallery-image${crop}" src="${escapeHtml(
+          ? `<img class="gallery-image${crop}"${responsivePhotoAttributes(item,url,urls,escapeHtml)} src="${escapeHtml(
               url
             )}" alt="${escapeHtml(clean(item.alt)||draft.businessName||"Approved photograph")}">`
           : "";

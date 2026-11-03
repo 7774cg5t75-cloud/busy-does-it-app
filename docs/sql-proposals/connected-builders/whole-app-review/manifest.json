@@ -77,7 +77,7 @@
     },
     {
       "path": "docs/sql-proposals/creator/private-drafts.sql",
-      "sha256": "d8b3beada8ca71a87d50aa410a5ec257e271b4b0a615c35f42abec70fd05a5f8"
+      "sha256": "bc63aebf02a4cd2ba7fae7b70ca698ec994e48817ff2758b097922adddfc250c"
     },
     {
       "path": "docs/sql-proposals/connected-builders/business-context.sql",
@@ -366,9 +366,10 @@
       "sha256": "722b84a7bbe6dde9fe6e8145a0a9fc64e344e63ad59a3c98bd489cec742f66d5"
     }
   ],
-  "sha256": "287cf9cf52b85a7a52ed6e120eb8fc89216d2360e9d416e3083cb74a19489f8d",
-  "rollbackSha256": "0155a9858e8c32851212cdf63051f3be9ff979799f70639ff07d2d7af2e94106",
+  "sha256": "a614b3c614cd0fb22411f20e074a90a0e9f21856453ed4fcb94d8d239b2fff98",
+  "rollbackSha256": "f8ae624572303f06f21bf7224b8d8dcbab544be8601c975c70e38374fac40441",
   "retainedReaders": [
+    "busy_creator_media_review_v1",
     "busy_connected_website_history_v1",
     "busy_connected_workspaces_v1",
     "busy_connected_builder_read_v1",
@@ -393,6 +394,7 @@
     "busy_growth_opportunity_operation_v1"
   ],
   "functionSignatures": {
+    "busy_creator_media_review_v1": "uuid, text, boolean",
     "busy_connected_app_spec_commit_v1": "uuid, uuid, uuid, bigint, bigint, text, jsonb",
     "busy_connected_website_history_v1": "uuid, bigint, text, text",
     "busy_connected_website_transition_v1": "uuid, uuid, bigint, jsonb, jsonb, bigint, text",
@@ -432,6 +434,7 @@
     "busy_mini_app_entry_summary": "uuid, uuid, timestamp with time zone"
   },
   "authFunctions": [
+    "busy_creator_media_review_v1",
     "busy_connected_website_history_v1",
     "busy_connected_initialize_v1",
     "busy_connected_profile_write_v1",
@@ -475,7 +478,7 @@
   "dependencies": [
     {
       "path": "src/core/privateAppProject.mjs",
-      "sha256": "cc97cfa11c43366ed6ff1117b7ea7f624f42008d5f235cc6c199975aaa365e76"
+      "sha256": "d128b2fc1cf2f59297b62a7d1b40629e109335689d9fce07e1018c1571708914"
     },
     {
       "path": "supabase/functions/busy-mini-apps/privateProjectService.mjs",
@@ -487,15 +490,15 @@
     },
     {
       "path": "scripts/lib/whole-app-staging-package.mjs",
-      "sha256": "6916a64499e97ec3c6b675be38e42f1b5b145b22ea90c3a1668bd3affcdb5c20"
+      "sha256": "ad0027a1cf53200c0350c551743628d79c538368a898842ae0acd81e5d6032d8"
     },
     {
       "path": "scripts/lib/whole-app-function-signatures.mjs",
-      "sha256": "00d731cd968139d938eb91f0b1e14eff8f82a2ee71a60f664abfe33d62048cfc"
+      "sha256": "d69ec19281b0d652aaeab7a27511b94d65cb79b865ecb238ba8d66762dfcf958"
     },
     {
       "path": "package-lock.json",
-      "sha256": "41bf68d4a9a165a9fe2673cee134c917bb99009c4cae821ce19c0c6b1de0da6a"
+      "sha256": "28dcaffb7261ef6bc7d9cb9e3bccf7aac6946c0e0a71a18660438481c0394a56"
     },
     {
       "path": "supabase/connected-staging.deno.json",
@@ -507,7 +510,7 @@
     },
     {
       "path": "supabase/functions/busy-mini-apps/index.ts",
-      "sha256": "1fe49b2d4eec858d56687ad41784bee283d074b7fb5c00d3dc18b3eef60d4515"
+      "sha256": "70312d27fc79c2e6367b6fe65a5ca98313eea8cc9c3f772aa6464e0e49725da5"
     },
     {
       "path": "supabase/functions/busy-mini-apps/commitPrivateDraft.mjs",
@@ -523,11 +526,11 @@
     },
     {
       "path": "supabase/functions/busy-website-publish/privateDraftService.mjs",
-      "sha256": "15994d51403021b8dd8dced07d1a6b2c5f012c7863fbcd3153c62527d27c1cb5"
+      "sha256": "72831d5e3ac66ae4071c1cfdc34117805c52dba0d5114c940f827c1f36cd5c4f"
     },
     {
       "path": "supabase/functions/_shared/connectedStagingActions.mjs",
-      "sha256": "5941c5557068926817b7eb6496f91566727aaf04646189833fe3b6bf6a52125b"
+      "sha256": "f887cb7abfa785652497fe9d0e2d58f2169bb285be6724288baa2bfdcd397d0c"
     },
     {
       "path": "scripts/lib/connected-hosted-acceptance.mjs",
@@ -535,7 +538,7 @@
     },
     {
       "path": "src/staging/stagingAuthInspectorV3131.mjs",
-      "sha256": "bf67042bd559b60e8fe17f0e733fdceb390b639ce02dd4ee4aafa27c1c9e27d9"
+      "sha256": "367a25ac681920003e06de28e7e3780faba41dfabc4f8fe19bcfcb37270d3ac2"
     },
     {
       "path": "docs/sql-proposals/connected-builders/whole-app-staging-metadata-2026-10-30.json",

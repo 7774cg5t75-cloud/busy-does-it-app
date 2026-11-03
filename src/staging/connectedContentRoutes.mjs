@@ -1,5 +1,6 @@
 // Exact original specialist RPCs only; no arbitrary function/path selection.
 export const connectedContentRoutes=Object.freeze({
+ creator_media_review:['busy_creator_media_review_v1',['businessId','p_storage_path','p_private_use_reviewed']],
  website_history:['busy_connected_website_history_v1',['businessId','p_expected_revision','p_expected_hash','p_direction']],
  initialize:['busy_connected_initialize_v1',['businessId']],
  profile_write:['busy_connected_profile_write_v1',['businessId','p_expected_revision','p_expected_profile','p_profile','p_owner_approved']],

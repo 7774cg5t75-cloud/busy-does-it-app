@@ -1,3 +1,4 @@
+import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
 import {websiteGalleryPresentation,distinctWebsitePhotos} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
 import {heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
@@ -19,5 +20,5 @@ export function originalWebsiteSectionRuntime(){
   return body;
  }).join('\n');
  const js=stripTypeScriptTypes(code);
- return Function('distinctWebsitePhotos','websiteGalleryPresentation','premiumHeroInner','heroServiceOverview','sectionAppearanceClasses','itemTypographyClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(distinctWebsitePhotos,websiteGalleryPresentation,premiumHeroInner,heroServiceOverview,sectionAppearanceClasses,itemTypographyClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
+ return Function('responsivePhotoAttributes','distinctWebsitePhotos','websiteGalleryPresentation','premiumHeroInner','heroServiceOverview','sectionAppearanceClasses','itemTypographyClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(responsivePhotoAttributes,distinctWebsitePhotos,websiteGalleryPresentation,premiumHeroInner,heroServiceOverview,sectionAppearanceClasses,itemTypographyClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
 }

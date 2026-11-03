@@ -30,7 +30,7 @@ export function refineGuidedWebsite(journey,context,options={},deps){
  else if(/^(?:try (?:something|a design) completely different|try another design)$/i.test(request.trim())){
   kind='family';if(rejectCurrent)rejected=[...new Set([...rejected,candidate.theme?.heroComposition])];
   const next=premiumWebsiteDirections(candidate,{rejected})[0];if(!next)return fail('No new suitable direction with the current approved content. Your design stays unchanged.');instruction='prepare a '+next.id+' homepage';
- }else if(/^frame the photograph higher on phones$/i.test(request.trim())){if(!candidate.sections.some(s=>s.type==='hero'&&s.asset?.approved===true))return fail('Choose a current approved photograph first.');kind='phoneCrop';instruction='focus the hero photograph at top on phones';}
+ }else if(/^(?:frame the photograph higher on phones|move (?:the |this )?picture slightly higher on mobile)$/i.test(request.trim())){if(!candidate.sections.some(s=>s.type==='hero'&&s.asset?.approved===true))return fail('Choose a current approved photograph first.');kind='phoneCrop';instruction='focus the hero photograph at top on phones';}
  else if(/^centre the photograph on desktop$/i.test(request.trim())){if(!candidate.sections.some(s=>s.type==='hero'&&s.asset?.approved===true))return fail('Choose a current approved photograph first.');kind='desktopCrop';instruction='focus the hero photograph at center on desktop';}
  else if(/^make it feel warmer and more welcoming$/i.test(request.trim())){kind='warmth';instruction='make the page warmer without changing colours';}
  else if(/^make (?:the )?food photographs bigger$/i.test(request.trim())){kind='gallery';instruction='make the gallery photos bigger';}

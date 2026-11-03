@@ -1,3 +1,4 @@
+import {checkPhotoPurposeSQL} from './lib/photo-purpose-sql-checks.mjs';
 import {createPrivateFormEnquiryPreparation} from '../src/core/privateFormEnquiry.mjs';
 import {privateScreenService} from '../supabase/functions/busy-mini-apps/privateScreenService.mjs';
 import {createPrivateScreenAccount,bindingFor} from '../src/core/privateScreenBindings.mjs';
@@ -542,6 +543,7 @@ try{
   const changed=await account.profile({basis:now,profile:{...c.profile,description:c.profile.description+' Owner correction.'},ownerApproved:true});assert.equal(changed.ok,true);assert.equal(currentConnectedBusinessWork(prepared,{...input,basis:changed.observed}),false);assert.deepEqual(changed.observed.websiteDraft,c.website);assert.deepEqual((await creatorAccount.read('introduced-content-'+i)).content,content);
   actor=O;
  });
+ await checkPhotoPurposeSQL({sql,packet,q,stage,B,O,F,P});
  await stage('retaining-rollback-fused-and-real-write-denial-with-fresh-readers',async()=>{
   assert.throws(()=>sql(proposal.rollback));const before=sql("SELECT payload FROM public.busy_business_snapshots WHERE business_id="+q(B));
   sql(proposal.rollback.replace(/^DO \$\$ BEGIN RAISE EXCEPTION 'WHOLE APP ROLLBACK REVIEW FUSE:.*?\n/m,''));

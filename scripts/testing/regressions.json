@@ -3128,6 +3128,13 @@
         "scripts/check-owned-website-media.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-business-photo-continuation",
+      "args": [
+        "scripts/check-business-photo-continuation.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

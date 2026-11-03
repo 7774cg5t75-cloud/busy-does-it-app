@@ -6,6 +6,7 @@ import {chromium} from 'playwright';
 const intro=process.env.BUSY_INTRO_BROWSER==='1',guided=process.env.BUSY_GUIDED_BROWSER==='1',folder=intro?'.test-artifacts/business-introduction':guided?'.test-artifacts/guided-websites':'.test-artifacts/website-expansion',manifest=JSON.parse(readFileSync(folder+'/scenarios.json')),assets=JSON.parse(readFileSync(guided||intro?'scripts/fixtures/guided-websites/assets.json':'scripts/fixtures/website-design/assets.json'));
 const hash=b=>createHash('sha256').update(b).digest('hex'),git=args=>execFileSync('git',args,{encoding:'utf8'}).trim(),source={commit:git(['rev-parse','HEAD']),tree:git(['rev-parse','HEAD^{tree}'])};
 const images=new Map(assets.images.map(a=>{const b=readFileSync((intro?'.test-artifacts/guided-websites':folder)+'/assets/'+a.name+'.'+(a.extension||'png'));const expected=a.sha256||(guided?JSON.parse(readFileSync(folder+'/asset-receipts.json')).find(r=>r.name===a.name)?.sha256:null);assert.equal(hash(b),expected);return ['https://assets.example.invalid/'+a.name+'.'+(a.extension||'png'),b];}));
+if(intro){try{const processed=JSON.parse(readFileSync(folder+'/processed-photos.json'));for(const output of processed.outputs)for(const d of output.derivatives){const bytes=readFileSync(folder+'/'+d.file);assert.equal(hash(bytes),d.sha256);images.set(d.url,bytes);}}catch(error){if(error.code!=='ENOENT')throw error;}}
 // Sandbox must remain enabled. Missing OS support fails capture; never falls
 // back to --no-sandbox or a privileged browser/service.
 const browser=await chromium.launch({headless:true,chromiumSandbox:true});
@@ -13,7 +14,7 @@ const results=[],failures=[];const check=(condition,message)=>{if(!condition)fai
  for(const scenario of manifest.scenarios){for(const [label,viewport]of [['mobile',{width:390,height:844}],['desktop',{width:1440,height:1000}]]){
   for(const stage of ['before','after']){
    const context=await browser.newContext({viewport,deviceScaleFactor:1,javaScriptEnabled:false,serviceWorkers:'block',reducedMotion:'reduce'});const page=await context.newPage();let blocked=0;
-   await page.route('**/*',route=>images.has(route.request().url())?route.fulfill({status:200,contentType:route.request().url().endsWith('.jpg')?'image/jpeg':'image/png',body:images.get(route.request().url())}):(blocked++,route.abort('blockedbyclient')));
+   await page.route('**/*',route=>images.has(route.request().url())?route.fulfill({status:200,contentType:route.request().url().endsWith('.jpg')?'image/jpeg':route.request().url().endsWith('.webp')?'image/webp':'image/png',body:images.get(route.request().url())}):(blocked++,route.abort('blockedbyclient')));
    const html=readFileSync(folder+'/'+scenario[stage],'utf8');await page.setContent(html,{waitUntil:'load'});
    // Decode all real lazy images by bounded scrolling; no external network.
    const height=await page.locator('body').evaluate(el=>el.scrollHeight);assert.ok(height<18000);
