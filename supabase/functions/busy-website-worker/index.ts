@@ -153,7 +153,8 @@ function renderSectionHtml(
   section: any,
   urls: Record<string, string>,
   isFirstSection: boolean,
-  contactHref: string = ""
+  contactHref: string = "",
+  omitHero: boolean = true
 ) {
   const theme = draft?.theme || {};
   const sectionClasses=sectionAppearanceClasses(section);
@@ -203,7 +204,7 @@ function renderSectionHtml(
     return `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></section>`;
   }
   if (section.type === "gallery") {
-    const imageNodes = websiteGalleryPresentation(section,draft)
+    const imageNodes = websiteGalleryPresentation(section,draft,{omitHero})
       .map(({asset:item,index}: any) => {
         const url = urlForAsset(item, urls, index);
         const crop=(["top","bottom"].includes(item?.appearance?.photoCrop)
@@ -354,7 +355,7 @@ function renderWebsiteHtml(
       return true;
     })
     .map((section: any, index: number) =>
-      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'')
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home')
     )
     .join("");
 
