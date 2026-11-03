@@ -182,7 +182,7 @@ function planWebsiteDesign({businessType="",businessName="",sections=/** @type {
     visibleOrder.filter(id=>active.some(x=>x.id===id&&["text","photo-feature"].includes(x.type)&&id.startsWith("custom-"))||
       ["hero","services","contact","products","events"].includes(id)||
       (id==="gallery"&&(family==="portfolio"||eventCateringWithPhotos||photos>=2&&["nature","trades","wellness","retail"].includes(sector)))||
-      (id==="about"&&["artisan","editorial","boutique"].includes(family))||
+      (id==="about"&&(["artisan","editorial","boutique"].includes(family)||aboutWords>=40))||
       (id==="testimonials"&&reviewCount>0)||(id==="faq"&&faqCount>=2&&["trades","wellness"].includes(sector)));
   const gaps=[];
   if(!clean(businessName))gaps.push("business-name");

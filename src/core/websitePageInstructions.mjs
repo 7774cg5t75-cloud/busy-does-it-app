@@ -92,10 +92,10 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    const section=findSection(m[1]);if(!section||!['about','text'].includes(section.type))return fail('Name one visible information section.');
    change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','the original layout':'brand'}[m[2].toLowerCase()]};
    description='Compare only '+section.title+' reading layout without changing its words, colours or phone source order';
-  }else if((m=clause.match(/^(?:show|display) (?:the )?services as (a directory|cards|the original layout)$/i))){
+  }else if((m=clause.match(/^(?:show|display) (?:the )?services as (a directory|a linked guide|cards|the original layout)$/i))){
    const section=findSection('services');
    if(!section||section.type!=='services')return fail('Open the current page containing the services section first.');
-   change={action:'section-style',sectionId:section.id,field:'serviceLayout',value:{'a directory':'directory',cards:'cards','the original layout':'brand'}[m[1].toLowerCase()]};
+   change={action:'section-style',sectionId:section.id,field:'serviceLayout',value:{'a directory':'directory','a linked guide':'index',cards:'cards','the original layout':'brand'}[m[1].toLowerCase()]};
    description='Change only the services layout; preserve names, descriptions, order, branding and destinations. Phones keep one reading column';
   }else if((m=clause.match(/^(?:show|display) (products|events) as (cards|rows)$/i))){
    const section=findSection(m[1].toLowerCase());
