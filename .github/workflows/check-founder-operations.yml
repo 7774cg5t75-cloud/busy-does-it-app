@@ -4,6 +4,9 @@ on:
     branches: [v3.69]
   pull_request:
     paths:
+      - "src/core/connectedEditorContinuation.mjs"
+      - "src/components/ConnectedBusinessPreparation.js"
+      - "src/core/photoPurposeAccount.mjs"
       - "supabase/functions/busy-founder-ops/**"
       - "supabase/config.toml"
       - "src/screens/founderOperations.js"

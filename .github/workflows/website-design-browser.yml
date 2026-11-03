@@ -9,6 +9,7 @@ on:
       - 'src/core/businessIntroduction.mjs'
       - 'src/core/connectedBusinessPreparation.mjs'
       - 'src/core/browserBusinessPhotoProcessor.mjs'
+      - 'src/core/photoPurposeAccount.mjs'
       - 'scripts/process-business-photo-fixtures.mjs'
       - 'src/core/websiteOwnedOriginalReview.mjs'
       - 'src/core/websiteCopySuggestions.mjs'

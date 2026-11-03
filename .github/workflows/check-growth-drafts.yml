@@ -4,6 +4,9 @@ on:
     branches: [v3.63]
   pull_request:
     paths:
+      - "src/core/connectedEditorContinuation.mjs"
+      - "src/components/ConnectedBusinessPreparation.js"
+      - "src/core/photoPurposeAccount.mjs"
       - "src/domain/coordinatedGrowthDrafts.mjs"
       - "src/domain/coordinatedGrowthPlan.mjs"
       - "src/domain/websiteBuilder.js"

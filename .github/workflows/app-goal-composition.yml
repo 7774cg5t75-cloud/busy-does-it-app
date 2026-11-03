@@ -4,6 +4,10 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - '.github/workflows/check-growth-drafts.yml'
+      - '.github/workflows/check-growth-workspace.yml'
+      - '.github/workflows/check-growth-operator.yml'
+      - '.github/workflows/check-founder-operations.yml'
       - '.github/workflows/website-design-browser.yml'
       - 'src/core/premiumWebsite*.mjs'
       - 'src/core/businessIntroduction.mjs'
