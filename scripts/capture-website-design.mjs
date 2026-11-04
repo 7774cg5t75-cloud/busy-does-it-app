@@ -14,7 +14,7 @@ if(intro||excellence){try{const processed=JSON.parse(readFileSync('.test-artifac
 // Sandbox must remain enabled. Missing OS support fails capture; never falls
 // back to --no-sandbox or a privileged browser/service.
 const browser=await chromium.launch({headless:true,chromiumSandbox:true});
-const results=[],failures=[],baselineFailures=[];let baseline=false;const check=(condition,message)=>{if(!condition)(baseline?baselineFailures:failures).push(message);};try{
+const results=[],interactions=[],failures=[],baselineFailures=[];let baseline=false;const check=(condition,message)=>{if(!condition)(baseline?baselineFailures:failures).push(message);};try{
  for(const scenario of manifest.scenarios){for(const [label,viewport]of [...(excellence?[['narrow',{width:320,height:844}]]:[]),['mobile',{width:390,height:844}],['desktop',{width:1440,height:1000}],...(storyboard&&Number(scenario.id)<6&&Number(scenario.id)%2===1?[['retina',{width:390,height:844}]]:[])]){
   for(const stage of ['before','after']){baseline=excellence&&stage==='before';
    const context=await browser.newContext({viewport,deviceScaleFactor:label==='retina'?2:1,javaScriptEnabled:false,serviceWorkers:'block',reducedMotion:'reduce'});const page=await context.newPage();let blocked=0;const servedImages=[];
@@ -53,10 +53,15 @@ const results=[],failures=[],baselineFailures=[];let baseline=false;const check=
    check(blocked===0,filename+' unexpected browser request');check(metrics.broken.length===0,filename+' broken images');check(metrics.targets.length===0,filename+' bad anchors');check(metrics.unreadable.length===0,filename+' small text '+JSON.stringify(metrics.unreadable));check(metrics.documentWidth<=viewport.width+1,filename+' horizontal page overflow');check(metrics.overflow.length===0,filename+' overflowing content '+metrics.overflow.join(','));check(metrics.headings.length===1,filename+' heading count');check(metrics.contrastFailures.length===0,filename+' computed contrast '+JSON.stringify(metrics.contrastFailures));check(metrics.ctaTargets.every(t=>t.height>=44&&t.width>=44),filename+' small primary action');
 
    if(excellence){check(metrics.narrowText.length===0,filename+' unusably narrow text column '+JSON.stringify(metrics.narrowText));check(metrics.clipped.length===0,filename+' clipped text/controls '+JSON.stringify(metrics.clipped));await page.keyboard.press('Tab');const focus=await page.evaluate(()=>{const e=document.activeElement,s=getComputedStyle(e);return {href:e.getAttribute('href'),outline:s.outlineStyle,outlineWidth:parseFloat(s.outlineWidth)};});check(focus.href==='#main',filename+' keyboard skip link');check(focus.outline!=='none'&&focus.outlineWidth>0,filename+' visible keyboard focus');results.at(-1).keyboard=focus;}
+   if(storyboard&&stage==='after'&&String(scenario.id)==='1'){
+    await page.locator('.hero .cta[href="#products"]').click();check(await page.evaluate(()=>location.hash)==='#products',filename+' actual menu navigation');
+    await page.locator('#products details summary').click();const opened=await page.locator('#products details').evaluate(el=>el.open);check(opened,filename+' actual native menu disclosure');
+    const interactionFile='1-menu-open-'+label+'.png';await page.screenshot({path:folder+'/'+interactionFile,fullPage:false});interactions.push({filename:interactionFile,sha256:hash(readFileSync(folder+'/'+interactionFile)),viewport,label,business:scenario.business,menuAnchor:'#products',detailsOpen:opened,submitsNothing:true});
+   }
    await context.close();
   }
  }}
-}finally{writeFileSync(folder+'/browser-results.json',JSON.stringify({source,browser:browser.version(),sandboxRequired:true,renderer:'Original src/domain/websiteBuilder.js renderWebsiteHtml',assetManifest:assets,results,failures,baselineFailures,hostedAcceptance:false},null,2));await browser.close();}
+}finally{writeFileSync(folder+'/browser-results.json',JSON.stringify({source,browser:browser.version(),sandboxRequired:true,renderer:'Original src/domain/websiteBuilder.js renderWebsiteHtml',assetManifest:assets,results,interactions,failures,baselineFailures,hostedAcceptance:false},null,2));await browser.close();}
 if(excellence)writeFileSync(folder+'/measured-quality.json',JSON.stringify(manifest.scenarios.map(s=>({business:s.business,...inspectWebsiteExcellence({draft:JSON.parse(readFileSync(folder+'/'+s.id+'-approved.json')),html:readFileSync(folder+'/'+s.after,'utf8'),measurements:results.filter(r=>r.business===s.business&&r.stage==='after').map(r=>r.metrics)})})),null,2));
 assert.deepEqual(failures,[], 'All browser counterexamples retained: '+failures.join('; '));
 assert.equal(source.commit,git(['rev-parse','HEAD']));assert.equal(source.tree,git(['rev-parse','HEAD^{tree}']));console.log('PASS genuine sandboxed browser before/after mobile/desktop screenshots; decoded licensed assets, no external browser requests, overflow/text/anchor/image checks. Professional judgement and hosted/native acceptance remain separate.');
