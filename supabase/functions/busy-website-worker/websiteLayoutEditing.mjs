@@ -1,3 +1,4 @@
+import {websiteHeroPhotos} from './websitePhotoPresentation.mjs';
 import {websiteServicePhoto,usedServicePhotos} from './websiteServicePhotos.mjs';
 import {heroFamilies} from './websiteHeroFamilies.mjs';
 import {PREMIUM_HERO_COMPOSITIONS,PREMIUM_HERO_VARIATIONS} from './websitePremiumHero.mjs';
@@ -184,10 +185,12 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    return fail(draft,"Choose a supported appearance setting. Arbitrary CSS or remote fonts are not allowed.");
   if(field==='heroComposition'){
    const required=heroFamilies.find(f=>f.id===value)?.media||0;
+   if(required>1&&usedServicePhotos(draft).length&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'This opening needs more distinct pictures after your service photographs are reserved. Choose more approved pictures or another direction.');
    const photos=sections.flatMap(s=>s.type==='hero'?[s.asset]:s.type==='gallery'?list(s.items):[]).filter(a=>a?.approved===true&&typeof a.uri==='string'&&/^https:\/\/[^\s"'<>]+$/.test(a.uri));
    if(new Set(photos.map(a=>a.uri)).size<required)return fail(draft,'Choose enough distinct approved photographs before preparing this direction. A typography-first design is available without photographs.');
    if(value==='product-showcase'&&!sections.some(s=>s.type==='products'&&s.enabled!==false&&s.contentSource==='business_records_v1'))return fail(draft,'Add an original approved product collection before preparing this direction.');
   }
+  if(field==='heroVariation'&&value==='narrative'){const required=heroFamilies.find(f=>f.id===theme.heroComposition)?.media||0;if(required>1&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'Review enough distinct opening pictures before using service photographs.');}
   if(field==='heroLayout'){
    const hero=sections.find(section=>section.type==='hero'&&section.enabled!==false),hasImage=photographicCount(hero?[hero]:[])>0;
    if(!hero||value.startsWith('image-')!==hasImage)return fail(draft,hasImage?'Keep the approved hero photo and choose an image layout.':'Choose a typographic layout or select an approved hero photo first.');
@@ -337,7 +340,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const item=items[0],a=photos[0],binding={serviceId:item.id,storagePath:a.storagePath,assetRevision:a.revision,sha256:a.sha256};
   if(!websiteServicePhoto(draft,{...item,photoBinding:binding}))return fail(draft,'Recheck this current business photograph, its revision and website permission.');
   if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.uri===a.uri||s.asset.sha256===a.sha256))||usedServicePhotos(draft).some(p=>p.storagePath===a.storagePath||p.uri===a.uri||p.sha256===a.sha256))return fail(draft,'This photograph already has a place on the page. Choose a distinct photograph.');
-  item.photoBinding=binding;return ready('Paired the exact approved photograph with this service; no claim about past work was added.');
+  item.photoBinding=binding;const required=heroFamilies.find(f=>f.id===theme.heroComposition)?.media||0;if(required>1&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'This picture is needed by the multi-picture opening. Choose another approved picture or another direction.');return ready('Paired the exact approved photograph with this service; no claim about past work was added.');
  }
  if(action==="choose-hero-photo"){
   const gallery=sections.find(s=>s.id==="gallery");
