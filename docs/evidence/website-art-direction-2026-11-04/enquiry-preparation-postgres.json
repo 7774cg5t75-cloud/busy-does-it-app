@@ -1,0 +1,77 @@
+{
+  "database": "busy_enquiry_first_disposable",
+  "hosted": false,
+  "syntheticAuth": true,
+  "originalFormInboxCustomerSources": true,
+  "results": [
+    {
+      "id": "original-form-inbox-customer-fixture-clone-without-quotes",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "separate-fuse-atomic-failure-and-default-closed",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-0",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-1",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-2",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "foreign-owner-source-app-and-public-access-denial",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "concurrent-progress-CAS-and-exact-undo",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "lost-acknowledgement-inspection-never-replays",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "changed-enquiry-explicit-review-keeps-original-history",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "later-quote-reference-without-copying-progress",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "revoked-membership-malformed-plan-and-no-business-actions",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "withdrawn-or-corrupted-original-source-cannot-reopen-private-progress",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "retaining-rollback-preserves-source-and-checked-progress",
+      "passed": true,
+      "exitCode": 0
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0
+  }
+}
