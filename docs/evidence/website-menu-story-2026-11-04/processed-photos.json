@@ -1,0 +1,323 @@
+{
+  "browser": "145.0.7632.6",
+  "sandboxRequired": true,
+  "sourceModule": "src/core/browserBusinessPhotoProcessor.mjs",
+  "outputs": [
+    {
+      "scenario": "0",
+      "storagePath": "approved/catering.jpg",
+      "source": {
+        "assetId": "edededed-eded-4ded-8ded-000000000000",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "abababab-abab-4bab-8bab-000000000130",
+        "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+      },
+      "originalBytes": 6270184,
+      "sourceWidth": 4608,
+      "sourceHeight": 3456,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 480,
+          "contentType": "image/webp",
+          "sha256": "b960229bad24e2e0377f1ee2596e9f3d164e9560254acf38c097997c0cb75029",
+          "file": "derivatives/menu-0-0-640.webp",
+          "url": "https://assets.example.invalid/menu-0-0-640.webp",
+          "byteLength": 95384
+        },
+        {
+          "width": 1280,
+          "height": 960,
+          "contentType": "image/webp",
+          "sha256": "c71f3e04a399de88fffc18061873223ec583b6f64b58b68a5b5673a74439930b",
+          "file": "derivatives/menu-0-0-1280.webp",
+          "url": "https://assets.example.invalid/menu-0-0-1280.webp",
+          "byteLength": 285330
+        },
+        {
+          "width": 1920,
+          "height": 1440,
+          "contentType": "image/webp",
+          "sha256": "2fd918bc74b657850265c5eb33f7b587225c522441b85a688397cc0e1a433e1b",
+          "file": "derivatives/menu-0-0-1920.webp",
+          "url": "https://assets.example.invalid/menu-0-0-1920.webp",
+          "byteLength": 526836
+        }
+      ],
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "hostedRegistration": false
+    },
+    {
+      "scenario": "1",
+      "storagePath": "approved/food-plate.jpg",
+      "source": {
+        "assetId": "edededed-eded-4ded-8ded-000000000010",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "abababab-abab-4bab-8bab-000000000130",
+        "sha256": "f6c1c60e6ee4404c606e1c779644793b08629ccf89324d48a84235a1016ec871"
+      },
+      "originalBytes": 268910,
+      "sourceWidth": 1280,
+      "sourceHeight": 964,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 482,
+          "contentType": "image/webp",
+          "sha256": "5c316f1174b4d221432da4a3efaf85547c4eef3c3656de8e684aa314e80897e8",
+          "file": "derivatives/menu-1-0-640.webp",
+          "url": "https://assets.example.invalid/menu-1-0-640.webp",
+          "byteLength": 59890
+        },
+        {
+          "width": 1280,
+          "height": 964,
+          "contentType": "image/webp",
+          "sha256": "a1a5feb9cd39ae5431fd9827c835528d688bae22c89541b3a2e9d0fa82fde7ba",
+          "file": "derivatives/menu-1-0-1280.webp",
+          "url": "https://assets.example.invalid/menu-1-0-1280.webp",
+          "byteLength": 187668
+        }
+      ],
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "hostedRegistration": false
+    },
+    {
+      "scenario": "1",
+      "storagePath": "approved/food-detail.jpg",
+      "source": {
+        "assetId": "edededed-eded-4ded-8ded-000000000011",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "abababab-abab-4bab-8bab-000000000130",
+        "sha256": "03a9a1fe18385047c70aaf1b5c8aab92febcbb1e6b47a327365d8bee2897dafb"
+      },
+      "originalBytes": 307386,
+      "sourceWidth": 1280,
+      "sourceHeight": 960,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 480,
+          "contentType": "image/webp",
+          "sha256": "7774150ec885b17f7f2220f9fdc1aafe55b1c0297a00a7e18a9bda8ed32138ff",
+          "file": "derivatives/menu-1-1-640.webp",
+          "url": "https://assets.example.invalid/menu-1-1-640.webp",
+          "byteLength": 61706
+        },
+        {
+          "width": 1280,
+          "height": 960,
+          "contentType": "image/webp",
+          "sha256": "bf948a5bff30fb31e0e02d2bbbec33584745bebf6d2f6a9a636b51216b0d386e",
+          "file": "derivatives/menu-1-1-1280.webp",
+          "url": "https://assets.example.invalid/menu-1-1-1280.webp",
+          "byteLength": 230976
+        }
+      ],
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "hostedRegistration": false
+    },
+    {
+      "scenario": "1",
+      "storagePath": "approved/catering.jpg",
+      "source": {
+        "assetId": "edededed-eded-4ded-8ded-000000000012",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "abababab-abab-4bab-8bab-000000000130",
+        "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+      },
+      "originalBytes": 6270184,
+      "sourceWidth": 4608,
+      "sourceHeight": 3456,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 480,
+          "contentType": "image/webp",
+          "sha256": "b960229bad24e2e0377f1ee2596e9f3d164e9560254acf38c097997c0cb75029",
+          "file": "derivatives/menu-1-2-640.webp",
+          "url": "https://assets.example.invalid/menu-1-2-640.webp",
+          "byteLength": 95384
+        },
+        {
+          "width": 1280,
+          "height": 960,
+          "contentType": "image/webp",
+          "sha256": "c71f3e04a399de88fffc18061873223ec583b6f64b58b68a5b5673a74439930b",
+          "file": "derivatives/menu-1-2-1280.webp",
+          "url": "https://assets.example.invalid/menu-1-2-1280.webp",
+          "byteLength": 285330
+        },
+        {
+          "width": 1920,
+          "height": 1440,
+          "contentType": "image/webp",
+          "sha256": "2fd918bc74b657850265c5eb33f7b587225c522441b85a688397cc0e1a433e1b",
+          "file": "derivatives/menu-1-2-1920.webp",
+          "url": "https://assets.example.invalid/menu-1-2-1920.webp",
+          "byteLength": 526836
+        }
+      ],
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "hostedRegistration": false
+    },
+    {
+      "scenario": "2",
+      "storagePath": "approved/garden.jpg",
+      "source": {
+        "assetId": "edededed-eded-4ded-8ded-000000000020",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "abababab-abab-4bab-8bab-000000000131",
+        "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+      },
+      "originalBytes": 613717,
+      "sourceWidth": 1280,
+      "sourceHeight": 1920,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 960,
+          "contentType": "image/webp",
+          "sha256": "6768710767b5a9400cb616fad421692d385b6ba69dc50fcbc477d44e11200e8a",
+          "file": "derivatives/menu-2-0-640.webp",
+          "url": "https://assets.example.invalid/menu-2-0-640.webp",
+          "byteLength": 159274
+        },
+        {
+          "width": 1280,
+          "height": 1920,
+          "contentType": "image/webp",
+          "sha256": "b38dc86e8cbe085fdf4f444250d37741f60be6f9b257003d42560b50c3fbd21f",
+          "file": "derivatives/menu-2-0-1280.webp",
+          "url": "https://assets.example.invalid/menu-2-0-1280.webp",
+          "byteLength": 458134
+        }
+      ],
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "hostedRegistration": false
+    },
+    {
+      "scenario": "3",
+      "storagePath": "approved/garden-path.jpg",
+      "source": {
+        "assetId": "edededed-eded-4ded-8ded-000000000030",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "abababab-abab-4bab-8bab-000000000131",
+        "sha256": "10ddb8e3f782f9e7ade1ccf34389940ba32e979804581909ec2050c82e2bc685"
+      },
+      "originalBytes": 637617,
+      "sourceWidth": 1280,
+      "sourceHeight": 960,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 480,
+          "contentType": "image/webp",
+          "sha256": "f653a2a19e4412c04447a4cdcd61670ecbe34d025ae31b22b66af53c35196208",
+          "file": "derivatives/menu-3-0-640.webp",
+          "url": "https://assets.example.invalid/menu-3-0-640.webp",
+          "byteLength": 144212
+        },
+        {
+          "width": 1280,
+          "height": 960,
+          "contentType": "image/webp",
+          "sha256": "5bb73da4e6dd41362813423f9668b43a85fdcaae65818368229f571afb544374",
+          "file": "derivatives/menu-3-0-1280.webp",
+          "url": "https://assets.example.invalid/menu-3-0-1280.webp",
+          "byteLength": 566042
+        }
+      ],
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "hostedRegistration": false
+    },
+    {
+      "scenario": "3",
+      "storagePath": "approved/garden-reference.jpg",
+      "source": {
+        "assetId": "edededed-eded-4ded-8ded-000000000031",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "abababab-abab-4bab-8bab-000000000131",
+        "sha256": "6a1b2b8b3a731f64d0ee83dc7b0f6873edad9ba9d9d1900dd8509cc85bea8dda"
+      },
+      "originalBytes": 558649,
+      "sourceWidth": 1280,
+      "sourceHeight": 853,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 427,
+          "contentType": "image/webp",
+          "sha256": "be79d2a04d49f1473645848e8683b280d40cc4c86a5baa783a3e06d39b218b34",
+          "file": "derivatives/menu-3-1-640.webp",
+          "url": "https://assets.example.invalid/menu-3-1-640.webp",
+          "byteLength": 127426
+        },
+        {
+          "width": 1280,
+          "height": 853,
+          "contentType": "image/webp",
+          "sha256": "079bb55b37f181147a07f4b2a19dbedb27c070e6a83ceddb024dfb50042f134d",
+          "file": "derivatives/menu-3-1-1280.webp",
+          "url": "https://assets.example.invalid/menu-3-1-1280.webp",
+          "byteLength": 505292
+        }
+      ],
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "hostedRegistration": false
+    },
+    {
+      "scenario": "3",
+      "storagePath": "approved/garden.jpg",
+      "source": {
+        "assetId": "edededed-eded-4ded-8ded-000000000032",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "abababab-abab-4bab-8bab-000000000131",
+        "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+      },
+      "originalBytes": 613717,
+      "sourceWidth": 1280,
+      "sourceHeight": 1920,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 960,
+          "contentType": "image/webp",
+          "sha256": "6768710767b5a9400cb616fad421692d385b6ba69dc50fcbc477d44e11200e8a",
+          "file": "derivatives/menu-3-2-640.webp",
+          "url": "https://assets.example.invalid/menu-3-2-640.webp",
+          "byteLength": 159274
+        },
+        {
+          "width": 1280,
+          "height": 1920,
+          "contentType": "image/webp",
+          "sha256": "b38dc86e8cbe085fdf4f444250d37741f60be6f9b257003d42560b50c3fbd21f",
+          "file": "derivatives/menu-3-2-1280.webp",
+          "url": "https://assets.example.invalid/menu-3-2-1280.webp",
+          "byteLength": 458134
+        }
+      ],
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "hostedRegistration": false
+    }
+  ],
+  "hostedRegistration": false,
+  "nativeAcceptance": false
+}

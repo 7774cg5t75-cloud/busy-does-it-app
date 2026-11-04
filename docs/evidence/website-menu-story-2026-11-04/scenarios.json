@@ -1,0 +1,199 @@
+{
+  "scenarios": [
+    {
+      "id": "0",
+      "business": "Ember Festival Kitchen — sparse approved source",
+      "family": "story-spread",
+      "before": "0-before.html",
+      "after": "0-after.html",
+      "photoExpected": true,
+      "sourceRichness": "sparse",
+      "photoBindings": [],
+      "recordPhotoBindings": [],
+      "comparison": "Identical approved words, photos, crops, brand and factual records; reviewed placement, supporting composition and Menu navigation may change.",
+      "delivery": {
+        "map": {
+          "approved/catering.jpg#640": "https://assets.example.invalid/menu-0-0-640.webp",
+          "approved/catering.jpg#1280": "https://assets.example.invalid/menu-0-0-1280.webp",
+          "approved/catering.jpg#1920": "https://assets.example.invalid/menu-0-0-1920.webp"
+        },
+        "canonicalDefaultHtmlSha256": "e2e3e36afc82ed35c26f30a83596b240b4b69d47ccebc62a5a6e227fda9ab979",
+        "deliveredHtmlSha256": "0be859a8b33d6ae6ba151f829a85437109a2e76d6c85f4e29c5adecc411223ea",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "1",
+      "business": "Ember Festival Kitchen — rich approved source",
+      "family": "story-spread",
+      "before": "1-before.html",
+      "after": "1-after.html",
+      "photoExpected": true,
+      "sourceRichness": "rich",
+      "photoBindings": [],
+      "recordPhotoBindings": [
+        {
+          "recordId": "menu_roast_bowl",
+          "recordRevision": 1,
+          "title": "Slow-cooked vegetable bowl",
+          "uri": "https://assets.example.invalid/food-detail.jpg"
+        },
+        {
+          "recordId": "menu_sharing_buffet",
+          "recordRevision": 1,
+          "title": "Sharing buffet",
+          "uri": "https://assets.example.invalid/catering.jpg"
+        }
+      ],
+      "comparison": "Identical approved words, photos, crops, brand and factual records; reviewed placement, supporting composition and Menu navigation may change.",
+      "delivery": {
+        "map": {
+          "approved/food-plate.jpg#640": "https://assets.example.invalid/menu-1-0-640.webp",
+          "approved/food-plate.jpg#1280": "https://assets.example.invalid/menu-1-0-1280.webp",
+          "approved/food-detail.jpg#640": "https://assets.example.invalid/menu-1-1-640.webp",
+          "approved/food-detail.jpg#1280": "https://assets.example.invalid/menu-1-1-1280.webp",
+          "approved/catering.jpg#640": "https://assets.example.invalid/menu-1-2-640.webp",
+          "approved/catering.jpg#1280": "https://assets.example.invalid/menu-1-2-1280.webp",
+          "approved/catering.jpg#1920": "https://assets.example.invalid/menu-1-2-1920.webp"
+        },
+        "canonicalDefaultHtmlSha256": "8f30fe3df96e772f2dae155facfe009ccc02f8bb33d0e5df2a271a4597d76387",
+        "deliveredHtmlSha256": "fe464abaf605a77e5803d5daae9fdf236b887eee56dec8a8c82e96c2962a7d30",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "2",
+      "business": "Clearleaf Gardens — sparse approved source",
+      "family": "service-led",
+      "before": "2-before.html",
+      "after": "2-after.html",
+      "photoExpected": true,
+      "sourceRichness": "sparse",
+      "photoBindings": [],
+      "recordPhotoBindings": [],
+      "comparison": "Identical approved words, photos, crops, brand and factual records; reviewed placement, supporting composition and Menu navigation may change.",
+      "delivery": {
+        "map": {
+          "approved/garden.jpg#640": "https://assets.example.invalid/menu-2-0-640.webp",
+          "approved/garden.jpg#1280": "https://assets.example.invalid/menu-2-0-1280.webp"
+        },
+        "canonicalDefaultHtmlSha256": "4398f1f028bda2f2eadaad5a96a99b3fdbda4cb9db3a20f973c0d652086c12df",
+        "deliveredHtmlSha256": "9848853fd9947a166f1934ae61ee6560fa16d943aea4d8c0500595f78e9370e2",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "3",
+      "business": "Clearleaf Gardens — rich approved source",
+      "family": "service-led",
+      "before": "3-before.html",
+      "after": "3-after.html",
+      "photoExpected": true,
+      "sourceRichness": "rich",
+      "photoBindings": [],
+      "recordPhotoBindings": [],
+      "comparison": "Identical approved words, photos, crops, brand and factual records; reviewed placement, supporting composition and Menu navigation may change.",
+      "delivery": {
+        "map": {
+          "approved/garden-path.jpg#640": "https://assets.example.invalid/menu-3-0-640.webp",
+          "approved/garden-path.jpg#1280": "https://assets.example.invalid/menu-3-0-1280.webp",
+          "approved/garden-reference.jpg#640": "https://assets.example.invalid/menu-3-1-640.webp",
+          "approved/garden-reference.jpg#1280": "https://assets.example.invalid/menu-3-1-1280.webp",
+          "approved/garden.jpg#640": "https://assets.example.invalid/menu-3-2-640.webp",
+          "approved/garden.jpg#1280": "https://assets.example.invalid/menu-3-2-1280.webp"
+        },
+        "canonicalDefaultHtmlSha256": "e5a60cd37a8776060b48cbcda048b32f13ac18b2a477bd06e0e689ceb26d431a",
+        "deliveredHtmlSha256": "9104ff0a1126698da5e40da8b7c743acf3476c03bae605dbc47f3c173ebc0d94",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "4",
+      "business": "Quiet Light Studio — sparse approved source",
+      "family": "typography-first",
+      "before": "4-before.html",
+      "after": "4-after.html",
+      "photoExpected": false,
+      "sourceRichness": "sparse",
+      "photoBindings": [],
+      "recordPhotoBindings": [],
+      "comparison": "Identical approved words, photos, crops, brand and factual records; reviewed placement, supporting composition and Menu navigation may change.",
+      "delivery": {
+        "map": {},
+        "canonicalDefaultHtmlSha256": "6b831051f47fe381abe73b0456f828ac99ca52f1bbc0f6c6c2a5eea3a89bcbd9",
+        "deliveredHtmlSha256": "6b831051f47fe381abe73b0456f828ac99ca52f1bbc0f6c6c2a5eea3a89bcbd9",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "5",
+      "business": "Quiet Light Studio — rich approved source",
+      "family": "typography-first",
+      "before": "5-before.html",
+      "after": "5-after.html",
+      "photoExpected": false,
+      "sourceRichness": "rich",
+      "photoBindings": [],
+      "recordPhotoBindings": [],
+      "comparison": "Identical approved words, photos, crops, brand and factual records; reviewed placement, supporting composition and Menu navigation may change.",
+      "delivery": {
+        "map": {},
+        "canonicalDefaultHtmlSha256": "b5076bf8a27491c26edde8b22f34ec057d50374b7362eda1b1a1c6c5e3b698ac",
+        "deliveredHtmlSha256": "b5076bf8a27491c26edde8b22f34ec057d50374b7362eda1b1a1c6c5e3b698ac",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "6",
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "before": "6-before.html",
+      "after": "6-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "7",
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "before": "7-before.html",
+      "after": "7-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "8",
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "before": "8-before.html",
+      "after": "8-after.html",
+      "photoExpected": false,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "9",
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "before": "9-before.html",
+      "after": "9-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "10",
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "before": "10-before.html",
+      "after": "10-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    }
+  ],
+  "synthetic": true,
+  "publicActivation": false
+}

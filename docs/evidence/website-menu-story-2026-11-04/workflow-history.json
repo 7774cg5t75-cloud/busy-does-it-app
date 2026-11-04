@@ -1,0 +1,260 @@
+{
+  "workflows": [
+    {
+      "id": 41909405984,
+      "name": "Private App goal composition and original authority verification",
+      "status": "completed",
+      "conclusion": "failure",
+      "sha": "9594444fa71967210da0a8fdcaa42e38a75c92e5",
+      "tree": "b332ddae85d900e9639c413ef77fa723a92a3f27",
+      "attempt": 1,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41909405984"
+    },
+    {
+      "id": 41909406067,
+      "name": "Premium Website original-renderer browser evidence",
+      "status": "completed",
+      "conclusion": "failure",
+      "sha": "9594444fa71967210da0a8fdcaa42e38a75c92e5",
+      "tree": "b332ddae85d900e9639c413ef77fa723a92a3f27",
+      "attempt": 1,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41909406067"
+    },
+    {
+      "id": 41911087321,
+      "name": "Private App goal composition and original authority verification",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "sha": "bec02b8ab2b46c3ec78629b3d826c3dba4f809c4",
+      "tree": "1bbf6b99461ee9291443a2ac43f01ca6a360b78a",
+      "attempt": 1,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911087321"
+    },
+    {
+      "id": 41911087413,
+      "name": "Premium Website original-renderer browser evidence",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "sha": "bec02b8ab2b46c3ec78629b3d826c3dba4f809c4",
+      "tree": "1bbf6b99461ee9291443a2ac43f01ca6a360b78a",
+      "attempt": 1,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911087413"
+    },
+    {
+      "id": 41911822671,
+      "name": "Private App goal composition and original authority verification",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "attempt": 1,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911822671"
+    },
+    {
+      "id": 41911822758,
+      "name": "Premium Website original-renderer browser evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "attempt": 1,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911822758"
+    }
+  ],
+  "legacy": [
+    {
+      "id": 41911833343,
+      "name": "V3.63 coordinated editable growth checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833343",
+      "attempt": 1
+    },
+    {
+      "id": 41911833265,
+      "name": "V3.64 private growth workspace checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833265",
+      "attempt": 1
+    },
+    {
+      "id": 41911833317,
+      "name": "V3.69 Founder Operations Security",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833317",
+      "attempt": 1
+    },
+    {
+      "id": 41911833289,
+      "name": "V3.70 Platform Autopilot checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833289",
+      "attempt": 1
+    },
+    {
+      "id": 41911833323,
+      "name": "V3.65 Growth Command Centre checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833323",
+      "attempt": 1
+    },
+    {
+      "id": 41911833291,
+      "name": "V3.66 voice and project Operator checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833291",
+      "attempt": 1
+    }
+  ],
+  "pullRequests": [
+    {
+      "number": 26,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "headRef": "codex/builder-mission15-design-advancement",
+      "base": "codex/builder-mission14-intelligent-followups",
+      "baseSha": "3e64352e7e043812b1ba79a0609b64c251a0f4bd"
+    },
+    {
+      "number": 25,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head": "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+      "headRef": "codex/builder-mission14-intelligent-followups",
+      "base": "codex/builder-mission13-customer-conversations",
+      "baseSha": "2358f2ab0ba53e312a5da8de9e08e1d566966ace"
+    },
+    {
+      "number": 24,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+      "headRef": "codex/builder-mission13-customer-conversations",
+      "base": "codex/builder-mission12-connected-journeys",
+      "baseSha": "f9b11034449a8d401ea71afe27627c5715325c72"
+    },
+    {
+      "number": 23,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head": "f9b11034449a8d401ea71afe27627c5715325c72",
+      "headRef": "codex/builder-mission12-connected-journeys",
+      "base": "codex/disposable-supabase-review",
+      "baseSha": "55db12d247b149aa2052fc17f5d5dc536a77b8a7"
+    },
+    {
+      "number": 21,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head": "55db12d247b149aa2052fc17f5d5dc536a77b8a7",
+      "headRef": "codex/disposable-supabase-review",
+      "base": "codex/builder-mission11-shared-records",
+      "baseSha": "a0a3b949f97721187d0eaa66b409310f6089c8e2"
+    }
+  ],
+  "finalWorkflows": [
+    {
+      "id": 41911833343,
+      "name": "V3.63 coordinated editable growth checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833343",
+      "attempt": 1
+    },
+    {
+      "id": 41911833265,
+      "name": "V3.64 private growth workspace checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833265",
+      "attempt": 1
+    },
+    {
+      "id": 41911833317,
+      "name": "V3.69 Founder Operations Security",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833317",
+      "attempt": 1
+    },
+    {
+      "id": 41911833289,
+      "name": "V3.70 Platform Autopilot checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833289",
+      "attempt": 1
+    },
+    {
+      "id": 41911833323,
+      "name": "V3.65 Growth Command Centre checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833323",
+      "attempt": 1
+    },
+    {
+      "id": 41911833291,
+      "name": "V3.66 voice and project Operator checks",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911833291",
+      "attempt": 1
+    },
+    {
+      "id": 41911822758,
+      "name": "Premium Website original-renderer browser evidence",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911822758",
+      "attempt": 1
+    },
+    {
+      "id": 41911822671,
+      "name": "Private App goal composition and original authority verification",
+      "sha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+      "tree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41911822671",
+      "attempt": 1
+    }
+  ]
+}
