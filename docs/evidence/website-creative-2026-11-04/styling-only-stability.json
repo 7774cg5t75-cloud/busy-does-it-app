@@ -1,0 +1,53 @@
+{
+  "source": {
+    "commit": "c5651bbadb3ce5ba346eb98c373d049c8495d431",
+    "tree": "caa56a42dab9d174e438935d6e12ff0194438482"
+  },
+  "results": [
+    {
+      "case": "11",
+      "view": "narrow",
+      "identicalPixels": true
+    },
+    {
+      "case": "11",
+      "view": "mobile",
+      "identicalPixels": true
+    },
+    {
+      "case": "11",
+      "view": "desktop",
+      "identicalPixels": true
+    },
+    {
+      "case": "12",
+      "view": "narrow",
+      "identicalPixels": true
+    },
+    {
+      "case": "12",
+      "view": "mobile",
+      "identicalPixels": true
+    },
+    {
+      "case": "12",
+      "view": "desktop",
+      "identicalPixels": true
+    },
+    {
+      "case": "13",
+      "view": "narrow",
+      "identicalPixels": false
+    },
+    {
+      "case": "13",
+      "view": "mobile",
+      "identicalPixels": false
+    },
+    {
+      "case": "13",
+      "view": "desktop",
+      "identicalPixels": false
+    }
+  ]
+}

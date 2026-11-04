@@ -1,0 +1,42 @@
+{
+  "focusedOriginalMenu": 0,
+  "newBriefAndComparison": 0,
+  "originalGuidedComponent": 0,
+  "originalGovernedProposals": 0,
+  "originalGatewayAndServerOfflineV3": 0,
+  "foundation105": 0,
+  "securityBaseline": 0,
+  "securityByDesign": 0,
+  "dependencyBackportGuard": 0,
+  "sourceSyntax": 0,
+  "architecture": 0,
+  "failures": [
+    {
+      "exit": 1,
+      "check": "initial creative-plan test",
+      "reason": "Already-active service/process settings were correctly denied. Planner now prepares actual changes and omits no-op process clauses."
+    },
+    {
+      "exit": 1,
+      "check": "initial server offline-v3 test",
+      "reason": "Legacy draft had no valid premium family. Offline provider now proposes validated typography-first fallback; validator unchanged."
+    },
+    {
+      "exit": 1,
+      "check": "preserve reviewed photo service layout",
+      "reason": "Legacy configured photo lacked metadata for new associations, so eligibility count incorrectly selected the image-free branch. Display presence and reuse eligibility are now separate; photo layouts remain preserved and no new permission is granted."
+    }
+  ],
+  "preFinalCorrections": [
+    "Retained JSON source model for every inherited and styling-only measured case.",
+    "Scoped stronger process styling behind original finite reviewed feature-chapters opt-in; prior chapter layouts remain unchanged.",
+    "Added exact move identifier validation and a malicious identifier already present in source projection."
+  ],
+  "noAssertionsWeakened": true,
+  "providerCalls": 0,
+  "actualPriorCssExportMatchesPinnedFixture": 0,
+  "pixelDrivenCorrections": [
+    "Rejected technically passing business-story/process misclassification; preserve About and target only reviewed stepwise source.",
+    "Rejected generic forced photographic service rearrangement; retain reviewed presentation and explicitly refine phone readability."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+  "sourceTree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+  "module": "supabase/functions/busy-website-worker/websiteCraftedPage.mjs",
+  "field": "craftedPageCss",
+  "fixture": "scripts/fixtures/website-creative/previous-crafted.css",
+  "sha256": "a4dbd913f1210b1093a00bc40e814ea4cd7a32fbc8d2c31e694f4b0c2c9650f7",
+  "comparisonScope": "Same final model and original renderer markup; prior reviewed CSS versus current CSS only. No separate old renderer engine."
+}
