@@ -3152,18 +3152,29 @@
     },
     {
       "id": "website-storyboard",
-      "args": ["scripts/check-website-storyboard.mjs"],
+      "args": [
+        "scripts/check-website-storyboard.mjs"
+      ],
       "phase8Blocked": false
     },
     {
       "id": "website-authentic-story",
-      "args": ["scripts/check-website-authentic-story.mjs"],
+      "args": [
+        "scripts/check-website-authentic-story.mjs"
+      ],
       "phase8Blocked": false
     },
     {
       "id": "website-excellence",
       "args": [
         "scripts/check-website-excellence.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "website-creative-comparison",
+      "args": [
+        "scripts/check-website-creative-comparison.mjs"
       ],
       "phase8Blocked": false
     }

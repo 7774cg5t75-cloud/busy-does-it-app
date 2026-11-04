@@ -299,4 +299,18 @@ export const craftedPageCss=`
  :where(.premium-atelier) .atelier-chapters li:first-child{padding:24px}
  :where(.premium-crafted) .reviewed-story-spread .reviewed-story-photo img{aspect-ratio:4/3}
 }
+/* Coordinated process spread: same supplied paragraphs, stronger whole-page rhythm. */
+:where(.premium-atelier) .atelier-chapters{display:block}
+:where(.premium-atelier) .atelier-chapters>header{max-width:38rem;margin-bottom:clamp(32px,5vw,64px)}
+:where(.premium-atelier) .atelier-chapters ol{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 clamp(32px,5vw,80px)}
+:where(.premium-atelier) .atelier-chapters li:first-child{grid-column:1/-1;grid-template-columns:48px minmax(0,1fr);padding:clamp(28px,5vw,72px);margin-bottom:24px}
+:where(.premium-atelier) .atelier-chapters li:first-child p{max-width:54ch}
+:where(.premium-atelier) .atelier-chapters li:first-child strong{font-size:clamp(2rem,4.7vw,4.6rem);line-height:1.08;max-width:20ch;letter-spacing:-.045em}
+:where(.premium-atelier) .crafted-services--ledger .crafted-service{padding-block:clamp(28px,4vw,56px)}
+:where(.premium-atelier) .crafted-services--ledger .service-photo-frame{max-width:100%}
+@media(max-width:800px){
+ :where(.premium-atelier) .atelier-chapters ol{grid-template-columns:minmax(0,1fr)}
+ :where(.premium-atelier) .atelier-chapters li:first-child{grid-template-columns:24px minmax(0,1fr);gap:16px;padding:24px}
+ :where(.premium-atelier) .atelier-chapters li:first-child strong{font-size:clamp(1.8rem,8.8vw,2.6rem);max-width:22ch}
+}
 `;

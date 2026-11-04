@@ -1,3 +1,4 @@
+import {prepareCreativeComparison} from '../../../src/core/websiteCreativeComparison.mjs';
 import {createBuilderProposalContext,builderInterpretationEnvelope,builderProposalResponseSchema,parseBuilderProposalResponse} from '../../../src/core/governedBuilderProposal.mjs';
 import {stableJson} from '../../../src/core/stableJson.mjs';
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(x);
@@ -28,7 +29,7 @@ export function createBuilderProposalGateway(deps){
    if(!exact(body,['version','operationId','businessId','binding','goal'])||body.version!==1||!uuid(body.operationId)||!uuid(body.businessId)||typeof body.goal!=='string'||body.goal.trim().length===0||body.goal.length>240||/[<>\u0000-\u001f\u007f]/.test(body.goal)||!exact(body.binding,['surface','projectId','sourceRevision','profileRevision','snapshotRevision','pageId'])||!['website','app'].includes(body.binding.surface)||typeof body.binding.projectId!=='string'||body.binding.projectId.length>100||!['sourceRevision','profileRevision','snapshotRevision'].every(k=>Number.isSafeInteger(body.binding[k])&&body.binding[k]>0))return response(400,'invalid_request','Describe one supported idea for your current project.');
    const params={p_actor:owner.id,p_business:body.businessId,p_binding:body.binding};
    context=contextFrom(await deps.rpc('busy_ai_context_v1',params),body.binding);if(!context.ok||context.scope.ownerId!==owner.id||context.scope.businessId!==body.businessId)throw Error('source_changed');
-   const envelope=builderInterpretationEnvelope(context,body.goal);if(envelope.ok===false)throw Error('invalid_request');
+   const creative=body.binding.surface==='website'&&deps.creativeMode==='offline-art-direction-v3'?prepareCreativeComparison({ownerId:owner.id,businessId:body.businessId,profileRevision:body.binding.profileRevision,website:context.anchor.project,profile:context.anchor.profile},body.goal):null;const envelope=creative?.ok?creative.input:creative?null:builderInterpretationEnvelope(context,body.goal);if(!envelope||envelope.ok===false)throw Error('invalid_request');
    admissionAttempted=true;
    const receipt=await deps.rpc('busy_ai_reserve_v1',{...params,p_operation:body.operationId,p_request_nonce:requestNonce,p_model:body.binding.surface==='website'?'offline-website-v1':'offline-app-v1',p_feature:body.binding.surface==='website'?'website-design':'app-requirements',p_goal_hash:await hash(stableJson({goal:body.goal,scope:context.scope}))});
    if(!receipt.fresh)return response(409,'already_recorded','This request is already recorded. Inspect its outcome before starting another.');
@@ -39,7 +40,7 @@ export function createBuilderProposalGateway(deps){
    const aborted=()=>controller.abort();request.signal.addEventListener('abort',aborted,{once:true});
    let raw;
    if(request.signal.aborted)throw Error('unknown');
-   try{raw=await Promise.race([Promise.resolve().then(()=>deps.offlineProvider(envelope,{schema:builderProposalResponseSchema(context),signal:controller.signal})),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('unknown'));},5000);controller.signal.addEventListener('abort',()=>reject(Error('unknown')),{once:true});})]);}finally{clearTimeout(timer);request.signal.removeEventListener('abort',aborted);}
+   try{raw=await Promise.race([Promise.resolve().then(()=>deps.offlineProvider(envelope,{schema:creative?.schema||builderProposalResponseSchema(context),signal:controller.signal})),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('unknown'));},5000);controller.signal.addEventListener('abort',()=>reject(Error('unknown')),{once:true});})]);}finally{clearTimeout(timer);request.signal.removeEventListener('abort',aborted);}
    // Simulation usage is known to be zero. No model-supplied usage or amount is
    // accepted, and this is explicitly not a real provider/billing receipt.
    await deps.rpc('busy_ai_finish_v1',{p_actor:owner.id,p_business:body.businessId,p_operation:body.operationId,p_request_nonce:requestNonce,p_outcome:'settled',p_input:0,p_output:0,p_receipt:'offline:'+body.operationId});settled=true;

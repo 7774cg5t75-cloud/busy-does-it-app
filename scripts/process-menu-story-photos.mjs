@@ -5,7 +5,7 @@ import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {chromium} from 'playwright';
 import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
-const root='.test-artifacts/website-menu-story',manifest=JSON.parse(readFileSync(root+'/scenarios.json')),hash=b=>createHash('sha256').update(b).digest('hex'),api=websiteBuilderTestHarnessV3222(['renderWebsiteHtml']),outputs=[];
+const root=process.env.BUSY_CREATIVE_BROWSER==='1'?'.test-artifacts/website-creative':'.test-artifacts/website-menu-story',manifest=JSON.parse(readFileSync(root+'/scenarios.json')),hash=b=>createHash('sha256').update(b).digest('hex'),api=websiteBuilderTestHarnessV3222(['renderWebsiteHtml']),outputs=[];
 mkdirSync(root+'/derivatives',{recursive:true});
 const modules=['src/core/browserBusinessPhotoProcessor.mjs','supabase/functions/busy-website-original-media/imageByteReview.mjs'];
 function original(a){const name=a.uri.split('/').at(-1);if(['food-plate.jpg','food-detail.jpg','garden-path.jpg'].includes(name))return readFileSync('scripts/fixtures/website-art-direction/'+name);if(name==='garden-reference.jpg')return readFileSync('scripts/fixtures/website-storyboard/garden-reference.jpg');if(name==='shared-table.jpg')return readFileSync('scripts/fixtures/website-story/shared-table.jpg');return readFileSync('.test-artifacts/guided-websites/assets/'+name);}

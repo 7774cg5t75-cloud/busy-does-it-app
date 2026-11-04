@@ -1,6 +1,7 @@
-import {BUILDER_PROPOSAL_VERSION} from '../../../src/core/governedBuilderProposal.mjs';
+import {BUILDER_PROPOSAL_VERSION,WEBSITE_ART_STORY_VERSION} from '../../../src/core/governedBuilderProposal.mjs';
 // Server-owned simulation only. No fetch, provider key, tool or dynamic code.
 export function offlineBuilderProvider(envelope){
+ if(envelope.version==='busy.creative-comparison.v1')return JSON.stringify({version:WEBSITE_ART_STORY_VERSION,scope:envelope.scope,kind:'website-design',explanation:'Deterministic offline art-direction fixture, not a live AI result.',objectives:['professional-presentation'],app:null,art:{direction:'expressive',family:envelope.available.families.includes(envelope.approved.family)?envelope.approved.family:'typography-first',photos:[],contentPhotos:[],services:'directory',story:null,customerAction:'unchanged',copy:'unchanged',composition:{moves:[],mobileDensity:'compact'}}});
  const common={version:BUILDER_PROPOSAL_VERSION,scope:envelope.scope,explanation:'Offline preparation for your review. Nothing has been saved or published.'};
  if(envelope.scope.surface==='website')return JSON.stringify({...common,kind:'website-design',objectives:['professional-presentation','mobile-readability'],app:null});
  const staff=/festival|field staff/i.test(envelope.goal);

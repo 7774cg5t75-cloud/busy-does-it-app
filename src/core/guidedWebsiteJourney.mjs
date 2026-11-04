@@ -1,3 +1,4 @@
+import {websiteCreativeInstructions} from './websiteCreativeBrief.mjs';
 import {websitePhotographyInstructions,websiteStoryboardInstructions} from './websiteStoryboard.mjs';
 import {planBusyGoal} from './busyGoalPlan.mjs';
 import {prepareWebsiteRequest,websiteRequestContent} from './websiteRequestPlan.mjs';
@@ -37,6 +38,7 @@ export function refineGuidedWebsite(journey,context,options={},deps){
  }else if(servicePhoto){
   const proposed=websiteStoryboardInstructions(storyboardSource,{goal:'Show these photographs alongside the right services',pairs:[servicePhoto]});if(!proposed.ok)return proposed;
   kind='service-photo-'+servicePhoto.serviceId;instruction='pair approved photo "'+servicePhoto.storagePath+'" with service "'+servicePhoto.serviceId+'"';
+ }else if(/^(?:make this website feel more individual|give it a more premium creative direction|keep my words but redesign the rest|put the menu first|use these photos to tell our story|try a completely different approach|make the website more suitable for customers on phones)$/i.test(request.trim())){const creative=websiteCreativeInstructions({...context,website:candidate},request);if(!creative.ok)return creative;kind='creative-brief';instruction=creative.instruction;
  }else if(/^(?:make my catering website more impressive|make it look more like a premium creative business|try another full-page design|keep all my wording but change the presentation|make it look amazing without photos|make the menu stand out more|make my website look exceptional|keep my words but improve the design|make the whole page more elegant|try a more distinctive design|tell our story better|make our menu the main attraction|show these photographs alongside the right services)$/i.test(request.trim())){
   const proposed=websiteStoryboardInstructions(storyboardSource,{goal:request});if(!proposed.ok)return proposed;kind='complete-design';instruction=proposed.instruction;
  }else if(/^(?:make my creative website more expressive|make it look like a premium creative business)$/i.test(request.trim())){

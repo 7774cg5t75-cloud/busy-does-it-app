@@ -35,6 +35,9 @@ on:
       - 'supabase/functions/busy-website-worker/**'
       - 'scripts/capture-website-design.mjs'
       - 'scripts/check-website-menu-story.mjs'
+      - 'scripts/check-website-creative-comparison.mjs'
+      - 'src/core/websiteCreative*.mjs'
+      - 'scripts/fixtures/website-creative/**'
       - 'scripts/process-menu-story-photos.mjs'
       - 'supabase/functions/busy-website-worker/websiteContentPhotos.mjs'
       - 'scripts/check-website-art-direction.mjs'
@@ -194,6 +197,7 @@ jobs:
           node scripts/check-enquiry-preparation.mjs
           node scripts/check-operational-work.mjs
           node scripts/check-website-menu-story.mjs
+          node scripts/check-website-creative-comparison.mjs
           node scripts/check-website-art-direction.mjs
           node scripts/check-premium-website-experience.mjs
           node scripts/check-website-design-expansion.mjs

@@ -23,6 +23,9 @@ on:
       - 'scripts/fetch-guided-website-assets.py'
       - 'scripts/fixtures/guided-websites/**'
       - 'scripts/check-website-menu-story.mjs'
+      - 'scripts/check-website-creative-comparison.mjs'
+      - 'src/core/websiteCreative*.mjs'
+      - 'scripts/fixtures/website-creative/**'
       - 'scripts/process-menu-story-photos.mjs'
       - 'supabase/functions/busy-website-worker/websiteContentPhotos.mjs'
       - 'scripts/check-website-art-direction.mjs'
@@ -93,6 +96,9 @@ jobs:
           node scripts/check-website-menu-story.mjs
           node scripts/process-menu-story-photos.mjs
           BUSY_MENU_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-creative-comparison.mjs
+          BUSY_CREATIVE_BROWSER=1 node scripts/process-menu-story-photos.mjs
+          BUSY_CREATIVE_BROWSER=1 node scripts/capture-website-design.mjs
       - name: Compare real current pixels with the exact previous guided evidence
         if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
         env:
@@ -299,3 +305,76 @@ jobs:
             .test-artifacts/website-menu-story/*.json
             .test-artifacts/website-menu-story/*.html
           retention-days: 7
+
+      - name: Retain creative catering evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-catering-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/[0-1]-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative gardening evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-gardening-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/[2-3]-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative studio evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-studio-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/[4-5]-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative gardens evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/[6-9]-*.png
+            .test-artifacts/website-creative/10-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative delivery evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-delivery-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/delivery-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative renderer evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-renderer-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/1[1-3]-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
