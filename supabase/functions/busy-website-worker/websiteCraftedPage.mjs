@@ -13,7 +13,7 @@ export function craftedServices(section,family,{escapeHtml,editAttrs=(...args)=>
  const items=Array.isArray(section.items)?section.items.filter(i=>i&&String(i.title||i.body||'').trim()):[];
  if(!items.length||!heroFamilies.some(f=>f.id===family))return '';
  const layout=(direction.startsWith('authored')||direction==='narrative')&&items.length===1?'studio':craftedServiceLayout(section,family,direction);
- return `<div class="crafted-services crafted-services--${layout}${(direction.startsWith('authored')||direction==='narrative')?' crafted-services-count-'+Math.min(items.length,3):''}">${items.map((item,index)=>`<article class="crafted-service ${itemClasses(item)}${photoFor(item)?' service-has-photo':''}">${photoFor(item)}<span class="crafted-service-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><h3${itemHeadingClass(item)}${editAttrs(section,'title',String(item.id||''))}>${escapeHtml(item.title||'')}</h3>${item.body?`<p class="crafted-service-description"${editAttrs(section,'body',String(item.id||''))}>${escapeHtml(item.body)}</p>`:''}${direction==='narrative'?'':contactAction(item)}</article>`).join('')}</div>`;
+ return `<div class="crafted-services crafted-services--${layout}${(direction.startsWith('authored')||direction==='narrative')?' crafted-services-count-'+Math.min(items.length,3):''}">${items.map((item,index)=>`<article class="crafted-service ${itemClasses(item)}${photoFor(item)?' service-has-photo':''}">${photoFor(item)}<span class="crafted-service-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><h3${itemHeadingClass(item)}${editAttrs(section,'title',String(item.id||''))}>${escapeHtml(item.title||'')}</h3>${item.body&&!(direction==='narrative'&&String(item.body).trim()===String(item.title).trim())?`<p class="crafted-service-description"${editAttrs(section,'body',String(item.id||''))}>${escapeHtml(item.body)}</p>`:''}${direction==='narrative'?'':contactAction(item)}</article>`).join('')}</div>`;
 }
 export function craftedStory(section,{escapeHtml,editAttrs=(...args)=>'',headingTag='h2',direction='',family=''}){
  const paragraphs=String(section.body||'').split(/\n\s*\n/).filter(x=>x.trim());
@@ -207,4 +207,7 @@ export const craftedPageCss=`
 }
 
 :where(.premium-narrative) details.listing-note summary{min-height:44px;padding-block:12px;cursor:pointer}
+
+:where(.premium-narrative) .hero .premium-story-spread .premium-visual{grid-column:1/-1;aspect-ratio:16/7;max-height:560px}
+@media(max-width:800px){:where(.premium-narrative) .hero .premium-story-spread .premium-visual{aspect-ratio:4/3;max-height:none}}
 `;
