@@ -24,7 +24,7 @@ export function websiteCreativeInstructions(context,goal){
  }else{
   if(d.theme?.heroVariation!=='atelier')commands.push('compose an expressive complete website');
   if(service){const desired=b.brief.photos.length?'directory':'brand',current=service.appearance?.serviceLayout||'brand';if(current!==desired)commands.push(desired==='brand'?'show services as the original layout':'show services as a directory');else commands.push('show services as a spotlight');}
-  if(process){const layout=/different approach/i.test(goal)?'sequence':'chapters';if(process.appearance?.readingLayout!==layout)commands.push('show '+process.id+' text as '+(layout==='sequence'?'a numbered sequence':'narrative chapters'));}
+  if(process){const layout=/different approach/i.test(goal)?'sequence':'feature-chapters';if(process.appearance?.readingLayout!==layout)commands.push('show '+process.id+' text as '+(layout==='sequence'?'a numbered sequence':'featured narrative chapters'));}
   if(menu&&b.brief.products.length){const first=home.sectionIds.find(id=>id!=='hero'&&d.sections.some(s=>s.id===id&&s.enabled!==false));if(first!==menu.id)commands.push('move '+menu.id+' before '+first);}
  }
  return commands.length?{ok:true,instruction:commands.join('; '),brief:b.brief,requiresReview:true,mayExecute:false}:{ok:false,reason:'This direction is already prepared. Your website is unchanged.'};

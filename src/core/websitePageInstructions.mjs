@@ -107,9 +107,9 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    const section=findSection(m[1]);if(!section||section.type!=='testimonials')return fail('Name one visible supplied-testimonials section.');
    change={action:'section-style',sectionId:section.id,field:'testimonialsLayout',value:'spotlight'};
    description='Compare the first existing quotation with supporting cards, without verifying reviews or changing words and order';
-  }else if((m=clause.match(/^show (?:the )?(.+?) text as (an editorial layout|a reading column|two reading columns|a numbered sequence|narrative chapters|the original layout)$/i))){
+  }else if((m=clause.match(/^show (?:the )?(.+?) text as (an editorial layout|a reading column|two reading columns|a numbered sequence|narrative chapters|featured narrative chapters|the original layout)$/i))){
    const section=findSection(m[1]);if(!section||!['about','text'].includes(section.type))return fail('Name one visible information section.');
-   change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','a numbered sequence':'sequence','narrative chapters':'chapters','the original layout':'brand'}[m[2].toLowerCase()]};
+   change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','a numbered sequence':'sequence','narrative chapters':'chapters','featured narrative chapters':'feature-chapters','the original layout':'brand'}[m[2].toLowerCase()]};
    description='Compare only '+section.title+' reading layout without changing its words, colours or phone source order';
   }else if((m=clause.match(/^(?:show|display) (?:the )?services as (a directory|a linked guide|a spotlight|cards|the original layout)$/i))){
    const section=findSection('services');
