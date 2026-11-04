@@ -43,7 +43,7 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule,
  }
  refresh();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
 }
-function businessContentSectionHtml(section,{endpoint='',websiteId='',deploymentId='',appSource=/** @type {{slug:string,expectedAppId:string,expectedVersionId:string,allowEnquiry:boolean}|null} */ (null),sectionClasses='',artDirection=false,narrative=false,recordPhoto=record=>''}={}){
+function businessContentSectionHtml(section,{endpoint='',websiteId='',deploymentId='',appSource=/** @type {{slug:string,expectedAppId:string,expectedVersionId:string,allowEnquiry:boolean}|null} */ (null),sectionClasses='',artDirection=false,narrative=false,recordPhoto=/** @type {(record:any)=>string} */(record=>'')}={}){
  if(!['products','events'].includes(section?.type)||section.contentSource!=='business_records_v1')return '';
  const id='business-content-'+section.id,kind=section.type==='products'?'product':'event';
  const safeEndpoint=typeof endpoint==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-mini-app-guest$/.test(endpoint);

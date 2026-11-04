@@ -15,7 +15,7 @@ export function websiteRecordPhoto(draft,section,record){
 }
 export function websiteSectionPhoto(draft,section){return ['about','text'].includes(section?.type)&&section.enabled!==false?websitePresentationPhoto(draft,section.storyPhoto):null;}
 export function usedContentPhotos(draft){return (draft.sections||[]).filter(s=>s.enabled!==false).flatMap(s=>[websiteSectionPhoto(draft,s),...(Array.isArray(s.previewFeed?.records)?s.previewFeed.records:[]).map(r=>websiteRecordPhoto(draft,s,r))]).filter(Boolean);}
-export function presentationPhotoHtml(asset,resolve,escape,attributes=()=>'',kind='content'){
+export function presentationPhotoHtml(asset,resolve,escape,attributes=/** @type {(asset:any,url:string)=>string} */((asset,url)=>''),kind='content'){
  if(!asset)return '';const url=resolve(asset);if(!url)return '';
  return `<figure class="reviewed-${kind}-photo"><img${attributes(asset,url)} src="${escape(url)}" alt="${escape(asset.alt||'Owner-reviewed website photograph')}" width="${asset.width}" height="${asset.height}" loading="lazy" decoding="async" style="object-fit:${asset.appearance?.photoFit==='contain'?'contain':'cover'};object-position:${['top','bottom'].includes(asset.appearance?.photoCrop)?asset.appearance.photoCrop:'center'}"></figure>`;
 }
