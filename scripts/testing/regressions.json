@@ -3137,6 +3137,11 @@
       "phase8Blocked": false
     },
     {
+      "id": "website-storyboard",
+      "args": ["scripts/check-website-storyboard.mjs"],
+      "phase8Blocked": false
+    },
+    {
       "id": "website-authentic-story",
       "args": ["scripts/check-website-authentic-story.mjs"],
       "phase8Blocked": false

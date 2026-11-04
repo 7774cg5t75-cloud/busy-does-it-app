@@ -1,7 +1,7 @@
 import {textTypographyClasses} from "./websiteTextTypography.mjs";
 // Canonical finite appearance classes for native previews, hosted HTML and exports.
 function sectionAppearanceClasses(section){
-  const fields={testimonialsLayout:['spotlight'],faqLayout:['questions'],readingLayout:['column','editorial','columns'],serviceLayout:['directory','cards','index'],ctaSize:['spacious','wide'],bodyScale:['large'],mobileBodyScale:['large'],desktopBodyScale:['large'],headingScale:["compact","large"],textAlign:["center"],
+  const fields={testimonialsLayout:['spotlight'],faqLayout:['questions'],readingLayout:['column','editorial','columns','sequence'],serviceLayout:['directory','cards','index'],ctaSize:['spacious','wide'],bodyScale:['large'],mobileBodyScale:['large'],desktopBodyScale:['large'],headingScale:["compact","large"],textAlign:["center"],
     sectionSpacing:["compact","generous"],mobileSectionSpacing:["compact","generous"],desktopSectionSpacing:["compact","generous"],photoCrop:["top","bottom"],mobilePhotoCrop:["top","center","bottom"],desktopPhotoCrop:["top","center","bottom"],
     photoSide:["right"],desktopPhotoSide:["left","right"],gallerySize:["compact","large"],
     mobileHeadingScale:["compact","large"],desktopHeadingScale:["compact","large"],

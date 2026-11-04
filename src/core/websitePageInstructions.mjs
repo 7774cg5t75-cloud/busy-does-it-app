@@ -92,9 +92,9 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    const section=findSection(m[1]);if(!section||section.type!=='testimonials')return fail('Name one visible supplied-testimonials section.');
    change={action:'section-style',sectionId:section.id,field:'testimonialsLayout',value:'spotlight'};
    description='Compare the first existing quotation with supporting cards, without verifying reviews or changing words and order';
-  }else if((m=clause.match(/^show (?:the )?(.+?) text as (an editorial layout|a reading column|two reading columns|the original layout)$/i))){
+  }else if((m=clause.match(/^show (?:the )?(.+?) text as (an editorial layout|a reading column|two reading columns|a numbered sequence|the original layout)$/i))){
    const section=findSection(m[1]);if(!section||!['about','text'].includes(section.type))return fail('Name one visible information section.');
-   change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','the original layout':'brand'}[m[2].toLowerCase()]};
+   change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','a numbered sequence':'sequence','the original layout':'brand'}[m[2].toLowerCase()]};
    description='Compare only '+section.title+' reading layout without changing its words, colours or phone source order';
   }else if((m=clause.match(/^(?:show|display) (?:the )?services as (a directory|a linked guide|cards|the original layout)$/i))){
    const section=findSection('services');
@@ -107,7 +107,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    change={action:'content-section',sectionId:section.id,title:section.title,layout:m[2].toLowerCase(),featuredId:section.featuredId||''};
    type='field';description='Change only the record presentation; keep this destination heading, featured item, styling and approved-record source';
   }else if(/^compose a connected visual story$/i.test(clause)){
-   if(!heroFamilies.some(f=>f.id===draft.theme?.heroComposition))return fail('Choose a reviewed homepage direction first.');
+   if(!heroFamilies.some(f=>f.id===draft.theme?.heroComposition)&&!steps.flatMap(s=>s.change.action==='style-group'?s.change.operations:[s.change]).some(op=>op.field==='heroComposition'&&heroFamilies.some(f=>f.id===op.value)))return fail('Choose a reviewed homepage direction first.');
    change={action:'style',field:'heroVariation',value:'narrative'};description='Review a connected full-page story with your words and exact current picture relationships';
   }else if((m=clause.match(/^point the main button to (contact|services|products)$/i))){
    change={action:'point-hero',sectionId:'hero',target:m[1].toLowerCase()};description='Use one existing supported customer destination';
@@ -194,7 +194,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    description="Emphasise the existing approved website button";
   }else return fail("No changes were made. Step "+(i+1)+" is not a supported, exact instruction. Try 'move the services section up' or 'make the hero heading smaller on phones'.");
   const leaves=change.action==='style-group'?change.operations:[change];
-  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):op.field||op.device||"position"].join(":"));
+  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):op.action==='pair-service-photo'?op.itemId:op.field||op.device||"position"].join(":"));
   if(keys.some(key=>targets.has(key)))return fail("Two steps affect the same setting. Give one instruction for that setting.");
   if(change.sectionId)previousSection=list(draft.sections).find(s=>s.id===change.sectionId)||null;
   keys.forEach(key=>targets.add(key));steps.push({type,change,spoken:clause,description});

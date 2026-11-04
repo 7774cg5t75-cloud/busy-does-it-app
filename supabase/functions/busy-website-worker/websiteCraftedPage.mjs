@@ -16,6 +16,7 @@ export function craftedServices(section,family,{escapeHtml,editAttrs=(...args)=>
 }
 export function craftedStory(section,{escapeHtml,editAttrs=(...args)=>'',headingTag='h2',direction='',family=''}){
  const paragraphs=String(section.body||'').split(/\n\s*\n/).filter(x=>x.trim());
+ if(direction==='narrative'&&section.appearance?.readingLayout==='sequence'&&paragraphs.length>=2&&paragraphs.length<=8)return `<div class="wrap narrative-sequence"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}><ol${editAttrs(section,'body')}>${paragraphs.map(p=>`<li><p>${escapeHtml(p).replace(/\n/g,'<br>')}</p></li>`).join('')}</ol></div>`;
  if((direction.startsWith('authored')||direction==='narrative')&&(!section.appearance?.readingLayout||section.appearance.readingLayout==='brand'))return `<div class="wrap authored-story authored-story--${['story-spread','editorial-collage'].includes(family)?'spread':['typography-first','quiet-portrait'].includes(family)?'manifesto':'method'}"><header><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></header><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="authored-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
  return `<div class="wrap crafted-story story-layout"><div class="crafted-section-heading"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></div><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="crafted-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
 }
@@ -163,7 +164,7 @@ export const craftedPageCss=`
 :where(.premium-narrative) .crafted-service>h3{grid-column:2;font-size:clamp(1.8rem,3.3vw,3.4rem);max-width:24ch}
 :where(.premium-narrative) .crafted-service .crafted-service-description{grid-column:2;max-width:52ch;margin:0}
 :where(.premium-narrative) .service-has-photo{grid-template-columns:36px minmax(0,1fr) minmax(0,1.2fr);grid-template-rows:auto auto;align-items:start}
-:where(.premium-narrative) .service-has-photo .service-photo{grid-column:3;grid-row:1/4;display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:0}
+:where(.premium-narrative) .service-has-photo .service-photo{grid-column:3;grid-row:1/4;display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:0}
 :where(.premium-narrative) .service-has-photo:nth-child(even){grid-template-columns:minmax(0,1.2fr) 36px minmax(0,1fr)}
 :where(.premium-narrative) .service-has-photo:nth-child(even) .service-photo{grid-column:1}
 :where(.premium-narrative) .service-has-photo:nth-child(even) .crafted-service-number{grid-column:2;grid-row:1}
@@ -184,4 +185,11 @@ export const craftedPageCss=`
  :where(.premium-narrative) .crafted-service>h3,:where(.premium-narrative) .service-has-photo:nth-child(even)>h3,:where(.premium-narrative) .crafted-service .crafted-service-description,:where(.premium-narrative) .service-has-photo:nth-child(even) .crafted-service-description,:where(.premium-narrative).premium-site-typography-first .crafted-service .crafted-service-description{grid-column:2}
  :where(.premium-narrative) .approved-menu{grid-template-columns:1fr;gap:28px}
 }
+
+:where(.premium-narrative) .narrative-sequence ol{list-style:none;counter-reset:reading;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;padding:0;margin:40px 0 0}
+:where(.premium-narrative) .narrative-sequence li{counter-increment:reading;border-top:2px solid var(--accent);padding-top:20px;min-width:0}
+:where(.premium-narrative) .narrative-sequence li:before{content:counter(reading,decimal-leading-zero);display:block;margin-bottom:32px;font-size:2rem}
+@media(max-width:800px){:where(.premium-narrative) .narrative-sequence ol{grid-template-columns:1fr;gap:28px}:where(.premium-narrative) .narrative-sequence li:before{margin-bottom:16px}}
+
+:where(.premium-narrative) .service-photo-small{max-width:300px;justify-self:center;align-self:center}
 `;

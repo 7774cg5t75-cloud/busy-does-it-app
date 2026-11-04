@@ -258,10 +258,11 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(matched.length!==1)
    return fail(draft,"Choose one visible section of your website.");
   const target=matched[0];
+  if(operation.field==='readingLayout'&&operation.value==='sequence'&&(!['text','about'].includes(target.type)||String(target.body||'').split(/\n\s*\n/).filter(x=>x.trim()).length<2||String(target.body||'').split(/\n\s*\n/).filter(x=>x.trim()).length>8))return fail(draft,'A reading sequence needs two to eight supplied paragraphs.');
   if(operation.field==='testimonialsLayout'&&operation.value==='spotlight'&&!validTestimonialSpotlight(target))return fail(draft,'Use at least two complete, distinctly identified supplied testimonials before comparing this layout.');
   const fields={
    ...textTypographyFields,
-   testimonialsLayout:['brand','spotlight'],serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial','columns'],faqLayout:['brand','questions'],
+   testimonialsLayout:['brand','spotlight'],serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial','columns','sequence'],faqLayout:['brand','questions'],
    ctaSize:['normal','spacious','wide'],
    bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],
