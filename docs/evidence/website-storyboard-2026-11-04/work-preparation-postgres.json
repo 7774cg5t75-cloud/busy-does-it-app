@@ -1,0 +1,70 @@
+{
+  "hosted": false,
+  "syntheticAuth": true,
+  "results": [
+    {
+      "id": "review-fuse-atomic-install-and-default-closed",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-enquiry-prepared-quote-and-component-preparation-0",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-enquiry-prepared-quote-and-component-preparation-1",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-enquiry-prepared-quote-and-component-preparation-2",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "cross-business-owner-membership-and-raw-grants-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "malformed-duplicate-unknown-action-and-stage-transition-denials",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "concurrent-CAS-exact-once-and-explicit-undo",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "lost-acknowledgement-readback-without-replay-and-stale-source-denial",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "direct-sql-malformed-plan-and-unknown-business-actions-refused",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "revocation-serializes-with-current-preparation-read",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "quote-revision-changes-require-fresh-preparation-review",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "retaining-rollback-closes-preparation-with-original-records-intact",
+      "passed": true,
+      "exitCode": 0
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 0
+  }
+}

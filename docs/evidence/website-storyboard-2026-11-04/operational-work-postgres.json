@@ -1,0 +1,76 @@
+{
+  "hosted": false,
+  "syntheticAuth": true,
+  "database": "busy_operational_disposable",
+  "results": [
+    {
+      "id": "atomic-install-separate-review-and-default-denial",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-private-operational-save-reopen-progress-and-overview-0",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-private-operational-save-reopen-progress-and-overview-1",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-private-operational-save-reopen-progress-and-overview-2",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "private-collection-identity-filters-and-no-job-claims",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "wrong-owner-source-app-public-and-raw-access-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "one-use-review-stale-app-callback-and-placement-CAS",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "lost-placement-acknowledgement-inspect-without-replay",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "changed-source-requires-original-plan-and-placement-review",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "later-original-quote-same-source-no-competing-progress",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-quote-only-operational-binding-compatible",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "revocation-binding-removal-keeps-work-and-lifetime-denial",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "retaining-placement-rollback-no-public-or-work-mutation",
+      "passed": true,
+      "exitCode": 0
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0
+  }
+}

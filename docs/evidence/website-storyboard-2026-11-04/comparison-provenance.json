@@ -1,0 +1,220 @@
+{
+  "source": {
+    "commit": "8ccf47ba738f558d5fea0cb142b3cfe2a7ee01b3",
+    "tree": "834ad7710361ba1d7ca730c46dded3ab9d990bf1"
+  },
+  "browser": "145.0.7632.6",
+  "sandboxRequired": true,
+  "fullPageCaptures": 72,
+  "nativeInteractionCaptures": 4,
+  "viewports": [
+    320,
+    390,
+    1440
+  ],
+  "highDPR": {
+    "cssWidth": 390,
+    "deviceScaleFactor": 2,
+    "fullPageCaptures": 6,
+    "pngWidth": 780
+  },
+  "sheets": [
+    {
+      "file": "ember-controlled-mobile.jpg",
+      "sha256": "31fad754e0854dd9a76d75f4183a916061907abb8899d6adf37c99d4ffa430b8",
+      "inputs": [
+        {
+          "file": "1-before-mobile.png",
+          "sha256": "6cd94f9237fb6c13d89617e601f125b8bd006ae5f5079f746517fb9c98023498"
+        },
+        {
+          "file": "1-after-mobile.png",
+          "sha256": "e72561da51759eb5f22f35edf98a1f44d08a33b7df45275a67720669375f9d3e"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "ember-controlled-desktop.jpg",
+      "sha256": "d7bbeb0103c1c48410b0f58d253b10021492b5acfa382bf5c6d209299c3be11d",
+      "inputs": [
+        {
+          "file": "1-before-desktop.png",
+          "sha256": "016df467d74446ac63f7969339342521088398024e9323c07e93cb8b79083925"
+        },
+        {
+          "file": "1-after-desktop.png",
+          "sha256": "d90e59eafaf629710ffd220c51cde24f8e1c488360dc793c19a259c9ce6fe37b"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "ember-source-richness.jpg",
+      "sha256": "86c163473f454a80dc8bc4a9d1e39375d06f9b494aed85796afdf1f58829c2d7",
+      "inputs": [
+        {
+          "file": "0-after-mobile.png",
+          "sha256": "310f0961e71ba7a881023174a12555ea0800e83d4303fdf8914ab6dd219ceb74"
+        },
+        {
+          "file": "1-after-mobile.png",
+          "sha256": "e72561da51759eb5f22f35edf98a1f44d08a33b7df45275a67720669375f9d3e"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "clearleaf-controlled-mobile.jpg",
+      "sha256": "b51797fdde2a66acaac806ed2ce44e6d0d8bc580fda395ae41180d2daeed03d7",
+      "inputs": [
+        {
+          "file": "3-before-mobile.png",
+          "sha256": "7b96f326cf0684c226972248a7a422fc6fa7db640ed3488fe797985603a69cbc"
+        },
+        {
+          "file": "3-after-mobile.png",
+          "sha256": "4370b3f376b1d6575d226e3b5590e43d3acb2abf6d291fc5f1c77dfe1bb09b33"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "clearleaf-controlled-desktop.jpg",
+      "sha256": "84e927c52c373bfc89b05996a93cbeadf5639bfb8398b97cacc8add49f44977c",
+      "inputs": [
+        {
+          "file": "3-before-desktop.png",
+          "sha256": "1b7402c814471e562535935414ae5f480fe5a7af344ebdebc853b1c9000690af"
+        },
+        {
+          "file": "3-after-desktop.png",
+          "sha256": "4965677c31642004dbe55b268ff28cd5e6ff43b6d5053efa001b01731b3a9c66"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "clearleaf-source-richness.jpg",
+      "sha256": "3a1fa79d3ed5fbb30e039cf1658fac5c960cdb910bdbf7f9e0fb484f25ed8033",
+      "inputs": [
+        {
+          "file": "2-after-mobile.png",
+          "sha256": "2dc18bd9b689913fc17ed96790c28fdbc6d0f317121d2c3375c19d85e1c737d9"
+        },
+        {
+          "file": "3-after-mobile.png",
+          "sha256": "4370b3f376b1d6575d226e3b5590e43d3acb2abf6d291fc5f1c77dfe1bb09b33"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "quiet-light-controlled-mobile.jpg",
+      "sha256": "30dd61b6d779820ccf6fb3aeb1abd0b480841c48c3aa395ce6f33f5a64a023f9",
+      "inputs": [
+        {
+          "file": "5-before-mobile.png",
+          "sha256": "d0d54da573b8fdac13078538b98339aeeb7ded4655b85846a0aa9ed7ab474151"
+        },
+        {
+          "file": "5-after-mobile.png",
+          "sha256": "c4ffee3d328fa5f46dfdad1f36e8b300866bb94a8bd7b357b54ad27ef8f2ae8f"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "quiet-light-controlled-desktop.jpg",
+      "sha256": "872813bcd866c03bb5743a87cb4c5997765a4753aacabeb0357144bcd9218f59",
+      "inputs": [
+        {
+          "file": "5-before-desktop.png",
+          "sha256": "e33713b8d88f2710c649c4b73a86b065cfdef470c0b041948c796708ce71521b"
+        },
+        {
+          "file": "5-after-desktop.png",
+          "sha256": "ab3681923859872602ed5b317109f348322daf64ebd5b52e9c66cd1d8d4d27f9"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "quiet-light-source-richness.jpg",
+      "sha256": "3b5f3186fe1ef77f79a0e81ab660dcc9af388bf0fe1468d267ac93283ce22be9",
+      "inputs": [
+        {
+          "file": "4-after-mobile.png",
+          "sha256": "5c30301daf6c3b166a7413daf75c3c3aa27e9980f54eefeeb47540a884c1fc4e"
+        },
+        {
+          "file": "5-after-mobile.png",
+          "sha256": "c4ffee3d328fa5f46dfdad1f36e8b300866bb94a8bd7b357b54ad27ef8f2ae8f"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "five-gardens.jpg",
+      "sha256": "7ea3a15b4efced0ee7e22d4271a7f7d1b93da87e12b35bd3098f14653b5f4957",
+      "inputs": [
+        {
+          "file": "6-after-mobile.png",
+          "sha256": "1d048b6e90e3e4a4a257b7e01daf338a717a622544be3619be3a72a7e8bdecd4"
+        },
+        {
+          "file": "7-after-mobile.png",
+          "sha256": "4475c334f97845ef43523de10564b78990db7a5e7d84f1763a357b000f29ff45"
+        },
+        {
+          "file": "8-after-mobile.png",
+          "sha256": "78982648f3dda47004887e1cbb1961d3c1e7237ba9135074c65bffa7bd86b991"
+        },
+        {
+          "file": "9-after-mobile.png",
+          "sha256": "e6ad433397e5e2c3c174fb6348723d725deca4a4d37581858f0fc2454f56fb94"
+        },
+        {
+          "file": "10-after-mobile.png",
+          "sha256": "350dfbf8d4811b1456eec7a6ccce603673a468a337822a263ed1180e15f044a4"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "native-menu-interactions.jpg",
+      "sha256": "efbfc0d46d30e65f3e975655911faf433d46c0126dbe5c2d58ed0397b84ba928",
+      "inputs": [
+        {
+          "file": "1-menu-open-narrow.png",
+          "sha256": "807741306153eda704d82f4396b3da7fc5cc4503e5519f323460aa0c8db205af"
+        },
+        {
+          "file": "1-menu-open-mobile.png",
+          "sha256": "e29370b7d8a7b60f0bd7ff88f82b2ddcfc9e2c27f7890b18f9a15326728fd855"
+        },
+        {
+          "file": "1-menu-open-desktop.png",
+          "sha256": "5373e1f9da4445f56b24bd8161711b8b76deae443076a6535675cab22f22fc75"
+        },
+        {
+          "file": "1-menu-open-retina.png",
+          "sha256": "a65551b7ca66b46fd00e91bfb164b7c52bcb17753d52be89aa760512071e9860"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    }
+  ],
+  "archives": [
+    {
+      "artifact": 13344369931,
+      "sha256": "b8f478d009d63e72af3b1e9721ddf7e8abeaac4b6f960ad53d254b45bf8d2f48"
+    },
+    {
+      "artifact": 13346620695,
+      "sha256": "f29393f2a0a73ea4508a33d40eb9374027592625a19680ba0ada06c62939726e"
+    }
+  ],
+  "originalsRetentionDays": 7,
+  "professionalAcceptance": false
+}
