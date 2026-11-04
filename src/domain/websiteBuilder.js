@@ -743,7 +743,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const rawSectionHtml = orderedSections.map(section=>{
     const sectionClasses=sectionAppearanceClasses(section);
     const sectionAttrs=(sectionClasses?` class="${sectionClasses}"`:"")+editAttrs(section,"section");
-    if(['products','events'].includes(section.type))return businessContentSectionHtml(section,{sectionClasses,artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||draft.theme.heroVariation==='narrative')});
+    if(['products','events'].includes(section.type))return businessContentSectionHtml(section,{sectionClasses,narrative:draft.theme?.heroVariation==='narrative',artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||draft.theme.heroVariation==='narrative')});
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url

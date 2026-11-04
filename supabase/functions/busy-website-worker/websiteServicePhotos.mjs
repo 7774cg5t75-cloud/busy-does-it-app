@@ -1,7 +1,7 @@
 // A presentation reference to an existing approved WEBSITE gallery original.
 // Never storage authorisation, a new media registry, or proof of legal rights.
 export function websiteServicePhoto(draft,item){
- const b=item?.photoBinding;if(!b||Object.keys(b).sort().join(',')!=='assetRevision,serviceId,sha256,storagePath'||b.serviceId!==item.id||!Number.isSafeInteger(b.assetRevision)||b.assetRevision<1||!/^[a-f0-9]{64}$/.test(b.sha256||''))return null;
+ const b=item?.photoBinding;if(!draft?.businessId||!b||typeof b.storagePath!=='string'||!/^[-a-zA-Z0-9_./]{1,300}$/.test(b.storagePath)||b.storagePath.split('/').includes('..')||Object.keys(b).sort().join(',')!=='assetRevision,serviceId,sha256,storagePath'||b.serviceId!==item.id||!Number.isSafeInteger(b.assetRevision)||b.assetRevision<1||!/^[a-f0-9]{64}$/.test(b.sha256||''))return null;
  const matches=(draft?.sections||[]).filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>s.items||[]).filter(a=>a.storagePath===b.storagePath);if(matches.length!==1)return null;
  const a=matches[0];if(a.approved!==true||a.businessId!==draft.businessId||a.revision!==b.assetRevision||a.sha256!==b.sha256||['revoked','withdrawn','deleted'].includes(a.status)||a.expiresAt&&(!Number.isFinite(Date.parse(a.expiresAt))||Date.parse(a.expiresAt)<=Date.now())||!/^https:\/\/[^\s"'<>]+$/.test(a.uri||'')||!Number.isSafeInteger(a.width)||a.width<600||a.width>30000||!Number.isSafeInteger(a.height)||a.height<350||a.height>30000)return null;
  return a;

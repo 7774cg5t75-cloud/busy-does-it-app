@@ -364,7 +364,7 @@ function renderWebsiteHtml(
       return true;
     })
     .map((section: any, index: number) =>
-      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||draft.theme.heroVariation==='narrative'),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home')
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{narrative:draft.theme?.heroVariation==='narrative',artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||draft.theme.heroVariation==='narrative'),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home')
     )
     .join("");
 

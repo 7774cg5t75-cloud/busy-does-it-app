@@ -5,6 +5,7 @@ export function craftedPage(draft){return ['crafted','crafted-airy','crafted-com
 export function craftedServiceLayout(section,family,direction=''){
  if(section?.appearance?.serviceLayout==='cards')return 'tiles';
  if(section?.appearance?.serviceLayout==='directory')return 'ledger';
+ if(direction==='narrative')return 'narrative';
  if((direction.startsWith('authored')||direction==='narrative'))return ({'story-spread':'menu','service-led':'board','quiet-portrait':'studio','typography-first':'studio','asymmetric-split':'offset','editorial-collage':'mosaic','cinematic-full-bleed':'board','product-showcase':'menu'})[family]||'studio';
  return ({'story-spread':'spread','asymmetric-split':'split','quiet-portrait':'quiet','typography-first':'quiet','editorial-collage':'tiles','product-showcase':'ledger','cinematic-full-bleed':'ledger','service-led':'ledger'})[family]||'ledger';
 }
@@ -147,7 +148,7 @@ export const craftedPageCss=`
  :where(.premium-authored) .crafted-services--menu,:where(.premium-authored) .crafted-services--board,:where(.premium-authored) .crafted-services--mosaic,:where(.premium-authored) .authored-story,:where(.premium-authored) .authored-story--spread .story-copy,:where(.premium-authored) .photo-feature-grid,:where(.premium-authored) .menu-items{grid-template-columns:minmax(0,1fr)}
  :where(.premium-authored) .crafted-services--menu .crafted-service,:where(.premium-authored) .crafted-services--menu .crafted-service:first-child,:where(.premium-authored) .crafted-services--studio .crafted-service,:where(.premium-authored) .crafted-services--offset .crafted-service{grid-template-columns:26px minmax(0,1fr);gap:16px;padding-block:28px}
  :where(.premium-authored) .crafted-services .crafted-service .crafted-service-description,:where(.premium-authored) .crafted-services .crafted-service .service-enquiry-link{grid-column:2}
- :where(.premium-authored) .crafted-services .crafted-service>h3{grid-column:2}
+ :where(.premium-authored) .crafted-services .crafted-service>h3:not([class*="owner-item-heading"]){grid-column:2}
  :where(.premium-authored) .crafted-services--menu .crafted-service:first-child .crafted-service-description,:where(.premium-authored) .crafted-services--menu .crafted-service:first-child .service-enquiry-link{grid-column:2}
  :where(.premium-authored) .crafted-services--board .crafted-service:first-child{grid-row:auto}
  :where(.premium-authored) .crafted-services--board .crafted-service,:where(.premium-authored) .crafted-services--board .crafted-service:first-child,:where(.premium-authored) .crafted-services--mosaic .crafted-service{padding:24px}
@@ -161,7 +162,7 @@ export const craftedPageCss=`
 /* Reviewed narrative variation: connected services, images and quieter pacing. */
 :where(.premium-narrative) .crafted-services{display:grid;grid-template-columns:1fr;gap:0}
 :where(.premium-narrative) .crafted-service{padding:40px 0;grid-template-columns:36px minmax(0,1fr);gap:18px 28px;align-content:start}
-:where(.premium-narrative) .crafted-service>h3{grid-column:2;font-size:clamp(1.8rem,3.3vw,3.4rem);max-width:24ch}
+:where(.premium-narrative) .crafted-service>h3:not([class*="owner-item-heading"]){grid-column:2;font-size:clamp(1.8rem,3.3vw,3.4rem);max-width:24ch}
 :where(.premium-narrative) .crafted-service .crafted-service-description{grid-column:2;max-width:52ch;margin:0}
 :where(.premium-narrative) .service-has-photo{grid-template-columns:36px minmax(0,1fr) minmax(0,1.2fr);grid-template-rows:auto auto;align-items:start}
 :where(.premium-narrative) .service-has-photo .service-photo{grid-column:3;grid-row:1/4;display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:0}
@@ -175,7 +176,7 @@ export const craftedPageCss=`
 :where(.premium-narrative) .menu-items{grid-template-columns:1fr}
 :where(.premium-narrative) .listing-note{font-size:.875rem;line-height:1.6}
 :where(.premium-narrative).premium-site-typography-first .crafted-service{grid-template-columns:60px minmax(0,1.1fr) minmax(0,.9fr);padding-block:56px}
-:where(.premium-narrative).premium-site-typography-first .crafted-service>h3{font-weight:400;font-size:clamp(2.1rem,4vw,4rem)}
+:where(.premium-narrative).premium-site-typography-first .crafted-service>h3:not([class*="owner-item-heading"]){font-weight:400;font-size:clamp(2.1rem,4vw,4rem)}
 :where(.premium-narrative).premium-site-typography-first .crafted-service .crafted-service-description{grid-column:3}
 :where(.premium-narrative) .hero-service-overview{display:none}
 @media(max-width:800px){
@@ -192,4 +193,16 @@ export const craftedPageCss=`
 @media(max-width:800px){:where(.premium-narrative) .narrative-sequence ol{grid-template-columns:1fr;gap:28px}:where(.premium-narrative) .narrative-sequence li:before{margin-bottom:16px}}
 
 :where(.premium-narrative) .service-photo-small{max-width:300px;justify-self:center;align-self:center}
+
+:where(.premium-narrative).premium-site-asymmetric-split .crafted-service:nth-child(even):not(.service-has-photo){margin-left:12%;padding-left:28px;border-left:3px solid var(--accent)}
+:where(.premium-narrative).premium-site-editorial-collage .crafted-services--narrative{grid-template-columns:1.2fr .8fr;gap:32px}
+:where(.premium-narrative).premium-site-editorial-collage .service-has-photo{grid-column:1/-1}
+:where(.premium-narrative).premium-site-service-led .crafted-service:not(.service-has-photo){grid-template-columns:28px minmax(0,1fr) minmax(0,1.1fr)}
+:where(.premium-narrative).premium-site-service-led .crafted-service:not(.service-has-photo) .crafted-service-description{grid-column:3}
+@media(max-width:800px){
+ :where(.premium-narrative).premium-site-editorial-collage .crafted-services--narrative{grid-template-columns:1fr;gap:0}
+ :where(.premium-narrative).premium-site-asymmetric-split .crafted-service:nth-child(even):not(.service-has-photo){margin-left:0;padding-left:0;border-left:0}
+ :where(.premium-narrative).premium-site-service-led .crafted-service:not(.service-has-photo){grid-template-columns:24px minmax(0,1fr)}
+ :where(.premium-narrative).premium-site-service-led .crafted-service:not(.service-has-photo) .crafted-service-description{grid-column:2}
+}
 `;

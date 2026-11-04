@@ -325,6 +325,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
  }
  if(action==='point-hero'){
   if(Object.keys(operation).some(k=>!['kind','action','sectionId','target'].includes(k))||sectionId!=='hero'||!['contact','services','products'].includes(operation.target)||!sections.some(s=>s.id===operation.target&&s.enabled!==false)||!draft.pages?.some(p=>p.id==='home'&&p.enabled!==false&&p.sectionIds?.includes(operation.target)))return fail(draft,'Choose one existing visible customer destination.');
+  const destination=sections.find(s=>s.id===operation.target);if(operation.target==='contact'&&!text(destination?.email)&&!text(destination?.phone))return fail(draft,'Add an approved contact destination before using this action.');
   const hero=sections.find(s=>s.id==='hero');if(!hero||hero.ctaHref==='#'+operation.target)return fail(draft,'That destination is unavailable or already selected.');
   hero.ctaHref='#'+operation.target;return ready('Pointed the main button at existing page information, without submitting or booking anything.');
  }
@@ -335,7 +336,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(items.length!==1||photos.length!==1)return fail(draft,'The service or photograph is missing or ambiguous.');
   const item=items[0],a=photos[0],binding={serviceId:item.id,storagePath:a.storagePath,assetRevision:a.revision,sha256:a.sha256};
   if(!websiteServicePhoto(draft,{...item,photoBinding:binding}))return fail(draft,'Recheck this current business photograph, its revision and website permission.');
-  if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.sha256===a.sha256))||usedServicePhotos(draft).some(p=>p.storagePath===a.storagePath||p.sha256===a.sha256))return fail(draft,'This photograph already has a place on the page. Choose a distinct photograph.');
+  if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.uri===a.uri||s.asset.sha256===a.sha256))||usedServicePhotos(draft).some(p=>p.storagePath===a.storagePath||p.uri===a.uri||p.sha256===a.sha256))return fail(draft,'This photograph already has a place on the page. Choose a distinct photograph.');
   item.photoBinding=binding;return ready('Paired the exact approved photograph with this service; no claim about past work was added.');
  }
  if(action==="choose-hero-photo"){

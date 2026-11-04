@@ -9,7 +9,7 @@ export function premiumHeroInner(kind,{copy='',image='',images=/** @type {string
  const treatment=['crafted','authored','narrative'].includes(reviewed)?'signature':reviewed.replace(/^(?:crafted|authored|narrative)-/, '');
  const media=hasImage?`<figure class="premium-visual">${image}</figure>`:'';
  const extra=Array.isArray(images)?images.slice(0,2):[];
- const body=family.render({copy,media,extra,services});
+ const body=family.render({copy,media,extra,services:reviewed==='narrative'?'':services});
  // Signature preserves exact historical markup. Variations are finite CSS.
  return treatment==='signature'?body:body.replace('class="wrap ',`class="wrap premium-variation-${treatment} `);
 }

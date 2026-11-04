@@ -18,8 +18,8 @@ export function prepareGuidedWebsite({website,businessId,ownerId,profileRevision
  const p=planBusyGoal({request:normal,surface:'website',website,businessId},deps);
  if(!p.ready||!p.prepared)return fail(p.question||'Describe a supported private website design change. Nothing was changed.');
  const chosen=websitePhotoChoices(website).length?JSON.parse(p.prepared.boundaries.at(-1)).theme?.heroComposition:'typography-first';if(!chosen)return fail('Start with a professional website design goal, then refine it.');
- const authored=p.prepared&&JSON.parse(p.prepared.boundaries.at(-1)).theme?.heroVariation?.startsWith('authored');
- const adjustments=[...(website.theme?.heroComposition===chosen?[]:[{kind:'family',instruction:'use the reviewed "'+chosen+'" opening'}]),{kind:'complete-design',instruction:authored?'compose an individual complete website':'refine the complete website design'}],instruction=adjustments.map(a=>a.instruction).join('; '),plan=prepareWebsiteRequest(website,{draftId:website.id,pageId:'home',generation:website.generation,instruction},deps);if(!plan.ok)return plan;
+ const initialVariation=p.prepared&&JSON.parse(p.prepared.boundaries.at(-1)).theme?.heroVariation,authored=initialVariation?.startsWith('authored');
+ const adjustments=[...(website.theme?.heroComposition===chosen?[]:[{kind:'family',instruction:'use the reviewed "'+chosen+'" opening'}]),{kind:'complete-design',instruction:initialVariation==='narrative'?p.instruction.replace(/^use the reviewed "[a-z-]+" opening; /,''):authored?'compose an individual complete website':'refine the complete website design'}],instruction=adjustments.map(a=>a.instruction).join('; '),plan=prepareWebsiteRequest(website,{draftId:website.id,pageId:'home',generation:website.generation,instruction},deps);if(!plan.ok)return plan;
  return {ok:true,kind:'guided_private_website',ownerId,businessId,profileRevision,goal,instruction,adjustments,plan,rejected:[],kept:false,accountSaved:false,publicActivation:false};
 }
 export function refineGuidedWebsite(journey,context,options={},deps){

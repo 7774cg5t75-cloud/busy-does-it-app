@@ -1,3 +1,4 @@
+import {websiteStoryboardInstructions} from './websiteStoryboard.mjs';
 import {premiumWebsiteDirections} from './premiumWebsiteDirections.mjs';
 import {deriveSector} from '../../supabase/functions/busy-website-worker/designPlanner.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
@@ -7,6 +8,12 @@ export function premiumWebsiteGoal({request,website,businessId,pageId='home',sou
  if(source!=='owner'||typeof request!=='string'||request.length>400||/[<>\u0000-\u001f]/.test(request))return null;
  const words=request.trim().replace(/[.!?]+$/,'');let instruction='',explanation='';
 
+ const storyboardGoal=/^(?:make my website look exceptional|keep my words but improve the design|make the whole page more elegant|try a more distinctive design|tell our story better|make our menu the main attraction|show these photographs alongside the right services)$/i.test(words);
+ if(storyboardGoal){
+  const base={recognised:true,requiresReview:true,mayExecute:false,providerCalls:0,ownerWording:request};if(!websiteDraftHasScope(website,businessId))return {...base,ready:false,question:'Open this business’s current website first.'};
+  const family=website.theme?.heroComposition||premiumWebsiteDirections(website)[0]?.id||'typography-first',proposal=websiteStoryboardInstructions({...website,theme:{...website.theme,heroComposition:family}},{goal:words});if(!proposal.ok)return {...base,ready:false,question:proposal.reason};
+  const instruction=(website.theme?.heroComposition?'':'use the reviewed "'+family+'" opening; ')+proposal.instruction,prepared=prepareWebsiteRequest(website,{draftId:website.id,pageId,generation:website.generation,instruction},deps);return {...base,ready:prepared.ok,prepared:prepared.ok?prepared:null,instruction,question:prepared.ok?null:prepared.reason,findings:['Review the complete visitor journey using only supplied facts, exact picture relationships and existing destinations.'],outline:proposal.outline};
+ }
  const individual=/^(?:I want my website to look really professional and reflect my business|make it feel more individual|give (?:the |my )?(?:site|website) more personality|make (?:the )?(?:entire |whole )?website more elegant|keep the headline but change everything around it)$/i.test(words);
  if(individual){
   if(!websiteDraftHasScope(website,businessId))return {recognised:true,ready:false,mayExecute:false,question:'Open this business’s current website first.',providerCalls:0};
