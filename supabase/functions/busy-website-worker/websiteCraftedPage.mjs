@@ -221,6 +221,7 @@ export const craftedPageCss=`
 :where(.premium-atelier) .crafted-services--atelier .crafted-service h3{grid-column:2;font-size:clamp(1.8rem,3vw,3rem);line-height:1.12;max-width:21ch}
 :where(.premium-atelier) .crafted-services--atelier .crafted-service-description{grid-column:2;max-width:48ch}
 :where(.premium-atelier) .crafted-services--atelier .crafted-service:nth-child(even){padding-top:clamp(28px,5vw,72px)}
+:where(.premium-atelier) .crafted-services.crafted-services--atelier .crafted-service .crafted-service-description{grid-column:2}
 :where(.premium-atelier) .service-photo-frame{grid-column:1/-1;grid-row:1;margin:0 0 24px;min-width:0;width:100%}
 :where(.premium-atelier) .service-photo-frame .service-photo{position:static;display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;max-width:none}
 :where(.premium-atelier) .service-photo-frame .service-photo.owner-image-fit-contain{object-fit:contain}

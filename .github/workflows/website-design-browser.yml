@@ -195,13 +195,35 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      - name: Retain expressive businesses original pixels
+      - name: Retain expressive catering original pixels
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: website-art-direction-businesses-${{ github.sha }}
+          name: website-art-direction-catering-${{ github.sha }}
           path: |
-            .test-artifacts/website-art-direction/[0-5]-*.png
+            .test-artifacts/website-art-direction/[0-1]-*.png
+            .test-artifacts/website-art-direction/*.html
+            .test-artifacts/website-art-direction/*.json
+          retention-days: 7
+
+      - name: Retain expressive gardening original pixels
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-art-direction-gardening-${{ github.sha }}
+          path: |
+            .test-artifacts/website-art-direction/[2-3]-*.png
+            .test-artifacts/website-art-direction/*.html
+            .test-artifacts/website-art-direction/*.json
+          retention-days: 7
+
+      - name: Retain expressive studio original pixels
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-art-direction-studio-${{ github.sha }}
+          path: |
+            .test-artifacts/website-art-direction/[4-5]-*.png
             .test-artifacts/website-art-direction/*.html
             .test-artifacts/website-art-direction/*.json
           retention-days: 7
