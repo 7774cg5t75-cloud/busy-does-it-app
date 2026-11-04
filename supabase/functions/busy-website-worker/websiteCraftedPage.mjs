@@ -121,7 +121,8 @@ export const craftedPageCss=`
 :where(.premium-authored) .authored-story--manifesto .story-copy{max-width:76ch}
 :where(.premium-authored) .authored-story--manifesto .authored-story-lead{font-size:clamp(1.8rem,3.4vw,3.1rem);max-width:34ch;line-height:1.35}
 :where(.premium-authored) .photo-feature-grid{gap:clamp(28px,5vw,72px);grid-template-columns:repeat(2,minmax(0,1fr))}
-:where(.premium-authored) .photo-feature-grid img{height:clamp(320px,42vw,600px);border-radius:0;object-fit:cover}
+:where(.premium-authored) .photo-feature-grid img{height:clamp(320px,42vw,600px);border-radius:0}
+:where(.premium-authored) .photo-feature-grid img:not(.owner-image-fit-contain){object-fit:cover}
 :where(.premium-authored) .photo-feature-grid h2{max-width:16ch}
 :where(.premium-authored) .photo-feature-grid p{max-width:48ch}
 :where(.premium-authored) .gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
@@ -145,6 +146,8 @@ export const craftedPageCss=`
  :where(.premium-authored) .crafted-services--menu,:where(.premium-authored) .crafted-services--board,:where(.premium-authored) .crafted-services--mosaic,:where(.premium-authored) .authored-story,:where(.premium-authored) .authored-story--spread .story-copy,:where(.premium-authored) .photo-feature-grid,:where(.premium-authored) .menu-items{grid-template-columns:minmax(0,1fr)}
  :where(.premium-authored) .crafted-services--menu .crafted-service,:where(.premium-authored) .crafted-services--menu .crafted-service:first-child,:where(.premium-authored) .crafted-services--studio .crafted-service,:where(.premium-authored) .crafted-services--offset .crafted-service{grid-template-columns:26px minmax(0,1fr);gap:16px;padding-block:28px}
  :where(.premium-authored) .crafted-services .crafted-service .crafted-service-description,:where(.premium-authored) .crafted-services .crafted-service .service-enquiry-link{grid-column:2}
+ :where(.premium-authored) .crafted-services .crafted-service>h3{grid-column:2}
+ :where(.premium-authored) .crafted-services--menu .crafted-service:first-child .crafted-service-description,:where(.premium-authored) .crafted-services--menu .crafted-service:first-child .service-enquiry-link{grid-column:2}
  :where(.premium-authored) .crafted-services--board .crafted-service:first-child{grid-row:auto}
  :where(.premium-authored) .crafted-services--board .crafted-service,:where(.premium-authored) .crafted-services--board .crafted-service:first-child,:where(.premium-authored) .crafted-services--mosaic .crafted-service{padding:24px}
  :where(.premium-authored) .crafted-services--mosaic .crafted-service:nth-child(even){margin-top:0}
