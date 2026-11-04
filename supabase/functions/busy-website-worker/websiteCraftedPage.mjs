@@ -205,4 +205,6 @@ export const craftedPageCss=`
  :where(.premium-narrative).premium-site-service-led .crafted-service:not(.service-has-photo){grid-template-columns:24px minmax(0,1fr)}
  :where(.premium-narrative).premium-site-service-led .crafted-service:not(.service-has-photo) .crafted-service-description{grid-column:2}
 }
+
+:where(.premium-narrative) details.listing-note summary{min-height:44px;padding-block:12px;cursor:pointer}
 `;
