@@ -16,7 +16,7 @@ def read(url, limit):
     assert len(data)<=limit
     return data
 out=pathlib.Path('.test-artifacts/story-photo-review');out.mkdir(parents=True,exist_ok=True);rows=[]
-for category,query in [('food','food buffet filetype:bitmap'),('garden','garden filetype:bitmap -Yale -painting -drawing')]:
+for category,query in [('foodplate','vegetarian food filetype:bitmap -painting -drawing'),('foodtable','vegetable buffet filetype:bitmap -painting -drawing'),('garden','garden path filetype:bitmap -Yale -painting -drawing')]:
     params={'action':'query','format':'json','generator':'search','gsrnamespace':'6','gsrsearch':query,'gsrlimit':'50','prop':'imageinfo','iiprop':'url|size|extmetadata','iiurlwidth':'1280'}
     data=json.loads(read('https://commons.wikimedia.org/w/api.php?'+urllib.parse.urlencode(params),3*1024*1024));count=0
     for page in sorted(data.get('query',{}).get('pages',{}).values(),key=lambda p:p.get('index',999)):
