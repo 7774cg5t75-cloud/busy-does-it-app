@@ -1,3 +1,4 @@
+import {websiteServicePhoto,usedServicePhotos} from './websiteServicePhotos.mjs';
 import {heroFamilies} from './websiteHeroFamilies.mjs';
 import {PREMIUM_HERO_COMPOSITIONS,PREMIUM_HERO_VARIATIONS} from './websitePremiumHero.mjs';
 import {validTestimonialSpotlight} from './websiteTestimonials.mjs';
@@ -320,6 +321,21 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;
   if(Object.keys(next).length)target.appearance=next;else delete target.appearance;
   return ready("Changed just this section's "+field+".");
+ }
+ if(action==='point-hero'){
+  if(Object.keys(operation).some(k=>!['kind','action','sectionId','target'].includes(k))||sectionId!=='hero'||!['contact','services','products'].includes(operation.target)||!sections.some(s=>s.id===operation.target&&s.enabled!==false)||!draft.pages?.some(p=>p.id==='home'&&p.enabled!==false&&p.sectionIds?.includes(operation.target)))return fail(draft,'Choose one existing visible customer destination.');
+  const hero=sections.find(s=>s.id==='hero');if(!hero||hero.ctaHref==='#'+operation.target)return fail(draft,'That destination is unavailable or already selected.');
+  hero.ctaHref='#'+operation.target;return ready('Pointed the main button at existing page information, without submitting or booking anything.');
+ }
+ if(action==='pair-service-photo'){
+  if(Object.keys(operation).some(k=>!['kind','action','sectionId','itemId','storagePath'].includes(k)))return fail(draft,'Choose one exact service and website photograph.');
+  const section=sections.find(s=>s.id===sectionId&&s.type==='services'&&s.enabled!==false),items=list(section?.items).filter(i=>i.id===operation.itemId);
+  const photos=sections.filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>list(s.items)).filter(a=>a.storagePath===operation.storagePath);
+  if(items.length!==1||photos.length!==1)return fail(draft,'The service or photograph is missing or ambiguous.');
+  const item=items[0],a=photos[0],binding={serviceId:item.id,storagePath:a.storagePath,assetRevision:a.revision,sha256:a.sha256};
+  if(!websiteServicePhoto(draft,{...item,photoBinding:binding}))return fail(draft,'Recheck this current business photograph, its revision and website permission.');
+  if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.sha256===a.sha256))||usedServicePhotos(draft).some(p=>p.storagePath===a.storagePath||p.sha256===a.sha256))return fail(draft,'This photograph already has a place on the page. Choose a distinct photograph.');
+  item.photoBinding=binding;return ready('Paired the exact approved photograph with this service; no claim about past work was added.');
  }
  if(action==="choose-hero-photo"){
   const gallery=sections.find(s=>s.id==="gallery");

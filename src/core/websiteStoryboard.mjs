@@ -1,0 +1,20 @@
+import {websiteDraftHasScope} from './websiteDraftScope.mjs';
+import {prepareWebsiteRequest,websiteRequestContent} from './websiteRequestPlan.mjs';
+const fail=reason=>({ok:false,reason});
+export function websiteStoryboardInstructions(website,{goal,pairs=[]}={}){
+ if(typeof goal!=='string'||!Array.isArray(pairs)||pairs.length>4||pairs.some(p=>!p||Object.keys(p).sort().join(',')!=='serviceId,storagePath'||!/^[-a-zA-Z0-9_]{1,128}$/.test(p.serviceId)||!/^[-a-zA-Z0-9_./]{1,300}$/.test(p.storagePath))||new Set(pairs.map(p=>p.serviceId)).size!==pairs.length||new Set(pairs.map(p=>p.storagePath)).size!==pairs.length)return fail('Choose up to four exact, distinct service and photograph relationships.');
+ const recognised=/^(?:make my website look exceptional|keep my words but improve the design|make the whole page more elegant|try a more distinctive design|tell our story better|make our menu the main attraction|show these photographs alongside the right services)$/i.test(goal.trim());if(!recognised)return fail('That full-page request needs clarification. No partial change was prepared.');
+ const home=website?.pages?.find(p=>p.id==='home'&&p.enabled!==false),sections=(website?.sections||[]).filter(s=>s.enabled!==false&&home?.sectionIds.includes(s.id));
+ if(!home||!sections.some(s=>s.type==='hero'))return fail('Open the current homepage first.');
+ if(/show these photographs/i.test(goal)&&!pairs.length)return fail('Which photograph belongs with which service? Choose the exact relationship; I will not guess from filenames or image content.');
+ const commands=[];if(website.theme?.heroVariation!=='narrative')commands.push('compose a connected visual story');
+ for(const s of sections){if(s.type==='services'&&s.appearance?.serviceLayout&&s.appearance.serviceLayout!=='brand')commands.push('show services as the original layout');if(s.id==='about'&&s.appearance?.readingLayout&&s.appearance.readingLayout!=='brand')commands.push('show about text as the original layout');}
+ for(const p of pairs)commands.push('pair approved photo "'+p.storagePath+'" with service "'+p.serviceId+'"');
+ if(/menu the main attraction/i.test(goal)){const menu=sections.find(s=>s.type==='products'),hero=sections.find(s=>s.type==='hero');if(!menu)return fail('Add eligible approved menu records on this page first.');if(hero.ctaHref!=='#products')commands.push('point the main button to products');if(hero.cta!=='Explore the menu')commands.push('change the hero button text to "Explore the menu"');const story=sections.find(s=>s.id==='about');if(story&&home.sectionIds.indexOf(menu.id)>home.sectionIds.indexOf(story.id))commands.push('move products before about');}
+ if(!commands.length)return fail('This direction is already prepared. Your current website is unchanged.');
+ return {ok:true,instruction:commands.join('; '),outline:sections.map(s=>({title:s.title,purpose:s.type==='hero'?'Introduce your offer':s.type==='services'?'Explain the work and reviewed photo relationships':s.type==='products'?'Explore approved menu or products':s.id==='about'?'Understand your approach':s.type==='contact'?'Reach the existing contact destination':'Review supplied information'})),missingInformation:sections.some(s=>s.id==='about')?[]:['What would you most like customers to know about your approach? Optional: add your own story.'],noInferredPhotoMeaning:true};
+}
+export function prepareWebsiteStoryboard({website,businessId,ownerId,profileRevision,goal,pairs=[]},deps){
+ if(!ownerId||!websiteDraftHasScope(website,businessId))return fail('Open your own current business website.');const proposal=websiteStoryboardInstructions(website,{goal,pairs});if(!proposal.ok)return proposal;
+ const plan=prepareWebsiteRequest(website,{draftId:website.id,pageId:'home',generation:website.generation,instruction:proposal.instruction},deps);return plan.ok?{...proposal,plan,ownerId,businessId,profileRevision,source:websiteRequestContent(website),requiresReview:true,mayExecute:false,publicActivation:false}:plan;
+}

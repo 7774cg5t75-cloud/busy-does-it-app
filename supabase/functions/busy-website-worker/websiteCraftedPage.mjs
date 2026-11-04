@@ -1,22 +1,22 @@
 import {heroFamilies} from './websiteHeroFamilies.mjs';
 // Reviewed full-page presentation opt-in through the original variation field.
 // No new content source, executable fields or industry-template assignment.
-export function craftedPage(draft){return ['crafted','crafted-airy','crafted-compact','authored','authored-airy','authored-compact'].includes(draft?.theme?.heroVariation)&&heroFamilies.some(f=>f.id===draft.theme.heroComposition);}
+export function craftedPage(draft){return ['crafted','crafted-airy','crafted-compact','authored','authored-airy','authored-compact','narrative'].includes(draft?.theme?.heroVariation)&&heroFamilies.some(f=>f.id===draft.theme.heroComposition);}
 export function craftedServiceLayout(section,family,direction=''){
  if(section?.appearance?.serviceLayout==='cards')return 'tiles';
  if(section?.appearance?.serviceLayout==='directory')return 'ledger';
- if(direction.startsWith('authored'))return ({'story-spread':'menu','service-led':'board','quiet-portrait':'studio','typography-first':'studio','asymmetric-split':'offset','editorial-collage':'mosaic','cinematic-full-bleed':'board','product-showcase':'menu'})[family]||'studio';
+ if((direction.startsWith('authored')||direction==='narrative'))return ({'story-spread':'menu','service-led':'board','quiet-portrait':'studio','typography-first':'studio','asymmetric-split':'offset','editorial-collage':'mosaic','cinematic-full-bleed':'board','product-showcase':'menu'})[family]||'studio';
  return ({'story-spread':'spread','asymmetric-split':'split','quiet-portrait':'quiet','typography-first':'quiet','editorial-collage':'tiles','product-showcase':'ledger','cinematic-full-bleed':'ledger','service-led':'ledger'})[family]||'ledger';
 }
-export function craftedServices(section,family,{escapeHtml,editAttrs=(...args)=>'',itemHeadingClass=(item)=>'',itemClasses=(item)=>'',contactAction=(item)=>'',direction=''}){
+export function craftedServices(section,family,{escapeHtml,editAttrs=(...args)=>'',itemHeadingClass=(item)=>'',itemClasses=(item)=>'',contactAction=(item)=>'',photoFor=(item)=>'',direction=''}){
  const items=Array.isArray(section.items)?section.items.filter(i=>i&&String(i.title||i.body||'').trim()):[];
  if(!items.length||!heroFamilies.some(f=>f.id===family))return '';
- const layout=direction.startsWith('authored')&&items.length===1?'studio':craftedServiceLayout(section,family,direction);
- return `<div class="crafted-services crafted-services--${layout}${direction.startsWith('authored')?' crafted-services-count-'+Math.min(items.length,3):''}">${items.map((item,index)=>`<article class="crafted-service ${itemClasses(item)}"><span class="crafted-service-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><h3${itemHeadingClass(item)}${editAttrs(section,'title',String(item.id||''))}>${escapeHtml(item.title||'')}</h3>${item.body?`<p class="crafted-service-description"${editAttrs(section,'body',String(item.id||''))}>${escapeHtml(item.body)}</p>`:''}${contactAction(item)}</article>`).join('')}</div>`;
+ const layout=(direction.startsWith('authored')||direction==='narrative')&&items.length===1?'studio':craftedServiceLayout(section,family,direction);
+ return `<div class="crafted-services crafted-services--${layout}${(direction.startsWith('authored')||direction==='narrative')?' crafted-services-count-'+Math.min(items.length,3):''}">${items.map((item,index)=>`<article class="crafted-service ${itemClasses(item)}${photoFor(item)?' service-has-photo':''}">${photoFor(item)}<span class="crafted-service-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><h3${itemHeadingClass(item)}${editAttrs(section,'title',String(item.id||''))}>${escapeHtml(item.title||'')}</h3>${item.body?`<p class="crafted-service-description"${editAttrs(section,'body',String(item.id||''))}>${escapeHtml(item.body)}</p>`:''}${direction==='narrative'?'':contactAction(item)}</article>`).join('')}</div>`;
 }
 export function craftedStory(section,{escapeHtml,editAttrs=(...args)=>'',headingTag='h2',direction='',family=''}){
  const paragraphs=String(section.body||'').split(/\n\s*\n/).filter(x=>x.trim());
- if(direction.startsWith('authored')&&(!section.appearance?.readingLayout||section.appearance.readingLayout==='brand'))return `<div class="wrap authored-story authored-story--${['story-spread','editorial-collage'].includes(family)?'spread':['typography-first','quiet-portrait'].includes(family)?'manifesto':'method'}"><header><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></header><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="authored-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
+ if((direction.startsWith('authored')||direction==='narrative')&&(!section.appearance?.readingLayout||section.appearance.readingLayout==='brand'))return `<div class="wrap authored-story authored-story--${['story-spread','editorial-collage'].includes(family)?'spread':['typography-first','quiet-portrait'].includes(family)?'manifesto':'method'}"><header><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></header><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="authored-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
  return `<div class="wrap crafted-story story-layout"><div class="crafted-section-heading"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></div><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="crafted-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
 }
 // Inputs are escaped markup produced by the ORIGINAL renderer, not customer HTML.
@@ -156,5 +156,32 @@ export const craftedPageCss=`
  :where(.premium-authored) .authored-story--method{padding:28px}
  :where(.premium-authored) .gallery.gallery-rich .gallery-image:first-child{height:auto;grid-row:auto;grid-column:1/-1;aspect-ratio:4/3}
  :where(.premium-authored) .photo-feature-grid img{height:clamp(260px,85vw,440px)}
+}
+/* Reviewed narrative variation: connected services, images and quieter pacing. */
+:where(.premium-narrative) .crafted-services{display:grid;grid-template-columns:1fr;gap:0}
+:where(.premium-narrative) .crafted-service{padding:40px 0;grid-template-columns:36px minmax(0,1fr);gap:18px 28px;align-content:start}
+:where(.premium-narrative) .crafted-service>h3{grid-column:2;font-size:clamp(1.8rem,3.3vw,3.4rem);max-width:24ch}
+:where(.premium-narrative) .crafted-service .crafted-service-description{grid-column:2;max-width:52ch;margin:0}
+:where(.premium-narrative) .service-has-photo{grid-template-columns:36px minmax(0,1fr) minmax(0,1.2fr);grid-template-rows:auto auto;align-items:start}
+:where(.premium-narrative) .service-has-photo .service-photo{grid-column:3;grid-row:1/4;display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:0}
+:where(.premium-narrative) .service-has-photo:nth-child(even){grid-template-columns:minmax(0,1.2fr) 36px minmax(0,1fr)}
+:where(.premium-narrative) .service-has-photo:nth-child(even) .service-photo{grid-column:1}
+:where(.premium-narrative) .service-has-photo:nth-child(even) .crafted-service-number{grid-column:2;grid-row:1}
+:where(.premium-narrative) .service-has-photo:nth-child(even)>h3,:where(.premium-narrative) .service-has-photo:nth-child(even) .crafted-service-description{grid-column:3}
+:where(.premium-narrative) .service-photo.owner-image-fit-contain{object-fit:contain}
+:where(.premium-narrative) main>section:where(:not(.hero)){padding-block:clamp(48px,6vw,88px)}
+:where(.premium-narrative) .approved-menu{grid-template-columns:repeat(2,minmax(0,1fr));gap:48px}
+:where(.premium-narrative) .menu-items{grid-template-columns:1fr}
+:where(.premium-narrative) .listing-note{font-size:.875rem;line-height:1.6}
+:where(.premium-narrative).premium-site-typography-first .crafted-service{grid-template-columns:60px minmax(0,1.1fr) minmax(0,.9fr);padding-block:56px}
+:where(.premium-narrative).premium-site-typography-first .crafted-service>h3{font-weight:400;font-size:clamp(2.1rem,4vw,4rem)}
+:where(.premium-narrative).premium-site-typography-first .crafted-service .crafted-service-description{grid-column:3}
+:where(.premium-narrative) .hero-service-overview{display:none}
+@media(max-width:800px){
+ :where(.premium-narrative) .crafted-service,:where(.premium-narrative) .service-has-photo,:where(.premium-narrative) .service-has-photo:nth-child(even),:where(.premium-narrative).premium-site-typography-first .crafted-service{grid-template-columns:24px minmax(0,1fr);gap:16px;padding-block:28px}
+ :where(.premium-narrative) .service-has-photo .service-photo,:where(.premium-narrative) .service-has-photo:nth-child(even) .service-photo{grid-column:1/-1;grid-row:auto;aspect-ratio:3/2;margin-bottom:12px}
+ :where(.premium-narrative) .service-has-photo:nth-child(even) .crafted-service-number{grid-column:1;grid-row:auto}
+ :where(.premium-narrative) .crafted-service>h3,:where(.premium-narrative) .service-has-photo:nth-child(even)>h3,:where(.premium-narrative) .crafted-service .crafted-service-description,:where(.premium-narrative) .service-has-photo:nth-child(even) .crafted-service-description,:where(.premium-narrative).premium-site-typography-first .crafted-service .crafted-service-description{grid-column:2}
+ :where(.premium-narrative) .approved-menu{grid-template-columns:1fr;gap:28px}
 }
 `;

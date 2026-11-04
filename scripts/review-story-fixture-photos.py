@@ -16,8 +16,8 @@ def read(url, limit):
     assert len(data)<=limit
     return data
 out=pathlib.Path('.test-artifacts/story-photo-review');out.mkdir(parents=True,exist_ok=True);rows=[]
-for category,query in [('food','food buffet filetype:bitmap'),('garden','garden plants filetype:bitmap -Yale -painting -drawing')]:
-    params={'action':'query','format':'json','generator':'search','gsrnamespace':'6','gsrsearch':query,'gsrlimit':'20','prop':'imageinfo','iiprop':'url|size|extmetadata','iiurlwidth':'1280'}
+for category,query in [('food','food buffet filetype:bitmap'),('garden','garden filetype:bitmap -Yale -painting -drawing')]:
+    params={'action':'query','format':'json','generator':'search','gsrnamespace':'6','gsrsearch':query,'gsrlimit':'50','prop':'imageinfo','iiprop':'url|size|extmetadata','iiurlwidth':'1280'}
     data=json.loads(read('https://commons.wikimedia.org/w/api.php?'+urllib.parse.urlencode(params),3*1024*1024));count=0
     for page in sorted(data.get('query',{}).get('pages',{}).values(),key=lambda p:p.get('index',999)):
         info=page.get('imageinfo',[{}])[0];meta=info.get('extmetadata',{});license=meta.get('LicenseShortName',{}).get('value','')

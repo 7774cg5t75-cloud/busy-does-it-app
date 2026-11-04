@@ -64,6 +64,10 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    const field={heading:'title',text:'body',body:'body','button text':'cta'}[literal[2].toLowerCase()];
    change={sectionId:section.id,field,value:literal[3]};type='field';
    description='Replace only the owner-written '+field+' in '+section.title;
+  }else if((m=clause.match(/^pair approved photo "([^"<>]{1,300})" with service "([^"<>]{1,128})"$/i))){
+   const section=list(draft.sections).filter(s=>s.type==='services'&&s.enabled!==false&&list(page.sectionIds).includes(s.id)&&list(s.items).some(i=>i.id===m[2]));
+   if(section.length!==1)return fail('Choose one exact service on this page.');
+   change={action:'pair-service-photo',sectionId:section[0].id,itemId:m[2],storagePath:m[1]};description='Review this exact website photograph alongside your existing service wording; no project or business fact is inferred';
   }else if((m=clause.match(/^add section "([^"<>]{1,100})" text "([^"<>]{1,2500})"$/i))){
    if(pageId!=='home')return fail('Create new text sections on Home first, then use the page editor to assign them elsewhere.');
    if(list(draft.sections).some(s=>String(s.title||'').trim().toLocaleLowerCase('en')===m[1].trim().toLocaleLowerCase('en')))
@@ -102,6 +106,11 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    if(!section||section.contentSource!=='business_records_v1')return fail('Open the current page containing the approved-record section first.');
    change={action:'content-section',sectionId:section.id,title:section.title,layout:m[2].toLowerCase(),featuredId:section.featuredId||''};
    type='field';description='Change only the record presentation; keep this destination heading, featured item, styling and approved-record source';
+  }else if(/^compose a connected visual story$/i.test(clause)){
+   if(!heroFamilies.some(f=>f.id===draft.theme?.heroComposition))return fail('Choose a reviewed homepage direction first.');
+   change={action:'style',field:'heroVariation',value:'narrative'};description='Review a connected full-page story with your words and exact current picture relationships';
+  }else if((m=clause.match(/^point the main button to (contact|services|products)$/i))){
+   change={action:'point-hero',sectionId:'hero',target:m[1].toLowerCase()};description='Use one existing supported customer destination';
   }else if(/^compose an individual complete website$/i.test(clause)){
    if(!findSection('hero')||!heroFamilies.some(f=>f.id===draft.theme?.heroComposition)&&!steps.flatMap(s=>s.change.action==='style-group'?s.change.operations:[s.change]).some(op=>op.field==='heroComposition'&&heroFamilies.some(f=>f.id===op.value)))return fail('Choose the current approved opening first.');
    change={action:'style',field:'heroVariation',value:'authored'};description='Review a coordinated service, story, menu, photograph and contact direction. Keep all approved words, colours, photographs and source order';

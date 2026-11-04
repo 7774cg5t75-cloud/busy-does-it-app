@@ -2,11 +2,11 @@ import {heroFamilies,heroFamilyCss} from './websiteHeroFamilies.mjs';
 // Trusted checked-in presentation modules only, never a client plugin registry.
 // Add reviewed families without changing operation/request limits or old IDs.
 export const PREMIUM_HERO_COMPOSITIONS=Object.freeze(heroFamilies.map(f=>f.id));
-export const PREMIUM_HERO_VARIATIONS=Object.freeze(['signature','airy','compact','crafted','crafted-airy','crafted-compact','authored','authored-airy','authored-compact']);
+export const PREMIUM_HERO_VARIATIONS=Object.freeze(['signature','airy','compact','crafted','crafted-airy','crafted-compact','authored','authored-airy','authored-compact','narrative']);
 export function premiumHeroInner(kind,{copy='',image='',images=/** @type {string[]} */([]),services='',hasImage=false,variation='signature'}={}){
  const family=heroFamilies.find(f=>f.id===kind);if(!family)return '';
  const reviewed=PREMIUM_HERO_VARIATIONS.includes(variation)?variation:'signature';
- const treatment=['crafted','authored'].includes(reviewed)?'signature':reviewed.replace(/^(?:crafted|authored)-/, '');
+ const treatment=['crafted','authored','narrative'].includes(reviewed)?'signature':reviewed.replace(/^(?:crafted|authored|narrative)-/, '');
  const media=hasImage?`<figure class="premium-visual">${image}</figure>`:'';
  const extra=Array.isArray(images)?images.slice(0,2):[];
  const body=family.render({copy,media,extra,services});
