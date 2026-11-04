@@ -1,0 +1,4987 @@
+{
+  "source": {
+    "commit": "ebbf2abfe96c81b59c64faff962ee9d7a9cb52e1",
+    "tree": "f8ad5b7eaca8113d84c4f59bf965c18a4bed2003"
+  },
+  "browser": "145.0.7632.6",
+  "sandboxRequired": true,
+  "renderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+  "assetManifest": {
+    "sources": [
+      "scripts/fixtures/website-design/assets.json",
+      "scripts/fixtures/guided-websites/assets.json"
+    ],
+    "images": [
+      {
+        "name": "coffee",
+        "sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+        "credit": "Rachel Michetti, courtesy Pikolo Espresso Bar; CC0"
+      },
+      {
+        "name": "grass",
+        "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89",
+        "credit": "linolafett, Grass-01, cropped/grayscale by scikit-image; CC0"
+      },
+      {
+        "name": "gravel",
+        "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12",
+        "credit": "CC0Textures Gravel04, cropped/grayscale by scikit-image; CC0"
+      },
+      {
+        "name": "brick",
+        "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf",
+        "credit": "CC0Textures Bricks25, transformed by scikit-image; CC0"
+      },
+      {
+        "name": "catering",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Ugandan_food_buffet_serving.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Ugandan_food_buffet_serving.jpg&oldid=1210355536",
+        "credit": "Rebeccananonof, Ugandan food buffet serving, CC0",
+        "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046",
+        "width": 4608,
+        "height": 3456
+      },
+      {
+        "name": "garden",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+        "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition",
+        "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb",
+        "width": 1280,
+        "height": 1920,
+        "previousPinnedSha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+        "reviewedLocalPath": "scripts/fixtures/guided-websites/patio-garden-reviewed.jpg",
+        "review": "Actual 1280x1920 JPEG decoded and visually reviewed on 2026-11-03 after run41680754623 failed exact-byte verification. Preserve copyright/artist metadata and CC0 provenance. Checked-in fixture, not automatic acceptance of changed upstream bytes."
+      },
+      {
+        "name": "studio",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+        "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition; explicit illustrative botanical choice for fictional wellness preview, not studio premises",
+        "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb",
+        "width": 1280,
+        "height": 1920,
+        "previousPinnedSha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+        "reviewedLocalPath": "scripts/fixtures/guided-websites/patio-garden-reviewed.jpg",
+        "review": "Actual 1280x1920 JPEG decoded and visually reviewed on 2026-11-03 after run41680754623 failed exact-byte verification. Preserve copyright/artist metadata and CC0 provenance. Checked-in fixture, not automatic acceptance of changed upstream bytes."
+      }
+    ],
+    "authenticStoryPhoto": {
+      "title": "File:Fruit and Indonesia Traditional Food Buffet Prasmanan.jpg",
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/Fruit_and_Indonesia_Traditional_Food_Buffet_Prasmanan.jpg/1280px-Fruit_and_Indonesia_Traditional_Food_Buffet_Prasmanan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Fruit_and_Indonesia_Traditional_Food_Buffet_Prasmanan.jpg",
+      "license": "CC0",
+      "sha256": "b0412adfd427ba9ac1abbe478d6f458c4de3b64adf2d9111f082f6895f690734",
+      "width": 1280,
+      "height": 651,
+      "file": "scripts/fixtures/website-story/shared-table.jpg",
+      "credit": "Bajinra, CC0 1.0",
+      "use": "Explicitly reviewed licensed illustrative fixture only; not the fictional business\u2019s dishes, work, premises or customer photographs.",
+      "review": "Decoded actual 1280x651 pixels and inspected on 4 November 2026. Real snack buffet, not a portfolio claim. Owner copyright independently unverified."
+    }
+  },
+  "results": [
+    {
+      "business": "Ember Festival Kitchen \u2014 sparse truthful source",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "0-before-narrow.png",
+      "sha256": "7c542b2084377beb06048bffe0ce44e54d1351874e15d57bfc66c159fe56560b",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Ember Festival Kitchen"
+          }
+        ],
+        "imageCount": 1,
+        "height": 1763
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        }
+      ],
+      "imageTransferBytes": 6270184,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 sparse truthful source",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "0-after-narrow.png",
+      "sha256": "55ee55b7e1ce7bc9f9b2d509840e0982ed1a68caff78edf1a6ff67cafa091e19",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Ember Festival Kitchen"
+          }
+        ],
+        "imageCount": 1,
+        "height": 1762
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        }
+      ],
+      "imageTransferBytes": 6270184,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 sparse truthful source",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "0-before-mobile.png",
+      "sha256": "177a22e389dbf0220486e270998368b657988be9f675bfc48d35f07f4bc3c57b",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ember Festival Kitchen"
+          }
+        ],
+        "imageCount": 1,
+        "height": 1811
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        }
+      ],
+      "imageTransferBytes": 6270184,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 sparse truthful source",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "0-after-mobile.png",
+      "sha256": "2099b1f959c82d3cc80a0e1d44f85aaa0c5268ba1ac8ea5206d033179cc228a4",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ember Festival Kitchen"
+          }
+        ],
+        "imageCount": 1,
+        "height": 1810
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        }
+      ],
+      "imageTransferBytes": 6270184,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 sparse truthful source",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "0-before-desktop.png",
+      "sha256": "d23493f2a053900ab61ca97370811c66bdacc0870493e4bb56f1d94ab793b3ef",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 610.875,
+            "displayHeight": 458.15625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 775,
+            "fontSize": 83.2,
+            "text": "Ember Festival Kitchen"
+          }
+        ],
+        "imageCount": 1,
+        "height": 2416
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        }
+      ],
+      "imageTransferBytes": 6270184,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 sparse truthful source",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "0-after-desktop.png",
+      "sha256": "125617663791c8a42ed17b76484ee9b6906d8da0b53a260d3bcf691439c4857d",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 610.875,
+            "displayHeight": 458.15625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 775,
+            "fontSize": 83.2,
+            "text": "Ember Festival Kitchen"
+          }
+        ],
+        "imageCount": 1,
+        "height": 2264
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        }
+      ],
+      "imageTransferBytes": 6270184,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 rich approved source",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "1-before-narrow.png",
+      "sha256": "158e1c538dbf4fdb0b06ccbe290b643fef9db21cdb50cae443a393a4ffbf60f2",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/shared-table.jpg",
+            "currentSrc": "https://assets.example.invalid/shared-table.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 651,
+            "displayWidth": 292,
+            "displayHeight": 220,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Good food. A gathering worth sharing."
+          }
+        ],
+        "imageCount": 2,
+        "height": 4865
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        },
+        {
+          "url": "https://assets.example.invalid/shared-table.jpg",
+          "bytes": 296749,
+          "sha256": "b0412adfd427ba9ac1abbe478d6f458c4de3b64adf2d9111f082f6895f690734"
+        }
+      ],
+      "imageTransferBytes": 6566933,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 rich approved source",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "1-after-narrow.png",
+      "sha256": "20fb679ae046241511a8d23d0e1463b45416193fc56d013197210fef0faadac8",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/shared-table.jpg",
+            "currentSrc": "https://assets.example.invalid/shared-table.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 651,
+            "displayWidth": 292,
+            "displayHeight": 272,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Good food. A gathering worth sharing."
+          }
+        ],
+        "imageCount": 2,
+        "height": 4969
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        },
+        {
+          "url": "https://assets.example.invalid/shared-table.jpg",
+          "bytes": 296749,
+          "sha256": "b0412adfd427ba9ac1abbe478d6f458c4de3b64adf2d9111f082f6895f690734"
+        }
+      ],
+      "imageTransferBytes": 6566933,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 rich approved source",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "1-before-mobile.png",
+      "sha256": "f31f9f756288a41cdc954d2def24795a7c3a650b224bbe78b4b53eb37bcda764",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/shared-table.jpg",
+            "currentSrc": "https://assets.example.invalid/shared-table.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 651,
+            "displayWidth": 356,
+            "displayHeight": 234,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Good food. A gathering worth sharing."
+          }
+        ],
+        "imageCount": 2,
+        "height": 4566
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        },
+        {
+          "url": "https://assets.example.invalid/shared-table.jpg",
+          "bytes": 296749,
+          "sha256": "b0412adfd427ba9ac1abbe478d6f458c4de3b64adf2d9111f082f6895f690734"
+        }
+      ],
+      "imageTransferBytes": 6566933,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 rich approved source",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "1-after-mobile.png",
+      "sha256": "825153f707403be96ec767ac888995453abd0adc314d25963a9290425184f5ce",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/shared-table.jpg",
+            "currentSrc": "https://assets.example.invalid/shared-table.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 651,
+            "displayWidth": 356,
+            "displayHeight": 331.5,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Good food. A gathering worth sharing."
+          }
+        ],
+        "imageCount": 2,
+        "height": 4835
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        },
+        {
+          "url": "https://assets.example.invalid/shared-table.jpg",
+          "bytes": 296749,
+          "sha256": "b0412adfd427ba9ac1abbe478d6f458c4de3b64adf2d9111f082f6895f690734"
+        }
+      ],
+      "imageTransferBytes": 6566933,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 rich approved source",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "1-before-desktop.png",
+      "sha256": "dbb61ccaf108f27f4105bfeb264f443d709d44618c99a403e05d9bf60543c461",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 610.875,
+            "displayHeight": 458.15625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/shared-table.jpg",
+            "currentSrc": "https://assets.example.invalid/shared-table.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 651,
+            "displayWidth": 473.390625,
+            "displayHeight": 440,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 775,
+            "fontSize": 83.2,
+            "text": "Good food. A gathering worth sharing."
+          }
+        ],
+        "imageCount": 2,
+        "height": 4901
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        },
+        {
+          "url": "https://assets.example.invalid/shared-table.jpg",
+          "bytes": 296749,
+          "sha256": "b0412adfd427ba9ac1abbe478d6f458c4de3b64adf2d9111f082f6895f690734"
+        }
+      ],
+      "imageTransferBytes": 6566933,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen \u2014 rich approved source",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "1-after-desktop.png",
+      "sha256": "dbead28ae1acf4e6891274c5623b6bb66f0feaf9f6a82145e9ecf7e0b8fca0c4",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 610.875,
+            "displayHeight": 458.15625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/shared-table.jpg",
+            "currentSrc": "https://assets.example.invalid/shared-table.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 651,
+            "displayWidth": 524,
+            "displayHeight": 600,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 775,
+            "fontSize": 83.2,
+            "text": "Good food. A gathering worth sharing."
+          }
+        ],
+        "imageCount": 2,
+        "height": 5121
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        },
+        {
+          "url": "https://assets.example.invalid/shared-table.jpg",
+          "bytes": 296749,
+          "sha256": "b0412adfd427ba9ac1abbe478d6f458c4de3b64adf2d9111f082f6895f690734"
+        }
+      ],
+      "imageTransferBytes": 6566933,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 sparse truthful source",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "2-before-narrow.png",
+      "sha256": "2bf5bffdf1af5377691f603f17344f07ecbf438dd55697afed36d3f0e30d9fe3",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Clearleaf Gardens"
+          }
+        ],
+        "imageCount": 1,
+        "height": 1866
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 sparse truthful source",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "2-after-narrow.png",
+      "sha256": "ac95c653c69edad33367f6212c97f0495dec3b2a6c9f756f7809048dc5adc04b",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Clearleaf Gardens"
+          }
+        ],
+        "imageCount": 1,
+        "height": 1867
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 sparse truthful source",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "2-before-mobile.png",
+      "sha256": "1e0ad2a4fd79581dfb87c8b22d3d9dc3fa696fac456ffa8a5c5e811726248c74",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Clearleaf Gardens"
+          }
+        ],
+        "imageCount": 1,
+        "height": 1784
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 sparse truthful source",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "2-after-mobile.png",
+      "sha256": "a56422d7ec9b2f7eecc9bdb0f1f505ffebbc21683c66e589ba5d2ecd78abc4f8",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Clearleaf Gardens"
+          }
+        ],
+        "imageCount": 1,
+        "height": 1833
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 sparse truthful source",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "2-before-desktop.png",
+      "sha256": "c8d2e020729e7b0b77be9706206e95f04884f0ebe5ab7a75612cfc990667014b",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 1120,
+            "displayHeight": 426.65625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Clearleaf Gardens"
+          }
+        ],
+        "imageCount": 1,
+        "height": 2402
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 sparse truthful source",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "2-after-desktop.png",
+      "sha256": "4f53c058e3b17272bb00a4d1c46d29390437989ed8c86b20d37b9229d3826212",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 1120,
+            "displayHeight": 426.65625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Clearleaf Gardens"
+          }
+        ],
+        "imageCount": 1,
+        "height": 2250
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 rich approved source",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "3-before-narrow.png",
+      "sha256": "d2e92b751d73faeff77161d1e4edc6b0d3af4369833ef4bb1f88eb7c412ead3d",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "A garden that fits the way you live."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3544
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 rich approved source",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "3-after-narrow.png",
+      "sha256": "10f403ea3bc590d454410006a91d9ab422813c9771ad50582e005cd8180beff5",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "A garden that fits the way you live."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3808
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 rich approved source",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "3-before-mobile.png",
+      "sha256": "d6a19f2a5bda9051a4ac2bfccc534bef397eb3476ff05abfccb39b0a4990bd2b",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "A garden that fits the way you live."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3272
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 rich approved source",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "3-after-mobile.png",
+      "sha256": "d414251f512f0630312c813f0f981a370fad691995b5f78eb77611b21b903f88",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "A garden that fits the way you live."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3537
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 rich approved source",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "3-before-desktop.png",
+      "sha256": "779f2e406bc8f7ccb35e4f01b97687fb12ab083af372984aeabefed6664c3a0b",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 1120,
+            "displayHeight": 426.65625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "A garden that fits the way you live."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3685
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clearleaf Gardens \u2014 rich approved source",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "3-after-desktop.png",
+      "sha256": "ac50f78d9cb20c19821dba4d12f2f2324ff4e99e3696b00820300af14496e62b",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 1120,
+            "displayHeight": 426.65625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "A garden that fits the way you live."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3560
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613717,
+          "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb"
+        }
+      ],
+      "imageTransferBytes": 613717,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 sparse truthful source",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "4-before-narrow.png",
+      "sha256": "e73718aa8a845d6b83a2e622e66968164eebfb203557dd3897be31b3f3a2c8d9",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Quiet Light Studio"
+          }
+        ],
+        "imageCount": 0,
+        "height": 1613
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 sparse truthful source",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "4-after-narrow.png",
+      "sha256": "4fa03dbb8f9a28dc2a20023ceb6168a6038917dcaaeb06e2879c5f737a1fa178",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Quiet Light Studio"
+          }
+        ],
+        "imageCount": 0,
+        "height": 1624
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 sparse truthful source",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "4-before-mobile.png",
+      "sha256": "e0138f3736e3d17c716addf07f0d12faa95db9713b794b940a995735d6376002",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Quiet Light Studio"
+          }
+        ],
+        "imageCount": 0,
+        "height": 1567
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 sparse truthful source",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "4-after-mobile.png",
+      "sha256": "c3dfdb806c0e0e6e5659e551229a54c10c00d4f05b6571652a096a562f8e343f",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Quiet Light Studio"
+          }
+        ],
+        "imageCount": 0,
+        "height": 1578
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 sparse truthful source",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "4-before-desktop.png",
+      "sha256": "7e2c9784c5903ee315b450b44fe17afbcae50417b72a6659e14bfcb7f544ba87",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 136,
+            "text": "Quiet Light Studio"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2427
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 sparse truthful source",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "4-after-desktop.png",
+      "sha256": "5580fc3ad617586cdfa7d26b1491d4523461d4240b1c75e08baf3ca7b33afc40",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 136,
+            "text": "Quiet Light Studio"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2261
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 rich approved source",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "5-before-narrow.png",
+      "sha256": "1f763bcd6b19073115927393a45c5963d7876a45504cba27f397c30a0ae018f0",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Make room for a clearer idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 3250
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 rich approved source",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "5-after-narrow.png",
+      "sha256": "3eaf424d5c0cd5574bbbc11fe61f049a22a4c347d6910078e0ec964771c1d4a1",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Make room for a clearer idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 3304
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 rich approved source",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "5-before-mobile.png",
+      "sha256": "ea445935f76828e4cea3fe5418e45c06b55d7a3a2dbbeab57b90d99ee9f0c318",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Make room for a clearer idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2968
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 rich approved source",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "5-after-mobile.png",
+      "sha256": "9a9d4bed191719d770ce352eecddb043d8aa05d2cce59c0c42665566998d2893",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Make room for a clearer idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 3027
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 rich approved source",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "5-before-desktop.png",
+      "sha256": "164647b1b65ae9db7305137ab9ccd654024b380ff88792495d70c57da22e0463",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 136,
+            "text": "Make room for a clearer idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 3573
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Light Studio \u2014 rich approved source",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "5-after-desktop.png",
+      "sha256": "ec82de66e796323870796bc887a382c99e75b60762161e0b25084bfa8e9ed161",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 136,
+            "text": "Make room for a clearer idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 3982
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "6-before-narrow.png",
+      "sha256": "e70c0dcca72fbb440b64dbc5b82b65fc48d4c6ac8084a3090ac1f8e212b7712d",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Meadow & Moss"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2935
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "6-after-narrow.png",
+      "sha256": "cce97c3ff190f3c8b48e4a2ce4c3b7bb25f975b3f9ecebeabc8225da985ab3f9",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Meadow & Moss"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2892
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "6-before-mobile.png",
+      "sha256": "c7ef30c3e829956944144cbd0b0af2688d012c055d9d5434d404c2ab6aab38d9",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Meadow & Moss"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2852
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "6-after-mobile.png",
+      "sha256": "182ed126d503036f29d981153143c62ca1b4056fd95bcff30a65cdeb3437f04a",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Meadow & Moss"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2817
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "6-before-desktop.png",
+      "sha256": "7a868a073bde51a3cd8aa3dbfbb166461f62e4b81f60042612dd78fdd55b4d39",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 335.9375,
+            "displayHeight": 447.90625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Meadow & Moss"
+          }
+        ],
+        "imageCount": 3,
+        "height": 3168
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "6-after-desktop.png",
+      "sha256": "19950bb3de4dddf402998043cbb4f3aee0efcd15358f76ad092abcf85354f1c0",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 335.9375,
+            "displayHeight": 447.90625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Meadow & Moss"
+          }
+        ],
+        "imageCount": 3,
+        "height": 3148
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "7-before-narrow.png",
+      "sha256": "c78f6fb7f0a83a48793ba4a2886759a6fcbf96db28b5c38b3a53270e370be671",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Groundwork Gardens"
+          }
+        ],
+        "imageCount": 3,
+        "height": 3058
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "7-after-narrow.png",
+      "sha256": "54cdaf70c12c1d6b137a8150822aa55a09338e4bf3d92a9960dce6ae205cd541",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 219,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Groundwork Gardens"
+          }
+        ],
+        "imageCount": 3,
+        "height": 3044
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "7-before-mobile.png",
+      "sha256": "d38bdf7224c20844ad92b5276bfa6676a74116113175101b52969dbe55905ae0",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Groundwork Gardens"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2943
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "7-after-mobile.png",
+      "sha256": "ad0030ee7f233785301497dec1fe8d20fe2ec5d001acd4d8fcfbe51af1611076",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Groundwork Gardens"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2945
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "7-before-desktop.png",
+      "sha256": "b0d28465af1752b4e861cb3ed158ba8b01f2d3bada7745ec6a36f9b35c7bb2f4",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 1120,
+            "displayHeight": 426.65625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Groundwork Gardens"
+          }
+        ],
+        "imageCount": 3,
+        "height": 3358
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "7-after-desktop.png",
+      "sha256": "aa77111517658929ea7a1498cac2208c52f826e4310c2ec1eac7c0c942b4a498",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 1120,
+            "displayHeight": 426.65625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Groundwork Gardens"
+          }
+        ],
+        "imageCount": 3,
+        "height": 3144
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "8-before-narrow.png",
+      "sha256": "ab0b46be8ce084a412bf122f13182b59a633ad2e426f80a2fd31c90040dc8b41",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Quiet Plot"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2324
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "8-after-narrow.png",
+      "sha256": "95b72d005b5e76c12ca14e86cba11eb5369ad2701916d87914eb37d304d3a162",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Quiet Plot"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2497
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "8-before-mobile.png",
+      "sha256": "f069ea280396ad6e1828011b7d2a32c8662115f3ab20a2e9b155b4dde056ec8f",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Quiet Plot"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2233
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "8-after-mobile.png",
+      "sha256": "643be0f1f4e85eba29718ce1c6972460a89c3f5d208b6516b202842f4e223712",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Quiet Plot"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2352
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "8-before-desktop.png",
+      "sha256": "be600bb2648672129a176f6eb45446f1aa49014fec87ab2e5e97318a11cbc38e",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 113.6,
+            "text": "Quiet Plot"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2811
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "8-after-desktop.png",
+      "sha256": "1316b59c34ee0e43946cf7017f2e3b3283132e989fb5f064d49d8e3f6b1d55fb",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 113.6,
+            "text": "Quiet Plot"
+          }
+        ],
+        "imageCount": 0,
+        "height": 3315
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "9-before-narrow.png",
+      "sha256": "a47dc2e1c0b7e0c289549c02e38f3e7deb5207ce3f069cde1b023d329f1d7587",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 165.59375,
+            "displayHeight": 275.984375,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 110.40625,
+            "displayHeight": 110.40625,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 110.40625,
+            "displayHeight": 110.40625,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Wild Corner"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2212
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "9-after-narrow.png",
+      "sha256": "9943815452f49e4b5fa496a51f26a237b9cb33d608cc3c0c252ed30c6bf1b40c",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 165.59375,
+            "displayHeight": 275.984375,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 110.40625,
+            "displayHeight": 110.40625,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 110.40625,
+            "displayHeight": 110.40625,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Wild Corner"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2179
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "9-before-mobile.png",
+      "sha256": "22eb2a34d21dd83d538a90e6770979fe16c9b424340d85b6983b55f23c023c7f",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 204,
+            "displayHeight": 340,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 136,
+            "displayHeight": 136,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 136,
+            "displayHeight": 136,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Wild Corner"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2190
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "9-after-mobile.png",
+      "sha256": "347421ba923626b59f30e66ff20e06b444c1a829216d4a08f6236079f8f4756b",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 204,
+            "displayHeight": 340,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 136,
+            "displayHeight": 136,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 136,
+            "displayHeight": 136,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Wild Corner"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2157
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "9-before-desktop.png",
+      "sha256": "e0475647883b92ab1036e47699e0f78fb045edffe02418694acf82d91758fc92",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 312,
+            "displayHeight": 520,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 208,
+            "displayHeight": 208,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 208,
+            "displayHeight": 208,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 536,
+            "fontSize": 92.8,
+            "text": "Wild Corner"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2368
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "9-after-desktop.png",
+      "sha256": "257d9dcc1cbf938ff02d68b1784a2164e9eeae3930b1a723139427d58a7eecc5",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 312,
+            "displayHeight": 520,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 208,
+            "displayHeight": 208,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 208,
+            "displayHeight": 208,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 536,
+            "fontSize": 92.8,
+            "text": "Wild Corner"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2308
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "10-before-narrow.png",
+      "sha256": "991809898463153c05abfd1669b8b05c1ceb89f98a0a9174d223776970adf864",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 272,
+            "displayHeight": 560.21875,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 204,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 204,
+            "fontSize": 43.2,
+            "text": "Estate Garden Care"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2821
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "10-after-narrow.png",
+      "sha256": "418465ef1ebeaf1cf5f4af9682e5417dd7263520f88c37da6da44df8fb4ccb57",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 272,
+            "displayHeight": 560.21875,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 292,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 204,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 204,
+            "fontSize": 43.2,
+            "text": "Estate Garden Care"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2807
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "10-before-mobile.png",
+      "sha256": "e1b029726f9b9af85fbe5495db917e2e39fa6394856f3b803f99defc8e6b375d",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 336,
+            "displayHeight": 560,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 268,
+            "fontSize": 43.2,
+            "text": "Estate Garden Care"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2706
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "10-after-mobile.png",
+      "sha256": "d61267448fb879a17431a88d52b6e48f725b76a8d31034ad2502e15993b28371",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 336,
+            "displayHeight": 560,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 268,
+            "fontSize": 43.2,
+            "text": "Estate Garden Care"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2708
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "10-before-desktop.png",
+      "sha256": "dee2436b47e7bf77aafc5490cfcc6ca40384ff1a20d3b5877796a7c0fe8c5723",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 1120,
+            "displayHeight": 714.75,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 544.6875,
+            "fontSize": 83.2,
+            "text": "Estate Garden Care"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2947
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "10-after-desktop.png",
+      "sha256": "0d83e921161663f11b81d3c2bd409224cb8d3fed791813deebbc988bae4033bd",
+      "metrics": {
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/grass.png",
+            "currentSrc": "https://assets.example.invalid/grass.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 1120,
+            "displayHeight": 714.75,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/gravel.png",
+            "currentSrc": "https://assets.example.invalid/gravel.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/brick.png",
+            "currentSrc": "https://assets.example.invalid/brick.png",
+            "srcset": "",
+            "naturalWidth": 512,
+            "naturalHeight": 512,
+            "displayWidth": 550,
+            "displayHeight": 450,
+            "objectPosition": "50% 50%",
+            "objectFit": "contain"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 544.6875,
+            "fontSize": 83.2,
+            "text": "Estate Garden Care"
+          }
+        ],
+        "imageCount": 3,
+        "height": 2787
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/grass.png",
+          "bytes": 217893,
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+        },
+        {
+          "url": "https://assets.example.invalid/gravel.png",
+          "bytes": 194247,
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+        },
+        {
+          "url": "https://assets.example.invalid/brick.png",
+          "bytes": 106634,
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+        }
+      ],
+      "imageTransferBytes": 518774,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    }
+  ],
+  "failures": [],
+  "baselineFailures": [],
+  "hostedAcceptance": false
+}
