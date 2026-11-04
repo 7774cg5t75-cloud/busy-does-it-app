@@ -22,6 +22,7 @@ on:
       - 'scripts/check-guided-website-creation.mjs'
       - 'scripts/fetch-guided-website-assets.py'
       - 'scripts/fixtures/guided-websites/**'
+      - 'scripts/check-website-authentic-story.mjs'
       - 'scripts/check-website-design-expansion.mjs'
       - 'scripts/check-mission15-phase*.mjs'
       - 'scripts/check-mission15-website-page-headings.mjs'
@@ -74,6 +75,8 @@ jobs:
           node scripts/check-website-excellence.mjs
           BUSY_EXCELLENCE_BROWSER=1 node scripts/capture-website-design.mjs
           node scripts/make-excellence-comparison.mjs
+          node scripts/check-website-authentic-story.mjs
+          BUSY_STORY_BROWSER=1 node scripts/capture-website-design.mjs
       - name: Compare real current pixels with the exact previous guided evidence
         if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
         env:
@@ -147,5 +150,14 @@ jobs:
             .test-artifacts/website-excellence/[34567]-*.png
             .test-artifacts/website-excellence/[34567]-*.html
             .test-artifacts/website-excellence/*.json
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain authentic full-page controlled and source-richness comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-authentic-story-${{ github.sha }}
+          path: .test-artifacts/website-authentic-story/
           retention-days: 7
           if-no-files-found: error

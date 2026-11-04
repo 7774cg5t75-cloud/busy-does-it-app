@@ -6,17 +6,17 @@ import hashlib, json, pathlib, urllib.parse, urllib.request
 
 class PublicOnly(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        assert urllib.parse.urlparse(newurl).hostname in ['commons.wikimedia.org','upload.wikimedia.org']
+        assert urllib.parse.urlparse(newurl).hostname in ['commons.wikimedia.org','upload.wikimedia.org','thumb.wikimedia.org']
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 opener=urllib.request.build_opener(PublicOnly())
 def read(url, limit):
-    assert urllib.parse.urlparse(url).scheme=='https' and urllib.parse.urlparse(url).hostname in ['commons.wikimedia.org','upload.wikimedia.org']
+    assert urllib.parse.urlparse(url).scheme=='https' and urllib.parse.urlparse(url).hostname in ['commons.wikimedia.org','upload.wikimedia.org','thumb.wikimedia.org']
     with opener.open(urllib.request.Request(url,headers={'User-Agent':'BusyDoesIt-CC0-fixture-review/1.0 (isolated development evidence)'}),timeout=35) as r:
         data=r.read(limit+1)
     assert len(data)<=limit
     return data
 out=pathlib.Path('.test-artifacts/story-photo-review');out.mkdir(parents=True,exist_ok=True);rows=[]
-for category,query in [('food','food buffet filetype:bitmap'),('garden','garden flowers filetype:bitmap')]:
+for category,query in [('food','food buffet filetype:bitmap'),('garden','garden plants filetype:bitmap -Yale -painting -drawing')]:
     params={'action':'query','format':'json','generator':'search','gsrnamespace':'6','gsrsearch':query,'gsrlimit':'20','prop':'imageinfo','iiprop':'url|size|extmetadata','iiurlwidth':'1280'}
     data=json.loads(read('https://commons.wikimedia.org/w/api.php?'+urllib.parse.urlencode(params),3*1024*1024));count=0
     for page in sorted(data.get('query',{}).get('pages',{}).values(),key=lambda p:p.get('index',999)):
@@ -26,7 +26,7 @@ for category,query in [('food','food buffet filetype:bitmap'),('garden','garden 
         if url.startswith('//upload.wikimedia.org/'):url='https:'+url
         if url.startswith('http://upload.wikimedia.org/'):url='https://'+url[len('http://'):]
         parsed=urllib.parse.urlparse(url)
-        if parsed.scheme!='https' or parsed.hostname not in ['commons.wikimedia.org','upload.wikimedia.org']:
+        if parsed.scheme!='https' or parsed.hostname not in ['commons.wikimedia.org','upload.wikimedia.org','thumb.wikimedia.org']:
             (out/('denied-'+category+'-'+str(page['pageid'])+'.json')).write_text(json.dumps({'title':page['title'],'url':url,'state':'unsupported-url-not-fetched'}));continue
         suffix=urllib.parse.urlparse(url).path.lower()
         if not suffix.endswith(('.jpg','.jpeg','.png')):continue

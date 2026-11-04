@@ -43,12 +43,17 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule,
  }
  refresh();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
 }
-function businessContentSectionHtml(section,{endpoint='',websiteId='',deploymentId='',appSource=/** @type {{slug:string,expectedAppId:string,expectedVersionId:string,allowEnquiry:boolean}|null} */ (null),sectionClasses=''}={}){
+function businessContentSectionHtml(section,{endpoint='',websiteId='',deploymentId='',appSource=/** @type {{slug:string,expectedAppId:string,expectedVersionId:string,allowEnquiry:boolean}|null} */ (null),sectionClasses='',artDirection=false}={}){
  if(!['products','events'].includes(section?.type)||section.contentSource!=='business_records_v1')return '';
  const id='business-content-'+section.id,kind=section.type==='products'?'product':'event';
  const safeEndpoint=typeof endpoint==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-mini-app-guest$/.test(endpoint);
  const payload=appSource||{expectedDeploymentId:deploymentId};
  const preview=!safeEndpoint&&validPublicBusinessContent(section.previewFeed)?section.previewFeed:null;
+ if(artDirection&&preview&&kind==='product'){
+  const rows=preview.records.filter(r=>r.kind===kind),categories=[...new Set(rows.map(r=>r.data.category||''))];
+  const menu=categories.map(category=>`<div class="menu-category-group">${category?`<p class="menu-label">${escape(category)}</p>`:''}<div class="menu-items">${rows.filter(r=>(r.data.category||'')===category).map(r=>`<article class="menu-item" data-record-id="${escape(r.id)}" data-record-revision="${r.revision}"><h3>${escape(r.data.name)}</h3><p class="menu-price">${escape(contentPrice(r.data.amountMinor,r.data.currency))}</p><p class="menu-description">${escape(r.data.description)}</p></article>`).join('')}</div></div>`).join('');
+  return `<section id="${escape(section.id)}"${sectionClasses?` class="${escape(sectionClasses)}"`:''}><div class="wrap"><h2>${escape(section.title)}</h2><div class="approved-menu">${menu}</div><p class="listing-note">Approved listing snapshot checked ${escape(preview.checkedAt)}. Current details require the connected public feed. No checkout, stock reservation or order is available.</p></div></section>`;
+ }
  const previewHtml=preview?`<p>Approved record snapshot checked ${escape(preview.checkedAt)}. Current details require the connected public feed.</p>`+preview.records.filter(r=>r.kind===kind).map(r=>`<article><h3>${escape(r.data.name)}</h3><p>${escape(r.data.description)}</p><p>${escape(kind==='product'?contentPrice(r.data.amountMinor,r.data.currency):r.data.status==='cancelled'?'Cancelled':r.data.startsAt+' • '+r.data.timeZone)}</p></article>`).join(''):'';
  const presentation={browseMode:section.browseMode||'list',interestEntry:section.interestEntry||'inline',imageScale:section.imageScale||''};if(!['list','categories'].includes(presentation.browseMode)||!['inline','details'].includes(presentation.interestEntry)||!['','regular','large'].includes(presentation.imageScale))throw Error('Unsupported collection presentation');
  const args=[id,endpoint,payload,kind,section.featuredId||''].map(x=>JSON.stringify(x).replace(/</g,'\\u003c')).join(',');

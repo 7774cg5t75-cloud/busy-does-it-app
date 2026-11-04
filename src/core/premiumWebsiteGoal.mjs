@@ -7,6 +7,14 @@ export function premiumWebsiteGoal({request,website,businessId,pageId='home',sou
  if(source!=='owner'||typeof request!=='string'||request.length>400||/[<>\u0000-\u001f]/.test(request))return null;
  const words=request.trim().replace(/[.!?]+$/,'');let instruction='',explanation='';
 
+ const individual=/^(?:I want my website to look really professional and reflect my business|make it feel more individual|give (?:the |my )?(?:site|website) more personality|make (?:the )?(?:entire |whole )?website more elegant|keep the headline but change everything around it)$/i.test(words);
+ if(individual){
+  if(!websiteDraftHasScope(website,businessId))return {recognised:true,ready:false,mayExecute:false,question:'Open this business’s current website first.',providerCalls:0};
+  const family=website.theme?.heroComposition,chosen=family||premiumWebsiteDirections(website)[0]?.id||'typography-first';
+  const instruction=(family?'':'use the reviewed "'+chosen+'" opening; ')+'compose an individual complete website';
+  const prepared=prepareWebsiteRequest(website,{draftId:website.id,pageId,generation:website.generation,instruction},deps);
+  return {recognised:true,ready:prepared.ok,prepared:prepared.ok?prepared:null,question:prepared.ok?null:prepared.reason,requiresReview:true,mayExecute:false,providerCalls:0,ownerWording:request,instruction,findings:['Compare a full-page art direction using your approved words, pictures and customer destinations. Explicit service and reading choices are retained.'],limitations:['Finite presentation proposal. No new facts, source order changes, public availability or publication.']};
+ }
  const whole=/^(?:make (?:the )?(?:whole |entire )?website (?:look |feel )?(?:more professional|less generic)|keep the headline but change the layout|make the services stand out|make the homepage more welcoming)$/i.test(words);
  const design=/^(?:i need|i want) a professional website(?: for (?:my |our )?(.+))?$|^give (?:the |my )?(?:homepage|website) a more premium appearance$/i.exec(words);
  if(whole){const services=website?.sections?.find(s=>s.type==='services'&&s.enabled!==false);const explore=/less generic/i.test(words)&&services&&services.appearance?.serviceLayout&&services.appearance.serviceLayout!=='brand';const keepTreatment=/^crafted(?:-(?:airy|compact))?$/.test(website?.theme?.heroVariation||'');instruction=explore?['show services as the original layout',...(keepTreatment?[]:['refine the complete website design'])].join('; '):'refine the complete website design';explanation=explore?'Compare a coordinated service layout instead of your current service presentation. This is a new reviewable alternative; keep your words, photographs and source order.':'Prepare coordinated service, story and contact layouts while keeping your words and approved sources.';}
