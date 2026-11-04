@@ -24,6 +24,10 @@ for category,query in [('food','food buffet filetype:bitmap'),('garden','garden 
         if license not in ['CC0','CC0 1.0']:continue
         url=info.get('thumburl',info.get('url',''))
         if url.startswith('//upload.wikimedia.org/'):url='https:'+url
+        if url.startswith('http://upload.wikimedia.org/'):url='https://'+url[len('http://'):]
+        parsed=urllib.parse.urlparse(url)
+        if parsed.scheme!='https' or parsed.hostname not in ['commons.wikimedia.org','upload.wikimedia.org']:
+            (out/('denied-'+category+'-'+str(page['pageid'])+'.json')).write_text(json.dumps({'title':page['title'],'url':url,'state':'unsupported-url-not-fetched'}));continue
         suffix=urllib.parse.urlparse(url).path.lower()
         if not suffix.endswith(('.jpg','.jpeg','.png')):continue
         image=read(url,10*1024*1024);assert image.startswith((b'\xff\xd8',b'\x89PNG\r\n\x1a\n'))
