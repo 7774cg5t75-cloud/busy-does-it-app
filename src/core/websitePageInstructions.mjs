@@ -165,6 +165,9 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    change={action:'move-relative',sectionId:section.id,targetSectionId:target.id,
     position:/above|before/i.test(m[2])?'before':'after',pageId};
    description='Move '+section.title+' '+m[2]+' '+target.title;
+  }else if((m=clause.match(/^make (?:the )?(.+?) body (?:text )?easier to read on (phones?|mobile|desktop)$/i))){
+   const section=findSection(m[1]);if(!section||!['services','contact'].includes(section.type))return fail('Choose one current supporting section; keep the opening and editorial story typography.');
+   change={action:'section-style',sectionId:section.id,field:/phone|mobile/i.test(m[2])?'mobileBodyScale':'desktopBodyScale',value:'large'};description='Review supporting copy at this width without flattening the editorial opening or story';
   }else if((m=clause.match(/^(?:make|set) (?:the )?(?:whole |entire )?page (?:text )?(?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i))){
    change={action:'page-reading',pageId,device:/phone|mobile/i.test(m[1])?'mobile':'desktop'};
    description='Increase supported body text and line spacing only at the requested width; headings, facts and other widths are preserved';
