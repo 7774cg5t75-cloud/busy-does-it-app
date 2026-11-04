@@ -22,7 +22,9 @@ for category,query in [('food','food buffet filetype:bitmap'),('garden','garden 
     for page in sorted(data.get('query',{}).get('pages',{}).values(),key=lambda p:p.get('index',999)):
         info=page.get('imageinfo',[{}])[0];meta=info.get('extmetadata',{});license=meta.get('LicenseShortName',{}).get('value','')
         if license not in ['CC0','CC0 1.0']:continue
-        url=info.get('thumburl',info.get('url',''));suffix=urllib.parse.urlparse(url).path.lower()
+        url=info.get('thumburl',info.get('url',''))
+        if url.startswith('//upload.wikimedia.org/'):url='https:'+url
+        suffix=urllib.parse.urlparse(url).path.lower()
         if not suffix.endswith(('.jpg','.jpeg','.png')):continue
         image=read(url,10*1024*1024);assert image.startswith((b'\xff\xd8',b'\x89PNG\r\n\x1a\n'))
         filename=category+'-'+str(page['pageid'])+('.png' if suffix.endswith('.png') else '.jpg');(out/filename).write_bytes(image)
