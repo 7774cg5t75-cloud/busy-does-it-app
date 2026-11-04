@@ -8,8 +8,12 @@ export function websiteServicePhoto(draft,item){
 }
 export function usedServicePhotos(draft){return (draft?.sections||[]).filter(s=>s.type==='services'&&s.enabled!==false).flatMap(s=>(s.items||[]).map(i=>websiteServicePhoto(draft,i))).filter(Boolean);}
 
-export function servicePhotoHtml(draft,item,resolve,escape){
+export function servicePhotoHtml(draft,item,resolve,escape,attributes=(asset,url)=>''){
  const a=websiteServicePhoto(draft,item);if(!a)return item?.photoBinding?'<p class="service-photo-unavailable">Photograph currently unavailable.</p>':'';
  const url=resolve(a);if(!url)return '';
- return `<img class="service-photo${a.width<1000?' service-photo-small':''}${a.appearance?.photoFit==='contain'?' owner-image-fit-contain':''}" src="${escape(url)}" alt="${escape(a.alt||'Approved business photograph')}" width="${a.width}" height="${a.height}" loading="lazy" decoding="async" style="object-position:${['top','bottom'].includes(a.appearance?.photoCrop)?a.appearance.photoCrop:'center'}">`;
+ if(draft.theme?.heroVariation==='atelier'){
+  const p=item.photoPresentation,valid=p&&Object.keys(p).sort().join(',')==='captionSource,role'&&['offering','method','detail','atmosphere'].includes(p.role)&&['alt','none'].includes(p.captionSource);const role=valid?p.role:'offering',caption=valid&&p.captionSource==='alt'&&typeof a.alt==='string'&&a.alt.length<=300?a.alt:'';
+  return `<figure class="service-photo-frame photo-role-${role}${a.width<1000?' photo-frame-small':''}"><img class="service-photo${a.appearance?.photoFit==='contain'?' owner-image-fit-contain':''}"${attributes(a,url)} src="${escape(url)}" alt="${escape(a.alt||'Approved business photograph')}" width="${a.width}" height="${a.height}" loading="lazy" decoding="async" style="object-position:${['top','bottom'].includes(a.appearance?.photoCrop)?a.appearance.photoCrop:'center'}">${caption?`<figcaption>${escape(caption)}</figcaption>`:''}</figure>`;
+ }
+ return `<img class="service-photo${a.width<1000?' service-photo-small':''}${a.appearance?.photoFit==='contain'?' owner-image-fit-contain':''}"${attributes(a,url)} src="${escape(url)}" alt="${escape(a.alt||'Approved business photograph')}" width="${a.width}" height="${a.height}" loading="lazy" decoding="async" style="object-position:${['top','bottom'].includes(a.appearance?.photoCrop)?a.appearance.photoCrop:'center'}">`;
 }

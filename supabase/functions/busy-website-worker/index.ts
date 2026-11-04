@@ -183,7 +183,7 @@ function renderSectionHtml(
   const headingTag = isFirstSection ? "h1" : "h2";
 
   if(craftedPage(draft)&&section.type==='services'&&section.appearance?.serviceLayout!=='index'){
-    const content=craftedServices(section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,photoFor:item=>draft.theme.heroVariation==='narrative'?servicePhotoHtml(draft,item,(a:any)=>urlForAsset(a,urls),escapeHtml):'',escapeHtml,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:(item:any)=>serviceContactAction(item,contactHref,escapeHtml)});
+    const content=craftedServices(section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,photoFor:item=>['narrative','atelier'].includes(draft.theme.heroVariation)?servicePhotoHtml(draft,item,(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml)):'',escapeHtml,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:(item:any)=>serviceContactAction(item,contactHref,escapeHtml)});
     if(content)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${content}</div></section>`;
   }
   if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
@@ -275,8 +275,8 @@ function renderSectionHtml(
     }</div></section>`;
   }
 
-  if(craftedPage(draft)&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||draft.theme?.heroVariation==='narrative')&&section.type==='text')&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{direction:draft.theme.heroVariation,family:draft.theme.heroComposition,escapeHtml,headingTag})}</section>`;
-  if(draft.theme?.heroComposition&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||draft.theme?.heroVariation==='narrative')&&section.type==='text')&&clean(section.body)){
+  if(craftedPage(draft)&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{direction:draft.theme.heroVariation,family:draft.theme.heroComposition,escapeHtml,headingTag})}</section>`;
+  if(draft.theme?.heroComposition&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body)){
     const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map((text:string)=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
     return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2>${escapeHtml(section.title)}</h2><div class="story-copy">${paragraphs}</div></div></section>`;
   }
@@ -364,7 +364,7 @@ function renderWebsiteHtml(
       return true;
     })
     .map((section: any, index: number) =>
-      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{narrative:draft.theme?.heroVariation==='narrative',artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||draft.theme.heroVariation==='narrative'),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home')
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home')
     )
     .join("");
 
@@ -391,7 +391,7 @@ function renderWebsiteHtml(
   const safeBusiness=escapeHtml(draft?.businessName||"Business website");
   const area=clean(draft?.serviceArea,260);
   const footer=`<footer class="site-footer"><div class="wrap"><strong>${safeBusiness}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||draft.theme.heroVariation==='narrative')?'premium-authored '+(draft.theme.heroVariation==='narrative'?'premium-narrative ':''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${websitePageGuide(draft,sections,sectionHtml,escapeHtml)}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${websitePageGuide(draft,sections,sectionHtml,escapeHtml)}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
 
 }
 

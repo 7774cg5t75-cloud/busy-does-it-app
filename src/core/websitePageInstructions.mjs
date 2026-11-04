@@ -64,10 +64,15 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    const field={heading:'title',text:'body',body:'body','button text':'cta'}[literal[2].toLowerCase()];
    change={sectionId:section.id,field,value:literal[3]};type='field';
    description='Replace only the owner-written '+field+' in '+section.title;
-  }else if((m=clause.match(/^pair approved photo "([^"<>]{1,300})" with service "([^"<>]{1,128})"$/i))){
+  }else if(/^compose an expressive complete website$/i.test(clause)){
+   change={action:'style',field:'heroVariation',value:'atelier'};description='Review expressive full-page services, story, process and contact, with exact approved words and assets';
+  }else if((m=clause.match(/^(?:move|pair) approved photo "([^"<>]{1,300})" with service "([^"<>]{1,128})"$/i))){
    const section=list(draft.sections).filter(s=>s.type==='services'&&s.enabled!==false&&list(page.sectionIds).includes(s.id)&&list(s.items).some(i=>i.id===m[2]));
    if(section.length!==1)return fail('Choose one exact service on this page.');
-   change={action:'pair-service-photo',sectionId:section[0].id,itemId:m[2],storagePath:m[1]};description='Review this exact website photograph alongside your existing service wording; no project or business fact is inferred';
+   change={action:/^move /i.test(clause)?'move-service-photo':'pair-service-photo',sectionId:section[0].id,itemId:m[2],storagePath:m[1]};description='Review this exact website photograph alongside your existing service wording; no project or business fact is inferred';
+  }else if((m=clause.match(/^present service "([^"<>]{1,128})" photo as (offering|method|detail|atmosphere) (with|without) its approved caption$/i))){
+   const section=list(draft.sections).filter(s=>s.type==='services'&&s.enabled!==false&&list(page.sectionIds).includes(s.id)&&list(s.items).some(i=>i.id===m[1]));if(section.length!==1)return fail('Choose one exact service photograph.');
+   change={action:'service-photo-presentation',sectionId:section[0].id,itemId:m[1],role:m[2].toLowerCase(),caption:m[3].toLowerCase()==='with'};description='Review the owner-selected photographic role and original caption; no business claim is inferred';
   }else if((m=clause.match(/^add section "([^"<>]{1,100})" text "([^"<>]{1,2500})"$/i))){
    if(pageId!=='home')return fail('Create new text sections on Home first, then use the page editor to assign them elsewhere.');
    if(list(draft.sections).some(s=>String(s.title||'').trim().toLocaleLowerCase('en')===m[1].trim().toLocaleLowerCase('en')))
@@ -194,7 +199,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    description="Emphasise the existing approved website button";
   }else return fail("No changes were made. Step "+(i+1)+" is not a supported, exact instruction. Try 'move the services section up' or 'make the hero heading smaller on phones'.");
   const leaves=change.action==='style-group'?change.operations:[change];
-  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):op.action==='pair-service-photo'?op.itemId:op.field||op.device||"position"].join(":"));
+  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):['pair-service-photo','move-service-photo','service-photo-presentation'].includes(op.action)?op.itemId:op.field||op.device||"position"].join(":"));
   if(keys.some(key=>targets.has(key)))return fail("Two steps affect the same setting. Give one instruction for that setting.");
   if(change.sectionId)previousSection=list(draft.sections).find(s=>s.id===change.sectionId)||null;
   keys.forEach(key=>targets.add(key));steps.push({type,change,spoken:clause,description});

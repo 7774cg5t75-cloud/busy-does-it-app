@@ -3137,6 +3137,13 @@
       "phase8Blocked": false
     },
     {
+      "id": "website-art-direction",
+      "args": [
+        "scripts/check-website-art-direction.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
       "id": "website-storyboard",
       "args": ["scripts/check-website-storyboard.mjs"],
       "phase8Blocked": false

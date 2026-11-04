@@ -1,24 +1,25 @@
 import {heroFamilies} from './websiteHeroFamilies.mjs';
 // Reviewed full-page presentation opt-in through the original variation field.
 // No new content source, executable fields or industry-template assignment.
-export function craftedPage(draft){return ['crafted','crafted-airy','crafted-compact','authored','authored-airy','authored-compact','narrative'].includes(draft?.theme?.heroVariation)&&heroFamilies.some(f=>f.id===draft.theme.heroComposition);}
+export function craftedPage(draft){return ['crafted','crafted-airy','crafted-compact','authored','authored-airy','authored-compact','narrative','atelier'].includes(draft?.theme?.heroVariation)&&heroFamilies.some(f=>f.id===draft.theme.heroComposition);}
 export function craftedServiceLayout(section,family,direction=''){
  if(section?.appearance?.serviceLayout==='cards')return 'tiles';
  if(section?.appearance?.serviceLayout==='directory')return 'ledger';
+ if(direction==='atelier')return 'atelier';
  if(direction==='narrative')return 'narrative';
- if((direction.startsWith('authored')||direction==='narrative'))return ({'story-spread':'menu','service-led':'board','quiet-portrait':'studio','typography-first':'studio','asymmetric-split':'offset','editorial-collage':'mosaic','cinematic-full-bleed':'board','product-showcase':'menu'})[family]||'studio';
+ if((direction.startsWith('authored')||['narrative','atelier'].includes(direction)))return ({'story-spread':'menu','service-led':'board','quiet-portrait':'studio','typography-first':'studio','asymmetric-split':'offset','editorial-collage':'mosaic','cinematic-full-bleed':'board','product-showcase':'menu'})[family]||'studio';
  return ({'story-spread':'spread','asymmetric-split':'split','quiet-portrait':'quiet','typography-first':'quiet','editorial-collage':'tiles','product-showcase':'ledger','cinematic-full-bleed':'ledger','service-led':'ledger'})[family]||'ledger';
 }
 export function craftedServices(section,family,{escapeHtml,editAttrs=(...args)=>'',itemHeadingClass=(item)=>'',itemClasses=(item)=>'',contactAction=(item)=>'',photoFor=(item)=>'',direction=''}){
  const items=Array.isArray(section.items)?section.items.filter(i=>i&&String(i.title||i.body||'').trim()):[];
  if(!items.length||!heroFamilies.some(f=>f.id===family))return '';
  const layout=(direction.startsWith('authored')||direction==='narrative')&&items.length===1?'studio':craftedServiceLayout(section,family,direction);
- return `<div class="crafted-services crafted-services--${layout}${(direction.startsWith('authored')||direction==='narrative')?' crafted-services-count-'+Math.min(items.length,3):''}">${items.map((item,index)=>`<article class="crafted-service ${itemClasses(item)}${photoFor(item)?' service-has-photo':''}">${photoFor(item)}<span class="crafted-service-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><h3${itemHeadingClass(item)}${editAttrs(section,'title',String(item.id||''))}>${escapeHtml(item.title||'')}</h3>${item.body&&!(direction==='narrative'&&String(item.body).trim()===String(item.title).trim())?`<p class="crafted-service-description"${editAttrs(section,'body',String(item.id||''))}>${escapeHtml(item.body)}</p>`:''}${direction==='narrative'?'':contactAction(item)}</article>`).join('')}</div>`;
+ return `<div class="crafted-services crafted-services--${layout}${(direction.startsWith('authored')||['narrative','atelier'].includes(direction))?' crafted-services-count-'+Math.min(items.length,3):''}">${items.map((item,index)=>`<article class="crafted-service ${itemClasses(item)}${photoFor(item)?' service-has-photo':''}">${photoFor(item)}<span class="crafted-service-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><h3${itemHeadingClass(item)}${editAttrs(section,'title',String(item.id||''))}>${escapeHtml(item.title||'')}</h3>${item.body&&!(['narrative','atelier'].includes(direction)&&String(item.body).trim()===String(item.title).trim())?`<p class="crafted-service-description"${editAttrs(section,'body',String(item.id||''))}>${escapeHtml(item.body)}</p>`:''}${['narrative','atelier'].includes(direction)?'':contactAction(item)}</article>`).join('')}</div>`;
 }
 export function craftedStory(section,{escapeHtml,editAttrs=(...args)=>'',headingTag='h2',direction='',family=''}){
  const paragraphs=String(section.body||'').split(/\n\s*\n/).filter(x=>x.trim());
- if(direction==='narrative'&&section.appearance?.readingLayout==='sequence'&&paragraphs.length>=2&&paragraphs.length<=8)return `<div class="wrap narrative-sequence"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}><ol${editAttrs(section,'body')}>${paragraphs.map(p=>`<li><p>${escapeHtml(p).replace(/\n/g,'<br>')}</p></li>`).join('')}</ol></div>`;
- if((direction.startsWith('authored')||direction==='narrative')&&(!section.appearance?.readingLayout||section.appearance.readingLayout==='brand'))return `<div class="wrap authored-story authored-story--${['story-spread','editorial-collage'].includes(family)?'spread':['typography-first','quiet-portrait'].includes(family)?'manifesto':'method'}"><header><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></header><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="authored-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
+ if(['narrative','atelier'].includes(direction)&&section.appearance?.readingLayout==='sequence'&&paragraphs.length>=2&&paragraphs.length<=8)return `<div class="wrap narrative-sequence"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}><ol${editAttrs(section,'body')}>${paragraphs.map(p=>`<li><p>${direction==='atelier'&&p.includes('. ')?'<strong>'+escapeHtml(p.slice(0,p.indexOf('. ')+1))+'</strong> '+escapeHtml(p.slice(p.indexOf('. ')+2)).replace(/\n/g,'<br>'):escapeHtml(p).replace(/\n/g,'<br>')}</p></li>`).join('')}</ol></div>`;
+ if((direction.startsWith('authored')||['narrative','atelier'].includes(direction))&&(!section.appearance?.readingLayout||section.appearance.readingLayout==='brand'))return `<div class="wrap authored-story authored-story--${['story-spread','editorial-collage'].includes(family)?'spread':['typography-first','quiet-portrait'].includes(family)?'manifesto':'method'}"><header><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></header><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="authored-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
  return `<div class="wrap crafted-story story-layout"><div class="crafted-section-heading"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></div><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="crafted-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
 }
 // Inputs are escaped markup produced by the ORIGINAL renderer, not customer HTML.
@@ -210,4 +211,55 @@ export const craftedPageCss=`
 
 :where(.premium-narrative) .hero .premium-story-spread .premium-visual{grid-column:1/-1;aspect-ratio:16/7;max-height:560px}
 @media(max-width:800px){:where(.premium-narrative) .hero .premium-story-spread .premium-visual{aspect-ratio:4/3;max-height:none}}
+
+/* A finite, owner-reviewed complete-page direction, not an industry template. */
+:where(.premium-atelier){--crafted-gap:clamp(28px,5vw,88px)}
+:where(.premium-atelier) .hero .premium-intro{max-width:90ch}
+:where(.premium-atelier) .hero .premium-visual{overflow:hidden}
+:where(.premium-atelier) .crafted-services--atelier{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(32px,5vw,80px);row-gap:32px;align-items:start}
+:where(.premium-atelier) .crafted-services--atelier .crafted-service{display:grid;grid-template-columns:28px minmax(0,1fr);gap:16px 20px;padding-block:28px;border-top:1px solid var(--line);margin:0;min-width:0}
+:where(.premium-atelier) .crafted-services--atelier .crafted-service h3{grid-column:2;font-size:clamp(1.8rem,3vw,3rem);line-height:1.12;max-width:21ch}
+:where(.premium-atelier) .crafted-services--atelier .crafted-service-description{grid-column:2;max-width:48ch}
+:where(.premium-atelier) .crafted-services--atelier .crafted-service:nth-child(even){padding-top:clamp(28px,5vw,72px)}
+:where(.premium-atelier) .service-photo-frame{grid-column:1/-1;grid-row:1;margin:0 0 24px;min-width:0;width:100%}
+:where(.premium-atelier) .service-photo-frame .service-photo{position:static;display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;max-width:none}
+:where(.premium-atelier) .service-photo-frame .service-photo.owner-image-fit-contain{object-fit:contain}
+:where(.premium-atelier) .service-photo-frame.photo-role-detail .service-photo{aspect-ratio:1}
+:where(.premium-atelier) .service-photo-frame.photo-role-method .service-photo{aspect-ratio:3/2}
+:where(.premium-atelier) .service-photo-frame.photo-role-atmosphere .service-photo{aspect-ratio:16/9}
+:where(.premium-atelier) .service-photo-frame.photo-frame-small{max-width:300px;justify-self:center}
+:where(.premium-atelier) .service-photo-frame figcaption{font-size:.875rem;line-height:1.5;max-width:50ch;margin-top:12px}
+:where(.premium-atelier).premium-site-service-led .crafted-services--atelier{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr)}
+:where(.premium-atelier).premium-site-service-led .crafted-service:first-child{grid-row:span 2}
+:where(.premium-atelier).premium-site-service-led .crafted-service:not(.service-has-photo){grid-template-columns:28px minmax(0,1fr)}
+:where(.premium-atelier).premium-site-service-led .crafted-service .crafted-service-description{grid-column:2}
+:where(.premium-atelier).premium-site-asymmetric-split .crafted-service:nth-child(even):not(.service-has-photo){margin-left:8%;border-left:0;padding-left:0}
+:where(.premium-atelier).premium-site-typography-first .crafted-service:first-child,:where(.premium-atelier).premium-site-quiet-portrait .crafted-service:first-child{grid-column:1/-1;grid-template-columns:40px minmax(0,1.2fr) minmax(0,.8fr);padding-block:clamp(36px,5vw,72px);border-top:3px solid var(--accent)}
+:where(.premium-atelier).premium-site-typography-first .crafted-service:first-child>h3:not([class*="owner-item-heading"]),:where(.premium-atelier).premium-site-quiet-portrait .crafted-service:first-child>h3:not([class*="owner-item-heading"]){font-size:clamp(2.8rem,6vw,6rem);line-height:1.02;letter-spacing:-.055em;max-width:14ch}
+:where(.premium-atelier).premium-site-typography-first .crafted-service:first-child .crafted-service-description,:where(.premium-atelier).premium-site-quiet-portrait .crafted-service:first-child .crafted-service-description{grid-column:3;align-self:end}
+:where(.premium-atelier) .authored-story--manifesto{display:grid;grid-template-columns:minmax(0,.55fr) minmax(0,1.45fr);max-width:none;gap:var(--crafted-gap);padding-block:32px}
+:where(.premium-atelier) .authored-story--manifesto .authored-story-lead{font-size:clamp(1.9rem,4vw,4rem);line-height:1.22;max-width:27ch}
+:where(.premium-atelier) .narrative-sequence{display:grid;grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);gap:var(--crafted-gap)}
+:where(.premium-atelier) .narrative-sequence ol{grid-template-columns:1fr;margin:0;gap:0}
+:where(.premium-atelier) .narrative-sequence li{display:grid;grid-template-columns:48px minmax(0,1fr);gap:28px;padding:28px 0;border-top:1px solid var(--line)}
+:where(.premium-atelier) .narrative-sequence li:before{font-size:1.1rem;margin:0;padding-top:8px}
+:where(.premium-atelier) .narrative-sequence li p{margin:0;max-width:50ch}
+:where(.premium-atelier) .narrative-sequence li strong{display:block;font-size:clamp(1.4rem,2.3vw,2.2rem);font-weight:500;line-height:1.25;margin-bottom:16px;letter-spacing:-.025em}
+:where(.premium-atelier) #contact{border-top:3px solid var(--accent);padding-block:clamp(64px,9vw,144px)}
+:where(.premium-atelier) .crafted-contact h2{font-size:clamp(2.8rem,6.5vw,6.5rem);line-height:1.04;max-width:17ch}
+:where(.premium-atelier) .crafted-contact--quiet{max-width:none;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr)}
+:where(.premium-atelier) .crafted-contact--quiet .crafted-contact-actions{display:block}
+@media(max-width:800px){
+ :where(.premium-atelier) .crafted-services--atelier,:where(.premium-atelier).premium-site-service-led .crafted-services--atelier,:where(.premium-atelier) .authored-story--manifesto,:where(.premium-atelier) .narrative-sequence,:where(.premium-atelier) .crafted-contact--quiet{grid-template-columns:minmax(0,1fr)}
+ :where(.premium-atelier) .crafted-services--atelier .crafted-service,:where(.premium-atelier).premium-site-typography-first .crafted-service:first-child,:where(.premium-atelier).premium-site-quiet-portrait .crafted-service:first-child{grid-template-columns:24px minmax(0,1fr);gap:14px 16px;padding-block:28px;grid-row:auto}
+ :where(.premium-atelier) .crafted-services--atelier .crafted-service h3{font-size:clamp(1.7rem,7vw,2.3rem);grid-column:2}
+ :where(.premium-atelier).premium-site-typography-first .crafted-service:first-child>h3:not([class*="owner-item-heading"]),:where(.premium-atelier).premium-site-quiet-portrait .crafted-service:first-child>h3:not([class*="owner-item-heading"]){font-size:clamp(2.3rem,11vw,3.4rem)}
+ :where(.premium-atelier) .crafted-services--atelier .crafted-service .crafted-service-description,:where(.premium-atelier).premium-site-typography-first .crafted-service:first-child .crafted-service-description,:where(.premium-atelier).premium-site-quiet-portrait .crafted-service:first-child .crafted-service-description{grid-column:2}
+ :where(.premium-atelier) .crafted-services--atelier .service-photo-frame{grid-column:1/-1;grid-row:1}
+ :where(.premium-atelier) .service-photo-frame .service-photo{grid-column:auto;grid-row:auto;margin:0}
+ :where(.premium-atelier) .crafted-services--atelier .crafted-service:nth-child(even){padding-top:28px}
+ :where(.premium-atelier) .authored-story--manifesto{gap:20px}
+ :where(.premium-atelier) .narrative-sequence{gap:24px}
+ :where(.premium-atelier) .narrative-sequence li{grid-template-columns:24px minmax(0,1fr);gap:16px}
+}
 `;

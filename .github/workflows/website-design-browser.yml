@@ -22,6 +22,9 @@ on:
       - 'scripts/check-guided-website-creation.mjs'
       - 'scripts/fetch-guided-website-assets.py'
       - 'scripts/fixtures/guided-websites/**'
+      - 'scripts/check-website-art-direction.mjs'
+      - 'scripts/fixtures/website-art-direction/**'
+      - 'src/core/governedBuilderProposal.mjs'
       - 'scripts/check-website-storyboard.mjs'
       - 'scripts/fixtures/website-storyboard/**'
       - 'src/core/websiteStoryboard.mjs'
@@ -82,6 +85,8 @@ jobs:
           BUSY_STORY_BROWSER=1 node scripts/capture-website-design.mjs
           node scripts/check-website-storyboard.mjs
           BUSY_STORYBOARD_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-art-direction.mjs
+          BUSY_ART_BROWSER=1 node scripts/capture-website-design.mjs
       - name: Compare real current pixels with the exact previous guided evidence
         if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
         env:
@@ -189,3 +194,25 @@ jobs:
             .test-artifacts/website-storyboard/*.json
           retention-days: 7
           if-no-files-found: error
+
+      - name: Retain expressive businesses original pixels
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-art-direction-businesses-${{ github.sha }}
+          path: |
+            .test-artifacts/website-art-direction/[0-5]-*.png
+            .test-artifacts/website-art-direction/*.html
+            .test-artifacts/website-art-direction/*.json
+          retention-days: 7
+
+      - name: Retain expressive gardens original pixels
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-art-direction-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-art-direction/[6-9]-*.png
+            .test-artifacts/website-art-direction/10-*.png
+            .test-artifacts/website-art-direction/*.json
+          retention-days: 7

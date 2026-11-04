@@ -190,7 +190,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    if(new Set(photos.map(a=>a.uri)).size<required)return fail(draft,'Choose enough distinct approved photographs before preparing this direction. A typography-first design is available without photographs.');
    if(value==='product-showcase'&&!sections.some(s=>s.type==='products'&&s.enabled!==false&&s.contentSource==='business_records_v1'))return fail(draft,'Add an original approved product collection before preparing this direction.');
   }
-  if(field==='heroVariation'&&value==='narrative'){const required=heroFamilies.find(f=>f.id===theme.heroComposition)?.media||0;if(required>1&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'Review enough distinct opening pictures before using service photographs.');}
+  if(field==='heroVariation'&&['narrative','atelier'].includes(value)){const required=heroFamilies.find(f=>f.id===theme.heroComposition)?.media||0;if(required>1&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'Review enough distinct opening pictures before using service photographs.');}
   if(field==='heroLayout'){
    const hero=sections.find(section=>section.type==='hero'&&section.enabled!==false),hasImage=photographicCount(hero?[hero]:[])>0;
    if(!hero||value.startsWith('image-')!==hasImage)return fail(draft,hasImage?'Keep the approved hero photo and choose an image layout.':'Choose a typographic layout or select an approved hero photo first.');
@@ -332,14 +332,24 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const hero=sections.find(s=>s.id==='hero');if(!hero||hero.ctaHref==='#'+operation.target)return fail(draft,'That destination is unavailable or already selected.');
   hero.ctaHref='#'+operation.target;return ready('Pointed the main button at existing page information, without submitting or booking anything.');
  }
- if(action==='pair-service-photo'){
+ if(action==='service-photo-presentation'){
+  if(Object.keys(operation).some(k=>!['kind','action','sectionId','itemId','role','caption'].includes(k))||!['offering','method','detail','atmosphere'].includes(operation.role)||typeof operation.caption!=='boolean')return fail(draft,'Choose a supported photographic role and caption option.');
+  const section=sections.find(s=>s.id===sectionId&&s.type==='services'&&s.enabled!==false),items=list(section?.items).filter(i=>i.id===operation.itemId);if(items.length!==1)return fail(draft,'Choose one current service photograph.');const item=items[0],asset=websiteServicePhoto(draft,item);if(!asset)return fail(draft,'Review this photograph and current website permission first.');if(operation.caption&&(!text(asset.alt)||text(asset.alt).length>300))return fail(draft,'Review a short approved source caption first.');
+  item.photoPresentation={role:operation.role,captionSource:operation.caption?'alt':'none'};return ready('Prepared the selected photo role and original caption for review. This is not independent verification of what the photograph depicts.');
+ }
+ if(action==='pair-service-photo'||action==='move-service-photo'){
   if(Object.keys(operation).some(k=>!['kind','action','sectionId','itemId','storagePath'].includes(k)))return fail(draft,'Choose one exact service and website photograph.');
   const section=sections.find(s=>s.id===sectionId&&s.type==='services'&&s.enabled!==false),items=list(section?.items).filter(i=>i.id===operation.itemId);
   const photos=sections.filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>list(s.items)).filter(a=>a.storagePath===operation.storagePath);
   if(items.length!==1||photos.length!==1)return fail(draft,'The service or photograph is missing or ambiguous.');
   const item=items[0],a=photos[0],binding={serviceId:item.id,storagePath:a.storagePath,assetRevision:a.revision,sha256:a.sha256};
   if(!websiteServicePhoto(draft,{...item,photoBinding:binding}))return fail(draft,'Recheck this current business photograph, its revision and website permission.');
-  if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.uri===a.uri||s.asset.sha256===a.sha256))||usedServicePhotos(draft).some(p=>p.storagePath===a.storagePath||p.uri===a.uri||p.sha256===a.sha256))return fail(draft,'This photograph already has a place on the page. Choose a distinct photograph.');
+  if(action==='move-service-photo'){
+   const previous=sections.filter(s=>s.type==='services'&&s.enabled!==false).flatMap(s=>list(s.items)).filter(i=>i.photoBinding?.storagePath===a.storagePath);
+   if(previous.length!==1||!websiteServicePhoto(draft,previous[0])||previous[0].id===item.id)return fail(draft,'Choose a photograph currently assigned to one different service.');
+   delete previous[0].photoBinding;delete previous[0].photoPresentation;
+  }
+  if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.uri===a.uri||s.asset.sha256===a.sha256))||usedServicePhotos({...draft,sections}).some(p=>p.storagePath===a.storagePath||p.uri===a.uri||p.sha256===a.sha256))return fail(draft,'This photograph already has a place on the page. Choose a distinct photograph.');
   item.photoBinding=binding;const required=heroFamilies.find(f=>f.id===theme.heroComposition)?.media||0;if(required>1&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'This picture is needed by the multi-picture opening. Choose another approved picture or another direction.');return ready('Paired the exact approved photograph with this service; no claim about past work was added.');
  }
  if(action==="choose-hero-photo"){
@@ -349,6 +359,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    return fail(draft,"Choose an approved photograph already saved in this website's own gallery.");
   const hero=sections.find(s=>s.id==="hero");
   if(!hero)return fail(draft,"A website hero is required to change its image.");
+  if(['narrative','atelier'].includes(theme.heroVariation)&&usedServicePhotos({...draft,sections}).some(a=>a.storagePath===item.storagePath||a.uri===item.uri||a.sha256&&a.sha256===item.sha256))return fail(draft,'This picture already belongs beside a service. Choose a distinct opening picture or deliberately change that service relationship first.');
   hero.asset={...item};
   return ready("Selected your existing approved gallery photograph for the hero.");
  }

@@ -8,7 +8,7 @@ export function premiumWebsiteGoal({request,website,businessId,pageId='home',sou
  if(source!=='owner'||typeof request!=='string'||request.length>400||/[<>\u0000-\u001f]/.test(request))return null;
  const words=request.trim().replace(/[.!?]+$/,'');let instruction='',explanation='';
 
- const storyboardGoal=/^(?:make my website look exceptional|keep my words but improve the design|make the whole page more elegant|try a more distinctive design|tell our story better|make our menu the main attraction|show these photographs alongside the right services)$/i.test(words);
+ const storyboardGoal=/^(?:make my catering website more impressive|make it look more like a premium creative business|try another full-page design|keep all my wording but change the presentation|make it look amazing without photos|make the menu stand out more|make my website look exceptional|keep my words but improve the design|make the whole page more elegant|try a more distinctive design|tell our story better|make our menu the main attraction|show these photographs alongside the right services)$/i.test(words);
  if(storyboardGoal){
   const base={recognised:true,requiresReview:true,mayExecute:false,providerCalls:0,ownerWording:request};if(!websiteDraftHasScope(website,businessId))return {...base,ready:false,question:'Open this business’s current website first.'};
   const family=website.theme?.heroComposition||premiumWebsiteDirections(website)[0]?.id||'typography-first',proposal=websiteStoryboardInstructions({...website,theme:{...website.theme,heroComposition:family}},{goal:words});if(!proposal.ok)return {...base,ready:false,question:proposal.reason};
