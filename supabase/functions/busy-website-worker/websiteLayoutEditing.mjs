@@ -1,3 +1,4 @@
+import {websitePresentationPhoto,websiteRecordPhoto,usedContentPhotos} from './websiteContentPhotos.mjs';
 import {websiteHeroPhotos} from './websitePhotoPresentation.mjs';
 import {websiteServicePhoto,usedServicePhotos} from './websiteServicePhotos.mjs';
 import {heroFamilies} from './websiteHeroFamilies.mjs';
@@ -185,7 +186,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    return fail(draft,"Choose a supported appearance setting. Arbitrary CSS or remote fonts are not allowed.");
   if(field==='heroComposition'){
    const required=heroFamilies.find(f=>f.id===value)?.media||0;
-   if(required>1&&usedServicePhotos(draft).length&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'This opening needs more distinct pictures after your service photographs are reserved. Choose more approved pictures or another direction.');
+   if(required>1&&(usedServicePhotos(draft).length+usedContentPhotos(draft).length)&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'This opening needs more distinct pictures after your service photographs are reserved. Choose more approved pictures or another direction.');
    const photos=sections.flatMap(s=>s.type==='hero'?[s.asset]:s.type==='gallery'?list(s.items):[]).filter(a=>a?.approved===true&&typeof a.uri==='string'&&/^https:\/\/[^\s"'<>]+$/.test(a.uri));
    if(new Set(photos.map(a=>a.uri)).size<required)return fail(draft,'Choose enough distinct approved photographs before preparing this direction. A typography-first design is available without photographs.');
    if(value==='product-showcase'&&!sections.some(s=>s.type==='products'&&s.enabled!==false&&s.contentSource==='business_records_v1'))return fail(draft,'Add an original approved product collection before preparing this direction.');
@@ -261,11 +262,11 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(matched.length!==1)
    return fail(draft,"Choose one visible section of your website.");
   const target=matched[0];
-  if(operation.field==='readingLayout'&&operation.value==='sequence'&&(!['text','about'].includes(target.type)||String(target.body||'').split(/\n\s*\n/).filter(x=>x.trim()).length<2||String(target.body||'').split(/\n\s*\n/).filter(x=>x.trim()).length>8))return fail(draft,'A reading sequence needs two to eight supplied paragraphs.');
+  if(operation.field==='readingLayout'&&['sequence','chapters'].includes(operation.value)&&(!['text','about'].includes(target.type)||String(target.body||'').split(/\n\s*\n/).filter(x=>x.trim()).length<2||String(target.body||'').split(/\n\s*\n/).filter(x=>x.trim()).length>8))return fail(draft,'A reading sequence needs two to eight supplied paragraphs.');
   if(operation.field==='testimonialsLayout'&&operation.value==='spotlight'&&!validTestimonialSpotlight(target))return fail(draft,'Use at least two complete, distinctly identified supplied testimonials before comparing this layout.');
   const fields={
    ...textTypographyFields,
-   testimonialsLayout:['brand','spotlight'],serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial','columns','sequence'],faqLayout:['brand','questions'],
+   testimonialsLayout:['brand','spotlight'],serviceLayout:['brand','directory','cards','index','spotlight'],readingLayout:['brand','column','editorial','columns','sequence','chapters'],faqLayout:['brand','questions'],
    ctaSize:['normal','spacious','wide'],
    bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],
@@ -332,6 +333,36 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const hero=sections.find(s=>s.id==='hero');if(!hero||hero.ctaHref==='#'+operation.target)return fail(draft,'That destination is unavailable or already selected.');
   hero.ctaHref='#'+operation.target;return ready('Pointed the main button at existing page information, without submitting or booking anything.');
  }
+ if(action==='navigation-label'){
+  if(Object.keys(operation).some(k=>!['kind','action','sectionId','label'].includes(k))||!['products','services','about','contact'].includes(sectionId)||operation.label!==({products:'Menu',services:'Services',about:'Our story',contact:'Enquire'})[sectionId]||!sections.some(s=>s.id===sectionId&&s.enabled!==false))return fail(draft,'Choose a supported label for an existing destination.');
+  if(operation.label==='Menu'&&(sectionId!=='products'||!sections.find(s=>s.id===sectionId)?.previewFeed?.records?.some(r=>r.kind==='product'&&r.data.status==='active')))return fail(draft,'Review your existing approved menu first.');
+  sections.find(s=>s.id===sectionId).navigationLabel=operation.label;return ready('Prepared the reviewed navigation wording; its original destination is unchanged.');
+ }
+ if(action==='pair-content-photo'||action==='pair-section-photo'){
+  const keys=action==='pair-content-photo'?['kind','action','sectionId','recordId','recordRevision','storagePath']:['kind','action','sectionId','storagePath'];
+  if(Object.keys(operation).some(k=>!keys.includes(k)))return fail(draft,'Choose one exact existing photograph and content destination.');
+  const target=sections.find(s=>s.id===sectionId&&s.enabled!==false),matches=sections.filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>list(s.items)).filter(a=>a.storagePath===operation.storagePath);if(!target||matches.length!==1)return fail(draft,'The picture or destination is unavailable or ambiguous.');
+  const a=matches[0],ref={storagePath:a.storagePath,assetRevision:a.revision,sha256:a.sha256};if(!websitePresentationPhoto(draft,ref))return fail(draft,'Review current website permission and the exact photograph first.');
+  if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.uri===a.uri||s.asset.sha256===a.sha256))||[...usedServicePhotos({...draft,sections}),...usedContentPhotos({...draft,sections})].some(p=>p.storagePath===a.storagePath||p.uri===a.uri||p.sha256===a.sha256))return fail(draft,'This photograph already has a role. Release that use before choosing a new destination.');
+  if(action==='pair-content-photo'){
+   const row=target.previewFeed?.records?.find(r=>r.id===operation.recordId&&r.revision===operation.recordRevision),binding={recordId:operation.recordId,recordRevision:operation.recordRevision,asset:ref};
+   if(!row||!websiteRecordPhoto(draft,{...target,contentPhotos:[binding]},row))return fail(draft,'The approved product or menu revision changed or belongs to another business.');
+   const refs=list(target.contentPhotos);if(refs.length>=4||refs.some(r=>r.recordId===operation.recordId))return fail(draft,'Review at most four distinct menu photographs.');target.contentPhotos=[...refs,binding];
+  }else {if(!['about','text'].includes(target.type)||!text(target.body)||target.storyPhoto)return fail(draft,'Choose an existing supplied story or process with no picture assigned.');target.storyPhoto=ref;}
+  const projected={...draft,sections};const required=heroFamilies.find(f=>f.id===theme.heroComposition)?.media||0;if(required>1&&websiteHeroPhotos(projected).length<required-1)return fail(draft,'Choose more distinct pictures or a simpler opening first.');
+  return ready('Prepared the exact current photograph beside approved content. This association is for owner review, not independent evidence of the picture’s subject.');
+ }
+ if(action==='omit-website-photo'){
+  if(Object.keys(operation).some(k=>!['kind','action','storagePath'].includes(k))||typeof operation.storagePath!=='string')return fail(draft,'Choose one exact current photograph.');const photos=sections.filter(s=>s.type==='gallery').flatMap(s=>list(s.items)).filter(a=>a.storagePath===operation.storagePath);if(photos.length!==1||!websitePresentationPhoto(draft,{storagePath:photos[0].storagePath,assetRevision:photos[0].revision,sha256:photos[0].sha256}))return fail(draft,'Review this current approved website photograph first.');
+  if(sections.some(s=>['hero','photo-feature'].includes(s.type)&&s.asset?.storagePath===operation.storagePath))return fail(draft,'Choose a new opening picture or hide the original photo feature first.');
+  for(const s of sections){if(s.type==='gallery')s.items=list(s.items).filter(a=>a.storagePath!==operation.storagePath);if(s.storyPhoto?.storagePath===operation.storagePath)delete s.storyPhoto;if(Array.isArray(s.contentPhotos))s.contentPhotos=s.contentPhotos.filter(p=>p.asset?.storagePath!==operation.storagePath);for(const i of list(s.items))if(i.photoBinding?.storagePath===operation.storagePath){delete i.photoBinding;delete i.photoPresentation;}}
+  return ready('Omitted that photograph from this private website. Original media, historical drafts and other intended-use permissions are not deleted.');
+ }
+ if(action==='release-photo-use'){
+  if(Object.keys(operation).some(k=>!['kind','action','storagePath'].includes(k))||typeof operation.storagePath!=='string')return fail(draft,'Choose one exact current picture use.');let count=0;
+  for(const s of sections){if(s.storyPhoto?.storagePath===operation.storagePath){delete s.storyPhoto;count++;}if(Array.isArray(s.contentPhotos)){const n=s.contentPhotos.length;s.contentPhotos=s.contentPhotos.filter(p=>p.asset?.storagePath!==operation.storagePath);count+=n-s.contentPhotos.length;}for(const i of list(s.items))if(i.photoBinding?.storagePath===operation.storagePath){delete i.photoBinding;delete i.photoPresentation;count++;}}
+  if(count!==1)return fail(draft,'Choose a photograph currently used in exactly one content relationship.');return ready('Released the private content relationship. The original photograph remains in the gallery, with no change to its rights or publication authority.');
+ }
  if(action==='service-photo-presentation'){
   if(Object.keys(operation).some(k=>!['kind','action','sectionId','itemId','role','caption'].includes(k))||!['offering','method','detail','atmosphere'].includes(operation.role)||typeof operation.caption!=='boolean')return fail(draft,'Choose a supported photographic role and caption option.');
   const section=sections.find(s=>s.id===sectionId&&s.type==='services'&&s.enabled!==false),items=list(section?.items).filter(i=>i.id===operation.itemId);if(items.length!==1)return fail(draft,'Choose one current service photograph.');const item=items[0],asset=websiteServicePhoto(draft,item);if(!asset)return fail(draft,'Review this photograph and current website permission first.');if(operation.caption&&(!text(asset.alt)||text(asset.alt).length>300))return fail(draft,'Review a short approved source caption first.');
@@ -349,7 +380,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    if(previous.length!==1||!websiteServicePhoto(draft,previous[0])||previous[0].id===item.id)return fail(draft,'Choose a photograph currently assigned to one different service.');
    delete previous[0].photoBinding;delete previous[0].photoPresentation;
   }
-  if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.uri===a.uri||s.asset.sha256===a.sha256))||usedServicePhotos({...draft,sections}).some(p=>p.storagePath===a.storagePath||p.uri===a.uri||p.sha256===a.sha256))return fail(draft,'This photograph already has a place on the page. Choose a distinct photograph.');
+  if(sections.some(s=>s.enabled!==false&&['hero','photo-feature'].includes(s.type)&&s.asset&&(s.asset.storagePath===a.storagePath||s.asset.uri===a.uri||s.asset.sha256===a.sha256))||[...usedServicePhotos({...draft,sections}),...usedContentPhotos({...draft,sections})].some(p=>p.storagePath===a.storagePath||p.uri===a.uri||p.sha256===a.sha256))return fail(draft,'This photograph already has a place on the page. Choose a distinct photograph.');
   item.photoBinding=binding;const required=heroFamilies.find(f=>f.id===theme.heroComposition)?.media||0;if(required>1&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'This picture is needed by the multi-picture opening. Choose another approved picture or another direction.');return ready('Paired the exact approved photograph with this service; no claim about past work was added.');
  }
  if(action==="choose-hero-photo"){
@@ -359,7 +390,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    return fail(draft,"Choose an approved photograph already saved in this website's own gallery.");
   const hero=sections.find(s=>s.id==="hero");
   if(!hero)return fail(draft,"A website hero is required to change its image.");
-  if(['narrative','atelier'].includes(theme.heroVariation)&&usedServicePhotos({...draft,sections}).some(a=>a.storagePath===item.storagePath||a.uri===item.uri||a.sha256&&a.sha256===item.sha256))return fail(draft,'This picture already belongs beside a service. Choose a distinct opening picture or deliberately change that service relationship first.');
+  if(['narrative','atelier'].includes(theme.heroVariation)&&[...usedServicePhotos({...draft,sections}),...usedContentPhotos({...draft,sections})].some(a=>a.storagePath===item.storagePath||a.uri===item.uri||a.sha256&&a.sha256===item.sha256))return fail(draft,'This picture already belongs beside a service. Choose a distinct opening picture or deliberately change that service relationship first.');
   hero.asset={...item};
   return ready("Selected your existing approved gallery photograph for the hero.");
  }

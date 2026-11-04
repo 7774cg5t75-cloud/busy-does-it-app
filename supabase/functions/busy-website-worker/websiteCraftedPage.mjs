@@ -3,6 +3,7 @@ import {heroFamilies} from './websiteHeroFamilies.mjs';
 // No new content source, executable fields or industry-template assignment.
 export function craftedPage(draft){return ['crafted','crafted-airy','crafted-compact','authored','authored-airy','authored-compact','narrative','atelier'].includes(draft?.theme?.heroVariation)&&heroFamilies.some(f=>f.id===draft.theme.heroComposition);}
 export function craftedServiceLayout(section,family,direction=''){
+ if(section?.appearance?.serviceLayout==='spotlight')return 'spotlight';
  if(section?.appearance?.serviceLayout==='cards')return 'tiles';
  if(section?.appearance?.serviceLayout==='directory')return 'ledger';
  if(direction==='atelier')return 'atelier';
@@ -16,8 +17,10 @@ export function craftedServices(section,family,{escapeHtml,editAttrs=(...args)=>
  const layout=(direction.startsWith('authored')||direction==='narrative')&&items.length===1?'studio':craftedServiceLayout(section,family,direction);
  return `<div class="crafted-services crafted-services--${layout}${(direction.startsWith('authored')||['narrative','atelier'].includes(direction))?' crafted-services-count-'+Math.min(items.length,3):''}">${items.map((item,index)=>`<article class="crafted-service ${itemClasses(item)}${photoFor(item)?' service-has-photo':''}">${photoFor(item)}<span class="crafted-service-number" aria-hidden="true">${String(index+1).padStart(2,'0')}</span><h3${itemHeadingClass(item)}${editAttrs(section,'title',String(item.id||''))}>${escapeHtml(item.title||'')}</h3>${item.body&&!(['narrative','atelier'].includes(direction)&&String(item.body).trim()===String(item.title).trim())?`<p class="crafted-service-description"${editAttrs(section,'body',String(item.id||''))}>${escapeHtml(item.body)}</p>`:''}${['narrative','atelier'].includes(direction)?'':contactAction(item)}</article>`).join('')}</div>`;
 }
-export function craftedStory(section,{escapeHtml,editAttrs=(...args)=>'',headingTag='h2',direction='',family=''}){
+export function craftedStory(section,{escapeHtml,editAttrs=(...args)=>'',headingTag='h2',direction='',family='',photo=''}){
  const paragraphs=String(section.body||'').split(/\n\s*\n/).filter(x=>x.trim());
+ if(direction==='atelier'&&section.appearance?.readingLayout==='chapters'&&paragraphs.length>=2&&paragraphs.length<=8)return `<div class="wrap atelier-chapters"><header><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></header><ol>${paragraphs.map(p=>{const cut=p.indexOf('. ');return `<li><p>${cut>=0?'<strong>'+escapeHtml(p.slice(0,cut+1))+'</strong> '+escapeHtml(p.slice(cut+2)):escapeHtml(p)}</p></li>`;}).join('')}</ol>${photo}</div>`;
+ if(photo)return `<div class="wrap reviewed-story-spread">${photo}<div><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>'<p'+(i===0?' class="authored-story-lead"':'')+'>'+escapeHtml(p).replace(/\n/g,'<br>')+'</p>').join('')}</div></div></div>`;
  if(['narrative','atelier'].includes(direction)&&section.appearance?.readingLayout==='sequence'&&paragraphs.length>=2&&paragraphs.length<=8)return `<div class="wrap narrative-sequence"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}><ol${editAttrs(section,'body')}>${paragraphs.map(p=>`<li><p>${direction==='atelier'&&p.includes('. ')?'<strong>'+escapeHtml(p.slice(0,p.indexOf('. ')+1))+'</strong> '+escapeHtml(p.slice(p.indexOf('. ')+2)).replace(/\n/g,'<br>'):escapeHtml(p).replace(/\n/g,'<br>')}</p></li>`).join('')}</ol></div>`;
  if((direction.startsWith('authored')||['narrative','atelier'].includes(direction))&&(!section.appearance?.readingLayout||section.appearance.readingLayout==='brand'))return `<div class="wrap authored-story authored-story--${['story-spread','editorial-collage'].includes(family)?'spread':['typography-first','quiet-portrait'].includes(family)?'manifesto':'method'}"><header><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></header><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="authored-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
  return `<div class="wrap crafted-story story-layout"><div class="crafted-section-heading"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title||'')}</${headingTag}></div><div class="story-copy"${editAttrs(section,'body')}>${paragraphs.map((p,i)=>`<p${i===0?' class="crafted-story-lead"':''}>${escapeHtml(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
@@ -263,5 +266,37 @@ export const craftedPageCss=`
  :where(.premium-atelier) .authored-story--manifesto{gap:20px}
  :where(.premium-atelier) .narrative-sequence{gap:24px}
  :where(.premium-atelier) .narrative-sequence li{grid-template-columns:24px minmax(0,1fr);gap:16px}
+}
+
+/* Exact reviewed menu/story relationships: no copied catalogue or generated markup. */
+:where(.premium-crafted) .reviewed-menu-photo,:where(.premium-crafted) .reviewed-story-photo{margin:0;min-width:0}
+:where(.premium-crafted) .reviewed-menu-photo img,:where(.premium-crafted) .reviewed-story-photo img{display:block;width:100%;height:auto;aspect-ratio:4/3}
+:where(.premium-crafted) .menu-item-photographic .reviewed-menu-photo{grid-column:1/-1;margin-bottom:16px}
+:where(.premium-crafted) .menu-item-photographic h3{grid-column:1}
+:where(.premium-crafted) .menu-item-photographic .menu-price{grid-column:2}
+:where(.premium-crafted) .reviewed-story-spread{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(32px,5vw,80px);align-items:center}
+:where(.premium-crafted) .reviewed-story-spread .reviewed-story-photo img{aspect-ratio:3/4}
+:where(.premium-atelier) .crafted-services.crafted-services--spotlight{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(24px,3vw,48px)}
+:where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service{display:grid;grid-template-columns:24px minmax(0,1fr);gap:20px 12px;margin:0;padding:32px 0;grid-column:auto;grid-row:auto;border-top:2px solid var(--accent)}
+:where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service>h3:not([class*="owner-item-heading"]){grid-column:2;font-size:clamp(1.8rem,3.1vw,3rem);line-height:1.08;max-width:18ch}
+:where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service .crafted-service-description{grid-column:2;max-width:38ch;margin:0}
+:where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service .crafted-service-number{grid-column:1;grid-row:auto}
+:where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service:nth-child(2){margin-top:56px}
+:where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service:nth-child(3){margin-top:112px}
+:where(.premium-atelier) .atelier-chapters{display:grid;grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);gap:clamp(32px,5vw,80px)}
+:where(.premium-atelier) .atelier-chapters ol{list-style:none;padding:0;margin:0;counter-reset:chapters;display:grid;gap:0}
+:where(.premium-atelier) .atelier-chapters li{counter-increment:chapters;display:grid;grid-template-columns:48px minmax(0,1fr);gap:24px;padding:32px 0;border-top:1px solid var(--line)}
+:where(.premium-atelier) .atelier-chapters li:before{content:counter(chapters,decimal-leading-zero);font-size:1rem;padding-top:8px}
+:where(.premium-atelier) .atelier-chapters li p{margin:0;max-width:48ch}
+:where(.premium-atelier) .atelier-chapters li strong{display:block;font-size:clamp(1.7rem,2.8vw,2.6rem);line-height:1.2;font-weight:500;letter-spacing:-.03em;margin-bottom:20px}
+:where(.premium-atelier) .atelier-chapters li:first-child{background:var(--ink);color:var(--paper);padding:clamp(24px,3vw,40px);border:0;margin-bottom:16px}
+:where(.premium-atelier) .atelier-chapters .reviewed-story-photo{grid-column:1/-1}
+@media(max-width:800px){
+ :where(.premium-crafted) .reviewed-story-spread,:where(.premium-atelier) .atelier-chapters,:where(.premium-atelier) .crafted-services.crafted-services--spotlight{grid-template-columns:minmax(0,1fr)}
+ :where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service:nth-child(2),:where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service:nth-child(3){margin-top:0}
+ :where(.premium-atelier) .crafted-services.crafted-services--spotlight .crafted-service>h3:not([class*="owner-item-heading"]){font-size:clamp(2rem,8.5vw,2.8rem)}
+ :where(.premium-atelier) .atelier-chapters li{grid-template-columns:24px minmax(0,1fr);gap:16px;padding-block:28px}
+ :where(.premium-atelier) .atelier-chapters li:first-child{padding:24px}
+ :where(.premium-crafted) .reviewed-story-spread .reviewed-story-photo img{aspect-ratio:4/3}
 }
 `;

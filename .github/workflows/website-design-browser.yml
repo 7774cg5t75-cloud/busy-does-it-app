@@ -22,6 +22,9 @@ on:
       - 'scripts/check-guided-website-creation.mjs'
       - 'scripts/fetch-guided-website-assets.py'
       - 'scripts/fixtures/guided-websites/**'
+      - 'scripts/check-website-menu-story.mjs'
+      - 'scripts/process-menu-story-photos.mjs'
+      - 'supabase/functions/busy-website-worker/websiteContentPhotos.mjs'
       - 'scripts/check-website-art-direction.mjs'
       - 'scripts/fixtures/website-art-direction/**'
       - 'src/core/governedBuilderProposal.mjs'
@@ -45,7 +48,7 @@ concurrency:
 jobs:
   fictional-renderer:
     runs-on: ubuntu-22.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       CI: '1'
     steps:
@@ -87,6 +90,9 @@ jobs:
           BUSY_STORYBOARD_BROWSER=1 node scripts/capture-website-design.mjs
           node scripts/check-website-art-direction.mjs
           BUSY_ART_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-menu-story.mjs
+          node scripts/process-menu-story-photos.mjs
+          BUSY_MENU_BROWSER=1 node scripts/capture-website-design.mjs
       - name: Compare real current pixels with the exact previous guided evidence
         if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
         env:
@@ -237,4 +243,59 @@ jobs:
             .test-artifacts/website-art-direction/[6-9]-*.png
             .test-artifacts/website-art-direction/10-*.png
             .test-artifacts/website-art-direction/*.json
+          retention-days: 7
+
+      - name: Retain menu-story catering original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-catering-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/[0-1]-*.png
+            .test-artifacts/website-menu-story/*.json
+            .test-artifacts/website-menu-story/*.html
+          retention-days: 7
+
+      - name: Retain menu-story gardening original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-gardening-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/[2-3]-*.png
+            .test-artifacts/website-menu-story/*.json
+            .test-artifacts/website-menu-story/*.html
+          retention-days: 7
+
+      - name: Retain menu-story studio original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-studio-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/[4-5]-*.png
+            .test-artifacts/website-menu-story/*.json
+            .test-artifacts/website-menu-story/*.html
+          retention-days: 7
+
+      - name: Retain menu-story gardens original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/[6-9]-*.png
+            .test-artifacts/website-menu-story/10-*.png
+            .test-artifacts/website-menu-story/*.json
+          retention-days: 7
+
+      - name: Retain menu-story delivery original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-delivery-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/delivery-*.png
+            .test-artifacts/website-menu-story/*.json
+            .test-artifacts/website-menu-story/*.html
           retention-days: 7

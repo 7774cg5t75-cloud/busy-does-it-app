@@ -1,3 +1,4 @@
+import {websitePhotographyInstructions} from './websiteStoryboard.mjs';
 import {prepareWebsiteRequest} from './websiteRequestPlan.mjs';
 import {PREMIUM_HERO_COMPOSITIONS} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
 import {reviewAppGoalDesignV3240} from './appGoalDesignReviewV3240.mjs';
@@ -9,6 +10,7 @@ import {getUniversalCapability} from './universalCapabilityCatalogV3210.mjs';
 import {stableJson} from './stableJson.mjs';
 // Data-only, provider-neutral boundary. Neither model output nor this client
 // validator authenticates anyone, reserves money, writes records or grants tools.
+export const WEBSITE_ART_STORY_VERSION='busy.website-art-direction.v3';
 export const WEBSITE_ART_PROPOSAL_VERSION='busy.website-art-direction.v2';
 export const BUILDER_PROPOSAL_VERSION='busy.builder-proposal.v1';
 // Explicit successor for descriptive bespoke screens. Null modules are never executable.
@@ -33,11 +35,16 @@ export function builderInterpretationEnvelope(context,goal){
 }
 export function validateBuilderProposal(proposal,context){
  try{
-  if(!context?.ok||new TextEncoder().encode(stableJson(proposal)).length>16000||!exact(proposal,['version','scope','kind','explanation','objectives','app',...(proposal?.version===WEBSITE_ART_PROPOSAL_VERSION?['art']:[])])||!([BUILDER_PROPOSAL_VERSION,...(context.scope.surface==='app'?[APP_SPEC_PROPOSAL_VERSION]:[WEBSITE_ART_PROPOSAL_VERSION])].includes(proposal.version))||stableJson(proposal.scope)!==stableJson(context.scope)||!text(proposal.explanation))return fail('This suggestion does not match the current project. Nothing changed.');
+  if(!context?.ok||new TextEncoder().encode(stableJson(proposal)).length>16000||!exact(proposal,['version','scope','kind','explanation','objectives','app',...([WEBSITE_ART_PROPOSAL_VERSION,WEBSITE_ART_STORY_VERSION].includes(proposal?.version)?['art']:[])])||!([BUILDER_PROPOSAL_VERSION,...(context.scope.surface==='app'?[APP_SPEC_PROPOSAL_VERSION]:[WEBSITE_ART_PROPOSAL_VERSION,WEBSITE_ART_STORY_VERSION])].includes(proposal.version))||stableJson(proposal.scope)!==stableJson(context.scope)||!text(proposal.explanation))return fail('This suggestion does not match the current project. Nothing changed.');
   if(context.scope.surface==='website'){
    if(proposal.kind!=='website-design'||proposal.app!==null||!list(proposal.objectives,2,x=>objectives.includes(x))||new Set(proposal.objectives).size!==proposal.objectives.length)return fail('Only supported private design suggestions can be reviewed.');
-   if(proposal.version===WEBSITE_ART_PROPOSAL_VERSION){
-    const a=proposal.art;if(!exact(a,['direction','family','photos'])||a.direction!=='expressive'||!PREMIUM_HERO_COMPOSITIONS.includes(a.family)||!Array.isArray(a.photos)||a.photos.length>4||a.photos.some(p=>!exact(p,['serviceId','storagePath','role','caption'])||!id(p.serviceId)||typeof p.storagePath!=='string'||!/^[-a-zA-Z0-9_./]{1,300}$/.test(p.storagePath)||p.storagePath.split('/').includes('..')||!['offering','method','detail','atmosphere'].includes(p.role)||typeof p.caption!=='boolean')||new Set(a.photos.map(p=>p.storagePath)).size!==a.photos.length||new Set(a.photos.map(p=>p.serviceId)).size!==a.photos.length)return fail('Review only supported current compositions and exact picture relationships.');
+   if([WEBSITE_ART_PROPOSAL_VERSION,WEBSITE_ART_STORY_VERSION].includes(proposal.version)){
+    const a=proposal.art;if(!exact(a,['direction','family','photos',...(proposal.version===WEBSITE_ART_STORY_VERSION?['contentPhotos','services','story','customerAction','copy']:[])])||a.direction!=='expressive'||!PREMIUM_HERO_COMPOSITIONS.includes(a.family)||!Array.isArray(a.photos)||a.photos.length>4||a.photos.some(p=>!exact(p,['serviceId','storagePath','role','caption'])||!id(p.serviceId)||typeof p.storagePath!=='string'||!/^[-a-zA-Z0-9_./]{1,300}$/.test(p.storagePath)||p.storagePath.split('/').includes('..')||!['offering','method','detail','atmosphere'].includes(p.role)||typeof p.caption!=='boolean')||new Set(a.photos.map(p=>p.storagePath)).size!==a.photos.length||new Set(a.photos.map(p=>p.serviceId)).size!==a.photos.length)return fail('Review only supported current compositions and exact picture relationships.');
+    if(proposal.version===WEBSITE_ART_STORY_VERSION){
+     const d=context.anchor.project;if(!Array.isArray(a.contentPhotos)||a.contentPhotos.length>2||new Set(a.contentPhotos.map(p=>p?.storagePath)).size!==a.contentPhotos.length||!['brand','spotlight'].includes(a.services)||!['unchanged','menu','contact'].includes(a.customerAction)||!['unchanged','profile-introduction'].includes(a.copy)||a.story!==null&&(!exact(a.story,['sectionId','layout'])||a.story.layout!=='chapters'||!id(a.story.sectionId)||!d.sections.some(s=>s.id===a.story.sectionId&&s.type==='text'&&s.enabled!==false)))return fail('Choose supported bounded services, process and customer destinations.');
+     for(const p of a.contentPhotos){if(!websitePhotographyInstructions(d,p).ok)return fail('Choose exact approved content and photographs.');if(p.target.kind==='product'&&!d.sections.some(s=>s.type==='products'&&s.previewFeed?.businessId===context.scope.businessId&&s.previewFeed.records.some(r=>r.id===p.target.id&&r.revision===p.target.revision&&r.kind==='product'&&r.data.status==='active')))return fail('This product revision is unavailable or foreign.');if(!['product','section'].includes(p.target.kind))return fail('A model may suggest content relationships, not omit original pictures.');}
+     if(a.copy==='profile-introduction'&&(typeof context.anchor.profile.description!=='string'||!context.anchor.profile.description.trim()||context.anchor.profile.description.length>800||/["<>\u0000-\u001f]/.test(context.anchor.profile.description)))return fail('Choose existing approved copy or use the original text editor.');
+    }
     const d=context.anchor.project;for(const p of a.photos){if(d.sections.filter(s=>s.type==='services'&&s.enabled!==false).flatMap(s=>s.items||[]).filter(i=>i.id===p.serviceId).length!==1||d.sections.filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>s.items||[]).filter(i=>i.storagePath===p.storagePath&&i.approved===true&&i.businessId===context.scope.businessId).length!==1)return fail('The proposed service or photograph is foreign, unavailable or ambiguous.');}
    }
    return {ok:true,proposal:frozen(JSON.parse(stableJson(proposal))),mayExecute:false,requiresReview:true};
@@ -56,10 +63,14 @@ export function prepareGovernedBuilderReview(proposal,context,current,deps={}){
  const checked=validateBuilderProposal(proposal,context);if(!checked.ok)return checked;
  if(!current?.ok||stableJson(current.scope)!==stableJson(context.scope)||stableJson(current.anchor)!==stableJson(context.anchor))return fail('Your project or approved business information changed. Prepare a fresh review.');
  if(context.scope.surface==='website'){
-  if(proposal.version===WEBSITE_ART_PROPOSAL_VERSION){
+  if([WEBSITE_ART_PROPOSAL_VERSION,WEBSITE_ART_STORY_VERSION].includes(proposal.version)){
    const d=context.anchor.project,a=checked.proposal.art,commands=[];if(d.theme?.heroComposition!==a.family)commands.push('use the reviewed "'+a.family+'" opening');if(d.theme?.heroVariation!=='atelier')commands.push('compose an expressive complete website');
    for(const p of a.photos){const items=d.sections.filter(s=>s.type==='services').flatMap(s=>s.items||[]),item=items.find(i=>i.id===p.serviceId);if(item?.photoBinding?.storagePath!==p.storagePath)commands.push((items.some(i=>i.photoBinding?.storagePath===p.storagePath)?'move':'pair')+' approved photo "'+p.storagePath+'" with service "'+p.serviceId+'"');commands.push('present service "'+p.serviceId+'" photo as '+p.role+' '+(p.caption?'with':'without')+' its approved caption');}
-   if(!commands.length)return fail('This direction is already selected.');const prepared=prepareWebsiteRequest(d,{draftId:d.id,pageId:context.scope.pageId,generation:d.generation,instruction:commands.join('; ')},deps);return prepared.ok?{ok:true,kind:'website-art-review',prepared,suggestedExplanation:proposal.explanation,suggestionNotVerified:true,requiresReview:true,mayExecute:false,providerCalls:0}:fail(prepared.reason);
+   if(proposal.version===WEBSITE_ART_STORY_VERSION){
+    for(const p of a.contentPhotos){const change=websitePhotographyInstructions(d,p);if(!change.ok)return fail(change.reason);commands.push(change.instruction);}
+    if(a.services==='spotlight')commands.push('show services as a spotlight');if(a.story)commands.push('show '+a.story.sectionId+' text as narrative chapters');if(a.customerAction==='menu')commands.push('label products navigation "Menu"');if(a.customerAction==='contact'&&d.sections.find(s=>s.id==='hero')?.ctaHref!=='#contact')commands.push('point the main button to contact');if(a.copy==='profile-introduction'&&d.sections.find(s=>s.id==='hero')?.body!==context.anchor.profile.description)commands.push('change the hero body to "'+context.anchor.profile.description+'"');
+   }
+   if(!commands.length)return fail('This direction is already selected.');const prepared=prepareWebsiteRequest(d,{draftId:d.id,pageId:context.scope.pageId,generation:d.generation,instruction:commands.join('; ')},deps);return prepared.ok&&prepared.groups.length===1?{ok:true,kind:'website-art-review',prepared,suggestedExplanation:proposal.explanation,suggestionNotVerified:true,requiresReview:true,mayExecute:false,providerCalls:0}:fail(prepared.reason);
   }
   // Translate only closed intent labels, never arbitrary model wording/code.
   const words=proposal.objectives.map(x=>x==='professional-presentation'?'make my website look more professional':'make my website easier to read on my phone').join(' and ');

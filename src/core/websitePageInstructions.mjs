@@ -66,6 +66,16 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    description='Replace only the owner-written '+field+' in '+section.title;
   }else if(/^compose an expressive complete website$/i.test(clause)){
    change={action:'style',field:'heroVariation',value:'atelier'};description='Review expressive full-page services, story, process and contact, with exact approved words and assets';
+  }else if((m=clause.match(/^pair approved photo "([^"<>]{1,300})" with product "([^"<>]{1,128})" revision ([1-9][0-9]{0,8})$/i))){
+   const target=findSection('products');if(!target)return fail('Open the approved product or menu destination.');change={action:'pair-content-photo',sectionId:target.id,recordId:m[2],recordRevision:Number(m[3]),storagePath:m[1]};description='Review the exact current approved record beside this original photograph, without claiming it depicts the actual product';
+  }else if((m=clause.match(/^pair approved photo "([^"<>]{1,300})" with section "([^"<>]{1,100})"$/i))){
+   const target=findSection(m[2]);if(!target)return fail('Choose the exact supplied story or process section.');change={action:'pair-section-photo',sectionId:target.id,storagePath:m[1]};description='Review the photograph with the supplied story or process, without inferring facts';
+  }else if((m=clause.match(/^omit approved photo "([^"<>]{1,300})" from the website$/i))){
+   change={action:'omit-website-photo',storagePath:m[1]};description='Review omitting this picture from this private website only';
+  }else if((m=clause.match(/^release approved photo "([^"<>]{1,300})" to the gallery$/i))){
+   change={action:'release-photo-use',storagePath:m[1]};description='Keep the original photograph in its gallery while releasing its private content relationship';
+  }else if((m=clause.match(/^label (products|services|about|contact) navigation "(Menu|Services|Our story|Enquire)"$/i))){
+   const target=findSection(m[1]);if(!target)return fail('Choose an existing destination.');change={action:'navigation-label',sectionId:target.id,label:m[2]};description='Review destination wording, preserving the original anchor';
   }else if((m=clause.match(/^(?:move|pair) approved photo "([^"<>]{1,300})" with service "([^"<>]{1,128})"$/i))){
    const section=list(draft.sections).filter(s=>s.type==='services'&&s.enabled!==false&&list(page.sectionIds).includes(s.id)&&list(s.items).some(i=>i.id===m[2]));
    if(section.length!==1)return fail('Choose one exact service on this page.');
@@ -97,14 +107,14 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    const section=findSection(m[1]);if(!section||section.type!=='testimonials')return fail('Name one visible supplied-testimonials section.');
    change={action:'section-style',sectionId:section.id,field:'testimonialsLayout',value:'spotlight'};
    description='Compare the first existing quotation with supporting cards, without verifying reviews or changing words and order';
-  }else if((m=clause.match(/^show (?:the )?(.+?) text as (an editorial layout|a reading column|two reading columns|a numbered sequence|the original layout)$/i))){
+  }else if((m=clause.match(/^show (?:the )?(.+?) text as (an editorial layout|a reading column|two reading columns|a numbered sequence|narrative chapters|the original layout)$/i))){
    const section=findSection(m[1]);if(!section||!['about','text'].includes(section.type))return fail('Name one visible information section.');
-   change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','a numbered sequence':'sequence','the original layout':'brand'}[m[2].toLowerCase()]};
+   change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','a numbered sequence':'sequence','narrative chapters':'chapters','the original layout':'brand'}[m[2].toLowerCase()]};
    description='Compare only '+section.title+' reading layout without changing its words, colours or phone source order';
-  }else if((m=clause.match(/^(?:show|display) (?:the )?services as (a directory|a linked guide|cards|the original layout)$/i))){
+  }else if((m=clause.match(/^(?:show|display) (?:the )?services as (a directory|a linked guide|a spotlight|cards|the original layout)$/i))){
    const section=findSection('services');
    if(!section||section.type!=='services')return fail('Open the current page containing the services section first.');
-   change={action:'section-style',sectionId:section.id,field:'serviceLayout',value:{'a directory':'directory','a linked guide':'index',cards:'cards','the original layout':'brand'}[m[1].toLowerCase()]};
+   change={action:'section-style',sectionId:section.id,field:'serviceLayout',value:{'a directory':'directory','a linked guide':'index','a spotlight':'spotlight',cards:'cards','the original layout':'brand'}[m[1].toLowerCase()]};
    description='Change only the services layout; preserve names, descriptions, order, branding and destinations. Phones keep one reading column';
   }else if((m=clause.match(/^(?:show|display) (products|events) as (cards|rows)$/i))){
    const section=findSection(m[1].toLowerCase());
@@ -199,7 +209,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    description="Emphasise the existing approved website button";
   }else return fail("No changes were made. Step "+(i+1)+" is not a supported, exact instruction. Try 'move the services section up' or 'make the hero heading smaller on phones'.");
   const leaves=change.action==='style-group'?change.operations:[change];
-  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):['pair-service-photo','move-service-photo','service-photo-presentation'].includes(op.action)?op.itemId:op.field||op.device||"position"].join(":"));
+  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):['pair-content-photo'].includes(op.action)?op.recordId:['pair-service-photo','move-service-photo','service-photo-presentation'].includes(op.action)?op.itemId:op.action==='release-photo-use'?op.storagePath:op.field||op.device||"position"].join(":"));
   if(keys.some(key=>targets.has(key)))return fail("Two steps affect the same setting. Give one instruction for that setting.");
   if(change.sectionId)previousSection=list(draft.sections).find(s=>s.id===change.sectionId)||null;
   keys.forEach(key=>targets.add(key));steps.push({type,change,spoken:clause,description});

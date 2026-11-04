@@ -1,3 +1,4 @@
+import {usedContentPhotos} from './websiteContentPhotos.mjs';
 import {usedServicePhotos} from './websiteServicePhotos.mjs';
 export function websiteAssetAvailable(asset,businessId=''){
  return !!asset&&asset.approved!==false&&!['revoked','withdrawn','deleted'].includes(asset.status)&&![asset.businessId,asset.business_id].some(id=>id&&businessId&&id!==businessId)&&(!asset.expiresAt||Number.isFinite(Date.parse(asset.expiresAt))&&Date.parse(asset.expiresAt)>Date.now());
@@ -20,10 +21,10 @@ export function distinctWebsitePhotos(items,{businessId='',exclude=[]}={}){
 }
 export function websiteHeroPhotos(draft){
  const heroes=(draft?.sections||[]).filter(s=>s.type==='hero'&&s.enabled!==false).map(s=>s.asset).filter(Boolean);
- return distinctWebsitePhotos((draft?.sections||[]).filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>s.items||[]),{businessId:draft?.businessId||draft?.business_id,exclude:[...heroes,...(['narrative','atelier'].includes(draft?.theme?.heroVariation)?usedServicePhotos(draft):[])]});
+ return distinctWebsitePhotos((draft?.sections||[]).filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>s.items||[]),{businessId:draft?.businessId||draft?.business_id,exclude:[...heroes,...(['narrative','atelier'].includes(draft?.theme?.heroVariation)?[...usedServicePhotos(draft),...usedContentPhotos(draft)]:[])]});
 }
 export function websiteGalleryPresentation(section,draft,{omitHero=true}={}){
  const heroes=omitHero&&draft?.theme?.heroComposition?(draft.sections||[]).filter(s=>s.type==='hero'&&s.enabled!==false).map(s=>s.asset).filter(Boolean):[];
- const exclude=[...heroes,...(['narrative','atelier'].includes(draft?.theme?.heroVariation)?usedServicePhotos(draft):[])];if(omitHero&&draft?.theme?.heroComposition==='editorial-collage')exclude.push(...websiteHeroPhotos(draft).slice(0,2).map(r=>r.asset));
+ const exclude=[...heroes,...(['narrative','atelier'].includes(draft?.theme?.heroVariation)?[...usedServicePhotos(draft),...usedContentPhotos(draft)]:[])];if(omitHero&&draft?.theme?.heroComposition==='editorial-collage')exclude.push(...websiteHeroPhotos(draft).slice(0,2).map(r=>r.asset));
  return distinctWebsitePhotos(section?.items,{businessId:draft?.businessId||draft?.business_id,exclude});
 }

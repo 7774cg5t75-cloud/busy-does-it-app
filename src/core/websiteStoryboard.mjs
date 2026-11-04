@@ -22,3 +22,19 @@ export function prepareWebsiteStoryboard({website,businessId,ownerId,profileRevi
  if(!ownerId||!websiteDraftHasScope(website,businessId))return fail('Open your own current business website.');const proposal=websiteStoryboardInstructions(website,{goal,pairs});if(!proposal.ok)return proposal;
  const plan=prepareWebsiteRequest(website,{draftId:website.id,pageId:'home',generation:website.generation,instruction:proposal.instruction},deps);return plan.ok?{...proposal,plan,ownerId,businessId,profileRevision,source:websiteRequestContent(website),requiresReview:true,mayExecute:false,publicActivation:false}:plan;
 }
+
+// Exact owner-selected relationships; never image classification or write authority.
+export function websitePhotographyInstructions(website,choice){
+ if(!choice||Object.keys(choice).sort().join(',')!=='storagePath,target'||typeof choice.storagePath!=='string'||!/^[-a-zA-Z0-9_./]{1,300}$/.test(choice.storagePath)||choice.storagePath.split('/').includes('..'))return fail('Choose one exact current picture.');
+ const t=choice.target;if(!t||!['product','section','gallery','omit'].includes(t.kind)||Object.keys(t).sort().join(',')!==(t.kind==='product'?'id,kind,revision':t.kind==='section'?'id,kind':'kind'))return fail('Choose a supported destination for this picture.');
+ const sections=website?.sections||[],assets=sections.filter(s=>s.type==='gallery'&&s.enabled!==false).flatMap(s=>s.items||[]).filter(a=>a.storagePath===choice.storagePath);if(assets.length!==1)return fail('Review the exact approved picture in this business’s gallery.');
+ const q='"'+choice.storagePath+'"',used=sections.some(s=>s.storyPhoto?.storagePath===choice.storagePath||(s.contentPhotos||[]).some(p=>p.asset?.storagePath===choice.storagePath)||(s.items||[]).some(i=>i.photoBinding?.storagePath===choice.storagePath));const commands=[];
+ if(t.kind==='omit')return {ok:true,instruction:'omit approved photo '+q+' from the website'};
+ if(used)commands.push('release approved photo '+q+' to the gallery');
+ if(t.kind==='product'){
+  if(typeof t.id!=='string'||!/^[-a-zA-Z0-9_]{1,128}$/.test(t.id)||!Number.isSafeInteger(t.revision)||t.revision<1)return fail('Choose the current approved product revision.');commands.push('pair approved photo '+q+' with product "'+t.id+'" revision '+t.revision);
+ }else if(t.kind==='section'){
+  const section=sections.find(s=>s.id===t.id&&s.enabled!==false&&['about','text'].includes(s.type));if(!section||!/^[-a-zA-Z0-9_]{1,100}$/.test(t.id))return fail('Choose one supplied story or process.');commands.push('pair approved photo '+q+' with section "'+t.id+'"');
+ }else if(!used)return fail('This picture is already only in the gallery.');
+ return {ok:true,instruction:commands.join('; '),requiresReview:true,mayExecute:false};
+}

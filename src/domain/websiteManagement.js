@@ -105,10 +105,10 @@ function buildWebsitePageModel(draft = {}) {
   const navigation = singlePage
     ? [{id:"home",label:"Home",href:"#main"},
       ...homeIds.filter(id=>["services","about","gallery","contact","products","events"].includes(id))
-        .map(id=>({id,label:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact",products:"Products",events:"Events"})[id],href:"#"+id})),
-      ...pages.filter(page=>page.id.startsWith("page-")).map(page=>({id:page.id,label:page.title,href:page.path}))]
+        .map(id=>({id,label:(["Menu","Services","Our story","Enquire"].includes(safeArray(draft.sections).find(s=>s.id===id)?.navigationLabel)?safeArray(draft.sections).find(s=>s.id===id).navigationLabel:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact",products:"Products",events:"Events"})[id]),href:"#"+id})),
+      ...pages.filter(page=>page.id.startsWith("page-")).map(page=>({id:page.id,label:(["Menu","Services","Our story","Enquire"].includes(safeArray(draft.sections).find(s=>s.id===page.id)?.navigationLabel)?safeArray(draft.sections).find(s=>s.id===page.id).navigationLabel:page.title),href:page.path}))]
     : pages.filter(page=>page.id!=="faq").map(page=>({
-      id:page.id,label:page.title,href:page.path
+      id:page.id,label:(["Menu","Services","Our story","Enquire"].includes(safeArray(draft.sections).find(s=>s.id===page.id)?.navigationLabel)?safeArray(draft.sections).find(s=>s.id===page.id).navigationLabel:page.title),href:page.path
     }));
 
   const pageSeo = {};

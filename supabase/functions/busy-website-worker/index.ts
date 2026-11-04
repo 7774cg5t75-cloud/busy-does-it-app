@@ -1,3 +1,4 @@
+import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from './websiteContentPhotos.mjs';
 import {servicePhotoHtml} from './websiteServicePhotos.mjs';
 import {craftedPage,craftedServices,craftedStory,craftedContact} from './websiteCraftedPage.mjs';
 import {responsivePhotoAttributes} from './websiteResponsivePhotos.mjs';
@@ -275,7 +276,7 @@ function renderSectionHtml(
     }</div></section>`;
   }
 
-  if(craftedPage(draft)&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{direction:draft.theme.heroVariation,family:draft.theme.heroComposition,escapeHtml,headingTag})}</section>`;
+  if(craftedPage(draft)&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{photo:presentationPhotoHtml(websiteSectionPhoto(draft,section),(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml),'story'),direction:draft.theme.heroVariation,family:draft.theme.heroComposition,escapeHtml,headingTag})}</section>`;
   if(draft.theme?.heroComposition&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body)){
     const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map((text:string)=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
     return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2>${escapeHtml(section.title)}</h2><div class="story-copy">${paragraphs}</div></div></section>`;
@@ -364,7 +365,7 @@ function renderWebsiteHtml(
       return true;
     })
     .map((section: any, index: number) =>
-      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home')
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml),'menu'),narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home')
     )
     .join("");
 
