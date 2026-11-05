@@ -1,0 +1,132 @@
+{
+  "source": {
+    "commit": "3852ffb4e92efa275bbd0edb4f41902af6be5878",
+    "tree": "5d68b140371ae8bde2dd71a966c143c45d9a0f97"
+  },
+  "richSourceComparisons": [
+    {
+      "business": "Ember",
+      "viewport": 320,
+      "beforeHeight": 4519,
+      "afterHeight": 4494,
+      "beforeImageBytes": 216980,
+      "afterImageBytes": 216980
+    },
+    {
+      "business": "Ember",
+      "viewport": 390,
+      "beforeHeight": 4392,
+      "afterHeight": 4424,
+      "beforeImageBytes": 216980,
+      "afterImageBytes": 216980
+    },
+    {
+      "business": "Ember",
+      "viewport": 1440,
+      "beforeHeight": 4580,
+      "afterHeight": 4695,
+      "beforeImageBytes": 703974,
+      "afterImageBytes": 703974
+    },
+    {
+      "business": "Clearleaf",
+      "viewport": 320,
+      "beforeHeight": 3656,
+      "afterHeight": 3689,
+      "beforeImageBytes": 430912,
+      "afterImageBytes": 430912
+    },
+    {
+      "business": "Clearleaf",
+      "viewport": 390,
+      "beforeHeight": 3624,
+      "afterHeight": 3619,
+      "beforeImageBytes": 430912,
+      "afterImageBytes": 430912
+    },
+    {
+      "business": "Clearleaf",
+      "viewport": 1440,
+      "beforeHeight": 3938,
+      "afterHeight": 4238,
+      "beforeImageBytes": 1529468,
+      "afterImageBytes": 1529468
+    },
+    {
+      "business": "Quiet Light",
+      "viewport": 320,
+      "beforeHeight": 3876,
+      "afterHeight": 3992,
+      "beforeImageBytes": 0,
+      "afterImageBytes": 0
+    },
+    {
+      "business": "Quiet Light",
+      "viewport": 390,
+      "beforeHeight": 3573,
+      "afterHeight": 3726,
+      "beforeImageBytes": 0,
+      "afterImageBytes": 0
+    },
+    {
+      "business": "Quiet Light",
+      "viewport": 1440,
+      "beforeHeight": 4195,
+      "afterHeight": 4180,
+      "beforeImageBytes": 0,
+      "afterImageBytes": 0
+    }
+  ],
+  "deliveries": [
+    {
+      "kind": "original",
+      "viewport": 320,
+      "dpr": 1,
+      "bytes": 6846480
+    },
+    {
+      "kind": "responsive",
+      "viewport": 320,
+      "dpr": 1,
+      "bytes": 216980
+    },
+    {
+      "kind": "original",
+      "viewport": 390,
+      "dpr": 1,
+      "bytes": 6846480
+    },
+    {
+      "kind": "responsive",
+      "viewport": 390,
+      "dpr": 1,
+      "bytes": 216980
+    },
+    {
+      "kind": "original",
+      "viewport": 1440,
+      "dpr": 1,
+      "bytes": 6846480
+    },
+    {
+      "kind": "responsive",
+      "viewport": 1440,
+      "dpr": 1,
+      "bytes": 703974
+    },
+    {
+      "kind": "original",
+      "viewport": 390,
+      "dpr": 2,
+      "bytes": 6846480
+    },
+    {
+      "kind": "responsive",
+      "viewport": 390,
+      "dpr": 2,
+      "bytes": 703974
+    }
+  ],
+  "allCurrentFailures": [],
+  "interpretation": "Objective dimensions/transfer values, never an aesthetic score. Original-versus-responsive delivery is retained prior capability, not a newly introduced CDN or current hosted performance claim."
+}

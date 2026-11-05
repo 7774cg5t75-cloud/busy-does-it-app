@@ -1,0 +1,102 @@
+{
+  "functionalCommit": "3852ffb4e92efa275bbd0edb4f41902af6be5878",
+  "functionalTree": "5d68b140371ae8bde2dd71a966c143c45d9a0f97",
+  "allEightWorkflowsPassed": true,
+  "application": {
+    "passed": 495,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "foundationAssertions": 105,
+  "postgresStages": 217,
+  "postgresBySuite": {
+    "postgres.json": {
+      "passed": 126,
+      "failed": 0
+    },
+    "public-form-postgres.json": {
+      "passed": 21,
+      "failed": 0
+    },
+    "enquiry-preparation-postgres.json": {
+      "passed": 13,
+      "failed": 0
+    },
+    "operational-work-postgres.json": {
+      "passed": 13,
+      "failed": 0
+    },
+    "work-preparation-postgres.json": {
+      "passed": 12,
+      "failed": 0
+    },
+    "ai-budget-postgres.json": {
+      "passed": 32,
+      "failed": 0
+    }
+  },
+  "originalDenoEntries": 25,
+  "additionalServerModules": 2,
+  "denoChecks": [
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-ai-intake/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-builder-proposals/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-calendar-oauth/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-calendar-sync/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-command/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-conversation-extract/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-founder-ops/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-mini-app-guest-alert-dispatch/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-mini-app-guest-alert-receipts/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-mini-app-guest/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-mini-app-link/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-mini-apps/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-production-watch/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-push-dispatch/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-social-content/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-social-publish/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-design-review/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-form/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-health/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-origin/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-original-media/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-provider/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-publish/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-signals/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-website-worker/index.ts",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs",
+    "Check file:///home/runner/work/_temp/busy-screen-edge-source/supabase/functions/busy-builder-proposals/creativeLedger.mjs"
+  ],
+  "syntaxChangedSources": 27,
+  "architecture": {
+    "sourceFiles": 1914,
+    "physicalLines": 176181,
+    "staticRelativeEdges": 4502,
+    "distinctStaticCycles": 0
+  },
+  "unsignedExports": {
+    "ownerPreviewModules": 1569,
+    "isolatedStagingModules": 1628,
+    "signed": false,
+    "nativeDeviceAccepted": false
+  },
+  "browser": {
+    "run": 42075892753,
+    "verifiedPNGs": 246,
+    "verifiedArchives": 7,
+    "version": "145.0.7632.6",
+    "sandboxRequired": true,
+    "externalBrowserRequests": 0
+  },
+  "mainArchive": {
+    "id": 13438313656,
+    "sha256": "dab48391c15027571ed7958e1cf1d192b14afb036a2497bd7efbb2f421a5ca5c",
+    "sizeBytes": 183144
+  },
+  "guardedDependency": "Reviewed lock/ignore-scripts install and deepmerge backport verified; no dependency changes",
+  "security": "Original Security by Design and full negative regressions retained",
+  "goldStandardsApproved": 0,
+  "realProviderCalls": 0,
+  "sourceStable": true,
+  "releaseReady": false
+}

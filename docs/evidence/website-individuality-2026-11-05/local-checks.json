@@ -1,0 +1,82 @@
+{
+  "completeDiagnostic": {
+    "sourceSha": "beb02d54004ebe4a428249bc2f67fcb3b178dfec",
+    "sourceTree": "8b5278e447095d7e36e72b789f5238077302ab7a",
+    "finalSourceSha": "529bc1a82a204a1883c4ea771755c86a8e299f42",
+    "finalSourceTree": "69aea9cd4cd13bd0a3f242ca532880abc1fda63f",
+    "sourceStable": false,
+    "workingTreeChanged": false,
+    "summary": {
+      "passed": 493,
+      "failed": 1,
+      "blocked": 1,
+      "unexecuted": 0
+    }
+  },
+  "nonPassingChecks": [
+    {
+      "id": "mission15-phase28-page-guide",
+      "status": "failed",
+      "exitCode": 1,
+      "reason": "",
+      "outputExcerpt": "n.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||\"\")?\"premium-site-\"+theme.heroComposition:\"\"}\"><a class=\"skip-link\" href=\"#main\">Skip to content</a>${navHtml}<main id=\"main\">${websitePageGuide(draft,sections,sectionHtml,escapeHtml)}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ^\n\nReferenceError: pageDirectionClass is not defined\n    at renderWebsiteHtml (eval at <anonymous> (file:///workspace/busy-connected-recovery/scripts/check-mission15-phase28-page-guide.mjs:9:347), <anonymous>:255:571)\n    at file:///workspace/busy-connected-recovery/scripts/check-mission15-phase28-page-guide.mjs:9:977\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.19.0\n"
+    },
+    {
+      "id": "frozen-source-evidence",
+      "status": "blocked",
+      "exitCode": 1,
+      "reason": "",
+      "outputExcerpt": "110,  97, 109, 101,  32, 102, 111, 114,\n       32, 116, 104, 101,  32, 105, 110, 105, 116, 105,  97, 108,\n       32,  98, 114,  97, 110,  99, 104,  46,  32,  84, 104, 105,\n      115,  32, 100, 101, 102,  97, 117, 108, 116,  32,  98, 114,\n       97, 110,  99, 104,  32, 110,  97, 109, 101,  10, 104, 105,\n      110, 116,  58,  32, 119, 105, 108, 108,  32,  99, 104,  97,\n      110, 103, 101,  32,\n      ... 486 more items\n    ]\n  ],\n  pid: 213447,\n  stdout: Buffer(73) [Uint8Array] [\n     73, 110, 105, 116, 105,  97, 108, 105, 122, 101, 100,\n     32, 101, 109, 112, 116, 121,  32,  71, 105, 116,  32,\n    114, 101, 112, 111, 115, 105, 116, 111, 114, 121,  32,\n    105, 110,  32,  47, 116, 109, 112,  47,  98, 117, 115,\n    121,  45, 102, 114, 111, 122, 101, 110,  45, 115, 111,\n    117, 114,  99, 101,  45, 107,  51,  73, 104, 120, 120,\n     47,  46, 103, 105, 116,  47,  10\n  ],\n  stderr: Buffer(586) [Uint8Array] [\n    104, 105, 110, 116,  58,  32,  85, 115, 105, 110, 103,  32,\n     39, 109,  97, 115, 116, 101, 114,  39,  32,  97, 115,  32,\n    116, 104, 101,  32, 110,  97, 109, 101,  32, 102, 111, 114,\n     32, 116, 104, 101,  32, 105, 110, 105, 116, 105,  97, 108,\n     32,  98, 114,  97, 110,  99, 104,  46,  32,  84, 104, 105,\n    115,  32, 100, 101, 102,  97, 117, 108, 116,  32,  98, 114,\n     97, 110,  99, 104,  32, 110,  97, 109, 101,  10, 104, 105,\n    110, 116,  58,  32, 119, 105, 108, 108,  32,  99, 104,  97,\n    110, 103, 101,  32,\n    ... 486 more items\n  ]\n}\n\nNode.js v24.19.0\n"
+    }
+  ],
+  "status": "Superseded diagnostic; source changed during run. Not final frozen evidence.",
+  "otherOutcomes": [
+    {
+      "check": "Local PostgreSQL startup",
+      "outcome": "blocked",
+      "exitCode": 1,
+      "reason": "Unix-socket bind EPERM; no sandbox bypass. Final genuine SQL stages ran in original GitHub Actions environment."
+    },
+    {
+      "check": "Shell documentation fetch",
+      "outcome": "blocked",
+      "exitCode": 7,
+      "reason": "Configured proxy unavailable; no bypass. Current public provider documentation was inspected through the authorised read-only connector."
+    },
+    {
+      "check": "Wrong expansion-test filename diagnostic",
+      "outcome": "failed",
+      "exitCode": 1,
+      "reason": "MODULE_NOT_FOUND; corrected actual check-website-design-expansion.mjs invocation passed. No assertion was changed."
+    },
+    {
+      "check": "Initial independent pilot digest comparison",
+      "outcome": "failed",
+      "exitCode": 1,
+      "reason": "Regenerated original fixture had a new project identity. Freeze one exact fictional context and independently read it back; do not ignore original identity."
+    },
+    {
+      "check": "Original worker harness after dependency correction",
+      "outcome": "passed",
+      "exitCode": 0
+    },
+    {
+      "check": "Synthetic live adapter and pinned operation refusal",
+      "outcome": "passed",
+      "exitCode": 0,
+      "realProviderCalls": 0
+    },
+    {
+      "check": "Changed source syntax",
+      "outcome": "passed",
+      "exitCode": 0,
+      "files": 27
+    },
+    {
+      "check": "Guarded dependency and original Security by Design",
+      "outcome": "passed",
+      "exitCode": 0
+    }
+  ],
+  "assertionsWeakened": false
+}

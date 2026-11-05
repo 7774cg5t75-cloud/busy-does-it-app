@@ -1,0 +1,12 @@
+{
+  "master": "Owner-supplied V22.82; Section93 preserved",
+  "originalMasterSha256": "a0caa0432a065c4aceffbacdc165110718d2cdf8b3885e1c6af8e76265c855be",
+  "privateCatalogue": "Preserved outside Git; not overwritten or promoted",
+  "candidates": 3,
+  "approvedGoldStandards": 0,
+  "catalogueSha256": "44062c4bc23224d1ab6baf8142e6bf97cf78439dc2d5fc57023ea7cb57e5e661",
+  "starterPackage": "Owner confirms Busy_Design_Reference_Collection_Starter.zip has not been attached; reconciliation pending",
+  "newCIMetadata": "Three new-source technical candidate records are separate evidence, not replacement private approvals",
+  "ownerAcceptance": "Not provided",
+  "releaseReady": false
+}

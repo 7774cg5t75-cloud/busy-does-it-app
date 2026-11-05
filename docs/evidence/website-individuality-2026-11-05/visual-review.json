@@ -1,0 +1,68 @@
+{
+  "source": {
+    "commit": "3852ffb4e92efa275bbd0edb4f41902af6be5878",
+    "tree": "5d68b140371ae8bde2dd71a966c143c45d9a0f97"
+  },
+  "review": "Developer inspection of genuine final complete mobile/desktop PNGs and proportional full-page contact sheets; not independent founder acceptance",
+  "decisions": [
+    {
+      "business": "Ember Festival Kitchen",
+      "source": "rich",
+      "decision": "Professional private preview",
+      "exceptionalAccepted": false,
+      "ownerAccepted": false
+    },
+    {
+      "business": "Ember Festival Kitchen",
+      "source": "sparse",
+      "decision": "Needs further design improvement",
+      "exceptionalAccepted": false,
+      "ownerAccepted": false
+    },
+    {
+      "business": "Clearleaf Gardens",
+      "source": "rich",
+      "decision": "Professional private preview",
+      "exceptionalAccepted": false,
+      "ownerAccepted": false
+    },
+    {
+      "business": "Clearleaf Gardens",
+      "source": "sparse",
+      "decision": "Needs further design improvement",
+      "exceptionalAccepted": false,
+      "ownerAccepted": false
+    },
+    {
+      "business": "Quiet Light Studio",
+      "source": "rich",
+      "decision": "Professional private preview",
+      "exceptionalAccepted": false,
+      "ownerAccepted": false
+    },
+    {
+      "business": "Quiet Light Studio",
+      "source": "sparse",
+      "decision": "Needs further design improvement",
+      "exceptionalAccepted": false,
+      "ownerAccepted": false
+    }
+  ],
+  "strengths": [
+    "Distinct menu masthead, practical service hierarchy and image-free navigation index",
+    "Supplied words/photos preserved in source-held comparisons",
+    "Readable phone order and intentional contact conclusions"
+  ],
+  "remainingWeaknesses": [
+    "Ember illustrations are not a cohesive authentic photoshoot or evidence of its actual dishes",
+    "Clearleaf public-garden illustrations are not completed customer work",
+    "Quiet Light remains restrained, with recognisable repeated numbered structures",
+    "Four gardening cases retain a shared service-journal vocabulary; texture studies are not portfolios",
+    "Sparse and24-case service/About/contact copy is frequently generic; source-derived CTA wording can still feel mechanical",
+    "Older synthetic Our work gallery scaffolding needs deliberate truthful owner review before any customer-ready portfolio claim"
+  ],
+  "beautyScore": null,
+  "goldStandardsApproved": 0,
+  "automaticWinner": false,
+  "releaseReady": false
+}
