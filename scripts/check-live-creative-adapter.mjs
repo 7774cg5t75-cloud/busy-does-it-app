@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {createLiveCreativeAdapter} from '../supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs';
+import {createLiveCreativeAdapter,createDenoLiveCreativeAdapter} from '../supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs';
 import {prepareCreativeComparison} from '../src/core/websiteCreativeComparison.mjs';
 import {WEBSITE_ART_STORY_VERSION} from '../src/core/governedBuilderProposal.mjs';
 process.env.BUSY_CREATIVE_IMPORTED='1';const {creativeFixture}=await import('./check-website-creative-comparison.mjs');delete process.env.BUSY_CREATIVE_IMPORTED;
@@ -33,6 +33,24 @@ for(const kind of ['malformed','oversized','http-error','network','invalid-propo
  const r=await f.run();assert.equal(r.ok,false,kind);assert.equal(f.calls,1);assert.equal((await createLiveCreativeAdapter(f.deps)(f.prepared)).ok,false);assert.equal(f.calls,1);
 }
 const reasoning=fixture();reasoning.payload.output.unshift({type:'reasoning',id:'rs_synthetic',summary:[]});assert.equal((await reasoning.run()).ok,true);assert.equal(reasoning.calls,1);
+// Deno runtime is replaced in memory with synthetic data only. No process env/key file is read.
+const denoDescriptor=Object.getOwnPropertyDescriptor(globalThis,'Deno');let secretReads=0;
+const syntheticDeno=value=>Object.defineProperty(globalThis,'Deno',{configurable:true,value:{env:{get:name=>{secretReads++;assert.equal(name,'BUSY_OPENAI_CREATIVE_PILOT_KEY');if(value instanceof Error)throw value;return value;}}}});
+try{
+ syntheticDeno('synthetic-server-credential-not-real');
+ const bound=fixture({readCredential:async()=>{throw Error('Supplied credential reader must not run');}}),boundRunner=createDenoLiveCreativeAdapter(bound.deps);
+ assert.equal(secretReads,0,'factory must not eagerly read credentials');
+ const boundResult=await boundRunner(bound.prepared);assert.equal(boundResult.ok,true,boundResult.status);assert.equal(bound.calls,1);assert.equal(secretReads,1);assert.ok(!JSON.stringify(boundResult).includes('synthetic-server-credential'));
+ assert.equal((await boundRunner(bound.prepared)).status,'disabled');assert.equal(secretReads,1);
+ for(const patch of [{readServerPolicy:async()=>({})},{verifyApproval:async()=>null},{countRequestTokens:async()=>4001},{readTariff:async()=>null},{readReservation:async()=>({})}]){
+  secretReads=0;const denied=fixture(patch);assert.equal((await createDenoLiveCreativeAdapter(denied.deps)(denied.prepared)).ok,false);assert.equal(secretReads,0);assert.equal(denied.calls,0);
+ }
+ for(const value of [undefined,'','short','synthetic-bad\r\nheader',new Error('synthetic secret failure must stay private')]){
+  syntheticDeno(value);const denied=fixture();const r=await createDenoLiveCreativeAdapter(denied.deps)(denied.prepared);assert.equal(r.status,'pre-dispatch-denied');assert.equal(denied.calls,0);assert.equal(denied.state,'released');assert.ok(!JSON.stringify(r).includes('synthetic'));
+ }
+ Object.defineProperty(globalThis,'Deno',{configurable:true,value:undefined});const absentRuntime=fixture();assert.equal((await createDenoLiveCreativeAdapter(absentRuntime.deps)(absentRuntime.prepared)).ok,false);assert.equal(absentRuntime.calls,0);
+}finally{if(denoDescriptor)Object.defineProperty(globalThis,'Deno',denoDescriptor);else delete globalThis.Deno;}
+assert.ok(!readFileSync('supabase/functions/busy-builder-proposals/index.ts','utf8').includes('createDenoLiveCreativeAdapter'));
 const lost=fixture(),finish=lost.deps.finish;lost.deps.finish=async(...args)=>{await finish(...args);throw Error('Lost finish acknowledgement');};assert.equal((await lost.run()).ok,true);assert.equal(lost.calls,1);
 const receipt=fixture();receipt.deps.readReceipt=async()=>({status:'settled',providerReceipt:'foreign'});assert.equal((await receipt.run()).status,'unknown-outcome');assert.equal(receipt.calls,1);
 const timeout=fixture(),send=timeout.deps.transport;timeout.deps.transport=async(...args)=>{await send(...args);return new Promise(()=>{});};assert.equal((await timeout.run()).status,'unknown-outcome');assert.equal(timeout.calls,1);assert.equal((await createLiveCreativeAdapter(timeout.deps)(timeout.prepared)).ok,false);assert.ok(!readFileSync('supabase/functions/busy-builder-proposals/index.ts','utf8').includes('liveCreativeAdapter'));

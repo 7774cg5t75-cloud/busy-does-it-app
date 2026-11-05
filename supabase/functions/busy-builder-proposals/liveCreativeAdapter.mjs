@@ -25,6 +25,15 @@ async function boundedProviderJson(response,signal){
 }
 // Server-created dependencies only. There is NO import or activation path in index.ts.
 // The offline zero-usage callback is never used here. Tests inject a synthetic HTTP transport.
+// Future Edge bootstrap only: constructing this factory does not read a secret or enable policy.
+// The fixed reader cannot be replaced by a request property or a supplied credential callback.
+export function createDenoLiveCreativeAdapter(serverDeps={}){
+ return createLiveCreativeAdapter({...serverDeps,readCredential:provider=>{
+  if(provider!=='openai-responses')return null;
+  try{return typeof Deno==='undefined'?null:Deno.env.get('BUSY_OPENAI_CREATIVE_PILOT_KEY');}
+  catch{return null;} // Missing env permission/runtime is a generic denial; never expose errors.
+ }});
+}
 export function createLiveCreativeAdapter(deps={}){
  let attempted=false;
  return async function compare(prepared){

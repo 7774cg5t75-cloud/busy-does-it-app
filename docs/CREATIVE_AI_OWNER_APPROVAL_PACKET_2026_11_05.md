@@ -1,5 +1,7 @@
 # First real creative comparison — owner review packet
 
+**Historical packet:** subsequent owner-reported development project/secret setup and the prepared Deno binding are recorded in [the credential-binding addendum](CREATIVE_PILOT_CREDENTIAL_BINDING_2026_11_05.md). The frozen packet below is retained unchanged as evidence; it grants no execution authority.
+
 **Status: BLOCKED. This is not a request to spend and is not execution approval.** The owner confirms no dedicated OpenAI API account or server-side credential binding has yet been established or verified for Busy. No credential is created, no provider is activated and no paid inference occurs under this mission.
 
 The proposed experiment is one fictional, image-free Quiet Light Studio brief. It compares the existing deterministic recommendation with one actual model proposal only after separate exact approval and verified setup. Both use the same original renderer, source facts, finite capabilities and Website Studio review. Offline fixtures remain labelled fixtures.
