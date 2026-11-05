@@ -1,4 +1,4 @@
-import {validateBuilderProposal} from './governedBuilderProposal.mjs';
+import {validateBuilderProposal,prepareGovernedBuilderReview} from './governedBuilderProposal.mjs';
 import {stableJson} from './stableJson.mjs';
 import {websiteCreativeBrief} from './websiteCreativeBrief.mjs';
 // This is a server preparation contract, NOT a provider adapter or dispatch switch.
@@ -19,11 +19,13 @@ export async function prepareLiveCreativePilot(prepared,current,{now,integrity,v
  return {ok:true,envelope,digest,estimatedGBP,operationId:reservation.operationId,dispatchAllowed:false,providerCalls:0,requiresDistinctReviewedLiveAdapter:true,unknownOutcome:'retain reservation and inspect independently; never replay',offlineCallbackPermitted:false};
 }
 // Store the sealed method map privately; only opaque labels go to first-impression reviewers.
-export async function prepareBlindCreativeReview({sourceDigest,prepared,current,deterministic,alternative,origin,providerReceipt},{integrity,verifyProviderReceipt}={}){
+export async function prepareBlindCreativeReview({sourceDigest,prepared,current,deterministic,alternative,origin,providerReceipt},{integrity,verifyProviderReceipt,planner}={}){
  if(!/^[a-f0-9]{64}$/.test(sourceDigest||'')||typeof integrity?.randomUUID!=='function'||typeof integrity?.sha256!=='function'||!['deterministic-offline-fixture','real-model'].includes(origin))return deny('Exact source and truthful method provenance are required.');
  if(!prepared?.ok||prepared.anchor!==websiteCreativeBrief(current).source||sourceDigest!==await integrity.sha256(stableJson(prepared.input))||![deterministic,alternative].every(p=>validateBuilderProposal(p,prepared.source).ok))return deny('Both proposals require the same current original source and validated finite capabilities.');
  if(origin==='real-model'&&(typeof verifyProviderReceipt!=='function'||await verifyProviderReceipt(providerReceipt,sourceDigest)!==true))return deny('A fixture cannot be relabelled as real model evidence.');
  if(!deterministic||!alternative||stableJson(deterministic)===stableJson(alternative))return deny('Identical/no-op proposals do not establish a meaningful comparison.');
+ if(!planner)return deny('Use the original finite Website planner before comparing.');
+ const reviews=[deterministic,alternative].map(p=>prepareGovernedBuilderReview(p,prepared.source,prepared.source,planner));if(reviews.some(r=>!r.ok)||reviews[0].prepared.candidateHtml===reviews[1].prepared.candidateHtml)return deny('Both candidates must prepare a genuine distinct original-renderer result; explanations alone are not design changes.');
  const candidates=await Promise.all([deterministic,alternative].map(async proposal=>({label:integrity.randomUUID(),proposal,digest:await integrity.sha256(stableJson(proposal))})));
  candidates.sort((a,b)=>a.label.localeCompare(b.label));
  return {ok:true,sourceDigest,reviewerCandidates:candidates.map(({label,digest})=>({label,digest})),sealedCandidates:candidates,sealedMethods:candidates.map(c=>({label:c.label,method:stableJson(c.proposal)===stableJson(deterministic)?'deterministic':origin})),rubric:['professional coherence','business suitability','hierarchy','supporting originality','customer journey','fact preservation','mobile and desktop quality','owner desirability'],inference:origin==='real-model'?'One request cannot prove reliable superiority.':'Offline contract rehearsal only; no evidence of model quality.',providerCalls:0,automaticWinner:false,maySave:false};
