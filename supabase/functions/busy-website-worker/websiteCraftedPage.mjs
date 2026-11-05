@@ -375,6 +375,7 @@ export const craftedPageCss=`
  .direction-studio-index #services .crafted-services{grid-template-columns:minmax(0,1fr)}
  .direction-studio-index #services .crafted-service:first-child{grid-column:auto;padding-block:32px}
  .direction-studio-index #services .crafted-service:first-child>h3:not([class*="owner-item-heading"]){font-size:clamp(2.2rem,9vw,3rem)}
+ .direction-studio-index #services .crafted-service:first-child .crafted-service-description{grid-column:2}
  .direction-service-journal nav .nav-links{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:12px;width:100%}
  .direction-service-journal .crafted-services .crafted-service,.direction-studio-index #services .crafted-service,.direction-studio-index #services .crafted-service:first-child{grid-template-columns:24px minmax(0,1fr);gap:16px}
  .direction-service-journal .crafted-services .crafted-service .crafted-service-description,.direction-studio-index #services .crafted-service .crafted-service-description{grid-column:2}
