@@ -1,0 +1,352 @@
+{
+  "columns": [
+    {
+      "acl": null,
+      "num": 1,
+      "name": "busy_marketing_waitlist",
+      "type": "bigint",
+      "identity": "a",
+      "not_null": true,
+      "generated": "",
+      "column_name": "id",
+      "default_value": null
+    },
+    {
+      "acl": null,
+      "num": 2,
+      "name": "busy_marketing_waitlist",
+      "type": "text",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "email",
+      "default_value": null
+    },
+    {
+      "acl": null,
+      "num": 3,
+      "name": "busy_marketing_waitlist",
+      "type": "text",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "status",
+      "default_value": "'pending'::text"
+    },
+    {
+      "acl": null,
+      "num": 4,
+      "name": "busy_marketing_waitlist",
+      "type": "text",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "consent_version",
+      "default_value": null
+    },
+    {
+      "acl": null,
+      "num": 5,
+      "name": "busy_marketing_waitlist",
+      "type": "timestamp with time zone",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "consent_at",
+      "default_value": "now()"
+    },
+    {
+      "acl": null,
+      "num": 6,
+      "name": "busy_marketing_waitlist",
+      "type": "timestamp with time zone",
+      "identity": "",
+      "not_null": false,
+      "generated": "",
+      "column_name": "confirmed_at",
+      "default_value": null
+    },
+    {
+      "acl": null,
+      "num": 7,
+      "name": "busy_marketing_waitlist",
+      "type": "text",
+      "identity": "",
+      "not_null": false,
+      "generated": "",
+      "column_name": "token_hash",
+      "default_value": null
+    },
+    {
+      "acl": null,
+      "num": 8,
+      "name": "busy_marketing_waitlist",
+      "type": "timestamp with time zone",
+      "identity": "",
+      "not_null": false,
+      "generated": "",
+      "column_name": "token_expires_at",
+      "default_value": null
+    },
+    {
+      "acl": null,
+      "num": 9,
+      "name": "busy_marketing_waitlist",
+      "type": "timestamp with time zone",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "created_at",
+      "default_value": "now()"
+    },
+    {
+      "acl": null,
+      "num": 10,
+      "name": "busy_marketing_waitlist",
+      "type": "timestamp with time zone",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "updated_at",
+      "default_value": "now()"
+    },
+    {
+      "acl": null,
+      "num": 1,
+      "name": "busy_staging_rls_canary",
+      "type": "uuid",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "id",
+      "default_value": null
+    },
+    {
+      "acl": null,
+      "num": 2,
+      "name": "busy_staging_rls_canary",
+      "type": "uuid",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "owner_id",
+      "default_value": null
+    },
+    {
+      "acl": null,
+      "num": 3,
+      "name": "busy_staging_rls_canary",
+      "type": "text",
+      "identity": "",
+      "not_null": true,
+      "generated": "",
+      "column_name": "marker",
+      "default_value": null
+    }
+  ],
+  "indexes": [
+    {
+      "indexdef": "CREATE UNIQUE INDEX busy_marketing_waitlist_email_key ON public.busy_marketing_waitlist USING btree (email)",
+      "indexname": "busy_marketing_waitlist_email_key",
+      "tablename": "busy_marketing_waitlist"
+    },
+    {
+      "indexdef": "CREATE INDEX busy_marketing_waitlist_pending_expiry_idx ON public.busy_marketing_waitlist USING btree (token_expires_at) WHERE (status = 'pending'::text)",
+      "indexname": "busy_marketing_waitlist_pending_expiry_idx",
+      "tablename": "busy_marketing_waitlist"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX busy_marketing_waitlist_pkey ON public.busy_marketing_waitlist USING btree (id)",
+      "indexname": "busy_marketing_waitlist_pkey",
+      "tablename": "busy_marketing_waitlist"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX busy_marketing_waitlist_token_hash_key ON public.busy_marketing_waitlist USING btree (token_hash)",
+      "indexname": "busy_marketing_waitlist_token_hash_key",
+      "tablename": "busy_marketing_waitlist"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX busy_staging_rls_canary_pkey ON public.busy_staging_rls_canary USING btree (id)",
+      "indexname": "busy_staging_rls_canary_pkey",
+      "tablename": "busy_staging_rls_canary"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "(( SELECT auth.uid() AS uid) = owner_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "busy_staging_rls_canary",
+      "permissive": "PERMISSIVE",
+      "policyname": "busy_staging_canary_owner_read",
+      "with_check": null
+    }
+  ],
+  "relations": [
+    {
+      "acl": [
+        "postgres=arwdDxtm/postgres",
+        "service_role=arwDxtm/postgres"
+      ],
+      "rls": true,
+      "kind": "r",
+      "name": "busy_marketing_waitlist",
+      "owner": "postgres",
+      "options": null,
+      "force_rls": false
+    },
+    {
+      "acl": [
+        "postgres=rwU/postgres",
+        "service_role=rU/postgres"
+      ],
+      "rls": false,
+      "kind": "S",
+      "name": "busy_marketing_waitlist_id_seq",
+      "owner": "postgres",
+      "options": null,
+      "force_rls": false
+    },
+    {
+      "acl": [
+        "authenticated=r/postgres",
+        "postgres=arwdDxtm/postgres",
+        "service_role=Dxtm/postgres"
+      ],
+      "rls": true,
+      "kind": "r",
+      "name": "busy_staging_rls_canary",
+      "owner": "postgres",
+      "options": null,
+      "force_rls": true
+    }
+  ],
+  "rls_event": {
+    "tags": [
+      "CREATE TABLE",
+      "CREATE TABLE AS",
+      "SELECT INTO"
+    ],
+    "event": "ddl_command_end",
+    "owner": "postgres",
+    "enabled": "O"
+  },
+  "sequences": [
+    {
+      "max": "9223372036854775807",
+      "min": "1",
+      "name": "busy_marketing_waitlist_id_seq",
+      "cache": "1",
+      "cycle": false,
+      "start": "1",
+      "increment": "1",
+      "identity_of": "public.busy_marketing_waitlist_id_seq"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "busy_marketing_waitlist_email_check",
+      "validated": true,
+      "definition": "CHECK (length(email) <= 254 AND email = lower(email) AND POSITION(('@'::text) IN (email)) > 1)",
+      "table_name": "busy_marketing_waitlist"
+    },
+    {
+      "name": "busy_marketing_waitlist_email_key",
+      "validated": true,
+      "definition": "UNIQUE (email)",
+      "table_name": "busy_marketing_waitlist"
+    },
+    {
+      "name": "busy_marketing_waitlist_pkey",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "busy_marketing_waitlist"
+    },
+    {
+      "name": "busy_marketing_waitlist_status_check",
+      "validated": true,
+      "definition": "CHECK (status = ANY (ARRAY['pending'::text, 'confirmed'::text, 'unsubscribed'::text]))",
+      "table_name": "busy_marketing_waitlist"
+    },
+    {
+      "name": "busy_marketing_waitlist_token_hash_check",
+      "validated": true,
+      "definition": "CHECK (token_hash IS NULL OR token_hash ~ '^[0-9a-f]{64}$'::text)",
+      "table_name": "busy_marketing_waitlist"
+    },
+    {
+      "name": "busy_marketing_waitlist_token_hash_key",
+      "validated": true,
+      "definition": "UNIQUE (token_hash)",
+      "table_name": "busy_marketing_waitlist"
+    },
+    {
+      "name": "busy_staging_rls_canary_marker_check",
+      "validated": true,
+      "definition": "CHECK (length(marker) >= 8 AND length(marker) <= 80)",
+      "table_name": "busy_staging_rls_canary"
+    },
+    {
+      "name": "busy_staging_rls_canary_owner_id_fkey",
+      "validated": true,
+      "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "table_name": "busy_staging_rls_canary"
+    },
+    {
+      "name": "busy_staging_rls_canary_pkey",
+      "validated": true,
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "busy_staging_rls_canary"
+    }
+  ],
+  "rls_function": {
+    "acl": [
+      "postgres=X/postgres"
+    ],
+    "owner": "postgres",
+    "config": [
+      "search_path=pg_catalog"
+    ],
+    "definition": "CREATE OR REPLACE FUNCTION public.rls_auto_enable()\n RETURNS event_trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog'\nAS $function$\nDECLARE\n  cmd record;\n  tbl name;\nBEGIN\n  FOR cmd IN\n    SELECT *\n    FROM pg_event_trigger_ddl_commands()\n    WHERE command_tag IN ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')\n      AND object_type IN ('table','partitioned table')\n  LOOP\n     IF cmd.schema_name IS NOT NULL AND cmd.schema_name IN ('public') AND cmd.schema_name NOT IN ('pg_catalog','information_schema') AND cmd.schema_name NOT LIKE 'pg_toast%' AND cmd.schema_name NOT LIKE 'pg_temp%' THEN\n      BEGIN\n        SELECT c.relname INTO tbl FROM pg_catalog.pg_class c WHERE c.oid = cmd.objid;\n        EXECUTE format('alter table if exists %I.%I enable row level security', cmd.schema_name, tbl);\n        RAISE LOG 'rls_auto_enable: enabled RLS on %', cmd.object_identity;\n      EXCEPTION\n        WHEN OTHERS THEN\n          RAISE LOG 'rls_auto_enable: failed to enable RLS on %', cmd.object_identity;\n      END;\n     ELSE\n        RAISE LOG 'rls_auto_enable: skip % (either system schema or not in enforced list: %.)', cmd.object_identity, cmd.schema_name;\n     END IF;\n  END LOOP;\nEND;\n$function$\n"
+  },
+  "public_schema": {
+    "acl": [
+      "=U/pg_database_owner",
+      "anon=U/pg_database_owner",
+      "authenticated=U/pg_database_owner",
+      "pg_database_owner=UC/pg_database_owner",
+      "postgres=U/pg_database_owner",
+      "service_role=U/pg_database_owner"
+    ],
+    "owner": "pg_database_owner"
+  },
+  "user_triggers": null,
+  "postgres_public_defaults": [
+    {
+      "acl": [
+        "postgres=rwU/postgres"
+      ],
+      "kind": "S",
+      "schema_name": "public"
+    },
+    {
+      "acl": [
+        "postgres=X/postgres"
+      ],
+      "kind": "f",
+      "schema_name": "public"
+    },
+    {
+      "acl": [
+        "anon=Dxtm/postgres",
+        "authenticated=Dxtm/postgres",
+        "postgres=arwdDxtm/postgres",
+        "service_role=Dxtm/postgres"
+      ],
+      "kind": "r",
+      "schema_name": "public"
+    }
+  ]
+}

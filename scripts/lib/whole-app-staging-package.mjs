@@ -1,4 +1,5 @@
 import {stagingPreflight,stagingDefaultPrivileges,stagingPostflight} from './staging-installation-security.mjs';
+import {stagingPreservation} from './staging-preservation.mjs';
 import {wholeAppFunctionSignatures} from './whole-app-function-signatures.mjs';
 import {readFileSync,readdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -9,7 +10,9 @@ export const wholeAppAuthenticatedFunctions=['busy_creator_media_review_v1','bus
 const serviceFunctions=['busy_connected_app_spec_commit_v1','busy_connected_website_transition_v1','busy_connected_website_commit_v1','busy_connected_first_app_v1','busy_connected_private_app_commit_v1','busy_mini_app_entry_summary'];
 // Fresh staging only. Original selected sources + explicit compatibility baseline.
 // No connection, shell, credentials, seed rows or mutation is performed here.
-export function wholeAppStagingPackage(root){
+export function wholeAppStagingPackage(root,{preserveOnboarding=false}={}){
+ if(typeof preserveOnboarding!=='boolean')throw Error('Choose a reviewed generation mode');
+ const preservation=preserveOnboarding?stagingPreservation(root):null;
  const parts=paths.map(path=>{const text=readFileSync(root+'/'+path,'utf8');let fuses=0;const body=sqlStatements(text).filter(s=>{const c=clean(s);if(/^(BEGIN|COMMIT);$/i.test(c))return false;if(/^DO \$\$ BEGIN RAISE EXCEPTION '[A-Z0-9 ]+REVIEW FUSE: [^']+'; END \$\$;$/i.test(c)){fuses++;return false;}return true;}).join('\n');if(path.includes('sql-proposals')&&!path.endsWith('writer.sql')&&!path.endsWith('readers.sql')&&fuses!==1)throw Error('Unexpected source fuse '+path);return {path,sha256:hash(text),body};});
  const tables=ownerStatusSchema(root).tables;
  const originalFiles=readdirSync(root+'/supabase/migrations').filter(x=>x.endsWith('.sql')).sort();const supplement=[];
@@ -19,45 +22,50 @@ export function wholeAppStagingPackage(root){
   if(/^create (?:or replace )?function public\.busy_guard_(?:website_deployment|mini_app_version)_immutable\(/i.test(c)||/^create trigger busy_(?:website_deployment_immutable|mini_app_versions_immutable)\b/i.test(c))supplement.push({path:'supabase/migrations/'+file,sql:statement});
   if(/^alter table public\.busy_websites\s+add constraint busy_websites_current_(?:preview|live)_deployment_fkey/i.test(c)||/^do \$\$[\s\S]*conname = 'busy_mini_apps_preview_version_fkey'[\s\S]*end\s*\$\$;/i.test(c))supplement.push({path:'supabase/migrations/'+file,sql:statement});
  }
+ const ownedTables=[...new Set(parts.flatMap(p=>[...p.body.matchAll(/create table(?: if not exists)? public\.([a-z0-9_]+)/ig)].map(m=>m[1])))];
+ const ownedFunctions=[...new Set([...parts.map(p=>p.body),...supplement.map(p=>p.sql)].flatMap(s=>[...s.matchAll(/create(?: or replace)? function public\.([a-z0-9_]+)/ig)].map(m=>m[1])))];
+ if(ownedTables.some(n=>preservation?.names.includes(n)))throw Error('Canonical source collides with preserved objects');
+ const ownedTableFilter="c.relname=ANY(ARRAY["+ownedTables.map(n=>"'"+n+"'").join(',')+"])";
+ const ownedFunctionFilter=" AND p.proname=ANY(ARRAY["+ownedFunctions.map(n=>"'"+n+"'").join(',')+"])";
  const signatures=names=>names.map(n=>"'"+n+'('+wholeAppFunctionSignatures[n]+')'+"'").join(','),auth=signatures(wholeAppAuthenticatedFunctions),service=signatures(serviceFunctions);
  const acl=`DO $$ DECLARE f record; t record; col record; BEGIN
- FOR t IN SELECT c.oid,n.nspname,c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p') AND c.relname<>'busy_staging_rls_canary' LOOP
+ FOR t IN SELECT c.oid,n.nspname,c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p') AND ${preservation?ownedTableFilter:"c.relname<>'busy_staging_rls_canary'"} LOOP
   EXECUTE format('ALTER TABLE %I.%I ENABLE ROW LEVEL SECURITY',t.nspname,t.relname);
   EXECUTE format('REVOKE ALL ON TABLE %I.%I FROM PUBLIC,anon,authenticated,service_role',t.nspname,t.relname);
   FOR col IN SELECT attname FROM pg_attribute WHERE attrelid=t.oid AND attnum>0 AND NOT attisdropped LOOP EXECUTE format('REVOKE SELECT (%I),INSERT (%I),UPDATE (%I),REFERENCES (%I) ON TABLE %I.%I FROM PUBLIC,anon,authenticated,service_role',col.attname,col.attname,col.attname,col.attname,t.nspname,t.relname);END LOOP;
   IF t.relname=ANY(ARRAY[${[...tables,'busy_businesses','busy_business_memberships'].map(x=>"'"+x+"'").join(',')}]) THEN EXECUTE format('GRANT SELECT ON TABLE %I.%I TO service_role',t.nspname,t.relname);END IF;
  END LOOP;
- FOR f IN SELECT p.oid::regprocedure signature,p.proname,n.nspname,p.proname||'('||oidvectortypes(p.proargtypes)||')' AS exact FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE (n.nspname='public' AND p.proname LIKE 'busy_%') OR n.nspname IN ('busy_snapshot_private','busy_work_private','busy_growth_private','busy_creator_private') LOOP
+ FOR f IN SELECT p.oid::regprocedure signature,p.proname,n.nspname,p.proname||'('||oidvectortypes(p.proargtypes)||')' AS exact FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE (n.nspname='public' AND p.proname LIKE 'busy_%'${preservation?ownedFunctionFilter:''}) OR n.nspname IN ('busy_snapshot_private','busy_work_private','busy_growth_private','busy_creator_private') LOOP
   EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
   IF f.nspname='public' AND f.exact IN (${auth}) THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
   IF f.nspname='public' AND f.exact IN (${service}) THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role',f.signature);END IF;
  END LOOP;
 END $$;
-${stagingDefaultPrivileges}`;
+${preservation?'-- Existing creator defaults preserved; new canonical objects receive explicit ACLs above.':stagingDefaultPrivileges}`;
  const sql=`-- GENERATED REVIEW ONLY: pnjdlogwegnqbsfpcofw fresh compatibility foundation; NOT production DDL capture.
 BEGIN;
-DO $$ BEGIN RAISE EXCEPTION 'WHOLE APP STAGING REVIEW FUSE: separate exact installation approval required'; END $$;
+DO $$ BEGIN RAISE EXCEPTION '${preservation?'PRESERVATION FOUNDATION REVIEW FUSE: separate exact installation approval required':'WHOLE APP STAGING REVIEW FUSE: separate exact installation approval required'}'; END $$;
 SET LOCAL lock_timeout='5s';SET LOCAL statement_timeout='120s';
-${stagingPreflight}
-DO $$ BEGIN IF EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename<>'busy_staging_rls_canary') THEN RAISE EXCEPTION 'Fresh reviewed staging only: preserve existing operational records';END IF;IF to_regclass('auth.users') IS NULL OR to_regprocedure('auth.uid()') IS NULL THEN RAISE EXCEPTION 'Genuine Auth foundation required';END IF;END $$;
+${preservation?preservation.before+'\n'+preservation.preflight:stagingPreflight}
+DO $$ BEGIN IF EXISTS(SELECT 1 FROM pg_tables WHERE schemaname='public' AND ${preservation?"tablename NOT IN ('busy_marketing_waitlist','busy_staging_rls_canary')":"tablename<>'busy_staging_rls_canary'"}) THEN RAISE EXCEPTION 'Fresh reviewed staging only: preserve existing operational records';END IF;IF to_regclass('auth.users') IS NULL OR to_regprocedure('auth.uid()') IS NULL THEN RAISE EXCEPTION 'Genuine Auth foundation required';END IF;END $$;
 ${parts.map(p=>'-- Source '+p.path+' SHA256 '+p.sha256+'\n'+p.body).join('\n')}
 ${supplement.map(s=>'-- Original '+s.path+' SHA256 '+hash(s.sql)+'\n'+s.sql).join('\n')}
 ${acl}
 ${stagingPostflight}
-COMMIT;
+${preservation?preservation.after+'\n':''}COMMIT;
 `;
  const retainedReaders=wholeAppAuthenticatedFunctions.filter(n=>!/(?:initialize|profile_write|creator_draft_write|growth_opportunity_write|app_enquiry_import|app_enquiry_file|work_create_quote|work_edit_quote|work_private_write)/.test(n));
  const rollback=`-- RETAINING ROLLBACK REVIEW ONLY: leaves all rows and exact read/reconciliation authorities.
 BEGIN;
-DO $$ BEGIN RAISE EXCEPTION 'WHOLE APP ROLLBACK REVIEW FUSE: separate exact rollback approval required'; END $$;
+DO $$ BEGIN RAISE EXCEPTION '${preservation?'PRESERVATION ROLLBACK REVIEW FUSE: separate exact rollback approval required':'WHOLE APP ROLLBACK REVIEW FUSE: separate exact rollback approval required'}'; END $$;
 SET LOCAL lock_timeout='5s';
-DO $$ DECLARE f record; BEGIN
- FOR f IN SELECT p.oid::regprocedure signature,p.proname,n.nspname,p.proname||'('||oidvectortypes(p.proargtypes)||')' AS exact FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE (n.nspname='public' AND p.proname LIKE 'busy_%') OR n.nspname IN ('busy_snapshot_private','busy_work_private','busy_growth_private','busy_creator_private') LOOP
+${preservation?preservation.before+'\n':''}DO $$ DECLARE f record; BEGIN
+ FOR f IN SELECT p.oid::regprocedure signature,p.proname,n.nspname,p.proname||'('||oidvectortypes(p.proargtypes)||')' AS exact FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE (n.nspname='public' AND p.proname LIKE 'busy_%'${preservation?ownedFunctionFilter:''}) OR n.nspname IN ('busy_snapshot_private','busy_work_private','busy_growth_private','busy_creator_private') LOOP
  EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
  IF f.nspname='public' AND f.exact IN (${signatures(retainedReaders)}) THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
  END LOOP;
 END $$;
-COMMIT;
+${preservation?preservation.after+'\n':''}COMMIT;
 `;
- return {targetProject:'pnjdlogwegnqbsfpcofw',compatibilityFoundation:true,productionSchemaCapture:false,autoExecute:false,serverSwitchEnabled:false,authUsersCreated:false,activationReady:false,sourceCandidates:parts.map(({body,...p})=>p),supplements:supplement.map(s=>({path:s.path,sha256:hash(s.sql)})),sql,sha256:hash(sql),rollback,rollbackSha256:hash(rollback),retainedReaders,functionSignatures:wholeAppFunctionSignatures,authFunctions:wholeAppAuthenticatedFunctions,serviceFunctions};
+ return {preservation:preservation?{baselineSha256:preservation.baselineSha256,names:preservation.names,defaultsChanged:false,installationInternalHashReads:true,rawRowsExported:false}:null,targetProject:'pnjdlogwegnqbsfpcofw',compatibilityFoundation:true,productionSchemaCapture:false,autoExecute:false,serverSwitchEnabled:false,authUsersCreated:false,activationReady:false,sourceCandidates:parts.map(({body,...p})=>p),supplements:supplement.map(s=>({path:s.path,sha256:hash(s.sql)})),sql,sha256:hash(sql),rollback,rollbackSha256:hash(rollback),retainedReaders,functionSignatures:wholeAppFunctionSignatures,authFunctions:wholeAppAuthenticatedFunctions,serviceFunctions};
 }

@@ -77,3 +77,7 @@ const session={ok:true,kind:'guided_private_website',ownerId:menu.ownerId,busine
 const refined=refineGuidedWebsite(session,menu,{request:'Make our menu easier to find'},storyDeps);assert.equal(refined.ok,true,refined.reason);
 assert.equal(refined.adjustments.at(-1).kind,'creative-brief');const guidedCandidate=guidedWebsiteCandidate(refined);assert.equal(guidedCandidate.sections.find(s=>s.type==='hero').cta,'Explore our menu');assert.equal(guidedCandidate.pages.find(p=>p.id==='home').sectionIds[1],product.id);assert.equal(guidedCandidate.sections.find(s=>s.id===product.id).navigationLabel,'Menu');
 console.log('PASS real guided refinement entry preserves the prior owner CTA while preparing menu discovery in one original protected review.');
+
+for(const suffix of ['.','?','!']){const punctuation=refineGuidedWebsite(session,menu,{request:'Make our menu easier to find'+suffix},storyDeps);assert.equal(punctuation.ok,true,punctuation.reason);assert.deepEqual(punctuation.plan.boundaries,refined.plan.boundaries);}
+assert.equal(refineGuidedWebsite(session,menu,{request:'Make our menu easier to find and publish!'},storyDeps).ok,false);
+console.log('PASS ordinary sentence punctuation prepares the identical protected menu review; compound publication remains unavailable.');

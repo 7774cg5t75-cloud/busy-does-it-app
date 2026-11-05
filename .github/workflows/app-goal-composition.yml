@@ -48,6 +48,14 @@ on:
       - 'supabase/functions/busy-builder-proposals/executionBootstrap.mjs'
       - 'docs/sql-proposals/ai-creative-receipt/**'
       - 'scripts/check-ai-budget-postgres.mjs'
+      - 'scripts/prepare-preservation-foundation.mjs'
+      - 'scripts/check-preservation-foundation.mjs'
+      - 'scripts/check-preservation-foundation-postgres.mjs'
+      - 'scripts/lib/staging-preservation.mjs'
+      - 'scripts/lib/preservation-foundation-package.mjs'
+      - 'scripts/lib/onboarding-preservation-snapshot.sql'
+      - 'scripts/fixtures/preservation/**'
+      - 'docs/sql-proposals/preservation-foundation/**'
       - 'src/core/websiteDesignAcceptance.mjs'
       - 'scripts/check-website-design-acceptance.mjs'
       - 'scripts/check-website-acceptance-benchmark.mjs'
@@ -315,6 +323,8 @@ jobs:
           cp .test-artifacts/work-preparation/postgres.json .test-artifacts/app-goal-composition/work-preparation-postgres.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-budget-postgres.mjs > .test-artifacts/app-goal-composition/ai-budget-postgres.log 2>&1
           cp .test-artifacts/ai-gateway/postgres.json .test-artifacts/app-goal-composition/ai-budget-postgres.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-preservation-foundation-postgres.mjs > .test-artifacts/app-goal-composition/preservation-foundation.log 2>&1
+          cp .test-artifacts/preservation-foundation/postgres.json .test-artifacts/app-goal-composition/preservation-foundation.json
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1

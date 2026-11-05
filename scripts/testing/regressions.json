@@ -3219,6 +3219,13 @@
         "scripts/check-creative-execution-bootstrap.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-preservation-foundation",
+      "args": [
+        "scripts/check-preservation-foundation.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
