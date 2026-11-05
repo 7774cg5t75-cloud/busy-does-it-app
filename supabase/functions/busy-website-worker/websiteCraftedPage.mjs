@@ -321,10 +321,10 @@ export const craftedPageCss=`
 
 /* Original, reviewed whole-page directions. No new hero or executable style input. */
 .direction-menu-house nav .nav-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:24px}
-.direction-menu-house nav .brand{font-family:Georgia,serif;font-size:clamp(1.5rem,3vw,2.3rem);font-weight:600}
+.direction-menu-house nav .brand{font-size:clamp(1.5rem,3vw,2.3rem);font-weight:600}
 .direction-menu-house nav .nav-links{justify-content:center;flex-wrap:wrap;gap:12px 30px}
 .direction-menu-house .approved-menu{column-gap:clamp(32px,6vw,88px)}
-.direction-menu-house .menu-label{font-family:Georgia,serif;text-transform:none;letter-spacing:-.025em;font-size:clamp(1.5rem,3vw,2.3rem)}
+.direction-menu-house .menu-label{text-transform:none;letter-spacing:-.025em;font-size:clamp(1.5rem,3vw,2.3rem)}
 .direction-menu-house .crafted-services{gap:0 8%}
 .direction-menu-house .crafted-contact{grid-template-columns:minmax(0,1fr);gap:32px}
 .direction-menu-house .crafted-contact-actions{display:flex;flex-wrap:wrap;gap:20px 48px;align-items:center;max-width:none}
