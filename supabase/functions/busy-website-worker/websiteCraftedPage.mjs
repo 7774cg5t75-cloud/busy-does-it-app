@@ -338,6 +338,7 @@ export const craftedPageCss=`
 .direction-service-journal .crafted-services .crafted-service .crafted-service-description{grid-column:3;max-width:46ch;margin:0}
 .direction-service-journal .crafted-services .service-has-photo .crafted-service-description{grid-column:2}
 .direction-service-journal .crafted-services .service-photo-frame{grid-column:3;grid-row:1/4;margin:0}
+.direction-service-journal #services .crafted-service{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
 .direction-service-journal .crafted-service-number{grid-column:1;grid-row:1}
 .direction-service-journal .crafted-contact{border:1px solid var(--line);padding:clamp(24px,4vw,56px);gap:32px}
 .direction-service-journal .crafted-contact h2{font-size:clamp(2.2rem,5vw,4.5rem);max-width:17ch}
@@ -361,8 +362,9 @@ export const craftedPageCss=`
 .direction-studio-index .crafted-contact .crafted-contact-actions{border-color:currentColor}
 .direction-studio-index .crafted-contact a{color:inherit!important}
 @media(max-width:999px){
- .direction-studio-index nav .nav-wrap{align-items:flex-start;gap:16px;padding-block:24px}
- .direction-studio-index nav .nav-links{width:100%;border-top:1px solid var(--line);padding-top:12px;gap:16px 24px}
+ .direction-studio-index nav .nav-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,.8fr);align-items:start;gap:16px;padding-block:24px}
+ .direction-studio-index nav .brand{min-width:0;white-space:normal;line-height:1.4}
+ .direction-studio-index nav .nav-links{display:flex;flex-direction:column;align-items:flex-start;width:100%;border:0;padding:0;gap:4px}
 }
 @media(max-width:800px){
  .direction-service-journal nav .nav-links{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:12px;width:100%}
