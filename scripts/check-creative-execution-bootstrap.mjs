@@ -6,6 +6,7 @@ import {createLiveCreativeAdapter} from '../supabase/functions/busy-builder-prop
 import {prepareCreativeApprovalPacket} from '../supabase/functions/busy-builder-proposals/approvalPacket.mjs';
 import {prepareCreativeComparison} from '../src/core/websiteCreativeComparison.mjs';
 import {websiteCreativeInstructions} from '../src/core/websiteCreativeBrief.mjs';
+import {refineGuidedWebsite,guidedWebsiteCandidate} from '../src/core/guidedWebsiteJourney.mjs';
 import {prepareWebsiteRequest} from '../src/core/websiteRequestPlan.mjs';
 import {WEBSITE_ART_STORY_VERSION} from '../src/core/governedBuilderProposal.mjs';
 process.env.BUSY_CREATIVE_IMPORTED='1';const {creativeFixture}=await import('./check-website-creative-comparison.mjs');delete process.env.BUSY_CREATIVE_IMPORTED;
@@ -70,3 +71,9 @@ const candidate=JSON.parse(menuReview.boundaries.at(-1));assert.equal(candidate.
 assert.deepEqual(candidate.sections.map(s=>[s.title,s.body,s.items]),before.sections.map(s=>[s.title,s.body,s.items]));assert.equal(candidate.publish.enabled,false);
 assert.equal(websiteCreativeInstructions(creativeFixture(2,true),'Make our menu easier to find').ok,false);
 console.log('PASS natural menu-discovery refinement prepares real original reviewed order/navigation changes, preserves wording/prices/media and denies a missing approved menu.');
+
+const seedCommand='change the hero button text to "Explore our menu"',seedPlan=prepareWebsiteRequest(before,{draftId:before.id,pageId:'home',generation:before.generation,instruction:seedCommand},storyDeps);assert.equal(seedPlan.ok,true);
+const session={ok:true,kind:'guided_private_website',ownerId:menu.ownerId,businessId:menu.businessId,profileRevision:menu.profileRevision,plan:seedPlan,adjustments:[{kind:'action-label',instruction:seedCommand}],rejected:[]};
+const refined=refineGuidedWebsite(session,menu,{request:'Make our menu easier to find'},storyDeps);assert.equal(refined.ok,true,refined.reason);
+assert.equal(refined.adjustments.at(-1).kind,'creative-brief');const guidedCandidate=guidedWebsiteCandidate(refined);assert.equal(guidedCandidate.sections.find(s=>s.type==='hero').cta,'Explore our menu');assert.equal(guidedCandidate.pages.find(p=>p.id==='home').sectionIds[1],product.id);assert.equal(guidedCandidate.sections.find(s=>s.id===product.id).navigationLabel,'Menu');
+console.log('PASS real guided refinement entry preserves the prior owner CTA while preparing menu discovery in one original protected review.');
