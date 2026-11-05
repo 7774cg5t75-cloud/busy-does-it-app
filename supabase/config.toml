@@ -23,3 +23,7 @@ verify_jwt = false
 
 [functions.busy-founder-ops]
 verify_jwt = true
+
+# Separate staging-only creative pilot; its server artifact is additionally disabled.
+[functions.busy-creative-pilot]
+verify_jwt = true

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {createStagingCreativeExecutionHandler,disabledCreativeExecution,CREATIVE_STAGING_URL} from '../supabase/functions/busy-builder-proposals/executionBootstrap.mjs';
 import {createLiveCreativeAdapter} from '../supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs';
@@ -10,6 +11,7 @@ import {WEBSITE_ART_STORY_VERSION} from '../src/core/governedBuilderProposal.mjs
 process.env.BUSY_CREATIVE_IMPORTED='1';const {creativeFixture}=await import('./check-website-creative-comparison.mjs');delete process.env.BUSY_CREATIVE_IMPORTED;
 process.env.BUSY_STORY_IMPORTED='1';const {storyDeps}=await import('./check-website-authentic-story.mjs');delete process.env.BUSY_STORY_IMPORTED;
 const now=Date.parse('2026-11-05T23:00:00Z'),integrity={sha256:async s=>createHash('sha256').update(s).digest('hex')};
+assert.match(readFileSync('supabase/config.toml','utf8'),/\[functions\.busy-creative-pilot\]\s*verify_jwt = true/);
 async function fixture(){
  const c=creativeFixture(2,true),goal='Keep my words but propose a distinctive complete website',operationId='10000000-0000-4000-8000-000000000030',requestNonce='10000000-0000-4000-8000-000000000031';
  const p=await prepareCreativeApprovalPacket({context:c,goal,operationId,requestNonce,integrity});
