@@ -1,0 +1,133 @@
+{
+  "source": {
+    "commit": "f790872f4e3177f47bb617eff24a2940b629979a",
+    "tree": "3365a622f316197ce023dfb8cadabb36074f2e78"
+  },
+  "application": {
+    "passed": 498,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0,
+    "sourceStable": true,
+    "workingTreeChanged": false
+  },
+  "foundation": {
+    "passed": 105
+  },
+  "postgres": {
+    "passed": 230,
+    "failed": 0,
+    "engine": "PostgreSQL17.11",
+    "signedUbuntuPackage": "17.11-1.pgdg24.04+2",
+    "stages": {
+      "application": 126,
+      "publicForms": 21,
+      "enquiryPreparation": 13,
+      "operationalWork": 13,
+      "workPreparation": 12,
+      "originalAiBudget": 32,
+      "preservation": 13
+    },
+    "hosted": false,
+    "syntheticDataOnly": true
+  },
+  "deno": {
+    "entryChecks": 30,
+    "genuine": true
+  },
+  "security": {
+    "securityByDesign": "passed",
+    "baseline": "passed",
+    "guardedInstallationAndDeepmergeBackport": "passed; not an upstream registry clean-audit claim",
+    "syntax": "passed",
+    "architecture": "passed; source graph review, not certification"
+  },
+  "unsignedExports": {
+    "ownerModules": 1569,
+    "stagingModules": 1628,
+    "signed": false
+  },
+  "browser": {
+    "run": 42118836376,
+    "verifiedPNGs": 246,
+    "failures": 0,
+    "browser": "145.0.7632.6",
+    "sandboxRequired": true,
+    "beautyCertification": false
+  },
+  "workflows": [
+    {
+      "id": 42118845714,
+      "name": "V3.65 Growth Command Centre checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845696,
+      "name": "V3.66 voice and project Operator checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845686,
+      "name": "V3.64 private growth workspace checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845682,
+      "name": "V3.70 Platform Autopilot checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845730,
+      "name": "V3.63 coordinated editable growth checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845834,
+      "name": "V3.69 Founder Operations Security",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118836376,
+      "name": "Premium Website original-renderer browser evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118836138,
+      "name": "Private App goal composition and original authority verification",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    }
+  ],
+  "mainArtifact": {
+    "id": 13460110943,
+    "digest": "sha256:324f43ccd4b655a3d80c7b3202072bbd8c3df063a0c36e26c6c6c85f97bfce1e",
+    "downloadDigestMatched": true
+  },
+  "providerCalls": 0,
+  "hostedMutation": false,
+  "secretValueAccess": false,
+  "publication": false
+}

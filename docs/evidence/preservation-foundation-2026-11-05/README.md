@@ -1,0 +1,9 @@
+# Preservation-safe staging foundation evidence
+
+Functional source: **f790872f4e3177f47bb617eff24a2940b629979a**, tree **3365a622f316197ce023dfb8cadabb36074f2e78**. This directory contains public-safe catalogue metadata, synthetic-only PostgreSQL results, exact source hashes and final CI/browser evidence. No master extract, customer rows, secret values, JWTs or hosted data fingerprints are included.
+
+Read [the staged approvals](../../PRESERVATION_STAGING_APPROVALS_2026_11_05.md) and [the SQL proposal](../../sql-proposals/preservation-foundation/README.md). All four approvals are still pending. Source review fuses remain in installation and rollback files. The original fresh generator hashes are unchanged.
+
+`local-preservation-postgres.json` proves13 local synthetic stages, not hosted installation. `local-checks.json` is local evidence, not a substitute for frozen-source CI. `hosted-read-only.json` records catalogue-only absence/preservation checks and installer privileges, not table contents. `unsuccessful-attempts.json` retains local failures and the first PG16 CI mismatch honestly. Final CI is green:498application checks,230PostgreSQL stages,105foundation assertions,30genuine Deno checks, six legacy workflows and246verified browser PNGs. See verification.json, postgres-stages.json, application-exits.json, browser-summary.json and comparison-provenance.json. Three rich mobile/desktop before/after images are byte-identical to prior9f8378 output; this is honest regression evidence, not a new aesthetic gain.
+
+Current renderings are regression evidence: this mission changes finite menu-goal punctuation handling, not CSS, photography or art direction. Do not call current pixels a new renderer improvement, real AI result, exceptional-design acceptance, published website or approved Gold Standard.

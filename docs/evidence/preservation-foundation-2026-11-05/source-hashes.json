@@ -1,0 +1,86 @@
+{
+  "commit": "f790872f4e3177f47bb617eff24a2940b629979a",
+  "tree": "3365a622f316197ce023dfb8cadabb36074f2e78",
+  "files": [
+    {
+      "path": "scripts/lib/whole-app-staging-package.mjs",
+      "sha256": "c61ee0e768028010d2fd0e80c71aa5066d3b9a139d46039101e186039f8c5a0d"
+    },
+    {
+      "path": "scripts/lib/staging-preservation.mjs",
+      "sha256": "51438fc3d14fa0514d812fb941e78f3608663b5a42e6e7e0740655be458523c5"
+    },
+    {
+      "path": "scripts/lib/preservation-foundation-package.mjs",
+      "sha256": "40ab6e3cacbedbf6e09452bd10396bea9913de593d2e9abf0406face22c93107"
+    },
+    {
+      "path": "scripts/lib/onboarding-preservation-snapshot.sql",
+      "sha256": "1c66d68f6230b3ecd9ec80d38b966f5777df8b08032ca43bc274be66ae7302ff"
+    },
+    {
+      "path": "scripts/check-preservation-foundation-postgres.mjs",
+      "sha256": "f2269dbab47a28a726c9d1c3831b4d56d16a2cfaa43cb6879128b7347aaa01d4"
+    },
+    {
+      "path": ".github/workflows/app-goal-composition.yml",
+      "sha256": "d6a4eb9d9ad86fa5a865b6e467aeb7fab77e8b560adbe8c86dcec59580e434cc"
+    },
+    {
+      "path": ".github/workflows/website-design-browser.yml",
+      "sha256": "ac1552e5b6dd7eba16bf7690a8d8f3506840f8d2b27134ad9c0e380d428b4f27"
+    },
+    {
+      "path": "docs/sql-proposals/preservation-foundation/install.sql",
+      "sha256": "cdb1303f705a5768e098297699392317d0db8913b759d2f3f773ff0b29c93b91"
+    },
+    {
+      "path": "docs/sql-proposals/preservation-foundation/rollback-retain.sql",
+      "sha256": "743e57d170b92bd54f89294bd8ceac74e0308bc3ba1e60f41da8ab3f4ddad7cf"
+    },
+    {
+      "path": "docs/sql-proposals/preservation-foundation/onboarding-baseline.json",
+      "sha256": "49bfb13bfc04b08a45b1a42692752180ba6eee316f365b15aa8501355c6fc8da"
+    },
+    {
+      "path": "supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs",
+      "sha256": "7b4bfec086b1f29859395b511431ba148a19099c5bd442b3ba318cb3222c1cae"
+    },
+    {
+      "path": "supabase/functions/busy-builder-proposals/creativeLedger.mjs",
+      "sha256": "73501c8b19c712bccf357c6781d12bb4e7e29886e5dd354e6f74fab6e4be329e"
+    },
+    {
+      "path": "supabase/functions/busy-builder-proposals/executionBootstrap.mjs",
+      "sha256": "96d31b3c62bf763bf3426051442c104ee4b4dcf8be7578c502df6a6c117fae73"
+    },
+    {
+      "path": "supabase/functions/busy-creative-pilot/index.ts",
+      "sha256": "f23d1e30b1e21bd03c41eb4382b0f0602a5048ac5949c993724957bccf903573"
+    },
+    {
+      "path": "supabase/functions/busy-builder-proposals/index.ts",
+      "sha256": "a08e7e9c96672eaaa023814dfb1330cc27326fc7298c3be05169870b51cca3c2"
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha256": "6878b05b628aae3ed691eaf8801bfe599b25f1fac8d81d3566eb6f9cc3f09c64"
+    },
+    {
+      "path": "docs/sql-proposals/ai-budget/install.sql",
+      "sha256": "8649af5f487bde9dfc984009cbf80709b49112298d0d8d02e7ec43b039df19a3"
+    },
+    {
+      "path": "docs/sql-proposals/ai-creative-receipt/install.sql",
+      "sha256": "799cf68878971bb888254ed2e92fc2fcb7543267c0e17c20332733eb9202e6fe"
+    },
+    {
+      "path": "src/core/guidedWebsiteJourney.mjs",
+      "sha256": "2c37cef6dccfccce074e0f9251a95d0cb3582149ebd8a249b4d5f41be9d95c07"
+    },
+    {
+      "path": "src/core/websiteCreativeBrief.mjs",
+      "sha256": "fd87153d673903f66595cb3a1553427f9b9fb541a5dd80954c6e4c9f1c7a26c1"
+    }
+  ]
+}

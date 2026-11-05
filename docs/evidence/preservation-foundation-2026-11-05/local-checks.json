@@ -1,0 +1,33 @@
+{
+  "sourceTree": "3365a622f316197ce023dfb8cadabb36074f2e78",
+  "sourceCommit": "f790872f4e3177f47bb617eff24a2940b629979a",
+  "scope": "Local source checks; canonical frozen GitHub CI recorded separately",
+  "results": {
+    "preservationPostgres": {
+      "passed": 13,
+      "failed": 0
+    },
+    "originalAiBudgetPostgres": {
+      "passed": 32,
+      "failed": 0
+    },
+    "productionFoundation": {
+      "passed": 105,
+      "failed": 0
+    },
+    "preservationGeneration": "passed; original fresh SQL/rollback hashes unchanged",
+    "executionBootstrap": "passed; synthetic transport only, includes menu punctuation cases",
+    "syntax": "8 files passed",
+    "deno": "actual frozen cached original30 entry checks, exit0",
+    "securityByDesign": "passed",
+    "dependencyGuard": "passed",
+    "architecture": "completed exit0; source graph report retained in final CI",
+    "securityBaseline": "passed;1010source files,557locked packages; does not establish registry audit",
+    "liveCreativeAdapter": "passed real adapter code with synthetic HTTP only; provider calls0",
+    "creativeApprovalPacket": "passed exact input/wire separation, original proposal and source denials; provider calls0"
+  },
+  "hostedMutation": false,
+  "providerRequest": false,
+  "spend": 0,
+  "disposableDaemonStopped": true
+}

@@ -1,0 +1,73 @@
+{
+  "source": {
+    "commit": "f790872f4e3177f47bb617eff24a2940b629979a",
+    "tree": "3365a622f316197ce023dfb8cadabb36074f2e78"
+  },
+  "reviewScope": "Actual full-page rich mobile/desktop sheets, three sparse/rich phone pairs, five same-industry complete phone pages and four24-business phone overviews. Automated checks cover all requested desktop/mobile views. Not an independent designer/accessibility certification or full-resolution manual inspection of every24-case desktop.",
+  "richSparseVerdicts": [
+    {
+      "business": "Ember Festival Kitchen",
+      "rich": "Needs further design improvement",
+      "sparse": "Needs further design improvement",
+      "strengths": [
+        "Clear menu destination and category grouping",
+        "Warm colour and readable full-page typography"
+      ],
+      "remaining": [
+        "Licensed illustrative food images do not form a cohesive commissioned visual story",
+        "Services below menu still use familiar numbered editorial groupings",
+        "Sparse version defaults to What we do/Get in touch and a generic single-service layout"
+      ],
+      "blockedBy": "Authentic unified business photography remains missing; renderer also retains recognisable supporting patterns"
+    },
+    {
+      "business": "Clearleaf Gardens",
+      "rich": "Professional private preview",
+      "sparse": "Needs further design improvement",
+      "strengths": [
+        "Practical service hierarchy and source-grounded local enquiry",
+        "Service image and story spread connect more clearly than sparse version"
+      ],
+      "remaining": [
+        "Restrained, recurring numbered service structure",
+        "Illustrative public-garden material is not completed-customer-work evidence",
+        "Sparse version lacks differentiated working method/story"
+      ],
+      "exceptionalCommissionedStandard": false
+    },
+    {
+      "business": "Quiet Light Studio",
+      "rich": "Needs further design improvement",
+      "sparse": "Needs further design improvement",
+      "strengths": [
+        "Intentional image-free opening and strong statement hierarchy",
+        "Desktop service emphasis/process inset and supported project conversation"
+      ],
+      "remaining": [
+        "Services and process repeat numbered/list vocabulary",
+        "Mobile masthead/nav and pale section blocks remain predictable",
+        "Sparse offering has limited individual character and generic section/contact text"
+      ],
+      "exceptionalCommissionedStandard": false
+    }
+  ],
+  "fiveGardening": {
+    "cases": [
+      "Meadow & Moss",
+      "Groundwork Gardens",
+      "Quiet Plot",
+      "Wild Corner",
+      "Estate Garden Care"
+    ],
+    "finding": "Gallery-first, service-first, story-first, collage/image-free and inset openings differ, but pale numbered service lists, generic Get in touch conclusions and reused neutral fixture texture studies remain strongly recognisable. Not sufficient evidence of exceptional whole-page individuality.",
+    "fixtureLimit": "Deliberately sparse service scope text and licensed texture studies are not genuine work portfolios."
+  },
+  "benchmark24": {
+    "technicalCaptured": 24,
+    "finding": "Navigation varies between stacked rail, pills and horizontal bar, but most sparse businesses still follow intro/numbered services/About/boxed contact/footer. Headlines and Discuss-prefixed service CTAs remain mechanical. Distinctive names/colours alone do not establish individuality.",
+    "sourceVersusRenderer": "Sparse factual inputs explain thin storytelling. Repeated supporting geometry and CTA phrasing also expose finite renderer/recommender limitations. No new visual source change is claimed."
+  },
+  "goldStandardApprovals": 0,
+  "automaticPremiumAcceptance": false,
+  "nextQualityPriority": "After independently approved staging readiness, compare one genuine governed image-free model proposal with the deterministic candidate. If the finite supported vocabulary limits gains, improve professionally reviewed full-page supporting compositions and source-aware narrative selection rather than add another hero family. Do not promise AI will cure missing authentic photography."
+}

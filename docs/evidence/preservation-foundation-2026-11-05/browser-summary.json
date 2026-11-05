@@ -1,0 +1,85 @@
+{
+  "source": {
+    "commit": "f790872f4e3177f47bb617eff24a2940b629979a",
+    "tree": "3365a622f316197ce023dfb8cadabb36074f2e78"
+  },
+  "browser": "145.0.7632.6",
+  "sandboxRequired": true,
+  "renderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+  "creativeScreenshots": 102,
+  "benchmarkScreenshots": 144,
+  "totalVerifiedPngs": 246,
+  "failures": [],
+  "baselineFailures": [],
+  "viewports": [
+    [
+      320,
+      844
+    ],
+    [
+      390,
+      844
+    ],
+    [
+      1440,
+      1000
+    ]
+  ],
+  "originalVersusResponsiveBodyBytes": [
+    {
+      "kind": "original",
+      "view": "narrow",
+      "dpr": 1,
+      "bytes": 6846480
+    },
+    {
+      "kind": "responsive",
+      "view": "narrow",
+      "dpr": 1,
+      "bytes": 216980
+    },
+    {
+      "kind": "original",
+      "view": "mobile",
+      "dpr": 1,
+      "bytes": 6846480
+    },
+    {
+      "kind": "responsive",
+      "view": "mobile",
+      "dpr": 1,
+      "bytes": 216980
+    },
+    {
+      "kind": "original",
+      "view": "desktop",
+      "dpr": 1,
+      "bytes": 6846480
+    },
+    {
+      "kind": "responsive",
+      "view": "desktop",
+      "dpr": 1,
+      "bytes": 703974
+    },
+    {
+      "kind": "original",
+      "view": "retina",
+      "dpr": 2,
+      "bytes": 6846480
+    },
+    {
+      "kind": "responsive",
+      "view": "retina",
+      "dpr": 2,
+      "bytes": 703974
+    }
+  ],
+  "measurementBoundary": "Isolated pinned fixture bytes through original responsive map/local route, not live CDN or hosted performance. No renderer/CSS change this mission.",
+  "notCertified": [
+    "agency-grade aesthetics",
+    "full accessibility",
+    "hosted rights",
+    "publication readiness"
+  ]
+}
