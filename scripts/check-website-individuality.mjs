@@ -20,6 +20,7 @@ for(const row of manifest.scenarios.filter(x=>Number(x.id)<6)){
  let stored=d,writes=0;
  const saved=await privateWebsiteDraftAction({action:'website_edit_instruction',body:{businessId:d.businessId,expectedRevision:2,expectedDraft:d,ownerApproved:true,patch:{pageId:'home',generation:d.generation,instruction:proposal.instruction}},userId:context.ownerId,read:()=>({actorId:context.ownerId,businessId:d.businessId,revision:2,profileRevision:1,websiteDraft:stored}),commit:async args=>{writes++;stored=args.p_candidate;}});
  assert.equal(writes,1);assert.equal(stored.theme.pageDirection,pageDirection);assert.equal(api.renderWebsiteHtml(stored),p.candidateHtml);assert.equal(websiteIndividualityInstructions({...context,website:{...d,businessId:'foreign'}},'Keep my wording but redesign the page').ok,false);
+ if(d.sections.some(s=>s.type==='products')){const foreign=structuredClone(d);foreign.sections.find(s=>s.type==='products').previewFeed.businessId='foreign';assert.equal(api.applyWebsiteLayoutChange(foreign,{action:'style',field:'pageDirection',value:'menu-house'}).applied,false);}
  const locked={...d,theme:{...d.theme,lockedSections:['hero']}};assert.equal(api.applyWebsiteLayoutChange(locked,{action:'style',field:'pageDirection',value:proposal.direction}).applied,false);
  assert.equal(api.applyWebsiteLayoutChange(d,{action:'style',field:'pageDirection',value:'evil-css'}).applied,false);assert.equal(websiteIndividualityInstructions(context,'Send a campaign and accept bookings').ok,false);
 }

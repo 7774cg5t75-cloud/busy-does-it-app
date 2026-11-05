@@ -186,7 +186,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(!Object.prototype.hasOwnProperty.call(allow,field)||!allow[field].includes(value))
    return fail(draft,"Choose a supported appearance setting. Arbitrary CSS or remote fonts are not allowed.");
   if(field==='pageDirection'&&value!=='standard'&&!heroFamilies.some(f=>f.id===theme.heroComposition))return fail(draft,'Review an eligible original opening before the whole-page direction.');
-  if(field==='pageDirection'&&value==='menu-house'&&!sections.some(s=>s.type==='products'&&s.enabled!==false&&s.previewFeed?.records?.length))return fail(draft,'Review current original menu or product information first.');
+  if(field==='pageDirection'&&value==='menu-house'&&!sections.some(s=>s.type==='products'&&s.enabled!==false&&s.previewFeed?.businessId===(draft.businessId||draft.business_id)&&s.previewFeed.records?.some(r=>r.kind==='product'&&r.data?.status==='active'&&Number.isSafeInteger(r.revision)&&r.revision>0)))return fail(draft,'Review current original menu or product information first.');
   if(field==='heroComposition'){
    const required=heroFamilies.find(f=>f.id===value)?.media||0;
    if(required>1&&(usedServicePhotos(draft).length+usedContentPhotos(draft).length)&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'This opening needs more distinct pictures after your service photographs are reserved. Choose more approved pictures or another direction.');

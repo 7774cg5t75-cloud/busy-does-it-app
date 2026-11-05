@@ -8,7 +8,9 @@ DECLARE op busy_ai_private.operations;
 BEGIN
  SELECT * INTO op FROM busy_ai_private.operations WHERE id=p_operation AND actor_id=p_actor AND business_id=p_business AND request_nonce=p_request_nonce;
  IF NOT FOUND THEN RAISE EXCEPTION 'Exact original operation required'; END IF;
- PERFORM public.busy_ai_context_v1(p_actor,p_business,op.binding);
+ -- Historical cost receipt is separate from current project freshness. No project content is returned.
+ PERFORM 1 FROM public.busy_business_memberships WHERE business_id=p_business AND user_id=p_actor AND role='owner' FOR SHARE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Current owner membership required'; END IF;
  RETURN jsonb_build_object('operationId',op.id,'state',op.state,'attempts',op.attempts,'goalHash',op.goal_hash,'model',op.model,'tariffRevision',op.tariff_revision,'maximumMicroGBP',op.maximum,'actualMicroGBP',op.actual,'inputTokens',op.usage_input,'outputTokens',op.usage_output,'providerReceipt',op.receipt,'binding',op.binding,'createdAt',op.created_at,'pricing',op.pricing);
 END $$;
 REVOKE ALL ON FUNCTION public.busy_ai_operation_read_v1(uuid,uuid,uuid,uuid) FROM PUBLIC,anon,authenticated;

@@ -32,10 +32,12 @@ export function createLiveCreativeAdapter(deps={}){
    if(!pilot.ok){if(admissionAttempted)throw Error('admission');return fail('admission-denied');}
    const fresh=await deps.readCurrent(),freshPrepared=prepareCreativeComparison(fresh,prepared.input.goal);
    if(!freshPrepared.ok||freshPrepared.anchor!==prepared.anchor||stableJson(freshPrepared.input)!==stableJson(prepared.input)||approval.expiresAt<=now())throw Error('stale');
+   if(stableJson(await deps.readServerPolicy())!==stableJson(policy)||stableJson(await deps.verifyApproval(pilot.digest))!==stableJson(approval))throw Error('revoked');
    const secret=await deps.readCredential(policy.provider);if(typeof secret!=='string'||secret.length<20||secret.length>4096||/[\r\n]/.test(secret))throw Error('credential');
    dispatchAttempted=true;await deps.dispatch(admitted);
    const dispatched=await deps.readReservation(admitted);
    if(dispatched?.status!=='dispatched'||dispatched.attempts!==1||dispatched.operationId!==pilot.operationId||dispatched.inputDigest!==pilot.digest||dispatched.requestDigest!==wireDigest)throw Error('uncertain');
+   const atDispatch=await deps.readCurrent();if(prepareCreativeComparison(atDispatch,prepared.input.goal).anchor!==prepared.anchor||stableJson(await deps.readServerPolicy())!==stableJson(policy)||stableJson(await deps.verifyApproval(pilot.digest))!==stableJson(approval)||approval.expiresAt<=now())throw Error('revoked');
    const controller=new AbortController();let timer;
    let response;
    try{calls=1;response=await Promise.race([(async()=>{const r=await deps.transport('https://api.openai.com/v1/responses',{method:'POST',redirect:'error',headers:{'Authorization':'Bearer '+secret,'Content-Type':'application/json'},body:stableJson(wire),signal:controller.signal});return boundedProviderJson(r,controller.signal);})(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('uncertain'));},15000);})]);}finally{clearTimeout(timer);controller.abort();}
