@@ -1,0 +1,49 @@
+{
+  "project": "pnjdlogwegnqbsfpcofw",
+  "inspectionDate": "2026-11-05",
+  "readOnly": true,
+  "customerRowsRead": false,
+  "secretValuesRead": false,
+  "mutationPerformed": false,
+  "presence": [
+    {
+      "database_name": "postgres",
+      "inspector_role": "postgres",
+      "ai_namespace": null,
+      "businesses": null,
+      "memberships": null,
+      "snapshots": null,
+      "profiles": null,
+      "context_reader": null,
+      "reserve": null,
+      "receipt_reader": null
+    }
+  ],
+  "functions": [],
+  "tables": [],
+  "foundation": [
+    {
+      "public_table_names": [
+        "busy_marketing_waitlist",
+        "busy_staging_rls_canary"
+      ],
+      "auth_users_relation": "auth.users",
+      "auth_uid_function": "auth.uid()",
+      "api_roles": [
+        "anon",
+        "authenticated",
+        "service_role"
+      ],
+      "relevant_schema_acls": [
+        {
+          "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,postgres=U/pg_database_owner,anon=U/pg_database_owner,authenticated=U/pg_database_owner,service_role=U/pg_database_owner}",
+          "schema": "public"
+        }
+      ]
+    }
+  ],
+  "edgeFunctions": [],
+  "decision": "Original Busy foundation, central AI functions and receipt reader absent. Existing waitlist prevents unchanged fresh-package installation. No hosted readiness inferred.",
+  "failedConnection": "Busy Does It 2 connector denied; explicitly selected Primary read-only connection succeeded.",
+  "batchInspection": "Initial BEGIN/SELECT/COMMIT returned empty final command results; superseded by single SELECT catalogue checks."
+}

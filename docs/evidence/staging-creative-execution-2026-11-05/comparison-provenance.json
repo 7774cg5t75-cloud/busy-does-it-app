@@ -1,0 +1,46 @@
+{
+  "source": {
+    "commit": "9f8378cfee17cf8498ed067f0092bebfc58df041",
+    "tree": "d707723456f536c36aebb25343e678215892ef33"
+  },
+  "sheets": [
+    {
+      "file": "deterministic-mobile.jpg",
+      "sha256": "1369b5610895f42876c5dccf4a26644cc4f1dd142083b9311c79992fab265df7",
+      "method": "proportional contact sheet of genuine original-renderer PNGs; no claim of model output or new renderer styling",
+      "sources": [
+        {
+          "filename": "1-after-mobile.png",
+          "sha256": "3479414c47cfbe50abc7ce4eb85fd67f166c9b47826120212743deab2a08c179"
+        },
+        {
+          "filename": "3-after-mobile.png",
+          "sha256": "ade8a8022a8cc12649cb26f81b4476d7d55f41192eead3f58efca3e42fdde840"
+        },
+        {
+          "filename": "5-after-mobile.png",
+          "sha256": "a579055ab4e418edb986efb301c7ea21fddc8574b5edbca1f4440a917acdf7c9"
+        }
+      ]
+    },
+    {
+      "file": "deterministic-desktop.jpg",
+      "sha256": "e37741ab2702b6cd37a46abd79bf157340bcad9071ad4504f1edd15c59fd151b",
+      "method": "proportional contact sheet of genuine original-renderer PNGs; no claim of model output or new renderer styling",
+      "sources": [
+        {
+          "filename": "1-after-desktop.png",
+          "sha256": "350df44aa3ee2de96cdf97c12f5c0e7a895bffe06b360bb8a0111efc9f929b6c"
+        },
+        {
+          "filename": "3-after-desktop.png",
+          "sha256": "8b72d8fa466caca864487ea1a488698c95c0025f9f783455d805615e7de90486"
+        },
+        {
+          "filename": "5-after-desktop.png",
+          "sha256": "6b163e8035d3e1f2b18f0d631302cffb17f50cb5c9f2c9e957567e203a19f126"
+        }
+      ]
+    }
+  ]
+}
