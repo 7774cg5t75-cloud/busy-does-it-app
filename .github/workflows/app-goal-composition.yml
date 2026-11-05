@@ -37,6 +37,11 @@ on:
       - 'scripts/check-website-menu-story.mjs'
       - 'scripts/check-website-creative-comparison.mjs'
       - 'src/core/websiteCreative*.mjs'
+      - 'src/core/websiteDesignAcceptance.mjs'
+      - 'scripts/check-website-design-acceptance.mjs'
+      - 'scripts/check-website-acceptance-benchmark.mjs'
+      - 'scripts/lib/private-design-register.mjs'
+      - 'scripts/prepare-design-reference-evidence.mjs'
       - 'scripts/fixtures/website-creative/**'
       - 'scripts/process-menu-story-photos.mjs'
       - 'supabase/functions/busy-website-worker/websiteContentPhotos.mjs'
@@ -198,6 +203,8 @@ jobs:
           node scripts/check-operational-work.mjs
           node scripts/check-website-menu-story.mjs
           node scripts/check-website-creative-comparison.mjs
+          node scripts/check-website-design-acceptance.mjs
+          node scripts/check-website-acceptance-benchmark.mjs
           node scripts/check-website-art-direction.mjs
           node scripts/check-premium-website-experience.mjs
           node scripts/check-website-design-expansion.mjs

@@ -3177,6 +3177,20 @@
         "scripts/check-website-creative-comparison.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "website-design-acceptance",
+      "args": [
+        "scripts/check-website-design-acceptance.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "website-acceptance-benchmark",
+      "args": [
+        "scripts/check-website-acceptance-benchmark.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

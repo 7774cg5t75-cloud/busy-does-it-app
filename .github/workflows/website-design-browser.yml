@@ -25,6 +25,11 @@ on:
       - 'scripts/check-website-menu-story.mjs'
       - 'scripts/check-website-creative-comparison.mjs'
       - 'src/core/websiteCreative*.mjs'
+      - 'src/core/websiteDesignAcceptance.mjs'
+      - 'scripts/check-website-design-acceptance.mjs'
+      - 'scripts/check-website-acceptance-benchmark.mjs'
+      - 'scripts/lib/private-design-register.mjs'
+      - 'scripts/prepare-design-reference-evidence.mjs'
       - 'scripts/fixtures/website-creative/**'
       - 'scripts/process-menu-story-photos.mjs'
       - 'supabase/functions/busy-website-worker/websiteContentPhotos.mjs'
@@ -97,8 +102,12 @@ jobs:
           node scripts/process-menu-story-photos.mjs
           BUSY_MENU_BROWSER=1 node scripts/capture-website-design.mjs
           node scripts/check-website-creative-comparison.mjs
+          node scripts/check-website-design-acceptance.mjs
+          node scripts/check-website-acceptance-benchmark.mjs
           BUSY_CREATIVE_BROWSER=1 node scripts/process-menu-story-photos.mjs
           BUSY_CREATIVE_BROWSER=1 node scripts/capture-website-design.mjs
+          BUSY_BENCHMARK_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/prepare-design-reference-evidence.mjs
       - name: Compare real current pixels with the exact previous guided evidence
         if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
         env:
@@ -376,5 +385,18 @@ jobs:
             .test-artifacts/website-creative/1[1-3]-*.png
             .test-artifacts/website-creative/*.json
             .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain 24-case benchmark and private-candidate evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-acceptance-benchmark-${{ github.sha }}
+          path: |
+            .test-artifacts/website-benchmark/*.png
+            .test-artifacts/website-benchmark/*.json
+            .test-artifacts/website-benchmark/*.html
+            .test-artifacts/design-acceptance/*.json
           retention-days: 7
           if-no-files-found: error
