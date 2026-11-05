@@ -27,10 +27,13 @@ on:
       - 'src/core/websiteCreative*.mjs'
       - 'scripts/check-website-individuality.mjs'
       - 'scripts/check-live-creative-adapter.mjs'
+      - 'scripts/check-creative-execution-bootstrap.mjs'
+      - 'supabase/functions/busy-creative-pilot/**'
       - 'scripts/check-creative-approval-packet.mjs'
       - 'supabase/functions/busy-builder-proposals/approvalPacket.mjs'
       - 'supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs'
       - 'supabase/functions/busy-builder-proposals/creativeLedger.mjs'
+      - 'supabase/functions/busy-builder-proposals/executionBootstrap.mjs'
       - 'docs/sql-proposals/ai-creative-receipt/**'
       - 'scripts/check-ai-budget-postgres.mjs'
       - 'src/core/websiteDesignAcceptance.mjs'
@@ -114,6 +117,7 @@ jobs:
           node scripts/check-website-acceptance-benchmark.mjs
           node scripts/check-website-individuality.mjs
           node scripts/check-live-creative-adapter.mjs
+          node scripts/check-creative-execution-bootstrap.mjs
           node scripts/check-creative-approval-packet.mjs
           BUSY_CREATIVE_BROWSER=1 node scripts/process-menu-story-photos.mjs
           BUSY_CREATIVE_BROWSER=1 node scripts/capture-website-design.mjs

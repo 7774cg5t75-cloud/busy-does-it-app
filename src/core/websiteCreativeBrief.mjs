@@ -23,12 +23,12 @@ export function websiteIndividualityInstructions(context,goal,{rejected=[]}={}){
 }
 export function websiteCreativeInstructions(context,goal){
  const b=websiteCreativeBrief(context);if(!b.ok)return {ok:false,reason:b.question};
- if(typeof goal!=='string'||! /^(make this website feel more individual|give it a more premium creative direction|keep my words but redesign the rest|put the menu first|use these photos to tell our story|try a completely different approach|make the website more suitable for customers on phones)$/i.test(goal.trim()))return {ok:false,reason:'Choose one supported design change. Your wording is unchanged.'};
+ if(typeof goal!=='string'||! /^(make this website feel more individual|give it a more premium creative direction|keep my words but redesign the rest|put the menu first|make our menu easier to find|use these photos to tell our story|try a completely different approach|make the website more suitable for customers on phones)$/i.test(goal.trim()))return {ok:false,reason:'Choose one supported design change. Your wording is unchanged.'};
  if(/^use these photos/i.test(goal))return {ok:false,reason:'Which photograph belongs with which part of your story? Choose the exact approved relationship first.'};
  const d=context.website,commands=[],home=d.pages.find(p=>p.id==='home'),menu=d.sections.find(s=>s.type==='products'&&s.enabled!==false),service=d.sections.find(s=>s.type==='services'&&s.enabled!==false),process=d.sections.find(s=>s.type==='text'&&s.id!=='about'&&!s.storyPhoto&&['sequence','chapters','feature-chapters'].includes(s.appearance?.readingLayout)&&s.enabled!==false&&String(s.body||'').split(/\n\s*\n/).filter(Boolean).length>=2);
  const currentSections=d.sections.filter(s=>s.enabled!==false&&home.sectionIds.includes(s.id)),readingTargets=currentSections.filter(s=>['services','contact'].includes(s.type)&&/^[-a-zA-Z0-9_]{1,100}$/.test(s.id)&&s.appearance?.mobileBodyScale!=='large'),readingCommands=readingTargets.map(s=>'make '+s.id+' body text easier to read on phones');
  if(/phones/i.test(goal)){if(currentSections.some(s=>s.appearance?.mobileSectionSpacing!=='compact'))commands.push('give the page less space on phones');commands.push(...readingCommands);}
- else if(/menu first/i.test(goal)){
+ else if(/menu (first|easier to find)/i.test(goal)){
   if(!menu||!b.brief.products.length)return {ok:false,reason:'Review current approved menu information first.'};const first=home.sectionIds.find(id=>id!=='hero'&&d.sections.some(s=>s.id===id&&s.enabled!==false));if(first&&first!==menu.id)commands.push('move '+menu.id+' before '+first);if(menu.navigationLabel!=='Menu')commands.push('label products navigation "Menu"');
  }else{
   const alternate=/different approach/i.test(goal);

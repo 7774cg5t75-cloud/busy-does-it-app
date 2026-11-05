@@ -3212,6 +3212,13 @@
         "scripts/check-creative-approval-packet.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-creative-execution-bootstrap",
+      "args": [
+        "scripts/check-creative-execution-bootstrap.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
