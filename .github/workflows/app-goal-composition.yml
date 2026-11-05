@@ -286,9 +286,32 @@ jobs:
           diff -qr standalone "$EDGE_SOURCE/standalone"
           DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/executionBootstrap.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1
           echo "BUSY_EDGE_RESULT all_25_original_entrypoints_exit_0"
+      - name: Signed PostgreSQL 17 tooling matching staging ACLs
+        run: |
+          # PostgreSQL16 cannot represent staging's existing MAINTAIN privilege.
+          # Official PGDG signing fingerprint: postgresql.org/download/linux/ubuntu/.
+          test "$(. /etc/os-release; echo "$VERSION_CODENAME")" = noble
+          PG_KEY="$RUNNER_TEMP/busy-pgdg.asc"
+          curl --fail --silent --show-error --location --max-time 30 https://www.postgresql.org/media/keys/ACCC4CF8.asc -o "$PG_KEY"
+          test "$(gpg --show-keys --with-colons "$PG_KEY" | awk -F: '$1=="fpr"{print $10;exit}')" = B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+          sudo install -m 0644 "$PG_KEY" /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/busy-pgdg.list >/dev/null
+          # Suppress all service starts in this ephemeral runner installation only.
+          if sudo test -e /usr/sbin/policy-rc.d; then sudo cp -p /usr/sbin/policy-rc.d "$RUNNER_TEMP/busy-policy-rc.d"; fi
+          restore_policy() { if test -e "$RUNNER_TEMP/busy-policy-rc.d"; then sudo cp -p "$RUNNER_TEMP/busy-policy-rc.d" /usr/sbin/policy-rc.d; else sudo rm -f /usr/sbin/policy-rc.d; fi; }
+          trap restore_policy EXIT
+          printf '#!/bin/sh\nexit 101\n' | sudo tee /usr/sbin/policy-rc.d >/dev/null
+          sudo chmod 0755 /usr/sbin/policy-rc.d
+          sudo sed -i 's/^[#[:space:]]*create_main_cluster[[:space:]]*=.*/create_main_cluster = false/' /etc/postgresql-common/createcluster.conf
+          grep -qx 'create_main_cluster = false' /etc/postgresql-common/createcluster.conf
+          sudo apt-get update -qq
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -o Dpkg::Options::=--force-confold postgresql-17 postgresql-client-17
+          /usr/lib/postgresql/17/bin/postgres --version
+          dpkg-query -W postgresql-17 postgresql-client-17
       - name: Disposable local PostgreSQL, no TCP or hosted connection
         run: |
-          PG_BIN="$(pg_config --bindir)"
+          PG_BIN="/usr/lib/postgresql/17/bin"
+          test -x "$PG_BIN/initdb"
           PG_DATA="$RUNNER_TEMP/busy-app-goal-pg-data"
           PG_SOCKET="$RUNNER_TEMP/busy-app-goal-pg-socket"
           install -d -m 700 "$PG_DATA" "$PG_SOCKET"
