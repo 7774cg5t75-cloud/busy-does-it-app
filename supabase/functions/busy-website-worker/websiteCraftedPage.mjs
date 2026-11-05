@@ -351,10 +351,15 @@ export const craftedPageCss=`
  .direction-studio-index>main,.direction-studio-index>.site-footer{grid-column:2;min-width:0}
  .direction-studio-index .wrap{width:calc(100% - 96px);max-width:1120px}
 }
-.direction-studio-index #services .crafted-services{display:block}
-.direction-studio-index #services .crafted-service,.direction-studio-index #services .crafted-service:first-child{grid-template-columns:32px minmax(0,1.25fr) minmax(0,.75fr);margin:0!important;padding-block:40px}
-.direction-studio-index #services .crafted-service>h3:not([class*="owner-item-heading"]){grid-column:2;font-size:clamp(2.2rem,4.3vw,4rem);font-weight:400;max-width:20ch}
-.direction-studio-index #services .crafted-service .crafted-service-description{grid-column:3;align-self:end}
+/* A supplied first service leads; supporting services form a quieter index. */
+.direction-studio-index #services .crafted-services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
+.direction-studio-index #services .crafted-services-count-2{grid-template-columns:minmax(0,1fr)}
+.direction-studio-index #services .crafted-service{display:grid;grid-template-columns:24px minmax(0,1fr);gap:16px;margin:0!important;padding-block:32px;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
+.direction-studio-index #services .crafted-service:first-child{grid-column:1/-1;grid-template-columns:32px minmax(0,1.25fr) minmax(0,.75fr);padding-block:40px 52px}
+.direction-studio-index #services .crafted-service>h3:not([class*="owner-item-heading"]){grid-column:2;font-size:clamp(1.8rem,3vw,2.8rem);font-weight:400;max-width:22ch}
+.direction-studio-index #services .crafted-service:first-child>h3:not([class*="owner-item-heading"]){font-size:clamp(2.8rem,5.4vw,5rem);max-width:18ch}
+.direction-studio-index #services .crafted-service .crafted-service-description{grid-column:2;max-width:38ch;margin:0}
+.direction-studio-index #services .crafted-service:first-child .crafted-service-description{grid-column:3;align-self:end}
 .direction-studio-index .authored-story--manifesto{grid-template-columns:minmax(0,1fr)}
 .direction-studio-index .authored-story--manifesto .story-copy{margin-left:12%;max-width:80%}
 .direction-studio-index .authored-story--manifesto .authored-story-lead{max-width:30ch;font-size:clamp(2rem,4vw,3.6rem)}
@@ -367,6 +372,9 @@ export const craftedPageCss=`
  .direction-studio-index nav .nav-links{display:flex;flex-direction:column;align-items:flex-start;width:100%;border:0;padding:0;gap:4px}
 }
 @media(max-width:800px){
+ .direction-studio-index #services .crafted-services{grid-template-columns:minmax(0,1fr)}
+ .direction-studio-index #services .crafted-service:first-child{grid-column:auto;padding-block:32px}
+ .direction-studio-index #services .crafted-service:first-child>h3:not([class*="owner-item-heading"]){font-size:clamp(2.2rem,9vw,3rem)}
  .direction-service-journal nav .nav-links{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:12px;width:100%}
  .direction-service-journal .crafted-services .crafted-service,.direction-studio-index #services .crafted-service,.direction-studio-index #services .crafted-service:first-child{grid-template-columns:24px minmax(0,1fr);gap:16px}
  .direction-service-journal .crafted-services .crafted-service .crafted-service-description,.direction-studio-index #services .crafted-service .crafted-service-description{grid-column:2}

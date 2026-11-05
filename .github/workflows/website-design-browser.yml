@@ -27,6 +27,8 @@ on:
       - 'src/core/websiteCreative*.mjs'
       - 'scripts/check-website-individuality.mjs'
       - 'scripts/check-live-creative-adapter.mjs'
+      - 'scripts/check-creative-approval-packet.mjs'
+      - 'supabase/functions/busy-builder-proposals/approvalPacket.mjs'
       - 'supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs'
       - 'supabase/functions/busy-builder-proposals/creativeLedger.mjs'
       - 'docs/sql-proposals/ai-creative-receipt/**'
@@ -112,6 +114,7 @@ jobs:
           node scripts/check-website-acceptance-benchmark.mjs
           node scripts/check-website-individuality.mjs
           node scripts/check-live-creative-adapter.mjs
+          node scripts/check-creative-approval-packet.mjs
           BUSY_CREATIVE_BROWSER=1 node scripts/process-menu-story-photos.mjs
           BUSY_CREATIVE_BROWSER=1 node scripts/capture-website-design.mjs
           BUSY_BENCHMARK_BROWSER=1 node scripts/capture-website-design.mjs

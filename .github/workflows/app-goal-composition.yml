@@ -39,6 +39,8 @@ on:
       - 'src/core/websiteCreative*.mjs'
       - 'scripts/check-website-individuality.mjs'
       - 'scripts/check-live-creative-adapter.mjs'
+      - 'scripts/check-creative-approval-packet.mjs'
+      - 'supabase/functions/busy-builder-proposals/approvalPacket.mjs'
       - 'supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs'
       - 'supabase/functions/busy-builder-proposals/creativeLedger.mjs'
       - 'docs/sql-proposals/ai-creative-receipt/**'
@@ -213,6 +215,7 @@ jobs:
           node scripts/check-website-acceptance-benchmark.mjs
           node scripts/check-website-individuality.mjs
           node scripts/check-live-creative-adapter.mjs
+          node scripts/check-creative-approval-packet.mjs
           node scripts/check-website-art-direction.mjs
           node scripts/check-premium-website-experience.mjs
           node scripts/check-website-design-expansion.mjs
@@ -269,7 +272,7 @@ jobs:
           diff -qr src "$EDGE_SOURCE/src"
           diff -qr supabase "$EDGE_SOURCE/supabase"
           diff -qr standalone "$EDGE_SOURCE/standalone"
-          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1
+          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1
           echo "BUSY_EDGE_RESULT all_25_original_entrypoints_exit_0"
       - name: Disposable local PostgreSQL, no TCP or hosted connection
         run: |

@@ -3,7 +3,20 @@ import {prepareCreativeComparison} from '../../../src/core/websiteCreativeCompar
 import {parseBuilderProposalResponse,prepareGovernedBuilderReview,createBuilderProposalContext} from '../../../src/core/governedBuilderProposal.mjs';
 import {stableJson} from '../../../src/core/stableJson.mjs';
 const fail=(status,providerCalls=0)=>({ok:false,status,providerCalls,maySave:false,mayPublish:false,mayRetry:false});
-export function creativeProviderRequest(envelope,model){return {model,store:false,max_output_tokens:1000,tools:[],input:stableJson(envelope.input),text:{format:{type:'json_schema',name:'busy_art_direction',strict:true,schema:envelope.schema}}};}
+// Provider wire subset only; original validator still enforces uniqueness and all bounds.
+export function creativeProviderSchema(schema){
+ let nodes=0;
+ const walk=(s,depth=0)=>{if(!s||typeof s!=='object'||Array.isArray(s)||depth>10||++nodes>500)throw Error('Unsupported schema');
+  const allowed=['type','properties','required','additionalProperties','items','enum','const','anyOf','minItems','maxItems','minLength','maxLength','uniqueItems'];
+  if(Object.keys(s).some(k=>!allowed.includes(k)))throw Error('Unsupported schema keyword');
+  const n=Object.fromEntries(Object.entries(s).filter(([k])=>!['const','uniqueItems'].includes(k)));
+  if(Object.hasOwn(s,'const'))n.enum=[s.const];
+  if(n.enum&&!n.type){const t=n.enum.map(v=>Number.isInteger(v)?'integer':typeof v);if(!t.length||t.some(v=>v!==t[0])||!['string','integer','boolean'].includes(t[0]))throw Error('Unsupported enum');n.type=t[0];}
+  if(n.properties){if(n.additionalProperties!==false||!Array.isArray(n.required)||Object.keys(n.properties).some(k=>!n.required.includes(k))||n.required.some(k=>!Object.hasOwn(n.properties,k)))throw Error('Open schema');n.properties=Object.fromEntries(Object.entries(n.properties).map(([k,v])=>[k,walk(v,depth+1)]));}
+  if(n.items)n.items=walk(n.items,depth+1);if(n.anyOf)n.anyOf=n.anyOf.map(v=>walk(v,depth+1));return n;
+ };const result=walk(schema);if(result.type!=='object'||result.anyOf)throw Error('Root object required');return result;
+}
+export function creativeProviderRequest(envelope,model){return {model,store:false,max_output_tokens:1000,reasoning:{effort:"low"},tools:[],input:stableJson(envelope.input),text:{format:{type:'json_schema',name:'busy_art_direction',strict:true,schema:creativeProviderSchema(envelope.schema)}}};}
 async function boundedProviderJson(response,signal){
  if(!response?.ok||!response.headers?.get('content-type')?.startsWith('application/json')||Number(response.headers.get('content-length'))>32768)throw Error('uncertain');
  const reader=response.body?.getReader();if(!reader)throw Error('uncertain');let size=0,parts=[];
@@ -48,9 +61,10 @@ export function createLiveCreativeAdapter(deps={}){
    if(readback?.status!=='settled'||readback.inputTokens!==usage.input_tokens||readback.outputTokens!==usage.output_tokens||readback.providerReceipt!==receipt||readback.inputDigest!==pilot.digest||readback.requestDigest!==wireDigest||!Number.isFinite(readback.actualGBP)||readback.actualGBP<0)throw Error('uncertain');
    settled=true;
    if(usage.input_tokens>4000||usage.output_tokens>1000||readback.actualGBP>0.10||readback.overrun===true)return {...fail('usage-overrun',calls),receipt:readback};
-   if(response.status!=='completed'||!Array.isArray(response.output)||response.output.length!==1||response.output[0].type!=='message'||response.output[0].role!=='assistant'||!Array.isArray(response.output[0].content)||response.output[0].content.length!==1||response.output[0].content[0].type!=='output_text')return {...fail('invalid-proposal',calls),receipt:readback};
+   const output=response.output,message=Array.isArray(output)?output.filter(x=>x?.type==='message'):[];
+   if(response.status!=='completed'||!Array.isArray(output)||output.length>2||output.some(x=>!['message','reasoning'].includes(x?.type))||message.length!==1||message[0].role!=='assistant'||!Array.isArray(message[0].content)||message[0].content.length!==1||message[0].content[0].type!=='output_text')return {...fail('invalid-proposal',calls),receipt:readback};
    const latest=await deps.readCurrent(),latestPrepared=prepareCreativeComparison(latest,prepared.input.goal);if(!latestPrepared.ok||latestPrepared.anchor!==prepared.anchor)return {...fail('source-changed-after-provider',calls),receipt:readback};
-   const parsed=parseBuilderProposalResponse(response.output[0].content[0].text,prepared.source);if(!parsed.ok)return {...fail('invalid-proposal',calls),receipt:readback};
+   const parsed=parseBuilderProposalResponse(message[0].content[0].text,prepared.source);if(!parsed.ok)return {...fail('invalid-proposal',calls),receipt:readback};
    const source=createBuilderProposalContext({...latest,projectId:latest.website.id,sourceRevision:latest.website.generation,surface:'website',pageId:'home',project:latest.website});
    const review=prepareGovernedBuilderReview(parsed.proposal,prepared.source,source,deps.planner);if(!review.ok)return {...fail('unsupported-or-unchanged-proposal',calls),receipt:readback};
    return {ok:true,status:'review-required',origin:'real-model',review,receipt:readback,requestDigest:wireDigest,providerCalls:calls,maySave:false,mayPublish:false,mayRetry:false,originalStudioApprovalRequired:true};

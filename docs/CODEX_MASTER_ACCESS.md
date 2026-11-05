@@ -1,3 +1,7 @@
+## Supplied starter reconciled —5 November2026
+
+V22.82 remains controlling. The separate starter ZIP was received and SHA256-verified as1ee58018469659cbcbc91ffd9c196d94b3b908da262333082547be32b4070b37. Its four original files remain private outside Git. The private versioned reconciliation preserves original evidence and distinguishes Ember needs-improvement feedback/two candidates from approval: zero Gold Standards approved. Historical missing-attachment notes below remain provenance, not current availability.
+
 ## Current genuine private Product Master — V22.82,5 November2026
 
 New owner-supplied original SHA256 `a0caa0432a065c4aceffbacdc165110718d2cdf8b3885e1c6af8e76265c855be`,3,305 paragraphs/20 tables. It retains every V22.81 non-cover paragraph and adds Section94: actual Website quality/individuality remains first; connected-data/event work only when required by a current outcome. Section93 acceptance/private reference rules remain unchanged. The owner confirms this is the latest supplied authority; the separate Busy_Design_Reference_Collection_Starter.zip has not yet been attached and will be reconciled later. Preserve three existing candidates/zero approved, all inherited controls and no spending/hosted/publication authority. Original and complete extract remain outside Git.
