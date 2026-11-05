@@ -1,0 +1,7568 @@
+{
+  "source": {
+    "commit": "194ac970b06081545294147194b61cc659bfaaa0",
+    "tree": "d94d106997adfa4469f331dac79ad6c8181c4a84"
+  },
+  "browser": "145.0.7632.6",
+  "sandboxRequired": true,
+  "renderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+  "assetManifest": {
+    "sources": [
+      "scripts/fixtures/website-design/assets.json",
+      "scripts/fixtures/guided-websites/assets.json"
+    ],
+    "images": [
+      {
+        "name": "coffee",
+        "sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+        "credit": "Rachel Michetti, courtesy Pikolo Espresso Bar; CC0"
+      },
+      {
+        "name": "grass",
+        "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89",
+        "credit": "linolafett, Grass-01, cropped/grayscale by scikit-image; CC0"
+      },
+      {
+        "name": "gravel",
+        "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12",
+        "credit": "CC0Textures Gravel04, cropped/grayscale by scikit-image; CC0"
+      },
+      {
+        "name": "brick",
+        "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf",
+        "credit": "CC0Textures Bricks25, transformed by scikit-image; CC0"
+      },
+      {
+        "name": "catering",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Ugandan_food_buffet_serving.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Ugandan_food_buffet_serving.jpg&oldid=1210355536",
+        "credit": "Rebeccananonof, Ugandan food buffet serving, CC0",
+        "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046",
+        "width": 4608,
+        "height": 3456
+      },
+      {
+        "name": "garden",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+        "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition",
+        "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb",
+        "width": 1280,
+        "height": 1920,
+        "previousPinnedSha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+        "reviewedLocalPath": "scripts/fixtures/guided-websites/patio-garden-reviewed.jpg",
+        "review": "Actual 1280x1920 JPEG decoded and visually reviewed on 2026-11-03 after run41680754623 failed exact-byte verification. Preserve copyright/artist metadata and CC0 provenance. Checked-in fixture, not automatic acceptance of changed upstream bytes."
+      },
+      {
+        "name": "studio",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+        "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition; explicit illustrative botanical choice for fictional wellness preview, not studio premises",
+        "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb",
+        "width": 1280,
+        "height": 1920,
+        "previousPinnedSha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+        "reviewedLocalPath": "scripts/fixtures/guided-websites/patio-garden-reviewed.jpg",
+        "review": "Actual 1280x1920 JPEG decoded and visually reviewed on 2026-11-03 after run41680754623 failed exact-byte verification. Preserve copyright/artist metadata and CC0 provenance. Checked-in fixture, not automatic acceptance of changed upstream bytes."
+      }
+    ]
+  },
+  "results": [
+    {
+      "business": "Copper Table",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "0-before-narrow.png",
+      "sha256": "e1b9eddcbaa5858d2b0fa0cc39a3b00349184f9c1d6de0cad5408dfc50b3f7c4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Tell us about your gathering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2053
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Copper Table",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "0-after-narrow.png",
+      "sha256": "e1b9eddcbaa5858d2b0fa0cc39a3b00349184f9c1d6de0cad5408dfc50b3f7c4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Tell us about your gathering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2053
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Copper Table",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "0-before-mobile.png",
+      "sha256": "bde06dabbadedd585adf00cc4559c70711aa2d30f2056bb00cbc31aa09fb9252",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Tell us about your gathering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2020
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Copper Table",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "0-after-mobile.png",
+      "sha256": "bde06dabbadedd585adf00cc4559c70711aa2d30f2056bb00cbc31aa09fb9252",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Tell us about your gathering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2020
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Copper Table",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "0-before-desktop.png",
+      "sha256": "0310004e4590238ede79690785f1ba6623beea7cecf5f0aa92dcb6aed589a731",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 793.390625,
+            "fontSize": 83.52,
+            "text": "Tell us about your gathering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2433
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Copper Table",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "0-after-desktop.png",
+      "sha256": "0310004e4590238ede79690785f1ba6623beea7cecf5f0aa92dcb6aed589a731",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 793.390625,
+            "fontSize": 83.52,
+            "text": "Tell us about your gathering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2433
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Small Batch Kitchen",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "1-before-narrow.png",
+      "sha256": "a845483b0b2f6581dcd132671687e5cbfaf6b793016194652a1067c162ac3ec4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Explore our food."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2109
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Small Batch Kitchen",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "1-after-narrow.png",
+      "sha256": "a845483b0b2f6581dcd132671687e5cbfaf6b793016194652a1067c162ac3ec4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Explore our food."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2109
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Small Batch Kitchen",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "1-before-mobile.png",
+      "sha256": "bced6f2a0ad4c628a5d4d30b6470b5658c9f30f2656bf54af601f41f973345a5",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Explore our food."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1987
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Small Batch Kitchen",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "1-after-mobile.png",
+      "sha256": "bced6f2a0ad4c628a5d4d30b6470b5658c9f30f2656bf54af601f41f973345a5",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Explore our food."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1987
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Small Batch Kitchen",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "1-before-desktop.png",
+      "sha256": "d523ad07a80e9a3244de073464f98e5b5f6dc727cf0ef6dc0a900f8620ffd729",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Explore our food."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2088
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Small Batch Kitchen",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "1-after-desktop.png",
+      "sha256": "d523ad07a80e9a3244de073464f98e5b5f6dc727cf0ef6dc0a900f8620ffd729",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Explore our food."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2088
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "City Stem",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "2-before-narrow.png",
+      "sha256": "1f9cd1908b9a0e24e376e9eeace71da3bb41a0b3b13a5f1caca35431a55df4a6",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Discuss your space."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2006
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "City Stem",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "2-after-narrow.png",
+      "sha256": "1f9cd1908b9a0e24e376e9eeace71da3bb41a0b3b13a5f1caca35431a55df4a6",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Discuss your space."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2006
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "City Stem",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "2-before-mobile.png",
+      "sha256": "b6fadf863dc9a200a73a12b7a338dd27ea21c5fb6644731cb458a55939b930fb",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 330.921875,
+            "fontSize": 43.2,
+            "text": "Discuss your space."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1899
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "City Stem",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "2-after-mobile.png",
+      "sha256": "b6fadf863dc9a200a73a12b7a338dd27ea21c5fb6644731cb458a55939b930fb",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 330.921875,
+            "fontSize": 43.2,
+            "text": "Discuss your space."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1899
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "City Stem",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "2-before-desktop.png",
+      "sha256": "c3c6393d21a5b187296d39733264ad739fa568e49a45028079b547bc1ad53341",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 542.84375,
+            "fontSize": 83.52,
+            "text": "Discuss your space."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2396
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "City Stem",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "2-after-desktop.png",
+      "sha256": "c3c6393d21a5b187296d39733264ad739fa568e49a45028079b547bc1ad53341",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 542.84375,
+            "fontSize": 83.52,
+            "text": "Discuss your space."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2396
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Field & Hedge",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "3-before-narrow.png",
+      "sha256": "4f10469342e2f4e4e76ae73f1ee82db45f9632fe7db8410f08ecb8b60a524a45",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Ask about garden care."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2166
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Field & Hedge",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "3-after-narrow.png",
+      "sha256": "4f10469342e2f4e4e76ae73f1ee82db45f9632fe7db8410f08ecb8b60a524a45",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Ask about garden care."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2166
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Field & Hedge",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "3-before-mobile.png",
+      "sha256": "fca098c9636a00b9a76c6b623d3ad6ec88e4f1c4ebc918c9fd20b39f0e62835c",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Ask about garden care."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2023
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Field & Hedge",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "3-after-mobile.png",
+      "sha256": "fca098c9636a00b9a76c6b623d3ad6ec88e4f1c4ebc918c9fd20b39f0e62835c",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Ask about garden care."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2023
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Field & Hedge",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "3-before-desktop.png",
+      "sha256": "78860e841578933031b47dbc61313879d9b8a7cab1c647d86759bf8bdbd30f65",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 113.6,
+            "text": "Ask about garden care."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2550
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Field & Hedge",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "3-after-desktop.png",
+      "sha256": "78860e841578933031b47dbc61313879d9b8a7cab1c647d86759bf8bdbd30f65",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 113.6,
+            "text": "Ask about garden care."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2550
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Northline Studio",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "4-before-narrow.png",
+      "sha256": "02e4f2cc50db99ef23a8aeb29a4d52e55a8ddbdf80e1f2d2973bc026bc9fa620",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Discuss a creative brief."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1746
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Northline Studio",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "4-after-narrow.png",
+      "sha256": "02e4f2cc50db99ef23a8aeb29a4d52e55a8ddbdf80e1f2d2973bc026bc9fa620",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Discuss a creative brief."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1746
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Northline Studio",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "4-before-mobile.png",
+      "sha256": "4fa9d9f0df8f799a548afae6e9573d7d2265837778e933fa8f95033f9863cab4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Discuss a creative brief."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1746
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Northline Studio",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "4-after-mobile.png",
+      "sha256": "4fa9d9f0df8f799a548afae6e9573d7d2265837778e933fa8f95033f9863cab4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Discuss a creative brief."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1746
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Northline Studio",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "4-before-desktop.png",
+      "sha256": "3af03cff37a32fd47ea6cdb63515256bc0bb144faac1bf763185824168afd083",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 136,
+            "text": "Discuss a creative brief."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2345
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Northline Studio",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "4-after-desktop.png",
+      "sha256": "3af03cff37a32fd47ea6cdb63515256bc0bb144faac1bf763185824168afd083",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 136,
+            "text": "Discuss a creative brief."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2345
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Paper Current",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "5-before-narrow.png",
+      "sha256": "df8996e39a47f449832fc9a4948ebc92d8f8f572e3be4b2d06a30168a0f6f731",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Start with your idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1814
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Paper Current",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "5-after-narrow.png",
+      "sha256": "df8996e39a47f449832fc9a4948ebc92d8f8f572e3be4b2d06a30168a0f6f731",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Start with your idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1814
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Paper Current",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "5-before-mobile.png",
+      "sha256": "ee932f709671cb28fc09c17081dedfd13970f6454cefee0376a901a3721aa55f",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Start with your idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1717
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Paper Current",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "5-after-mobile.png",
+      "sha256": "ee932f709671cb28fc09c17081dedfd13970f6454cefee0376a901a3721aa55f",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Start with your idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1717
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Paper Current",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "5-before-desktop.png",
+      "sha256": "131f48763554e1ef315c426dc485a63b58983b6c8ea9377b32466359c1cd5017",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 664,
+            "fontSize": 136,
+            "text": "Start with your idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2252
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Paper Current",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "5-after-desktop.png",
+      "sha256": "131f48763554e1ef315c426dc485a63b58983b6c8ea9377b32466359c1cd5017",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 664,
+            "fontSize": 136,
+            "text": "Start with your idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2252
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Still House",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "6-before-narrow.png",
+      "sha256": "cf38f8a795ec4df1bd53fc464985858215111e883f1b9c6de594bb2eb2594b60",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Ask about our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1888
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Still House",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "6-after-narrow.png",
+      "sha256": "cf38f8a795ec4df1bd53fc464985858215111e883f1b9c6de594bb2eb2594b60",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Ask about our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1888
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Still House",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "6-before-mobile.png",
+      "sha256": "c7d05d4b89f06d4045047ead18c5fb70d52a7d110d82a777bf17ac262772a613",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ask about our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1867
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Still House",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "6-after-mobile.png",
+      "sha256": "c7d05d4b89f06d4045047ead18c5fb70d52a7d110d82a777bf17ac262772a613",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ask about our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1867
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Still House",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "6-before-desktop.png",
+      "sha256": "58ca2be7af88fda60957ea25f55e21b7c762a795d7e0f1fe48610efd6f63fd40",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 542.84375,
+            "fontSize": 83.52,
+            "text": "Ask about our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2556
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Still House",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "6-after-desktop.png",
+      "sha256": "58ca2be7af88fda60957ea25f55e21b7c762a795d7e0f1fe48610efd6f63fd40",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 542.84375,
+            "fontSize": 83.52,
+            "text": "Ask about our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2556
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Open Balance",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "7-before-narrow.png",
+      "sha256": "e5695a7692725b5453bbb39b81c1d28643b19e618c5886310f58575f050a12fc",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Explore session information."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1968
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Open Balance",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "7-after-narrow.png",
+      "sha256": "e5695a7692725b5453bbb39b81c1d28643b19e618c5886310f58575f050a12fc",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Explore session information."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1968
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Open Balance",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "7-before-mobile.png",
+      "sha256": "c0669c2815011fc35ec262f07c0fa72b2423173eda2d84658c982893f4b1c1e2",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Explore session information."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1883
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Open Balance",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "7-after-mobile.png",
+      "sha256": "c0669c2815011fc35ec262f07c0fa72b2423173eda2d84658c982893f4b1c1e2",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Explore session information."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1883
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Open Balance",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "7-before-desktop.png",
+      "sha256": "6ec243e04bf7ec62680b68e5ce6a94537fde7a92172daa9e703b797d9fdce382",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 709.875,
+            "fontSize": 83.52,
+            "text": "Explore session information."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2585
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Open Balance",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "7-after-desktop.png",
+      "sha256": "6ec243e04bf7ec62680b68e5ce6a94537fde7a92172daa9e703b797d9fdce382",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 709.875,
+            "fontSize": 83.52,
+            "text": "Explore session information."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2585
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Form & Shelf",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "8-before-narrow.png",
+      "sha256": "3723528b7bcff2b56ef33d9f7840edbc6e4c86dcdf7b39f87e615c974cd2882c",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Ask about the collection."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2178
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Form & Shelf",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "8-after-narrow.png",
+      "sha256": "3723528b7bcff2b56ef33d9f7840edbc6e4c86dcdf7b39f87e615c974cd2882c",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Ask about the collection."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2178
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Form & Shelf",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "8-before-mobile.png",
+      "sha256": "ae34fe42ec5c11306a962e0ee3e8a4b60281389e4abbb423fe7ee29881cfc4f2",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ask about the collection."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2053
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Form & Shelf",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "8-after-mobile.png",
+      "sha256": "ae34fe42ec5c11306a962e0ee3e8a4b60281389e4abbb423fe7ee29881cfc4f2",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ask about the collection."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2053
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Form & Shelf",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "8-before-desktop.png",
+      "sha256": "4a0646830aaf6ccd99de5318dff1d071eb48ef4b67e9c8d304dfb25a8be121c4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 83.52,
+            "text": "Ask about the collection."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2433
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Form & Shelf",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "8-after-desktop.png",
+      "sha256": "4a0646830aaf6ccd99de5318dff1d071eb48ef4b67e9c8d304dfb25a8be121c4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 83.52,
+            "text": "Ask about the collection."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2433
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Little Supply",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "9-before-narrow.png",
+      "sha256": "d40057c9c02bbfd1de03c168bb468313fbfd55c08e6264984889160366cbb5cc",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Discuss what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2111
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Little Supply",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "9-after-narrow.png",
+      "sha256": "d40057c9c02bbfd1de03c168bb468313fbfd55c08e6264984889160366cbb5cc",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Discuss what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2111
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Little Supply",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "9-before-mobile.png",
+      "sha256": "b82f13ada14097ba154868d8fc3387a9d85e0c1bfe8432085da674980886eee9",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Discuss what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2063
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Little Supply",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "9-after-mobile.png",
+      "sha256": "b82f13ada14097ba154868d8fc3387a9d85e0c1bfe8432085da674980886eee9",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Discuss what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2063
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Little Supply",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "9-before-desktop.png",
+      "sha256": "9b6aa463ac142b0070079d78da5921f53fa45cf3c0ccac064db31a8a798b6f45",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 551.5,
+            "fontSize": 136,
+            "text": "Discuss what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2414
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Little Supply",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "9-after-desktop.png",
+      "sha256": "9b6aa463ac142b0070079d78da5921f53fa45cf3c0ccac064db31a8a798b6f45",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 551.5,
+            "fontSize": 136,
+            "text": "Discuss what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2414
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Stonework Notes",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "10-before-narrow.png",
+      "sha256": "ce1836c942f6faee9c33173b6b701c462aa08f37ff08d54fd190b2ad24b972be",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Describe your project."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2055
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Stonework Notes",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "10-after-narrow.png",
+      "sha256": "ce1836c942f6faee9c33173b6b701c462aa08f37ff08d54fd190b2ad24b972be",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Describe your project."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2055
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Stonework Notes",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "10-before-mobile.png",
+      "sha256": "ba6a25f133119e93162b1a5f8368d5df076c7b9516f9895f70c064bf9e7d0797",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Describe your project."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1961
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Stonework Notes",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "10-after-mobile.png",
+      "sha256": "ba6a25f133119e93162b1a5f8368d5df076c7b9516f9895f70c064bf9e7d0797",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Describe your project."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1961
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Stonework Notes",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "10-before-desktop.png",
+      "sha256": "09adfc0a634ed5efae25c2843bcca9256d2d25dc7d4558d7ca82beb439fd26f8",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 542.84375,
+            "fontSize": 83.52,
+            "text": "Describe your project."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2396
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Stonework Notes",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "10-after-desktop.png",
+      "sha256": "09adfc0a634ed5efae25c2843bcca9256d2d25dc7d4558d7ca82beb439fd26f8",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 542.84375,
+            "fontSize": 83.52,
+            "text": "Describe your project."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2396
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clear Exterior",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "11-before-narrow.png",
+      "sha256": "32e41bbc78d6dffff37eaead181a890d29b97f202a7792cd79be09c39da556c1",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Ask about your property."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2119
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clear Exterior",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "11-after-narrow.png",
+      "sha256": "32e41bbc78d6dffff37eaead181a890d29b97f202a7792cd79be09c39da556c1",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Ask about your property."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2119
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clear Exterior",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "11-before-mobile.png",
+      "sha256": "f3711953c11a1feeb936700c0cffced803066c5cd31bf50b537776002f07717a",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ask about your property."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2000
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clear Exterior",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "11-after-mobile.png",
+      "sha256": "f3711953c11a1feeb936700c0cffced803066c5cd31bf50b537776002f07717a",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ask about your property."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2000
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clear Exterior",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "11-before-desktop.png",
+      "sha256": "b6cc4989ab63aaf8f694f3605f05ae38810f08a0e5a46a7ed13632c10ae532a4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Ask about your property."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2473
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clear Exterior",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "11-after-desktop.png",
+      "sha256": "b6cc4989ab63aaf8f694f3605f05ae38810f08a0e5a46a7ed13632c10ae532a4",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "Ask about your property."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2473
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ledger Lane",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "12-before-narrow.png",
+      "sha256": "8fba2a637a5ee63d10460271e08d34049624379f26c3e599da5276e181e0e170",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Discuss your records."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1811
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ledger Lane",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "12-after-narrow.png",
+      "sha256": "8fba2a637a5ee63d10460271e08d34049624379f26c3e599da5276e181e0e170",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Discuss your records."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1811
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ledger Lane",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "12-before-mobile.png",
+      "sha256": "42c469093ce78b97f1d989a9d887d494742290172e75a00cae9f2dd9fe73795e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Discuss your records."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1670
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ledger Lane",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "12-after-mobile.png",
+      "sha256": "42c469093ce78b97f1d989a9d887d494742290172e75a00cae9f2dd9fe73795e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Discuss your records."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1670
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ledger Lane",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "12-before-desktop.png",
+      "sha256": "9880f05493d3eb6f5f5a05dd437e9cd2977e906f57eefb8811c34191e6f26469",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 793.390625,
+            "fontSize": 83.52,
+            "text": "Discuss your records."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2148
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Ledger Lane",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "12-after-desktop.png",
+      "sha256": "9880f05493d3eb6f5f5a05dd437e9cd2977e906f57eefb8811c34191e6f26469",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 793.390625,
+            "fontSize": 83.52,
+            "text": "Discuss your records."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2148
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Plain View",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "13-before-narrow.png",
+      "sha256": "ebac64412728e169f592e0e1f6d9ebe8deb13c0beedf8fc7b0167e7a6c9ac765",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Start a conversation."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1814
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Plain View",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "13-after-narrow.png",
+      "sha256": "ebac64412728e169f592e0e1f6d9ebe8deb13c0beedf8fc7b0167e7a6c9ac765",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Start a conversation."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1814
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Plain View",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "13-before-mobile.png",
+      "sha256": "0c809e8836eaae89342637539f4ef6e41323ba56643e0998bdb42a9af80e3a9e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Start a conversation."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1717
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Plain View",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "13-after-mobile.png",
+      "sha256": "0c809e8836eaae89342637539f4ef6e41323ba56643e0998bdb42a9af80e3a9e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Start a conversation."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1717
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Plain View",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "13-before-desktop.png",
+      "sha256": "ec9b71b918f9fae5bebf309be4946b56f8f026270db4da69a51ff04fce107cc8",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 664,
+            "fontSize": 136,
+            "text": "Start a conversation."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2381
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Plain View",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "13-after-desktop.png",
+      "sha256": "ec9b71b918f9fae5bebf309be4946b56f8f026270db4da69a51ff04fce107cc8",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 664,
+            "fontSize": 136,
+            "text": "Start a conversation."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2381
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Corner Room",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "14-before-narrow.png",
+      "sha256": "dc8a2b0bf1d9cd8a004c0d1ab7c340cd2c00d8c0d1a069a6041eaf253699af33",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Ask about a product."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1825
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Corner Room",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "14-after-narrow.png",
+      "sha256": "dc8a2b0bf1d9cd8a004c0d1ab7c340cd2c00d8c0d1a069a6041eaf253699af33",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Ask about a product."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1825
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Corner Room",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "14-before-mobile.png",
+      "sha256": "9da62a6689e68faefec72dd4053d1ad886b4cfdf4d0105f53ce12d93ca47cae3",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Ask about a product."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1803
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Corner Room",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "14-after-mobile.png",
+      "sha256": "9da62a6689e68faefec72dd4053d1ad886b4cfdf4d0105f53ce12d93ca47cae3",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Ask about a product."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1803
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Corner Room",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "14-before-desktop.png",
+      "sha256": "abfffbefa07c012f3e10b4a08c96111e787f1d24cbd19cdc605dc31ded953ecb",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 622.890625,
+            "fontSize": 136,
+            "text": "Ask about a product."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2509
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Corner Room",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "14-after-desktop.png",
+      "sha256": "abfffbefa07c012f3e10b4a08c96111e787f1d24cbd19cdc605dc31ded953ecb",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 622.890625,
+            "fontSize": 136,
+            "text": "Ask about a product."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2509
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Book & Birch",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "15-before-narrow.png",
+      "sha256": "ffe597a9d347eee3b30eeb7adb799be6cda0ca47094381e310bf44390f4db910",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Send a book enquiry."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1878
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Book & Birch",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "15-after-narrow.png",
+      "sha256": "ffe597a9d347eee3b30eeb7adb799be6cda0ca47094381e310bf44390f4db910",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Send a book enquiry."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1878
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Book & Birch",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "15-before-mobile.png",
+      "sha256": "070e8ad2e58507dec0a97def34fa4790bd26aa6ad2819f50c7f5a5430f5e622e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Send a book enquiry."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1733
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Book & Birch",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "15-after-mobile.png",
+      "sha256": "070e8ad2e58507dec0a97def34fa4790bd26aa6ad2819f50c7f5a5430f5e622e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Send a book enquiry."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1733
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Book & Birch",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "15-before-desktop.png",
+      "sha256": "fb22d322cc695de19207c6ae36c39a2f40040955f87d035e29c27ae4fa54a688",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 709.875,
+            "fontSize": 83.52,
+            "text": "Send a book enquiry."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2277
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Book & Birch",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "15-after-desktop.png",
+      "sha256": "fb22d322cc695de19207c6ae36c39a2f40040955f87d035e29c27ae4fa54a688",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 709.875,
+            "fontSize": 83.52,
+            "text": "Send a book enquiry."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2277
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Slow Thread",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "16-before-narrow.png",
+      "sha256": "89f59f4dd60f62685077709053e217dd4a6544813242552ff64e1c7bb65cb3db",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Discuss an idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2133
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Slow Thread",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "16-after-narrow.png",
+      "sha256": "89f59f4dd60f62685077709053e217dd4a6544813242552ff64e1c7bb65cb3db",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Discuss an idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2133
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Slow Thread",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "16-before-mobile.png",
+      "sha256": "edc58312906aa1ce104a029f2c40dee117fa03fb96f625445015377064152c96",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Discuss an idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2008
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Slow Thread",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "16-after-mobile.png",
+      "sha256": "edc58312906aa1ce104a029f2c40dee117fa03fb96f625445015377064152c96",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Discuss an idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2008
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Slow Thread",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "16-before-desktop.png",
+      "sha256": "fb561a38242f2aa1406544f915266228c98bbf713128a54d69009fdaa7db79a1",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 112,
+            "text": "Discuss an idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2389
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Slow Thread",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "16-after-desktop.png",
+      "sha256": "fb561a38242f2aa1406544f915266228c98bbf713128a54d69009fdaa7db79a1",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 112,
+            "text": "Discuss an idea."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2389
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clay Interval",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "17-before-narrow.png",
+      "sha256": "9a9bcb7a0fb5d797859b4c2eb23bb09cb221707479e4d832ad16acfb205fe2fd",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Ask about an object."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2135
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clay Interval",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "17-after-narrow.png",
+      "sha256": "9a9bcb7a0fb5d797859b4c2eb23bb09cb221707479e4d832ad16acfb205fe2fd",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Ask about an object."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2135
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clay Interval",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "17-before-mobile.png",
+      "sha256": "0f301a4528d4ed01ee0c0959b06c8ac90d5eee77fe5c603e0b7de2bdae0a1fba",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Ask about an object."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2050
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clay Interval",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "17-after-mobile.png",
+      "sha256": "0f301a4528d4ed01ee0c0959b06c8ac90d5eee77fe5c603e0b7de2bdae0a1fba",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Ask about an object."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2050
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clay Interval",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "17-before-desktop.png",
+      "sha256": "9eb94e56938f8c94567a3d2fa85c31823e4a5196b0f8d1ec845656ed7ef417fb",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 551.5,
+            "fontSize": 113.6,
+            "text": "Ask about an object."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2251
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Clay Interval",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "17-after-desktop.png",
+      "sha256": "9eb94e56938f8c94567a3d2fa85c31823e4a5196b0f8d1ec845656ed7ef417fb",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 551.5,
+            "fontSize": 113.6,
+            "text": "Ask about an object."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2251
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Bright Window",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "18-before-narrow.png",
+      "sha256": "bd55b30e8c0a82824ffde5964587f31ebf64e7e5b730e2167f51520417ec4c18",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Ask about a treatment."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2083
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Bright Window",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "18-after-narrow.png",
+      "sha256": "bd55b30e8c0a82824ffde5964587f31ebf64e7e5b730e2167f51520417ec4c18",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Ask about a treatment."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2083
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Bright Window",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "18-before-mobile.png",
+      "sha256": "bb0729867bf8f793e97af82569ae7afd80c65161f3a059d616cc6baf118d22f8",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Ask about a treatment."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2054
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Bright Window",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "18-after-mobile.png",
+      "sha256": "bb0729867bf8f793e97af82569ae7afd80c65161f3a059d616cc6baf118d22f8",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Ask about a treatment."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2054
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Bright Window",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "18-before-desktop.png",
+      "sha256": "38235c605b6f5cc228c092198ebd8d1f421d17af074875f4df5636487940c0fc",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 622.890625,
+            "fontSize": 113.6,
+            "text": "Ask about a treatment."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2764
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Bright Window",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "18-after-desktop.png",
+      "sha256": "38235c605b6f5cc228c092198ebd8d1f421d17af074875f4df5636487940c0fc",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 622.890625,
+            "fontSize": 113.6,
+            "text": "Ask about a treatment."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2764
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Soft Measure",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "19-before-narrow.png",
+      "sha256": "6b965f114f9351cf2c000b035a72850bd938cccd4010a0e7508a1e2d4b75ba9d",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Explore our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2157
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Soft Measure",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "19-after-narrow.png",
+      "sha256": "6b965f114f9351cf2c000b035a72850bd938cccd4010a0e7508a1e2d4b75ba9d",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Explore our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2157
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Soft Measure",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "19-before-mobile.png",
+      "sha256": "8332d3cedd896de8500a48c8ccc96def591cc4f00fb68b506d5615b1eea9a9fa",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Explore our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2017
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Soft Measure",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "19-after-mobile.png",
+      "sha256": "8332d3cedd896de8500a48c8ccc96def591cc4f00fb68b506d5615b1eea9a9fa",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Explore our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2017
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Soft Measure",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "19-before-desktop.png",
+      "sha256": "72851d51cc25c9f68d69a522213b7edaee1cfc1e3ad6ac5fb9557d6f0bdff17e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 112,
+            "text": "Explore our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2837
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Soft Measure",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "19-after-desktop.png",
+      "sha256": "72851d51cc25c9f68d69a522213b7edaee1cfc1e3ad6ac5fb9557d6f0bdff17e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 112,
+            "text": "Explore our approach."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2837
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Shared Hours",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "20-before-narrow.png",
+      "sha256": "a11626d9e0454433adb6a84a56a5c5b4ec183516677268a7df6bfb1264bce081",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Tell us about your plans."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1814
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Shared Hours",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "20-after-narrow.png",
+      "sha256": "a11626d9e0454433adb6a84a56a5c5b4ec183516677268a7df6bfb1264bce081",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 48,
+            "text": "Tell us about your plans."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1814
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Shared Hours",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "20-before-mobile.png",
+      "sha256": "5fe2d6da91aec6bed0f77e3bb6f2491b800718c2a35945761ee6614cb2ac574e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Tell us about your plans."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1746
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Shared Hours",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "20-after-mobile.png",
+      "sha256": "5fe2d6da91aec6bed0f77e3bb6f2491b800718c2a35945761ee6614cb2ac574e",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Tell us about your plans."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1746
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Shared Hours",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "20-before-desktop.png",
+      "sha256": "a4f0108e0840514982bb95275b671675e93d13524a1ee17191ff733c316a573d",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 136,
+            "text": "Tell us about your plans."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2345
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Shared Hours",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "20-after-desktop.png",
+      "sha256": "a4f0108e0840514982bb95275b671675e93d13524a1ee17191ff733c316a573d",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 136,
+            "text": "Tell us about your plans."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2345
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Daylight Counter",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "21-before-narrow.png",
+      "sha256": "145fce4187fa9d16765cd2ae8eec7b5c8f4be42be1036497c0dce3eef3fe885c",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Explore the offering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1811
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Daylight Counter",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "21-after-narrow.png",
+      "sha256": "145fce4187fa9d16765cd2ae8eec7b5c8f4be42be1036497c0dce3eef3fe885c",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Explore the offering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1811
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Daylight Counter",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "21-before-mobile.png",
+      "sha256": "4080327fc08e3238bc6053e0d47cb7ff7e513d722aa7cc4715c568544f230371",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Explore the offering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1670
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Daylight Counter",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "21-after-mobile.png",
+      "sha256": "4080327fc08e3238bc6053e0d47cb7ff7e513d722aa7cc4715c568544f230371",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Explore the offering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1670
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Daylight Counter",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "21-before-desktop.png",
+      "sha256": "1d34c698631f1b27bffd38c6c18cfddf3f1ed9ad8af339491190b7fbd83d9625",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 664,
+            "fontSize": 112,
+            "text": "Explore the offering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2214
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Daylight Counter",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "21-after-desktop.png",
+      "sha256": "1d34c698631f1b27bffd38c6c18cfddf3f1ed9ad8af339491190b7fbd83d9625",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 664,
+            "fontSize": 112,
+            "text": "Explore the offering."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2214
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "First Page",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "22-before-narrow.png",
+      "sha256": "f9c6221f828aa0eaee341e011ba3c9f1952b455b72e6020d7ce1d9929a76cb62",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Start with a question."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1794
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "First Page",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "22-after-narrow.png",
+      "sha256": "f9c6221f828aa0eaee341e011ba3c9f1952b455b72e6020d7ce1d9929a76cb62",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 43.2,
+            "text": "Start with a question."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1794
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "First Page",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "22-before-mobile.png",
+      "sha256": "644396a1a6b23401044905d723c4f98ea9f9a1186161b2027a81ea7a51359c5a",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 317.640625,
+            "fontSize": 43.2,
+            "text": "Start with a question."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1727
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "First Page",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "22-after-mobile.png",
+      "sha256": "644396a1a6b23401044905d723c4f98ea9f9a1186161b2027a81ea7a51359c5a",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 317.640625,
+            "fontSize": 43.2,
+            "text": "Start with a question."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1727
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "First Page",
+      "family": "quiet-portrait",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "22-before-desktop.png",
+      "sha256": "30ae8b9c7cba08f59abc945d5f114fa19e024140d84f719786a4a3fba69f6c57",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 622.890625,
+            "fontSize": 112,
+            "text": "Start with a question."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2471
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "First Page",
+      "family": "quiet-portrait",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "22-after-desktop.png",
+      "sha256": "30ae8b9c7cba08f59abc945d5f114fa19e024140d84f719786a4a3fba69f6c57",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 622.890625,
+            "fontSize": 112,
+            "text": "Start with a question."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2471
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Workroom",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "23-before-narrow.png",
+      "sha256": "3c943d184176b362486dc0def158a8c216b8f1b6d0beaf163c698fab8b0e2058",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Describe what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1896
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Workroom",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "label": "narrow",
+      "filename": "23-after-narrow.png",
+      "sha256": "3c943d184176b362486dc0def158a8c216b8f1b6d0beaf163c698fab8b0e2058",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 292,
+            "height": 50
+          }
+        ],
+        "documentWidth": 320,
+        "viewport": 320,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 292,
+            "fontSize": 51.2,
+            "text": "Describe what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1896
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Workroom",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "23-before-mobile.png",
+      "sha256": "082b879446797b46561d584d759d15029739df62a00283d1a8b022534a1ae554",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Describe what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1880
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Workroom",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "23-after-mobile.png",
+      "sha256": "082b879446797b46561d584d759d15029739df62a00283d1a8b022534a1ae554",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 51.2,
+            "text": "Describe what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 1880
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Workroom",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "23-before-desktop.png",
+      "sha256": "300e57acc3f4d05fac0831b3f28609e8218a60671fab346e33b8c3e518f09f14",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 113.6,
+            "text": "Describe what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2440
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    },
+    {
+      "business": "Workroom",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "23-after-desktop.png",
+      "sha256": "300e57acc3f4d05fac0831b3f28609e8218a60671fab346e33b8c3e518f09f14",
+      "metrics": {
+        "menuPhotos": [],
+        "photoNumberOverlap": [],
+        "emptyHeroPanels": [],
+        "servicePhotos": [],
+        "narrowText": [],
+        "clipped": [],
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 800.859375,
+            "fontSize": 113.6,
+            "text": "Describe what you need."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2440
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0,
+      "keyboard": {
+        "href": "#main",
+        "outline": "solid",
+        "outlineWidth": 3
+      }
+    }
+  ],
+  "interactions": [],
+  "deliveries": [],
+  "failures": [],
+  "baselineFailures": [],
+  "hostedAcceptance": false
+}

@@ -1,0 +1,103 @@
+{
+  "functionalCommit": "194ac970b06081545294147194b61cc659bfaaa0",
+  "functionalTree": "d94d106997adfa4469f331dac79ad6c8181c4a84",
+  "sourceStable": true,
+  "workingTreeChanged": false,
+  "application": {
+    "passed": 493,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "applicationRecordedExitCodes": [
+    0
+  ],
+  "foundationAssertions": 105,
+  "postgres": {
+    "totalPassed": 185,
+    "suites": [
+      {
+        "suite": "postgres",
+        "passed": 126,
+        "failed": 0
+      },
+      {
+        "suite": "public-form-postgres",
+        "passed": 21,
+        "failed": 0
+      },
+      {
+        "suite": "enquiry-preparation-postgres",
+        "passed": 13,
+        "failed": 0
+      },
+      {
+        "suite": "operational-work-postgres",
+        "passed": 13,
+        "failed": 0
+      },
+      {
+        "suite": "work-preparation-postgres",
+        "passed": 12,
+        "failed": 0
+      }
+    ],
+    "originalStudioCreativeJourneys": [
+      "creative-brief-original-original-studio-save-reopen-undo-0",
+      "creative-brief-original-original-studio-save-reopen-undo-1",
+      "creative-brief-original-original-studio-save-reopen-undo-2"
+    ],
+    "hosted": false,
+    "syntheticAuthShimNotRealJWT": true
+  },
+  "denoOriginalEntries": 25,
+  "unsignedExports": {
+    "ownerModules": 1569,
+    "stagingModules": 1628,
+    "deviceAcceptance": false
+  },
+  "browser": {
+    "version": "145.0.7632.6",
+    "sandboxRequired": true,
+    "creativeFullPagePNGs": 90,
+    "creativeInteractions": 4,
+    "deliveryPNGs": 8,
+    "benchmarkFullPagePNGs": 144,
+    "totalPNGsHashVerified": 246,
+    "viewportWidths": [
+      320,
+      390,
+      1440
+    ],
+    "selectedMobileDPR": 2,
+    "failures": [],
+    "baselineFailures": [],
+    "objectiveQualityRecords": 14,
+    "independentProfessionalAcceptance": false
+  },
+  "privateReferenceCollection": {
+    "candidates": 3,
+    "approved": 0,
+    "independentFileReadback": true,
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "actualCustomerData": false,
+    "liveAuthenticatedPromotionAdapter": "not connected; source transition contracts tested with synthetic receipts"
+  },
+  "providerCalls": 0,
+  "spendGBP": 0,
+  "dependencyLockChanged": false,
+  "dependencyGuard": "actual deepmerge backport and installation guard passed; no zero-advisory or new registry-audit claim",
+  "architecture": {
+    "sourceFiles": 1910,
+    "staticRelativeEdges": 4487,
+    "distinctStaticCycles": 0
+  },
+  "mainArtifact": {
+    "id": 13430998618,
+    "size": 175284,
+    "sha256": "3121245dd590ea72bf3150b618085c6ff600a54245f849362f62f9c4c620cfcb"
+  },
+  "releaseReady": false,
+  "goldStandardApproved": false
+}
