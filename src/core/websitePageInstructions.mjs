@@ -45,7 +45,9 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   }
   const literal=clause.match(/^(?:change|set|update) (?:the )?(.+?) (heading|text|body|button text) (?:to|with) "([^"<>]{1,2500})"$/i);
   let m,change,description,type='layout';
-  if((m=clause.match(/^use the reviewed "([a-z-]{1,60})" opening$/i))){
+  if((m=clause.match(/^give the whole page (standard|menu-house|service-journal|studio-index) direction$/i))){
+   change={action:'style',field:'pageDirection',value:m[1].toLowerCase()};description='Review coordinated navigation, supporting sections and contact presentation; preserve your words and source destinations';
+  }else if((m=clause.match(/^use the reviewed "([a-z-]{1,60})" opening$/i))){
    if(pageId!=='home'||!findSection('hero')||!heroFamilies.some(f=>f.id===m[1]))return fail('Choose a supported current homepage direction.');
    change={action:'style',field:'heroComposition',value:m[1]};description='Change only the reviewed opening; retain original brand typography, spacing and words';
   }else if((m=clause.match(/^use approved photo "([A-Za-z0-9_./-]{1,300})" for the hero$/i))){

@@ -37,6 +37,12 @@ on:
       - 'scripts/check-website-menu-story.mjs'
       - 'scripts/check-website-creative-comparison.mjs'
       - 'src/core/websiteCreative*.mjs'
+      - 'scripts/check-website-individuality.mjs'
+      - 'scripts/check-live-creative-adapter.mjs'
+      - 'supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeLedger.mjs'
+      - 'docs/sql-proposals/ai-creative-receipt/**'
+      - 'scripts/check-ai-budget-postgres.mjs'
       - 'src/core/websiteDesignAcceptance.mjs'
       - 'scripts/check-website-design-acceptance.mjs'
       - 'scripts/check-website-acceptance-benchmark.mjs'
@@ -205,6 +211,8 @@ jobs:
           node scripts/check-website-creative-comparison.mjs
           node scripts/check-website-design-acceptance.mjs
           node scripts/check-website-acceptance-benchmark.mjs
+          node scripts/check-website-individuality.mjs
+          node scripts/check-live-creative-adapter.mjs
           node scripts/check-website-art-direction.mjs
           node scripts/check-premium-website-experience.mjs
           node scripts/check-website-design-expansion.mjs
@@ -261,7 +269,7 @@ jobs:
           diff -qr src "$EDGE_SOURCE/src"
           diff -qr supabase "$EDGE_SOURCE/supabase"
           diff -qr standalone "$EDGE_SOURCE/standalone"
-          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts > .test-artifacts/app-goal-composition/deno.log 2>&1
+          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1
           echo "BUSY_EDGE_RESULT all_25_original_entrypoints_exit_0"
       - name: Disposable local PostgreSQL, no TCP or hosted connection
         run: |
@@ -298,6 +306,8 @@ jobs:
           set -e
           if [ "$PREPARATION_CHECK_EXIT" -ne 0 ]; then tail -n 40 .test-artifacts/app-goal-composition/work-preparation-postgres.log; exit "$PREPARATION_CHECK_EXIT"; fi
           cp .test-artifacts/work-preparation/postgres.json .test-artifacts/app-goal-composition/work-preparation-postgres.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-budget-postgres.mjs > .test-artifacts/app-goal-composition/ai-budget-postgres.log 2>&1
+          cp .test-artifacts/ai-gateway/postgres.json .test-artifacts/app-goal-composition/ai-budget-postgres.json
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1

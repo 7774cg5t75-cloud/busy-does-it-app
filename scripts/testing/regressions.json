@@ -3191,6 +3191,20 @@
         "scripts/check-website-acceptance-benchmark.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "website-individuality",
+      "args": [
+        "scripts/check-website-individuality.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "live-creative-adapter",
+      "args": [
+        "scripts/check-live-creative-adapter.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+import {websiteIndividualityInstructions} from '../src/core/websiteCreativeBrief.mjs';
+import {prepareWebsiteRequest} from '../src/core/websiteRequestPlan.mjs';
 import {heroFamilies} from '../supabase/functions/busy-website-worker/websiteHeroFamilies.mjs';
-const api=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','renderWebsiteHtml','applyWebsiteLayoutChange','applyStructuredWebsiteEdit']);
+const api=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','renderWebsiteHtml','applyWebsiteLayoutChange','applyStructuredWebsiteEdit','rebuildPrivateWebsiteDraft']);
 // Explicit synthetic fixture facts. Not customer evidence, approval or a template catalogue.
 const cases=[
  ['Copper Table','Catering','Festival plates','Private buffets','Food for people gathering together.','Tell us about your gathering.'],
@@ -41,8 +43,9 @@ for(const [i,[name,industry,a,b,description,headline]] of cases.entries()){
  assert.equal(d.businessId,businessId);assert.equal(d.publish.enabled,false);
  const fingerprint=JSON.stringify({family,typography:d.theme.typography,variation:d.theme.heroVariation,order:d.pages.find(p=>p.id==='home').sectionIds,services:d.sections.find(s=>s.type==='services')?.appearance});
  const previous=fingerprints.get(fingerprint);if(previous)findings.push({business:name,sharesStructureWith:previous,decision:'Full-page independent visual review required; names and colours are not uniqueness.'});else fingerprints.set(fingerprint,name);
- const html=api.renderWebsiteHtml(d);assert.ok(!html.includes('<img'));for(const stage of ['before','after'])writeFileSync(folder+'/'+i+'-'+stage+'.html',html);for(const stage of ['before','approved'])writeFileSync(folder+'/'+i+'-'+stage+'.json',JSON.stringify(d));
- scenarios.push({id:String(i),business:name,industry,family,before:i+'-before.html',after:i+'-after.html',photoExpected:false,recordPhotoBindings:[],comparison:'Current-source 24-case benchmark. Identical before/after controls; not an improvement claim.',sourceRichness:'approved synthetic sparse brief'});
+ const before=d,beforeHtml=api.renderWebsiteHtml(d),q=websiteIndividualityInstructions({website:d,businessId,ownerId:'synthetic-owner',profileRevision:1},'Make my website look more individual',{rejected:i%2?['studio-index']:[]});assert.equal(q.ok,true,q.reason);const directed=prepareWebsiteRequest(d,{draftId:d.id,pageId:'home',generation:d.generation,instruction:q.instruction},{fieldEdit:api.applyStructuredWebsiteEdit,layoutEdit:api.applyWebsiteLayoutChange,rebuild:api.rebuildPrivateWebsiteDraft,renderPage:api.renderWebsiteHtml});assert.equal(directed.ok,true,directed.reason);d=api.rebuildPrivateWebsiteDraft(JSON.parse(directed.boundaries.at(-1)));
+ const html=api.renderWebsiteHtml(d);assert.ok(!html.includes('<img'));writeFileSync(folder+'/'+i+'-before.html',beforeHtml);writeFileSync(folder+'/'+i+'-after.html',html);writeFileSync(folder+'/'+i+'-before.json',JSON.stringify(before));writeFileSync(folder+'/'+i+'-approved.json',JSON.stringify(d));
+ scenarios.push({id:String(i),business:name,industry,family,before:i+'-before.html',after:i+'-after.html',photoExpected:false,recordPhotoBindings:[],comparison:'Same facts/branding/assets: reviewed whole-page direction and explicitly suggested heading/action text derived from supplied service names; not a CSS-only change. Distinct structural settings do not establish professional uniqueness.',sourceRichness:'approved synthetic sparse brief'});
 }
 assert.equal(scenarios.length,24);assert.equal(new Set(scenarios.map(x=>JSON.parse(x.id))).size,24);
 writeFileSync(folder+'/scenarios.json',JSON.stringify({scenarios},null,2));writeFileSync(folder+'/coverage.json',JSON.stringify({cases:24,distinctStructuralFingerprints:fingerprints.size,findings,approvedGoldStandards:0,independentReview:'pending; automated rendering is not independent professional acceptance',cadence:{smallChanges:'affected automated source and visual regressions',majorDesignChanges:'24 whole pages plus five same-industry and sparse/rich three-industry comparison',substantialReview:'founder and independent uncoached review before marketing-quality claim'},fixtureDigest:createHash('sha256').update(JSON.stringify(cases)).digest('hex')},null,2));

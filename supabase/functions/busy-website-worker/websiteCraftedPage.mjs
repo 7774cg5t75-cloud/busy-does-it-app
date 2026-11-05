@@ -1,3 +1,4 @@
+export function pageDirectionClass(draft){return ['menu-house','service-journal','studio-index'].includes(draft?.theme?.pageDirection)?'direction-'+draft.theme.pageDirection:'';}
 import {heroFamilies} from './websiteHeroFamilies.mjs';
 // Reviewed full-page presentation opt-in through the original variation field.
 // No new content source, executable fields or industry-template assignment.
@@ -316,5 +317,60 @@ export const craftedPageCss=`
  :where(.premium-atelier) .atelier-chapters--feature li:first-child{grid-template-columns:24px minmax(0,1fr);gap:16px;padding:24px}
  :where(.premium-atelier) .atelier-chapters--feature li:first-child p{gap:20px}
  :where(.premium-atelier) .atelier-chapters--feature li:first-child strong{font-size:clamp(1.8rem,8.8vw,2.6rem);max-width:22ch}
+}
+
+/* Original, reviewed whole-page directions. No new hero or executable style input. */
+.direction-menu-house nav .nav-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:24px}
+.direction-menu-house nav .brand{font-family:Georgia,serif;font-size:clamp(1.5rem,3vw,2.3rem);font-weight:600}
+.direction-menu-house nav .nav-links{justify-content:center;flex-wrap:wrap;gap:12px 30px}
+.direction-menu-house .approved-menu{column-gap:clamp(32px,6vw,88px)}
+.direction-menu-house .menu-label{font-family:Georgia,serif;text-transform:none;letter-spacing:-.025em;font-size:clamp(1.5rem,3vw,2.3rem)}
+.direction-menu-house .crafted-services{gap:0 8%}
+.direction-menu-house .crafted-contact{grid-template-columns:minmax(0,1fr);gap:32px}
+.direction-menu-house .crafted-contact-actions{display:flex;flex-wrap:wrap;gap:20px 48px;align-items:center;max-width:none}
+.direction-menu-house .crafted-contact h2{max-width:24ch}
+.direction-service-journal nav .nav-wrap{padding-block:24px;align-items:center}
+.direction-service-journal nav .brand{font-size:clamp(1.3rem,2.5vw,2rem);font-weight:600;max-width:22ch}
+.direction-service-journal nav .nav-links{border-left:1px solid var(--line);padding-left:32px;gap:12px 24px}
+.direction-service-journal .crafted-services.crafted-services--spotlight,.direction-service-journal .crafted-services--atelier{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.direction-service-journal .crafted-services .crafted-service{display:grid;grid-template-columns:32px minmax(0,.9fr) minmax(0,1.1fr);gap:20px 32px;grid-column:auto;grid-row:auto;margin:0!important;padding-block:40px;align-items:start}
+.direction-service-journal .crafted-services .crafted-service>h3:not([class*="owner-item-heading"]){grid-column:2;font-size:clamp(2rem,3.6vw,3.3rem);max-width:20ch}
+.direction-service-journal .crafted-services .crafted-service .crafted-service-description{grid-column:3;max-width:46ch;margin:0}
+.direction-service-journal .crafted-services .service-has-photo .crafted-service-description{grid-column:2}
+.direction-service-journal .crafted-services .service-photo-frame{grid-column:3;grid-row:1/4;margin:0}
+.direction-service-journal .crafted-service-number{grid-column:1;grid-row:1}
+.direction-service-journal .crafted-contact{border:1px solid var(--line);padding:clamp(24px,4vw,56px);gap:32px}
+.direction-service-journal .crafted-contact h2{font-size:clamp(2.2rem,5vw,4.5rem);max-width:17ch}
+@media(min-width:1000px){
+ body.direction-studio-index{display:grid;grid-template-columns:220px minmax(0,1fr)}
+ .direction-studio-index>nav{grid-column:1;grid-row:1/3;position:sticky;top:0;align-self:start;min-height:100vh;border-right:1px solid var(--line);box-shadow:none}
+ .direction-studio-index>nav .nav-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:48px;padding:40px 28px;width:auto;max-width:none}
+ .direction-studio-index>nav .brand{font-size:1.4rem;line-height:1.35;white-space:normal}
+ .direction-studio-index>nav .nav-links{display:flex;flex-direction:column;align-items:flex-start;gap:16px}
+ .direction-studio-index>main,.direction-studio-index>.site-footer{grid-column:2;min-width:0}
+ .direction-studio-index .wrap{width:calc(100% - 96px);max-width:1120px}
+}
+.direction-studio-index #services .crafted-services{display:block}
+.direction-studio-index #services .crafted-service,.direction-studio-index #services .crafted-service:first-child{grid-template-columns:32px minmax(0,1.25fr) minmax(0,.75fr);margin:0!important;padding-block:40px}
+.direction-studio-index #services .crafted-service>h3:not([class*="owner-item-heading"]){grid-column:2;font-size:clamp(2.2rem,4.3vw,4rem);font-weight:400;max-width:20ch}
+.direction-studio-index #services .crafted-service .crafted-service-description{grid-column:3;align-self:end}
+.direction-studio-index .authored-story--manifesto{grid-template-columns:minmax(0,1fr)}
+.direction-studio-index .authored-story--manifesto .story-copy{margin-left:12%;max-width:80%}
+.direction-studio-index .authored-story--manifesto .authored-story-lead{max-width:30ch;font-size:clamp(2rem,4vw,3.6rem)}
+.direction-studio-index .crafted-contact{background:var(--ink);color:var(--paper);padding:clamp(24px,4vw,56px);grid-template-columns:minmax(0,1fr);gap:24px}
+.direction-studio-index .crafted-contact .crafted-contact-actions{border-color:currentColor}
+.direction-studio-index .crafted-contact a{color:inherit!important}
+@media(max-width:999px){
+ .direction-studio-index nav .nav-wrap{align-items:flex-start;gap:16px;padding-block:24px}
+ .direction-studio-index nav .nav-links{width:100%;border-top:1px solid var(--line);padding-top:12px;gap:16px 24px}
+}
+@media(max-width:800px){
+ .direction-service-journal nav .nav-links{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:12px;width:100%}
+ .direction-service-journal .crafted-services .crafted-service,.direction-studio-index #services .crafted-service,.direction-studio-index #services .crafted-service:first-child{grid-template-columns:24px minmax(0,1fr);gap:16px}
+ .direction-service-journal .crafted-services .crafted-service .crafted-service-description,.direction-studio-index #services .crafted-service .crafted-service-description{grid-column:2}
+ .direction-service-journal .crafted-services .service-photo-frame{grid-column:1/-1;grid-row:1}
+ .direction-service-journal .crafted-services .service-has-photo .crafted-service-number{grid-row:2}
+ .direction-studio-index .authored-story--manifesto .story-copy{margin-left:0;max-width:100%}
+ .direction-studio-index .crafted-contact,.direction-service-journal .crafted-contact{padding:24px}
 }
 `;

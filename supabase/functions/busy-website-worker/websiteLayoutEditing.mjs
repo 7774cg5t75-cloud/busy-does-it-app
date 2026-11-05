@@ -19,6 +19,7 @@ const list=x=>Array.isArray(x)?x:[];
 const slug=s=>text(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-+$/g,"").slice(0,52);
 const fail=(draft,reason)=>({applied:false,draft,reason});
 const allow={
+ pageDirection:["standard","menu-house","service-journal","studio-index"],
  heroComposition:PREMIUM_HERO_COMPOSITIONS,
  heroVariation:PREMIUM_HERO_VARIATIONS,
  pageGuide:["none","sections"],
@@ -184,6 +185,8 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const {field,value}=operation;
   if(!Object.prototype.hasOwnProperty.call(allow,field)||!allow[field].includes(value))
    return fail(draft,"Choose a supported appearance setting. Arbitrary CSS or remote fonts are not allowed.");
+  if(field==='pageDirection'&&value!=='standard'&&!heroFamilies.some(f=>f.id===theme.heroComposition))return fail(draft,'Review an eligible original opening before the whole-page direction.');
+  if(field==='pageDirection'&&value==='menu-house'&&!sections.some(s=>s.type==='products'&&s.enabled!==false&&s.previewFeed?.records?.length))return fail(draft,'Review current original menu or product information first.');
   if(field==='heroComposition'){
    const required=heroFamilies.find(f=>f.id===value)?.media||0;
    if(required>1&&(usedServicePhotos(draft).length+usedContentPhotos(draft).length)&&websiteHeroPhotos({...draft,sections,theme:{...theme,heroVariation:'narrative'}}).length<required-1)return fail(draft,'This opening needs more distinct pictures after your service photographs are reserved. Choose more approved pictures or another direction.');
