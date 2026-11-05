@@ -303,9 +303,9 @@ export const craftedPageCss=`
 :where(.premium-atelier) .atelier-chapters--feature{display:block}
 :where(.premium-atelier) .atelier-chapters--feature>header{max-width:38rem;margin-bottom:clamp(28px,4vw,48px)}
 :where(.premium-atelier) .atelier-chapters--feature ol{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 clamp(32px,5vw,80px)}
-:where(.premium-atelier) .atelier-chapters--feature li:first-child{grid-column:1/-1;grid-template-columns:48px minmax(0,1fr);background:transparent;color:inherit;border-top:3px solid var(--accent);padding:clamp(28px,4vw,48px) 0;margin-bottom:24px}
+:where(.premium-atelier) .atelier-chapters--feature li:first-child{grid-column:1/-1;grid-template-columns:48px minmax(0,1fr);background:var(--ink);color:var(--paper);border-top:3px solid var(--accent);padding:clamp(28px,3vw,40px);margin-bottom:24px}
 :where(.premium-atelier) .atelier-chapters--feature li:first-child p{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);align-items:end;gap:clamp(24px,4vw,64px);max-width:none}
-:where(.premium-atelier) .atelier-chapters--feature li:first-child strong{font-size:clamp(2rem,4.7vw,4.6rem);line-height:1.08;max-width:20ch;letter-spacing:-.045em;margin:0}
+:where(.premium-atelier) .atelier-chapters--feature li:first-child strong{font-size:clamp(2rem,4vw,3.6rem);line-height:1.08;max-width:20ch;letter-spacing:-.045em;margin:0}
 :where(.premium-atelier) .atelier-chapters--feature li:first-child span{max-width:36ch;padding-bottom:.3em}
 :where(.premium-atelier) .atelier-chapters--feature li:before{font-variant-numeric:tabular-nums}
 :where(.premium-atelier) .menu-item-photographic .reviewed-menu-photo{margin-bottom:24px}
@@ -313,7 +313,7 @@ export const craftedPageCss=`
 :where(.premium-atelier) .menu-item-photographic .menu-description{line-height:1.65;max-width:40ch}
 @media(max-width:800px){
  :where(.premium-atelier) .atelier-chapters--feature ol,:where(.premium-atelier) .atelier-chapters--feature li:first-child p{grid-template-columns:minmax(0,1fr)}
- :where(.premium-atelier) .atelier-chapters--feature li:first-child{grid-template-columns:24px minmax(0,1fr);gap:16px;padding:28px 0}
+ :where(.premium-atelier) .atelier-chapters--feature li:first-child{grid-template-columns:24px minmax(0,1fr);gap:16px;padding:24px}
  :where(.premium-atelier) .atelier-chapters--feature li:first-child p{gap:20px}
  :where(.premium-atelier) .atelier-chapters--feature li:first-child strong{font-size:clamp(1.8rem,8.8vw,2.6rem);max-width:22ch}
 }
