@@ -1,0 +1,16 @@
+{
+  "source": {
+    "commit": "5d3f123c49f9c744a005a307bdc0b04b9cc90ac9",
+    "tree": "483e40e1a5d167d75277e0a6775bf3d3e08b12a4"
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "filename": "5-after-mobile.png",
+  "sha256": "3cce1bf9f3d236ace9e5c81a11e2b3d0510034f32e96c6b1897647f970415b24",
+  "automatedCapturePassed": true,
+  "visualAccepted": false,
+  "failure": "First service heading collapsed to zero width; old visible() filter omitted it. Fixed mobile first-child specificity and added real zero-width browser counterexample.",
+  "goldStandardApproved": false
+}
