@@ -8,6 +8,7 @@ on:
       - 'src/core/websiteCreativeDocumentReview.mjs'
       - 'supabase/functions/busy-website-worker/websiteCreativeDocument.mjs'
       - 'supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs'
+      - 'src/core/websiteStandaloneArchive.mjs'
   pull_request:
     paths:
       - "src/domain/growthCommandCentre.mjs"

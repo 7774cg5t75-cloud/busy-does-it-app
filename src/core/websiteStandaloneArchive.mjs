@@ -45,7 +45,8 @@ const mimeFromBytes=bytes=>{
 };
 const keyOf=asset=>clean(asset?.storagePath)||clean(asset?.uri);
 function archiveRequirements(draft={}){
- if(draft.creativeDocumentPageModel&&!websiteCreativeDocumentPageModel(draft))return {ok:false,reason:'Review the current creative design and approved sources before exporting the complete site.'};
+ const creativeModel=draft.creativeDocumentPageModel?websiteCreativeDocumentPageModel(draft):null;
+ if(draft.creativeDocumentPageModel&&!creativeModel)return {ok:false,reason:'Review the current creative design and approved sources before exporting the complete site.'};
  if(draft.siteComposition==='connected-pages-v1'&&!wholeSiteContentCurrent(draft))return {ok:false,reason:'Review current menu/product/event sources before exporting the complete site.'};
  if(!wholeSiteDerivedSourcesCurrent(draft))return {ok:false,reason:"A service source changed. Review its related pages in the original Studio before exporting; owner wording is kept."};
  const pages=list(draft.pages).filter(p=>p?.enabled!==false);
@@ -60,8 +61,21 @@ function archiveRequirements(draft={}){
     seenPaths.has(output))return {ok:false,reason:"Invalid or duplicated website page path."};
   seenPaths.add(output);
  }
+ // The reviewed v2 page projection is the original rendering authority. Fact
+ // sections remain in the draft for provenance; retaining them does not select
+ // their photographs for an export. Reject stale page bindings rather than
+ // bundle a different page/asset selection from the one being rendered.
+ let selectedSectionIds=null;
+ if(creativeModel){
+  const currentPages=creativeModel.pages.filter(page=>page?.enabled!==false);
+  if(pages.length!==currentPages.length||pages.some(page=>{
+   const current=currentPages.find(candidate=>candidate.id===page.id);
+   return !current||page.path!==current.path||page.outputPath!==current.outputPath||JSON.stringify(list(page.sectionIds))!==JSON.stringify(current.sectionIds);
+  }))return {ok:false,reason:'Review the current approved page selection before exporting the complete site.'};
+  selectedSectionIds=new Set(currentPages.flatMap(page=>page.sectionIds));
+ }
  const assets=[],seen=new Map(),businessId=draft.businessId||draft.business_id;
- const visibleSections=draft.sections.filter(s=>s?.enabled!==false);
+ const visibleSections=draft.sections.filter(s=>s?.enabled!==false&&(!selectedSectionIds||selectedSectionIds.has(s.id)));
  for(const section of visibleSections){
   const media=["hero","photo-feature"].includes(section?.type)?[section.asset]:
     section?.type==="gallery"?[...list(section.items)]:[];
