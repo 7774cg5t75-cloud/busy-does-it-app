@@ -1,6 +1,7 @@
 import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
 import {wholeSitePageSpecs,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent,wholeSiteOperationCount,wholeSiteMenuMove} from './websiteWholeSite.mjs';
 import {protectWebsiteOwnerLocks,websiteOwnerLocks} from "./websiteOwnerLocks.mjs";
+import {validateWebsiteCreativeSpecification} from './websiteCreativeSpecification.mjs';
 /**
  * V3.135 owner-managed custom website pages.
  * Pure, deterministic, private draft only. Uses paths under /pages/
@@ -14,6 +15,13 @@ const fail=(draft,reason)=>({applied:false,draft,reason});
 function editWebsitePagesUnchecked(draft={},action={}){
  if(!draft?.id||!Array.isArray(draft.sections))return fail(draft,"Build a private website draft first.");
  if(!action||typeof action!=="object"||Array.isArray(action))return fail(draft,"Choose a page action.");
+ if(action.action==='apply-site-creative-specification'){
+  const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision','specification'];
+  if(Object.keys(action).some(key=>!allowed.includes(key))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||action.expectedProfileRevision!=null&&(!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1))return fail(draft,'The original owner business or website changed. Prepare a fresh creative review.');
+  const checked=validateWebsiteCreativeSpecification(draft,action.specification,{forEdit:true});
+  if(!checked.ok)return fail(draft,checked.reason);
+  return {applied:true,draft:{...draft,creativeSpecification:JSON.parse(JSON.stringify(checked.specification)),creativeSpecificationSourceOrder:checked.specification.pages.map(proposed=>({pageId:proposed.pageId,sectionOrder:[...draft.pages.find(page=>page.id===proposed.pageId).sectionIds]}))},reason:'Prepared a coordinated direction over the original pages. Exact approved words, sources, imagery, brand and destinations are kept.'};
+ }
  if(['compose-service-pages','refine-site-pages','update-site-contact'].includes(action.action)){
   const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision',...(action.action==='compose-service-pages'?['serviceIds']:action.action==='update-site-contact'?['field','value']:['direction'])];
   if(Object.keys(action).some(k=>!allowed.includes(k))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||action.expectedProfileRevision!=null&&(!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1)||draft.business_id&&draft.business_id!==draft.businessId)

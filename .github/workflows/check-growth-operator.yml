@@ -1,7 +1,10 @@
 name: V3.66 voice and project Operator checks
 on:
   push:
-    branches: [v3.66]
+    branches: [v3.66, codex/builder-mission15-design-advancement]
+    paths:
+      - 'src/core/websiteDesignIntelligence.mjs'
+      - 'supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs'
   pull_request:
     paths:
       - "src/core/connectedEditorContinuation.mjs"

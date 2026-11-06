@@ -1,3 +1,5 @@
+import {deterministicWebsiteCreativeSpecification} from '../supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs';
+import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {buildWebsiteDraft,applyWebsitePageChange,renderWebsiteHtml} from '../src/domain/websiteBuilder.js';
@@ -19,7 +21,7 @@ const escape=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&l
 const workerSource=readFileSync('supabase/functions/busy-website-worker/index.ts','utf8');
 const fragment=(first,last)=>{const start=workerSource.indexOf('function '+first+'('),end=workerSource.indexOf(last,start);assert.ok(start>=0&&end>start);return workerSource.slice(start,end);};
 const workerCode=stripTypeScriptTypes(fragment('pageSeo','function renderSectionHtml(')+fragment('relativePageHref','function renderWebsiteHtml(')+fragment('renderWebsiteHtml','async function ensureBucket('));
-const workerDeps={renderSectionHtml:originalWebsiteSectionRuntime(),safeArray:value=>Array.isArray(value)?value:[],clean:value=>typeof value==='string'?value.trim():'',escapeHtml:escape,pageDirectionClass,craftedPage,designForWebsite,designCss,planWebsiteDesign,websiteGalleryPresentation,websitePageGuide,websitePageHeadingHierarchy,renderWebsiteSiteNavigation,responsivePhotoAttributes,websiteAssetAvailable,urlForAsset:(asset,urls)=>websiteAssetAvailable(asset)?urls[asset?.storagePath]||'':''};
+const workerDeps={creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss,renderSectionHtml:originalWebsiteSectionRuntime(),safeArray:value=>Array.isArray(value)?value:[],clean:value=>typeof value==='string'?value.trim():'',escapeHtml:escape,pageDirectionClass,craftedPage,designForWebsite,designCss,planWebsiteDesign,websiteGalleryPresentation,websitePageGuide,websitePageHeadingHierarchy,renderWebsiteSiteNavigation,responsivePhotoAttributes,websiteAssetAvailable,urlForAsset:(asset,urls)=>websiteAssetAvailable(asset)?urls[asset?.storagePath]||'':''};
 const worker=Function(...Object.keys(workerDeps),workerCode+';return renderWebsiteHtml;')(...Object.values(workerDeps));
 let cases=0;
 for(const [businessType,family] of [['Landscaping','split-editorial'],['Festival catering','story-spread'],['Creative studio','typography-first']]){
@@ -74,3 +76,17 @@ for(const file of ['src/domain/websiteBuilder.js','supabase/functions/busy-websi
  const s=readFileSync(file,'utf8');assert.match(s,/websitePageHeadingHierarchy\(rawSectionHtml,\{draft,page,sections/);assert.match(s,/nav-mobile-details/);assert.match(s,/aria-current="page"/);assert.match(s,/website-inner-page/);
 }
 console.log('PASS '+cases+' business-family fixtures; exact single-H1 page opening, source paragraph once, current navigation, safe related destinations, formatting/photo/source preservation, long mobile menu and legacy hierarchy. No hosted/provider/save/publication or aesthetic acceptance claimed.');
+
+// Mission18 executes the actual original worker page renderer with the same
+// reviewed image-free composition; no source-text substitute or stub geometry.
+const creativeContext=mission16Fixture(2),creativePlan=prepareWholeWebsite(creativeContext,{pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml});
+assert.equal(creativePlan.ok,true,creativePlan.reason);
+const specification=deterministicWebsiteCreativeSpecification(creativePlan.candidate,'Keep my words but redesign the website');assert.equal(specification.ok,true,specification.reason);
+const creativeDraft={...creativePlan.candidate,creativeSpecification:specification.specification};
+for(const page of creativeDraft.pages){
+ const native=renderWebsiteHtml(creativeDraft,page.id,{standalone:true}),edge=worker(creativeDraft,{},page,'synthetic-deployment');
+ const expected=creativeWebsiteClasses(creativeDraft,page.id);assert.ok(expected);assert.ok(native.includes(expected));assert.ok(edge.includes(expected));assert.ok(edge.includes(creativeWebsiteCss));
+ const sectionIds=html=>[...html.split('<main id="main">')[1].split('</main>')[0].matchAll(/<section[^>]* id="([^"]+)"/g)].map(match=>match[1]);
+ assert.deepEqual(sectionIds(edge),sectionIds(native));assert.equal((edge.match(/<h1\b/g)||[]).length,1);
+}
+console.log('PASS Mission18 actual worker/native creative geometry and exact section-order parity across all seven original Quiet Light pages.');

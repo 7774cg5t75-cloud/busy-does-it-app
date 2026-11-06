@@ -1,7 +1,10 @@
 name: V3.69 Founder Operations Security
 on:
   push:
-    branches: [v3.69]
+    branches: [v3.69, codex/builder-mission15-design-advancement]
+    paths:
+      - 'src/core/websiteDesignIntelligence.mjs'
+      - 'supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs'
   pull_request:
     paths:
       - "src/core/connectedEditorContinuation.mjs"

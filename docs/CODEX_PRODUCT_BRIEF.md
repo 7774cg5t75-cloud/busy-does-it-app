@@ -1,4 +1,8 @@
-## Current authority and scope — 6 November 2026
+## Current authority — genuine V22.85, 6 November 2026
+
+The corrected owner-supplied V22.85 has now been opened, integrity-checked and compared in full with V22.84; see current master-access provenance. Inherited requirements remain intact, with reviewed Section97. Preserve fair ownership and practical portability, truthful validated entitlements, the original connected architecture and exceptional whole-site quality for free and paid users. Private commercial details remain outside Git. No hosted, provider, publication, spending or Gold Standard approval follows from master adoption.
+
+## Historical Mission17 authority and scope — 6 November 2026
 
 Mission17 identifies V22.85 as current, but its genuine original is not accessible. Do not infer its changes or treat V22.84 as the latest approved version. Apply the explicit Mission17 whole-site/page-quality instructions and verified inherited requirements while reconciliation remains outstanding. No hosted, inference, publication or Gold Standard approval is added.
 

@@ -3303,6 +3303,41 @@
         "scripts/check-mission17-whole-site.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-runner-foundation",
+      "args": [
+        "scripts/check-ai-lab-runner-foundation.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission18-design-intelligence",
+      "args": [
+        "scripts/check-mission18-design-intelligence.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission18-creative-rendering",
+      "args": [
+        "scripts/check-mission18-creative-rendering.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission18-creative-owner-flow",
+      "args": [
+        "scripts/check-mission18-creative-owner-flow.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission18-provider-projection",
+      "args": [
+        "scripts/check-mission18-provider-projection.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

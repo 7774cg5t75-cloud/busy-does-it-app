@@ -1,7 +1,10 @@
 name: V3.70 Platform Autopilot checks
 on:
   push:
-    branches: [v3.70]
+    branches: [v3.70, codex/builder-mission15-design-advancement]
+    paths:
+      - 'src/core/websiteDesignIntelligence.mjs'
+      - 'supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs'
   pull_request:
     paths:
       - "supabase/functions/busy-founder-ops/**"

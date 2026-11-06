@@ -10,6 +10,12 @@ on:
       - '.github/workflows/check-founder-operations.yml'
       - '.github/workflows/website-design-browser.yml'
       - '.github/workflows/mission16-websites.yml'
+      - '.github/workflows/mission18-websites.yml'
+      - 'scripts/check-mission18-*.mjs'
+      - 'scripts/build-mission18-sites.mjs'
+      - 'scripts/check-ai-lab-runner-foundation*.mjs'
+      - 'scripts/lib/ai-lab-runner-foundation-package.mjs'
+      - 'docs/sql-proposals/ai-lab-runner-foundation/**'
       - '.github/workflows/mission17-websites.yml'
       - 'scripts/check-mission17-*.mjs'
       - 'scripts/build-mission17-sites.mjs'
@@ -244,6 +250,11 @@ jobs:
           node scripts/check-mission16-preview-navigation.mjs
           node scripts/check-mission16-whole-site-ui.mjs
           node scripts/check-mission16-owner-cta-refresh.mjs
+          node scripts/check-ai-lab-runner-foundation.mjs
+          node scripts/check-mission18-design-intelligence.mjs
+          node scripts/check-mission18-creative-rendering.mjs
+          node scripts/check-mission18-creative-owner-flow.mjs
+          node scripts/check-mission18-provider-projection.mjs
           node scripts/check-mission17-whole-site.mjs
           node scripts/check-mission17-inner-quality.mjs
           node scripts/check-mission17-navigation.mjs
@@ -314,11 +325,11 @@ jobs:
           diff -qr src "$EDGE_SOURCE/src"
           diff -qr supabase "$EDGE_SOURCE/supabase"
           diff -qr standalone "$EDGE_SOURCE/standalone"
-          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/executionBootstrap.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1 || {
+          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/executionBootstrap.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1 || {
             cat .test-artifacts/app-goal-composition/deno.log
             exit 1
           }
-          echo "BUSY_EDGE_RESULT all_26_original_entrypoints_and_4_proposal_modules_exit_0"
+          echo "BUSY_EDGE_RESULT all_26_original_entrypoints_and_5_proposal_modules_exit_0"
       - name: Signed PostgreSQL 17 tooling matching staging ACLs
         run: |
           # PostgreSQL16 cannot represent staging's existing MAINTAIN privilege.
@@ -383,13 +394,15 @@ jobs:
           cp .test-artifacts/preservation-foundation/postgres.json .test-artifacts/app-goal-composition/preservation-foundation.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-foundation-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-foundation.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-foundation.log; exit 1; }
           cp .test-artifacts/ai-lab-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-foundation.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-runner-foundation-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-runner-foundation.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-runner-foundation.log; exit 1; }
+          cp .test-artifacts/ai-lab-runner-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-runner-foundation.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-mission16-whole-site-postgres.mjs > .test-artifacts/app-goal-composition/mission16-whole-site-postgres.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/mission16-whole-site-postgres.log; exit 1; }
           cp .test-artifacts/mission16-whole-site/postgres.json .test-artifacts/app-goal-composition/mission16-whole-site-postgres.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/mission16-whole-site-postgres.json'));print('BUSY_WHOLE_SITE_POSTGRES '+json.dumps(d['summary']))"
           python3 - <<'PY'
           import json,pathlib
           base=pathlib.Path('.test-artifacts/app-goal-composition')
-          expected={'whole-app':'postgres.json','public-form':'public-form-postgres.json','enquiry-preparation':'enquiry-preparation-postgres.json','operational-work':'operational-work-postgres.json','work-preparation':'work-preparation-postgres.json','ai-budget':'ai-budget-postgres.json','preservation-foundation':'preservation-foundation.json','ai-lab-foundation':'ai-lab-foundation.json','whole-site':'mission16-whole-site-postgres.json'}
+          expected={'whole-app':'postgres.json','public-form':'public-form-postgres.json','enquiry-preparation':'enquiry-preparation-postgres.json','operational-work':'operational-work-postgres.json','work-preparation':'work-preparation-postgres.json','ai-budget':'ai-budget-postgres.json','preservation-foundation':'preservation-foundation.json','ai-lab-foundation':'ai-lab-foundation.json','whole-site':'mission16-whole-site-postgres.json','ai-lab-runner-foundation':'ai-lab-runner-foundation.json'}
           summaries={}
           for name,filename in expected.items():
               summary=json.loads((base/filename).read_text())['summary']
@@ -397,7 +410,7 @@ jobs:
               assert all(type(value) is int and value>=0 for value in counts.values()),'Invalid SQL receipt count'
               assert counts['passed']>0 and counts['failed']==0,'SQL receipt did not confirm passing stages'
               summaries[name]=counts
-          print('BUSY_PG_SUITE_SUMMARIES '+json.dumps({'commandSuites':8,'receiptSummaries':summaries},sort_keys=True))
+          print('BUSY_PG_SUITE_SUMMARIES '+json.dumps({'commandSuites':9,'receiptSummaries':summaries},sort_keys=True))
           PY
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |

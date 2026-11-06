@@ -1,4 +1,10 @@
-## Mission17 authority checkpoint — owner-declared V22.85 unavailable
+## Mission18 — genuine corrected V22.85 verified, 6 November 2026
+
+Owner-supplied original SHA256 `9dc5e697e5a0f5c676db86aedc5aaf1db7be85808fb3320af438ed945d38e22c`; 381,415 bytes, 3,353 ordered Word paragraphs and 20 tables. ZIP CRC and all 19 XML/relationship parts parse. Full ordered comparison with genuine V22.84 preserves every inherited paragraph except the cover version and appends Section97, read completely. The original and full extracts remain privately outside Git. V22.85 is the current authority; the Mission17 availability checkpoint below is historical.
+
+Preserve fair ownership, practical portability and truthful supported continuation across subscription changes; do not advertise unverified entitlements or economics. Preserve professional whole-site quality, equal free/paid rendering, original authorities and three unapproved references/zero approved Gold Standards. This provenance neither changes approved SQL bytes nor grants hosted, provider, publication or spending authority.
+
+## Historical Mission17 authority checkpoint — owner-declared V22.85 unavailable
 
 The owner identifies V22.85 as the current authority. Its genuine Word original is not accessible in the current attachments or authorised private archive. Do not invent its contents or describe V22.84 as the latest owner-approved version. Apply the explicit Mission17 page-quality requirements while preserving verified inherited requirements and all existing approval boundaries. V22.84 below remains the latest byte-verified original; reconciliation with the genuine V22.85 is outstanding. No hosted installation, deployment, provider activation, inference, spending, publication or Gold Standard promotion is authorised.
 

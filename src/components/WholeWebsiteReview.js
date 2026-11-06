@@ -73,6 +73,7 @@ export function WholeWebsiteReview({s,goal='',disabled=false,onPrepared,isParent
    {context.profileRevision==null?<Text style={styles.cardBody}>Using this website’s reviewed wording. Shared account facts and an account save have not been independently verified.</Text>:null}
    {scopedReview?<>
     <Text style={styles.cardBody}>{'Proposed outline — '+pages.length+' pages. Each page should help a visitor understand the business or take a useful next step.'}</Text>
+    {scopedReview.creativeDirection?.liveModelExecuted===false?<Text style={styles.cardBody}>A supported creative direction, prepared from your current website. Your words, colours, photographs and contact details are kept. No live AI model was used. Review the whole website before keeping.</Text>:null}
     {(scopedReview.pages||[]).map(p=><Text key={p.id} style={styles.cardBody}>{p.title+' — '+p.purpose}</Text>)}
     {!fresh?<Text style={styles.cardBody}>Your request, original website or approved business source changed. Your requested wording is kept; discard this stale preview and prepare a fresh review.</Text>:null}
    </>:null}
@@ -85,8 +86,9 @@ export function WholeWebsiteReview({s,goal='',disabled=false,onPrepared,isParent
    {/previous work|portfolio|completed projects/i.test(goal)?<Text style={styles.cardBody}>Project examples need your approved details and photographs. Gallery pictures alone do not establish previous work.</Text>:null}
    <Text style={styles.helper}>Private layout preview. Contact and external actions are blocked here. Width controls simulate layouts; genuine browser measurements remain separate.</Text>
    {scopedReview?<><Button primary label="Keep this complete website" disabled={disabled||busy||fenced||!fresh||typeof s.applyReviewedWebsitePageAction!=='function'} onPress={keep}/><Button label="Discard complete-site preview" disabled={busy} onPress={discard}/></>:<>
-    <Field label="What would you change across the website?" value={change} maxLength={400} placeholder="Make the service pages more interesting" onChangeText={value=>{if(!current()||flight.current)return;epoch.current++;setChange(value);report(!!value);}}/>
+    <Field label="What would you change across the website?" value={change} maxLength={400} placeholder="Keep my words but redesign the whole website" onChangeText={value=>{if(!current()||flight.current)return;epoch.current++;setChange(value);report(!!value);}}/>
     <Button label="Review my website change" disabled={disabled||busy||fenced||!change.trim()} onPress={()=>prepare(change)}/>
+    <Button label="Review a fresh whole-site direction" disabled={disabled||busy||fenced||!!change.trim()} onPress={()=>!change.trim()&&prepare('Keep my words but redesign the whole website')}/>
    </>}
    {fenced?<Text style={styles.cardBody}>This attempt will not be replayed. Inspect the current result in the original Studio before preparing anything else.</Text>:null}
   </Card>:null}

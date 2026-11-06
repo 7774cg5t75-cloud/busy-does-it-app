@@ -1,3 +1,4 @@
+import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';
 import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
 import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
 import {purposeServiceProjection} from '../../supabase/functions/busy-website-worker/websiteServiceOverview.mjs';
@@ -43,6 +44,7 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';",
  "import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';",
  "import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';",
  "import {purposeServiceProjection} from '../../supabase/functions/busy-website-worker/websiteServiceOverview.mjs';",
@@ -84,7 +86,7 @@ function stripKnownModule(file){
 }
 const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
  "\nreturn {syncWebsitePageModel};")();
-const deps=Object.freeze({websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml,websiteHeroPhotos,servicePhotoHtml,purposeServiceProjection,renderWebsiteSiteNavigation,wholeSiteMenuMove,pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable,premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
+const deps=Object.freeze({creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss,websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml,websiteHeroPhotos,servicePhotoHtml,purposeServiceProjection,renderWebsiteSiteNavigation,wholeSiteMenuMove,pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable,premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
  testimonialSpotlightItems,
  websitePageGuide,websitePageHeadingHierarchy,serviceIndexHtml,serviceContactAction,heroServiceOverview,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,

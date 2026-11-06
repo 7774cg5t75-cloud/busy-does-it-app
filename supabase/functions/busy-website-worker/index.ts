@@ -1,3 +1,4 @@
+import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from './websiteCreativeRendering.mjs';
 import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from './websiteContentPhotos.mjs';
 import {servicePhotoHtml} from './websiteServicePhotos.mjs';
 import {purposeServiceProjection} from './websiteServiceOverview.mjs';
@@ -329,7 +330,8 @@ function renderWebsiteHtml(
   const theme = draft?.theme || {};
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections:allSections,theme});
   const design = designForWebsite({businessType:draft?.businessType,theme,plan});
-  const layoutCss = designCss(design);
+  const creativeClasses=creativeWebsiteClasses(draft,page?.id||'home');
+  const layoutCss = designCss(design)+(creativeClasses?creativeWebsiteCss:'');
   const identity = plan?.visualIdentity || {};
   const classes = [
     "visual-hero-" + (identity.heroLayout || "type-left"),
@@ -351,7 +353,7 @@ function renderWebsiteHtml(
     :`<div class="nav-links">${navigationLinks}</div>`);
   const navHtml=navigation.length?`<nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${escapeHtml(pageUrls.home||relativePageHref(page,"/"))}">${escapeHtml(draft?.brandLabel||draft?.businessName||"Home")}</a>${navigationHtml}</div></nav>`:"";
 
-  const renderedOrder=(page?.id==="home"?plan.sectionOrder:safeArray(page?.sectionIds));
+  const renderedOrder=creativeWebsiteOrder(draft,page?.id||'home',page?.id==="home"?plan.sectionOrder:safeArray(page?.sectionIds));
   const rawSectionHtml = renderedOrder
     .map((id:string)=>sections.find((section:any)=>section.id===id))
     .filter(Boolean)
@@ -393,7 +395,7 @@ function renderWebsiteHtml(
   const safeBusiness=escapeHtml(draft?.businessName||"Business website");
   const area=clean(draft?.serviceArea,260);
   const footer=`<footer class="site-footer"><div class="wrap"><strong>${safeBusiness}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${page?.id==='home'||!page?websitePageGuide(draft,sections,sectionHtml,escapeHtml):''}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="${creativeClasses?creativeClasses+' ':''}${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${page?.id==='home'||!page?websitePageGuide(draft,sections,sectionHtml,escapeHtml):''}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
 
 }
 

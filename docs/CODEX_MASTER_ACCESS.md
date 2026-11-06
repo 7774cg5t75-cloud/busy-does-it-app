@@ -1,4 +1,10 @@
-## Mission17 — owner-declared V22.85 not accessible
+## Mission18 — genuine corrected V22.85 verified
+
+The actual attached Word original was opened and integrity-checked: SHA256 `9dc5e697e5a0f5c676db86aedc5aaf1db7be85808fb3320af438ed945d38e22c`, 381,415 bytes, 3,353 ordered body/table paragraphs, 20 tables. ZIP CRC and all19 XML/relationship parts parse. Full comparison against genuine V22.84 changes only the cover version and appends28 paragraphs in Section97; all additions were reviewed. Original/full extraction and detailed commercial text remain outside public Git. V22.85 supersedes older authority where requirements conflict. The unavailable-original note below records the genuine earlier checkpoint and is not current.
+
+Fair ownership/portability, validated subscription continuation, professional quality, source/security and separate approval boundaries apply. No hosted installation, provider use, billing, publication, entitlement or reference approval is activated. Three existing design references remain unapproved; zero approved Gold Standards. The previously reviewed SQL remains byte-pinned under its own scope.
+
+## Historical Mission17 — owner-declared V22.85 not accessible
 
 The owner declares V22.85 current. Its genuine Word original was not found in this task's attachments or authorised private archive. V22.84 below is the latest byte-verified original, not the latest owner-approved version. The explicit Mission17 requirements authorise the bounded page-quality implementation; preserve inherited requirements, separate release/hosted/provider approvals and zero approved Gold Standards. Full V22.85 reconciliation remains outstanding. No contents of that unavailable document are asserted.
 

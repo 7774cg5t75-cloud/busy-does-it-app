@@ -144,6 +144,21 @@ try{
   const undo=await fresh.website({basis:observed,action:'undo',ownerApproved:true});assert.equal(undo.ok,true,undo.reason);assert.equal(undo.observed.websiteDraft.sitePresentation,undefined);assert.deepEqual(hashes(snapshots(undo.observed.websiteDraft)),legacyHtml);
   const redo=await fresh.website({basis:undo.observed,action:'redo',ownerApproved:true});assert.equal(redo.ok,true,redo.reason);assert.equal(redo.observed.websiteDraft.sitePresentation,'purposeful-v1');assert.deepEqual(hashes(snapshots(redo.observed.websiteDraft)),expected);basis=await session.open(B);
  });
+ await stage('mission18-creative-specification-original-private-authority-save-reopen-undo-redo-and-denials',async()=>{
+  session=createConnectedBuilderSession({request});basis=await session.open(B);
+  const beforeModel=basis.websiteDraft,beforeHashes=hashes(snapshots(beforeModel)),sourceWords=JSON.stringify(beforeModel.sections),oldGeneration=beforeModel.generation;
+  const creative=prepareWholeWebsiteRefinement(context(),'Keep my words but redesign the website',deps);assert.equal(creative.ok,true,creative.reason);assert.equal(creative.operation.action,'apply-site-creative-specification');
+  const expected=hashes(snapshots(creative.candidate)),calls=writeCalls;
+  wholeSiteSourceCasReady=false;await assert.rejects(()=>direct(body(creative.operation)));wholeSiteSourceCasReady=true;
+  for(const patch of [{...creative.operation,expectedBusinessId:F},{...creative.operation,expectedProfileRevision:basis.profileRevision-1},{...creative.operation,publish:true},{...creative.operation,specification:{...creative.operation.specification,script:'untrusted'}}])await assert.rejects(()=>direct(body(patch)));
+  await assert.rejects(()=>direct({...body(creative.operation),ownerApproved:false}));assert.equal(writeCalls,calls);
+  const kept=await keepWholeWebsite(creative,{getContext:context,apply:async patch=>{const result=await session.website({basis,action:'edit_page',patch,ownerApproved:true});assert.equal(result.ok,true,result.reason);basis=result.observed;return {applied:true,verifiedPrivateReadback:{ownerId:basis.actorId,businessId:basis.businessId,recordHash:result.receipt.recordHash,websiteDraft:basis.websiteDraft}};}});
+  assert.equal(kept.ok,true,kept.reason);assert.equal(kept.accountSaved,true);assert.equal(writeCalls,calls+1);assert.equal(basis.websiteDraft.generation,oldGeneration+1);assert.equal(JSON.stringify(basis.websiteDraft.sections),sourceWords);
+  const fresh=createConnectedBuilderSession({request});const observed=await fresh.open(B);assert.deepEqual(hashes(snapshots(observed.websiteDraft)),expected);assert.deepEqual(observed.websiteDraft.creativeSpecification,creative.candidate.creativeSpecification);
+  assert.equal((await keepWholeWebsite(creative,{getContext:context,apply:()=>{throw Error('Never replay accepted creative specification');}})).ok,false);assert.equal(writeCalls,calls+1);
+  const undo=await fresh.website({basis:observed,action:'undo',ownerApproved:true});assert.equal(undo.ok,true,undo.reason);assert.deepEqual(hashes(snapshots(undo.observed.websiteDraft)),beforeHashes);assert.equal(undo.observed.websiteDraft.creativeSpecification,undefined);
+  const redo=await fresh.website({basis:undo.observed,action:'redo',ownerApproved:true});assert.equal(redo.ok,true,redo.reason);assert.deepEqual(hashes(snapshots(redo.observed.websiteDraft)),expected);assert.equal(JSON.stringify(redo.observed.websiteDraft.sections),sourceWords);basis=await session.open(B);
+ });
  await stage('no-publication-provider-financial-or-foreign-record-mutation',()=>{
   assert.equal(sql('SELECT count(*) FROM public.busy_website_deployments'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_websites'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_mini_app_requests'),'0');assert.equal(sql('SELECT count(*) FROM public.business_work_quote_references'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_business_snapshots WHERE business_id='+q(F)),'0');
  });

@@ -4,13 +4,14 @@ import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 import {websitePhotoSourcesCurrent} from './websitePhotoReview.mjs';
 import {wholeSiteServices,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent,wholeSiteOperationCount} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
 import {websiteOwnerLocks} from '../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs';
+import {validateWebsiteCreativeSpecification,deterministicWebsiteCreativeSpecification} from '../../supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs';
 const clock=()=>globalThis.performance?.now?.()??Date.now();
 const byteLength=s=>{let n=0;for(const c of s){const p=c.codePointAt(0);n+=p<=127?1:p<=2047?2:p<=65535?3:4;}return n;};
 const issued=new WeakMap(),used=new WeakSet(),fail=reason=>({ok:false,reason});
 export function wholeWebsiteSource(c){return stableJson({ownerId:c.ownerId,businessId:c.businessId,profileRevision:c.profileRevision??null,websiteId:c.website?.id,generation:c.website?.generation,website:websiteRequestContent(c.website)});}
-export function isCurrentWholeWebsite(r,c){const seal=r&&issued.get(r);return !!r?.ok&&!!seal&&!used.has(r)&&seal.reviewStamp===stableJson(r)&&seal.sourceStamp===wholeWebsiteSource(c)&&wholeSiteDerivedSourcesCurrent(c.website)&&wholeSiteContentCurrent(c.website)&&websitePhotoSourcesCurrent(c.website);}
+export function isCurrentWholeWebsite(r,c){const seal=r&&issued.get(r);return !!r?.ok&&!!seal&&!used.has(r)&&seal.reviewStamp===stableJson(r)&&seal.sourceStamp===wholeWebsiteSource(c)&&(seal.profileStamp==null||seal.profileStamp===stableJson(c.profile||{}))&&wholeSiteDerivedSourcesCurrent(c.website)&&wholeSiteContentCurrent(c.website)&&websitePhotoSourcesCurrent(c.website);}
 const purposes={home:'Understand the business and choose a next step.',services:'Compare the approved services.',about:'Understand the supplied business story and approach.',gallery:'View the photographs approved for this website.',contact:'Find the supplied contact and coverage information.',products:'Explore the current approved product information.',events:'Read the supplied event information.',faq:'Find answers to the supplied questions.'};
-function prepare(context,operation,deps,goal){
+function prepare(context,operation,deps,goal,creativeDirection=null){
  const d=context.website;
  if(!context.ownerId||!websiteDraftHasScope(d,context.businessId)||!Number.isSafeInteger(d?.generation)||d.generation<1)return fail('Open your current business and its original private website first.');
  if(context.profileRevision!=null&&(!Number.isSafeInteger(context.profileRevision)||context.profileRevision<1))return fail('Review current business facts first.');
@@ -28,7 +29,13 @@ function prepare(context,operation,deps,goal){
  const previews={};for(const p of candidate.pages){let html;try{html=deps.renderPage(candidate,p.id,{standalone:true,privatePagePreview:true});}catch{return fail('A page could not be rendered for this review. Nothing was saved.');}if(typeof html!=='string'||html.length>500000||!html.startsWith('<!doctype html>')||/<script\b|data-busy-edit-section|busy.contextual-action.v1/i.test(html))return fail('A page needs safe static preview review. Nothing was saved.');previews[p.id]=html;}
  const pages=candidate.pages.map(p=>({...p,purpose:p.sourceServiceId?'Understand '+p.title+' in detail and choose a relevant enquiry.':purposes[p.id]||'Read the owner-authored information on '+p.title+'.'}));
  const r={ok:true,kind:'reviewed_whole_website',goal,ownerId:context.ownerId,businessId:context.businessId,profileRevision:context.profileRevision??null,sourceStamp:wholeWebsiteSource(context),operation:patch,candidate,pages,previews,accountSaved:false,neverPublishes:true,providerCalls:0,sourceMode:context.profileRevision==null?'private-studio-wording':'current-profile-and-studio',stats:{pages:pages.length,addedPages:pages.length-d.pages.length,sourceServicesReused:operation.serviceIds?.length||0,elapsedMs:Math.round((clock()-start)*100)/100,modelBytes:byteLength(websiteRequestContent(candidate)),renderedBytes:Object.values(previews).reduce((n,x)=>n+byteLength(x),0),providerCalls:0,measuredTokenUsage:null,measuredProviderCost:null},limitations:['Deterministic source reuse, not live AI generation.','New pages repeat no invented business facts.','A photograph is not independent proof of completed work.',...(/previous work|portfolio|completed projects/i.test(goal)?['Only supplied, explicitly reviewed project evidence can support a portfolio; gallery photographs alone do not establish completed work.']:[])],requiresOwnerReview:true};
- issued.set(r,{reviewStamp:stableJson(r),sourceStamp:r.sourceStamp,operationStamp:stableJson(patch),candidateStamp:websiteRequestContent(candidate),generation:candidate.generation});return r;
+ if(creativeDirection)r.creativeDirection=creativeDirection;
+ issued.set(r,{reviewStamp:stableJson(r),sourceStamp:r.sourceStamp,operationStamp:stableJson(patch),candidateStamp:websiteRequestContent(candidate),generation:candidate.generation,profileStamp:creativeDirection?stableJson(context.profile||{}):null});return r;
+}
+export function prepareWholeWebsiteCreativeReview(context,specification,deps,{origin='deterministic-recommendation',explanation='A reviewed direction for the original website pages.'}={}){
+ if(!['deterministic-recommendation','deterministic-offline-fixture'].includes(origin)||typeof explanation!=='string'||!explanation.trim()||explanation.length>800||/[<>\u0000-\u001f\u007f]/.test(explanation))return fail('Review a supported creative direction with honest origin. No live model result was verified.');
+ const checked=validateWebsiteCreativeSpecification(context.website,specification,{forEdit:true});if(!checked.ok)return checked;
+ return prepare(context,{action:'apply-site-creative-specification',specification:JSON.parse(JSON.stringify(specification))},deps,context.goal||'Review a coordinated whole-site creative direction.',{origin,explanation,liveModelExecuted:false,sourceFactsChanged:false});
 }
 export function prepareWholeWebsite(context,deps){
  if(typeof context.goal!=='string'||context.goal.length>400||!/(website|whole site|complete site)/i.test(context.goal)||/\b(publish|send|pay|charge|deploy|book|invoice)\b/i.test(context.goal))return fail('Describe your private website goal. Publishing, sending and paid actions stay separate.');
@@ -43,6 +50,8 @@ export function prepareWholeWebsite(context,deps){
 export function prepareWholeWebsiteRefinement(context,request,deps){
  if(typeof request!=='string'||request.length>400)return fail('Describe one supported change.');
  const value=request.trim().replace(/[.!?]+$/,'');
+ const creative=deterministicWebsiteCreativeSpecification(context.website,value);
+ if(creative.supported)return creative.ok?prepareWholeWebsiteCreativeReview({...context,goal:request},creative.specification,deps,{origin:'deterministic-recommendation',explanation:creative.explanation}):creative;
  if(/^change (?:the |my )?contact information$/i.test(value))return fail('Which approved email address or phone number should customers use? Review it in the original Business Identity/contact controls; no destination was guessed.');
  const contact=value.match(/^change (?:the )?contact (email|phone) to (.+)$/i);
  if(contact)return prepare(context,{action:'update-site-contact',field:contact[1].toLowerCase(),value:contact[2]},deps,request);
@@ -60,7 +69,7 @@ export async function keepWholeWebsite(review,{getContext,apply}={}){
  let result;try{result=await apply(operation);}catch{return {ok:false,unknown:true,mayReplay:false,reason:'Save outcome is unknown. Inspect the original Studio; do not repeat this write.'};}
  const packet=result?.verifiedPrivateReadback,observed=packet?.websiteDraft||result?.localPrivateReadback?.websiteDraft;
  if(!result?.applied||!observed||websiteRequestContent(observed)!==seal.candidateStamp||observed.generation!==seal.generation||packet&&(packet.ownerId!==review.ownerId||packet.businessId!==review.businessId||!/^[a-f0-9]{64}$/.test(packet.recordHash||'')))return {ok:false,unknown:true,mayReplay:false,reason:'The original Studio save was not independently confirmed as this exact result. Inspect it before another attempt.'};
- const now=getContext();if(now.ownerId!==original.ownerId||now.businessId!==original.businessId||(now.profileRevision??null)!==review.profileRevision)return {ok:false,unknown:true,mayReplay:false,reason:'The owner or business context changed while saving. Inspect the original account.'};
+ const now=getContext();if(now.ownerId!==original.ownerId||now.businessId!==original.businessId||(now.profileRevision??null)!==review.profileRevision||seal.profileStamp!=null&&seal.profileStamp!==stableJson(now.profile||{}))return {ok:false,unknown:true,mayReplay:false,reason:'The owner or business context changed while saving. Inspect the original account.'};
  // A delayed acknowledgement cannot dismiss newer unsaved owner wording.
  // React may still expose the original snapshot while the exact readback is
  // being committed; those two exact boundaries are the only safe outcomes.

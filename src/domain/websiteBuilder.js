@@ -1,3 +1,4 @@
+import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';
 import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
 import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
 import {purposeServiceProjection} from '../../supabase/functions/busy-website-worker/websiteServiceOverview.mjs';
@@ -318,6 +319,20 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const theme=previousDraft?.theme&&typeof previousDraft.theme==="object"
     ? {...themeFromBrief(brief),...previousDraft.theme}
     : themeFromBrief(brief);
+  // A factual refresh is not permission to discard an exact reviewed design.
+  // Reuse the original renderer's full source/specification validation before
+  // retaining these bounded presentation records in this SAME business only.
+  // The renderer validates again against the refreshed original page model;
+  // changed identities fail closed rather than silently choosing another look.
+  const keepCreative=!!sameOwnerSource&&safeArray(previousDraft?.creativeSpecification?.pages)
+    .some(page=>!!creativeWebsiteClasses(previousDraft,page?.pageId));
+  const creativeSourceOrder=safeArray(previousDraft?.creativeSpecificationSourceOrder);
+  const keepCreativeSourceOrder=keepCreative&&creativeSourceOrder.length===previousDraft.creativeSpecification.pages.length&&
+    new Set(creativeSourceOrder.map(page=>page?.pageId)).size===creativeSourceOrder.length&&creativeSourceOrder.every(row=>{
+      const page=safeArray(previousDraft.pages).find(page=>page.id===row?.pageId),ids=safeArray(page?.sectionIds);
+      return row&&Object.keys(row).sort().join(',')==='pageId,sectionOrder'&&previousDraft.creativeSpecification.pages.some(spec=>spec.pageId===row.pageId)&&
+        Array.isArray(row.sectionOrder)&&row.sectionOrder.length===ids.length&&new Set(row.sectionOrder).size===ids.length&&row.sectionOrder.every(id=>ids.includes(id));
+    });
   const draft = {
     id: previousDraft?.id || `website-${Date.now()}`,
     ...((previousDraft?.businessId||businessId)?{businessId:previousDraft?.businessId||businessId}:{}),
@@ -354,6 +369,8 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     theme,
     ...(sameOwnerSource&&previousDraft?.siteComposition==='connected-pages-v1'?{siteComposition:'connected-pages-v1'}:{}),
     ...(sameOwnerSource&&Object.hasOwn(previousDraft||{},'sitePresentation')?{sitePresentation:previousDraft.sitePresentation}:{}),
+    ...(keepCreative?{creativeSpecification:JSON.parse(JSON.stringify(previousDraft.creativeSpecification))}:{}),
+    ...(keepCreativeSourceOrder?{creativeSpecificationSourceOrder:JSON.parse(JSON.stringify(creativeSourceOrder))}:{}),
     customPages:safeArray(previousDraft?.customPages).map(page=>({
       ...page,sectionIds:safeArray(page?.sectionIds).slice()
     })),
@@ -702,7 +719,8 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     section?.enabled !== false && (!page || allowed.has(section.id)));
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections,theme:draft.theme});
   const design = designForWebsite({businessType:draft.businessType,theme:draft.theme,plan});
-  const layoutCss = designCss(design);
+  const creativeClasses=creativeWebsiteClasses(draft,page?.id||'home');
+  const layoutCss = designCss(design)+(creativeClasses?creativeWebsiteCss:'');
   const identity = plan?.visualIdentity || {};
   const classes = [
     "visual-hero-" + (identity.heroLayout || "type-left"),
@@ -743,7 +761,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       return "";
     return prefix+target.outputPath;
   };
-  const renderedOrder=page?.id==="home"||!page?plan.sectionOrder:safeArray(page.sectionIds);
+  const renderedOrder=creativeWebsiteOrder(draft,page?.id||'home',page?.id==="home"||!page?plan.sectionOrder:safeArray(page.sectionIds));
   const orderedSections=renderedOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
   // Only visible sections may be targets for customer navigation or the hero
   // action. Optional empty contact/gallery blocks are intentionally omitted
@@ -885,7 +903,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const navigationHtml=purposefulNavigation||(safeArray(draft.navigation).length>6
     ?`<div class="nav-links nav-long-desktop">${nav}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${nav}</div></details>`
     :`<div class="nav-links">${nav}</div>`);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(draft.theme?.heroComposition||"")?"premium-site-"+draft.theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a>${navigationHtml}</div></nav><main id="main">${page?.id==='home'||!page?websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml):''}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="${creativeClasses?creativeClasses+' ':''}${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(draft.theme?.heroComposition||"")?"premium-site-"+draft.theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a>${navigationHtml}</div></nav><main id="main">${page?.id==='home'||!page?websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml):''}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 
