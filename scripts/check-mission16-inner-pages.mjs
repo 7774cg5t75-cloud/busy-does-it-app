@@ -108,3 +108,13 @@ for(const index of [2,0]){
  assert.equal(body(native),websiteCreativeDocumentUnavailableHtml);assert.equal(body(edge),body(native));assert.equal((body(edge).match(/<h1\b/g)||[]).length,1);assert.ok(!/<img\b|<a\b|<button\b|<script\b/.test(body(edge)));assert.equal(JSON.stringify(denied),before);
 }
 console.log('PASS 2 complete original worker/native review-notice cases, 14 assertions: stale wording and withdrawn photographs retain source bytes and show one truthful H1 without replacement assets or actions.');
+
+const compactContext=mission16Fixture(2),compactPlan=prepareWholeWebsite(compactContext,{pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml});assert.equal(compactPlan.ok,true);
+const compactFixture=mission19MinimalCreativeDocument({...compactContext,website:compactPlan.candidate});
+compactFixture.document.removePageIds=compactPlan.candidate.pages.filter(page=>page.sourceServiceId).map(page=>page.id);
+compactFixture.document.navigation.items=compactFixture.document.navigation.items.filter(id=>!compactFixture.document.removePageIds.includes(id));
+const compactCompiled=compileWebsiteCreativeDocument(compactPlan.candidate,compactFixture.document,{approvedIntent:{...compactFixture.approvedIntent,allowRetireAiPages:true}});assert.equal(compactCompiled.ok,true,compactCompiled.reason);
+const compactDraft=rebuildPrivateWebsiteDraft(compactCompiled.draft),compactBefore=JSON.stringify(compactDraft),compactPage=compactDraft.pages.find(page=>page.id==='home'),nativeCompact=renderWebsiteHtml(compactDraft,'home',{standalone:true}),edgeCompact=worker(compactDraft,{},compactPage,'synthetic-compact-navigation');
+const mainNav=html=>html.match(/<nav aria-label="Main navigation">([\s\S]*?)<\/nav>/)?.[1];
+assert.equal(compactDraft.navigation.length,4);assert.equal(mainNav(edgeCompact),mainNav(nativeCompact));assert.match(mainNav(edgeCompact),/<details class="nav-mobile-details"><summary>Menu/);assert.match(mainNav(edgeCompact),/class="site-nav-primary"[^>]*href="contact\/index.html"/);assert.equal(JSON.stringify(compactDraft),compactBefore);
+console.log('PASS 1 complete original worker/native compact-navigation case, 7 assertions: four current routes reuse the existing native Menu and exact primary destination without source changes.');

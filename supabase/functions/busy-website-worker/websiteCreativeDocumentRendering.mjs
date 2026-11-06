@@ -85,7 +85,7 @@ export function websiteCreativeDocumentSite(draft){
  // `muted` is a readable foreground, not an interchangeable soft background.
  // Retained original pages must keep a light surface under their ink text.
  const css='body.creative-document-site{--ink:'+palette.ink+';--paper:'+palette.paper+';--accent:'+palette.accent+';--soft:'+palette.paper+';--line:'+palette.muted+';--owner-dark-text-accent:'+darkAccent+';--owner-light-text-accent:'+lightAccent+';--dc-heading-font:'+heading.stack+';--dc-body-font:'+body.stack+';font-family:var(--dc-body-font,inherit);color:var(--ink);background:var(--paper)}';
- return {model,css,classes:'creative-document-site creative-document-nav-'+model.navigationPresentation.placement};
+ return {model,css,classes:'creative-document-site creative-document-brand-controlled creative-document-nav-'+model.navigationPresentation.placement};
 }
 
 // One new original section renderer, not a website/HTML execution engine.
@@ -161,8 +161,11 @@ body.creative-document-site{display:block}
 body.creative-document-site main>section.creative-document{padding:var(--dc-owner-padding-y,var(--dc-padding-y)) var(--dc-padding-x);background:inherit;scroll-margin-top:24px}
 .creative-document-inner{width:100%;max-width:var(--dc-max-width);margin-inline:auto;display:grid;gap:var(--dc-gap);min-width:0}
 .creative-document :where(div,figure,h1,h2,h3,p,li,a){min-width:0;max-width:100%;box-sizing:border-box}
-.creative-doc-heading{font-family:var(--dc-heading-font,inherit);font-size:var(--dc-owner-size,var(--dc-size));font-weight:500;line-height:1.05;letter-spacing:-.045em;margin:0;max-width:none;text-wrap:balance;overflow-wrap:break-word}
-.creative-doc-text{font-family:var(--dc-body-font,inherit);font-size:var(--dc-owner-size,var(--dc-size));line-height:1.7;letter-spacing:0}
+.creative-document .creative-doc-heading{font-size:var(--dc-owner-size,var(--dc-size));line-height:1.05;letter-spacing:-.045em;margin:0;max-width:none;text-wrap:balance;overflow-wrap:break-word}
+.creative-document-brand-controlled .creative-document .creative-doc-heading{font-family:var(--dc-heading-font);font-weight:500}
+.creative-document-brand-controlled .creative-document .creative-doc-text{font-family:var(--dc-body-font)}
+.creative-document-brand-controlled .creative-document .creative-doc-text p{font-family:inherit}
+.creative-document .creative-doc-text{font-family:var(--dc-body-font,inherit);font-size:var(--dc-owner-size,var(--dc-size));line-height:1.7;letter-spacing:0}
 .creative-document .creative-doc-text p{font-family:inherit;font-size:inherit;line-height:inherit;max-width:none;margin:0 0 1.2em}
 .creative-document .creative-doc-text p:last-child{margin-bottom:0}
 .creative-doc-stack,.creative-doc-group{display:grid;align-content:start;gap:var(--dc-gap,24px)}
@@ -185,7 +188,7 @@ body.creative-document-site .nav-links a{min-height:44px;display:inline-flex;ali
 .creative-document-site>nav .site-nav-primary{padding:10px 16px;border:1px solid currentColor;border-radius:0;opacity:1}
 @media(min-width:960px){
  body.creative-document-site main>section.creative-document{padding-block:var(--dc-owner-desktop-padding-y,var(--dc-owner-padding-y,var(--dc-padding-y)))}
- .creative-doc-heading,.creative-doc-text{font-size:var(--dc-owner-desktop-size,var(--dc-owner-size,var(--dc-size)))}
+ .creative-document .creative-doc-heading,.creative-document .creative-doc-text{font-size:var(--dc-owner-desktop-size,var(--dc-owner-size,var(--dc-size)))}
  .creative-doc-link,.creative-doc-list li{font-size:var(--dc-owner-desktop-size,var(--dc-owner-size,1rem))}
  .creative-document .creative-doc-desktop-crop-top{object-position:center top!important}.creative-document .creative-doc-desktop-crop-center{object-position:center center!important}.creative-document .creative-doc-desktop-crop-bottom{object-position:center bottom!important}
  body.creative-document-site.creative-document-nav-rail{padding-left:220px}
@@ -198,13 +201,20 @@ body.creative-document-site .nav-links a{min-height:44px;display:inline-flex;ali
  .creative-document-nav-split nav .brand{font-family:var(--dc-heading-font,inherit);font-weight:500;font-size:1.6rem}
 }
 @media(max-width:959px){body.creative-document-site{padding-left:0}.creative-document-site>nav{position:relative;width:auto;height:auto;inset:auto}.creative-document-site>nav .wrap{padding:0;min-height:80px}}
+/* Tablet reading tracks follow the already reviewed compact composition.
+   Desktop fractions plus inset group padding can otherwise squeeze a normal
+   heading into a 158px column at 768px. Keep the same DOM and model-selected
+   compact columns/gap; do not shrink the type or hide the source material. */
+@media(min-width:721px) and (max-width:959px){
+ .creative-doc-grid{grid-template-columns:var(--dc-mobile-columns);gap:var(--dc-mobile-gap)}
+}
 @media(max-width:700px){body.creative-document-site>nav .nav-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding-block:18px}body.creative-document-site>nav .nav-mobile-details{width:100%;grid-column:1/-1}}
 @media(max-width:720px){
  body.creative-document-site main>section.creative-document{padding:var(--dc-owner-mobile-padding-y,var(--dc-owner-padding-y,var(--dc-mobile-padding-y))) var(--dc-mobile-padding-x)}
  .creative-doc-grid{grid-template-columns:var(--dc-mobile-columns);gap:var(--dc-mobile-gap)}
  .creative-doc-stack,.creative-document-inner{gap:clamp(20px,5vw,var(--dc-gap))}
  .creative-doc-group{padding:clamp(18px,5vw,var(--dc-group-padding))}
- .creative-doc-heading,.creative-doc-text{font-size:var(--dc-owner-mobile-size,var(--dc-owner-size,var(--dc-mobile-size,var(--dc-size))))}
+ .creative-document .creative-doc-heading,.creative-document .creative-doc-text{font-size:var(--dc-owner-mobile-size,var(--dc-owner-size,var(--dc-mobile-size,var(--dc-size))))}
  .creative-doc-link,.creative-doc-list li{font-size:var(--dc-owner-mobile-size,var(--dc-owner-size,1rem))}
  .creative-document .creative-doc-mobile-crop-top{object-position:center top!important}.creative-document .creative-doc-mobile-crop-center{object-position:center center!important}.creative-document .creative-doc-mobile-crop-bottom{object-position:center bottom!important}
  .creative-doc-link-button{padding:14px 18px;min-height:52px}

@@ -8,6 +8,7 @@ on:
       - 'scripts/capture-mission19-sites.mjs'
       - 'scripts/lib/mission19-site-fixtures.mjs'
       - 'scripts/lib/mission19-creative-fixtures.mjs'
+      - 'scripts/lib/mission19-typography-expectations.mjs'
       - 'scripts/check-mission19-*.mjs'
       - 'scripts/lib/mission19-review-pack.mjs'
       - 'src/core/websiteCreativeDocumentReview.mjs'

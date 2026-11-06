@@ -353,7 +353,7 @@ function renderWebsiteHtml(
   const navigationItems=navigation.map((item:any)=>({id:item.id,label:item.label||item.id,href:String(item.href||"").startsWith("#")&&page.id==="home"?item.href:pageUrls[item.id]||relativePageHref(page,item.href?.startsWith("#")?"/":item.href||"/")}));
   const navigationLinks=navigationItems.map((item:any)=>`<a${documentSite?.model.navigationPresentation.primaryPageId===item.id?' class="site-nav-primary"':''}${item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
   const purposefulNavigation=renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,primaryPageId:documentSite?.model.navigationPresentation.primaryPageId,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}});
-  const navigationHtml=purposefulNavigation||(navigation.length>6
+  const navigationHtml=purposefulNavigation||(navigation.length>6||!!documentSite&&navigationItems.length>=4
     ?`<div class="nav-links nav-long-desktop">${navigationLinks}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${navigationLinks}</div></details>`
     :`<div class="nav-links">${navigationLinks}</div>`);
   const navHtml=navigation.length?`<nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${escapeHtml(pageUrls.home||relativePageHref(page,"/"))}">${escapeHtml(draft?.brandLabel||draft?.businessName||"Home")}</a>${navigationHtml}</div></nav>`:"";

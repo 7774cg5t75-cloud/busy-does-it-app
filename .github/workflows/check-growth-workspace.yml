@@ -7,6 +7,7 @@ on:
       - 'supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs'
       - 'src/core/websiteCreativeDocumentReview.mjs'
       - 'supabase/functions/busy-website-worker/websiteCreativeDocument.mjs'
+      - 'supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs'
   pull_request:
     paths:
       - "src/core/connectedEditorContinuation.mjs"
