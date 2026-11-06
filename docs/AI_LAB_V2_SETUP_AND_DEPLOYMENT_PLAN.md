@@ -2,6 +2,8 @@
 
 This is a review plan, not installation, account creation, deployment, credential configuration or spending authority. The Lab is `sbvkrvksnruiclcvclbd`, organisation `wrjfgasxtlznzfzmfrif`, Ireland `eu-west-1`, Free. No other project is a fallback. Corrected private Master V22.85 remains authoritative; three design references remain candidates and zero are approved Gold Standards.
 
+**6 November update:** Approval A subsequently completed with independently verified native receipt `20261106221950`. See the [actual installation report](AI_LAB_FOUNDATION_INSTALLATION_2026_11_06.md). B–D below remain unapproved; the [current B review](AI_LAB_APPROVAL_B_FICTIONAL_SETUP_2026_11_06.md) identifies the secure native Auth and canonical business-bootstrap prerequisites. The original A review sequence is retained as history.
+
 ## A — unchanged original foundation
 
 First obtain the exact [installation-only approval](AI_LAB_V2_INSTALLATION_APPROVAL_BOUNDARY.md). Independently verify its complete native migration receipt and original 28-public/six-private table and 69+5 application-function contracts. Policy remains disabled and the monthly spending limit zero. Installation does not seed an account, tariff, entitlement, reservation or execution approval. Do not proceed on a successful tool acknowledgement alone.
@@ -38,4 +40,4 @@ Any future original entitlement, tariff, policy allowance and account allocation
 
 At most one original durable dispatch may occur. Reconcile actual provider input and total output usage through original finish plus independent operation receipt reading. Lost acknowledgements, malformed receipts, inconsistent usage, expired reservations and unknown settlement deny review or retain liability; none permits a second dispatch. A real provider result may prepare an original review only, never automatically save or publish. Render deterministic and genuine-model candidates using identical facts through the same renderer and inspect full mobile/desktop pages before any professional acceptance. Offline fixtures cannot establish model quality or superiority.
 
-**Next decision: A only.** Approval B, disabled deployment C, secure credential configuration and exact execution D remain separate. No current readiness work alters the existing staging project, production, Slow Roast, customer data or spending policy.
+**Next decision after verified A: B only.** Approval B, disabled deployment C, secure credential configuration and exact execution D remain separate. No current readiness work alters the existing staging project, production, Slow Roast, customer data or spending policy.

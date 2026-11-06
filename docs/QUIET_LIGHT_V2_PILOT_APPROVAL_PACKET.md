@@ -1,5 +1,7 @@
 # Quiet Light Studio expressive v2 — proposed single-request experiment
 
+**6 November installation update:** the [foundation is now independently verified installed](AI_LAB_FOUNDATION_INSTALLATION_2026_11_06.md). The source/request artifacts below remain offline fixtures, not newly bound hosted approval. Fictional source setup, deployment, credentials and inference remain separate decisions; no genuine model result exists.
+
 Status: **offline engineering preparation; not an executable owner approval**. No model, token-count endpoint, provider credential, hosted write, account save or publication was used. Both existing candidate websites below are deterministic: the original recommender and an explicitly authored response fixture. The fixture cannot establish model creativity or superiority.
 
 ## Exact purpose and common source

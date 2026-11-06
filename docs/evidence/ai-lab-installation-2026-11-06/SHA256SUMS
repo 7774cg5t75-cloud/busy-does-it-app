@@ -1,0 +1,15 @@
+88c550a2203a8f569ba9cd187361be06302e5521209a31b53360c62f1198a8ce  docs/AI_LAB_FOUNDATION_INSTALLATION_2026_11_06.md
+e1d099de25628681fe87cf276556cc08a2bf1ded7eab58127240a484584c7af1  docs/AI_LAB_APPROVAL_B_FICTIONAL_SETUP_2026_11_06.md
+643b8b16d66378b644b04e272323cda0497943a2aa7d73627eecbbd4f280f032  docs/evidence/ai-lab-installation-2026-11-06/README.md
+6f174be7b0d69b2018c67ff83027fa3be48aa10482d50a5be40aa60df06c47f5  docs/evidence/ai-lab-installation-2026-11-06/execution-receipt.json
+ab21b282162a4261213e29c154799d41e3dfe2da3e7904b53b6735f15fd0a855  docs/evidence/ai-lab-installation-2026-11-06/expected-object-contracts.json
+af4f1d002eb4d806a87f7941c5f7a2d7fac24372f65c620b0923bffdcb71a0c3  docs/evidence/ai-lab-installation-2026-11-06/final-invariants.json
+8b032b9ebd1fde895cfff87aaa063a73bb7b63d07650ff0a6dc2472b88124fd2  docs/evidence/ai-lab-installation-2026-11-06/hosted-post-install.json
+2873f5905ead5a4bc000b2d6bed814327ec609459d5006fe08def5b4182553ab  docs/evidence/ai-lab-installation-2026-11-06/hosted-security-verification.json
+c51daacd668f3b7cc65e8fec0ad11705483860483db6c2b4e9b415d51f49dfb6  docs/evidence/ai-lab-installation-2026-11-06/independent-post-install-comparison.json
+0a5ce0ac0075ca72da118592c0027efeb749fdeab4fc371954b151ae7530d928  docs/evidence/ai-lab-installation-2026-11-06/independent-review.json
+bd09923ebb9dee29cf8f5f0aba73170372d5685406392815189eabda158f5b1e  docs/evidence/ai-lab-installation-2026-11-06/independent-supplemental-comparison.json
+e0f49adcf7af3d3fe409a1144b5a2d697c333efffd0129cb8c90f7531048e28f  docs/evidence/ai-lab-installation-2026-11-06/local-checks.json
+65968645384d80c764a5d5e9a42076a65c2cec42a187ed84ac3e162a08e791d1  docs/evidence/ai-lab-installation-2026-11-06/preflight.json
+610a10abb0756827363e980bb0b1f1c34339203d5ebe9b17510fd564aa066b6f  docs/evidence/ai-lab-installation-2026-11-06/read-only-final-invariants.sql
+f738dae5a5f4018b630709b9eb264f12dfd7eba3b5c350d6c8a6dc451358ddd9  docs/evidence/ai-lab-installation-2026-11-06/read-only-security-verification.sql

@@ -1,0 +1,40 @@
+{
+  "functionalCommit": "21121ee462b27a77b30089ba69e2adcb28d15182",
+  "functionalTree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+  "fresh": true,
+  "checks": [
+    {
+      "command": "node scripts/check-ai-lab-runner-foundation.mjs",
+      "passed": 7,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-ai-lab-foundation.mjs",
+      "passed": 2,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-production.mjs",
+      "passed": 105,
+      "failed": 0,
+      "exitCode": 0,
+      "productionAccess": false
+    },
+    {
+      "command": "node scripts/check-security-by-design.mjs",
+      "exitCode": 0,
+      "scope": "Original Auth expiry/revocation, finite tool denial, five malicious enquiry fixtures, escaping/unsafe media guards",
+      "individualAssertionCountNotClaimed": true
+    }
+  ],
+  "hostedCatalogueComparisons": {
+    "first": 582,
+    "supplemental": 750,
+    "passed": 1332,
+    "failed": 0
+  },
+  "historicalFullRegressionNotRerun": true,
+  "noRuntimeOrApprovedSqlChanges": true
+}

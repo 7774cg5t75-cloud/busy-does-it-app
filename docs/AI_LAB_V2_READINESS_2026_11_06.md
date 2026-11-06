@@ -1,5 +1,7 @@
 # Secure AI Lab activation and first real v2 design-test readiness
 
+**Subsequent installation outcome,6 November:** separately approved A has now succeeded; native receipt `20261106221950` and complete security readbacks are recorded in the [installation report](AI_LAB_FOUNDATION_INSTALLATION_2026_11_06.md). The readiness results below describe their original pre-install checkpoint and remain unchanged historical evidence. B–D are still unauthorised.
+
 **Readiness implementation is complete; the Lab is not installed and no genuine model request has run.** The current mission authorises safe development and read-only inspection, not foundation execution, fictional account setup, deployment, credential configuration, provider counting or inference. The next owner decision is the exact foundation installation only.
 
 ## Continuity and private authority
