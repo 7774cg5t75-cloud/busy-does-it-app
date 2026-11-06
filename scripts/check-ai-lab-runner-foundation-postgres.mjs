@@ -11,7 +11,7 @@ const q=s=>"'"+String(s).replaceAll("'","''")+"'";
 // One runner owns BEGIN/COMMIT and appends native history before COMMIT. SQL is
 // streamed, avoiding OS argument limits for the complete 346KB foundation.
 // This is a local SQL transaction rehearsal, not the private API implementation.
-const sql=(s,d=db,atomic=true)=>execFileSync(bin,['-X','-h',socket,'-U','postgres','-v','ON_ERROR_STOP=1','-qAt','-d',d],{input:atomic?'BEGIN;\n'+s+'\nCOMMIT;\n':s,encoding:'utf8',stdio:['pipe','pipe','pipe'],maxBuffer:32*1024*1024}).trim();
+const sql=(s,d=db,atomic=true)=>execFileSync(bin,['-X','-h',socket,'-U','postgres','-v','ON_ERROR_STOP=1','-qAt','-d',d],{input:atomic?'BEGIN;\n'+s+';\nCOMMIT;\n':s,encoding:'utf8',stdio:['pipe','pipe','pipe'],maxBuffer:32*1024*1024}).trim();
 const json=s=>JSON.parse(sql(s)),denied=(s,re)=>assert.throws(()=>sql(s),e=>re.test(String(e.stderr||e))),stage=(id,fn)=>{try{fn();results.push({id,passed:true});}catch(e){results.push({id,passed:false,error:String(e.stderr||e.stack).slice(-2500)});throw e;}};
 const version='20261106001800';
 const history=(name=RUNNER_MIGRATION_NAME,versionId=version,source=body)=>'INSERT INTO supabase_migrations.schema_migrations(version,name,statements) VALUES('+q(versionId)+','+q(name)+',ARRAY['+sqlStatements(source).map(q).join(',')+']);';
