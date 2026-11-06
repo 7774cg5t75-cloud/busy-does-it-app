@@ -1,3 +1,7 @@
+## Current authority and scope — 6 November 2026
+
+The genuine private owner-supplied V22.84 supersedes older commercial examples below where they conflict. Consult its Sections93–96 and the current master-access provenance. A complete agreed standard website, fair ordinary corrections, professional whole-site quality, free/paid parity, truthful facts, ownership and measured costs govern future planning; no new entitlement, billing or publication is activated. Detailed private commercial requirements remain outside public Git. The current installation decision remains separately conditional on exact approved SQL and runner guarantees.
+
 # Busy Does It — public product orientation for Codex
 
 This is a **brief, non-confidential working orientation** for contributors and AI agents. It is **not** the full, owner-approved Word Product Master and must not be described as such. Refer to `docs/CODEX_MASTER_ACCESS.md`.

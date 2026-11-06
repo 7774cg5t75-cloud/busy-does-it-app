@@ -1,3 +1,9 @@
+## Current genuine private Product Master — V22.84, 6 November 2026
+
+Owner-supplied original SHA256 `1b09e3eac692a859479adafe776508bb998d49e94c656b76c0082c8490521da2`; 378,379bytes,3,325 Word paragraphs/20tables. ZIP CRC and all19XML/relationship parts parse; full ordered comparison with genuine V22.82 identifies38 explicit change ranges, including superseded commercial examples and new Sections95–96. Sections93/94 are identical by exact Word paragraph comparison. This is the current authority; older version entries below are historical provenance. Original, complete extracts and detailed private commercial plan stay outside public Git.
+
+Use the current two-plan direction and whole-standard-website completion/normal-correction requirements from private Sections95–96; never advertise unverified entitlements, activate billing, stop an agreed included site for a credit upsell or degrade free/paid design quality. Actual scope/economics, ownership/export, accessibility/SEO and release readiness require genuine evidence. Website quality/individuality remains the primary product priority; preserve one assistant, six Home areas and the original engine/Studio/Business Brain/central budget authorities. Three reference records remain unapproved. Master advancement does not change reviewed SQL bytes, remove an installation fuse or expand conditional hosted/provider authority.
+
 ## Supplied starter reconciled —5 November2026
 
 V22.82 remains controlling. The separate starter ZIP was received and SHA256-verified as1ee58018469659cbcbc91ffd9c196d94b3b908da262333082547be32b4070b37. Its four original files remain private outside Git. The private versioned reconciliation preserves original evidence and distinguishes Ember needs-improvement feedback/two candidates from approval: zero Gold Standards approved. Historical missing-attachment notes below remain provenance, not current availability.

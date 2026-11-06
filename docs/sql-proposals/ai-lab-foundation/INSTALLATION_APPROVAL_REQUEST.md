@@ -1,3 +1,5 @@
+> **Approval received conditionally, 6 November 2026; NOT EXECUTED.** The owner's current instruction authorises only the exact hashes/target after every mandatory condition. Runner transaction/history compatibility is not established. Do not interpret this historical request or master advancement as unconditional installation authority. See the current installation outcome report; no fuse or SQL boundary has been removed.
+
 # Exact AI Lab foundation installation — separate approval requested
 
 **No installation is authorised or performed by this document.** Region acceptance is recorded; both SQL artifacts retain their prior exact bytes and review fuses. This request covers foundation installation only, not fictional account setup, deployment, provider credentials or inference.
