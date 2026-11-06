@@ -1,0 +1,17 @@
+(node:332665) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/busy-connected-recovery/src/domain/websiteBuilder.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/busy-connected-recovery/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS actual original renderer uses source-bound complete-page specification 0
+PASS actual original renderer uses source-bound complete-page specification 1
+PASS actual original renderer uses source-bound complete-page specification 2
+PASS unknown and executable-style measures yield the exact original legacy output
+PASS exact reviewed section order is shared by preview, worker and export
+PASS owner typography, original words, crops and native editable markers are retained
+PASS a later owner lock preserves the exact reviewed presentation
+PASS same-owner factual refresh retains exact reviewed geometry and owner wording; foreign scope cannot inherit it
+PASS explicit general, mobile and desktop owner spacing suppresses automatic opening padding
+PASS stale or foreign exact source blocks creative rendering without exposing replacement media
+PASS finite responsive CSS retains usable mobile text tracks and cannot fetch remote assets
+PASS wide-image families retain their native full-row photo proportions instead of a tiny split strip
+PASS 12 Mission18 creative-rendering cases; 384 assertions; zero failures. Actual original renderer, finite source measures and preserved owner content. No model or hosted result claimed.

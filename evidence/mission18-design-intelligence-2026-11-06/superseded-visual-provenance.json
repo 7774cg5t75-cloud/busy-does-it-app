@@ -1,0 +1,54 @@
+{
+  "source": {
+    "commit": "40b0d2a22745360969e56b3a83941b118f0b1a31",
+    "tree": "01b380357fe0c0f6cc22c0c472d80f81b216e800",
+    "workingTreeChanged": false
+  },
+  "reason": "First genuine offline proposal compressed wide hero photographs into small strips. Actual visual review rejected this; final original renderer compatibility fix restores their native full-row geometry.",
+  "pixels": [
+    {
+      "id": "moor-meadow-rich-home-after-desktop",
+      "filename": "review-moor-meadow-rich-home-after-desktop.jpg",
+      "sha256": "49368a557756962ce3ff2c2eb6d1b4e7cf573bcfeef9a89ffbe989a866ab0cf3",
+      "bytes": 64122,
+      "originalPng": "moor-meadow-rich-home-after-desktop.png",
+      "originalSha256": "4a0870630b1cce44d4ddb189644f527a48ab1299ff16b6943e8dbe253f738876",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 3141,
+      "renderedWidth": 720,
+      "renderedHeight": 1571,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow-rich",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "ember-rich-home-after-desktop",
+      "filename": "review-ember-rich-home-after-desktop.jpg",
+      "sha256": "b677b7cbaa620433ac5aa8b40a5b6844939ecd97f6005b181a6dbee95d71cf74",
+      "bytes": 62227,
+      "originalPng": "ember-rich-home-after-desktop.png",
+      "originalSha256": "3e2531b45567dad011e3ea9c32540b7bcb023876b76f3b1f723389526433cc23",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 3796,
+      "renderedWidth": 720,
+      "renderedHeight": 1898,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember-rich",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    }
+  ]
+}

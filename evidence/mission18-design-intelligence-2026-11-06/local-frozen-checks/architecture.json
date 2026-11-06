@@ -1,0 +1,208 @@
+{
+  "version": "v3.195",
+  "type": "offline-source-architecture-audit",
+  "sourceFiles": 1971,
+  "physicalLines": 180675,
+  "staticRelativeEdges": 4730,
+  "distinctStaticCycles": 0,
+  "cycleExamples": [],
+  "largest": [
+    {
+      "file": "src/app/AppController.js",
+      "lines": 18346,
+      "bytes": 784719,
+      "incoming": 1,
+      "outbound": 104
+    },
+    {
+      "file": "src/screens/miniApps.js",
+      "lines": 5472,
+      "bytes": 309011,
+      "incoming": 3,
+      "outbound": 109
+    },
+    {
+      "file": "supabase/functions/busy-mini-apps/index.ts",
+      "lines": 4564,
+      "bytes": 188132,
+      "incoming": 0,
+      "outbound": 52
+    },
+    {
+      "file": "src/screens/work.js",
+      "lines": 4303,
+      "bytes": 198266,
+      "incoming": 2,
+      "outbound": 13
+    },
+    {
+      "file": "src/screens/customers.js",
+      "lines": 2110,
+      "bytes": 106298,
+      "incoming": 2,
+      "outbound": 11
+    },
+    {
+      "file": "src/screens/websiteBuilder.js",
+      "lines": 1747,
+      "bytes": 112979,
+      "incoming": 2,
+      "outbound": 65
+    },
+    {
+      "file": "src/screens/social.js",
+      "lines": 1673,
+      "bytes": 76521,
+      "incoming": 2,
+      "outbound": 19
+    },
+    {
+      "file": "src/core/runtime.js",
+      "lines": 1628,
+      "bytes": 62626,
+      "incoming": 16,
+      "outbound": 3
+    },
+    {
+      "file": "supabase/functions/busy-website-publish/index.ts",
+      "lines": 1564,
+      "bytes": 54966,
+      "incoming": 0,
+      "outbound": 13
+    },
+    {
+      "file": "supabase/functions/busy-social-publish/index.ts",
+      "lines": 1544,
+      "bytes": 60916,
+      "incoming": 0,
+      "outbound": 6
+    },
+    {
+      "file": "src/screens/settings.js",
+      "lines": 1395,
+      "bytes": 61555,
+      "incoming": 2,
+      "outbound": 5
+    },
+    {
+      "file": "src/screens/home.js",
+      "lines": 1358,
+      "bytes": 62115,
+      "incoming": 2,
+      "outbound": 10
+    },
+    {
+      "file": "supabase/functions/busy-website-worker/index.ts",
+      "lines": 1325,
+      "bytes": 57397,
+      "incoming": 0,
+      "outbound": 24
+    },
+    {
+      "file": "src/screens/websitePublishing.js",
+      "lines": 1277,
+      "bytes": 66832,
+      "incoming": 2,
+      "outbound": 13
+    },
+    {
+      "file": "supabase/functions/busy-website-provider/index.ts",
+      "lines": 1200,
+      "bytes": 40939,
+      "incoming": 0,
+      "outbound": 3
+    },
+    {
+      "file": "supabase/functions/busy-command/index.ts",
+      "lines": 1098,
+      "bytes": 70225,
+      "incoming": 0,
+      "outbound": 2
+    },
+    {
+      "file": "src/screens/intake.js",
+      "lines": 941,
+      "bytes": 42099,
+      "incoming": 2,
+      "outbound": 5
+    },
+    {
+      "file": "src/domain/websiteBuilder.js",
+      "lines": 922,
+      "bytes": 59746,
+      "incoming": 32,
+      "outbound": 26
+    },
+    {
+      "file": "src/domain/websitePublishing.js",
+      "lines": 813,
+      "bytes": 27329,
+      "incoming": 1,
+      "outbound": 3
+    },
+    {
+      "file": "src/components/ui.js",
+      "lines": 781,
+      "bytes": 31643,
+      "incoming": 157,
+      "outbound": 11
+    }
+  ],
+  "highestFanOut": [
+    {
+      "file": "src/screens/miniApps.js",
+      "imports": 109,
+      "lines": 5472
+    },
+    {
+      "file": "src/app/AppController.js",
+      "imports": 104,
+      "lines": 18346
+    },
+    {
+      "file": "src/screens/websiteBuilder.js",
+      "imports": 65,
+      "lines": 1747
+    },
+    {
+      "file": "supabase/functions/busy-mini-apps/index.ts",
+      "imports": 52,
+      "lines": 4564
+    },
+    {
+      "file": "scripts/check-whole-app-postgres.mjs",
+      "imports": 38,
+      "lines": 626
+    },
+    {
+      "file": "src/screens/index.js",
+      "imports": 29,
+      "lines": 337
+    },
+    {
+      "file": "src/domain/websiteBuilder.js",
+      "imports": 26,
+      "lines": 922
+    },
+    {
+      "file": "scripts/lib/website-builder-test-harness-v3222.mjs",
+      "imports": 26,
+      "lines": 118
+    },
+    {
+      "file": "supabase/functions/busy-website-worker/index.ts",
+      "imports": 24,
+      "lines": 1325
+    },
+    {
+      "file": "scripts/check-public-form-postgres.mjs",
+      "imports": 23,
+      "lines": 164
+    }
+  ],
+  "limitations": [
+    "Static relative imports only; dynamic/aliased imports and runtime flows not included.",
+    "Physical code lines include comments and blanks but exclude ignored docs, assets and dependencies.",
+    "No claims about live data, auth, provider permissions, signed builds, device UX or real customer completion."
+  ]
+}

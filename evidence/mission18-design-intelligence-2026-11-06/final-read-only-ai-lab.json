@@ -1,0 +1,21 @@
+{
+  "projectId": "sbvkrvksnruiclcvclbd",
+  "connection": "AI Lab-specific only",
+  "state": {
+    "database": "postgres",
+    "authUsers": 0,
+    "runnerRole": "postgres",
+    "publicTables": 0,
+    "nativeHookAcl": null,
+    "nativeRlsEvent": "O",
+    "migrationSchema": 0,
+    "nativeHookOwner": "postgres",
+    "postgresVersion": "17.11",
+    "privateAiSchema": 0,
+    "transactionReadOnly": "on",
+    "snapshotPrivateSchema": 0
+  },
+  "hostedMutations": 0,
+  "providerCalls": 0,
+  "otherProjectsAccessed": false
+}

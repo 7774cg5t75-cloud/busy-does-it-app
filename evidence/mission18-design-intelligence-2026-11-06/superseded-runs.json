@@ -1,0 +1,52 @@
+{
+  "runs": [
+    {
+      "id": 42254759151,
+      "name": "Private App goal composition and original authority verification",
+      "source": "40b0d2a22745360969e56b3a83941b118f0b1a31",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42254759151"
+    },
+    {
+      "id": 42255706021,
+      "name": "Private App goal composition and original authority verification",
+      "source": "ee004b0ff01142c6f7ec5234389fcf5750ffa0c4",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42255706021"
+    },
+    {
+      "id": 42254759213,
+      "name": "Mission 16 original whole-site browser evidence",
+      "source": "40b0d2a22745360969e56b3a83941b118f0b1a31",
+      "attempt": 2,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42254759213"
+    },
+    {
+      "id": 42255705966,
+      "name": "Mission 18 original Website intelligence and offline-fixture evidence",
+      "source": "ee004b0ff01142c6f7ec5234389fcf5750ffa0c4",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42255705966"
+    }
+  ],
+  "notes": {
+    "firstMain": "Source40b0: local PG rehearsal wrapper lacked statement terminator before closing COMMIT. Proposed SQL unaffected.",
+    "secondMain": "Sourceee004: new real-Studio Undo test wrongly expected no previous creative specification; final test compares exact prior approved state.",
+    "mission16FirstAttempt": "Chromium Page.captureScreenshot protocol failure; failure artifacts retained. Subsequent rerun superseded/cancelled; final source9fc compatibility capture passed.",
+    "visualRegression": "Source40b0 offline split choice shrank wide photographs. Genuine pixels caused shared compatibility correction; final source9fc adds actual wide-photo regression checks.",
+    "localApplication": "513 passed,0 failed,1 blocked,0 unexecuted; source changed40b0→9fc during development. Not final frozen-source evidence."
+  },
+  "finalSource": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+  "finalTree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+  "assertionsWeakened": false,
+  "hostedWrites": 0,
+  "realProviderCalls": 0
+}

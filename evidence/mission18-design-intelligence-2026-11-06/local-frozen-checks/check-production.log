@@ -1,0 +1,106 @@
+PASS  package/app version match
+PASS  Expo SDK 57
+PASS  expo-dev-client
+PASS  expo-constants
+PASS  native URL scheme
+PASS  iOS bundle identifier
+PASS  Android package
+PASS  notifications plugin
+PASS  calendar plugin
+PASS  development build profile
+PASS  preview build profile
+PASS  production auto increment
+PASS  Node 22 production runtime
+PASS  preview channel
+PASS  production channel
+PASS  Google Calendar sync function
+PASS  production watch function
+PASS  EAS link workflow
+PASS  native development build workflow
+PASS  SDK57 calendar legacy import
+PASS  SDK54 Snack calendar rewrite
+PASS  Snack refuses incomplete imports
+PASS  Snack packages ESM modules
+PASS  V3.55 public website origin
+PASS  V3.55 Cloudflare router Worker
+PASS  website origin is public edge function
+PASS  BUSY production root domain
+PASS  Cloudflare automated platform bootstrap
+PASS  V3.48 scheduled Cloudflare activation
+PASS  V3.48 provider sync triggers activation
+PASS  V3.48 live sites promote reserved BUSY addresses
+PASS  V3.48 publish starts BUSY address route proof
+PASS  V3.48 health proves BUSY address before activation
+PASS  V3.49 publish immediately starts delivery proof
+PASS  V3.49 immediate provider reconciliation is tenant-targeted
+PASS  V3.49 owner Go Live journey
+PASS  V3.49 Go Live UI is owner-facing
+PASS  V3.50 verified domains auto-provision
+PASS  V3.50 custom hostname recovery is idempotent
+PASS  V3.50 Cloudflare validation TXT variants supported
+PASS  V3.50 ownership continues into provider activation
+PASS  V3.50 BUSY platform namespace is reserved
+PASS  V3.50 customer-domain journey model
+PASS  V3.50 customer-domain UI is guided
+PASS  V3.50 custom domain becomes preferred public address
+PASS  V3.51 provider retries are bounded
+PASS  V3.51 provider retry storms are backoff-limited
+PASS  V3.51 health requires confirmed failures
+PASS  V3.51 known-good custom domains survive one failed check
+PASS  V3.51 publishing retries use exponential jitter
+PASS  V3.51 safe recovery orchestration
+PASS  V3.51 recovery intelligence model
+PASS  V3.51 owner recovery centre
+PASS  V3.51 recovery action wired to app
+PASS  V3.52 one active operation per website
+PASS  V3.52 atomic worker leases
+PASS  V3.52 stale jobs self-recover
+PASS  V3.52 failed updates preserve a proven live site
+PASS  V3.52 tenant-fair queue
+PASS  V3.52 cross-tenant database guards
+PASS  V3.52 composite tenant foreign keys are indexed
+PASS  V3.52 provider retries are indexable
+PASS  V3.52 adaptive health scheduling
+PASS  V3.52 route probes are concurrent
+PASS  V3.52 health work is continuously spread
+PASS  V3.52 tenant operation rate safeguard
+PASS  V3.52 custom-domain capacity safeguard
+PASS  V3.52 operational pressure metrics
+PASS  V3.52 bounded operational retention
+PASS  V3.53 immediate worker wakes are coalesced
+PASS  V3.53 backlog-sensitive worker fanout
+PASS  V3.53 health scheduler has 10k headroom
+PASS  V3.53 healthy provider reconciliation is spread
+PASS  V3.53 service-only live readiness snapshot
+PASS  V3.53 internal wake state has explicit deny RLS
+PASS  V3.53 deterministic 10k simulation exists
+PASS  V3.53 simulation models cost envelope
+PASS  V3.53 simulation is a production release gate
+PASS  V3.54 controlled business app planner
+PASS  V3.54 app planner uses recorded business facts
+PASS  V3.54 planned modules cannot be silently enabled
+PASS  V3.54 offers require explicit approved wording
+PASS  V3.54 voice requests route into reviewed app plans
+PASS  V3.54 owner can review plan before draft mutation
+PASS  V3.54 targeted missing-fact questions
+PASS  V3.54 business app terminology introduced
+PASS  V3.54 app-plan state survives draft refresh
+PASS  V3.55 one continuous Business App journey
+PASS  V3.55 targeted follow-up answers feed the planner
+PASS  V3.55 reviewed plan auto-prepares customer preview
+PASS  V3.55 Go Live still requires explicit owner approval
+PASS  V3.55 dated offers are owner-evidenced and time bounded
+PASS  V3.55 loyalty module is real but bounded
+PASS  V3.55 loyalty records are tenant guarded
+PASS  V3.55 loyalty FK indexes
+PASS  V3.55 loyalty is service-role only
+PASS  V3.55 loyalty reward cannot be invented
+PASS  V3.55 signed-in customers receive loyalty progress
+PASS  V3.55 booking requests open the real BUSY booking
+PASS  V3.55 customer preview renders real branding media
+PASS  V3.55 payments remain deliberately planned
+PASS  Cloudflare root routes excluded
+PASS  health checks bypass website edge cache
+PASS  website origin rejects storage traversal
+PASS  website origin hardened headers
+Production foundation check passed: 105 checks.

@@ -1,0 +1,182 @@
+{
+  "source": {
+    "commit": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+    "tree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+    "workingTreeChanged": false
+  },
+  "comparisons": [
+    {
+      "file": "phone-review-moor-meadow-rich-home.jpg",
+      "sha256": "b4da803a027ef68e8b43c7c404e31dc4af1cf5ffdcf00829a4c4d2ff2c913be2",
+      "site": "moor-meadow-rich",
+      "page": "home",
+      "before": {
+        "file": "review-moor-meadow-rich-home-before-mobile.jpg",
+        "jpegSha256": "4a225821bad9b66852adeb147b383db7e1b6bca0a907f27db21510c5d29df96c",
+        "pngSha256": "c28b725e935d0472f412edf05730b2dca434c281823669c3752d0b266a0c2085",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-moor-meadow-rich-home-after-mobile.jpg",
+        "jpegSha256": "cb21ed6604adf71c37f40e602c83fb8f16627b9dabb52d30ee974f3c9bd0b9ae",
+        "pngSha256": "066d98cc8ddc57d749822f195630f94aaaf444203f6192efe37cabd862910507",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    },
+    {
+      "file": "phone-review-moor-meadow-rich-page-garden-maintenance.jpg",
+      "sha256": "a57e4d8f45dc7b8f444f6413569cfa863158f1a91bffdf42e273fd6cc50cfa4e",
+      "site": "moor-meadow-rich",
+      "page": "page-garden-maintenance",
+      "before": {
+        "file": "review-moor-meadow-rich-page-garden-maintenance-before-mobile.jpg",
+        "jpegSha256": "f9ed32ba711bfdc46a2b1f3c0ed2c82ef8fa654ec320d31852da2cd1b3a2be7a",
+        "pngSha256": "cf1db1378340ae163a8fb6dc615265359e2c8e01e06708ad9cb6b5d083be69f4",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-moor-meadow-rich-page-garden-maintenance-after-mobile.jpg",
+        "jpegSha256": "5d0df15d5f93b87b5360e5747f0e8a081a7ed2cfdacccc396e3eea1f6433581a",
+        "pngSha256": "2ce7d17dcb8359ca54ffcb2babbc87cd1183fcf90fb3056afb189ad6dc31a790",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    },
+    {
+      "file": "phone-review-moor-meadow-rich-about.jpg",
+      "sha256": "061bab644e0e47a981b9946c25a88b3c0921499eb154628cac45b1e16ebf7819",
+      "site": "moor-meadow-rich",
+      "page": "about",
+      "before": {
+        "file": "review-moor-meadow-rich-about-before-mobile.jpg",
+        "jpegSha256": "90b215604868198a82e3614e54316583be7e89e03907bd6e875727cf7d49e3d9",
+        "pngSha256": "80586b5ce5cd0c987633fa98357bb1b0cec51d06cb03cf90fefff22b23f175a9",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-moor-meadow-rich-about-after-mobile.jpg",
+        "jpegSha256": "f7f876b423fe165a8fbb34e4a323c3b54c874a3f0677cfc4291edf341027eafc",
+        "pngSha256": "6c016e09cd64db12db829fa02af645ead9d6bea89318a27750f168fc1bce9548",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    },
+    {
+      "file": "phone-review-ember-rich-home.jpg",
+      "sha256": "f36853b2dba97738e02106a6847da4c6b2c61f181e834575f3b1aaac980d0974",
+      "site": "ember-rich",
+      "page": "home",
+      "before": {
+        "file": "review-ember-rich-home-before-mobile.jpg",
+        "jpegSha256": "71081d5f3448bf218fdc3e52508fd27e6623b39c0dd3c49ac7cccfc79144442a",
+        "pngSha256": "bb8adc7f636a94abab42823ce07b00f606ca7ad43ceb2c1986201de3f475f2f1",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-ember-rich-home-after-mobile.jpg",
+        "jpegSha256": "64eeb052c79256f4f673335bb58d23cf8c55d95d582e6aaa87151b13341d0b05",
+        "pngSha256": "c25a761e16d16609c4995c044727d8f9bbd2eaa976919d07af57ba4d50181fbd",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    },
+    {
+      "file": "phone-review-ember-rich-page-festival-plates.jpg",
+      "sha256": "a0b4b2a38d3f45beb6a9cbb5f54a54e991486210a758211f421c5b16d468b155",
+      "site": "ember-rich",
+      "page": "page-festival-plates",
+      "before": {
+        "file": "review-ember-rich-page-festival-plates-before-mobile.jpg",
+        "jpegSha256": "3bffa803f93235e233db73d11a35cb403715c8ec2b44fb3e0c2930af493c1383",
+        "pngSha256": "14e1e9bfa4bd7ba8719b5b713a39d055aae772decbca79722817816ec16c51f9",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-ember-rich-page-festival-plates-after-mobile.jpg",
+        "jpegSha256": "f298f1275ec9249f14b82d23ba0fea9efeceb59a84cbda236ad60e7a0982fb17",
+        "pngSha256": "b3870e9346a561b246cdff9b89e6a80bdde75617f0b8552c6bc64f93dec99a9b",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    },
+    {
+      "file": "phone-review-ember-rich-about.jpg",
+      "sha256": "6038a0ee4101c8dd33cf4690e8e489c07a72028ae48fbc2084fe734331338d21",
+      "site": "ember-rich",
+      "page": "about",
+      "before": {
+        "file": "review-ember-rich-about-before-mobile.jpg",
+        "jpegSha256": "7b3dc2f36b06b7978469df26522c41bd0bd37f5a56f3f4617ac527ce261968f1",
+        "pngSha256": "6fa38c5b0d229ad14823be8fedb7b35852026c1a9aa313c0c804a2dca3e992c3",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-ember-rich-about-after-mobile.jpg",
+        "jpegSha256": "7b3dc2f36b06b7978469df26522c41bd0bd37f5a56f3f4617ac527ce261968f1",
+        "pngSha256": "6fa38c5b0d229ad14823be8fedb7b35852026c1a9aa313c0c804a2dca3e992c3",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    },
+    {
+      "file": "phone-review-quiet-light-rich-home.jpg",
+      "sha256": "80b1ffddd0e381919705cb750717efdb07b2d59b7c30560a67415d04699f54ff",
+      "site": "quiet-light-rich",
+      "page": "home",
+      "before": {
+        "file": "review-quiet-light-rich-home-before-mobile.jpg",
+        "jpegSha256": "28bdb1fb879359926cd94c622b7635a0ceb5d408fba6a31877942a9adfe36de5",
+        "pngSha256": "2538eedb752f65886596cd6cda7e343e7803349cc0ff9da253101d901af50489",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-quiet-light-rich-home-after-mobile.jpg",
+        "jpegSha256": "3a4478ad5e59eb1ec7d658abebeb3dbf05ebbbc5e79a87664f36d5977b6ea81e",
+        "pngSha256": "ba55088b0163816a45cdd53d793b7d0af8788095ab576d16465fbf109daf336a",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    },
+    {
+      "file": "phone-review-quiet-light-rich-page-brand-direction.jpg",
+      "sha256": "6030ceac47bc72e08ff17faec8b40e9014197d09ea9dbe3323b8fe32b9b84445",
+      "site": "quiet-light-rich",
+      "page": "page-brand-direction",
+      "before": {
+        "file": "review-quiet-light-rich-page-brand-direction-before-mobile.jpg",
+        "jpegSha256": "a1c70ec901ac653eca4347dcd49b05e968f7be76ff34eca15b674cb3da59e306",
+        "pngSha256": "eea55556966c7b916a11f85895cd394fa3e177f64edbda87094e6691dd4e4607",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-quiet-light-rich-page-brand-direction-after-mobile.jpg",
+        "jpegSha256": "bb67816c85838be97941b2facf188093818679964a747a82d779376cd5c54e0d",
+        "pngSha256": "bd8e76d2cd36bc44487e3afe600f0d22b086779467aa13f4cb51068d3e4d278e",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    },
+    {
+      "file": "phone-review-quiet-light-rich-about.jpg",
+      "sha256": "5ce436f3ef0c4504032cf3a02cc1d316fe80f3c36e47a6cf3d2799389a67651f",
+      "site": "quiet-light-rich",
+      "page": "about",
+      "before": {
+        "file": "review-quiet-light-rich-about-before-mobile.jpg",
+        "jpegSha256": "b036f257f85308267dca92b8ce9bceacd47e5cdbf39c744bb9ffb9bc3cb2849b",
+        "pngSha256": "989d08c4e731860dc6b9050a312f649cb5c7784da556339dc755a2feb4eee63d",
+        "source": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+      },
+      "after": {
+        "file": "review-quiet-light-rich-about-after-mobile.jpg",
+        "jpegSha256": "b036f257f85308267dca92b8ce9bceacd47e5cdbf39c744bb9ffb9bc3cb2849b",
+        "pngSha256": "989d08c4e731860dc6b9050a312f649cb5c7784da556339dc755a2feb4eee63d",
+        "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda"
+      },
+      "method": "Original-width390 JPEG derivatives, cropped to first844px at most, stacked with evidence-only labels; no page reflow or invented business content."
+    }
+  ],
+  "professionalAcceptance": false,
+  "realModelOutput": false
+}

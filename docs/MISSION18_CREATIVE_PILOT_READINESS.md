@@ -38,6 +38,8 @@ Before asking for execution approval, replace every outstanding item with indepe
 | Execution | Separately reviewed immutable **AI Lab** bootstrap, JWT/current owner/source verification, at-most-one original dispatch, timeout/unknown-outcome retention, no replay, no tools/retry; **not deployed** |
 | Output | Provider response ID/model/actual token usage; original finish operation, independent settled receipt and exact request identity, followed by source/schema validation; **no genuine model response exists** |
 
+The original whole-site profile-source CAS guard is a separate abort-fused SQL proposal (`docs/sql-proposals/mission16-website-profile-cas.sql`, SHA256 `55b616c072fcc0a616a6b90b30d9b4a39fc3320093a2d1c44da6c2506245971e`). It is not included in the runner-compatible 28-table foundation. Account saving of the new whole-site action remains gated until that original guard is independently reviewed/installed and the trusted server bootstrap verifies it. No existing fuse or approval is expanded by this readiness note.
+
 The earlier `executionBootstrap.mjs` is deliberately disabled and bound to **old staging**. It and the existing live adapter remain Home-v3; neither is silently retargeted or widened by this mission. The new whole-site projection does not replace those original dispatch/budget safeguards. A reviewed versioned server-envelope/parser integration is required before a future multi-page live dispatch.
 
 ## Approval sequence and fail-closed behaviour
