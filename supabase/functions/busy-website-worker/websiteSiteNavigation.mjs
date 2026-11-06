@@ -90,6 +90,7 @@ nav .site-nav-desktop .site-nav-panel{left:0;right:auto;width:340px;max-width:10
 @media(max-width:700px){
  body nav .site-nav-desktop.nav-links.nav-long-desktop{display:none}
  .site-nav-mobile{grid-column:1/-1;width:100%;min-width:0}
+ nav .site-nav-mobile>summary{padding-right:10px}
  nav .site-nav-mobile .site-nav-items{display:grid;grid-template-columns:minmax(0,1fr);gap:0;padding:8px 0 16px}
  nav .site-nav-mobile .site-nav-items>li{border-top:1px solid var(--line)}
  nav .site-nav-mobile .site-nav-items>li:first-child{border-top:0}
