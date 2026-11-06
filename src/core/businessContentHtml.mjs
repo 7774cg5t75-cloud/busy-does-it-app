@@ -43,12 +43,18 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule,
  }
  refresh();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
 }
-function businessContentSectionHtml(section,{endpoint='',websiteId='',deploymentId='',appSource=/** @type {{slug:string,expectedAppId:string,expectedVersionId:string,allowEnquiry:boolean}|null} */ (null),sectionClasses='',artDirection=false,narrative=false,recordPhoto=/** @type {(record:any)=>string} */(record=>'')}={}){
+function businessContentSectionHtml(section,{businessId=/** @type {string|null|undefined} */ (undefined),endpoint='',websiteId='',deploymentId='',appSource=/** @type {{slug:string,expectedAppId:string,expectedVersionId:string,allowEnquiry:boolean}|null} */ (null),sectionClasses='',artDirection=false,narrative=false,recordPhoto=/** @type {(record:any)=>string} */(record=>'')}={}){
  if(!['products','events'].includes(section?.type)||section.contentSource!=='business_records_v1')return '';
  const id='business-content-'+section.id,kind=section.type==='products'?'product':'event';
- const safeEndpoint=typeof endpoint==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-mini-app-guest$/.test(endpoint);
+ // Website adapters explicitly supply their current owner/business scope.
+ // The original reader validates the snapshot; a shape-valid foreign feed
+ // cannot become Website copy or initiate a connected listing mount.
+ // A legacy section without a snapshot may still use the original deployment-
+ // bound public reader; it does not acquire any private preview rows.
+ const currentScope=businessId===undefined||typeof businessId==='string'&&businessId.trim()===businessId&&!!businessId&&[section.businessId,section.business_id].every(id=>id===undefined||id===businessId)&&(section.previewFeed===undefined||validPublicBusinessContent(section.previewFeed)&&section.previewFeed.businessId===businessId);
+ const safeEndpoint=currentScope&&typeof endpoint==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-mini-app-guest$/.test(endpoint);
  const payload=appSource||{expectedDeploymentId:deploymentId};
- const preview=!safeEndpoint&&validPublicBusinessContent(section.previewFeed)?section.previewFeed:null;
+ const preview=currentScope&&!safeEndpoint&&validPublicBusinessContent(section.previewFeed)?section.previewFeed:null;
  if(artDirection&&preview&&kind==='product'){
   const rows=preview.records.filter(r=>r.kind===kind&&r.data.status==='active'),categories=[...new Set(rows.map(r=>r.data.category||''))];
   const menu=categories.map(category=>`<div class="menu-category-group">${category?`<p class="menu-label">${escape(category)}</p>`:''}<div class="menu-items">${rows.filter(r=>(r.data.category||'')===category).map(r=>`<article class="menu-item${recordPhoto(r)?' menu-item-photographic':''}" data-record-id="${escape(r.id)}" data-record-revision="${r.revision}">${recordPhoto(r)}<h3>${escape(r.data.name)}</h3><p class="menu-price">${escape(contentPrice(r.data.amountMinor,r.data.currency))}</p><p class="menu-description">${escape(r.data.description)}</p></article>`).join('')}</div></div>`).join('');

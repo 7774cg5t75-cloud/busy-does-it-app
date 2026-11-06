@@ -1,0 +1,367 @@
+{
+  "status": "success_before_next_product_refinement",
+  "runId": 42241543706,
+  "jobId": 127972808102,
+  "summary": {
+    "source": {
+      "commit": "ea6873a8523ab1ba949888bfb3ddce1140c70acc",
+      "tree": "9933702db1f6cb14eb5472115a804869b1349026",
+      "workingTreeChanged": false
+    },
+    "browser": "145.0.7632.6",
+    "reviewPack": {
+      "index": "iphone-review-pack/index.html",
+      "zip": "iphone-review-pack.zip",
+      "zipBytes": 5876134,
+      "zipSha256": "2eba70f54e2f4b2420e9bbf3624e83f11d3f4756f9c3e2c606c8e72f46d77291",
+      "files": 83,
+      "imageCount": 64,
+      "comparisonCount": 16,
+      "source": {
+        "commit": "ea6873a8523ab1ba949888bfb3ddce1140c70acc",
+        "tree": "9933702db1f6cb14eb5472115a804869b1349026",
+        "workingTreeDirty": false,
+        "before": "1f7feadb3bccbf87084da1813bea8655641ee616"
+      },
+      "browser": "145.0.7632.6",
+      "professionalAcceptance": false
+    },
+    "counterexampleCoverage": {
+      "bodyColumnCounterexample": true,
+      "bodyColumnControl": {
+        "site": "moor-meadow-rich",
+        "page": "page-seasonal-planting",
+        "type": "service-body-column-counterexample",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "negativeDetected": true,
+        "negativeWidths": [
+          279.140625,
+          279.140625
+        ],
+        "restoredWidths": [
+          516.109375,
+          516.109375
+        ]
+      },
+      "clippingControls": {
+        "runs": 1,
+        "visibleOverflowPass": 1,
+        "concealedCasesDetected": 5
+      },
+      "nativeMenuControls": {
+        "runs": 1,
+        "states": [
+          {
+            "closed": 0,
+            "keyboardOpen": 1,
+            "closedAgain": 0
+          }
+        ]
+      }
+    },
+    "serviceBodyEvidence": [
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-seasonal-planting",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-landscape-planning",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-borders-and-beds",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-a-garden-consultation",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "ember-rich",
+        "page": "page-a-buffet-to-share",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "ember-rich",
+        "page": "page-your-catering-plan",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-brand-direction",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-website-content",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-creative-review",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      }
+    ],
+    "pages": 35,
+    "fullPageScreenshots": 310,
+    "actualNavigationChecks": 222,
+    "afterFailures": [],
+    "baselineFindings": 0,
+    "viewports": [
+      "mobile",
+      "desktop",
+      "tablet",
+      "narrow",
+      "retina"
+    ],
+    "maximumImageBodyBytes": 1251334,
+    "captureWallMs": 181649,
+    "nodeCpuMicroseconds": {
+      "user": 17756905,
+      "system": 3171021
+    },
+    "nodeMaxRssKiB": 454032,
+    "pixelReceiptBytes": 1704990,
+    "pixelReceiptCount": 35,
+    "professionalAcceptance": false,
+    "providerCalls": 0
+  },
+  "artifacts": {
+    "full": {
+      "id": 13516238369,
+      "bytes": 98230193,
+      "sha256": "7a21300a5946b85c0d866e46773b6e2958dfc1d58e9b0b0abeb494caa31ee3b4"
+    },
+    "compact": {
+      "id": 13516988270,
+      "bytes": 5073231,
+      "sha256": "41f67f72462b8a95467423f0c175801b503e44398af8d808c6923dcfc40cee54"
+    }
+  },
+  "attribution": "Genuine successful ea6873a rendering. Later Menu/Contact page-purpose and foreign-feed protection changes are not attributed to this result and require their own frozen-source capture.",
+  "goldStandardsApproved": 0,
+  "providerCalls": 0
+}

@@ -770,7 +770,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const rawSectionHtml = orderedSections.map(section=>{
     const sectionClasses=sectionAppearanceClasses(section);
     const sectionAttrs=(sectionClasses?` class="${sectionClasses}"`:"")+editAttrs(section,"section");
-    if(['products','events'].includes(section.type))return businessContentSectionHtml(section,{recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml),'menu'),sectionClasses,narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))});
+    if(['products','events'].includes(section.type))return businessContentSectionHtml(section,{businessId:typeof draft.businessId==='string'&&(draft.business_id===undefined||draft.business_id===draft.businessId)?draft.businessId:null,recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml),'menu'),sectionClasses,narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))});
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url

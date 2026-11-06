@@ -7,6 +7,9 @@ import {websitePurposefulInnerPageHtml,websitePagePurposeCss} from '../supabase/
 import {websitePageHeadingHierarchy} from '../supabase/functions/busy-website-worker/websitePageGuide.mjs';
 import {mission16Fixture} from './lib/mission16-site-fixtures.mjs';
 import {originalWebsiteSectionRuntime} from './lib/original-website-section-runtime.mjs';
+import {businessContentSectionHtml as workerBusinessContentSectionHtml} from '../supabase/functions/_shared/businessContentHtml.mjs';
+import {craftedPage} from '../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';
+import {sectionAppearanceClasses} from '../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
 
 let assertions=0,cases=0;
 const check=new Proxy(assert,{get(target,key){const value=target[key];return typeof value==='function'?function(...args){assertions++;return value.apply(target,args);}:value;}});
@@ -21,7 +24,7 @@ function context(draft,pageId,{editable=false,signed=false}={}){
  const prefix='../'.repeat(page.outputPath.split('/').length-1);
  const pageHref=id=>{const p=draft.pages.find(p=>p.id===id&&p.enabled!==false);return p?(signed?'https://preview.example.invalid/original-deployment/'+p.outputPath+'?token=synthetic':prefix+p.outputPath):'';};
  const editAttrs=(section,field)=>editable?' data-busy-edit-section="'+section.id+'" data-busy-edit-field="'+field+'"':'';
- const raw=sections.map((section,index)=>sectionRuntime(draft,section,{},index===0,pageHref('contact'))).join('');
+ const raw=sections.map((section,index)=>['products','events'].includes(section.type)?workerBusinessContentSectionHtml(section,{businessId:typeof draft.businessId==='string'&&(draft.business_id===undefined||draft.business_id===draft.businessId)?draft.businessId:null,recordPhoto:()=>'',narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section)}):sectionRuntime(draft,section,{},index===0,pageHref('contact'))).join('');
  return {raw,ctx:{draft,page,sections,escapeHtml:escape,editAttrs,homeHref:pageHref('home'),pageHref}};
 }
 
@@ -82,6 +85,30 @@ test('approved photograph identities and crop/fit settings survive; withdrawn im
  const photoOptions={standalone:true,assetFiles:{[section.asset.storagePath]:'assets/licensed-garden.jpg'}};const html=main(renderWebsiteHtml(draft,page.id,photoOptions));check.match(html,/purpose-photo-layout/);check.match(html,/owner-desktop-photo-right/);check.match(html,/owner-mobile-photo-crop-bottom/);check.match(html,/owner-image-fit-contain/);check.match(html,/owner-image-desktop-crop-top/);check.equal((html.match(/<img\b/g)||[]).length,1);check.ok(html.includes('alt="'+escape(section.asset.alt)+'"'));
  const before=JSON.stringify(section.asset);renderWebsiteHtml(draft,page.id,photoOptions);check.equal(JSON.stringify(section.asset),before);
  const revoked=structuredClone(draft);revoked.sections.find(s=>s.id===section.id).asset.status='withdrawn';check.ok(!main(renderWebsiteHtml(revoked,page.id,{standalone:true})).includes('<img'));
+});
+
+test('source-bound Menu opening keeps exact products, prices, disclosure and approved enquiry',()=>{
+ const draft=prepared(1),products=draft.sections.find(s=>s.id==='products'),before=JSON.stringify(draft),html=main(renderWebsiteHtml(draft,'products',{standalone:true}));
+ check.match(html,/<h1>Menu<\/h1>/);check.match(html,/<li aria-current="page">Menu<\/li>/);check.match(html,/purpose-menu-opening purpose-default-serif/);check.ok(!html.includes('>Products</h1>'));check.ok(!html.includes('Continue exploring'));check.equal((html.match(/<h1\b/g)||[]).length,1);
+ check.match(html,/>Food for the gathering<\/h2>/);for(const record of products.previewFeed.records){check.equal(count(html,escape(record.data.name)),1);check.equal(count(html,escape(record.data.description)),1);}
+ check.match(html,/£9\.50/);check.match(html,/£18\.00/);check.match(html,/Private menu preview\. Ordering is unavailable\./);check.match(html,/<details/);check.match(html,/About this menu preview/);check.match(html,/href="\.\.\/contact\/index.html">Ask about catering/);check.equal(JSON.stringify(draft),before);
+ const pair=context(draft,'products');check.equal(websitePageHeadingHierarchy(pair.raw,pair.ctx),html,'Actual original worker listing renderer and private preview keep identical menu details');const legacy=structuredClone(draft);delete legacy.sitePresentation;const old=main(renderWebsiteHtml(legacy,'products',{standalone:true}));check.match(old,/<h1>Products<\/h1>/);check.match(old,/Continue exploring/);
+});
+
+test('reviewed page labels and explicit menu typography survive; invalid feeds cannot establish Menu authority',()=>{
+ const draft=prepared(1),page=draft.pages.find(p=>p.id==='products'),source=draft.sections.find(s=>s.id==='products');page.title='Our gathering selection';source.appearance={titleFont:'sans'};
+ let html=main(renderWebsiteHtml(draft,'products',{standalone:true}));check.match(html,/<h1>Our gathering selection<\/h1>/);check.ok(!html.includes('purpose-default-serif'));check.match(html,/>Food for the gathering<\/h2>/);
+ page.title='Products';page.ownerEditedFields=['title'];html=main(renderWebsiteHtml(draft,'products',{standalone:true}));check.match(html,/<h1>Products<\/h1>/,'Explicit owner page label is not replaced by navigation wording');
+ for(const mutate of [d=>{d.sections.find(s=>s.id==='products').previewFeed.checkedAt='invalid';},d=>{d.sections.find(s=>s.id==='products').previewFeed.businessId='foreign';},d=>{d.sections.find(s=>s.id==='products').previewFeed.records=[];}]){const d=prepared(1);mutate(d);const c=context(d,'products');check.equal(websitePurposefulInnerPageHtml(c.raw,c.ctx),null);check.ok(!main(renderWebsiteHtml(d,'products',{standalone:true})).includes('£9.50'));}
+});
+
+for(let index=0;index<3;index++)test('intentional Contact conclusion retains exact owner channels '+index,()=>{
+ const draft=prepared(index),source=draft.sections.find(s=>s.id==='contact');source.phone='+44 7700 900123';const before=JSON.stringify(draft),html=main(renderWebsiteHtml(draft,'contact',{standalone:true}));
+ check.match(html,/purpose-contact-meta/);check.equal((html.match(/<h1\b/g)||[]).length,1);check.match(html,/<h1>Contact<\/h1>/);check.ok(!html.includes('inner-page-opening'));check.ok(!html.includes('Continue exploring'));check.ok(!html.includes('class="purpose-next"'));check.match(html,/>Get in touch<\/h2>/);
+ check.ok(html.includes('mailto:'+source.email));check.match(html,/href="tel:\+447700900123"/);check.equal(count(html,escape(source.email)),2,'Email destination and visible address remain exact');check.equal(JSON.stringify(draft),before);
+ const pair=context(draft,'contact');check.equal(websitePageHeadingHierarchy(pair.raw,pair.ctx),html,'Original worker and private preview keep identical actual contact channels');
+ const editable=main(renderWebsiteHtml(draft,'contact',{editablePreview:true}));check.match(editable,/id="contact"[^>]*data-busy-edit-section="contact"/);check.match(editable,/>Get in touch<\/h2>/);for(const field of ['title','body','phone','email'])check.ok(editable.includes('data-busy-edit-field="'+field+'"'),'Original contact field remains selectable: '+field);const legacy=structuredClone(draft);delete legacy.sitePresentation;const old=main(renderWebsiteHtml(legacy,'contact',{standalone:true}));check.match(old,/inner-page-opening/);check.match(old,/Continue exploring/);
+ source.title='Speak with our studio';source.ownerEditedFields=['title'];source.appearance={titleFont:'sans'};const revised=main(renderWebsiteHtml(draft,'contact',{standalone:true}));check.match(revised,/>Speak with our studio<\/h2>/);check.match(revised,/owner-text-titleFont-sans/);check.equal((revised.match(/<h1\b/g)||[]).length,1);
 });
 
 test('legacy and manually authored pages retain original renderer; finite CSS has mobile and focus support',()=>{

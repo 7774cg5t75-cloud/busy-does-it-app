@@ -4,6 +4,9 @@ import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness
 import {prepareWebsiteRequest,websiteRequestContent} from '../src/core/websiteRequestPlan.mjs';
 import {websitePhotographyInstructions} from '../src/core/websiteStoryboard.mjs';
 import {usedContentPhotos,websiteRecordPhoto,websiteSectionPhoto} from '../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
+import {businessContentSectionHtml as clientContentHtml} from '../src/core/businessContentHtml.mjs';
+import {businessContentSectionHtml as workerContentHtml} from '../supabase/functions/_shared/businessContentHtml.mjs';
+import {publicBusinessContent} from '../src/core/businessContentRecords.mjs';
 process.env.BUSY_ART_IMPORTED='1';const {artFixture,prepareArtFixture}=await import('./check-website-art-direction.mjs');delete process.env.BUSY_ART_IMPORTED;
 process.env.BUSY_STORY_IMPORTED='1';const {storyDeps}=await import('./check-website-authentic-story.mjs');delete process.env.BUSY_STORY_IMPORTED;
 const api=websiteBuilderTestHarnessV3222(['renderWebsiteHtml','rebuildPrivateWebsiteDraft','applyWebsiteLayoutChange','applyStructuredWebsiteEdit']);
@@ -24,6 +27,15 @@ export function prepareMenuStory(c,i){
 }
 export async function exerciseMenuStory(c,i,{getContext=()=>c,apply}={}){const p=prepareMenuStory(c,i);assert.equal(p.ok,true,p.reason);if(apply){await apply(p.instruction);assert.equal(api.renderWebsiteHtml(getContext().website),p.plan.candidateHtml);assert.equal(websiteRequestContent(getContext().website),p.plan.boundaries.at(-1));}return p;}
 if(!process.env.BUSY_MENU_IMPORTED){
+ const scope='menu-scope-business',product={id:'product_scope_item',business_id:scope,kind:'product',revision:1,published_revision:1,published:{name:'Exact approved scope dish',description:'Exact approved menu description.',category:'Menu',status:'active',amountMinor:950,currency:'GBP',availability:'not_tracked',image:null}},event={id:'event_scope_item',business_id:scope,kind:'event',revision:1,published_revision:1,published:{name:'Exact approved scope event',description:'Exact approved event description.',category:'Events',status:'scheduled',startsAt:'2027-01-09T12:00:00.000Z',endsAt:'2027-01-09T18:00:00.000Z',timeZone:'Europe/London',location:'Fictional test location',onlineUrl:'',image:null}},scopeFeed=publicBusinessContent([product,event],scope);
+ assert.equal(scopeFeed.ok,true);
+ for(const render of [clientContentHtml,workerContentHtml])for(const [type,record]of [['products',product],['events',event]]){
+  const section={id:type,type,title:'Owner approved heading',contentSource:'business_records_v1',previewFeed:scopeFeed},before=JSON.stringify(section),valid=render(section,{businessId:scope});assert.ok(valid.includes(record.published.name));assert.ok(render(section).includes(record.published.name),'Existing unscoped pure-component usage keeps its original contract');
+  for(const [candidate,businessId]of [[section,null],[section,'foreign'],[{...section,businessId:'foreign'},scope],[{...section,business_id:'foreign'},scope],[{...section,previewFeed:{...scopeFeed,businessId:'foreign'}},scope],[{...section,previewFeed:null},scope],[{...section,previewFeed:{...scopeFeed,checkedAt:'invalid'}},scope]]){const html=render(candidate,{businessId,endpoint:'https://fixture.supabase.co/functions/v1/busy-mini-app-guest'});assert.ok(!html.includes(record.published.name));assert.ok(!html.includes('£9.50'));assert.ok(!html.includes('<script>'),'Invalid scope cannot initiate a connected listing mount');assert.match(html,/Current published records require the connected live website/);}
+  const absent={...section};delete absent.previewFeed;const connected=render(absent,{businessId:scope,endpoint:'https://fixture.supabase.co/functions/v1/busy-mini-app-guest',deploymentId:'synthetic-original-deployment'});assert.ok(connected.includes('<script>'),'Original exact-deployment mount remains available without an optional snapshot');assert.ok(!connected.includes(record.published.name));const privateMissing=render(absent,{businessId:scope});assert.ok(!privateMissing.includes('<script>'));assert.ok(!privateMissing.includes(record.published.name));
+  assert.equal(JSON.stringify(section),before);
+ }
+ console.log('PASS original client/worker product and event formatter scope: valid legacy source preserved; missing, foreign, conflicting or malformed Website context exposes no records/prices or connected mount.');
  assert.deepEqual(usedContentPhotos({sections:[{type:'products',previewFeed:{records:{}}}]}),[]);assert.equal(websitePhotographyInstructions({}, {storagePath:123,target:{kind:'gallery'}}).ok,false);
  const out='.test-artifacts/website-menu-story';mkdirSync(out,{recursive:true});const scenarios=[];
  for(let i=0;i<3;i++)for(const rich of [false,true]){

@@ -1,6 +1,6 @@
 // Reviewed presentation over the original page/section model. This helper
 // neither invents facts nor stores a second copy of the owner's business.
-import {wholeSiteDerivedSourcesCurrent} from './websiteWholeSite.mjs';
+import {wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent} from './websiteWholeSite.mjs';
 const text=value=>typeof value==='string'?value.trim():'';
 const list=value=>Array.isArray(value)?value:[];
 const regex=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -30,9 +30,9 @@ function removeHeading(block,section,escape){
  const heading=new RegExp('<(h[12])\\b[^>]*>'+regex(escape(text(section.title)))+'<\\/\\1>');
  return block.replace(heading,'');
 }
-function breadcrumb(draft,page,homeHref,pageHref,escape){
+function breadcrumb(draft,page,homeHref,pageHref,escape,label=page.title){
  const home=originalHref(draft,page,list(draft.pages).find(p=>p.id==='home'),pageHref,homeHref),business=text(draft.brandLabel||draft.businessName)||'Home';
- return '<div class="inner-breadcrumbs" role="navigation" aria-label="Breadcrumb"><ol><li>'+(home?'<a href="'+escape(home)+'">'+escape(business)+'</a>':'<span>'+escape(business)+'</span>')+'</li><li aria-current="page">'+escape(page.title)+'</li></ol></div>';
+ return '<div class="inner-breadcrumbs" role="navigation" aria-label="Breadcrumb"><ol><li>'+(home?'<a href="'+escape(home)+'">'+escape(business)+'</a>':'<span>'+escape(business)+'</span>')+'</li><li aria-current="page">'+escape(label)+'</li></ol></div>';
 }
 function fontClass(draft,section){return !draft.theme?.typography&&!explicitType(section)&&['story-spread','editorial-collage','typography-first','quiet-portrait'].includes(draft.theme?.heroComposition)?' purpose-default-serif':'';}
 function nextStep(draft,page,pageHref,escape){
@@ -40,7 +40,7 @@ function nextStep(draft,page,pageHref,escape){
  const menu=draft.theme?.pageDirection==='menu-house'?pages.find(p=>p.id==='products'):null;
  const hero=list(draft.sections).find(s=>s.id==='hero'&&s.enabled!==false);
  const route=target=>target?originalHref(draft,page,target,pageHref):'';
- const primary=page.sourceServiceId?contact:menu||services||contact;
+ const primary=page.sourceServiceId||page.id==='products'?contact:menu||services||contact;
  const primaryHref=route(primary);if(!primaryHref)return '';
  const approvedAction=hero?.ctaHref==='#contact'&&text(hero.cta)?text(hero.cta):text(contact?.title);
  const navLabel=target=>text(list(draft.navigation).find(n=>n.id===target?.id)?.label)||text(target?.title);
@@ -70,6 +70,24 @@ export function websitePurposefulInnerPageHtml(sectionHtml,context){
  const first=sections.find(s=>s?.enabled!==false&&sectionBlock(sectionHtml,s.id,escape));if(!first)return null;
  const firstBlock=sectionBlock(sectionHtml,first.id,escape),editable=!!editAttrs(first,'section'),crumb=breadcrumb(draft,page,homeHref,pageHref,escape);
  let body=sectionHtml;
+ if(page.id==='products'&&first.id==='products'&&first.type==='products'){
+  // The original current listing remains the complete product authority.
+  // A reviewed Menu navigation label is presentation, never a product claim.
+  if(!wholeSiteContentCurrent(draft)||first.previewFeed?.businessId!==businessId)return null;
+  const label=page.title==='Products'&&!list(page.ownerEditedFields).includes('title')&&text(first.navigationLabel)?text(first.navigationLabel):page.title;
+  const menuCrumb=breadcrumb(draft,page,homeHref,pageHref,escape,label);
+  const opening='<section class="purpose-service-opening purpose-menu-opening'+fontClass(draft,first)+'"><div class="wrap">'+menuCrumb+'<h1>'+escape(label)+'</h1></div></section>';
+  body=body.replace(firstBlock,classes(firstBlock,'purpose-menu-body')).replace(/<(\/?)(h1)(\b[^>]*)>/g,'<$1h2$3>');
+  return opening+body+nextStep(draft,page,pageHref,escape);
+ }
+ if(page.id==='contact'&&first.id==='contact'&&first.type==='contact'){
+  // Keep actual source channels and their original editable composition. The
+  // contact page concludes at those channels, not another contact invitation.
+  const opening='<div class="wrap purpose-contact-meta">'+crumb+'<h1>'+escape(page.title)+'</h1></div>';
+  const contact=classes(firstBlock,'purpose-contact').replace(/^(<section\b[^>]*>)/,'$1'+opening);
+  body=body.replace(firstBlock,contact).replace(/<h1\b/g,'<h2').replace(/<\/h1>/g,'</h2>');
+  return body.replace('<h2>'+escape(page.title)+'</h2>','<h1>'+escape(page.title)+'</h1>');
+ }
  if(page.id==='about'&&first.id==='about'&&text(first.body)){
   // The approved story itself opens About. Its original rendered paragraphs,
   // photos, captions, crop/fit settings and editable body remain untouched.
@@ -122,6 +140,9 @@ export const websitePagePurposeCss=`
 .purpose-service-opening h1{font-size:clamp(2.5rem,5.8vw,5.5rem);line-height:1.05;letter-spacing:-.045em;max-width:20ch;margin:0 0 22px;text-wrap:balance}
 .purpose-default-serif h1{font-family:Georgia,'Times New Roman',serif;font-weight:500}
 .purpose-service-opening .inner-page-lead{font-size:clamp(1.1rem,1.8vw,1.45rem);line-height:1.65;max-width:58ch;margin:0}
+body.website-inner-page main>section.purpose-menu-body{padding-block:clamp(32px,4vw,60px) clamp(40px,5vw,72px)}
+body.website-inner-page main>section.purpose-contact{padding-block:28px clamp(40px,5vw,72px)}
+.purpose-contact-meta .inner-breadcrumbs ol{margin-bottom:18px}.purpose-contact-meta>h1{font-size:1rem;line-height:1.5;letter-spacing:.08em;text-transform:uppercase;font-family:inherit;font-weight:650;margin:0 0 clamp(24px,4vw,48px)}
 .purpose-service-layout{width:min(calc(100% - 96px),1180px);margin-inline:auto;padding-block:clamp(34px,5vw,68px)}
 .purpose-service-layout.purpose-has-context{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.42fr);gap:clamp(32px,5vw,70px);align-items:start}
 .purpose-service-layout.purpose-photo-layout{display:block}.purpose-photo-layout .purpose-business-context{display:grid;grid-template-columns:minmax(150px,.35fr) minmax(0,1fr);gap:14px 40px;border-left:0;border-top:1px solid var(--line);padding:28px 0 0}.purpose-photo-layout .purpose-business-context blockquote{max-width:55ch;margin:0}.purpose-photo-layout .purpose-business-context a{grid-column:2;justify-self:start}.purpose-service-number{display:flex;align-items:baseline;gap:22px;margin:0 0 18px}.purpose-service-number span:first-child{font-family:Georgia,serif;font-size:1.9rem;line-height:1}.purpose-service-number span:last-child{font-size:.875rem;text-transform:uppercase;letter-spacing:.1em}
