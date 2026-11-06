@@ -128,6 +128,12 @@ export const websitePagePurposeCss=`
 .purpose-service-copy,.purpose-service-copy>*{min-width:0}.purpose-service-copy section{padding-block:0 36px;background:transparent!important}.purpose-service-copy .wrap{width:auto;max-width:none}
 .purpose-service-copy .photo-feature-grid{gap:clamp(24px,4vw,54px)}.purpose-service-copy .purpose-compact-photo img.photo-feature-image{height:clamp(260px,30vw,420px);max-width:100%}
 .purpose-text-intro .crafted-story,.purpose-text-intro .authored-story{grid-template-columns:minmax(0,1fr);gap:0}.purpose-text-intro.purpose-auto-type .crafted-story-lead,.purpose-text-intro.purpose-auto-type .authored-story-lead{font-size:clamp(1.2rem,2vw,1.6rem);line-height:1.65;max-width:46ch}.purpose-text-intro .story-copy>p+p{font-size:1.08rem;line-height:1.8;max-width:58ch;margin-top:24px}
+/* The original editorial reading treatment reserves a heading column. Once
+   its unedited duplicate heading is omitted, the source body must occupy the
+   complete readable track. Beat that original rule without changing fonts or
+   owner-formatted sections. The browser checks BODY width, not only the H1. */
+main .purpose-service-copy section.owner-reading-editorial.purpose-text-intro.purpose-auto-type>.wrap.crafted-story{grid-template-columns:minmax(0,1fr);width:100%;max-width:none;gap:0}
+.purpose-service-copy section.owner-reading-editorial.purpose-text-intro.purpose-auto-type>.wrap.crafted-story>.story-copy{grid-column:1/-1;grid-row:auto;width:100%;min-width:0;max-width:58ch;margin:0}
 .purpose-service-copy .crafted-section-heading:empty,.purpose-service-copy .authored-story>header:empty{display:none}
 .purpose-service-detail .crafted-story,.purpose-service-detail .story-layout,.purpose-service-detail .authored-story{grid-template-columns:minmax(0,1fr);gap:0}
 .purpose-service-detail.purpose-auto-type .crafted-story-lead,.purpose-service-detail.purpose-auto-type .authored-story-lead{font-size:clamp(1.08rem,1.45vw,1.25rem);line-height:1.75;max-width:58ch}
