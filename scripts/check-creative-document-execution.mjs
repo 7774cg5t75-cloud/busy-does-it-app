@@ -8,7 +8,7 @@ import {reviewWebsiteCreativeDocumentProposal,reviewSettledWebsiteCreativeDocume
 import {createLabCreativeDocumentExecutionHandler,disabledCreativeDocumentExecution} from '../supabase/functions/busy-builder-proposals/creativeDocumentExecutionBootstrap.mjs';
 import {createLiveCreativeDocumentAdapter,createDenoLiveCreativeDocumentAdapter,CREATIVE_DOCUMENT_LAB_URL,CREATIVE_DOCUMENT_LAB_KEY} from '../supabase/functions/busy-builder-proposals/creativeDocumentExecution.mjs';
 import {WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION} from '../supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs';
-import {createOriginalCreativeLedger} from '../supabase/functions/busy-builder-proposals/creativeLedger.mjs';
+import {createOriginalCreativeLedger,createOriginalCreativeDocumentLedger} from '../supabase/functions/busy-builder-proposals/creativeLedger.mjs';
 
 // Entirely synthetic ports and credentials. No environment read, real HTTP,
 // token endpoint, account, provider usage, central hosted reservation or save.
@@ -157,6 +157,24 @@ await test('legacy original ledger cannot admit the v2 4,000-output tariff',asyn
  const legacy=createOriginalCreativeLedger({rpc:f.deps.rpc,actor:e.ownerId,business:e.businessId,binding:e.binding,operationId:e.operationId,requestNonce:e.requestNonce,integrity,clock:()=>now});
  const request={operationId:e.operationId,scope:{ownerId:e.ownerId,businessId:e.businessId,projectId:e.binding.projectId,sourceRevision:e.binding.sourceRevision,profileRevision:e.binding.profileRevision,surface:'website',pageId:'home'},digest:e.inputDigest,requestDigest:e.wireDigest,provider:e.provider,model:e.model,inputTokens:3000,maxOutputTokens:1000,estimatedGBP:.005,tariffRevision:'1'};
  await assert.rejects(legacy.reserve(request),/Original admission/);assert.equal(f.calls,0);assert.equal(f.record.pricing.max_output,4000);
+});
+await test('original legacy bridge accepts its omitted output field only with independently read 1,000-output pricing',async()=>{
+ const f=await fixture(),e=f.execution,rpc=f.deps.rpc;
+ const legacy=createOriginalCreativeLedger({rpc:async(name,args)=>{const result=await rpc(name,args);if(name==='busy_ai_reserve_v1'){f.record.pricing.max_output=1000;f.record.maximumMicroGBP=6000;}return result;},actor:e.ownerId,business:e.businessId,binding:e.binding,operationId:e.operationId,requestNonce:e.requestNonce,integrity,clock:()=>now});
+ const request={operationId:e.operationId,scope:{ownerId:e.ownerId,businessId:e.businessId,projectId:e.binding.projectId,sourceRevision:e.binding.sourceRevision,profileRevision:e.binding.profileRevision,surface:'website',pageId:'home'},digest:e.inputDigest,requestDigest:e.wireDigest,provider:e.provider,model:e.model,inputTokens:3000,estimatedGBP:.005,tariffRevision:'1'};
+ assert.equal(Object.hasOwn(request,'maxOutputTokens'),false);const admitted=await legacy.reserve(request),readback=await legacy.readReservation(admitted);assert.equal(readback.status,'reserved-undispatched');assert.equal(readback.authoritativeReadback,true);assert.equal(f.record.pricing.max_output,1000);assert.equal(f.calls,0);
+});
+await test('legacy bridge rejects an explicit incompatible output allowance before any reservation',async()=>{
+ for(const maxOutputTokens of [1001,4000,null,undefined]){
+  const f=await fixture(),e=f.execution,legacy=createOriginalCreativeLedger({rpc:f.deps.rpc,actor:e.ownerId,business:e.businessId,binding:e.binding,operationId:e.operationId,requestNonce:e.requestNonce,integrity,clock:()=>now});
+  const request={operationId:e.operationId,scope:{ownerId:e.ownerId,businessId:e.businessId,projectId:e.binding.projectId,sourceRevision:e.binding.sourceRevision,profileRevision:e.binding.profileRevision,surface:'website',pageId:'home'},digest:e.inputDigest,requestDigest:e.wireDigest,provider:e.provider,model:e.model,inputTokens:3000,estimatedGBP:.005,tariffRevision:'1',maxOutputTokens};
+  await assert.rejects(legacy.reserve(request),/Foreign original source or protocol/);assert.equal(f.record,null);assert.equal(f.calls,0);
+ }
+});
+await test('v2 bridge cannot default an omitted output allowance to the legacy contract',async()=>{
+ const f=await fixture(),e=f.execution,ledger=createOriginalCreativeDocumentLedger({rpc:f.deps.rpc,actor:e.ownerId,business:e.businessId,binding:e.binding,operationId:e.operationId,requestNonce:e.requestNonce,integrity,clock:()=>now});
+ const request={operationId:e.operationId,scope:{ownerId:e.ownerId,businessId:e.businessId,projectId:e.binding.projectId,sourceRevision:e.binding.sourceRevision,profileRevision:e.binding.profileRevision,surface:'website',pageId:'home'},digest:e.inputDigest,requestDigest:e.wireDigest,provider:e.provider,model:e.model,inputTokens:3000,estimatedGBP:.012,tariffRevision:'1',tariffInputGBPPerMillion:1,tariffOutputGBPPerMillion:2};
+ await assert.rejects(ledger.reserve(request),/Foreign original source or protocol/);assert.equal(f.record,null);assert.equal(f.calls,0);
 });
 await test('network uncertainty retains liability and rejects all automatic replay',async()=>{
  const f=await fixture();f.deps.transport=async()=>{throw Error('Synthetic transport lost; no actual network');};const response=await f.handler()(f.request());assert.equal((await response.json()).code,'unknown-outcome');assert.equal(f.record.state,'unknown');assert.equal(f.record.attempts,1);assert.notEqual((await f.handler()(f.request())).status,200);assert.equal(f.record.attempts,1);

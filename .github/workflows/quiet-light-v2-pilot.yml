@@ -15,6 +15,8 @@ on:
       - 'src/core/websiteSourceExport.mjs'
       - 'src/domain/websiteBuilder.js'
       - 'supabase/functions/busy-website-worker/**'
+      - 'supabase/functions/busy-builder-proposals/creative*.mjs'
+      - 'scripts/check-creative-document-execution.mjs'
   workflow_dispatch:
 permissions:
   contents: read
