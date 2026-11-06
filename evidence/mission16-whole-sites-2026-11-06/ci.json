@@ -1,0 +1,133 @@
+{
+  "source": {
+    "commit": "1f7feadb3bccbf87084da1813bea8655641ee616",
+    "tree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41",
+    "workingTreeChanged": false
+  },
+  "application": {
+    "sourceSha": "1f7feadb3bccbf87084da1813bea8655641ee616",
+    "sourceTree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41",
+    "finalSourceSha": "1f7feadb3bccbf87084da1813bea8655641ee616",
+    "finalSourceTree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41",
+    "sourceStable": true,
+    "workingTreeChanged": false,
+    "summary": {
+      "passed": 505,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    }
+  },
+  "runs": [
+    {
+      "id": 42221414486,
+      "name": "V3.64 private growth workspace checks",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221414486"
+    },
+    {
+      "id": 42221414339,
+      "name": "V3.66 voice and project Operator checks",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221414339"
+    },
+    {
+      "id": 42221414526,
+      "name": "V3.65 Growth Command Centre checks",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221414526"
+    },
+    {
+      "id": 42221414171,
+      "name": "V3.69 Founder Operations Security",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221414171"
+    },
+    {
+      "id": 42221414373,
+      "name": "V3.63 coordinated editable growth checks",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221414373"
+    },
+    {
+      "id": 42221414140,
+      "name": "V3.70 Platform Autopilot checks",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221414140"
+    },
+    {
+      "id": 42221404767,
+      "name": "Mission 16 original whole-site browser evidence",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221404767"
+    },
+    {
+      "id": 42221404304,
+      "name": "Premium Website original-renderer browser evidence",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221404304"
+    },
+    {
+      "id": 42221404385,
+      "name": "Private App goal composition and original authority verification",
+      "source": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221404385"
+    }
+  ],
+  "hostedDatabaseOperations": 0,
+  "providerCalls": 0,
+  "paidInference": false,
+  "additionalEvidence": {
+    "canonicalPostgres": {
+      "passed": 126,
+      "failed": 0
+    },
+    "publicFormPostgres": {
+      "passed": 21,
+      "failed": 0
+    },
+    "wholeSitePostgresStages": 11,
+    "foundationAssertions": 105,
+    "denoTargets": 30,
+    "wholeSiteCases": 22,
+    "ctaRefreshCases": 6,
+    "portableMediaStages": 8
+  },
+  "safety": {
+    "originalAiLabInstallSha256": "3ebf79cdcc5614d7be3573e0ecad68ae93ec8e5c3bf751fa2c0c6cbac5a9030b",
+    "hostedMutation": false,
+    "providerCredentialAccess": false,
+    "paidInference": false,
+    "publication": false,
+    "approvedGoldStandards": 0
+  },
+  "sourceArchitecture": {
+    "sourceFiles": 1948,
+    "physicalLines": 178558,
+    "staticRelativeEdges": 4616,
+    "distinctStaticCycles": 0,
+    "limitations": [
+      "Static relative imports only; dynamic/aliased imports and runtime flows not included.",
+      "Physical code lines include comments and blanks but exclude ignored docs, assets and dependencies.",
+      "No claims about live data, auth, provider permissions, signed builds, device UX or real customer completion."
+    ]
+  }
+}

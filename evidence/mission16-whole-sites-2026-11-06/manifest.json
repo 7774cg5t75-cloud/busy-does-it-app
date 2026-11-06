@@ -1,0 +1,173 @@
+{
+  "functionalCommit": "1f7feadb3bccbf87084da1813bea8655641ee616",
+  "functionalTree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41",
+  "files": [
+    {
+      "file": "REPORT.md",
+      "bytes": 19311,
+      "sha256": "ce8bbc8b7ca15c13df0b7a355a606a7bd037a19943db92fec2c142564941c363"
+    },
+    {
+      "file": "attempts.json",
+      "bytes": 2537,
+      "sha256": "d46c0745acfee2daa53aa2c3bee71d83dc848eebbfddfd4b8e1e8203dc239afd"
+    },
+    {
+      "file": "ci.json",
+      "bytes": 4623,
+      "sha256": "49a0a47fc7279fd48bc8e07705e27340e034728c266d87e2033e21d9e598eae2"
+    },
+    {
+      "file": "ember-rich-service-comparison.jpg",
+      "bytes": 210426,
+      "sha256": "13f058ee7a13df689aad1705468d4d1312d417e39e10aeaefc513e0b7536206d"
+    },
+    {
+      "file": "export-rehearsal.mjs",
+      "bytes": 2322,
+      "sha256": "baedef6646646f25e7850c518511fb9b506d3083c8e37e5fe29c6984a997c328"
+    },
+    {
+      "file": "moor-meadow-rich-service-comparison.jpg",
+      "bytes": 247873,
+      "sha256": "39c7a72cf5186a43030c1c280fcd8c600ab6be083079510aa043e845943f87a5"
+    },
+    {
+      "file": "pixel-provenance.json",
+      "bytes": 23241,
+      "sha256": "ca606377da4c99181ba33e6df88b49ee96a46c725b298094c5615e7afaedabd5"
+    },
+    {
+      "file": "portable-export.json",
+      "bytes": 2961,
+      "sha256": "cd49ba38ceb1944daca6768a36b2a57cbccbd24f49b1a713264482df4a2f37ef"
+    },
+    {
+      "file": "quiet-light-rich-service-comparison.jpg",
+      "bytes": 140341,
+      "sha256": "9c1f7b9e7aae67df8427381ddad7c5b5f6e38499a3556d73cb0e79ae157df862"
+    },
+    {
+      "file": "review-ember-rich-about-after-desktop.jpg",
+      "bytes": 25293,
+      "sha256": "2eee18092c8ca486c2fd60b752e7ee591811b3e85bdee4a71401e72e443c1879"
+    },
+    {
+      "file": "review-ember-rich-about-after-mobile.jpg",
+      "bytes": 37877,
+      "sha256": "2fddb44321b6a4dd16c9c67319fef233dff0b0295a21b6ecb55f19a7a8833f87"
+    },
+    {
+      "file": "review-ember-rich-home-after-desktop.jpg",
+      "bytes": 91550,
+      "sha256": "4fe062d5c953885d9aae001ad73ae35cf3e25f05eee0b929dcc77f1ec4ddbd64"
+    },
+    {
+      "file": "review-ember-rich-home-after-mobile.jpg",
+      "bytes": 95552,
+      "sha256": "1164c540512ea0e4096655dac83a3a10f4c13516e453c164945cbe236821a2db"
+    },
+    {
+      "file": "review-ember-rich-home-before-mobile.jpg",
+      "bytes": 98358,
+      "sha256": "f98e18f8f519cc05828a9e0e9666f55d91b09b61f13adf7060a385ce16b319b7"
+    },
+    {
+      "file": "review-ember-rich-page-festival-plates-after-desktop.jpg",
+      "bytes": 44154,
+      "sha256": "2451820477dcb9872b746f16d33400d2531b4992487e9474ed374f5dae31f68d"
+    },
+    {
+      "file": "review-ember-rich-page-festival-plates-after-mobile.jpg",
+      "bytes": 61637,
+      "sha256": "9a0d254146b916a731b4ec70438fdc03748ad9f442543ecf97b04475ad544617"
+    },
+    {
+      "file": "review-ember-rich-page-festival-plates-before-mobile.jpg",
+      "bytes": 56433,
+      "sha256": "aa6cf1815037da85620dd9349cd188e856396eb9db681e3787fe395ad6a29740"
+    },
+    {
+      "file": "review-moor-meadow-rich-about-after-desktop.jpg",
+      "bytes": 25500,
+      "sha256": "5a539285b5d57876a105d650842f9b6889c352dac6851259b6fa172dbbc009ab"
+    },
+    {
+      "file": "review-moor-meadow-rich-about-after-mobile.jpg",
+      "bytes": 38437,
+      "sha256": "8c323533f582f9dd3038d5443c186e7170a414f78ab5cfb3dee6dc5d603214ac"
+    },
+    {
+      "file": "review-moor-meadow-rich-home-after-desktop.jpg",
+      "bytes": 90338,
+      "sha256": "c057d5574a3d35127ba10573165b3d9c63820875ba847c5d89eb4b0357e0795a"
+    },
+    {
+      "file": "review-moor-meadow-rich-home-after-mobile.jpg",
+      "bytes": 93343,
+      "sha256": "b2633c24f0a05ac7cc06ea006c091f1722280573a537015814d188fbd37ed373"
+    },
+    {
+      "file": "review-moor-meadow-rich-home-before-mobile.jpg",
+      "bytes": 96743,
+      "sha256": "c73e98f518324d809f754e15f6a5b52c5ee6666e3632483cb888abb2cb03f0a2"
+    },
+    {
+      "file": "review-moor-meadow-rich-page-garden-maintenance-after-desktop.jpg",
+      "bytes": 52224,
+      "sha256": "9fcda74c0bd8af01160afa7dcc395e19973f98cf2315a353b32023e53073e517"
+    },
+    {
+      "file": "review-moor-meadow-rich-page-garden-maintenance-after-mobile.jpg",
+      "bytes": 71141,
+      "sha256": "924a5046d87bffa055df2a69976174e3547081b5fac825638e86aec0d05656f9"
+    },
+    {
+      "file": "review-moor-meadow-rich-page-garden-maintenance-before-mobile.jpg",
+      "bytes": 68765,
+      "sha256": "90aa3b9d416acb2fbf83c4a006534b5b18eb09f1a4dddf81bf2309d848d65a50"
+    },
+    {
+      "file": "review-quiet-light-rich-about-after-desktop.jpg",
+      "bytes": 24209,
+      "sha256": "9d0920bc8663c85117ee7c0e943cfb9fa39c737d02c363ba397d4b88a882f9a1"
+    },
+    {
+      "file": "review-quiet-light-rich-about-after-mobile.jpg",
+      "bytes": 38022,
+      "sha256": "3601194549f4cbfa0e451de9ed94e3c2fd4093b272df903d44f791951706652f"
+    },
+    {
+      "file": "review-quiet-light-rich-home-after-desktop.jpg",
+      "bytes": 56828,
+      "sha256": "e21782c53c7824fbd045b36b7c470161697228c03222c910943da385507ae160"
+    },
+    {
+      "file": "review-quiet-light-rich-home-after-mobile.jpg",
+      "bytes": 97109,
+      "sha256": "96a245587da9dc373f88a231d53d77ae0ebeaaf7204bcb77d4566dd954b460f5"
+    },
+    {
+      "file": "review-quiet-light-rich-home-before-mobile.jpg",
+      "bytes": 90962,
+      "sha256": "cfc1a6e13d2628d4ddbe0d873054d7cbc457bf23ba9af134b7965b0bfa4cecd7"
+    },
+    {
+      "file": "review-quiet-light-rich-page-brand-direction-after-desktop.jpg",
+      "bytes": 29441,
+      "sha256": "783f23d7a8b6114053e73529078efbed4e892f605718d3006721f657a1626c0c"
+    },
+    {
+      "file": "review-quiet-light-rich-page-brand-direction-after-mobile.jpg",
+      "bytes": 42370,
+      "sha256": "24d0d5bc9772ba76c5778ca75db5661f53e441bffc468ed1e5eecbac0653f6ea"
+    },
+    {
+      "file": "review-quiet-light-rich-page-brand-direction-before-mobile.jpg",
+      "bytes": 38781,
+      "sha256": "b235946e0007df49d6b1b1281765895c530472c244dde37ef51c14a4c42aefa9"
+    }
+  ],
+  "privateCustomerData": false,
+  "aiGeneratedScreenshots": false
+}

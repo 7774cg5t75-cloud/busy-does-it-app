@@ -1,0 +1,69 @@
+{
+  "finalSource": {
+    "commit": "1f7feadb3bccbf87084da1813bea8655641ee616",
+    "tree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41"
+  },
+  "supersededWorkflowRuns": [
+    {
+      "id": 42217560614,
+      "source": "feadbcc4cb82ba2262626b61c5488d3c4aa09591",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42217560614"
+    },
+    {
+      "id": 42217560536,
+      "source": "feadbcc4cb82ba2262626b61c5488d3c4aa09591",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42217560536"
+    },
+    {
+      "id": 42218364235,
+      "source": "11f6081e8b882a3906c2614929c21891c51f1c9d",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42218364235"
+    },
+    {
+      "id": 42218363962,
+      "source": "11f6081e8b882a3906c2614929c21891c51f1c9d",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42218363962"
+    },
+    {
+      "id": 42220694682,
+      "source": "0724dafe0fd73a2f58f4131c76ed21d566eadc6e",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42220694682"
+    },
+    {
+      "id": 42220695069,
+      "source": "0724dafe0fd73a2f58f4131c76ed21d566eadc6e",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42220695069"
+    }
+  ],
+  "localWorkingSelection": {
+    "passed": 501,
+    "failed": 2,
+    "blocked": 1,
+    "unexecuted": 0,
+    "frozen": false,
+    "failedChecks": [
+      "check-mission15-phase7-page-movement",
+      "check-mission15-phase23-editorial"
+    ],
+    "blockedCheck": "frozen-source-evidence",
+    "resolution": "Actual editable intro identity and legacy photo omission restored; final clean-source CI passed all505. No assertion weakened."
+  },
+  "localInfrastructure": {
+    "postgres": "Blocked: socket unavailable and restricted process/network permissions; startup permission attempt aborted, no local database pass claimed.",
+    "chromium": "Exact Playwright binary absent; system Chromium sandbox socket failed with EPERM. No no-sandbox fallback; genuine capture used authorised GitHub workflow."
+  },
+  "hostedMutation": false,
+  "providerCalls": 0
+}
