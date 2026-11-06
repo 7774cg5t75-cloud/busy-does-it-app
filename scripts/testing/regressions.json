@@ -3394,6 +3394,20 @@
         "scripts/check-creative-document-execution.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-fictional-setup",
+      "args": [
+        "scripts/check-ai-lab-fictional-setup.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-fictional-source",
+      "args": [
+        "scripts/check-ai-lab-fictional-source.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

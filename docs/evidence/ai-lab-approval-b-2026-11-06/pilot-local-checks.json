@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-11-06T22:39:32Z",
+  "sourceCommit": "e5134682b7adb094d2dcda94487789966fc99422",
+  "sourceTree": "44e324c8315c0dde439a13d04143bc954559b576",
+  "unchangedFunctionalSource": "21121ee462b27a77b30089ba69e2adcb28d15182",
+  "scope": "Fresh local original-code checks; synthetic transports/credentials only. No hosted or provider execution.",
+  "checks": [
+    {
+      "command": "node scripts/check-creative-document-execution.mjs",
+      "exitCode": 0,
+      "firstOutput": "(node:577118) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/busy-connected-recovery/src/domain/websiteBuilder.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/busy-connected-recovery/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\nPASS v2 authenticated bootstrap uses original ledger, fixed Lab and total-usage settlement before original review\nPASS default-disabled Lab rejects before authentication, environment reads or reservations\nPASS denies missing-auth before a provider credential or dispatch\nPASS denies wrong-owner before a provider credential or dispatch\nPASS denies anonymous before a provider credential or dispatch\nPASS denies missing-approval before a provider credential or dispatch\n",
+      "completionOutput": "PASS denies legacy-approval before a provider credential or dispatch\nPASS denies expired-approval before a provider credential or dispatch\nPASS denies wrong-approval-limit before a provider credential or dispatch\nPASS denies wrong-approval-digest before a provider credential or dispatch\nPASS denies wrong-wire before a provider credential or dispatch\nPASS denies wrong-source before a provider credential or dispatch\nPASS denies stale-profile before a provider credential or dispatch\nPASS denies foreign-project before a provider credential or dispatch\nPASS denies wrong-region before a provider credential or dispatch\nPASS denies wrong-organisation before a provider credential or dispatch\nPASS denies client-activation before a provider credential or dispatch\nPASS denies legacy-body before a provider credential or dispatch\nPASS denies foreign-operation before a provider credential or dispatch\nPASS denies partial-token-count before a provider credential or dispatch\nPASS denies forged-token-digest before a provider credential or dispatch\nPASS denies input-4001 before a provider credential or dispatch\nPASS denies unverified-model-access before a provider credential or dispatch\nPASS denies wrong-tariff before a provider credential or dispatch\nPASS denies expensive-tariff before a provider credential or dispatch\nPASS denies nonstandard-tier before a provider credential or dispatch\nPASS denies regional-surcharge before a provider credential or dispatch\nPASS denies expired-tariff before a provider credential or dispatch\nPASS denies missing-token-evidence before a provider credential or dispatch\nPASS denies missing-tariff before a provider credential or dispatch\nPASS denies unproved-cache-cost before a provider credential or dispatch\nPASS expired central reservation, wrong tariff bounds, altered goal hash and foreign receipt fail closed\nPASS concurrent handlers and cold starts cannot dispatch the same original operation twice\nPASS lost reserve or dispatch acknowledgement is never replayed\nPASS lost finish acknowledgement succeeds only through independent original settlement readback\nPASS central account denial and current membership revocation prevent dispatch\nPASS post-dispatch cancellation or manifest revocation retains unknown liability with no HTTP call\nPASS non-Home service and contact corrections invalidate the full-page source seal\nPASS whole-site pilot requires all three purposeful proposal pages, not a Home-only valid document\nPASS legacy original ledger cannot admit the v2 4,000-output tariff\nPASS original legacy bridge accepts its omitted output field only with independently read 1,000-output pricing\nPASS legacy bridge rejects an explicit incompatible output allowance before any reservation\nPASS v2 bridge cannot default an omitted output allowance to the legacy contract\nPASS network uncertainty retains liability and rejects all automatic replay\nPASS v2 permits a 45-second complete response within its private 60-second deadline\nPASS v2 60-second header timeout aborts once and retains unknown liability without replay\nPASS v2 deadline covers a stalled response body after successful HTTP headers\nPASS legacy Home protocol keeps its original private 15-second deadline\nPASS malformed, oversized or unaccountable provider responses retain uncertainty and never replay\nPASS invalid or incomplete provider output is settled truthfully, never retried or auto-saved\nPASS policy or source revocation after admission cannot read credentials or start inference\nPASS a parsed provider ID or real-model label cannot bypass independent original receipt review\nPASS source changed during final independent receipt inspection is not offered as a current review\nPASS settled result enters the same one-use Studio Keep, exact readback and owner-wording protections\nPASS Lab credential binding is lazy, fixed and cannot reuse or fall back to staging secrets\n{\"suite\":\"creative-document-execution-v2\",\"passed\":55,\"failed\":0,\"realProviderCalls\":0,\"hostedWrites\":0,\"paidInference\":false}\n",
+      "casesPassed": 55,
+      "casesFailed": 0
+    },
+    {
+      "command": "node scripts/check-live-creative-adapter.mjs",
+      "exitCode": 0,
+      "firstOutput": "",
+      "completionOutput": "PASS real adapter code with synthetic HTTP only: default-off policy, exact source/cost/approval admission, fixed endpoint, one dispatch, bounded schema/usage, no tools/retry, unknown outcomes, lost settlement acknowledgement recovery and no automatic save. Real provider calls:0.\n",
+      "caseCountNotClaimed": true
+    },
+    {
+      "command": "node scripts/check-creative-execution-bootstrap.mjs",
+      "exitCode": 0,
+      "firstOutput": "",
+      "completionOutput": "PASS actual staging bootstrap, original ledger and live adapter with synthetic transports only: authenticated scope, server-only manifest, missing/expired approval, stale reservation, wrong source/count/tariff, policy revocation, cold-start duplicate fencing, settled and unknown outcomes. No network or paid request.\nPASS natural menu-discovery refinement prepares real original reviewed order/navigation changes, preserves wording/prices/media and denies a missing approved menu.\nPASS real guided refinement entry preserves the prior owner CTA while preparing menu discovery in one original protected review.\nPASS ordinary sentence punctuation prepares the identical protected menu review; compound publication remains unavailable.\nPASS bounded polite menu requests prepare the identical original protected review; missing menu and compound publishing, pricing and messaging requests remain unavailable.\n",
+      "caseCountNotClaimed": true
+    },
+    {
+      "command": "node scripts/check-quiet-light-v2-pilot.mjs",
+      "exitCode": 0,
+      "firstOutput": "(node:577143) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/busy-connected-recovery/src/domain/websiteBuilder.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/busy-connected-recovery/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\nPASS three purposeful original pages retain all approved facts and owner action\nPASS repeated offline source preparation has exact stable wire and source digests\nPASS exact complete request includes unchanged source, instructions and full strict recursive schema\nPASS model input omits contact values and private/real media while retaining supported action\nPASS byte evidence remains explicitly unverified token/three-page total-output fit\nPASS deterministic candidate and offline fixture use identical source, permitted facts and original renderer\nPASS real-model origin cannot be fabricated from the offline engineering fixture\nPASS fresh source and exact owner identity are required after preparation\nPASS owner CTA wording and destination cannot be silently replaced\nPASS missing sources, invented claims, executable nodes and foreign contact cannot enter the renderer\n",
+      "completionOutput": "PASS complete valid response and exact portable three-page export preserve the reviewed design\nPASS original local scoped history restores all three exact pages through Undo and Redo\nPASS original owner correction makes a prepared design stale and cannot be cleared by a late Keep\nPASS unknown original Keep outcome consumes the approval and never replays\nPASS pilot helper has no provider transport, key binding, installation or automatic save authority\n{\"ok\":true,\"cases\":15,\"assertions\":142,\"failed\":0,\"providerCalls\":0,\"paidInference\":false,\"liveModelResult\":false,\"sizeEvidence\":{\"kind\":\"UTF-8 byte measurements, never token counts\",\"input\":{\"bytes\":5877,\"sha256\":\"4c8a551a0467955054b26b9cb9c82e395e9ac34fac8776ccec772c1c7c741f67\"},\"strictSchema\":{\"bytes\":9012,\"sha256\":\"6855fe3522aa105b0bd38d43c7fbb23e94b6fd8d12cfc5903903a0b9b5cfeacb\"},\"completeWire\":{\"bytes\":15631,\"sha256\":\"2288e92a5422b3cee1276a344a542356b273aff7e2c6e36d0fa15b98ef59725b\"},\"validOfflineResponse\":{\"bytes\":8624,\"sha256\":\"7f4ba22e07cdc031cdf5da5718d3ab6e197007374e3345a8676ac4591c6a32e6\"},\"compatibleCompleteRequestTokens\":null,\"providerOutputTokens\":null,\"completeInputFit\":\"not-established\",\"threePageOutputFit\":\"not-established\",\"reason\":\"No compatible complete Responses request counter was executed. UTF-8 sizes exclude model-specific token boundaries/formatting and cannot establish input fit. A visible offline document also cannot establish a live response fits total output tokens, which include reasoning.\"}}\n",
+      "casesPassed": 15,
+      "assertions": 142,
+      "casesFailed": 0
+    }
+  ],
+  "syntax": {
+    "passed": 5,
+    "failed": 0,
+    "targets": [
+      "supabase/functions/busy-builder-proposals/creativeDocumentExecutionBootstrap.mjs",
+      "supabase/functions/busy-builder-proposals/creativeDocumentExecution.mjs",
+      "supabase/functions/busy-builder-proposals/creativeExecutionEngine.mjs",
+      "supabase/functions/busy-builder-proposals/creativeLedger.mjs",
+      "supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs"
+    ]
+  },
+  "deno": {
+    "version": "2.5.6",
+    "typescript": "5.9.2",
+    "targets": 6,
+    "entrypoints": 1,
+    "modules": 5,
+    "exitCode": 0,
+    "networkImports": false,
+    "cache": "Existing pinned cache /workspace/scratch/busy-deno-readiness/cache",
+    "command": "DENO_DIR=/workspace/scratch/busy-deno-readiness/cache /workspace/owner-preview-npm-cache/_npx/de10277f880c84d3/node_modules/deno/deno check --no-remote --frozen --config supabase/connected-staging.deno.json supabase/functions/busy-creative-document-pilot/index.ts supabase/functions/busy-builder-proposals/creativeDocumentExecutionBootstrap.mjs supabase/functions/busy-builder-proposals/creativeDocumentExecution.mjs supabase/functions/busy-builder-proposals/creativeExecutionEngine.mjs supabase/functions/busy-builder-proposals/creativeLedger.mjs supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs",
+    "output": "Check file:///workspace/busy-connected-recovery/supabase/functions/busy-creative-document-pilot/index.ts\nCheck file:///workspace/busy-connected-recovery/supabase/functions/busy-builder-proposals/creativeDocumentExecutionBootstrap.mjs\nCheck file:///workspace/busy-connected-recovery/supabase/functions/busy-builder-proposals/creativeDocumentExecution.mjs\nCheck file:///workspace/busy-connected-recovery/supabase/functions/busy-builder-proposals/creativeExecutionEngine.mjs\nCheck file:///workspace/busy-connected-recovery/supabase/functions/busy-builder-proposals/creativeLedger.mjs\nCheck file:///workspace/busy-connected-recovery/supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs\n"
+  },
+  "attemptsRetained": [
+    {
+      "kind": "unsupported-Deno-CLI-option",
+      "commandOption": "--cached-only",
+      "exitCode": 1,
+      "outcome": "Rejected before compilation; used actual Deno help, then existing cache with supported --no-remote. No source/lock change."
+    },
+    {
+      "kind": "public-markdown-document-fetch",
+      "url": "https://developers.openai.com/api/docs/guides/reasoning.md",
+      "outcome": "Web reader rejected text/markdown; official HTML page independently retrieved."
+    }
+  ],
+  "publicEvidence": {
+    "checkedAtUtc": "2026-11-06T22:39:32Z",
+    "model": "gpt-6.1-sol",
+    "modelUrl": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+    "pricingUrl": "https://developers.openai.com/api/docs/pricing",
+    "tokenUrl": "https://developers.openai.com/api/docs/guides/token-counting",
+    "accountModelAvailabilityVerified": false,
+    "standardUSDPerMillion": {
+      "input": 2,
+      "output": 10,
+      "cachedInput": 0.1,
+      "cacheWrite30m": 2.5,
+      "cacheWrite12h": 5
+    },
+    "allInGBPTariffVerified": false,
+    "completeInputTokens": null,
+    "totalOutputFitVerified": false
+  },
+  "providerCalls": 0,
+  "hostedCalls": 0,
+  "hostedWrites": 0,
+  "realSecretReads": 0,
+  "paidInference": false,
+  "automaticSave": false,
+  "publication": false
+}

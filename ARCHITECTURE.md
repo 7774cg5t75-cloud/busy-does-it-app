@@ -1,3 +1,11 @@
+## AI Lab original-authority fictional setup —6 November2026
+
+The separately approved Mission18 foundation is installed on the isolated Lab only, with independently verified native receipt `20261106221950` and exact execution hash `231b7eecdab788f3829d93c4f1995ce111a6b2b4a953644bdc6d0f785b6a5987`. AI remains disabled with zero limit and no accounts/allocations/tariffs/operations. Earlier uninstalled checkpoints below remain historical.
+
+Approval B preparation adds only a pure, fused canonical business/membership proposal and local verification. Native Auth creation must use a separately approved supported administrator route; no Auth stub, client service key or fabricated JWT is an execution mechanism. A real native UUID must be independently read back before generating a new exact B2 proposal/hash. The current unbound template provides no hosted execution authority, permission changes, second onboarding system or provider action.
+
+The original initializer/profile/Website/Studio sources remain authoritative. Local fictional PostgreSQL and synthetic RPC evidence are distinct from hosted native Auth/session/source acceptance. The disabled v2 pilot cannot populate source; its early503 is not a source-bootstrap route. See the current Approval B packet for the remaining authenticated trusted-runtime binding, source freshness, review/readback and subsequent separate deployment/credential/inference decisions. Three design candidates and zero approved Gold Standards remain unchanged.
+
 ## Mission18 — reviewed whole-site composition and runner-owned foundation proposal
 
 `busy.website-design-intelligence.v1` projects current approved original pages, source text, explicitly allowlisted public menu/event fields and eligible photo identities into a bounded provider-neutral creative brief. Its closed response can coordinate exact existing section permutations and composable opening, reading measure, alignment, rhythm and emphasis across up to ten existing pages. It cannot create facts, routes, executable styling, credentials, customer actions or independent save authority. This extends the original builder rather than adding another renderer, business store or spending controller.

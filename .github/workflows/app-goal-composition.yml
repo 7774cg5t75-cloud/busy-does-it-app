@@ -82,6 +82,10 @@ on:
       - 'scripts/prepare-preservation-foundation.mjs'
       - 'scripts/check-preservation-foundation.mjs'
       - 'scripts/check-ai-lab-foundation.mjs'
+      - 'scripts/check-ai-lab-fictional-*.mjs'
+      - 'scripts/lib/ai-lab-fictional-setup-package.mjs'
+      - 'scripts/prepare-ai-lab-fictional-setup.mjs'
+      - 'docs/sql-proposals/ai-lab-fictional-setup/**'
       - 'scripts/check-ai-lab-foundation-postgres.mjs'
       - 'scripts/prepare-ai-lab-foundation.mjs'
       - 'scripts/lib/ai-lab-foundation-package.mjs'
@@ -413,13 +417,17 @@ jobs:
           cp .test-artifacts/ai-lab-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-foundation.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-runner-foundation-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-runner-foundation.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-runner-foundation.log; exit 1; }
           cp .test-artifacts/ai-lab-runner-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-runner-foundation.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-fictional-setup-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-fictional-setup.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-fictional-setup.log; exit 1; }
+          cp .test-artifacts/ai-lab-fictional-setup/postgres.json .test-artifacts/app-goal-composition/ai-lab-fictional-setup.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-fictional-source.mjs --postgres > .test-artifacts/app-goal-composition/ai-lab-fictional-source.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-fictional-source.log; exit 1; }
+          cp .test-artifacts/ai-lab-fictional-source/postgres.json .test-artifacts/app-goal-composition/ai-lab-fictional-source.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-mission16-whole-site-postgres.mjs > .test-artifacts/app-goal-composition/mission16-whole-site-postgres.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/mission16-whole-site-postgres.log; exit 1; }
           cp .test-artifacts/mission16-whole-site/postgres.json .test-artifacts/app-goal-composition/mission16-whole-site-postgres.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/mission16-whole-site-postgres.json'));print('BUSY_WHOLE_SITE_POSTGRES '+json.dumps(d['summary']))"
           python3 - <<'PY'
           import json,pathlib
           base=pathlib.Path('.test-artifacts/app-goal-composition')
-          expected={'whole-app':'postgres.json','public-form':'public-form-postgres.json','enquiry-preparation':'enquiry-preparation-postgres.json','operational-work':'operational-work-postgres.json','work-preparation':'work-preparation-postgres.json','ai-budget':'ai-budget-postgres.json','preservation-foundation':'preservation-foundation.json','ai-lab-foundation':'ai-lab-foundation.json','whole-site':'mission16-whole-site-postgres.json','ai-lab-runner-foundation':'ai-lab-runner-foundation.json'}
+          expected={'whole-app':'postgres.json','public-form':'public-form-postgres.json','enquiry-preparation':'enquiry-preparation-postgres.json','operational-work':'operational-work-postgres.json','work-preparation':'work-preparation-postgres.json','ai-budget':'ai-budget-postgres.json','preservation-foundation':'preservation-foundation.json','ai-lab-foundation':'ai-lab-foundation.json','whole-site':'mission16-whole-site-postgres.json','ai-lab-runner-foundation':'ai-lab-runner-foundation.json','ai-lab-fictional-setup':'ai-lab-fictional-setup.json','ai-lab-fictional-source':'ai-lab-fictional-source.json'}
           summaries={}
           for name,filename in expected.items():
               summary=json.loads((base/filename).read_text())['summary']
@@ -427,7 +435,7 @@ jobs:
               assert all(type(value) is int and value>=0 for value in counts.values()),'Invalid SQL receipt count'
               assert counts['passed']>0 and counts['failed']==0,'SQL receipt did not confirm passing stages'
               summaries[name]=counts
-          print('BUSY_PG_SUITE_SUMMARIES '+json.dumps({'commandSuites':9,'receiptSummaries':summaries},sort_keys=True))
+          print('BUSY_PG_SUITE_SUMMARIES '+json.dumps({'commandSuites':11,'receiptSummaries':summaries},sort_keys=True))
           PY
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |

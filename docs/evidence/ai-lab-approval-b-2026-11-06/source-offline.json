@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "mode": "offline-synthetic-rpc",
+  "hosted": false,
+  "nativeAuthAcceptance": false,
+  "providerCalls": 0,
+  "spendingGBP": 0,
+  "setupAuthorities": "Original connected session, profile writer, privateWebsiteDraftAction and original commit/history/transition. PostgreSQL mode invokes actual original SQL; offline mode uses a test-only synthetic RPC boundary.",
+  "measurement": {
+    "kind": "UTF-8 byte measurements, not tokens; fictional local identities only",
+    "input": {
+      "bytes": 5809,
+      "sha256": "2ed6a99e2ed882b3ffb17f950c6c6de519caf1da0c9cde531710130b26352f77"
+    },
+    "schema": {
+      "bytes": 8996,
+      "sha256": "faea3226d15589289101fd9cc223f0bcdbb1dcdd42077c82e3475ed0f410639b"
+    },
+    "wire": {
+      "bytes": 15537,
+      "sha256": "6371d05bce01b507d3cc6bed120cb56eb2eaf46e73303107054eb10d243f3ed4"
+    },
+    "completeTokenCount": null,
+    "liveAccountAvailabilityVerified": false,
+    "sourceIdsMustBeReboundAfterNativeAuthSetup": true
+  },
+  "results": [
+    {
+      "id": "original source authority preparation with fictional backend only",
+      "passed": true
+    },
+    {
+      "id": "original profile CAS preserves exact supported service facts",
+      "passed": true
+    },
+    {
+      "id": "original generator creates private image-free Home Services Contact",
+      "passed": true
+    },
+    {
+      "id": "original Studio adds supplied story without a profile extension or fourth page",
+      "passed": true
+    },
+    {
+      "id": "original instruction protects exact project action and existing destination",
+      "passed": true
+    },
+    {
+      "id": "independent reopen preserves story services pages and original renderer",
+      "passed": true
+    },
+    {
+      "id": "original saved Undo Redo preserves exact complete page output",
+      "passed": true
+    },
+    {
+      "id": "stale selected draft and foreign actor deny before persistence",
+      "passed": true
+    },
+    {
+      "id": "three-page current source reaches original v2 projection with fresh actual source identifiers",
+      "passed": true
+    },
+    {
+      "id": "uncertain original save is inspected and cannot automatically replay",
+      "passed": true
+    },
+    {
+      "id": "whole-site CAS guard and default-off financial boundaries remain intact",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 0,
+    "cases": 11,
+    "assertions": 85
+  }
+}
