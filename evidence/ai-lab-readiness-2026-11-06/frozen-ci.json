@@ -1,0 +1,181 @@
+{
+  "main": {
+    "run": 42198749461,
+    "conclusion": "success",
+    "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+    "application": {
+      "sourceSha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+      "sourceTree": "9305def084ec1d64eb8d68387cc86da27806990d",
+      "finalSourceSha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+      "finalSourceTree": "9305def084ec1d64eb8d68387cc86da27806990d",
+      "sourceStable": true,
+      "workingTreeChanged": false,
+      "summary": {
+        "passed": 499,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      }
+    },
+    "artifact": [
+      {
+        "id": 13493989510,
+        "name": "private-app-goal-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 188904,
+        "digest": "sha256:2595981198120d00f2733e8d1dd48001398ffc591572cfd65d123a837ee844b9"
+      }
+    ]
+  },
+  "browser": {
+    "run": 42198749462,
+    "conclusion": "success",
+    "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+    "artifacts": [
+      {
+        "id": 13495235111,
+        "name": "website-excellence-rich-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 9130969,
+        "digest": "sha256:f03bccab5f0e66010035d18d5518d02ea0408577f5b833d522c3bac4e9202300"
+      },
+      {
+        "id": 13495200680,
+        "name": "website-creative-renderer-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 17138024,
+        "digest": "sha256:8be827ec667a2aafcde5407c7106e51c39e43b1c2c5f869ff19df7abefb6a2d9"
+      },
+      {
+        "id": 13495140859,
+        "name": "website-creative-gardening-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 17485789,
+        "digest": "sha256:ad0a3a035caf791b2478004189b7edfde465e10c7865dbf74f7f861eeb97087d"
+      },
+      {
+        "id": 13495135479,
+        "name": "website-storyboard-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11682195,
+        "digest": "sha256:dec8643864992d04fd94f64e44da5702081f85ad4e638a07c49bc91a86d047cc"
+      },
+      {
+        "id": 13495110877,
+        "name": "website-menu-story-gardening-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 17263467,
+        "digest": "sha256:9db2ccce609de2076f1ccb1e34fa324cf7b4d835e47e321e79e679252ed1e86a"
+      },
+      {
+        "id": 13494926213,
+        "name": "website-menu-story-delivery-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 12143515,
+        "digest": "sha256:b60d666eed97a20758caea81eac8d3569cac892ef18a9076feb7d6d82f914756"
+      },
+      {
+        "id": 13494806023,
+        "name": "website-art-direction-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11603619,
+        "digest": "sha256:fc4e0b8ed58f1f2529b6f2df51dcd765127ada90095a69e388cd15851284b18b"
+      },
+      {
+        "id": 13494781416,
+        "name": "website-menu-story-studio-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 3464683,
+        "digest": "sha256:baa7b2d9cb791a15d5929d93c6e9fca91b7c5bba49f3c9a8e5244ee4482102b7"
+      },
+      {
+        "id": 13494756399,
+        "name": "website-creative-studio-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 3779543,
+        "digest": "sha256:5871803da152e2fa835d2f9de464800e2dec92c3242f6b0266862afc90f899ff"
+      },
+      {
+        "id": 13494751423,
+        "name": "website-creative-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 12480422,
+        "digest": "sha256:803aac38cff2aa2ce17c236d368540257aa1db3a30ee8b575c8afaf0bbe23e9c"
+      },
+      {
+        "id": 13494726616,
+        "name": "website-creative-delivery-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11929915,
+        "digest": "sha256:9c7d600489da4d64f38aa4dbba020f56374da03bc89a05757e49886da1812105"
+      },
+      {
+        "id": 13494612010,
+        "name": "website-acceptance-benchmark-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 14593355,
+        "digest": "sha256:12fcabe29acc29400b8eb88600dccd7b755cac12b2d97a49fdad12f0d3170eb3"
+      },
+      {
+        "id": 13494596499,
+        "name": "website-expansion-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 18965449,
+        "digest": "sha256:4fb423c8d6169691cad8d97ff0b00fa478e8127801e112ba37f966a8ceb41343"
+      },
+      {
+        "id": 13494526822,
+        "name": "website-authentic-story-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 27412869,
+        "digest": "sha256:f4e90b72a1158c9362afa9fbfc240dc6e70c92dc41f1144380920978d084b639"
+      },
+      {
+        "id": 13494517300,
+        "name": "website-creative-catering-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 16279287,
+        "digest": "sha256:db320e1b41e438f4fdabf3099649d2b8f4aa4ec6492381f5eaaec58b32cce8e0"
+      },
+      {
+        "id": 13494496831,
+        "name": "website-menu-story-catering-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 16121600,
+        "digest": "sha256:f21df7d352ef4a7193a4bdc3982707ed1006152f156e74caf8b675448b891caa"
+      },
+      {
+        "id": 13494482310,
+        "name": "website-menu-story-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11700570,
+        "digest": "sha256:9a784324b360711490560abf0fa45a39117eb0ef56c42a7f776a63cff7d989b2"
+      },
+      {
+        "id": 13494412076,
+        "name": "website-art-direction-studio-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 3138872,
+        "digest": "sha256:caff2687997c355f150500c1aef5fc75eccca422a2ff9579938cecbef91b79d3"
+      },
+      {
+        "id": 13494212898,
+        "name": "website-excellence-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11729059,
+        "digest": "sha256:bac1a023f5b967d83eb5025f0fbf6a60501e2e6f40bb892f53fa5ad547e31562"
+      },
+      {
+        "id": 13494183050,
+        "name": "website-art-direction-catering-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 14911008,
+        "digest": "sha256:eeb7a221c2ff19b4714509887c9b3933259b1201191d7bfd75bccc1a49e63268"
+      },
+      {
+        "id": 13494148005,
+        "name": "website-art-direction-gardening-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 16946323,
+        "digest": "sha256:2d48ecef4d880852dd9c6b6ae6f04dde6565c55d18a8df701dfcca86f4223060"
+      },
+      {
+        "id": 13494133166,
+        "name": "website-storyboard-businesses-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 28131359,
+        "digest": "sha256:28b9cd3cf6a0e94c23196e6a03746732531a851975127dcfe851e9aba4665b74"
+      },
+      {
+        "id": 13494023376,
+        "name": "website-introduction-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 8872648,
+        "digest": "sha256:67df2a689aec4eb0fa6bfe7209f487a6423835d9680fac96f9a687d4027ea338"
+      },
+      {
+        "id": 13493504713,
+        "name": "website-guided-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 6485064,
+        "digest": "sha256:f15eddf8c4410426899702ad548a09d1eb46ed1ef6a06b8a99e014f1410f46db"
+      }
+    ],
+    "scope": "Genuine existing sandboxed-renderer regression, no new visual design acceptance or agency-quality claim."
+  }
+}
