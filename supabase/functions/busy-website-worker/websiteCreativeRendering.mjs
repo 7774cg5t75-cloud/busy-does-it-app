@@ -46,11 +46,14 @@ export const creativeWebsiteCss=`
 .creative-site.creative-emphasis-contrast .purpose-next{border-top:2px solid var(--accent)}
 .creative-site.creative-emphasis-contrast .crafted-service-number{border-top:2px solid var(--accent);padding-top:10px;align-self:start}
 .creative-site.creative-emphasis-quiet .crafted-service-number{border:0;padding-top:0}
+/* Wide-image families deliberately keep their original full-row photograph.
+   Splitting a 21:8/16:7 visual into a narrow column creates a tiny strip.
+   Keep that reviewed crop/proportion instead of manufacturing variety. */
 @media(min-width:901px){
- .creative-site.creative-opening-split .hero>.wrap:has(.premium-visual){display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)!important;gap:clamp(32px,5vw,72px)!important;align-items:center!important}
- .creative-site.creative-opening-split .hero>.wrap>.premium-intro{grid-column:1!important;grid-row:1!important;min-width:0}
- .creative-site.creative-opening-split .hero>.wrap>.premium-visual{grid-column:2!important;grid-row:1!important;min-width:0}
- .creative-site.creative-opening-split .hero>.wrap>.premium-orientation,.creative-site.creative-opening-split .hero>.wrap>.premium-service-panel{grid-column:1/-1!important;grid-row:auto!important}
+ .creative-site.creative-opening-split .hero>.wrap:not(.premium-service-led):not(.premium-story-spread):has(.premium-visual){display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)!important;gap:clamp(32px,5vw,72px)!important;align-items:center!important}
+ .creative-site.creative-opening-split .hero>.wrap:not(.premium-service-led):not(.premium-story-spread)>.premium-intro{grid-column:1!important;grid-row:1!important;min-width:0}
+ .creative-site.creative-opening-split .hero>.wrap:not(.premium-service-led):not(.premium-story-spread)>.premium-visual{grid-column:2!important;grid-row:1!important;min-width:0}
+ .creative-site.creative-opening-split .hero>.wrap:not(.premium-service-led):not(.premium-story-spread)>.premium-orientation,.creative-site.creative-opening-split .hero>.wrap:not(.premium-service-led):not(.premium-story-spread)>.premium-service-panel{grid-column:1/-1!important;grid-row:auto!important}
  .creative-site.creative-opening-split .hero-no-image .hero-content{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:20px clamp(28px,4vw,64px);align-items:end}
  .creative-site.creative-opening-split .hero-no-image .hero-content .kicker{grid-column:1/-1}
  .creative-site.creative-opening-split .hero-no-image .hero-content h1{grid-column:1;grid-row:2/4;margin-bottom:0}

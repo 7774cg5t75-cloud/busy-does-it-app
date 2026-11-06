@@ -14,7 +14,7 @@ const folder=resolve(process.argv[2]||'.test-artifacts/mission18-sites'),read=na
 const manifest=read('scenarios.json'),browser=read('browser-results.json'),hash=bytes=>createHash('sha256').update(bytes).digest('hex'),copy=value=>JSON.parse(JSON.stringify(value));
 assert.equal(manifest.mission,18);assert.equal(browser.sandboxRequired,true);assert.deepEqual(browser.failures,[]);assert.equal(browser.providerCalls,0);
 assert.equal(browser.source.commit,manifest.source.commit);assert.equal(browser.source.tree,manifest.source.tree);assert.equal(browser.source.workingTreeChanged,false);
-const results=[],receipts=[],ownerSpacingReceipts=[];
+const results=[],receipts=[],ownerSpacingReceipts=[],wideHeroReceipts=[];
 const chromiumVerifier=await chromium.launch({headless:true,chromiumSandbox:true});
 async function verifyDecodedScreenshot(png){
  const context=await chromiumVerifier.newContext({javaScriptEnabled:false,serviceWorkers:'block'}),page=await context.newPage();
@@ -72,7 +72,37 @@ for(const control of manifest.ownerSpacingControls)for(const width of [390,1440]
  ownerSpacingReceipts.push({site:control.site,pageId:control.pageId,width,selector:control.selector,ownerAppearance:control.ownerAppearance,values,passed:true});
  results.push({site:control.site,name:'original explicit owner '+control.pageId+' spacing retained at '+width+'px',passed:true,expectedOutcome:'owner-spacing-preserved'});
 }
+// The real first capture exposed narrow letterbox photographs when a new
+// split directive overrode an existing full-row family. Keep that discovered
+// geometry regression, using the actual original before/after HTML and assets.
+for(const site of manifest.sites.filter(site=>['moor-meadow-rich','ember-rich'].includes(site.id))){
+ const home=site.pages.find(page=>page.path==='/'),values=[];
+ for(const stage of ['before','after']){
+  const context=await chromiumVerifier.newContext({viewport:{width:1440,height:1000},javaScriptEnabled:false,serviceWorkers:'block'}),page=await context.newPage(),url='https://mission18.invalid/'+site.id+'/index.html';
+  await page.route('**/*',async route=>{
+   const request=route.request().url();
+   if(request===url)return route.fulfill({status:200,contentType:'text/html',body:readFileSync(resolve(folder,home[stage]))});
+   const asset=manifest.assets.find(asset=>request===asset.url||request==='https://mission18.invalid/'+site.id+'/'+asset.outputPath);
+   if(asset){const bytes=readFileSync(resolve(asset.file));assert.equal(hash(bytes),asset.sha256);return route.fulfill({status:200,contentType:asset.mimeType,body:bytes});}
+   return route.abort('blockedbyclient');
+  });
+  try{
+   await page.goto(url,{waitUntil:'load'});await page.locator('.hero .premium-visual img').first().evaluate(image=>image.decode());
+   const geometry=await page.locator('.hero>.wrap').first().evaluate(wrap=>{const figure=wrap.querySelector('.premium-visual'),image=figure.querySelector('img'),w=wrap.getBoundingClientRect(),f=figure.getBoundingClientRect(),i=image.getBoundingClientRect(),css=getComputedStyle(figure);return {wrapperWidth:w.width,figureWidth:f.width,figureHeight:f.height,imageWidth:i.width,aspectRatio:css.aspectRatio,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,source:image.currentSrc};});
+   assert.ok(geometry.naturalWidth>0&&geometry.naturalHeight>0,'Wide hero must decode the original licensed photograph');
+   assert.ok(geometry.figureWidth>=geometry.wrapperWidth*.9,'Original full-row hero photograph must remain at least90% of its wrapper at1440px: '+site.id+' '+stage);
+   assert.ok(geometry.imageWidth>=geometry.figureWidth*.95,'The photograph must fill its intended full-row visual');
+   values.push({stage,...geometry});
+  }finally{await context.close();}
+ }
+ const ratio=value=>{const parts=value.split('/').map(Number);return parts[0]/(parts[1]||1);},beforeRatio=ratio(values[0].aspectRatio),afterRatio=ratio(values[1].aspectRatio);
+ assert.ok(Number.isFinite(beforeRatio)&&beforeRatio>1,'The original family must establish its wide photographic proportion');
+ assert.ok(Math.abs(afterRatio-beforeRatio)<.001,'Creative direction must preserve the original family photographic aspect ratio');
+ assert.ok(Math.abs(values[1].figureWidth/values[1].figureHeight-values[0].figureWidth/values[0].figureHeight)<.015,'The actual full-row photograph geometry must retain the original visual proportion');
+ wideHeroReceipts.push({site:site.id,pageId:home.id,viewport:{width:1440,height:1000},values,passed:true});
+ results.push({site:site.id,name:'original wide Home photograph remains full-row and source proportion retained at1440px',passed:true,expectedOutcome:'wide-hero-preserved'});
+}
 }finally{await chromiumVerifier.close();}
-const report={source:browser.source,browser:browser.browser,passed:results.length,failed:0,positiveReadOnlyBindings:results.filter(row=>row.expectedOutcome==='bound-read-only-review').length,negativeDenials:results.filter(row=>row.expectedOutcome==='denied').length,ownerSpacingChecks:ownerSpacingReceipts.length,results,receipts,ownerSpacingReceipts,actualOriginalPngs:true,actualPngDecodeVerified:true,visionExecuted:false,pixelsSentToModel:false,providerCalls:0,accountSaveClaimed:false,professionalAcceptance:false,limitations:['Actual PNG bytes and provenance are validated; no real AI vision request was made.','No invented aesthetic findings or model-generated improvement is claimed.','Human pixel review and explicit owner acceptance remain separate.']};
+const report={source:browser.source,browser:browser.browser,passed:results.length,failed:0,positiveReadOnlyBindings:results.filter(row=>row.expectedOutcome==='bound-read-only-review').length,negativeDenials:results.filter(row=>row.expectedOutcome==='denied').length,ownerSpacingChecks:ownerSpacingReceipts.length,wideHeroChecks:wideHeroReceipts.length,results,receipts,ownerSpacingReceipts,wideHeroReceipts,actualOriginalPngs:true,actualPngDecodeVerified:true,visionExecuted:false,pixelsSentToModel:false,providerCalls:0,accountSaveClaimed:false,professionalAcceptance:false,limitations:['Actual PNG bytes and provenance are validated; no real AI vision request was made.','No invented aesthetic findings or model-generated improvement is claimed.','Human pixel review and explicit owner acceptance remain separate.']};
 writeFileSync(resolve(folder,'actual-rendered-review-contract.json'),JSON.stringify(report,null,2)+'\n');
 console.log('BUSY_M18_RENDERED_REVIEW '+JSON.stringify({...report,results:undefined,receipts:undefined}));

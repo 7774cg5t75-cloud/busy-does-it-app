@@ -78,4 +78,17 @@ test('finite responsive CSS retains usable mobile text tracks and cannot fetch r
  check.match(creativeWebsiteCss,/@media\(max-width:900px\)/);check.match(creativeWebsiteCss,/grid-template-columns:minmax\(0,1fr\)/);check.match(creativeWebsiteCss,/min-width:0/);check.match(creativeWebsiteCss,/min-height:54px/);check.ok(!/(?:url\(|@import|font-family|object-fit|object-position|animation:|position:absolute)/i.test(creativeWebsiteCss));check.ok(!creativeWebsiteCss.includes('display:none'));
  const draft=directed(2),thin=clone(draft);thin.creativeSpecification.pages=thin.creativeSpecification.pages.filter(p=>p.pageId!=='about');check.equal(creativeWebsiteClasses(thin,'about'),'');check.equal(creativeWebsiteOrder(thin,'about',['about']).join(','),'about');
 });
+test('wide-image families retain their native full-row photo proportions instead of a tiny split strip',()=>{
+ const desktop=creativeWebsiteCss.split('@media(min-width:901px){')[1].split('@media(max-width:900px){')[0];
+ const splitHeroRules=desktop.split('}').filter(rule=>rule.includes('.creative-opening-split .hero>.wrap'));
+ check.equal(splitHeroRules.length,4);
+ for(const rule of splitHeroRules)for(const selector of rule.split('{')[0].split(',')){
+  check.ok(selector.includes(':not(.premium-service-led):not(.premium-story-spread)'),'Every desktop split-grid track must preserve the native wide-image families');
+ }
+ for(const i of [0,1]){
+  const draft=directed(i),asset=draft.sections.find(section=>section.type==='hero').asset,before=JSON.stringify(asset),html=renderWebsiteHtml(draft,'home',{standalone:true,privatePagePreview:true});
+  check.ok(creativeWebsiteClasses(draft,'home').includes('creative-opening-split'));check.ok(html.includes('premium-'+draft.theme.heroComposition));check.equal(JSON.stringify(draft.sections.find(section=>section.type==='hero').asset),before);check.equal(asset.width,1280);
+ }
+ check.ok(!creativeWebsiteCss.includes('aspect-ratio:'),'The reviewed native photo proportion is not replaced by the creative measure');
+});
 console.log('PASS '+cases+' Mission18 creative-rendering cases; '+assertions+' assertions; zero failures. Actual original renderer, finite source measures and preserved owner content. No model or hosted result claimed.');
