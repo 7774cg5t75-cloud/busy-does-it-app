@@ -29,7 +29,7 @@ export function createDenoLiveCreativeAdapter(serverDeps={}){
  }});
 }
 const legacyHomeProtocol=Object.freeze({
- maximumResponseBytes:32768,maximumOutputTokens:1000,
+ maximumResponseBytes:32768,maximumOutputTokens:1000,responseTimeoutMs:15000,
  async admit(prepared,current,policy,deps){
   let wire,wireDigest,approval;
   const pilot=await prepareLiveCreativePilot(prepared,current,{now:deps.now,integrity:deps.integrity,

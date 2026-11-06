@@ -28,6 +28,8 @@ The three-page fixture proves that a complete valid document can traverse schema
 
 Requested limits remain **one inference**, at most **4,000 complete input tokens**, at most **4,000 total output tokens**, **£0.10 all-in exposure**, no tools, no retry, no fallback, no automatic save/publication. `max_output_tokens: 4000` includes reasoning tokens and other non-visible output, not only the JSON shown to the owner.
 
+The v2 server uses a fixed **60-second whole-response deadline**, including headers and the complete body; legacy Home/v3 remains15seconds. A valid three-page response is not assumed to complete within either token or time limits. The original30-second reservation expiry gates dispatch; it is not a post-dispatch settlement deadline. Timed-out/dispatched operations retain liability and may be reconciled later through the original finish/reader, never automatically replayed. Current Supabase Free limits (150-second wall/idle,2-second CPU excluding async I/O) still require actual bundle/runtime and database-latency assessment after separately approved deployment; sixty seconds does not guarantee overall platform completion.
+
 ## Measured sizing and exact offline evidence
 
 These are UTF-8 byte measurements using the full actual projected request, including source instructions and the complete strict recursive response schema. **They are not token counts.**
@@ -63,6 +65,8 @@ Only a real independently reconciled provider receipt distinguishes an actual mo
 ## Same-source comparison and owner review
 
 Candidate A is the current original deterministic recommendation. Candidate B will exist only after a separately approved real request and validated receipt. The current `candidate-02` files are labelled OFFLINE engineering fixtures; they must never be relabelled as AI output. Both current branches preserve the exact same approved source/owner action, and use the same original renderer, source protections and portable export.
+
+This first experiment compares the **current deterministic workflow against a model-assisted v2 workflow**. A emits the current finite v1 creative specification; B may use the broader v2 grammar and reviewed copy capabilities. Freeze A before receiving B and retain both actual contracts. Identical facts, intent, locks, source revisions and renderer do not mean the algorithms exercise identical expressive contracts. Any improvement can support the combined workflow, but cannot isolate model judgement from v2 composition/copy freedom. Do not build another deterministic engine or creatively upgrade A after seeing B to disguise that limitation.
 
 The browser preparation uses canonical local site routes, not handcrafted business HTML. Capture complete Home/Services/Contact pages at 320px, 390px and 1440px, plus high-DPR mobile, through the existing sandboxed Chromium policy. Retain actual PNG hashes, browser identity, viewport, source commit/tree, input/proposal/receipt identities and the privately withheld candidate-origin key. Only hide origin for voluntary blind judgement; never erase provenance. Use compact labelled phone/desktop comparison sheets and retain full-resolution captures.
 

@@ -44,7 +44,7 @@ export function createGovernedCreativeExecution(deps,protocol){
     response=await Promise.race([(async()=>{
      const raw=await deps.transport('https://api.openai.com/v1/responses',{method:'POST',redirect:'error',headers:{Authorization:'Bearer '+secret,'Content-Type':'application/json'},body:stableJson(wire),signal:controller.signal});
      return boundedProviderJson(raw,controller.signal,protocol.maximumResponseBytes);
-    })(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('uncertain'));},15000);})]);
+    })(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('uncertain'));},protocol.responseTimeoutMs);})]);
    }finally{clearTimeout(timer);controller.abort();}
    const usage=response?.usage,receipt=response?.id;
    if(typeof receipt!=='string'||!/^resp_[A-Za-z0-9_-]{1,145}$/.test(receipt)||response.model!==policy.model||!Number.isSafeInteger(usage?.input_tokens)||!Number.isSafeInteger(usage?.output_tokens)||usage.input_tokens<1||usage.output_tokens<0||usage.input_tokens>1000000||usage.output_tokens>1000000||protocol.accountingResponse&&protocol.accountingResponse(response)!==true)throw Error('uncertain');

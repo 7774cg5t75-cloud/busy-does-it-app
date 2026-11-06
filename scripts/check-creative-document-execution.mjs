@@ -9,6 +9,8 @@ import {createLabCreativeDocumentExecutionHandler,disabledCreativeDocumentExecut
 import {createLiveCreativeDocumentAdapter,createDenoLiveCreativeDocumentAdapter,CREATIVE_DOCUMENT_LAB_URL,CREATIVE_DOCUMENT_LAB_KEY} from '../supabase/functions/busy-builder-proposals/creativeDocumentExecution.mjs';
 import {WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION} from '../supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs';
 import {createOriginalCreativeLedger,createOriginalCreativeDocumentLedger} from '../supabase/functions/busy-builder-proposals/creativeLedger.mjs';
+import {createLiveCreativeAdapter} from '../supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs';
+import {prepareCreativeComparison} from '../src/core/websiteCreativeComparison.mjs';
 
 // Entirely synthetic ports and credentials. No environment read, real HTTP,
 // token endpoint, account, provider usage, central hosted reservation or save.
@@ -18,6 +20,19 @@ const clone=value=>JSON.parse(JSON.stringify(value));
 const planner={pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml};
 let passed=0;
 async function test(name,run){await run();passed++;console.log('PASS '+name);}
+// Advance only the private provider deadlines. Body parsing and the original
+// source/budget ports keep their real implementation; no 60-second test sleep.
+async function virtualProviderClock(run){
+ const originalSetTimeout=globalThis.setTimeout,originalClearTimeout=globalThis.clearTimeout;
+ let elapsed=0;const timers=new Map(),scheduled=[];
+ globalThis.setTimeout=(callback,delay,...args)=>{
+  if(![15000,60000].includes(delay))return originalSetTimeout(callback,delay,...args);
+  const id={providerTimer:true};timers.set(id,{callback:()=>callback(...args),deadline:elapsed+delay});scheduled.push(delay);return id;
+ };
+ globalThis.clearTimeout=id=>timers.has(id)?timers.delete(id):originalClearTimeout(id);
+ const clock={scheduled,get elapsed(){return elapsed;},advanceTo(value){assert.ok(value>=elapsed);elapsed=value;for(const [id,timer] of [...timers])if(timer.deadline<=elapsed){timers.delete(id);timer.callback();}}};
+ try{return await run(clock);}finally{globalThis.setTimeout=originalSetTimeout;globalThis.clearTimeout=originalClearTimeout;}
+}
 
 async function fixture(){
  const pilot=await prepareQuietLightV2Pilot({model:'synthetic-v2-model-not-a-real-provider'}),context=pilot.context,projection=pilot.projection;
@@ -179,6 +194,36 @@ await test('v2 bridge cannot default an omitted output allowance to the legacy c
 await test('network uncertainty retains liability and rejects all automatic replay',async()=>{
  const f=await fixture();f.deps.transport=async()=>{throw Error('Synthetic transport lost; no actual network');};const response=await f.handler()(f.request());assert.equal((await response.json()).code,'unknown-outcome');assert.equal(f.record.state,'unknown');assert.equal(f.record.attempts,1);assert.notEqual((await f.handler()(f.request())).status,200);assert.equal(f.record.attempts,1);
 });
+await test('v2 permits a 45-second complete response within its private 60-second deadline',async()=>virtualProviderClock(async clock=>{
+ const f=await fixture(),transport=f.deps.transport;f.deps.clock=()=>now+clock.elapsed;
+ let started,release,signal;const waiting=new Promise(resolve=>{started=resolve;});
+ f.deps.transport=async(...args)=>{const response=await transport(...args);signal=args[1].signal;started();return new Promise(resolve=>{release=()=>resolve(response);});};
+ const response=f.handler()(f.request());await Promise.race([waiting,response.then(()=>{throw Error('Provider did not start');})]);
+ assert.deepEqual(clock.scheduled,[60000]);clock.advanceTo(45000);assert.equal(signal.aborted,false);release();assert.equal((await response).status,200);assert.equal(f.record.state,'settled');assert.equal(f.record.attempts,1);assert.equal(f.calls,1);
+}));
+await test('v2 60-second header timeout aborts once and retains unknown liability without replay',async()=>virtualProviderClock(async clock=>{
+ const f=await fixture(),transport=f.deps.transport;let started,signal;const waiting=new Promise(resolve=>{started=resolve;});
+ f.deps.transport=async(...args)=>{await transport(...args);signal=args[1].signal;started();return new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(Error('Synthetic timeout abort')),{once:true}));};
+ const response=f.handler()(f.request());await Promise.race([waiting,response.then(()=>{throw Error('Provider did not start');})]);assert.deepEqual(clock.scheduled,[60000]);clock.advanceTo(59999);assert.equal(signal.aborted,false);clock.advanceTo(60000);
+ assert.equal((await (await response).json()).code,'unknown-outcome');assert.equal(signal.aborted,true);assert.equal(f.record.state,'unknown');assert.equal(f.record.attempts,1);assert.equal(f.calls,1);assert.notEqual((await f.handler()(f.request())).status,200);assert.equal(f.calls,1);
+}));
+await test('v2 deadline covers a stalled response body after successful HTTP headers',async()=>virtualProviderClock(async clock=>{
+ const f=await fixture(),transport=f.deps.transport;let reading,signal,bodyAborted=false;const waiting=new Promise(resolve=>{reading=resolve;});
+ f.deps.transport=async(...args)=>{await transport(...args);signal=args[1].signal;return new Response(new ReadableStream({start(controller){controller.enqueue(new TextEncoder().encode('{"id":"resp_unfinished'));signal.addEventListener('abort',()=>{bodyAborted=true;controller.error(Error('Synthetic stalled-body abort'));},{once:true});},pull(){reading();}}),{headers:{'content-type':'application/json'}});};
+ const response=f.handler()(f.request());await Promise.race([waiting,response.then(()=>{throw Error('Provider body was not read');})]);assert.deepEqual(clock.scheduled,[60000]);clock.advanceTo(60000);
+ assert.equal((await (await response).json()).code,'unknown-outcome');assert.equal(bodyAborted,true);assert.equal(signal.aborted,true);assert.equal(f.record.state,'unknown');assert.equal(f.record.attempts,1);assert.equal(f.calls,1);assert.notEqual((await f.handler()(f.request())).status,200);assert.equal(f.calls,1);
+}));
+await test('legacy Home protocol keeps its original private 15-second deadline',async()=>virtualProviderClock(async clock=>{
+ const f=await fixture(),current=f.context,prepared=prepareCreativeComparison(current,'Keep my words but improve the complete website');assert.equal(prepared.ok,true,prepared.reason);
+ const operationId=f.execution.operationId;let record=null,started,signal,calls=0;const waiting=new Promise(resolve=>{started=resolve;});
+ const deps={clock:()=>now+clock.elapsed,integrity,readCurrent:async()=>current,readServerPolicy:async()=>({liveCreativeEnabled:true,pilotExecutionEnabled:true,provider:'openai-responses',model:f.execution.model}),
+  verifyApproval:async digest=>({authenticated:true,founder:true,operationId,inputDigest:digest,ownerId:current.ownerId,businessId:current.businessId,syntheticOnly:true,provider:'openai-responses',model:f.execution.model,spendingCeilingGBP:.10,expiresAt:now+60000,receipt:'synthetic-owner-approved-legacy-timeout'}),
+  readTariff:async()=>({...f.execution.tariff}),countRequestTokens:async wire=>{assert.equal(wire.max_output_tokens,1000);return 3000;},
+  reserve:async request=>{if(record)throw Error('Original operation cannot replay');record={...request,operationId,inputDigest:request.digest,status:'reserved-undispatched',fresh:true,authoritativeReadback:true,realUsageSettlementSupported:true,expiresAt:now+30000,admittedGBP:request.estimatedGBP};return {operationId};},readReservation:async()=>record,dispatch:async()=>{record.status='dispatched';record.attempts=1;},finish:async(_operation,result)=>{record.status=result.outcome;},readReceipt:async()=>record,readCredential:async()=> 'synthetic-legacy-credential-only',
+  transport:async(_url,options)=>{calls++;signal=options.signal;started();return new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(Error('Synthetic legacy abort')),{once:true}));}
+ };
+ const adapter=createLiveCreativeAdapter(deps),response=adapter(prepared);await Promise.race([waiting,response.then(()=>{throw Error('Legacy provider did not start');})]);assert.deepEqual(clock.scheduled,[15000]);clock.advanceTo(14999);assert.equal(signal.aborted,false);clock.advanceTo(15000);assert.equal((await response).status,'unknown-outcome');assert.equal(signal.aborted,true);assert.equal(record.status,'unknown');assert.equal(calls,1);assert.equal((await adapter(prepared)).status,'disabled');assert.equal(calls,1);
+}));
 await test('malformed, oversized or unaccountable provider responses retain uncertainty and never replay',async()=>{
  for(const kind of ['malformed','oversized','foreign-model','missing-usage','different-tier','missing-tier']){
   const f=await fixture(),transport=f.deps.transport;

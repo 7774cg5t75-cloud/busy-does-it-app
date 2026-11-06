@@ -15,7 +15,7 @@ const denied=()=>({ok:false});
 // Fixed protocol, not a permissive replacement for the old Home/v3 1,000-token
 // pilot. It uses the same original execution engine and six-table AI ledger.
 const creativeDocumentProtocol=Object.freeze({
- maximumResponseBytes:98304,maximumOutputTokens:4000,
+ maximumResponseBytes:98304,maximumOutputTokens:4000,responseTimeoutMs:60000,
  accountingResponse:response=>response.service_tier==='default',
  async admit(prepared,current,policy,deps){
   if(policy.protocol!==WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION||policy.projectUrl!==CREATIVE_DOCUMENT_LAB_URL||!isCurrentWebsiteCreativeDocument(prepared,current)||!pilotSource(prepared)||!Number.isSafeInteger(deps.now))return denied();
