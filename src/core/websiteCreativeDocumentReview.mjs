@@ -1,5 +1,5 @@
 import {stableJson} from './stableJson.mjs';
-import {wholeWebsiteSource,prepareWholeWebsiteCreativeDocumentReview} from './wholeWebsitePlan.mjs';
+import {wholeWebsiteSource,prepareWholeWebsiteCreativeDocumentReview,prepareSettledWholeWebsiteCreativeDocumentReview} from './wholeWebsitePlan.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 import {websitePhotoChoices} from './websitePhotoReview.mjs';
 import {websiteCreativeSourcesCurrent} from '../../supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs';
@@ -82,6 +82,18 @@ export function reviewWebsiteCreativeDocumentProposal(prepared,raw,context,deps,
  reviewed.add(prepared);
  const review=prepareWholeWebsiteCreativeDocumentReview(context,parsed.proposal.document,deps,{approvedIntent:prepared.approvedIntent,origin,explanation:parsed.proposal.explanation});
  return review.ok?{ok:true,origin,proposal:parsed.proposal,review,providerCalls:0,modelQualityProven:false,mayExecute:false}:review;
+}
+// The live server must independently read the original settled operation. A
+// provider response ID, a client origin string or a zero-usage fixture is not it.
+export async function reviewSettledWebsiteCreativeDocumentProposal(prepared,raw,context,deps,{expected,readReceipt}={}){
+ if(reviewed.has(prepared))return {...fail('This creative review has already been consumed. Nothing will be replayed.'),mayReplay:false};
+ const parsed=parseWebsiteCreativeDocumentResponse(raw,prepared,context);if(!parsed.ok)return parsed;
+ if(expected?.sourceStamp!==prepared.sourceStamp)return fail('The settled execution belongs to a different approved website source.');
+ const review=await prepareSettledWholeWebsiteCreativeDocumentReview(context,parsed.proposal.document,deps,{approvedIntent:prepared.approvedIntent,explanation:parsed.proposal.explanation,expected,readReceipt});
+ if(!review.ok)return review;
+ if(!isCurrentWebsiteCreativeDocument(prepared,context)||reviewed.has(prepared))return fail('The original source or one-use review changed during independent receipt inspection.');
+ reviewed.add(prepared);
+ return {ok:true,origin:'real-model',proposal:parsed.proposal,review,providerCalls:1,modelQualityProven:false,mayExecute:false};
 }
 export function createOfflineWebsiteCreativeDocument(respond){
  if(typeof respond!=='function')throw Error('A clearly labelled deterministic offline response fixture is required.');

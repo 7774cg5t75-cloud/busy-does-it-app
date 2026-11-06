@@ -3,6 +3,9 @@ on:
   push:
     branches: [v3.65, codex/builder-mission15-design-advancement]
     paths:
+      - 'supabase/functions/busy-builder-proposals/creativeDocument*.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeExecution*.mjs'
+      - 'supabase/functions/busy-creative-document-pilot/**'
       - 'src/core/websiteDesignIntelligence.mjs'
       - 'supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs'
       - 'src/core/websiteCreativeDocumentReview.mjs'

@@ -1,0 +1,73 @@
+name: Quiet Light v2 offline original-renderer pilot comparison
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths:
+      - '.github/workflows/quiet-light-v2-pilot.yml'
+      - 'scripts/*quiet-light-v2-pilot.mjs'
+      - 'scripts/lib/quiet-light-v2-pilot.mjs'
+      - 'scripts/lib/quiet-pilot-review-pack.mjs'
+      - 'scripts/lib/mission16-site-fixtures.mjs'
+      - 'src/core/websiteCreativeDocumentReview.mjs'
+      - 'src/core/wholeWebsitePlan.mjs'
+      - 'src/core/websiteDesignIntelligence.mjs'
+      - 'src/core/websiteStandaloneArchive.mjs'
+      - 'src/core/websiteSourceExport.mjs'
+      - 'src/domain/websiteBuilder.js'
+      - 'supabase/functions/busy-website-worker/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: quiet-light-v2-offline-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  offline-original-renderer:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: Reviewed dependency installation and original guard
+        run: |
+          npm install --global npm@11.9.0 --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/apply-tooling-security-patches.mjs
+          node scripts/check-dependency-security.mjs
+          python3 scripts/testing/bootstrap.py --allow-network
+      - name: Exact offline synthetic source, original review and independent local readback
+        run: |
+          node scripts/check-quiet-light-v2-pilot.mjs
+          node scripts/build-quiet-light-v2-pilot.mjs
+          node scripts/capture-quiet-light-v2-pilot.mjs --validate-only
+      - name: Install existing pinned Playwright Chromium
+        run: node_modules/.bin/playwright install --with-deps chromium
+      - name: Genuine sandboxed full-page capture — no provider or hosted access
+        run: node scripts/capture-quiet-light-v2-pilot.mjs
+      - name: Retain all original HTML, full PNGs, browser checks and honest provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: quiet-light-v2-offline-evidence-${{ github.sha }}
+          path: .test-artifacts/quiet-light-v2-pilot/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
+      - name: Compact actual-pixel iPhone review pack
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: quiet-light-v2-iphone-review-${{ github.sha }}
+          path: .test-artifacts/quiet-light-v2-pilot/iphone-review-pack/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 6

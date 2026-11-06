@@ -4,6 +4,13 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - '.github/workflows/quiet-light-v2-pilot.yml'
+      - 'scripts/*quiet-light-v2-pilot.mjs'
+      - 'scripts/lib/quiet-light-v2-pilot.mjs'
+      - 'scripts/check-creative-document-execution.mjs'
+      - 'supabase/functions/busy-creative-document-pilot/**'
+      - 'supabase/functions/busy-builder-proposals/creativeDocument*.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeExecution*.mjs'
       - '.github/workflows/check-growth-drafts.yml'
       - '.github/workflows/check-growth-workspace.yml'
       - '.github/workflows/check-growth-operator.yml'
@@ -335,11 +342,11 @@ jobs:
           diff -qr src "$EDGE_SOURCE/src"
           diff -qr supabase "$EDGE_SOURCE/supabase"
           diff -qr standalone "$EDGE_SOURCE/standalone"
-          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/executionBootstrap.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1 || {
+          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/executionBootstrap.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeDocumentExecution.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeDocumentExecutionBootstrap.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeExecutionEngine.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeExecutionBootstrapCommon.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1 || {
             cat .test-artifacts/app-goal-composition/deno.log
             exit 1
           }
-          echo "BUSY_EDGE_RESULT all_26_original_entrypoints_and_5_proposal_modules_exit_0"
+          echo "BUSY_EDGE_RESULT all_27_original_entrypoints_and_9_proposal_modules_exit_0"
       - name: Signed PostgreSQL 17 tooling matching staging ACLs
         run: |
           # PostgreSQL16 cannot represent staging's existing MAINTAIN privilege.

@@ -3380,6 +3380,20 @@
         "scripts/check-mission19-creative-export.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-quiet-light-v2-pilot",
+      "args": [
+        "scripts/check-quiet-light-v2-pilot.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-creative-document-execution",
+      "args": [
+        "scripts/check-creative-document-execution.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
