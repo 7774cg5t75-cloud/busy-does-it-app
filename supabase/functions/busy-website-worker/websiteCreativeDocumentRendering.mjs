@@ -208,7 +208,7 @@ body.creative-document-site .nav-links a{min-height:44px;display:inline-flex;ali
 @media(min-width:721px) and (max-width:959px){
  .creative-doc-grid{grid-template-columns:var(--dc-mobile-columns);gap:var(--dc-mobile-gap)}
 }
-@media(max-width:700px){body.creative-document-site>nav .nav-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding-block:18px}body.creative-document-site>nav .nav-mobile-details{width:100%;grid-column:1/-1}}
+@media(max-width:700px){body.creative-document-site>nav .nav-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding-block:18px}body.creative-document-site>nav .nav-mobile-details{width:100%;grid-column:1/-1}body.creative-document-site>nav .nav-mobile-details>summary{padding-inline-end:12px}}
 @media(max-width:720px){
  body.creative-document-site main>section.creative-document{padding:var(--dc-owner-mobile-padding-y,var(--dc-owner-padding-y,var(--dc-mobile-padding-y))) var(--dc-mobile-padding-x)}
  .creative-doc-grid{grid-template-columns:var(--dc-mobile-columns);gap:var(--dc-mobile-gap)}
