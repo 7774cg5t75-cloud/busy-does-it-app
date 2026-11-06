@@ -1,3 +1,4 @@
+import {websiteInnerPageHtml} from './websiteInnerPages.mjs';
 // Static navigation derived from actual rendered section anchors, never URLs
 // supplied by an instruction. No new content, assets, destinations or scripts.
 export function websitePageGuide(draft,sections,html,escapeHtml){
@@ -23,7 +24,8 @@ export function websitePageGuideEntries(sections,html,escapeHtml){
 // Apply only to HTML produced by the finite section renderer. Empty/omitted
 // sections must not consume the page's primary heading. Keep editor attributes
 // and exact escaped wording; this is shared by private previews and deployment.
-export function websitePageHeadingHierarchy(sectionHtml){
+export function websitePageHeadingHierarchy(sectionHtml,context){
+ const inner=websiteInnerPageHtml(sectionHtml,context);if(inner!==null)return inner;
  let assigned=false;const hasPrimary=/<h1\b/.test(sectionHtml);
  return sectionHtml.replace(/<(h[12])(\b[^>]*)>([\s\S]*?)<\/\1>/g,(_all,_tag,attributes,body)=>{
   const primary=!assigned&&(!hasPrimary||_tag==='h1'),tag=primary?'h1':'h2';if(primary)assigned=true;return '<'+tag+attributes+'>'+body+'</'+tag+'>';

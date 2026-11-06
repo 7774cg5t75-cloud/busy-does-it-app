@@ -1,3 +1,5 @@
+import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
+import {wholeSitePageSpecs,wholeSiteBasePageIds} from './websiteWholeSite.mjs';
 import {protectWebsiteOwnerLocks,websiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * V3.135 owner-managed custom website pages.
@@ -12,6 +14,42 @@ const fail=(draft,reason)=>({applied:false,draft,reason});
 function editWebsitePagesUnchecked(draft={},action={}){
  if(!draft?.id||!Array.isArray(draft.sections))return fail(draft,"Build a private website draft first.");
  if(!action||typeof action!=="object"||Array.isArray(action))return fail(draft,"Choose a page action.");
+ if(['compose-service-pages','refine-site-pages','update-site-contact'].includes(action.action)){
+  const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision',...(action.action==='compose-service-pages'?['serviceIds']:action.action==='update-site-contact'?['field','value']:['direction'])];
+  if(Object.keys(action).some(k=>!allowed.includes(k))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||action.expectedProfileRevision!=null&&(!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1)||draft.business_id&&draft.business_id!==draft.businessId)
+   return fail(draft,'The owner business or website changed. Prepare a fresh whole-site review.');
+  if(action.action==='update-site-contact'){
+   if(!['email','phone'].includes(action.field)||typeof action.value!=='string'||!action.value.trim())return fail(draft,'Choose one exact contact email address or phone number.');
+   return editWebsiteDraftField(draft,{sectionId:'contact',field:action.field,value:action.value});
+  }
+  if(action.action==='refine-site-pages'){
+   if(!['premium','services','mobile'].includes(action.direction))return fail(draft,'Choose a supported inner-page refinement.');
+   const targets=new Set(list(draft.customPages).filter(p=>p.sourceServiceId).flatMap(p=>p.sectionIds||[]));
+   if(!targets.size||targets.size>10)return fail(draft,'Prepare current service pages before refining them.');
+   let changed=0;
+   const sections=draft.sections.map((s,index)=>{
+    if(!targets.has(s.id))return s;
+    const field=action.direction==='mobile'?'mobileBodyScale':s.type==='photo-feature'?'desktopPhotoSide':'readingLayout';
+    const value=action.direction==='mobile'?'large':s.type==='photo-feature'?(s.appearance?.desktopPhotoSide==='left'?'right':'left'):action.direction==='premium'?'editorial':index%2?'feature-chapters':'chapters';
+    if(s.appearance?.[field]===value)return s;changed++;return {...s,appearance:{...s.appearance,[field]:value}};
+   });
+   return changed?{applied:true,draft:{...draft,sections},reason:'Prepared a bounded inner-page design change; original words, brand and customer destinations are preserved.'}:fail(draft,'These supported settings are already present. Nothing changed.');
+  }
+  const proposed=wholeSitePageSpecs(draft,action.serviceIds);if(!proposed.ok)return fail(draft,proposed.reason);
+  if(wholeSiteBasePageIds(draft).length+list(draft.customPages).length+proposed.specs.length>10||list(draft.customPages).length+proposed.specs.length>8||draft.sections.length+proposed.specs.reduce((n,p)=>n+1+(p.detail?1:0),0)>40)
+   return fail(draft,'This site needs a smaller supported scope. No pages or wording were removed.');
+  let working={...draft,siteComposition:'connected-pages-v1'};
+  for(const spec of proposed.specs){
+   const created=editWebsitePagesUnchecked(working,{action:'create-page',title:spec.title,body:spec.opening});if(!created.applied)return fail(draft,created.reason);working=created.draft;
+   const p=working.customPages.at(-1);p.sourceServiceId=spec.serviceId;p.sourceServiceSnapshot={...spec.sourceServiceSnapshot};
+   const section=working.sections.find(s=>s.id===p.sectionIds[0]);
+   if(spec.photo){section.type='photo-feature';section.asset={...spec.photo};section.appearance={...spec.photo.appearance,desktopPhotoSide:proposed.specs.indexOf(spec)%2?'right':'left'};}
+   else section.appearance={readingLayout:'editorial'};
+   if(spec.detail){const extra=editWebsitePagesUnchecked(working,{action:'add-page-section',pageId:p.id,title:'A closer look',body:spec.detail});if(!extra.applied)return fail(draft,extra.reason);working=extra.draft;working.sections.find(s=>s.id===working.customPages.find(x=>x.id===p.id).sectionIds.at(-1)).appearance={readingLayout:'feature-chapters'};}
+  }
+  // Five page creations plus five optional details is the original ten-change bound.
+  return {applied:true,draft:working,reason:'Prepared source-grounded service pages as one private Studio revision. Existing owner pages and copy were kept.'};
+ }
  if(['edit-page-metadata','reset-page-metadata'].includes(action.action)){
   if(action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation)return fail(draft,'The website changed. Select the page again before editing its search details.');
   if(typeof action.pageId!=='string'||!/^(?:home|services|about|gallery|faq|contact|products|events|page-[a-z0-9][a-z0-9-]{1,68})$/.test(action.pageId))return fail(draft,'Choose a supported page identifier.');

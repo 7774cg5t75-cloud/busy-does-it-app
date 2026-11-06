@@ -9,6 +9,17 @@ on:
       - '.github/workflows/check-growth-operator.yml'
       - '.github/workflows/check-founder-operations.yml'
       - '.github/workflows/website-design-browser.yml'
+      - '.github/workflows/mission16-websites.yml'
+      - 'src/core/wholeWebsitePlan.mjs'
+      - 'src/core/wholeWebsitePreview.mjs'
+      - 'src/components/WholeWebsiteReview.js'
+      - 'src/domain/websiteManagement.js'
+      - 'src/core/websiteStandaloneArchive.mjs'
+      - 'scripts/check-mission16-*.mjs'
+      - 'scripts/build-mission16-sites.mjs'
+      - 'scripts/capture-mission16-sites.mjs'
+      - 'scripts/lib/mission16-site-fixtures.mjs'
+      - 'scripts/fixtures/mission16-export/**'
       - 'src/core/premiumWebsite*.mjs'
       - 'src/core/businessIntroduction.mjs'
       - 'src/core/connectedBusinessPreparation.mjs'
@@ -224,6 +235,11 @@ jobs:
       - name: Original contract and component behaviour
         run: |
           mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-mission16-whole-site.mjs
+          node scripts/check-mission16-inner-pages.mjs
+          node scripts/check-mission16-portable-media.mjs
+          node scripts/check-mission16-preview-navigation.mjs
+          node scripts/check-mission16-whole-site-ui.mjs
           node scripts/check-enquiry-preparation.mjs
           node scripts/check-operational-work.mjs
           node scripts/check-website-menu-story.mjs
@@ -268,7 +284,7 @@ jobs:
           node scripts/check-production.mjs
           node scripts/check-security-baseline.mjs
           node scripts/check-security-by-design.mjs
-          node scripts/testing/syntax.mjs src/core/operationalScreen.mjs src/components/DurableOperationalScreen.js src/components/WorkPreparationOverview.js src/core/appGoalComposition.mjs src/core/governedBuilderProposal.mjs src/core/universalBuilderPlanV3210.mjs src/screens/appGoalCompositionEditor.js src/screens/miniApps.js src/staging/ConnectedBuilderWorkspace.js
+          node scripts/testing/syntax.mjs src/core/operationalScreen.mjs src/components/DurableOperationalScreen.js src/components/WorkPreparationOverview.js src/core/appGoalComposition.mjs src/core/governedBuilderProposal.mjs src/core/universalBuilderPlanV3210.mjs src/screens/appGoalCompositionEditor.js src/screens/miniApps.js src/staging/ConnectedBuilderWorkspace.js src/core/wholeWebsitePlan.mjs src/core/wholeWebsitePreview.mjs src/components/WholeWebsiteReview.js src/screens/guidedWebsiteCreation.js
       - name: Original legacy Website worker scopes with real shared dependencies
         run: |
           node scripts/check-mission15-phase23-editorial.mjs
@@ -356,6 +372,8 @@ jobs:
           cp .test-artifacts/preservation-foundation/postgres.json .test-artifacts/app-goal-composition/preservation-foundation.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-foundation-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-foundation.log 2>&1
           cp .test-artifacts/ai-lab-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-foundation.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-mission16-whole-site-postgres.mjs > .test-artifacts/app-goal-composition/mission16-whole-site-postgres.log 2>&1
+          cp .test-artifacts/mission16-whole-site/postgres.json .test-artifacts/app-goal-composition/mission16-whole-site-postgres.json
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1

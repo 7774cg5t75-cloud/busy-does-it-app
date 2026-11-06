@@ -3233,6 +3233,41 @@
         "scripts/check-ai-lab-foundation.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission16-whole-site",
+      "args": [
+        "scripts/check-mission16-whole-site.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission16-inner-pages",
+      "args": [
+        "scripts/check-mission16-inner-pages.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission16-portable-media",
+      "args": [
+        "scripts/check-mission16-portable-media.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission16-preview-navigation",
+      "args": [
+        "scripts/check-mission16-preview-navigation.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission16-whole-site-ui",
+      "args": [
+        "scripts/check-mission16-whole-site-ui.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

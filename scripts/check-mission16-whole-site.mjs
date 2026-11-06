@@ -1,0 +1,116 @@
+import {archiveRequirements} from '../src/core/websiteStandaloneArchive.mjs';
+import assert from 'node:assert/strict';
+import {buildWebsiteDraft,applyWebsitePageChange,renderWebsiteHtml} from '../src/domain/websiteBuilder.js';
+import {prepareWholeWebsite,prepareWholeWebsiteRefinement,isCurrentWholeWebsite,keepWholeWebsite} from '../src/core/wholeWebsitePlan.mjs';
+import {websiteRequestContent} from '../src/core/websiteRequestPlan.mjs';
+import {wholeSiteServices,wholeSitePageSpecs} from '../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
+import {originalWebsiteSectionRuntime} from './lib/original-website-section-runtime.mjs';
+import {mission16Fixture} from './lib/mission16-site-fixtures.mjs';
+const ownerId='00000000-0000-4000-8000-000000000001',businessId='00000000-0000-4000-8000-000000000016';
+const deps={pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml},copy=x=>JSON.parse(JSON.stringify(x));
+const services=Array.from({length:7},(_,i)=>({id:'care-'+i,name:['Garden maintenance','Seasonal planting','Hedge care','Lawn care','Border planning','Pruning','Garden visits'][i],description:'Exact owner-supplied description for service '+i+'. We discuss the garden and the work requested.\n\nThe owner supplied this second paragraph about how this service is approached.'}));
+function fixture({sparse=false,serviceCount=7}={}){
+ let d=buildWebsiteDraft({brandBrain:{websiteBrief:{businessName:'Fictional Devon Garden Studio',businessType:'Landscaping',serviceArea:'Devon',description:'Owner-approved introduction for this fictional business.',...(!sparse?{about:'The owner-approved fictional story describes the approach to garden care.',services:services.slice(0,serviceCount)}:{}),email:'owner@example.invalid'}}});
+ d={...d,businessId,business_id:businessId,theme:{...d.theme,heroComposition:'split-editorial'}};
+ return {ownerId,businessId,profileRevision:1,website:d,goal:'Build my complete website showing services and how customers can contact me.'};
+}
+function action(context,serviceIds=['care-0']){return {action:'compose-service-pages',serviceIds,expectedWebsiteId:context.website.id,expectedGeneration:context.website.generation,expectedBusinessId:context.businessId};}
+function saver(get,set,{account=true}={}){return operation=>{const result=applyWebsitePageChange(get().website,operation);if(!result.applied)return result;const observed=copy(result.draft);set({...get(),website:result.draft});return {applied:true,...(account?{verifiedPrivateReadback:{ownerId,businessId,recordHash:'a'.repeat(64),websiteDraft:observed}}:{localPrivateReadback:{websiteDraft:observed}})};};}
+let passed=0;
+async function test(name,fn){await fn();passed++;console.log('PASS '+name);}
+await test('complete approved source creates purposeful pages once without mutating the source',()=>{
+ const context=fixture(),before=JSON.stringify(context),r=prepareWholeWebsite(context,deps);assert.equal(r.ok,true);assert.equal(JSON.stringify(context),before);assert.ok(r.pages.length>=5&&r.pages.length<=10);assert.equal(r.operation.serviceIds.length,5);assert.equal(r.candidate.generation,context.website.generation+1);assert.equal(r.stats.providerCalls,0);assert.equal(r.stats.measuredTokenUsage,null);assert.equal(r.stats.measuredProviderCost,null);assert.equal(r.accountSaved,false);assert.equal(r.neverPublishes,true);
+ for(const p of r.pages){assert.equal(typeof p.purpose,'string');assert.ok(r.previews[p.id].startsWith('<!doctype html>'));assert.equal((r.previews[p.id].match(/<h1\b/g)||[]).length,1);assert.ok(!/<script\b|data-busy-edit-section/i.test(r.previews[p.id]));}
+ for(const p of r.candidate.customPages){const s=wholeSiteServices(context.website).find(x=>x.id===p.sourceServiceId);assert.ok(s);assert.equal(p.title,s.title);const words=p.sectionIds.map(id=>r.candidate.sections.find(x=>x.id===id).body).join('\n\n');assert.equal(words,s.body);}
+});
+await test('sparse source stays coherent without invented pages, photographs or facts',()=>{
+ const context=fixture({sparse:true}),r=prepareWholeWebsite(context,deps);assert.equal(r.ok,true);assert.ok(r.pages.length>=2&&r.pages.length<5);assert.equal(r.candidate.customPages.length,0);assert.equal(r.stats.sourceServicesReused,0);assert.equal(r.candidate.sections.filter(s=>s.type==='photo-feature').length,0);assert.ok(!r.pages.some(p=>p.id==='gallery'));
+});
+await test('maximum ten purposeful pages and finite direct-operation bounds',()=>{
+ const context=fixture();context.website.sections.push({id:'faq',type:'faq',enabled:true,title:'Owner questions',items:[{question:'How do I enquire?',answer:'Use the supplied contact details.'}]});
+ const r=prepareWholeWebsite(context,deps);assert.equal(r.ok,true);assert.equal(r.pages.length,10);assert.equal(r.candidate.customPages.length,5);const more=applyWebsitePageChange(r.candidate,action({...context,website:r.candidate},['care-5']));assert.equal(more.applied,false);
+ for(const bad of [Array(6).fill('care-0'),['care-0','care-0'],['not-a-current-service'],null])assert.equal(applyWebsitePageChange(context.website,action(context,bad)).applied,false);
+});
+await test('review mutation and copied/forged reviews cannot broaden the operation',async()=>{
+ const context=fixture(),r=prepareWholeWebsite(context,deps);let calls=0;r.operation.serviceIds=['care-6'];assert.equal(isCurrentWholeWebsite(r,context),false);assert.equal((await keepWholeWebsite(r,{getContext:()=>context,apply:()=>{calls++;}})).ok,false);assert.equal(calls,0);
+ const clean=prepareWholeWebsite(context,deps);assert.equal(isCurrentWholeWebsite(copy(clean),context),false);assert.equal(isCurrentWholeWebsite({...clean},context),false);clean.previews.home+='<p>Changed preview</p>';assert.equal(isCurrentWholeWebsite(clean,context),false);
+});
+await test('review candidate mutation cannot modify the original owner draft',()=>{
+ const context=fixture(),before=JSON.stringify(context.website),r=prepareWholeWebsite(context,deps);r.candidate.sections.find(s=>s.id==='hero').title='Changed candidate wording';r.candidate.theme.ink='#000000';assert.equal(JSON.stringify(context.website),before);assert.equal(isCurrentWholeWebsite(r,context),false);
+});
+await test('one-use Keep requires exact independent account readback and never replays',async()=>{
+ let context=fixture(),calls=0;const r=prepareWholeWebsite(context,deps);const apply=saver(()=>context,x=>{context=x;});const keep=()=>keepWholeWebsite(r,{getContext:()=>context,apply:op=>{calls++;return apply(op);}});const result=await keep();assert.equal(result.ok,true);assert.equal(result.accountSaved,true);assert.equal(websiteRequestContent(context.website),websiteRequestContent(r.candidate));assert.equal((await keep()).ok,false);assert.equal(calls,1);
+});
+await test('private session readback does not claim a verified account save',async()=>{
+ let context=fixture();const r=prepareWholeWebsite(context,deps);const result=await keepWholeWebsite(r,{getContext:()=>context,apply:saver(()=>context,x=>{context=x;},{account:false})});assert.equal(result.ok,true);assert.equal(result.accountSaved,false);
+});
+await test('lost acknowledgement and duplicate concurrent Keep remain fenced',async()=>{
+ const context=fixture(),r=prepareWholeWebsite(context,deps);let calls=0,release;const pending=new Promise(resolve=>{release=resolve;});const first=keepWholeWebsite(r,{getContext:()=>context,apply:async()=>{calls++;await pending;throw Error('Synthetic lost acknowledgement');}});assert.equal((await keepWholeWebsite(r,{getContext:()=>context,apply:()=>{calls++;}})).ok,false);release();const result=await first;assert.equal(result.unknown,true);assert.equal(result.mayReplay,false);assert.equal((await keepWholeWebsite(r,{getContext:()=>context,apply:()=>{calls++;}})).ok,false);assert.equal(calls,1);
+});
+await test('wrong, missing or changed readbacks are uncertain rather than saved',async()=>{
+ for(const alter of [packet=>{packet.recordHash='invalid';},packet=>{packet.ownerId='foreign';},packet=>{packet.businessId='foreign';},packet=>{packet.websiteDraft.sections.find(s=>s.id==='hero').title='Different result';},packet=>{packet.websiteDraft.generation++;}]){
+  const context=fixture(),r=prepareWholeWebsite(context,deps);const packet={ownerId,businessId,recordHash:'a'.repeat(64),websiteDraft:copy(r.candidate)};alter(packet);const result=await keepWholeWebsite(r,{getContext:()=>context,apply:()=>({applied:true,verifiedPrivateReadback:packet})});assert.equal(result.ok,false);assert.equal(result.unknown,true);assert.equal(result.mayReplay,false);
+ }
+ const context=fixture(),r=prepareWholeWebsite(context,deps);assert.equal((await keepWholeWebsite(r,{getContext:()=>context,apply:()=>({applied:true})})).unknown,true);
+});
+await test('owner, business, profile, source and identical-content generation changes deny stale reviews',async()=>{
+ const changes=[c=>{c.ownerId='foreign';},c=>{c.businessId='foreign';},c=>{c.profileRevision++;},c=>{c.website.sections.find(s=>s.id==='hero').title='Unsaved owner wording';},c=>{c.website.generation+=2;},c=>{c.website.id='other-website';}];
+ for(const change of changes){let context=fixture();const r=prepareWholeWebsite(context,deps);context=copy(context);change(context);let calls=0;assert.equal(isCurrentWholeWebsite(r,context),false);assert.equal((await keepWholeWebsite(r,{getContext:()=>context,apply:()=>{calls++;}})).ok,false);assert.equal(calls,0);}
+ const foreign=fixture();foreign.website.business_id='foreign';assert.equal(prepareWholeWebsite(foreign,deps).ok,false);
+});
+await test('derived service provenance rejects changed or removed facts without replacing owner words',async()=>{
+ const context=fixture(),site=prepareWholeWebsite(context,deps);assert.equal(site.ok,true);
+ const original=wholeSiteServices(context.website).find(s=>s.id==='care-0');assert.deepEqual(site.candidate.customPages[0].sourceServiceSnapshot,{title:original.title,body:original.body});
+ for(const change of [s=>{s.body+=' A newly approved source detail.';},s=>{s.title='A changed approved service';},s=>{s.id='removed-original-service';}]){let current={...context,website:copy(site.candidate)};const before=current.website.sections.filter(s=>s.pageOnly).map(s=>[s.id,s.title,s.body]);change(current.website.sections.find(s=>s.id==='services').items[0]);const r=prepareWholeWebsiteRefinement(current,'Make the mobile layout easier to use',deps);assert.equal(r.ok,false);assert.match(r.reason,/service changed or was removed/i);assert.equal(archiveRequirements(current.website).ok,false);assert.deepEqual(current.website.sections.filter(s=>s.pageOnly).map(s=>[s.id,s.title,s.body]),before);}
+ const owner={...context,website:copy(site.candidate)},first=owner.website.sections.find(s=>s.id===owner.website.customPages[0].sectionIds[0]);first.body='My deliberate owner-authored service introduction.';const fresh=prepareWholeWebsiteRefinement(owner,'Make the mobile layout easier to use',deps);assert.equal(fresh.ok,true);assert.equal(fresh.candidate.sections.find(s=>s.id===first.id).body,first.body);
+ const current={...context,website:copy(site.candidate)},review=prepareWholeWebsiteRefinement(current,'Make the mobile layout easier to use',deps);current.website.sections.find(s=>s.id==='services').items[0].body+=' Changed after review.';let calls=0;assert.equal((await keepWholeWebsite(review,{getContext:()=>current,apply:()=>{calls++;}})).ok,false);assert.equal(calls,0);
+});
+await test('newer unsaved owner words during an asynchronous save remain protected',async()=>{
+ let context=fixture(),release;const r=prepareWholeWebsite(context,deps),pending=new Promise(resolve=>{release=resolve;});const save=keepWholeWebsite(r,{getContext:()=>context,apply:async()=>{await pending;return {applied:true,verifiedPrivateReadback:{ownerId,businessId,recordHash:'a'.repeat(64),websiteDraft:copy(r.candidate)}};}});
+ context=copy(context);context.website.sections.find(s=>s.id==='hero').title='Newer unsaved owner headline';release();const result=await save;assert.equal(result.ok,false);assert.equal(result.unknown,true);assert.equal(result.mayReplay,false);assert.equal(context.website.sections.find(s=>s.id==='hero').title,'Newer unsaved owner headline');
+});
+await test('all locks and source section placement locks survive the derived page rebuild',()=>{
+ for(const lockedSections of [['all'],['services'],['contact']]){const context=fixture({serviceCount:1});context.website.theme.lockedSections=lockedSections;const before=JSON.stringify(context.website),r=prepareWholeWebsite(context,deps);assert.equal(r.ok,false,JSON.stringify({lockedSections,pages:context.website.pages.map(p=>p.id),reason:r.reason}));assert.equal(JSON.stringify(context.website),before);}
+ const unaffected=fixture();unaffected.website.theme.lockedSections=['hero'];const permitted=prepareWholeWebsite(unaffected,deps);assert.equal(permitted.ok,true);assert.deepEqual(permitted.candidate.sections.find(s=>s.id==='hero'),unaffected.website.sections.find(s=>s.id==='hero'));assert.deepEqual(permitted.candidate.pages.filter(p=>p.sectionIds.includes('hero')),unaffected.website.pages.filter(p=>p.sectionIds.includes('hero')));
+ const context=fixture();context.website.theme.lockedSections='malformed';assert.equal(prepareWholeWebsite(context,deps).ok,false);
+});
+await test('ordinary service and mobile refinements preserve exact words, assets and brand',()=>{
+ const context=fixture(),site=prepareWholeWebsite(context,deps);context.website=site.candidate;const sourceWords=context.website.sections.map(s=>[s.id,s.title,s.body,s.items,s.asset]),brand=context.website.theme;for(const request of ['Make the service pages more interesting.','Make the mobile layout easier to use.']){const result=prepareWholeWebsiteRefinement(context,request,deps);assert.equal(result.ok,true);assert.deepEqual(result.candidate.sections.map(s=>[s.id,s.title,s.body,s.items,s.asset]),sourceWords);assert.deepEqual(result.candidate.theme,brand);}
+ const locked=copy(context);locked.website.theme.lockedSections=[locked.website.customPages[0].sectionIds[0]];assert.equal(prepareWholeWebsiteRefinement(locked,'Make the mobile layout easier to use',deps).ok,false);
+});
+await test('contact update changes only the exact original contact source and all page rendering',()=>{
+ const context=fixture(),site=prepareWholeWebsite(context,deps);context.website=site.candidate;const contact=context.website.sections.find(s=>s.id==='contact');const before=JSON.stringify(context.website.sections.filter(s=>s.id!=='contact'));const r=prepareWholeWebsiteRefinement(context,'Change contact email to reviewed@example.invalid',deps);assert.equal(r.ok,true);assert.equal(contact.email,'owner@example.invalid');assert.equal(r.candidate.sections.find(s=>s.id==='contact').email,'reviewed@example.invalid');assert.equal(JSON.stringify(r.candidate.sections.filter(s=>s.id!=='contact')),before);assert.match(r.previews.contact,/mailto:reviewed@example.invalid/);assert.ok(!Object.values(r.previews).join('').includes('mailto:owner@example.invalid'));
+ assert.equal(prepareWholeWebsiteRefinement(context,'Change the contact information',deps).ok,false);assert.equal(prepareWholeWebsiteRefinement(context,'Change contact email to javascript:alert(1)',deps).ok,false);
+});
+await test('exact service addition, duplicate/no-op refusal and unsupported goals are honest',()=>{
+ const context=fixture();const add=prepareWholeWebsiteRefinement(context,'Add a garden maintenance page',deps);assert.equal(add.ok,true);assert.deepEqual(add.operation.serviceIds,['care-0']);context.website=add.candidate;assert.equal(prepareWholeWebsiteRefinement(context,'Add a garden maintenance page',deps).ok,false);assert.equal(prepareWholeWebsiteRefinement(context,'Add a fabricated award page',deps).ok,false);
+ for(const goal of ['Publish my website','Build my website and send customers messages','Build my website and pay for ads'])assert.equal(prepareWholeWebsite({...fixture(),goal},deps).ok,false);
+ for(const request of ['Add an online checkout','Book all consultations','Invent five customer reviews','Make arbitrary CSS changes','Contact everyone'])assert.equal(prepareWholeWebsiteRefinement(context,request,deps).ok,false);
+ const missing=fixture();missing.website.sections.find(s=>s.id==='contact').email='';missing.website.sections.find(s=>s.id==='contact').phone='';assert.equal(prepareWholeWebsite(missing,deps).ok,false);
+});
+await test('foreign, withdrawn, expired, ambiguous and stale service images fail closed',()=>{
+ const asset={approved:true,businessId,storagePath:'fictional/approved.jpg',uri:'https://fixture.example.invalid/approved.jpg',sha256:'b'.repeat(64),revision:1,width:1600,height:1000,alt:'Licensed illustrative garden, not completed customer work',appearance:{photoFit:'contain',mobilePhotoCrop:'top'}};
+ function photographic(){const c=fixture();c.website.sections.push({id:'gallery',type:'gallery',enabled:true,title:'Approved illustrations',items:[copy(asset)]});c.website.sections.find(s=>s.id==='services').items[0].photoBinding={serviceId:'care-0',storagePath:asset.storagePath,sha256:asset.sha256,assetRevision:1};return c;}
+ const c=photographic(),r=prepareWholeWebsiteRefinement(c,'Add a garden maintenance page',deps);assert.equal(r.ok,true);const p=r.candidate.customPages.find(x=>x.sourceServiceId==='care-0'),s=r.candidate.sections.find(x=>x.id===p.sectionIds[0]);assert.deepEqual(s.asset,asset);assert.equal(s.type,'photo-feature');assert.match(r.previews[p.id],/Licensed illustrative garden, not completed customer work/);assert.ok(!renderWebsiteHtml(r.candidate,p.id,{standalone:true}).includes('src="'+asset.uri+'"'));assert.ok(renderWebsiteHtml(r.candidate,p.id,{standalone:true,privatePagePreview:true}).includes('src="'+asset.uri+'"'));const worker=originalWebsiteSectionRuntime();assert.ok(worker(r.candidate,s,{[asset.storagePath]:asset.uri},true).includes('src="'+asset.uri+'"'));
+ for(const alter of [a=>{a.businessId='foreign';},a=>{a.status='withdrawn';},a=>{a.expiresAt='2020-01-01';},a=>{a.revision=2;},a=>{a.sha256='c'.repeat(64);},a=>{a.approved=false;}]){const context=photographic();alter(context.website.sections.find(x=>x.id==='gallery').items[0]);assert.equal(prepareWholeWebsiteRefinement(context,'Add a garden maintenance page',deps).ok,false);}
+ const duplicated=photographic();duplicated.website.sections.find(x=>x.id==='gallery').items.push(copy(asset));assert.equal(wholeSitePageSpecs(duplicated.website,['care-0']).ok,false);
+ const stale=photographic(),review=prepareWholeWebsiteRefinement(stale,'Add a garden maintenance page',deps);stale.website.sections.find(x=>x.id==='gallery').items[0].revision++;assert.equal(isCurrentWholeWebsite(review,stale),false);
+ // A saved copied presentation cannot continue using a vanished or revised
+ // original service/gallery authority, even before a new proposal is made.
+ for(const change of [d=>{d.sections.find(x=>x.id==='gallery').items=[];},d=>{d.sections.find(x=>x.id==='gallery').items[0].revision++;},d=>{d.sections.find(x=>x.id==='gallery').items[0].status='withdrawn';},d=>{delete d.sections.find(x=>x.id==='services').items[0].photoBinding;}]){const current={...c,website:copy(r.candidate)};change(current.website);assert.equal(prepareWholeWebsiteRefinement(current,'Make the mobile layout easier to use',deps).ok,false);assert.ok(!renderWebsiteHtml(current.website,p.id,{standalone:true,privatePagePreview:true}).includes('src="'+asset.uri+'"'));const fallback=worker(current.website,current.website.sections.find(x=>x.id===s.id),{[asset.storagePath]:asset.uri},true);assert.ok(!fallback.includes('src="'+asset.uri+'"'));assert.ok(fallback.includes('Exact owner-supplied description for service 0.'));}
+});
+await test('render/editor failure and executable output fail closed without an account write',()=>{
+ const context=fixture(),before=JSON.stringify(context.website);
+ for(const bad of [{...deps,pageEdit:()=>{throw Error('Synthetic edit failure');}},{...deps,pageEdit:()=>({applied:true,draft:null})},{...deps,renderPage:()=>{throw Error('Synthetic rendering failure');}},{...deps,renderPage:()=>'<script>untrusted()</script>'},{...deps,renderPage:()=>'<!doctype html><script>untrusted()</script>'}])assert.equal(prepareWholeWebsite(context,bad).ok,false);
+ assert.equal(JSON.stringify(context.website),before);
+});
+await test('unknown scope, ambiguous service identity and unexpected fields fail',()=>{
+ const context=fixture();const duplicates=copy(context);duplicates.website.sections.find(s=>s.id==='services').items.push(copy(duplicates.website.sections.find(s=>s.id==='services').items[0]));assert.equal(wholeSiteServices(duplicates.website).some(s=>s.id==='care-0'),false);
+ for(const patch of [{expectedBusinessId:'foreign'},{expectedWebsiteId:'foreign'},{expectedGeneration:999},{providerEnabled:true},{action:'compose-service-pages',serviceIds:['care-0'],publish:true}])assert.equal(applyWebsitePageChange(context.website,{...action(context),...patch}).applied,false);
+});
+await test('actual three-business page metadata is grounded, distinct and preserves exact owner SEO',()=>{
+ for(const index of [0,1,2]){const context=mission16Fixture(index),r=prepareWholeWebsite(context,deps);assert.equal(r.ok,true);const metadata=Object.values(r.candidate.seo.pages);assert.equal(new Set(metadata.map(m=>m.description)).size,metadata.length,'Each rich page needs its own grounded purpose');assert.equal(new Set(metadata.map(m=>m.title)).size,metadata.length);for(const entry of metadata){assert.ok(entry.title.length<=70&&entry.description.length<=160);assert.ok(entry.title.includes(context.website.businessName));}
+  const page=r.candidate.pages.find(p=>p.sourceServiceId),title='Exact owner search title '+index,description='Exact owner search description. No invented ranking or customer result.';const edited=applyWebsitePageChange(r.candidate,{action:'edit-page-metadata',expectedWebsiteId:r.candidate.id,expectedGeneration:r.candidate.generation,pageId:page.id,title,description});assert.equal(edited.applied,true);const fresh=prepareWholeWebsiteRefinement({...context,website:edited.draft},'Make the mobile layout easier to use',deps);assert.equal(fresh.ok,true);assert.equal(fresh.candidate.seo.pages[page.id].title,title);assert.equal(fresh.candidate.seo.pages[page.id].description,description);assert.match(fresh.previews[page.id],new RegExp('<title>'+title+'</title>'));assert.equal(fresh.candidate.pages.find(p=>p.id===page.id).title,page.title);
+ }
+});
+console.log('PASS '+passed+' whole-site workflow cases; zero failures. Original finite edits/rendering/readback exercised locally. No hosted installation, provider execution, publication, independent aesthetic approval or measured AI cost claimed.');

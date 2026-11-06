@@ -148,7 +148,7 @@ function buildSections(brief = {}) {
       id: "gallery",
       type: "gallery",
       enabled: true,
-      title: "Our work",
+      title: "Gallery",
       body: "",
       items: safeArray(brief.photos).slice(0, 12),
     });
@@ -232,8 +232,9 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const keepOwnerCopy=section=>{
     const matches=sameOwnerSource?safeArray(previousDraft?.sections).filter(s=>s.id===section.id&&s.type===section.type):[];
     const prior=matches.length===1?matches[0]:null;
-    const fields=[...new Set(safeArray(prior?.ownerEditedFields))].filter(f=>['title','body'].includes(f)&&typeof prior[f]==='string'&&prior[f].length<=(f==='title'?140:2500)&&(f!=='title'||!!prior[f].trim())&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(prior[f]));
-    return fields.length?{...section,...Object.fromEntries(fields.map(f=>[f,prior[f]])),ownerEditedFields:fields}:section;
+    const fields=[...new Set(safeArray(prior?.ownerEditedFields))].filter(f=>['title','body',...(section.type==='contact'?['email','phone','openingHours']:[])].includes(f)&&typeof prior[f]==='string'&&prior[f].length<=(f==='title'?140:2500)&&(f!=='title'||!!prior[f].trim())&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(prior[f]));
+    const validated=fields.filter(f=>f!=='email'||!prior[f]||/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(prior[f])).filter(f=>f!=='phone'||!prior[f]||/^[+()\d .-]{5,40}$/.test(prior[f]));
+    return validated.length?{...section,...Object.fromEntries(validated.map(f=>[f,prior[f]])),ownerEditedFields:validated}:section;
   };
   const rawSections=[...generated.map(keepOwnerItems).map(keepOwnerCopy),
     ...ownedCollections.filter(old=>!generated.some(s=>
@@ -337,6 +338,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
         }
       : null,
     theme,
+    ...(sameOwnerSource&&previousDraft?.siteComposition==='connected-pages-v1'?{siteComposition:'connected-pages-v1'}:{}),
     customPages:safeArray(previousDraft?.customPages).map(page=>({
       ...page,sectionIds:safeArray(page?.sectionIds).slice()
     })),
@@ -665,7 +667,9 @@ function applyStructuredWebsiteEdit(draft = {}, patch = {}) {
 
 function applyWebsitePageChange(draft = {}, change = {}) {
   const result=applyWebsiteVisualEdit(draft,{...change,kind:"page"});
-  return result.applied?{...result,draft:withHtml(result.draft)}:result;
+  // Page modelling may add a route or change placement after the pure edit.
+  // Recheck the original lock invariant over that complete derived result.
+  return result.applied?protectWebsiteOwnerLocks(draft,{...result,draft:withHtml(result.draft)}):result;
 }
 
 /** Finite tokens only. Page HTML must not expose user-supplied raw style strings. */
@@ -702,7 +706,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const prefix="../".repeat(clean(page?.outputPath||"index.html").split("/").length-1);
   const approvedImage = asset => {
     if(!websiteAssetAvailable(asset,draft.businessId||draft.business_id))return "";
-    if(standalone){
+    if(standalone&&options?.privatePagePreview!==true){
       const key=clean(asset?.storagePath)||clean(asset?.uri);
       const filename=options?.assetFiles?.[key]||"";
       return /^assets\/[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp)$/.test(filename)
@@ -728,6 +732,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     const visible=['products','events'].includes(section.type)?true:section.type==="hero"?false:
       ["services","faq","testimonials"].includes(section.type)?
         safeArray(section.items).some(item=>clean(item?.title||item?.body)):
+      section.type==="photo-feature"?!!clean(section.body)&&safeArray(draft.customPages).some(p=>p.sourceServiceId&&safeArray(p.sectionIds).includes(section.id))||websiteAssetAvailable(section.asset,draft.businessId||draft.business_id,draft,section)&&!!approvedImage(section.asset):
       section.type==="gallery"?websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).some(row=>approvedImage(row.asset)):
       section.type==="contact"?!!(clean(section.body)||clean(section.phone)||clean(section.email)):
       !!clean(section.body);
@@ -791,10 +796,14 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}${serviceContactAction(item,section.type==="services"&&renderedAnchors.has("contact")?"#contact":"",escapeHtml)}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="photo-feature"){
-      const image=approvedImage(section.asset);
-      const picture=`<img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}">`;
+      const image=websiteAssetAvailable(section.asset,draft.businessId||draft.business_id,draft,section)?approvedImage(section.asset):'';
+      const imageAppearance=section.asset?.appearance||{},imageCrop=galleryPhotoClass(section.asset)+['mobile','desktop'].map(view=>['top','center','bottom'].includes(imageAppearance[view+'PhotoCrop'])?' owner-image-'+view+'-crop-'+imageAppearance[view+'PhotoCrop']:'').join('');
+      const dimensions=Number.isSafeInteger(section.asset?.width)&&section.asset.width>0&&section.asset.width<=20000&&Number.isSafeInteger(section.asset?.height)&&section.asset.height>0&&section.asset.height<=20000?` width="${section.asset.width}" height="${section.asset.height}"`:'';
+      const eager=orderedSections[0]===section;
+      const picture=`<img class="photo-feature-image${imageCrop}" loading="${eager?'eager':'lazy'}" decoding="async"${eager?' fetchpriority="high"':''}${dimensions}${responsivePhotoAttributes(section.asset,image,options.assetVariants,escapeHtml)}${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||'Website photograph')}">`;
       const copy=`<div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div>`;
-      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"${editAttrs(section,"section")}><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></section>`:"";
+      const generatedServicePage=safeArray(draft.customPages).some(p=>p.sourceServiceId&&safeArray(p.sectionIds).includes(section.id));
+      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"${editAttrs(section,"section")}><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></section>`:generatedServicePage&&clean(section.body)?`<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap">${copy}</div></section>`:"";
     }
     if(section.type==="gallery"){
       const selected=websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}),images=selected.map(row=>approvedImage(row.asset)).filter(Boolean);
@@ -834,7 +843,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
       : "";
   }).join("");
-  const sectionHtml=websitePageHeadingHierarchy(rawSectionHtml);
+  const sectionHtml=websitePageHeadingHierarchy(rawSectionHtml,{draft,page,sections:orderedSections,escapeHtml,editAttrs,homeHref:standalone?homePath:'',pageHref:id=>standalone?linkToPage(id):''});
   const business=escapeHtml(draft.businessName||"Business website");
   const area=clean(draft.serviceArea);
   const nav=safeArray(draft.navigation)
@@ -847,9 +856,12 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const href=pageLink||(fragment.startsWith("#")?
         (page?.id==="home"&&renderedAnchors.has(fragment.slice(1))
           ?fragment:homePath+fragment):"");
-      return href?`<a href="${escapeHtml(href)}">${escapeHtml(item.label)}</a>`:"";
+      return href?`<a${item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(href)}">${escapeHtml(item.label)}</a>`:"";
     }).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(draft.theme?.heroComposition||"")?"premium-site-"+draft.theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml)}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+  const navigationHtml=safeArray(draft.navigation).length>6
+    ?`<div class="nav-links nav-long-desktop">${nav}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${nav}</div></details>`
+    :`<div class="nav-links">${nav}</div>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(draft.theme?.heroComposition||"")?"premium-site-"+draft.theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a>${navigationHtml}</div></nav><main id="main">${page?.id==='home'||!page?websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml):''}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 

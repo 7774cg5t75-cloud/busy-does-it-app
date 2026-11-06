@@ -1,3 +1,4 @@
+import {wholeSiteSectionPhotoCurrent} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
 // Presentation eligibility over the ORIGINAL current website gallery. This is
 // not storage authorisation: the gateway re-reads the authenticated source.
 export function reviewWebsitePhoto(draft,storagePath,{now=Date.now()}={}){
@@ -16,5 +17,5 @@ export function websitePhotoChoices(draft){return (draft?.sections||[]).filter(s
 export function websitePhotoSourcesCurrent(draft,{now=Date.now()}={}){
  if(!draft)return true;
  const businessId=draft.businessId||draft.business_id;
- return (draft.sections||[]).filter(s=>s.enabled!==false).flatMap(s=>s.type==='hero'||s.type==='photo-feature'?[s.asset]:s.type==='gallery'?s.items||[]:[]).filter(Boolean).every(a=>![a.businessId,a.business_id].some(id=>id&&id!==businessId)&&!['revoked','withdrawn','deleted'].includes(a.status)&&(!a.expiresAt||Number.isFinite(Date.parse(a.expiresAt))&&Date.parse(a.expiresAt)>now));
+ return (draft.sections||[]).filter(s=>s.enabled!==false).every(s=>wholeSiteSectionPhotoCurrent(draft,s))&&(draft.sections||[]).filter(s=>s.enabled!==false).flatMap(s=>s.type==='hero'||s.type==='photo-feature'?[s.asset]:s.type==='gallery'?s.items||[]:[]).filter(Boolean).every(a=>![a.businessId,a.business_id].some(id=>id&&id!==businessId)&&!['revoked','withdrawn','deleted'].includes(a.status)&&(!a.expiresAt||Number.isFinite(Date.parse(a.expiresAt))&&Date.parse(a.expiresAt)>now));
 }

@@ -14102,6 +14102,15 @@ function App({connectedRuntime=null}={}) {
     return commitReviewedBuilderDraft(websiteDraft,next,result.reason||"");
   };
 
+  const applyReviewedWebsitePageAction=(operation)=>{
+    const current=websiteDraftRef.current;
+    if(!current||operation?.expectedWebsiteId!==current.id||operation?.expectedGeneration!==current.generation||operation?.expectedBusinessId!==cloudWorkspace?.businessId)return {applied:false,reason:'The business or website changed.'};
+    const result=applyWebsitePageChange(current,operation);
+    if(!result.applied||!commitReviewedBuilderDraft(current,result.draft,result.reason))return {applied:false,reason:result.reason||'Original Studio review is unavailable.'};
+    const observed=websiteDraftRef.current;
+    return {applied:true,localPrivateReadback:{websiteDraft:observed},reason:'Kept in the original private Studio session; account persistence is not verified.'};
+  };
+
   const applyWebsitePageAction=(operation)=>{
     if(!websiteDraft){
       setWebsiteBuilderNotice("Build a website draft before creating extra pages.");
@@ -17445,6 +17454,7 @@ function App({connectedRuntime=null}={}) {
     applyWebsiteLayoutAction,
     recordMeasuredWebsiteFeedback,
     applyWebsitePageAction,
+    applyReviewedWebsitePageAction,
     shareWebsiteContent,
     shareStandaloneWebsiteZip,
     backupWebsiteOriginals,

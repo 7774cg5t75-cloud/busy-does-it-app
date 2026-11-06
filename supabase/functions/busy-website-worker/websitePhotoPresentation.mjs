@@ -1,7 +1,8 @@
 import {usedContentPhotos} from './websiteContentPhotos.mjs';
 import {usedServicePhotos} from './websiteServicePhotos.mjs';
-export function websiteAssetAvailable(asset,businessId=''){
- return !!asset&&asset.approved!==false&&!['revoked','withdrawn','deleted'].includes(asset.status)&&![asset.businessId,asset.business_id].some(id=>id&&businessId&&id!==businessId)&&(!asset.expiresAt||Number.isFinite(Date.parse(asset.expiresAt))&&Date.parse(asset.expiresAt)>Date.now());
+import {wholeSiteSectionPhotoCurrent} from './websiteWholeSite.mjs';
+export function websiteAssetAvailable(asset,businessId='',draft=null,section=null){
+ return !!asset&&asset.approved!==false&&!['revoked','withdrawn','deleted'].includes(asset.status)&&![asset.businessId,asset.business_id].some(id=>id&&businessId&&id!==businessId)&&(!asset.expiresAt||Number.isFinite(Date.parse(asset.expiresAt))&&Date.parse(asset.expiresAt)>Date.now())&&(!draft||!section||wholeSiteSectionPhotoCurrent(draft,section));
 }
 // Presentation over original records only. Never mint approval, URLs or assets.
 export function websitePhotoKeys(asset){

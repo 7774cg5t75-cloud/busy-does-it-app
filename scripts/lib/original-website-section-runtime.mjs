@@ -2,7 +2,7 @@ import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../.
 import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
 import {pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';
 import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
-import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
+import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
 import {serviceContactAction,serviceIndexHtml,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
@@ -23,5 +23,5 @@ export function originalWebsiteSectionRuntime(){
   return body;
  }).join('\n');
  const js=stripTypeScriptTypes(code);
- return Function('websiteRecordPhoto','websiteSectionPhoto','presentationPhotoHtml','websiteHeroPhotos','servicePhotoHtml','serviceContactAction','serviceIndexHtml','pageDirectionClass','craftedPage','craftedServices','craftedStory','craftedContact','responsivePhotoAttributes','distinctWebsitePhotos','websiteGalleryPresentation','premiumHeroInner','heroServiceOverview','sectionAppearanceClasses','itemTypographyClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml,websiteHeroPhotos,servicePhotoHtml,serviceContactAction,serviceIndexHtml,pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,distinctWebsitePhotos,websiteGalleryPresentation,premiumHeroInner,heroServiceOverview,sectionAppearanceClasses,itemTypographyClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
+ return Function('websiteRecordPhoto','websiteSectionPhoto','presentationPhotoHtml','websiteHeroPhotos','servicePhotoHtml','serviceContactAction','serviceIndexHtml','pageDirectionClass','craftedPage','craftedServices','craftedStory','craftedContact','responsivePhotoAttributes','distinctWebsitePhotos','websiteGalleryPresentation','premiumHeroInner','heroServiceOverview','sectionAppearanceClasses','itemTypographyClasses','websiteAssetAvailable','urlForAsset',js+'\nreturn renderSectionHtml;')(websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml,websiteHeroPhotos,servicePhotoHtml,serviceContactAction,serviceIndexHtml,pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,distinctWebsitePhotos,websiteGalleryPresentation,premiumHeroInner,heroServiceOverview,sectionAppearanceClasses,itemTypographyClasses,websiteAssetAvailable,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
 }

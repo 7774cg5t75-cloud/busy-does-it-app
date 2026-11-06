@@ -30,8 +30,11 @@ function enabledSectionIds(draft = {}) {
 
 function pageDescription(draft = {}, sectionIds = []) {
   const map = sectionMap(draft);
-  const preferred = ["hero", ...sectionIds]
+  const preferred = [...sectionIds, "hero"]
     .map((id) => map.get(id))
+    .map(section=>section&&({...section,body:section.type==='services'&&safeArray(section.items).length
+      ?[clean(section.title),clean(draft.businessName),safeArray(section.items).map(i=>clean(i.title)).filter(Boolean).join(', ')].filter(Boolean).join(' — ')
+      :clean(section.body)||safeArray(section.items).map(i=>clean(i.body||i.alt)).filter(Boolean).join(' ')||(clean(section.title)?clean(section.title)+' — '+clean(draft.businessName):'')}))
     .find((section) => clean(section?.body));
   const raw =
     clean(preferred?.body) ||
@@ -49,7 +52,8 @@ function buildWebsitePageModel(draft = {}) {
   const has = (id) => ids.includes(id);
 
   const plan = draft?.designPlan || null;
-  const singlePage = plan?.architecture === "focused-landing";
+  const connected=draft.siteComposition==='connected-pages-v1';
+  const singlePage = plan?.architecture === "focused-landing"&&!connected;
   const order = safeArray(plan?.sectionOrder).filter(id => ids.includes(id));
   const allIds = [...order, ...ids.filter(id => !order.includes(id))];
   // Page-only owner content remains on its dedicated page, not repeated
@@ -77,6 +81,10 @@ function buildWebsitePageModel(draft = {}) {
   dedicated.forEach(([id, title, path, outputPath]) => {
     if(singlePage&&!['products','events'].includes(id))return;
     if (!has(id)) return;
+    if(connected){const section=sectionMap(draft).get(id);
+      if(['gallery','faq','services'].includes(id)&&!safeArray(section?.items).length)return;
+      if(id==='about'&&!clean(section?.body))return;
+    }
     pages.push({
       id,
       path,
@@ -99,7 +107,7 @@ function buildWebsitePageModel(draft = {}) {
     if(!ownedIds.length)return;
     usedPageIds.add(id);
     pages.push({id,slug,title,enabled:true,path:"/pages/"+slug,
-      outputPath:"pages/"+slug+"/index.html",sectionIds:ownedIds});
+      outputPath:"pages/"+slug+"/index.html",sectionIds:ownedIds,...(entry.sourceServiceId?{sourceServiceId:entry.sourceServiceId,sourceServiceSnapshot:entry.sourceServiceSnapshot}:{})});
   });
 
   const navigation = singlePage

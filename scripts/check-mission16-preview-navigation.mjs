@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {wholeWebsitePreviewDocument,wholeWebsitePreviewNavigation,WHOLE_WEBSITE_PREVIEW_ORIGIN as origin} from '../src/core/wholeWebsitePreview.mjs';
+const website={pages:[{id:'home',path:'/',outputPath:'index.html'},{id:'services',path:'/services',outputPath:'services/index.html'},{id:'page-garden-care',path:'/pages/garden-care',outputPath:'pages/garden-care/index.html'}]};
+assert.equal(wholeWebsitePreviewDocument(website,'page-garden-care').baseUrl,origin+'/pages/garden-care/index.html');
+assert.deepEqual(wholeWebsitePreviewNavigation(website,'home',{url:origin+'/services/index.html',navigationType:'click'}),{allow:false,pageId:'services'});
+assert.deepEqual(wholeWebsitePreviewNavigation(website,'page-garden-care',{url:'../../services/index.html',navigationType:'click'}),{allow:false,pageId:'services'});
+assert.deepEqual(wholeWebsitePreviewNavigation(website,'services',{url:origin+'/services/index.html#main',navigationType:'click'}),{allow:true,pageId:null});
+assert.deepEqual(wholeWebsitePreviewNavigation(website,'services',{url:origin+'/services/index.html',navigationType:'other'}),{allow:true,pageId:null});
+assert.deepEqual(wholeWebsitePreviewNavigation(website,'services',{url:origin+'/services/index.html',navigationType:'click'}),{allow:false,pageId:'services'});
+for(const url of ['https://external.example/','mailto:owner@example.invalid','tel:012345','javascript:alert(1)','file:///private','data:text/html,unsafe',origin+'/unknown',origin+'/services?token=private',origin+'/%73ervices',origin.replace('https://','https://user:pass@')+'/services'])assert.deepEqual(wholeWebsitePreviewNavigation(website,'home',{url}),{allow:false,pageId:null},url);
+assert.deepEqual(wholeWebsitePreviewNavigation(website,'home',{url:origin+'/index.html',initialDocument:false}),{allow:false,pageId:'home'});
+assert.equal(wholeWebsitePreviewNavigation(website,'home',{url:'about:blank'}).allow,true);
+assert.equal(wholeWebsitePreviewNavigation(website,'unknown',{url:'about:blank'}).allow,false);
+assert.equal(wholeWebsitePreviewDocument({pages:[{id:'home',outputPath:'../../private'}]},'home'),null);
+assert.equal(wholeWebsitePreviewDocument({pages:[website.pages[0],website.pages[0]]},'home'),null);
+assert.equal(wholeWebsitePreviewNavigation({pages:[website.pages[0],{id:'duplicate',path:'/',outputPath:'index.html'}]},'home',{url:origin+'/index.html'}).allow,false);
+console.log('PASS original static-preview route mapping, exact local page selection, relative navigation, anchors and initial document; external/contact/provider/file/script/credential/query/encoded/ambiguous targets denied. No network or save.');
