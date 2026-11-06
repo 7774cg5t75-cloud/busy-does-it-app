@@ -1,0 +1,86 @@
+{
+  "sourceCommit": "6b8a776e5d82c494746a9751e2ca141a7a29cd53",
+  "sourceTree": "5ed1f75412c962b17f27949bae8394975a4f1a18",
+  "functionalCommit": "b57606fe53cddd210af5be2913f0fae5f94ffa6c",
+  "functionalTree": "4ab185ce15aeea5e63392394082280b312def8e4",
+  "target": {
+    "project": "sbvkrvksnruiclcvclbd",
+    "organisation": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "plan": "free",
+    "postgres": "17.11.0.018",
+    "healthy": true
+  },
+  "observedAt": "2026-11-06T23:47:57.980784+00:00",
+  "nativeOwner": {
+    "verified": true,
+    "exactRequestedEmailMatched": true,
+    "nativeUuidPrivatelyBound": true,
+    "confirmed": true,
+    "nonAnonymous": true,
+    "role": "authenticated",
+    "audience": "authenticated",
+    "emailIdentityMatched": true,
+    "userCount": 1,
+    "identityCount": 1,
+    "notDeletedOrBanned": true,
+    "notMarkedSuperAdmin": true,
+    "sso": false,
+    "passwordOrTokenColumnsRead": false,
+    "actualLoginNotClaimed": true
+  },
+  "foundation": {
+    "version": "20261106221950",
+    "name": "mission18_ai_lab_foundation",
+    "statementCount": 1,
+    "executionSha256": "231b7eecdab788f3829d93c4f1995ce111a6b2b4a953644bdc6d0f785b6a5987",
+    "originalSecurityReadbackUnchanged": true,
+    "businesses": 0,
+    "memberships": 0,
+    "profiles": 0,
+    "snapshots": 0,
+    "aiEnabled": false,
+    "aiMonthlyLimit": 0,
+    "aiAccounts": 0,
+    "aiPeriods": 0,
+    "aiTariffs": 0,
+    "aiOperations": 0,
+    "aiEvents": 0,
+    "deployedFunctions": 0
+  },
+  "proposal": {
+    "templateSha256": "28bee5d59bcf56f38c25cc2f805b00679572f6deb575d122eafbc0bf6acd756e",
+    "fusedSha256": "3adff1e4574d68a9c2dcdbe4bf0cf3d47459d259c187c125a2555d4e8a16c8c4",
+    "executionDerivativeSha256": "865e2acdb036691a0e907bcdfbc0737b5bb403005880cd9c218ceafc047e77bc",
+    "uuidSubstitutions": 2,
+    "fusedStatements": 7,
+    "executionStatements": 6,
+    "reviewFuseIntact": true,
+    "unfusedExecutionFileWritten": false,
+    "hostedExecutionReady": false,
+    "separateExactB2ApprovalRequired": true,
+    "boundSqlAndIdentityEvidenceKeptOutsideGit": true
+  },
+  "independentVerification": {
+    "passed": 23,
+    "failed": 0,
+    "method": "Independent Python mechanical/hash checks plus original pure SQL parser; root additionally verified using original Node binder/parser",
+    "privateReceiptSha256": "9142fcb94eb8793f0d46ab1db1765c0d225145966b17f8cc8b0d7ac0aba538ff"
+  },
+  "performed": {
+    "hostedWrites": 0,
+    "AuthUsersCreatedOrChangedByCodex": 0,
+    "businessRecordsCreated": 0,
+    "migrationsSubmitted": 0,
+    "deployments": 0,
+    "credentialsAccessed": 0,
+    "providerCalls": 0,
+    "inferenceSpendGBP": 0,
+    "otherProjectsAccessed": []
+  },
+  "goldStandards": {
+    "candidates": 3,
+    "approved": 0
+  },
+  "scope": "B1 independently verified; actual native UUID bound privately. B2 proposed only. B3 native-session/trusted-source-runtime, deployments, credentials and paid inference remain separate."
+}
