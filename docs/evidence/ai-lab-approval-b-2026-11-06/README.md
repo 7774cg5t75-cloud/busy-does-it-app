@@ -3,6 +3,9 @@
 All hosted activity in this mission is read-only on Busy Does It AI Lab `sbvkrvksnruiclcvclbd` only. No Auth user/business/source was provisioned, no migration was submitted, and no credential/provider/deployment/spending action occurred.
 
 - [Exact approval packet](../../AI_LAB_APPROVAL_B_EXECUTION_PACKET_2026_11_06.md)
+- [Final preparation report](../../AI_LAB_APPROVAL_B_PREPARATION_2026_11_06.md)
+- [Frozen CI and six legacy workflow receipts](ci-results.json)
+- [Final independently unchanged hosted state](final-lab-read-only.json)
 - [Native Auth route and source evidence](../../AI_LAB_APPROVAL_B_NATIVE_AUTH_REVIEW.md)
 - [Pure fused canonical setup proposal](../../sql-proposals/ai-lab-fictional-setup/README.md)
 - [Original source procedure and unresolved B3 transport](../../AI_LAB_APPROVAL_B_SOURCE_PROCEDURE.md)

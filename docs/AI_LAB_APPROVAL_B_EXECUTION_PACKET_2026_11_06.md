@@ -12,6 +12,8 @@ The full original post-install security object, excluding observation timestamp,
 
 ## B1 — exact next authorisation, native owner only
 
+Final frozen preparation: **`b57606fe53cddd210af5be2913f0fae5f94ffa6c` / tree`4ab185ce15aeea5e63392394082280b312def8e4`**. [CI42310320241](https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42310320241) passed524 application checks with0failed/blocked/unexecuted,305 PostgreSQL stages across12receipts,105 foundation assertions,36 genuine Deno targets, security/dependency/syntax checks and both unsigned JavaScript exports. Allsix legacy workflows passed on the independently verified identical PR test tree. [Final preparation report](AI_LAB_APPROVAL_B_PREPARATION_2026_11_06.md) distinguishes local/native evidence and remaining gates.
+
 The smallest supported route is the owner's existing Supabase Dashboard **Authentication → Users → Add user → Create new user**, with **Auto confirm user** checked. Official current Studio/native Auth source distinguishes this no-confirmation-email route from Send invitation. The current Codex Supabase connection exposes no Auth-admin create-user operation; no new administration server or key transfer is necessary for the owner-controlled Dashboard route.
 
 Proposed exact scope:
