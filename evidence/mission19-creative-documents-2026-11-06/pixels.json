@@ -1,0 +1,1132 @@
+{
+  "format": "busy.mission19.durable-rendered-pixels.v1",
+  "source": {
+    "commit": "f42028950b573ceee874994e5414763423abc5d4",
+    "tree": "5c5cc5af6656306cf979f4cf70892f89e2f16691",
+    "workingTreeChanged": false
+  },
+  "browser": "145.0.7632.6",
+  "browserRun": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42280268183",
+  "jobId": 128107119521,
+  "capture": {
+    "fullPagePngs": 160,
+    "additionalOpenMenuPngs": 4,
+    "afterPages": 18,
+    "actualTypographyChecks": 72,
+    "actualTypographyFailures": 0,
+    "actualNavigationChecks": 64,
+    "afterFailures": [],
+    "captureViewports": [
+      {
+        "label": "narrow",
+        "width": 320,
+        "height": 844,
+        "dpr": 1
+      },
+      {
+        "label": "mobile",
+        "width": 390,
+        "height": 844,
+        "dpr": 1
+      },
+      {
+        "label": "tablet",
+        "width": 768,
+        "height": 1024,
+        "dpr": 1
+      },
+      {
+        "label": "desktop",
+        "width": 1440,
+        "height": 1000,
+        "dpr": 1
+      },
+      {
+        "label": "retina",
+        "width": 390,
+        "height": 844,
+        "dpr": 2
+      }
+    ]
+  },
+  "durableSubset": {
+    "files": 36,
+    "jpegBytes": 1990357,
+    "kind": "Bounded genuine complete-page JPEG review receipts; original PNGs remain separately retained in the CI artifact.",
+    "visualReviewAfterImages": 27,
+    "visualReviewIsExhaustive": false,
+    "missingFromCompressedAfterSubset": [
+      "Moor Services",
+      "Quiet Services",
+      "Yard About",
+      "Yard Contact"
+    ]
+  },
+  "comparison": {
+    "beforeCommit": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+    "beforeKind": "Reviewed Mission18 offline response fixture through original renderer",
+    "afterKind": "Reviewed Mission19 expressive offline response fixture through original renderer",
+    "canonicalFactsAndAssetsHeldConstantForExistingThreeBusinesses": true,
+    "visibleCopyAndArchitectureMayDiffer": true,
+    "rendererOnlyCssComparison": false,
+    "yardThread": "New independently scoped fictional business, after-only; no baseline invented.",
+    "realModelOutput": false
+  },
+  "pixelIdentity": {
+    "decodedReceiptSourceCommit": "64628aecdec30a8e59edd3fcf9471543999ba031",
+    "decodedReceiptSourceTree": "66d58d74534bb5b3f89f81650a899e1ee4cc7877",
+    "decodedReceiptBrowserRun": 42278343289,
+    "finalSourceFreshlyRendered": true,
+    "all36OriginalPngHashesAndJpegHashesEqualFinalMetadata": true,
+    "verification": "Each copied JPEG was independently byte-counted and SHA-256 checked against final-source metadata; every original PNG hash also matches the fresh final-source receipt. This proves identity for these36 receipts, not every image in the full artifact."
+  },
+  "artifacts": {
+    "phoneReview": {
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42280268183/artifacts/13534338632",
+      "outerArtifactBytes": 5444643,
+      "files": 85,
+      "jpegImages": 64,
+      "beforeAfterComparisons": 18,
+      "innerZipBytes": 6118739,
+      "innerZipSha256": "2b28f23e18969db737762fe6bdc3e5425a693f56b0a011edc4412424bfb6e37c"
+    },
+    "fullOriginals": {
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42280268183/artifacts/13534878238",
+      "outerArtifactBytes": 76300993,
+      "contents": "Full-resolution original PNGs, HTML, technical measurements and source/asset/browser evidence"
+    },
+    "retentionDays": 7
+  },
+  "assetProvenance": {
+    "fictionalBusinessesOnly": true,
+    "photography": "Licensed illustrative fixtures; not actual business dishes, premises, completed projects or customer experience.",
+    "sourceManifests": [
+      "scripts/fixtures/website-art-direction/assets.json",
+      "scripts/fixtures/guided-websites/assets.json"
+    ],
+    "derivatives": "A previously verified food photograph derivative rehearsal is shared equally across before/after. Other original assets are not represented as fully optimised hosted delivery."
+  },
+  "limits": {
+    "professionalAcceptance": false,
+    "ownerGoldStandardAcceptance": false,
+    "goldCandidates": 3,
+    "approvedGoldStandards": 0,
+    "hostedAcceptance": false,
+    "publication": false,
+    "realProviderCalls": 0,
+    "paidUsage": 0,
+    "fullApplicationCi": "Reported separately after final-source completion, not inferred from browser success."
+  },
+  "receipts": [
+    {
+      "id": "moor-meadow-home-after-mobile",
+      "filename": "review-moor-meadow-home-after-mobile.jpg",
+      "sha256": "be5328cabef13dee754b0ca88525d8a90eda3a9c5c2ec1edf907745a3a6c6e6a",
+      "bytes": 94591,
+      "originalPng": "moor-meadow-home-after-mobile.png",
+      "originalSha256": "4af4410dfeb5540cf99dcb19dd642122e0f4d5756f9b1dbc2f715dd00338593d",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2578,
+      "renderedWidth": 390,
+      "renderedHeight": 2578,
+      "quality": 40,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow",
+      "page": "home",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-home-after-desktop",
+      "filename": "review-moor-meadow-home-after-desktop.jpg",
+      "sha256": "a684481300d9aa1d8a0a3927d05bd1f7ffddcda09a4f6e1abc4686cbab793fd4",
+      "bytes": 67289,
+      "originalPng": "moor-meadow-home-after-desktop.png",
+      "originalSha256": "ed45562de5f9161a3262d7afd0134859ecbb5b3f99e5e0a7698f46c58171bd8c",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1973,
+      "renderedWidth": 720,
+      "renderedHeight": 987,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "moor-meadow-page-garden-maintenance-after-mobile",
+      "filename": "review-moor-meadow-page-garden-maintenance-after-mobile.jpg",
+      "sha256": "352a356c7e8e60c9092383c15f76d2c3737ad500a45884b913b6b4c318c107f4",
+      "bytes": 56102,
+      "originalPng": "moor-meadow-page-garden-maintenance-after-mobile.png",
+      "originalSha256": "cb4776a7d55ae7cb1897c9008d3413f1a4c40024fd7be713f0e188ae4820ecc4",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1423,
+      "renderedWidth": 390,
+      "renderedHeight": 1423,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow",
+      "page": "page-garden-maintenance",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-page-garden-maintenance-after-desktop",
+      "filename": "review-moor-meadow-page-garden-maintenance-after-desktop.jpg",
+      "sha256": "498e0d51f3b3b420eb893c3b1f9f16367739271b45819efe04de94998c2cb8b7",
+      "bytes": 30761,
+      "originalPng": "moor-meadow-page-garden-maintenance-after-desktop.png",
+      "originalSha256": "48c429fb03d23bb18bf49ca9a07a4fdf2bd613db95330058aebeddd709d77de9",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1261,
+      "renderedWidth": 720,
+      "renderedHeight": 631,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow",
+      "page": "page-garden-maintenance",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "moor-meadow-about-after-mobile",
+      "filename": "review-moor-meadow-about-after-mobile.jpg",
+      "sha256": "4ff6461698e1d3fd996df4f96cc2ab5f138cc86d89891943021fefc2ffc1bd76",
+      "bytes": 77782,
+      "originalPng": "moor-meadow-about-after-mobile.png",
+      "originalSha256": "4e44ab50120fed1db58c467fbb968587cbc72ad706ccc58810e564158c8a83c0",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1665,
+      "renderedWidth": 390,
+      "renderedHeight": 1665,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow",
+      "page": "about",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-about-after-desktop",
+      "filename": "review-moor-meadow-about-after-desktop.jpg",
+      "sha256": "1b05750f19ad3ff452653f0d57ecc1bdeb6834005d9d824506098f99f7ed1a21",
+      "bytes": 49767,
+      "originalPng": "moor-meadow-about-after-desktop.png",
+      "originalSha256": "182228b599ac1ca434da94b94cb4c918a73ab00cdfb46c2edca9fc8b49f3d48f",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1537,
+      "renderedWidth": 720,
+      "renderedHeight": 769,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow",
+      "page": "about",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "moor-meadow-contact-after-mobile",
+      "filename": "review-moor-meadow-contact-after-mobile.jpg",
+      "sha256": "067f0cf6ca9e92e6d77582017b16dcedaadcf49232daa973c39c0502c88a29c3",
+      "bytes": 30803,
+      "originalPng": "moor-meadow-contact-after-mobile.png",
+      "originalSha256": "7b734472c0c114bfd83126ed1c66934c707fe245892289c8ba4649876fdd68c0",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 884,
+      "renderedWidth": 390,
+      "renderedHeight": 884,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow",
+      "page": "contact",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-contact-after-desktop",
+      "filename": "review-moor-meadow-contact-after-desktop.jpg",
+      "sha256": "fe168d4cc75cdc7929e6fee3617ad0511b35d27ce2ebbb715d34f6fab608b8a0",
+      "bytes": 21834,
+      "originalPng": "moor-meadow-contact-after-desktop.png",
+      "originalSha256": "7f2888fe0646d2a2602f0942a7e0ac395121e194f5bfb2c45bbaf422a1a54971",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1000,
+      "renderedWidth": 720,
+      "renderedHeight": 500,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow",
+      "page": "contact",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "moor-meadow-home-before-mobile",
+      "filename": "review-moor-meadow-home-before-mobile.jpg",
+      "sha256": "cb21ed6604adf71c37f40e602c83fb8f16627b9dabb52d30ee974f3c9bd0b9ae",
+      "bytes": 85716,
+      "originalPng": "moor-meadow-home-before-mobile.png",
+      "originalSha256": "066d98cc8ddc57d749822f195630f94aaaf444203f6192efe37cabd862910507",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 3526,
+      "renderedWidth": 390,
+      "renderedHeight": 3526,
+      "quality": 30,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow",
+      "page": "home",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-page-garden-maintenance-before-mobile",
+      "filename": "review-moor-meadow-page-garden-maintenance-before-mobile.jpg",
+      "sha256": "5d0df15d5f93b87b5360e5747f0e8a081a7ed2cfdacccc396e3eea1f6433581a",
+      "bytes": 68638,
+      "originalPng": "moor-meadow-page-garden-maintenance-before-mobile.png",
+      "originalSha256": "2ce7d17dcb8359ca54ffcb2babbc87cd1183fcf90fb3056afb189ad6dc31a790",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1596,
+      "renderedWidth": 390,
+      "renderedHeight": 1596,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow",
+      "page": "page-garden-maintenance",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-about-before-mobile",
+      "filename": "review-moor-meadow-about-before-mobile.jpg",
+      "sha256": "f7f876b423fe165a8fbb34e4a323c3b54c874a3f0677cfc4291edf341027eafc",
+      "bytes": 36853,
+      "originalPng": "moor-meadow-about-before-mobile.png",
+      "originalSha256": "6c016e09cd64db12db829fa02af645ead9d6bea89318a27750f168fc1bce9548",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1104,
+      "renderedWidth": 390,
+      "renderedHeight": 1104,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow",
+      "page": "about",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-home-after-mobile",
+      "filename": "review-ember-home-after-mobile.jpg",
+      "sha256": "fbebbde6c546070cd870734471fa71a0e056eb664099ce3e5a81093fafbdb91e",
+      "bytes": 92569,
+      "originalPng": "ember-home-after-mobile.png",
+      "originalSha256": "837558d8b9d4e82f0a3645aa5e0b3d447f1b0f10ff835cd5644bc8791e64102c",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2354,
+      "renderedWidth": 390,
+      "renderedHeight": 2354,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember",
+      "page": "home",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-home-after-desktop",
+      "filename": "review-ember-home-after-desktop.jpg",
+      "sha256": "0b06212f03d5bc6495885bfb4a3298608470323120ec29cd8f0928e534506ff4",
+      "bytes": 56846,
+      "originalPng": "ember-home-after-desktop.png",
+      "originalSha256": "c7c830210d039943b59f160970c2f8bcedc1e083adb6faaa5df6075222331a92",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 2023,
+      "renderedWidth": 720,
+      "renderedHeight": 1012,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "ember-products-after-mobile",
+      "filename": "review-ember-products-after-mobile.jpg",
+      "sha256": "89365e239b08468ac0d363b760fabae97e810cb92975c8bb372ab47bdf4d8c2a",
+      "bytes": 65014,
+      "originalPng": "ember-products-after-mobile.png",
+      "originalSha256": "002ef3a0ebc8b3d8ac7ff2ba5d32afb1c4d3dfc29a78923207da3e571da7c7d9",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1988,
+      "renderedWidth": 390,
+      "renderedHeight": 1988,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember",
+      "page": "products",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-products-after-desktop",
+      "filename": "review-ember-products-after-desktop.jpg",
+      "sha256": "0050b520605a8fa3494158de3a176fc3a1de85a9cb4a00faca087697e671be79",
+      "bytes": 35120,
+      "originalPng": "ember-products-after-desktop.png",
+      "originalSha256": "f1866293705de2490c692f31ad0e5b8e9bde309cca91d7115aa0de192b2fdbb0",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1679,
+      "renderedWidth": 720,
+      "renderedHeight": 840,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember",
+      "page": "products",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "ember-about-after-mobile",
+      "filename": "review-ember-about-after-mobile.jpg",
+      "sha256": "2b9e4b3e49215640a6414aa16890b0a7e08929411206928b7b95aa22c53bb8f1",
+      "bytes": 80584,
+      "originalPng": "ember-about-after-mobile.png",
+      "originalSha256": "b5e1d44f889728805c04811288ce89c6d35df3bbf3bfc0b1ef309881bc2b1e6e",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1796,
+      "renderedWidth": 390,
+      "renderedHeight": 1796,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember",
+      "page": "about",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-about-after-desktop",
+      "filename": "review-ember-about-after-desktop.jpg",
+      "sha256": "1e19a0eabfde33d9a2dfcc0802be1a761580f8a0ef3be599907bf21e911fb0ac",
+      "bytes": 51093,
+      "originalPng": "ember-about-after-desktop.png",
+      "originalSha256": "d4a26b04319ee558f5014ca247fa1a8f50691347eda131480d1df4953a9f760e",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1618,
+      "renderedWidth": 720,
+      "renderedHeight": 809,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember",
+      "page": "about",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "ember-contact-after-mobile",
+      "filename": "review-ember-contact-after-mobile.jpg",
+      "sha256": "dbe22691ee90378c2ce82c1727214a299806ac3a835c032046a42696e3182341",
+      "bytes": 34213,
+      "originalPng": "ember-contact-after-mobile.png",
+      "originalSha256": "68b71e3fed377dab277346e175fa7af4816353397c0f3265a1c7831d8f5fc9f7",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 994,
+      "renderedWidth": 390,
+      "renderedHeight": 994,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember",
+      "page": "contact",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-contact-after-desktop",
+      "filename": "review-ember-contact-after-desktop.jpg",
+      "sha256": "3c5cc35d8e2ff146c9680fcfa0f78207b52932f1c26e33fc9d1eb45361bd5cbb",
+      "bytes": 22130,
+      "originalPng": "ember-contact-after-desktop.png",
+      "originalSha256": "08cfbbffcd515a334aa7895f53f60641ed84c599815cbeb48c7fe6afa05c1e8b",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1000,
+      "renderedWidth": 720,
+      "renderedHeight": 500,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember",
+      "page": "contact",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "ember-home-before-mobile",
+      "filename": "review-ember-home-before-mobile.jpg",
+      "sha256": "ca4d00c8e19fa750ca496cd15031e6d69a57c6928efad3a496e04843f5a0c676",
+      "bytes": 92287,
+      "originalPng": "ember-home-before-mobile.png",
+      "originalSha256": "0a3453ec618210c2614a10fe97b96dafb6015c832094e3fea44911f5dc9258ca",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 3580,
+      "renderedWidth": 390,
+      "renderedHeight": 3580,
+      "quality": 40,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember",
+      "page": "home",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-products-before-mobile",
+      "filename": "review-ember-products-before-mobile.jpg",
+      "sha256": "7a685f04e4858902d74fd8acfe4c7a1b332223c41f8f7f78d74d8f0ef2292c65",
+      "bytes": 37091,
+      "originalPng": "ember-products-before-mobile.png",
+      "originalSha256": "d7747c2be4c3fb7a11e9f1055feb7004d6945aaf17fd286fb90c5f66dd4940ee",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1580,
+      "renderedWidth": 390,
+      "renderedHeight": 1580,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember",
+      "page": "products",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-about-before-mobile",
+      "filename": "review-ember-about-before-mobile.jpg",
+      "sha256": "7b3dc2f36b06b7978469df26522c41bd0bd37f5a56f3f4617ac527ce261968f1",
+      "bytes": 32683,
+      "originalPng": "ember-about-before-mobile.png",
+      "originalSha256": "6fa38c5b0d229ad14823be8fedb7b35852026c1a9aa313c0c804a2dca3e992c3",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1027,
+      "renderedWidth": 390,
+      "renderedHeight": 1027,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember",
+      "page": "about",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-home-after-mobile",
+      "filename": "review-quiet-light-home-after-mobile.jpg",
+      "sha256": "2c135441fb6d78306a16751139bf05dce8e590c153ed697aa692d3acd7a0fcf9",
+      "bytes": 98327,
+      "originalPng": "quiet-light-home-after-mobile.png",
+      "originalSha256": "32eba8918228589cd38bd7e0203f6769c6a63066f59c1ba9f4ccb451a200a305",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2845,
+      "renderedWidth": 390,
+      "renderedHeight": 2845,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light",
+      "page": "home",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-home-after-desktop",
+      "filename": "review-quiet-light-home-after-desktop.jpg",
+      "sha256": "6b9181272463e72433001dc569fc107cacec9cf4f31538feec061ac82e853b81",
+      "bytes": 49532,
+      "originalPng": "quiet-light-home-after-desktop.png",
+      "originalSha256": "9df1e3e1bc084913030f71b0d21454855ac56b4f7132121e4eb79f1f65b09712",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1996,
+      "renderedWidth": 720,
+      "renderedHeight": 998,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "quiet-light",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "quiet-light-page-brand-direction-after-mobile",
+      "filename": "review-quiet-light-page-brand-direction-after-mobile.jpg",
+      "sha256": "1424a7655e931cfbc9948f90eaa9b873c54a23196b45013407474eba9cce3643",
+      "bytes": 50698,
+      "originalPng": "quiet-light-page-brand-direction-after-mobile.png",
+      "originalSha256": "14de2a03226efdbd12dcec13c76f0e515dafe780948b02d57e573d88f971e6cf",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1516,
+      "renderedWidth": 390,
+      "renderedHeight": 1516,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light",
+      "page": "page-brand-direction",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-page-brand-direction-after-desktop",
+      "filename": "review-quiet-light-page-brand-direction-after-desktop.jpg",
+      "sha256": "5d198ea5e0555181f7bbd06e15d12239e433c8165d1eb7cdd3744e44af26b40d",
+      "bytes": 28163,
+      "originalPng": "quiet-light-page-brand-direction-after-desktop.png",
+      "originalSha256": "f1c913b634ac906208c56141d7f5f9f5852f5029e7a8a67b17a37875c3bc44d3",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1230,
+      "renderedWidth": 720,
+      "renderedHeight": 615,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "quiet-light",
+      "page": "page-brand-direction",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "quiet-light-about-after-mobile",
+      "filename": "review-quiet-light-about-after-mobile.jpg",
+      "sha256": "87d519cd7be247a72feea3a9b6616b450a1fe6b45c990c9cb20565643b45fb8b",
+      "bytes": 57818,
+      "originalPng": "quiet-light-about-after-mobile.png",
+      "originalSha256": "501529727d4829276c5a4d69c126c69f8818ae7c38b1192cd1b8314a9727afd5",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1653,
+      "renderedWidth": 390,
+      "renderedHeight": 1653,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light",
+      "page": "about",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-about-after-desktop",
+      "filename": "review-quiet-light-about-after-desktop.jpg",
+      "sha256": "0944be279f026ec73244b9200e56d27a78bc5561127deb278534029b2341b7e2",
+      "bytes": 35032,
+      "originalPng": "quiet-light-about-after-desktop.png",
+      "originalSha256": "8aff03c94e788434d190dcbe94bcdbfc47b9018352d5db81abee6384f400a9ef",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1260,
+      "renderedWidth": 720,
+      "renderedHeight": 630,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "quiet-light",
+      "page": "about",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "quiet-light-contact-after-mobile",
+      "filename": "review-quiet-light-contact-after-mobile.jpg",
+      "sha256": "012c83f6232ecfcdd0eba3d2f72ea8a53860dd4fee3943bea61963cffc5c9b00",
+      "bytes": 31587,
+      "originalPng": "quiet-light-contact-after-mobile.png",
+      "originalSha256": "7d6ac7963aa3c6376d21b6b6beca99a1c2e8827779976a262d277e84c14f85e2",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 967,
+      "renderedWidth": 390,
+      "renderedHeight": 967,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light",
+      "page": "contact",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-contact-after-desktop",
+      "filename": "review-quiet-light-contact-after-desktop.jpg",
+      "sha256": "eb60267d1c3727dfe222406e88aa2e59797b3120d7044612dc409d7b4f7dc197",
+      "bytes": 22529,
+      "originalPng": "quiet-light-contact-after-desktop.png",
+      "originalSha256": "eaf70e1e7378094bada6159051de4da34fbc5b1d3d173884875948aeaa7e1316",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1000,
+      "renderedWidth": 720,
+      "renderedHeight": 500,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "quiet-light",
+      "page": "contact",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "quiet-light-home-before-mobile",
+      "filename": "review-quiet-light-home-before-mobile.jpg",
+      "sha256": "3a4478ad5e59eb1ec7d658abebeb3dbf05ebbbc5e79a87664f36d5977b6ea81e",
+      "bytes": 77001,
+      "originalPng": "quiet-light-home-before-mobile.png",
+      "originalSha256": "ba55088b0163816a45cdd53d793b7d0af8788095ab576d16465fbf109daf336a",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2567,
+      "renderedWidth": 390,
+      "renderedHeight": 2567,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light",
+      "page": "home",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-page-brand-direction-before-mobile",
+      "filename": "review-quiet-light-page-brand-direction-before-mobile.jpg",
+      "sha256": "bb67816c85838be97941b2facf188093818679964a747a82d779376cd5c54e0d",
+      "bytes": 48209,
+      "originalPng": "quiet-light-page-brand-direction-before-mobile.png",
+      "originalSha256": "bd8e76d2cd36bc44487e3afe600f0d22b086779467aa13f4cb51068d3e4d278e",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1521,
+      "renderedWidth": 390,
+      "renderedHeight": 1521,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light",
+      "page": "page-brand-direction",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-about-before-mobile",
+      "filename": "review-quiet-light-about-before-mobile.jpg",
+      "sha256": "b036f257f85308267dca92b8ce9bceacd47e5cdbf39c744bb9ffb9bc3cb2849b",
+      "bytes": 33579,
+      "originalPng": "quiet-light-about-before-mobile.png",
+      "originalSha256": "989d08c4e731860dc6b9050a312f649cb5c7784da556339dc755a2feb4eee63d",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1115,
+      "renderedWidth": 390,
+      "renderedHeight": 1115,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light",
+      "page": "about",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "yard-thread-home-after-mobile",
+      "filename": "review-yard-thread-home-after-mobile.jpg",
+      "sha256": "e0ad253aa576e0a414dcd63a9efb42a57d0624adaf4e02855d45dff416e88727",
+      "bytes": 95070,
+      "originalPng": "yard-thread-home-after-mobile.png",
+      "originalSha256": "34a79b2d8c64080fb97d5134aef7e32b490c6967cc390131debca3f57d7a1c5c",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2171,
+      "renderedWidth": 390,
+      "renderedHeight": 2171,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "yard-thread",
+      "page": "home",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "yard-thread-home-after-desktop",
+      "filename": "review-yard-thread-home-after-desktop.jpg",
+      "sha256": "48685de16466c2cf6ccd5dbefa62035d6c5fca0816d89ed959f244c8a656c167",
+      "bytes": 50640,
+      "originalPng": "yard-thread-home-after-desktop.png",
+      "originalSha256": "759e68ef8627b32333a0ab11c0e3b6e48ace98a715e471f0d1371137fa5d3dec",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1827,
+      "renderedWidth": 720,
+      "renderedHeight": 914,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "yard-thread",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "yard-thread-services-after-mobile",
+      "filename": "review-yard-thread-services-after-mobile.jpg",
+      "sha256": "ec940bf946eacffe3c0060881acbc1c437415550260f29ceb2e872d7673194b3",
+      "bytes": 92406,
+      "originalPng": "yard-thread-services-after-mobile.png",
+      "originalSha256": "cb55f57591a41d185b5cede8b3da96175ae09d11e7737aecb6d63f2c190dea7c",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2092,
+      "renderedWidth": 390,
+      "renderedHeight": 2092,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "yard-thread",
+      "page": "services",
+      "stage": "after",
+      "label": "mobile"
+    }
+  ],
+  "continuity": [
+    {
+      "id": "moor-meadow-home-after-mobile",
+      "originalPngSha256": "4af4410dfeb5540cf99dcb19dd642122e0f4d5756f9b1dbc2f715dd00338593d",
+      "unchangedSince64628": true,
+      "jpegSha256": "be5328cabef13dee754b0ca88525d8a90eda3a9c5c2ec1edf907745a3a6c6e6a"
+    },
+    {
+      "id": "moor-meadow-home-after-desktop",
+      "originalPngSha256": "ed45562de5f9161a3262d7afd0134859ecbb5b3f99e5e0a7698f46c58171bd8c",
+      "unchangedSince64628": true,
+      "jpegSha256": "a684481300d9aa1d8a0a3927d05bd1f7ffddcda09a4f6e1abc4686cbab793fd4"
+    },
+    {
+      "id": "moor-meadow-page-garden-maintenance-after-mobile",
+      "originalPngSha256": "cb4776a7d55ae7cb1897c9008d3413f1a4c40024fd7be713f0e188ae4820ecc4",
+      "unchangedSince64628": true,
+      "jpegSha256": "352a356c7e8e60c9092383c15f76d2c3737ad500a45884b913b6b4c318c107f4"
+    },
+    {
+      "id": "moor-meadow-page-garden-maintenance-after-desktop",
+      "originalPngSha256": "48c429fb03d23bb18bf49ca9a07a4fdf2bd613db95330058aebeddd709d77de9",
+      "unchangedSince64628": true,
+      "jpegSha256": "498e0d51f3b3b420eb893c3b1f9f16367739271b45819efe04de94998c2cb8b7"
+    },
+    {
+      "id": "moor-meadow-about-after-mobile",
+      "originalPngSha256": "4e44ab50120fed1db58c467fbb968587cbc72ad706ccc58810e564158c8a83c0",
+      "unchangedSince64628": true,
+      "jpegSha256": "4ff6461698e1d3fd996df4f96cc2ab5f138cc86d89891943021fefc2ffc1bd76"
+    },
+    {
+      "id": "moor-meadow-about-after-desktop",
+      "originalPngSha256": "182228b599ac1ca434da94b94cb4c918a73ab00cdfb46c2edca9fc8b49f3d48f",
+      "unchangedSince64628": true,
+      "jpegSha256": "1b05750f19ad3ff452653f0d57ecc1bdeb6834005d9d824506098f99f7ed1a21"
+    },
+    {
+      "id": "moor-meadow-contact-after-mobile",
+      "originalPngSha256": "7b734472c0c114bfd83126ed1c66934c707fe245892289c8ba4649876fdd68c0",
+      "unchangedSince64628": true,
+      "jpegSha256": "067f0cf6ca9e92e6d77582017b16dcedaadcf49232daa973c39c0502c88a29c3"
+    },
+    {
+      "id": "moor-meadow-contact-after-desktop",
+      "originalPngSha256": "7f2888fe0646d2a2602f0942a7e0ac395121e194f5bfb2c45bbaf422a1a54971",
+      "unchangedSince64628": true,
+      "jpegSha256": "fe168d4cc75cdc7929e6fee3617ad0511b35d27ce2ebbb715d34f6fab608b8a0"
+    },
+    {
+      "id": "moor-meadow-home-before-mobile",
+      "originalPngSha256": "066d98cc8ddc57d749822f195630f94aaaf444203f6192efe37cabd862910507",
+      "unchangedSince64628": true,
+      "jpegSha256": "cb21ed6604adf71c37f40e602c83fb8f16627b9dabb52d30ee974f3c9bd0b9ae"
+    },
+    {
+      "id": "moor-meadow-page-garden-maintenance-before-mobile",
+      "originalPngSha256": "2ce7d17dcb8359ca54ffcb2babbc87cd1183fcf90fb3056afb189ad6dc31a790",
+      "unchangedSince64628": true,
+      "jpegSha256": "5d0df15d5f93b87b5360e5747f0e8a081a7ed2cfdacccc396e3eea1f6433581a"
+    },
+    {
+      "id": "moor-meadow-about-before-mobile",
+      "originalPngSha256": "6c016e09cd64db12db829fa02af645ead9d6bea89318a27750f168fc1bce9548",
+      "unchangedSince64628": true,
+      "jpegSha256": "f7f876b423fe165a8fbb34e4a323c3b54c874a3f0677cfc4291edf341027eafc"
+    },
+    {
+      "id": "ember-home-after-mobile",
+      "originalPngSha256": "837558d8b9d4e82f0a3645aa5e0b3d447f1b0f10ff835cd5644bc8791e64102c",
+      "unchangedSince64628": true,
+      "jpegSha256": "fbebbde6c546070cd870734471fa71a0e056eb664099ce3e5a81093fafbdb91e"
+    },
+    {
+      "id": "ember-home-after-desktop",
+      "originalPngSha256": "c7c830210d039943b59f160970c2f8bcedc1e083adb6faaa5df6075222331a92",
+      "unchangedSince64628": true,
+      "jpegSha256": "0b06212f03d5bc6495885bfb4a3298608470323120ec29cd8f0928e534506ff4"
+    },
+    {
+      "id": "ember-products-after-mobile",
+      "originalPngSha256": "002ef3a0ebc8b3d8ac7ff2ba5d32afb1c4d3dfc29a78923207da3e571da7c7d9",
+      "unchangedSince64628": true,
+      "jpegSha256": "89365e239b08468ac0d363b760fabae97e810cb92975c8bb372ab47bdf4d8c2a"
+    },
+    {
+      "id": "ember-products-after-desktop",
+      "originalPngSha256": "f1866293705de2490c692f31ad0e5b8e9bde309cca91d7115aa0de192b2fdbb0",
+      "unchangedSince64628": true,
+      "jpegSha256": "0050b520605a8fa3494158de3a176fc3a1de85a9cb4a00faca087697e671be79"
+    },
+    {
+      "id": "ember-about-after-mobile",
+      "originalPngSha256": "b5e1d44f889728805c04811288ce89c6d35df3bbf3bfc0b1ef309881bc2b1e6e",
+      "unchangedSince64628": true,
+      "jpegSha256": "2b9e4b3e49215640a6414aa16890b0a7e08929411206928b7b95aa22c53bb8f1"
+    },
+    {
+      "id": "ember-about-after-desktop",
+      "originalPngSha256": "d4a26b04319ee558f5014ca247fa1a8f50691347eda131480d1df4953a9f760e",
+      "unchangedSince64628": true,
+      "jpegSha256": "1e19a0eabfde33d9a2dfcc0802be1a761580f8a0ef3be599907bf21e911fb0ac"
+    },
+    {
+      "id": "ember-contact-after-mobile",
+      "originalPngSha256": "68b71e3fed377dab277346e175fa7af4816353397c0f3265a1c7831d8f5fc9f7",
+      "unchangedSince64628": true,
+      "jpegSha256": "dbe22691ee90378c2ce82c1727214a299806ac3a835c032046a42696e3182341"
+    },
+    {
+      "id": "ember-contact-after-desktop",
+      "originalPngSha256": "08cfbbffcd515a334aa7895f53f60641ed84c599815cbeb48c7fe6afa05c1e8b",
+      "unchangedSince64628": true,
+      "jpegSha256": "3c5cc35d8e2ff146c9680fcfa0f78207b52932f1c26e33fc9d1eb45361bd5cbb"
+    },
+    {
+      "id": "ember-home-before-mobile",
+      "originalPngSha256": "0a3453ec618210c2614a10fe97b96dafb6015c832094e3fea44911f5dc9258ca",
+      "unchangedSince64628": true,
+      "jpegSha256": "ca4d00c8e19fa750ca496cd15031e6d69a57c6928efad3a496e04843f5a0c676"
+    },
+    {
+      "id": "ember-products-before-mobile",
+      "originalPngSha256": "d7747c2be4c3fb7a11e9f1055feb7004d6945aaf17fd286fb90c5f66dd4940ee",
+      "unchangedSince64628": true,
+      "jpegSha256": "7a685f04e4858902d74fd8acfe4c7a1b332223c41f8f7f78d74d8f0ef2292c65"
+    },
+    {
+      "id": "ember-about-before-mobile",
+      "originalPngSha256": "6fa38c5b0d229ad14823be8fedb7b35852026c1a9aa313c0c804a2dca3e992c3",
+      "unchangedSince64628": true,
+      "jpegSha256": "7b3dc2f36b06b7978469df26522c41bd0bd37f5a56f3f4617ac527ce261968f1"
+    },
+    {
+      "id": "quiet-light-home-after-mobile",
+      "originalPngSha256": "32eba8918228589cd38bd7e0203f6769c6a63066f59c1ba9f4ccb451a200a305",
+      "unchangedSince64628": true,
+      "jpegSha256": "2c135441fb6d78306a16751139bf05dce8e590c153ed697aa692d3acd7a0fcf9"
+    },
+    {
+      "id": "quiet-light-home-after-desktop",
+      "originalPngSha256": "9df1e3e1bc084913030f71b0d21454855ac56b4f7132121e4eb79f1f65b09712",
+      "unchangedSince64628": true,
+      "jpegSha256": "6b9181272463e72433001dc569fc107cacec9cf4f31538feec061ac82e853b81"
+    },
+    {
+      "id": "quiet-light-page-brand-direction-after-mobile",
+      "originalPngSha256": "14de2a03226efdbd12dcec13c76f0e515dafe780948b02d57e573d88f971e6cf",
+      "unchangedSince64628": true,
+      "jpegSha256": "1424a7655e931cfbc9948f90eaa9b873c54a23196b45013407474eba9cce3643"
+    },
+    {
+      "id": "quiet-light-page-brand-direction-after-desktop",
+      "originalPngSha256": "f1c913b634ac906208c56141d7f5f9f5852f5029e7a8a67b17a37875c3bc44d3",
+      "unchangedSince64628": true,
+      "jpegSha256": "5d198ea5e0555181f7bbd06e15d12239e433c8165d1eb7cdd3744e44af26b40d"
+    },
+    {
+      "id": "quiet-light-about-after-mobile",
+      "originalPngSha256": "501529727d4829276c5a4d69c126c69f8818ae7c38b1192cd1b8314a9727afd5",
+      "unchangedSince64628": true,
+      "jpegSha256": "87d519cd7be247a72feea3a9b6616b450a1fe6b45c990c9cb20565643b45fb8b"
+    },
+    {
+      "id": "quiet-light-about-after-desktop",
+      "originalPngSha256": "8aff03c94e788434d190dcbe94bcdbfc47b9018352d5db81abee6384f400a9ef",
+      "unchangedSince64628": true,
+      "jpegSha256": "0944be279f026ec73244b9200e56d27a78bc5561127deb278534029b2341b7e2"
+    },
+    {
+      "id": "quiet-light-contact-after-mobile",
+      "originalPngSha256": "7d6ac7963aa3c6376d21b6b6beca99a1c2e8827779976a262d277e84c14f85e2",
+      "unchangedSince64628": true,
+      "jpegSha256": "012c83f6232ecfcdd0eba3d2f72ea8a53860dd4fee3943bea61963cffc5c9b00"
+    },
+    {
+      "id": "quiet-light-contact-after-desktop",
+      "originalPngSha256": "eaf70e1e7378094bada6159051de4da34fbc5b1d3d173884875948aeaa7e1316",
+      "unchangedSince64628": true,
+      "jpegSha256": "eb60267d1c3727dfe222406e88aa2e59797b3120d7044612dc409d7b4f7dc197"
+    },
+    {
+      "id": "quiet-light-home-before-mobile",
+      "originalPngSha256": "ba55088b0163816a45cdd53d793b7d0af8788095ab576d16465fbf109daf336a",
+      "unchangedSince64628": true,
+      "jpegSha256": "3a4478ad5e59eb1ec7d658abebeb3dbf05ebbbc5e79a87664f36d5977b6ea81e"
+    },
+    {
+      "id": "quiet-light-page-brand-direction-before-mobile",
+      "originalPngSha256": "bd8e76d2cd36bc44487e3afe600f0d22b086779467aa13f4cb51068d3e4d278e",
+      "unchangedSince64628": true,
+      "jpegSha256": "bb67816c85838be97941b2facf188093818679964a747a82d779376cd5c54e0d"
+    },
+    {
+      "id": "quiet-light-about-before-mobile",
+      "originalPngSha256": "989d08c4e731860dc6b9050a312f649cb5c7784da556339dc755a2feb4eee63d",
+      "unchangedSince64628": true,
+      "jpegSha256": "b036f257f85308267dca92b8ce9bceacd47e5cdbf39c744bb9ffb9bc3cb2849b"
+    },
+    {
+      "id": "yard-thread-home-after-mobile",
+      "originalPngSha256": "34a79b2d8c64080fb97d5134aef7e32b490c6967cc390131debca3f57d7a1c5c",
+      "unchangedSince64628": true,
+      "jpegSha256": "e0ad253aa576e0a414dcd63a9efb42a57d0624adaf4e02855d45dff416e88727"
+    },
+    {
+      "id": "yard-thread-home-after-desktop",
+      "originalPngSha256": "759e68ef8627b32333a0ab11c0e3b6e48ace98a715e471f0d1371137fa5d3dec",
+      "unchangedSince64628": true,
+      "jpegSha256": "48685de16466c2cf6ccd5dbefa62035d6c5fca0816d89ed959f244c8a656c167"
+    },
+    {
+      "id": "yard-thread-services-after-mobile",
+      "originalPngSha256": "cb55f57591a41d185b5cede8b3da96175ae09d11e7737aecb6d63f2c190dea7c",
+      "unchangedSince64628": true,
+      "jpegSha256": "ec940bf946eacffe3c0060881acbc1c437415550260f29ceb2e872d7673194b3"
+    }
+  ]
+}

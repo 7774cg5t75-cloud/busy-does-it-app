@@ -1,0 +1,54 @@
+{
+  "functionalCommit": "f42028950b573ceee874994e5414763423abc5d4",
+  "functionalTree": "5c5cc5af6656306cf979f4cf70892f89e2f16691",
+  "originalAncestryVerified": true,
+  "noForceResetOrMerge": true,
+  "drafts": [
+    {
+      "number": 26,
+      "draft": true,
+      "state": "open",
+      "head": "f42028950b573ceee874994e5414763423abc5d4",
+      "branch": "codex/builder-mission15-design-advancement",
+      "base": "codex/builder-mission14-intelligent-followups"
+    },
+    {
+      "number": 25,
+      "draft": true,
+      "state": "open",
+      "head": "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+      "branch": "codex/builder-mission14-intelligent-followups",
+      "base": "codex/builder-mission13-customer-conversations"
+    },
+    {
+      "number": 24,
+      "draft": true,
+      "state": "open",
+      "head": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+      "branch": "codex/builder-mission13-customer-conversations",
+      "base": "codex/builder-mission12-connected-journeys"
+    },
+    {
+      "number": 23,
+      "draft": true,
+      "state": "open",
+      "head": "f9b11034449a8d401ea71afe27627c5715325c72",
+      "branch": "codex/builder-mission12-connected-journeys",
+      "base": "codex/disposable-supabase-review"
+    },
+    {
+      "number": 21,
+      "draft": true,
+      "state": "open",
+      "head": "55db12d247b149aa2052fc17f5d5dc536a77b8a7",
+      "branch": "codex/disposable-supabase-review",
+      "base": "codex/builder-mission11-shared-records"
+    }
+  ],
+  "masterBytesOutsideGit": true,
+  "sqlInstallationFilesChanged": false,
+  "hostedDatabaseOrEdgeMutations": 0,
+  "providerCalls": 0,
+  "paidPilotUsage": 0,
+  "approvedGoldStandards": 0
+}
