@@ -19,6 +19,8 @@ Supported ordinary refinements include adding an exactly identified current serv
 - A static private page-preview option enables eligible original HTTPS images and finite cross-page links. Default standalone export still requires local bundled assets; this option grants no storage/publication permission.
 - The account path independently derives operations from its trusted current draft, then uses original approval, membership, CAS, transactional persistence, readback and history. No new endpoint, business store or renderer is introduced.
 
+The newly composed account actions additionally **default-deny in the unchanged public gateway**. A source review found that the original SQL writer checked profile revision only on initial creation. The separate, still-fused `docs/sql-proposals/mission16-website-profile-cas.sql` narrows the original writer wrapper for connected-page drafts; it is exercised only in disposable CI. Only a separately reviewed compatible server bootstrap may supply the trusted source-CAS capability after verifying that contract. A client/body property cannot enable it. Native private-session review remains available. The approved AI Lab installation bytes remain unchanged; no SQL proposal or gateway is deployed.
+
 ## Rendering and portability
 
 Inner pages share business identity while using their existing approved family: exact single H1, useful introduction, breadcrumbs, readable source detail and actual related/contact destinations. Long navigation uses a keyboard-operable native disclosure on mobile. Page metadata follows that page's content, with a distinct service overview and preserved owner SEO overrides.

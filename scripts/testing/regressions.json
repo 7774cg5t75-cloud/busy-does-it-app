@@ -3268,6 +3268,13 @@
         "scripts/check-mission16-whole-site-ui.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission16-owner-cta-refresh",
+      "args": [
+        "scripts/check-mission16-owner-cta-refresh.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -168,7 +168,7 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
   if(field==="cta"&&newValue&&!clean(section.ctaHref))
    return fail("Add a valid button destination before giving the button a label.",draft);
   if(newValue===clean(section[field]))return fail("That text is already saved.",draft);
-  sections=draft.sections.map(s=>s!==section?s:{...s,[field]:newValue,...((['title','body'].includes(field)||s.type==='contact'&&['email','phone','openingHours'].includes(field))?{ownerEditedFields:[...new Set([...list(s.ownerEditedFields).filter(f=>['title','body','email','phone','openingHours'].includes(f)),field])]}:{})});
+  sections=draft.sections.map(s=>s!==section?s:{...s,[field]:newValue,...((['title','body'].includes(field)||s.type==='hero'&&['cta','ctaHref'].includes(field)||s.type==='contact'&&['email','phone','openingHours'].includes(field))?{ownerEditedFields:[...new Set([...list(s.ownerEditedFields).filter(f=>['title','body','cta','ctaHref','email','phone','openingHours'].includes(f)),...(s.type==='hero'&&['cta','ctaHref'].includes(field)?['cta','ctaHref']:[field])])]}:{})});
   description="Updated "+sectionId+" "+field+" in your private website draft.";
  }
  return {applied:true,reason:description+" Nothing has been published.",draft:{...draft,sections}};

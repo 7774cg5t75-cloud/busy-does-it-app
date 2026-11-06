@@ -1,3 +1,4 @@
+import {validPublicBusinessContent} from './businessContentRecords.mjs';
 import {websiteServicePhoto} from './websiteServicePhotos.mjs';
 // A bounded presentation projection of the ORIGINAL website, never a fact store.
 const list=x=>Array.isArray(x)?x:[],text=x=>typeof x==='string'?x.trim():'';
@@ -51,4 +52,13 @@ export function wholeSiteSectionPhotoCurrent(draft,section){
  if(services.length!==1)return false;
  const current=websiteServicePhoto(draft,services[0]),asset=section.asset;
  return !!current&&!!asset&&asset.approved===true&&current.storagePath===asset.storagePath&&current.sha256===asset.sha256&&current.revision===asset.revision&&current.businessId===asset.businessId&&current.uri===asset.uri&&current.width===asset.width&&current.height===asset.height;
+}
+
+// The original product/event reader remains the factual authority. A complete
+// site cannot claim a menu page from an invalid, foreign or withdrawn feed.
+export function wholeSiteContentCurrent(draft){
+ return list(draft?.sections).filter(s=>['products','events'].includes(s.type)&&s.enabled!==false).every(section=>{
+  const feed=section.previewFeed,kind=section.type==='products'?'product':'event';
+  return section.contentSource==='business_records_v1'&&validPublicBusinessContent(feed)&&feed.businessId===draft.businessId&&new Set(feed.records.map(r=>r.id)).size===feed.records.length&&feed.records.some(r=>r.kind===kind&&(kind==='product'?r.data.status==='active':r.data.status==='scheduled'&&Date.parse(r.data.endsAt)>Date.now()));
+ });
 }

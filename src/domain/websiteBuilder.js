@@ -232,9 +232,20 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const keepOwnerCopy=section=>{
     const matches=sameOwnerSource?safeArray(previousDraft?.sections).filter(s=>s.id===section.id&&s.type===section.type):[];
     const prior=matches.length===1?matches[0]:null;
-    const fields=[...new Set(safeArray(prior?.ownerEditedFields))].filter(f=>['title','body',...(section.type==='contact'?['email','phone','openingHours']:[])].includes(f)&&typeof prior[f]==='string'&&prior[f].length<=(f==='title'?140:2500)&&(f!=='title'||!!prior[f].trim())&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(prior[f]));
+    const fields=[...new Set(safeArray(prior?.ownerEditedFields))].filter(f=>['title','body',...(section.type==='hero'?['cta','ctaHref']:[]),...(section.type==='contact'?['email','phone','openingHours']:[])].includes(f)&&typeof prior[f]==='string'&&prior[f].length<=(f==='title'?140:['cta','ctaHref'].includes(f)?120:2500)&&(f!=='title'||!!prior[f].trim())&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(prior[f]));
     const validated=fields.filter(f=>f!=='email'||!prior[f]||/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(prior[f])).filter(f=>f!=='phone'||!prior[f]||/^[+()\d .-]{5,40}$/.test(prior[f]));
-    return validated.length?{...section,...Object.fromEntries(validated.map(f=>[f,prior[f]])),ownerEditedFields:validated}:section;
+    const retained=validated.length?{...section,...Object.fromEntries(validated.map(f=>[f,prior[f]])),ownerEditedFields:validated}:section;
+    if(section.type==='hero'&&validated.some(f=>['cta','ctaHref'].includes(f))){
+      const href=typeof prior.ctaHref==='string'?prior.ctaHref:'';
+      const matches=[...generated,...preserved,...ownedCollections].filter(s=>s.id===href.slice(1)&&s.enabled!==false);
+      const target=matches.length===1?matches[0]:null;
+      const contact=target?.type==='contact'?keepOwnerCopy(target):target;
+      const current=href==='#main'||/^#[a-z][a-z0-9-]*$/i.test(href)&&!!target&&(target.type!=='contact'||!!(clean(contact.email)||clean(contact.phone)));
+      // Preserve the reviewed label/destination together. A removed target is
+      // disabled; a factual refresh must never guess another customer action.
+      return {...retained,ctaHref:current?href:'',ownerEditedFields:[...new Set([...validated,'ctaHref'])]};
+    }
+    return retained;
   };
   const rawSections=[...generated.map(keepOwnerItems).map(keepOwnerCopy),
     ...ownedCollections.filter(old=>!generated.some(s=>

@@ -8,7 +8,7 @@ import {stableJson} from '../../../src/core/stableJson.mjs';
 // Purpose-specific extension of the ORIGINAL website gateway. No hosted write
 // is enabled by this module. The endpoint requires a separately provisioned,
 // exact staging environment AND an explicit server-side activation switch.
-export async function privateWebsiteDraftAction({action,body,userId,read,commit,history,transition}){
+export async function privateWebsiteDraftAction({action,body,userId,read,commit,history,transition,wholeSiteSourceCasReady=false}){
  if(!['website_create','website_edit_text','website_edit_design','website_edit_page','website_edit_instruction','website_undo','website_redo'].includes(action)||body?.ownerApproved!==true)throw Error('Review this private website operation');
  const basis=await read(body.businessId);
  if(basis?.actorId!==userId||basis.businessId!==body.businessId||basis.revision!==body.expectedRevision||stableJson(basis.websiteDraft||null)!==stableJson(body.expectedDraft||null))throw Error('Website or workspace changed');
@@ -41,6 +41,9 @@ export async function privateWebsiteDraftAction({action,body,userId,read,commit,
  }else if(action==='website_edit_page'){
   const patch=body.patch,shapes={'update-site-contact':['field','value','expectedBusinessId','expectedProfileRevision'],'compose-service-pages':['serviceIds','expectedBusinessId','expectedProfileRevision'],'refine-site-pages':['direction','expectedBusinessId','expectedProfileRevision'],'create-page':['title','body'],'rename-page':['pageId','title'],'delete-page':['pageId'],'add-page-section':['pageId','title','body'],'assign-section':['pageId','sectionId'],'remove-page-section':['pageId','sectionId'],'move-page-section':['pageId','sectionId','direction'],'edit-page-metadata':['pageId','title','description'],'reset-page-metadata':['pageId']},keys=Object.hasOwn(shapes,patch?.action)?shapes[patch.action]:null;
   if(!basis.websiteDraft||!keys||Object.keys(patch).some(k=>!['action','expectedWebsiteId','expectedGeneration',...keys].includes(k))||Object.hasOwn(patch,'expectedWebsiteId')&&patch.expectedWebsiteId!==basis.websiteDraft.id||Object.hasOwn(patch,'expectedGeneration')&&patch.expectedGeneration!==basis.websiteDraft.generation)throw Error('Review a supported private page change; media and public actions remain unavailable');
+  // Only a trusted server bootstrap may admit the separately reviewed atomic
+  // profile-CAS writer. The existing public gateway does not supply this flag.
+  if(['update-site-contact','compose-service-pages','refine-site-pages'].includes(patch.action)&&wholeSiteSourceCasReady!==true)throw Error('Whole-site account saving needs the reviewed atomic profile-source guard. Private preview and existing Studio actions remain available.');
   if(['update-site-contact','compose-service-pages','refine-site-pages'].includes(patch.action)&&(!Number.isSafeInteger(patch.expectedProfileRevision)||patch.expectedProfileRevision!==basis.profileRevision))throw Error('The approved business profile changed. Review the whole-site proposal again.');
   const edited=applyWebsitePageChange(basis.websiteDraft,patch);if(!edited.applied)throw Error(edited.reason||'Page change unavailable');candidate=edited.draft;
  }else{

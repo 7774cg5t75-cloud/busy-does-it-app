@@ -7,7 +7,7 @@
 import {makeWebsiteZip,crc32} from "./websiteZipArchive.mjs";
 import {websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {websiteServicePhoto} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
-import {wholeSiteDerivedSourcesCurrent} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
+import {wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
 import {websiteSectionPhoto,websiteRecordPhoto} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
 import {reviewOriginalImageBytes} from '../../supabase/functions/busy-website-original-media/imageByteReview.mjs';
 const list=x=>Array.isArray(x)?x:[];
@@ -44,6 +44,7 @@ const mimeFromBytes=bytes=>{
 };
 const keyOf=asset=>clean(asset?.storagePath)||clean(asset?.uri);
 function archiveRequirements(draft={}){
+ if(draft.siteComposition==='connected-pages-v1'&&!wholeSiteContentCurrent(draft))return {ok:false,reason:'Review current menu/product/event sources before exporting the complete site.'};
  if(!wholeSiteDerivedSourcesCurrent(draft))return {ok:false,reason:"A service source changed. Review its related pages in the original Studio before exporting; owner wording is kept."};
  const pages=list(draft.pages).filter(p=>p?.enabled!==false);
  if(!draft.id||!pages.length||pages.length>20||!pages.some(p=>p.id==="home"))

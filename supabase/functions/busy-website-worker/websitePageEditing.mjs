@@ -1,5 +1,5 @@
 import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
-import {wholeSitePageSpecs,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent} from './websiteWholeSite.mjs';
+import {wholeSitePageSpecs,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent} from './websiteWholeSite.mjs';
 import {protectWebsiteOwnerLocks,websiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * V3.135 owner-managed custom website pages.
@@ -18,6 +18,7 @@ function editWebsitePagesUnchecked(draft={},action={}){
   const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision',...(action.action==='compose-service-pages'?['serviceIds']:action.action==='update-site-contact'?['field','value']:['direction'])];
   if(Object.keys(action).some(k=>!allowed.includes(k))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||action.expectedProfileRevision!=null&&(!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1)||draft.business_id&&draft.business_id!==draft.businessId)
    return fail(draft,'The owner business or website changed. Prepare a fresh whole-site review.');
+  if(!wholeSiteContentCurrent(draft))return fail(draft,'Review current approved menu/product/event information before a complete-site change.');
   if(!wholeSiteDerivedSourcesCurrent(draft))return fail(draft,'A service changed or was removed. Review its related pages in the original Studio; your wording was kept.');
   if(action.action==='update-site-contact'){
    if(!['email','phone'].includes(action.field)||typeof action.value!=='string'||!action.value.trim())return fail(draft,'Choose one exact contact email address or phone number.');
@@ -37,7 +38,7 @@ function editWebsitePagesUnchecked(draft={},action={}){
    return changed?{applied:true,draft:{...draft,sections},reason:'Prepared a bounded inner-page design change; original words, brand and customer destinations are preserved.'}:fail(draft,'These supported settings are already present. Nothing changed.');
   }
   const proposed=wholeSitePageSpecs(draft,action.serviceIds);if(!proposed.ok)return fail(draft,proposed.reason);
-  if(wholeSiteBasePageIds(draft).length+list(draft.customPages).length+proposed.specs.length>10||list(draft.customPages).length+proposed.specs.length>8||draft.sections.length+proposed.specs.reduce((n,p)=>n+1+(p.detail?1:0),0)>40)
+  if(wholeSiteBasePageIds(draft).length+list(draft.customPages).length+proposed.specs.length>10||list(draft.customPages).length+proposed.specs.length>8||draft.sections.length+proposed.specs.reduce((n,p)=>n+1+(p.detail?1:0),0)>30)
    return fail(draft,'This site needs a smaller supported scope. No pages or wording were removed.');
   let working={...draft,siteComposition:'connected-pages-v1'};
   for(const spec of proposed.specs){

@@ -240,6 +240,7 @@ jobs:
           node scripts/check-mission16-portable-media.mjs
           node scripts/check-mission16-preview-navigation.mjs
           node scripts/check-mission16-whole-site-ui.mjs
+          node scripts/check-mission16-owner-cta-refresh.mjs
           node scripts/check-enquiry-preparation.mjs
           node scripts/check-operational-work.mjs
           node scripts/check-website-menu-story.mjs

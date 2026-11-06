@@ -19,14 +19,15 @@ const sql=(s,d=db)=>execFileSync(bin,['-X','-h',socket,'-U','postgres','-v','ON_
 const q=v=>v==null?'NULL':"'"+(typeof v==='object'?JSON.stringify(v):String(v)).replaceAll("'","''")+"'";
 const json=s=>JSON.parse(sql(s).split('\n').find(x=>x.startsWith('{')));
 const O='16000000-0000-4000-8000-000000000001',P='16000000-0000-4000-8000-000000000002',B='16000000-0000-4000-8000-000000000003',F='16000000-0000-4000-8000-000000000004';
-let actor=O,basis,session,writeCalls=0,loseAck=false;
+let actor=O,basis,session,writeCalls=0,loseAck=false,wholeSiteSourceCasReady=false,beforeCommit=null,guardSha256=null;
 const rpc=(name,args)=>json('BEGIN;SET LOCAL ROLE authenticated;SET LOCAL request.jwt.claim.sub='+q(actor)+';SELECT public.'+name+'('+args.map(q).join(',')+');COMMIT;');
 const svc=(name,args)=>json('BEGIN;SET LOCAL ROLE service_role;SELECT public.'+name+'('+args.map(q).join(',')+');COMMIT;');
-const direct=payload=>privateWebsiteDraftAction({action:'website_edit_page',body:payload,userId:actor,read:id=>rpc('busy_connected_builder_read_v1',[id]),commit:args=>{writeCalls++;return svc('busy_connected_website_commit_v1',Object.values(args));},history:(id,revision,hash,direction)=>rpc('busy_connected_website_history_v1',[id,revision,hash,direction]),transition:args=>svc('busy_connected_website_transition_v1',Object.values(args))});
+const commit=args=>{if(beforeCommit){const hook=beforeCommit;beforeCommit=null;hook();}writeCalls++;return svc('busy_connected_website_commit_v1',Object.values(args));};
+const direct=payload=>privateWebsiteDraftAction({action:'website_edit_page',body:payload,userId:actor,wholeSiteSourceCasReady,read:id=>rpc('busy_connected_builder_read_v1',[id]),commit,history:(id,revision,hash,direction)=>rpc('busy_connected_website_history_v1',[id,revision,hash,direction]),transition:args=>svc('busy_connected_website_transition_v1',Object.values(args))});
 const request=async(action,payload={})=>{
  if(action==='builder_read')return rpc('busy_connected_builder_read_v1',[payload.businessId||B]);
  if(action.startsWith('website_')){
-  const result=await privateWebsiteDraftAction({action,body:payload,userId:actor,read:id=>rpc('busy_connected_builder_read_v1',[id]),commit:args=>{writeCalls++;return svc('busy_connected_website_commit_v1',Object.values(args));},history:(id,revision,hash,direction)=>rpc('busy_connected_website_history_v1',[id,revision,hash,direction]),transition:args=>svc('busy_connected_website_transition_v1',Object.values(args))});
+  const result=await privateWebsiteDraftAction({action,body:payload,userId:actor,wholeSiteSourceCasReady,read:id=>rpc('busy_connected_builder_read_v1',[id]),commit,history:(id,revision,hash,direction)=>rpc('busy_connected_website_history_v1',[id,revision,hash,direction]),transition:args=>svc('busy_connected_website_transition_v1',Object.values(args))});
   if(loseAck&&action==='website_edit_page')throw Error('Synthetic lost acknowledgement AFTER actual SQL commit');return result;
  }
  const route=connectedAccountRoutes[action];if(!route)throw Error('Unsupported original route '+action);return rpc(route[0],route[1].map(k=>payload[k]??(k==='businessId'?B:null)));
@@ -53,6 +54,18 @@ try{
   const p=wholeAppStagingPackage(process.cwd());assert.throws(()=>sql(p.sql));sql(p.sql.replace(/^DO \$\$ BEGIN RAISE EXCEPTION 'WHOLE APP STAGING REVIEW FUSE:.*?\n/m,''));
   sql('INSERT INTO public.busy_businesses(id,name,created_by)VALUES('+[B,profile.businessName,O].map(q).join(',')+'),('+[F,'Foreign fictional business',P].map(q).join(',')+');INSERT INTO public.busy_business_memberships(business_id,user_id,role)VALUES('+[B,O,'owner'].map(q).join(',')+'),('+[F,P,'owner'].map(q).join(',')+');');
   rpc('busy_connected_initialize_v1',[B]);
+ });
+ await stage('separate-profile-cas-proposal-fuse-definition-and-acl-preservation',()=>{
+  const source=readFileSync('docs/sql-proposals/mission16-website-profile-cas.sql','utf8');guardSha256=createHash('sha256').update(source).digest('hex');
+  const metadata=()=>sql("SELECT jsonb_build_object('owner',proowner,'acl',proacl,'source',prosrc,'language',prolang,'securityDefiner',prosecdef,'config',proconfig) FROM pg_proc WHERE oid='public.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint)'::regprocedure");
+  const before=metadata();assert.throws(()=>sql(source));assert.equal(metadata(),before);
+  const fuse=/^DO \$\$ BEGIN RAISE EXCEPTION 'MISSION16 WEBSITE PROFILE CAS REVIEW FUSE:[^\n]+\n/m;assert.equal((source.match(new RegExp(fuse.source,'gm'))||[]).length,1);
+  sql(source.replace(fuse,''));const after=JSON.parse(metadata()),original=JSON.parse(before);assert.equal(after.owner,original.owner);assert.deepEqual(after.acl,original.acl);assert.deepEqual(after.config,original.config);assert.equal(after.securityDefiner,true);assert.match(after.source,/FOR SHARE/);assert.match(after.source,/siteComposition/);
+  assert.equal(sql("SELECT has_function_privilege('service_role','public.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint)','EXECUTE') AND NOT has_function_privilege('authenticated','public.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint)','EXECUTE') AND NOT has_function_privilege('anon','public.busy_connected_website_commit_v1(uuid,uuid,bigint,jsonb,jsonb,bigint)','EXECUTE')"),'t');
+  const installed=metadata();assert.throws(()=>sql(source.replace(fuse,'')));assert.equal(metadata(),installed,'The proposal must not silently overwrite a changed wrapper');
+  // Trusted synthetic bootstrap only AFTER independently checking the actual SQL.
+  // The unchanged public gateway has no client property that can set this flag.
+  wholeSiteSourceCasReady=true;
  });
  await stage('original-approved-profile-and-website-create-independent-readback',async()=>{
   session=createConnectedBuilderSession({request});basis=await session.open(B);const r=await session.profile({basis,profile,ownerApproved:true});assert.equal(r.ok,true);basis=r.observed;const created=await session.website({basis,action:'create',sourceRevision:basis.profileRevision,ownerApproved:true});assert.equal(created.ok,true,created.reason);basis=created.observed;
@@ -93,6 +106,21 @@ try{
   await assert.rejects(()=>direct(body(stale.operation)));assert.equal(writeCalls,before,'The original gateway must independently deny the old reviewed profile revision');
   const current=prepareWholeWebsiteRefinement(context(),'Make the service pages more interesting',deps);assert.equal(current.ok,true,current.reason);const saved=await session.website({basis,action:'edit_page',patch:current.operation,ownerApproved:true});assert.equal(saved.ok,true,saved.reason);basis=saved.observed;assert.equal(basis.websiteDraft.sections.find(s=>s.id===target).body,words);
  });
+ await stage('actual-profile-write-after-gateway-read-denies-atomic-commit-and-replay',async()=>{
+  const reviewed=prepareWholeWebsiteRefinement(context(),'Make the website feel more premium',deps);assert.equal(reviewed.ok,true,reviewed.reason);
+  const snapshot=()=>sql('SELECT jsonb_build_object(\'revision\',revision,\'payload\',payload) FROM public.busy_business_snapshots WHERE business_id='+q(B));
+  const original=snapshot(),revision=basis.profileRevision,before=writeCalls;
+  // Executes a genuine authenticated original profile RPC after the gateway's
+  // approved-source read but immediately before its original service-only commit.
+  beforeCommit=()=>{const receipt=rpc('busy_connected_profile_write_v1',[B,revision,basis.profile,{...basis.profile,tagline:'A real concurrent synthetic profile correction.'},true]);assert.equal(receipt.profileRevision,revision+1);};
+  const denied=await keepWholeWebsite(reviewed,{getContext:context,apply:async patch=>{const saved=await session.website({basis,action:'edit_page',patch,ownerApproved:true});return {applied:saved.ok};}});
+  assert.equal(denied.ok,false);assert.equal(denied.unknown,true);assert.equal(denied.mayReplay,false);assert.equal(writeCalls,before+1);assert.equal(snapshot(),original,'A stale profile must change neither website, workspace revision nor history');assert.equal(session.uncertain,true);
+  const again=await keepWholeWebsite(reviewed,{getContext:context,apply:()=>{throw Error('No stale write replay');}});assert.equal(again.ok,false);assert.equal(writeCalls,before+1);
+  await assert.rejects(()=>session.website({basis,action:'edit_page',patch:reviewed.operation,ownerApproved:true}));assert.equal(writeCalls,before+1);
+  session=createConnectedBuilderSession({request});basis=await session.open(B);assert.equal(basis.profileRevision,revision+1);
+  const fresh=prepareWholeWebsiteRefinement(context(),'Make the website feel more premium',deps);assert.equal(fresh.ok,true,fresh.reason);const saved=await session.website({basis,action:'edit_page',patch:fresh.operation,ownerApproved:true});assert.equal(saved.ok,true,saved.reason);basis=saved.observed;assert.equal(websiteRequestContent(basis.websiteDraft),websiteRequestContent(fresh.candidate));
+  const undo=await session.website({basis,action:'undo',ownerApproved:true});assert.equal(undo.ok,true,undo.reason);const redo=await session.website({basis:undo.observed,action:'redo',ownerApproved:true});assert.equal(redo.ok,true,redo.reason);assert.equal(websiteRequestContent(redo.observed.websiteDraft),websiteRequestContent(fresh.candidate));basis=redo.observed;
+ });
  await stage('lost-acknowledgement-after-real-commit-is-not-replayed',async()=>{
   const r=prepareWholeWebsiteRefinement(context(),'Make the mobile layout easier to use',deps);assert.equal(r.ok,true,r.reason);const before=writeCalls;loseAck=true;
   const unknown=await keepWholeWebsite(r,{getContext:context,apply:async patch=>{const saved=await session.website({basis,action:'edit_page',patch,ownerApproved:true});return {applied:saved.ok};}});assert.equal(unknown.ok,false);assert.equal(unknown.unknown,true);assert.equal(unknown.mayReplay,false);assert.equal(writeCalls,before+1);assert.equal(session.uncertain,true);
@@ -104,5 +132,5 @@ try{
   assert.equal(sql('SELECT count(*) FROM public.busy_website_deployments'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_websites'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_mini_app_requests'),'0');assert.equal(sql('SELECT count(*) FROM public.business_work_quote_references'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_business_snapshots WHERE business_id='+q(F)),'0');
  });
 }finally{
- mkdirSync('.test-artifacts/mission16-whole-site',{recursive:true});const report={database:db,hosted:false,syntheticDataOnly:true,authShimNotHostedAuth:true,aiLabArtifactUsed:false,providerCalls:0,paidUsage:0,websitePublished:false,explicitOwnerFixturePages:2,sourceDerivedServicePages:5,results,summary:{passed:results.filter(r=>r.passed).length,failed:results.filter(r=>!r.passed).length},finalPageCount:basis?.websiteDraft?.pages?.length||0,approvedPageHtmlHashes:approvedHashes||null};writeFileSync('.test-artifacts/mission16-whole-site/postgres.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
+ mkdirSync('.test-artifacts/mission16-whole-site',{recursive:true});const report={database:db,hosted:false,syntheticDataOnly:true,authShimNotHostedAuth:true,aiLabArtifactUsed:false,separateProfileCasProposalSha256:guardSha256,separateSqlAndBootstrapApprovalRequired:true,providerCalls:0,paidUsage:0,websitePublished:false,explicitOwnerFixturePages:2,sourceDerivedServicePages:5,results,summary:{passed:results.filter(r=>r.passed).length,failed:results.filter(r=>!r.passed).length},finalPageCount:basis?.websiteDraft?.pages?.length||0,approvedPageHtmlHashes:approvedHashes||null};writeFileSync('.test-artifacts/mission16-whole-site/postgres.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
 }
