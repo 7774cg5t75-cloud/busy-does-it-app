@@ -35,7 +35,7 @@ const escape=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/
 const origin=mission===17?'https://mission17.invalid':'https://mission16.invalid',results=[],failures=[],baselineFindings=[],interactions=[],sheets=[],pixelReceipts=[];let reviewPack=null;
 const record=(condition,message,stage)=>{if(!condition)(stage==='before'?baselineFindings:failures).push(message);};
 function measure(){
- const visible=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden';};
+ const visible=el=>{for(let parent=el.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS'&&!parent.open){const summary=[...parent.children].find(child=>child.tagName==='SUMMARY');if(!summary?.contains(el))return false;}const r=el.getBoundingClientRect(),s=getComputedStyle(el);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden';};
  const text=[...document.querySelectorAll('h1,h2,h3,p,a,li')].filter(visible);
  const rect=el=>{const r=el.getBoundingClientRect();return {width:r.width,height:r.height};};
  const rgb=s=>{const m=s.match(/^rgba?\(([^)]+)\)$/);if(!m)return null;const a=m[1].split(/[, /]+/).map(Number);return a.length===3||a[3]===1?a.slice(0,3):null;};

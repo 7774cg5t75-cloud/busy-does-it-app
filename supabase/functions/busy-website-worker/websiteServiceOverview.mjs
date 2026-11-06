@@ -13,6 +13,11 @@ const signed=value=>{
 // A presentation of current original service records, not another copy/fact
 // authority. A summary is an EXACT complete source paragraph, never generated
 // marketing copy or an automatically removed qualifier within a paragraph.
+/**
+ * @param draft The current original website model.
+ * @param section Its original approved services section.
+ * @param {{pageId?: string, editablePreview?: boolean, pageHref?: (id: string) => string}} [options]
+ */
 export function purposeServiceProjection(draft,section,{pageId='home',editablePreview=false,pageHref}={}){
  if(draft?.sitePresentation!=='purposeful-v1'||editablePreview||!['home','services'].includes(pageId)||typeof pageHref!=='function')return null;
  const businessId=text(draft.businessId);

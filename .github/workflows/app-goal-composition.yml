@@ -314,8 +314,11 @@ jobs:
           diff -qr src "$EDGE_SOURCE/src"
           diff -qr supabase "$EDGE_SOURCE/supabase"
           diff -qr standalone "$EDGE_SOURCE/standalone"
-          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/executionBootstrap.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1
-          echo "BUSY_EDGE_RESULT all_25_original_entrypoints_exit_0"
+          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/executionBootstrap.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1 || {
+            cat .test-artifacts/app-goal-composition/deno.log
+            exit 1
+          }
+          echo "BUSY_EDGE_RESULT all_26_original_entrypoints_and_4_proposal_modules_exit_0"
       - name: Signed PostgreSQL 17 tooling matching staging ACLs
         run: |
           # PostgreSQL16 cannot represent staging's existing MAINTAIN privilege.
