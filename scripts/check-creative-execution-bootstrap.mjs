@@ -81,3 +81,8 @@ console.log('PASS real guided refinement entry preserves the prior owner CTA whi
 for(const suffix of ['.','?','!']){const punctuation=refineGuidedWebsite(session,menu,{request:'Make our menu easier to find'+suffix},storyDeps);assert.equal(punctuation.ok,true,punctuation.reason);assert.deepEqual(punctuation.plan.boundaries,refined.plan.boundaries);}
 assert.equal(refineGuidedWebsite(session,menu,{request:'Make our menu easier to find and publish!'},storyDeps).ok,false);
 console.log('PASS ordinary sentence punctuation prepares the identical protected menu review; compound publication remains unavailable.');
+
+for(const request of ['Please make our menu easier to find.','Can you make our menu easier to find?']){const polite=refineGuidedWebsite(session,menu,{request},storyDeps);assert.equal(polite.ok,true,polite.reason);assert.deepEqual(polite.plan.boundaries,refined.plan.boundaries);assert.equal(guidedWebsiteCandidate(polite).sections.find(s=>s.type==='hero').cta,'Explore our menu');}
+for(const request of ['Can you make our menu easier to find and publish?','Please make our menu easier to find and change the prices.','Can you make our menu easier to find? Also email everyone.'])assert.equal(refineGuidedWebsite(session,menu,{request},storyDeps).ok,false);
+assert.equal(websiteCreativeInstructions(creativeFixture(2,true),'Can you make our menu easier to find?').ok,false);
+console.log('PASS bounded polite menu requests prepare the identical original protected review; missing menu and compound publishing, pricing and messaging requests remain unavailable.');

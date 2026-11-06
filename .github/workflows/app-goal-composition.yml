@@ -50,6 +50,12 @@ on:
       - 'scripts/check-ai-budget-postgres.mjs'
       - 'scripts/prepare-preservation-foundation.mjs'
       - 'scripts/check-preservation-foundation.mjs'
+      - 'scripts/check-ai-lab-foundation.mjs'
+      - 'scripts/check-ai-lab-foundation-postgres.mjs'
+      - 'scripts/prepare-ai-lab-foundation.mjs'
+      - 'scripts/lib/ai-lab-foundation-package.mjs'
+      - 'scripts/fixtures/ai-lab/**'
+      - 'docs/sql-proposals/ai-lab-foundation/**'
       - 'scripts/check-preservation-foundation-postgres.mjs'
       - 'scripts/lib/staging-preservation.mjs'
       - 'scripts/lib/preservation-foundation-package.mjs'
@@ -348,6 +354,8 @@ jobs:
           cp .test-artifacts/ai-gateway/postgres.json .test-artifacts/app-goal-composition/ai-budget-postgres.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-preservation-foundation-postgres.mjs > .test-artifacts/app-goal-composition/preservation-foundation.log 2>&1
           cp .test-artifacts/preservation-foundation/postgres.json .test-artifacts/app-goal-composition/preservation-foundation.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-foundation-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-foundation.log 2>&1
+          cp .test-artifacts/ai-lab-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-foundation.json
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1

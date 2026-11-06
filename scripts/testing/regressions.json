@@ -3226,6 +3226,13 @@
         "scripts/check-preservation-foundation.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-foundation",
+      "args": [
+        "scripts/check-ai-lab-foundation.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

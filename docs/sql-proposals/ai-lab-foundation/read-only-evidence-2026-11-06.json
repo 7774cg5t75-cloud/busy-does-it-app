@@ -1,0 +1,217 @@
+{
+  "targetProject": "sbvkrvksnruiclcvclbd",
+  "scope": "Read-only control-plane and catalogue metadata; no customer records or secrets",
+  "project": {
+    "id": "sbvkrvksnruiclcvclbd",
+    "ref": "sbvkrvksnruiclcvclbd",
+    "organization_id": "wrjfgasxtlznzfzmfrif",
+    "organization_slug": "wrjfgasxtlznzfzmfrif",
+    "name": "Busy Does It AI Lab",
+    "region": "eu-west-1",
+    "status": "ACTIVE_HEALTHY",
+    "database": {
+      "host": "db.sbvkrvksnruiclcvclbd.supabase.co",
+      "version": "17.11.0.018",
+      "postgres_engine": "17",
+      "release_channel": "ga"
+    },
+    "created_at": "2026-11-05T21:55:05.548653Z"
+  },
+  "organization": {
+    "id": "wrjfgasxtlznzfzmfrif",
+    "name": "Busy Does It AI Lab",
+    "plan": "free",
+    "tier": "tier_free",
+    "opt_in_tags": [],
+    "allowed_release_channels": [
+      "ga",
+      "preview"
+    ]
+  },
+  "preflight": {
+    "roles": [
+      {
+        "name": "anon",
+        "inherit": true,
+        "bypassRls": false,
+        "superuser": false,
+        "createRole": false
+      },
+      {
+        "name": "authenticated",
+        "inherit": true,
+        "bypassRls": false,
+        "superuser": false,
+        "createRole": false
+      },
+      {
+        "name": "postgres",
+        "inherit": true,
+        "bypassRls": true,
+        "superuser": false,
+        "createRole": true
+      },
+      {
+        "name": "service_role",
+        "inherit": true,
+        "bypassRls": true,
+        "superuser": false,
+        "createRole": false
+      }
+    ],
+    "installer": "postgres",
+    "extensions": [
+      {
+        "name": "pg_stat_statements",
+        "schema": "extensions",
+        "version": "1.11"
+      },
+      {
+        "name": "pgcrypto",
+        "schema": "extensions",
+        "version": "1.3"
+      },
+      {
+        "name": "plpgsql",
+        "schema": "pg_catalog",
+        "version": "1.0"
+      },
+      {
+        "name": "supabase_vault",
+        "schema": "vault",
+        "version": "0.3.1"
+      },
+      {
+        "name": "uuid-ossp",
+        "schema": "extensions",
+        "version": "1.1"
+      }
+    ],
+    "nativeHook": {
+      "acl": null,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog"
+      ],
+      "anonExecute": true,
+      "serviceExecute": true,
+      "securityDefiner": true,
+      "definitionSha256": "b21d88816c445d14cef5032c3cd4abaebc1db2001fcb3435022ab6b496182ca4",
+      "authenticatedExecute": true
+    },
+    "observedAt": "2026-11-06T09:22:42.104146+00:00",
+    "busySchemas": [],
+    "publicCreate": true,
+    "eventTriggers": [
+      {
+        "name": "ensure_rls",
+        "tags": [
+          "CREATE TABLE",
+          "CREATE TABLE AS",
+          "SELECT INTO"
+        ],
+        "event": "ddl_command_end",
+        "owner": "postgres",
+        "enabled": "O",
+        "function": "rls_auto_enable()"
+      },
+      {
+        "name": "issue_graphql_placeholder",
+        "tags": [
+          "DROP EXTENSION"
+        ],
+        "event": "sql_drop",
+        "owner": "supabase_admin",
+        "enabled": "O",
+        "function": "set_graphql_placeholder()"
+      },
+      {
+        "name": "issue_pg_cron_access",
+        "tags": [
+          "CREATE EXTENSION"
+        ],
+        "event": "ddl_command_end",
+        "owner": "supabase_admin",
+        "enabled": "O",
+        "function": "grant_pg_cron_access()"
+      },
+      {
+        "name": "issue_pg_graphql_access",
+        "tags": [
+          "CREATE EXTENSION"
+        ],
+        "event": "ddl_command_end",
+        "owner": "supabase_admin",
+        "enabled": "O",
+        "function": "grant_pg_graphql_access()"
+      },
+      {
+        "name": "issue_pg_net_access",
+        "tags": [
+          "CREATE EXTENSION"
+        ],
+        "event": "ddl_command_end",
+        "owner": "supabase_admin",
+        "enabled": "O",
+        "function": "grant_pg_net_access()"
+      },
+      {
+        "name": "pgrst_ddl_watch",
+        "tags": null,
+        "event": "ddl_command_end",
+        "owner": "supabase_admin",
+        "enabled": "O",
+        "function": "pgrst_ddl_watch()"
+      },
+      {
+        "name": "pgrst_drop_watch",
+        "tags": null,
+        "event": "sql_drop",
+        "owner": "supabase_admin",
+        "enabled": "O",
+        "function": "pgrst_drop_watch()"
+      }
+    ],
+    "publicObjects": [],
+    "databaseCreate": true,
+    "publicRoutines": [
+      {
+        "kind": "f",
+        "name": "rls_auto_enable()",
+        "owner": "postgres"
+      }
+    ],
+    "postgresVersion": "17.11",
+    "defaultPrivileges": [
+      {
+        "acl": "{postgres=rwU/postgres}",
+        "kind": "S",
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "kind": "f",
+        "schema": "public"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres,anon=Dxtm/postgres,authenticated=Dxtm/postgres,service_role=Dxtm/postgres}",
+        "kind": "r",
+        "schema": "public"
+      }
+    ],
+    "unexpectedAuthRows": false,
+    "nativeAuthUidExists": true,
+    "transactionReadOnly": "on",
+    "nativeAuthReferences": true
+  },
+  "regionAcceptance": {
+    "ownerAccepted": true,
+    "date": "2026-11-06",
+    "region": "eu-west-1",
+    "scope": "Existing isolated fictional-data laboratory only; no production infrastructure decision"
+  },
+  "migrations": [],
+  "edgeFunctions": [],
+  "hostedMutations": 0,
+  "providerCalls": 0
+}
