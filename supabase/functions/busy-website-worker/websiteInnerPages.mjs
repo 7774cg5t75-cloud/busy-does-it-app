@@ -1,3 +1,4 @@
+import {websitePurposefulInnerPageHtml,websitePagePurposeCss} from './websitePagePurpose.mjs';
 // A finite presentation of the existing page model. No new facts, routes,
 // photographs or stored configuration are inferred by this renderer helper.
 const clean=value=>typeof value==='string'?value.trim():'';
@@ -6,6 +7,7 @@ const regex=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const safeHref=value=>typeof value==='string'&&/^(?:https:\/\/[^\s"'<>]+|\/(?!\/)[a-zA-Z0-9_/?=&.%#-]*|(?:\.\.\/)*(?:[a-z0-9-]+\/)*index\.html(?:#[a-zA-Z0-9_-]+)?|#[a-zA-Z0-9_-]+)$/.test(value)?value:'';
 
 export function websiteInnerPageHtml(sectionHtml,context){
+ const purposeful=websitePurposefulInnerPageHtml(sectionHtml,context);if(purposeful!==null)return purposeful;
  const {draft,page,sections=[],escapeHtml,editAttrs=()=>'',homeHref='',pageHref=()=>''}=context||{};
  if(!draft||!page||page.id==='home'||!clean(page.title)||typeof escapeHtml!=='function')return null;
  let body=sectionHtml,lead='',openingId='',openingTitleAttrs='';
@@ -71,6 +73,7 @@ export function websiteInnerPageHtml(sectionHtml,context){
 }
 
 export const websiteInnerPageCss=`
+${websitePagePurposeCss}
 .photo-feature-grid .photo-feature-image.owner-image-fit-contain{object-fit:contain;background:var(--soft)}
 .photo-feature-grid .photo-feature-image.owner-image-crop-top{object-position:center top}.photo-feature-grid .photo-feature-image.owner-image-crop-bottom{object-position:center bottom}
 @media(max-width:800px){.photo-feature-grid .photo-feature-image.owner-image-mobile-crop-top{object-position:center top}.photo-feature-grid .photo-feature-image.owner-image-mobile-crop-center{object-position:center center}.photo-feature-grid .photo-feature-image.owner-image-mobile-crop-bottom{object-position:center bottom}section.owner-mobile-photo-crop-top .photo-feature-grid img{object-position:center top}section.owner-mobile-photo-crop-center .photo-feature-grid img{object-position:center center}section.owner-mobile-photo-crop-bottom .photo-feature-grid img{object-position:center bottom}}

@@ -1,0 +1,2 @@
+PASS exact fixed-lab fused package, original source pins,28table scope, atomic transactions, mandatory fresh hosted verification, RLS/default-grant preconditions and retaining rollback. No connection/execution.
+PASS recorded read-only hosted baseline, accepted lab-only region and read-only preflight shape; fresh verification remains mandatory.

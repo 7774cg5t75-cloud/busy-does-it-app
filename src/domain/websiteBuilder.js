@@ -1,11 +1,13 @@
 import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
 import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
+import {purposeServiceProjection} from '../../supabase/functions/busy-website-worker/websiteServiceOverview.mjs';
 import {pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';
 import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
 import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
 import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
+import {renderWebsiteSiteNavigation} from '../../supabase/functions/busy-website-worker/websiteSiteNavigation.mjs';
 import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
@@ -18,6 +20,7 @@ import { designForWebsite, designCss } from "../../supabase/functions/busy-websi
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
 import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";
+import {wholeSiteMenuMove} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
 
 import {splitBuilderInstructionClauses} from '../core/builderInstructionClauses.mjs';
 import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../core/websiteEditingLimits.mjs';
@@ -350,6 +353,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
       : null,
     theme,
     ...(sameOwnerSource&&previousDraft?.siteComposition==='connected-pages-v1'?{siteComposition:'connected-pages-v1'}:{}),
+    ...(sameOwnerSource&&Object.hasOwn(previousDraft||{},'sitePresentation')?{sitePresentation:previousDraft.sitePresentation}:{}),
     customPages:safeArray(previousDraft?.customPages).map(page=>({
       ...page,sectionIds:safeArray(page?.sectionIds).slice()
     })),
@@ -677,7 +681,13 @@ function applyStructuredWebsiteEdit(draft = {}, patch = {}) {
 }
 
 function applyWebsitePageChange(draft = {}, change = {}) {
-  const result=applyWebsiteVisualEdit(draft,{...change,kind:"page"});
+  let result=applyWebsiteVisualEdit(draft,{...change,kind:"page"});
+  // Reuse the original bounded layout operation inside this one reviewed
+  // generation. Explicit owner ordering is preserved unless menu-first was asked.
+  if(result.applied&&result.draft.sitePresentation==='purposeful-v1'&&(change.action==='compose-service-pages'||change.action==='refine-site-pages'&&['purposeful','menu-first'].includes(change.direction))){
+    const move=wholeSiteMenuMove(result.draft,{explicit:change.direction==='menu-first'});
+    if(move){const moved=applyWebsiteVisualEdit(result.draft,move);if(!moved.applied)return {applied:false,draft,reason:moved.reason};result={...result,draft:moved.draft};}
+  }
   // Page modelling may add a route or change placement after the pure edit.
   // Recheck the original lock invariant over that complete derived result.
   return result.applied?protectWebsiteOwnerLocks(draft,{...result,draft:withHtml(result.draft)}):result;
@@ -784,7 +794,8 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }
     if(craftedPage(draft)&&section.type==='services'&&section.appearance?.serviceLayout!=='index'){
       const heading=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
-      const content=craftedServices(section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,photoFor:item=>['narrative','atelier'].includes(draft.theme.heroVariation)?servicePhotoHtml(draft,item,approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml)):'',escapeHtml,editAttrs,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:item=>serviceContactAction(item,renderedAnchors.has('contact')?'#contact':'',escapeHtml)});
+      const projection=purposeServiceProjection(draft,section,{pageId:page?.id,editablePreview,pageHref:standalone?linkToPage:undefined});
+      const content=craftedServices(projection?.section||section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,overview:!!projection,reviewedHeadingHrefs:projection?.reviewedHeadingHrefs||[],itemHeadingHref:item=>projection?.detailHrefs[item.id]||'',photoFor:item=>projection?.hiddenPhotoIds.includes(item.id)?'':['narrative','atelier'].includes(draft.theme.heroVariation)?servicePhotoHtml(draft,item,approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml)):'',escapeHtml,editAttrs,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:item=>serviceContactAction(item,renderedAnchors.has('contact')?'#contact':'',escapeHtml)});
       if(content)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${heading}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${heading}>${content}</div></section>`;
     }
     if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
@@ -857,21 +868,23 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const sectionHtml=websitePageHeadingHierarchy(rawSectionHtml,{draft,page,sections:orderedSections,escapeHtml,editAttrs,homeHref:standalone?homePath:'',pageHref:id=>standalone?linkToPage(id):''});
   const business=escapeHtml(draft.businessName||"Business website");
   const area=clean(draft.serviceArea);
-  const nav=safeArray(draft.navigation)
+  const navigationItems=safeArray(draft.navigation)
     .filter(item=>item?.id&&item?.label&&(standalone||renderedAnchors.has(String(item.id))))
     .map(item=>{
       if(!standalone)
-        return `<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`;
+        return {id:item.id,label:item.label,href:'#'+item.id};
       const pageLink=linkToPage(item.id);
       const fragment=clean(item?.href);
       const href=pageLink||(fragment.startsWith("#")?
         (page?.id==="home"&&renderedAnchors.has(fragment.slice(1))
           ?fragment:homePath+fragment):"");
-      return href?`<a${item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(href)}">${escapeHtml(item.label)}</a>`:"";
-    }).join("");
-  const navigationHtml=safeArray(draft.navigation).length>6
+      return href?{id:item.id,label:item.label,href}:null;
+    }).filter(Boolean);
+  const nav=navigationItems.map(item=>`<a${standalone&&item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
+  const purposefulNavigation=standalone?renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,pageHref:linkToPage}):null;
+  const navigationHtml=purposefulNavigation||(safeArray(draft.navigation).length>6
     ?`<div class="nav-links nav-long-desktop">${nav}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${nav}</div></details>`
-    :`<div class="nav-links">${nav}</div>`;
+    :`<div class="nav-links">${nav}</div>`);
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(draft.theme?.heroComposition||"")?"premium-site-"+draft.theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a>${navigationHtml}</div></nav><main id="main">${page?.id==='home'||!page?websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml):''}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 

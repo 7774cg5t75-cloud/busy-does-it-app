@@ -11,6 +11,7 @@ import {planWebsiteDesign} from '../supabase/functions/busy-website-worker/desig
 import {responsivePhotoAttributes} from '../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
 import {websiteGalleryPresentation,websiteAssetAvailable} from '../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
 import {websitePageGuide} from '../supabase/functions/busy-website-worker/websitePageGuide.mjs';
+import {renderWebsiteSiteNavigation} from '../supabase/functions/busy-website-worker/websiteSiteNavigation.mjs';
 import {prepareWholeWebsite} from '../src/core/wholeWebsitePlan.mjs';
 import {mission16Fixture} from './lib/mission16-site-fixtures.mjs';
 import {websiteMovementOptions,resolveWebsiteMovement} from '../src/core/websiteVisualMovement.mjs';
@@ -18,7 +19,7 @@ const escape=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&l
 const workerSource=readFileSync('supabase/functions/busy-website-worker/index.ts','utf8');
 const fragment=(first,last)=>{const start=workerSource.indexOf('function '+first+'('),end=workerSource.indexOf(last,start);assert.ok(start>=0&&end>start);return workerSource.slice(start,end);};
 const workerCode=stripTypeScriptTypes(fragment('pageSeo','function renderSectionHtml(')+fragment('relativePageHref','function renderWebsiteHtml(')+fragment('renderWebsiteHtml','async function ensureBucket('));
-const workerDeps={renderSectionHtml:originalWebsiteSectionRuntime(),safeArray:value=>Array.isArray(value)?value:[],clean:value=>typeof value==='string'?value.trim():'',escapeHtml:escape,pageDirectionClass,craftedPage,designForWebsite,designCss,planWebsiteDesign,websiteGalleryPresentation,websitePageGuide,websitePageHeadingHierarchy,responsivePhotoAttributes,websiteAssetAvailable,urlForAsset:(asset,urls)=>websiteAssetAvailable(asset)?urls[asset?.storagePath]||'':''};
+const workerDeps={renderSectionHtml:originalWebsiteSectionRuntime(),safeArray:value=>Array.isArray(value)?value:[],clean:value=>typeof value==='string'?value.trim():'',escapeHtml:escape,pageDirectionClass,craftedPage,designForWebsite,designCss,planWebsiteDesign,websiteGalleryPresentation,websitePageGuide,websitePageHeadingHierarchy,renderWebsiteSiteNavigation,responsivePhotoAttributes,websiteAssetAvailable,urlForAsset:(asset,urls)=>websiteAssetAvailable(asset)?urls[asset?.storagePath]||'':''};
 const worker=Function(...Object.keys(workerDeps),workerCode+';return renderWebsiteHtml;')(...Object.values(workerDeps));
 let cases=0;
 for(const [businessType,family] of [['Landscaping','split-editorial'],['Festival catering','story-spread'],['Creative studio','typography-first']]){
@@ -49,7 +50,10 @@ assert.ok(editableHtml.includes('<p class="inner-page-lead" data-busy-edit-secti
 assert.ok(resolveWebsiteMovement(editable,editablePageId,'current-source',{channel:editableOptions.channel,sourceKey:editableOptions.sourceKey,sectionId:editableLast,targetSectionId:editableFirst,position:'before'},editableHtml));
 // The genuine multi-page generator chooses an editorial intro appearance.
 // That finite default must not repeat the auto page title as another heading.
-const studio=prepareWholeWebsite(mission16Fixture(2),{pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml});assert.equal(studio.ok,true);
+const legacyStudioContext=mission16Fixture(2);legacyStudioContext.website.theme.lockedSections=['hero'];
+// A protected original hero retains the M16 presentation/storage contract;
+// reviewed purposeful-v1 rendering is exercised separately by Mission17.
+const studio=prepareWholeWebsite(legacyStudioContext,{pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml});assert.equal(studio.ok,true);
 const studioPage=studio.candidate.pages.find(p=>p.sourceServiceId==='service-0'),studioHtml=renderWebsiteHtml(studio.candidate,studioPage.id,{standalone:true});assert.equal((studioHtml.match(/>Brand direction<\/h[12]>/g)||[]).length,1);assert.match(studioHtml,/class="inner-page-lead"/);assert.equal((studioHtml.split('<main id="main">')[1].split('</main>')[0].match(/Find a clear starting point/g)||[]).length,1);
 const studioOwner=structuredClone(studio.candidate),studioFirst=studioOwner.sections.find(s=>s.id===studioPage.sectionIds[0]);studioFirst.appearance.titleFont='serif';const styledStudio=renderWebsiteHtml(studioOwner,studioPage.id,{standalone:true});assert.match(styledStudio,/owner-text-titleFont-serif/);assert.ok(!styledStudio.includes('class="inner-page-lead"'));assert.match(styledStudio,/<h2>Brand direction<\/h2>/);
 let many={...source,siteComposition:'connected-pages-v1'};for(let i=1;i<=6;i++)many=applyWebsitePageChange(many,{action:'create-page',title:'Approved page '+i,body:'Approved owner text '+i+'.'}).draft;

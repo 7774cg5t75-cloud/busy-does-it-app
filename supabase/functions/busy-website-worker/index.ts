@@ -1,5 +1,6 @@
 import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from './websiteContentPhotos.mjs';
 import {servicePhotoHtml} from './websiteServicePhotos.mjs';
+import {purposeServiceProjection} from './websiteServiceOverview.mjs';
 import {pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact} from './websiteCraftedPage.mjs';
 import {responsivePhotoAttributes} from './websiteResponsivePhotos.mjs';
 import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from './websitePhotoPresentation.mjs';
@@ -8,6 +9,7 @@ import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthorit
 import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
 import {websitePageGuide,websitePageHeadingHierarchy} from './websitePageGuide.mjs';
+import {renderWebsiteSiteNavigation} from './websiteSiteNavigation.mjs';
 import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from './websiteServiceIndex.mjs';
 import {faqDisclosureItems} from './websiteFaqPresentation.mjs';
 import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
@@ -158,7 +160,8 @@ function renderSectionHtml(
   urls: Record<string, string>,
   isFirstSection: boolean,
   contactHref: string = "",
-  omitHero: boolean = true
+  omitHero: boolean = true,
+  pageContext: {pageId?: string;pageHref?: (id:string)=>string} = {}
 ) {
   const theme = draft?.theme || {};
   const sectionClasses=sectionAppearanceClasses(section);
@@ -184,7 +187,8 @@ function renderSectionHtml(
   const headingTag = isFirstSection ? "h1" : "h2";
 
   if(craftedPage(draft)&&section.type==='services'&&section.appearance?.serviceLayout!=='index'){
-    const content=craftedServices(section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,photoFor:item=>['narrative','atelier'].includes(draft.theme.heroVariation)?servicePhotoHtml(draft,item,(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml)):'',escapeHtml,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:(item:any)=>serviceContactAction(item,contactHref,escapeHtml)});
+    const projection=purposeServiceProjection(draft,section,{pageId:pageContext.pageId,pageHref:pageContext.pageHref});
+    const content=craftedServices(projection?.section||section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,overview:!!projection,reviewedHeadingHrefs:projection?.reviewedHeadingHrefs||[],itemHeadingHref:item=>projection?.detailHrefs[item.id]||'',photoFor:item=>projection?.hiddenPhotoIds.includes(item.id)?'':['narrative','atelier'].includes(draft.theme.heroVariation)?servicePhotoHtml(draft,item,(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml)):'',escapeHtml,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:(item:any)=>serviceContactAction(item,contactHref,escapeHtml)});
     if(content)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${content}</div></section>`;
   }
   if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
@@ -339,10 +343,12 @@ function renderWebsiteHtml(
   ].join(" ");
   const seo = pageSeo(draft, page);
   const navigation = safeArray(draft?.navigation).filter((item:any)=>item.id!=="gallery"||allSections.some((section:any)=>section.type==="gallery"&&websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).length>0));
-  const navigationLinks=navigation.map((item:any)=>`<a${item.id===page?.id?' aria-current="page"':''} href="${escapeHtml((String(item.href||"").startsWith("#")&&page.id==="home"?item.href:pageUrls[item.id]||relativePageHref(page,item.href?.startsWith("#")?"/":item.href||"/")))}">${escapeHtml(item.label||item.id)}</a>`).join("");
-  const navigationHtml=navigation.length>6
+  const navigationItems=navigation.map((item:any)=>({id:item.id,label:item.label||item.id,href:String(item.href||"").startsWith("#")&&page.id==="home"?item.href:pageUrls[item.id]||relativePageHref(page,item.href?.startsWith("#")?"/":item.href||"/")}));
+  const navigationLinks=navigationItems.map((item:any)=>`<a${item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
+  const purposefulNavigation=renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}});
+  const navigationHtml=purposefulNavigation||(navigation.length>6
     ?`<div class="nav-links nav-long-desktop">${navigationLinks}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${navigationLinks}</div></details>`
-    :`<div class="nav-links">${navigationLinks}</div>`;
+    :`<div class="nav-links">${navigationLinks}</div>`);
   const navHtml=navigation.length?`<nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${escapeHtml(pageUrls.home||relativePageHref(page,"/"))}">${escapeHtml(draft?.brandLabel||draft?.businessName||"Home")}</a>${navigationHtml}</div></nav>`:"";
 
   const renderedOrder=(page?.id==="home"?plan.sectionOrder:safeArray(page?.sectionIds));
@@ -360,7 +366,7 @@ function renderWebsiteHtml(
       return true;
     })
     .map((section: any, index: number) =>
-      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml),'menu'),narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home')
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml),'menu'),narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home',{pageId:page?.id,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}})
     )
     .join("");
 

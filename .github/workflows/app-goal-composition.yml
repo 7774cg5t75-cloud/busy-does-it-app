@@ -10,6 +10,9 @@ on:
       - '.github/workflows/check-founder-operations.yml'
       - '.github/workflows/website-design-browser.yml'
       - '.github/workflows/mission16-websites.yml'
+      - '.github/workflows/mission17-websites.yml'
+      - 'scripts/check-mission17-*.mjs'
+      - 'scripts/build-mission17-sites.mjs'
       - 'src/core/wholeWebsitePlan.mjs'
       - 'src/core/wholeWebsitePreview.mjs'
       - 'src/components/WholeWebsiteReview.js'
@@ -241,6 +244,10 @@ jobs:
           node scripts/check-mission16-preview-navigation.mjs
           node scripts/check-mission16-whole-site-ui.mjs
           node scripts/check-mission16-owner-cta-refresh.mjs
+          node scripts/check-mission17-whole-site.mjs
+          node scripts/check-mission17-inner-quality.mjs
+          node scripts/check-mission17-navigation.mjs
+          node scripts/check-mission17-service-overview.mjs
           node scripts/check-enquiry-preparation.mjs
           node scripts/check-operational-work.mjs
           node scripts/check-website-menu-story.mjs
@@ -375,6 +382,7 @@ jobs:
           cp .test-artifacts/ai-lab-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-foundation.json
           BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-mission16-whole-site-postgres.mjs > .test-artifacts/app-goal-composition/mission16-whole-site-postgres.log 2>&1
           cp .test-artifacts/mission16-whole-site/postgres.json .test-artifacts/app-goal-composition/mission16-whole-site-postgres.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/mission16-whole-site-postgres.json'));print('BUSY_WHOLE_SITE_POSTGRES '+json.dumps(d['summary']))"
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1

@@ -1,4 +1,8 @@
-## Current genuine private Product Master — V22.84, 6 November 2026
+## Mission17 authority checkpoint — owner-declared V22.85 unavailable
+
+The owner identifies V22.85 as the current authority. Its genuine Word original is not accessible in the current attachments or authorised private archive. Do not invent its contents or describe V22.84 as the latest owner-approved version. Apply the explicit Mission17 page-quality requirements while preserving verified inherited requirements and all existing approval boundaries. V22.84 below remains the latest byte-verified original; reconciliation with the genuine V22.85 is outstanding. No hosted installation, deployment, provider activation, inference, spending, publication or Gold Standard promotion is authorised.
+
+## Latest byte-verified private Product Master — V22.84, 6 November 2026
 
 Owner-supplied original SHA256 `1b09e3eac692a859479adafe776508bb998d49e94c656b76c0082c8490521da2`; 378,379bytes,3,325 Word paragraphs/20tables. ZIP CRC and all19XML/relationship parts parse; full ordered comparison with genuine V22.82 identifies38 explicit change ranges, including superseded commercial examples and new Sections95–96. Sections93/94 are identical by exact Word paragraph comparison. This is the current authority; older version entries below are historical provenance. Original, complete extracts and detailed private commercial plan stay outside public Git.
 

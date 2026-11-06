@@ -3275,6 +3275,34 @@
         "scripts/check-mission16-owner-cta-refresh.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "mission17-inner-quality",
+      "args": [
+        "scripts/check-mission17-inner-quality.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission17-navigation",
+      "args": [
+        "scripts/check-mission17-navigation.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission17-service-overview",
+      "args": [
+        "scripts/check-mission17-service-overview.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "mission17-whole-site",
+      "args": [
+        "scripts/check-mission17-whole-site.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

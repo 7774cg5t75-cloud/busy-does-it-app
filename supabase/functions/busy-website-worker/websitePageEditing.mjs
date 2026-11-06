@@ -1,5 +1,5 @@
 import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
-import {wholeSitePageSpecs,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent} from './websiteWholeSite.mjs';
+import {wholeSitePageSpecs,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent,wholeSiteOperationCount,wholeSiteMenuMove} from './websiteWholeSite.mjs';
 import {protectWebsiteOwnerLocks,websiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * V3.135 owner-managed custom website pages.
@@ -20,11 +20,17 @@ function editWebsitePagesUnchecked(draft={},action={}){
    return fail(draft,'The owner business or website changed. Prepare a fresh whole-site review.');
   if(!wholeSiteContentCurrent(draft))return fail(draft,'Review current approved menu/product/event information before a complete-site change.');
   if(!wholeSiteDerivedSourcesCurrent(draft))return fail(draft,'A service changed or was removed. Review its related pages in the original Studio; your wording was kept.');
+  if(Object.hasOwn(draft,'sitePresentation')&&draft.sitePresentation!=='purposeful-v1')return fail(draft,'This website uses a newer presentation. Its approved design was kept; use a compatible original editor.');
   if(action.action==='update-site-contact'){
    if(!['email','phone'].includes(action.field)||typeof action.value!=='string'||!action.value.trim())return fail(draft,'Choose one exact contact email address or phone number.');
    return editWebsiteDraftField(draft,{sectionId:'contact',field:action.field,value:action.value});
   }
   if(action.action==='refine-site-pages'){
+   if(['purposeful','menu-first'].includes(action.direction)){
+    const locks=websiteOwnerLocks(draft);if(!locks.ok||locks.locks.length)return fail(draft,'Review the website section locks before changing the whole-site presentation. Your current design was kept.');
+    if(action.direction==='purposeful'&&draft.sitePresentation==='purposeful-v1'||action.direction==='menu-first'&&!wholeSiteMenuMove(draft,{explicit:true}))return fail(draft,'This supported presentation is already present, or there is no current approved menu on Home. Nothing changed.');
+    return {applied:true,draft:{...draft,sitePresentation:'purposeful-v1'},reason:action.direction==='menu-first'?'Prepared the exact approved menu as the first supporting section.':'Prepared clearer page purposes, source-grounded service gateways, story and navigation. Your words, fonts, colours and photographs were kept.'};
+   }
    if(!['premium','services','mobile'].includes(action.direction))return fail(draft,'Choose a supported inner-page refinement.');
    const targets=new Set(list(draft.customPages).filter(p=>p.sourceServiceId).flatMap(p=>p.sectionIds||[]));
    if(!targets.size||targets.size>10)return fail(draft,'Prepare current service pages before refining them.');
@@ -38,16 +44,20 @@ function editWebsitePagesUnchecked(draft={},action={}){
    return changed?{applied:true,draft:{...draft,sections},reason:'Prepared a bounded inner-page design change; original words, brand and customer destinations are preserved.'}:fail(draft,'These supported settings are already present. Nothing changed.');
   }
   const proposed=wholeSitePageSpecs(draft,action.serviceIds);if(!proposed.ok)return fail(draft,proposed.reason);
-  if(wholeSiteBasePageIds(draft).length+list(draft.customPages).length+proposed.specs.length>10||list(draft.customPages).length+proposed.specs.length>8||draft.sections.length+proposed.specs.reduce((n,p)=>n+1+(p.detail?1:0),0)>30)
+  const locks=websiteOwnerLocks(draft),adoptPresentation=locks.ok&&!locks.locks.length;
+  const purposeful=draft.sitePresentation==='purposeful-v1'||adoptPresentation;
+  if(adoptPresentation&&wholeSiteOperationCount(draft,action.serviceIds)>10)return fail(draft,'Prepare fewer service pages in this one review. No source or existing page was removed.');
+  if(wholeSiteBasePageIds(draft).length+list(draft.customPages).length+proposed.specs.length>10||list(draft.customPages).length+proposed.specs.length>8||draft.sections.length+proposed.specs.reduce((n,p)=>n+1+(!purposeful&&p.detail?1:0),0)>30)
    return fail(draft,'This site needs a smaller supported scope. No pages or wording were removed.');
-  let working={...draft,siteComposition:'connected-pages-v1'};
+  let working={...draft,siteComposition:'connected-pages-v1',...(adoptPresentation?{sitePresentation:'purposeful-v1'}:{})};
   for(const spec of proposed.specs){
-   const created=editWebsitePagesUnchecked(working,{action:'create-page',title:spec.title,body:spec.opening});if(!created.applied)return fail(draft,created.reason);working=created.draft;
+   const purposeful=working.sitePresentation==='purposeful-v1';
+   const created=editWebsitePagesUnchecked(working,{action:'create-page',title:spec.title,body:purposeful?spec.sourceServiceSnapshot.body:spec.opening});if(!created.applied)return fail(draft,created.reason);working=created.draft;
    const p=working.customPages.at(-1);p.sourceServiceId=spec.serviceId;p.sourceServiceSnapshot={...spec.sourceServiceSnapshot};
    const section=working.sections.find(s=>s.id===p.sectionIds[0]);
    if(spec.photo){section.type='photo-feature';section.asset={...spec.photo};section.appearance={...spec.photo.appearance,desktopPhotoSide:proposed.specs.indexOf(spec)%2?'right':'left'};}
    else section.appearance={readingLayout:'editorial'};
-   if(spec.detail){const extra=editWebsitePagesUnchecked(working,{action:'add-page-section',pageId:p.id,title:'A closer look',body:spec.detail});if(!extra.applied)return fail(draft,extra.reason);working=extra.draft;working.sections.find(s=>s.id===working.customPages.find(x=>x.id===p.id).sectionIds.at(-1)).appearance={readingLayout:'feature-chapters'};}
+   if(spec.detail&&!purposeful){const extra=editWebsitePagesUnchecked(working,{action:'add-page-section',pageId:p.id,title:'A closer look',body:spec.detail});if(!extra.applied)return fail(draft,extra.reason);working=extra.draft;working.sections.find(s=>s.id===working.customPages.find(x=>x.id===p.id).sectionIds.at(-1)).appearance={readingLayout:'feature-chapters'};}
   }
   // Five page creations plus five optional details is the original ten-change bound.
   return {applied:true,draft:working,reason:'Prepared source-grounded service pages as one private Studio revision. Existing owner pages and copy were kept.'};

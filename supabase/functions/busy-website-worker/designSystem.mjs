@@ -1,3 +1,5 @@
+import {websiteServiceOverviewCss} from './websiteServiceOverview.mjs';
+import {siteNavigationCss} from './websiteSiteNavigation.mjs';
 import {websiteInnerPageCss} from './websiteInnerPages.mjs';
 import {craftedPageCss} from './websiteCraftedPage.mjs';
 import {premiumHeroCss} from './websitePremiumHero.mjs';
@@ -506,6 +508,8 @@ section.owner-cta-spacious .cta{min-height:58px;padding:18px 28px;white-space:no
 ${premiumHeroCss}
 ${craftedPageCss}
 ${websiteInnerPageCss}
+${siteNavigationCss}
+${websiteServiceOverviewCss}
 `;
 }
 export {PALETTES,designForWebsite,designCss,withWhiteContrast};

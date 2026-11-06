@@ -1,5 +1,6 @@
 import {validPublicBusinessContent} from './businessContentRecords.mjs';
 import {websiteServicePhoto} from './websiteServicePhotos.mjs';
+import {websiteOwnerLocks} from './websiteOwnerLocks.mjs';
 // A bounded presentation projection of the ORIGINAL website, never a fact store.
 const list=x=>Array.isArray(x)?x:[],text=x=>typeof x==='string'?x.trim():'';
 export const servicePageSlug=s=>text(s).normalize('NFKD').toLowerCase().replace(/[\u0300-\u036f]/g,'').replace(/&/g,'-and-').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,55).replace(/-+$/,'');
@@ -28,6 +29,22 @@ export function wholeSitePageSpecs(draft,ids){
 
 export function wholeSiteBasePageIds(draft){
  return ['home',...['services','products','events','about','gallery','faq','contact'].filter(id=>{const s=list(draft?.sections).find(s=>s.id===id&&s.enabled!==false);return !!s&&!(['gallery','faq','services'].includes(id)&&!list(s.items).length)&&!(id==='about'&&!text(s.body));})];
+}
+
+// Reviewable presentation decisions over original sources, not new facts.
+export function wholeSiteMenuMove(draft,{explicit=false}={}){
+ const locks=websiteOwnerLocks(draft);if(!locks.ok||locks.locks.length)return null;
+ if(!wholeSiteContentCurrent(draft)||!explicit&&(draft?.theme?.pageDirection!=='menu-house'||Array.isArray(draft?.theme?.sectionOrder)))return null;
+ const menus=list(draft?.sections).filter(s=>s.id==='products'&&s.type==='products'&&s.enabled!==false);
+ const home=list(draft?.pages).find(p=>p.id==='home'&&p.enabled!==false);
+ if(menus.length!==1||!home||!list(home.sectionIds).includes('products')||!list(home.sectionIds).includes('hero')||home.sectionIds.indexOf('products')===home.sectionIds.indexOf('hero')+1)return null;
+ return {kind:'layout',action:'move-relative',sectionId:'products',targetSectionId:'hero',position:'after',pageId:'home'};
+}
+
+export function wholeSiteOperationCount(draft,ids){
+ const p=wholeSitePageSpecs(draft,ids);
+ const locks=websiteOwnerLocks(draft),purposeful=draft?.sitePresentation==='purposeful-v1'||locks.ok&&!locks.locks.length;
+ return p.ok?p.specs.reduce((n,s)=>n+1+(!purposeful&&s.detail?1:0),0)+(wholeSiteMenuMove(draft)?1:0):Infinity;
 }
 
 // Small derived provenance over the existing approved service. It never

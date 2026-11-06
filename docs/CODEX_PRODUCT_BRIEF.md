@@ -1,5 +1,7 @@
 ## Current authority and scope — 6 November 2026
 
+Mission17 identifies V22.85 as current, but its genuine original is not accessible. Do not infer its changes or treat V22.84 as the latest approved version. Apply the explicit Mission17 whole-site/page-quality instructions and verified inherited requirements while reconciliation remains outstanding. No hosted, inference, publication or Gold Standard approval is added.
+
 The genuine private owner-supplied V22.84 supersedes older commercial examples below where they conflict. Consult its Sections93–96 and the current master-access provenance. A complete agreed standard website, fair ordinary corrections, professional whole-site quality, free/paid parity, truthful facts, ownership and measured costs govern future planning; no new entitlement, billing or publication is activated. Detailed private commercial requirements remain outside public Git. The current installation decision remains separately conditional on exact approved SQL and runner guarantees.
 
 # Busy Does It — public product orientation for Codex

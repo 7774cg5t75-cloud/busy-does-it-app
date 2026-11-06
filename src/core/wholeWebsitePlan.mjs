@@ -2,7 +2,8 @@ import {stableJson} from './stableJson.mjs';
 import {websiteRequestContent} from './websiteRequestPlan.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 import {websitePhotoSourcesCurrent} from './websitePhotoReview.mjs';
-import {wholeSiteServices,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
+import {wholeSiteServices,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent,wholeSiteOperationCount} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
+import {websiteOwnerLocks} from '../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs';
 const clock=()=>globalThis.performance?.now?.()??Date.now();
 const byteLength=s=>{let n=0;for(const c of s){const p=c.codePointAt(0);n+=p<=127?1:p<=2047?2:p<=65535?3:4;}return n;};
 const issued=new WeakMap(),used=new WeakSet(),fail=reason=>({ok:false,reason});
@@ -35,6 +36,8 @@ export function prepareWholeWebsite(context,deps){
  const contact=d.sections?.find(s=>s.id==='contact'&&s.enabled!==false);
  if(!contact?.email&&!contact?.phone)return fail('How should customers contact you? Review an approved email address or phone number in Business Identity.');
  const remaining=Math.max(0,10-wholeSiteBasePageIds(d).length-(d.customPages?.length||0)),services=wholeSiteServices(d).filter(s=>!d.customPages?.some(p=>p.sourceServiceId===s.id)).slice(0,Math.min(5,remaining));
+ while(services.length&&wholeSiteOperationCount(d,services.map(s=>s.id))>10)services.pop();
+ if(d.siteComposition==='connected-pages-v1'&&!services.length&&d.sitePresentation!=='purposeful-v1'&&websiteOwnerLocks(d).locks.length===0)return prepare(context,{action:'refine-site-pages',direction:'purposeful'},deps,context.goal);
  return prepare(context,{action:'compose-service-pages',serviceIds:services.map(s=>s.id)},deps,context.goal);
 }
 export function prepareWholeWebsiteRefinement(context,request,deps){
@@ -45,7 +48,7 @@ export function prepareWholeWebsiteRefinement(context,request,deps){
  if(contact)return prepare(context,{action:'update-site-contact',field:contact[1].toLowerCase(),value:contact[2]},deps,request);
  const add=value.match(/^add (?:a |an )?(.+?) page$/i);
  if(add){const matches=wholeSiteServices(context.website).filter(s=>s.title.toLocaleLowerCase('en')===add[1].toLocaleLowerCase('en'));if(matches.length!==1)return fail('Which current approved service should have its own page? Add or correct its description in Business Identity first.');return prepare(context,{action:'compose-service-pages',serviceIds:[matches[0].id]},deps,request);}
- const direction=/^make (?:the |my )?website feel more premium$/i.test(value)?'premium':/^make (?:the )?service pages more interesting$/i.test(value)?'services':/^make (?:the )?mobile layout easier to use$/i.test(value)?'mobile':null;
+ const direction=/^(?:bring (?:the |our |my )?menu forward|put (?:the |our |my )?menu first|make (?:the |our |my )?menu (?:the )?main attraction)$/i.test(value)?'menu-first':/^(?:improve (?:the )?(?:whole website|website design)|make (?:the |my )?(?:whole )?website (?:feel more individual|look more professional))$/i.test(value)?'purposeful':/^make (?:the |my )?website feel more premium$/i.test(value)?'premium':/^make (?:the )?service pages more interesting$/i.test(value)?'services':/^make (?:the )?mobile layout easier to use$/i.test(value)?'mobile':null;
  if(!direction)return fail('I can prepare a current service page or refine supported inner-page typography and phone reading. Your request was kept; nothing was changed.');
  return prepare(context,{action:'refine-site-pages',direction},deps,request);
 }
