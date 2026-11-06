@@ -1,3 +1,4 @@
+import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from './websiteCreativeDocumentRendering.mjs';
 import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from './websiteCreativeRendering.mjs';
 import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from './websiteContentPhotos.mjs';
 import {servicePhotoHtml} from './websiteServicePhotos.mjs';
@@ -170,6 +171,7 @@ function renderSectionHtml(
   const itemHeadingClass=(item:any)=>item?.appearance?.headingScale==="large"
     ?' class="owner-item-heading-large"':
     item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
+  if(section.type==='creative-document')return renderWebsiteCreativeDocument(draft,section,{pageId:pageContext.pageId||'home',resolveImage:(asset:any)=>urlForAsset(asset,urls),responsiveImageAttrs:(asset:any,url:string,imageOptions:any)=>responsivePhotoAttributes(asset,url,urls,escapeHtml,imageOptions),pageHref:pageContext.pageHref});
   if (section.type === "hero") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     const imageMarkup=image
@@ -330,8 +332,11 @@ function renderWebsiteHtml(
   const theme = draft?.theme || {};
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections:allSections,theme});
   const design = designForWebsite({businessType:draft?.businessType,theme,plan});
+  const documentSite=websiteCreativeDocumentSite(draft);
+  const documentUnavailable=Object.hasOwn(draft,'creativeDocumentPageModel')&&!documentSite;
+  const documentPage=!!documentSite&&sections.length>0&&sections.some(section=>section.type==='creative-document');
   const creativeClasses=creativeWebsiteClasses(draft,page?.id||'home');
-  const layoutCss = designCss(design)+(creativeClasses?creativeWebsiteCss:'');
+  const layoutCss = designCss(design)+(creativeClasses?creativeWebsiteCss:'')+(documentSite?websiteCreativeDocumentCss+documentSite.css:'');
   const identity = plan?.visualIdentity || {};
   const classes = [
     "visual-hero-" + (identity.heroLayout || "type-left"),
@@ -346,15 +351,16 @@ function renderWebsiteHtml(
   const seo = pageSeo(draft, page);
   const navigation = safeArray(draft?.navigation).filter((item:any)=>item.id!=="gallery"||allSections.some((section:any)=>section.type==="gallery"&&websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).length>0));
   const navigationItems=navigation.map((item:any)=>({id:item.id,label:item.label||item.id,href:String(item.href||"").startsWith("#")&&page.id==="home"?item.href:pageUrls[item.id]||relativePageHref(page,item.href?.startsWith("#")?"/":item.href||"/")}));
-  const navigationLinks=navigationItems.map((item:any)=>`<a${item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
-  const purposefulNavigation=renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}});
+  const navigationLinks=navigationItems.map((item:any)=>`<a${documentSite?.model.navigationPresentation.primaryPageId===item.id?' class="site-nav-primary"':''}${item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
+  const purposefulNavigation=renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,primaryPageId:documentSite?.model.navigationPresentation.primaryPageId,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}});
   const navigationHtml=purposefulNavigation||(navigation.length>6
     ?`<div class="nav-links nav-long-desktop">${navigationLinks}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${navigationLinks}</div></details>`
     :`<div class="nav-links">${navigationLinks}</div>`);
   const navHtml=navigation.length?`<nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${escapeHtml(pageUrls.home||relativePageHref(page,"/"))}">${escapeHtml(draft?.brandLabel||draft?.businessName||"Home")}</a>${navigationHtml}</div></nav>`:"";
 
   const renderedOrder=creativeWebsiteOrder(draft,page?.id||'home',page?.id==="home"?plan.sectionOrder:safeArray(page?.sectionIds));
-  const rawSectionHtml = renderedOrder
+  const activeOrder=documentPage?safeArray(page.sectionIds):renderedOrder;
+  const rawSectionHtml = activeOrder
     .map((id:string)=>sections.find((section:any)=>section.id===id))
     .filter(Boolean)
     .filter((section: any) => {
@@ -368,13 +374,13 @@ function renderWebsiteHtml(
       return true;
     })
     .map((section: any, index: number) =>
-      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{businessId:typeof draft.businessId==='string'&&(draft.business_id===undefined||draft.business_id===draft.businessId)?draft.businessId:null,recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml),'menu'),narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home',{pageId:page?.id,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}})
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{businessId:typeof draft.businessId==='string'&&(draft.business_id===undefined||draft.business_id===draft.businessId)?draft.businessId:null,recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml),'menu'),narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0&&!documentPage,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home',{pageId:page?.id,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}})
     )
     .join("");
 
   const contact: any =
     allSections.find((section: any) => section.id === "contact") || {};
-  const sectionHtml=websitePageHeadingHierarchy(rawSectionHtml,{draft,page,sections,escapeHtml,homeHref:pageUrls.home||relativePageHref(page,'/'),pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}});
+  const sectionHtml=documentUnavailable?websiteCreativeDocumentUnavailableHtml:documentPage?rawSectionHtml:websitePageHeadingHierarchy(rawSectionHtml,{draft,page,sections,escapeHtml,homeHref:pageUrls.home||relativePageHref(page,'/'),pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}});
   const sameAs = Object.values(contact?.social || {})
     .map((value) => clean(value, 1000))
     .filter((value) => /^https?:\/\//i.test(value));
@@ -395,7 +401,7 @@ function renderWebsiteHtml(
   const safeBusiness=escapeHtml(draft?.businessName||"Business website");
   const area=clean(draft?.serviceArea,260);
   const footer=`<footer class="site-footer"><div class="wrap"><strong>${safeBusiness}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="${creativeClasses?creativeClasses+' ':''}${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${page?.id==='home'||!page?websitePageGuide(draft,sections,sectionHtml,escapeHtml):''}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="${documentSite?documentSite.classes+' ':''}${creativeClasses?creativeClasses+' ':''}${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${page?.id==='home'||!page?websitePageGuide(draft,sections,sectionHtml,escapeHtml):''}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
 
 }
 

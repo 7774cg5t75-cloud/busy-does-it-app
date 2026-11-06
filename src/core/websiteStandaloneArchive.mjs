@@ -10,6 +10,7 @@ import {websiteServicePhoto} from '../../supabase/functions/busy-website-worker/
 import {wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
 import {websiteSectionPhoto,websiteRecordPhoto} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
 import {reviewOriginalImageBytes} from '../../supabase/functions/busy-website-original-media/imageByteReview.mjs';
+import {websiteCreativeDocumentSection,websiteCreativeDocumentAsset,websiteCreativeDocumentPageModel} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
 const list=x=>Array.isArray(x)?x:[];
 const clean=x=>typeof x==="string"?x.trim():"";
 const IMAGE_MAX=9*1024*1024;
@@ -44,6 +45,7 @@ const mimeFromBytes=bytes=>{
 };
 const keyOf=asset=>clean(asset?.storagePath)||clean(asset?.uri);
 function archiveRequirements(draft={}){
+ if(draft.creativeDocumentPageModel&&!websiteCreativeDocumentPageModel(draft))return {ok:false,reason:'Review the current creative design and approved sources before exporting the complete site.'};
  if(draft.siteComposition==='connected-pages-v1'&&!wholeSiteContentCurrent(draft))return {ok:false,reason:'Review current menu/product/event sources before exporting the complete site.'};
  if(!wholeSiteDerivedSourcesCurrent(draft))return {ok:false,reason:"A service source changed. Review its related pages in the original Studio before exporting; owner wording is kept."};
  const pages=list(draft.pages).filter(p=>p?.enabled!==false);
@@ -63,6 +65,16 @@ function archiveRequirements(draft={}){
  for(const section of visibleSections){
   const media=["hero","photo-feature"].includes(section?.type)?[section.asset]:
     section?.type==="gallery"?[...list(section.items)]:[];
+  if(section.type==='creative-document'){
+   const composition=websiteCreativeDocumentSection(draft,section);
+   if(!composition)return {ok:false,reason:'A creative photograph, wording or source changed. Review the current composition before exporting.'};
+   const collect=nodes=>{for(const node of nodes){
+    if(node.type==='image')media.push(websiteCreativeDocumentAsset(draft,node.asset));
+    if(node.children)collect(node.children);
+   }};
+   collect(composition.nodes);
+   if(media.some(asset=>!asset))return {ok:false,reason:'A creative photograph is no longer approved. Review its original source before exporting.'};
+  }
   // Reuse exact current relationship readers; captions/paths cannot establish facts or rights.
   if(section.type==='services')for(const item of list(section.items))if(item?.photoBinding){
    const photo=websiteServicePhoto(draft,item);

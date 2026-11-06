@@ -52,7 +52,7 @@ export function websiteSiteNavigationPlan({draft,page,items,pageHref}={}){
 export function renderWebsiteSiteNavigation(context={}){
  const plan=websiteSiteNavigationPlan(context),escape=context.escapeHtml;
  if(!plan||typeof escape!=='function')return null;
- const link=(item,overview=false)=>`<a${item.current?' aria-current="page"':''} href="${escape(item.href)}"><span>${escape(item.label)}</span>${overview?'<span class="site-nav-link-hint">Overview</span>':''}</a>`;
+ const link=(item,overview=false)=>`<a${context.primaryPageId===item.id?' class="site-nav-primary"':''}${item.current?' aria-current="page"':''} href="${escape(item.href)}"><span>${escape(item.label)}</span>${overview?'<span class="site-nav-link-hint">Overview</span>':''}</a>`;
  const group=(desktop=false)=>`<details class="site-nav-group${plan.groupCurrent?' site-nav-group-current':''}"${desktop&&plan.groupCurrent&&context.draft.theme?.pageDirection==='studio-index'?' open':''}><summary${plan.groupCurrent?' aria-label="'+escape(plan.overview.label+', current section')+'"':''}><span>${escape(plan.overview.label)}</span><span class="site-nav-symbol" aria-hidden="true">+</span></summary><ul class="site-nav-panel"><li class="site-nav-overview">${link(plan.overview,true)}</li>${plan.services.map(item=>`<li>${link(item)}</li>`).join('')}</ul></details>`;
  const items=(desktop=false)=>`<ul class="site-nav-items">${plan.primary.map(item=>`<li>${item.id===plan.overview.id?group(desktop):link(item)}</li>`).join('')}</ul>`;
  return `<div class="nav-links nav-long-desktop site-nav-desktop">${items(true)}</div><details class="nav-mobile-details site-nav-mobile"><summary>Menu <span aria-hidden="true">+</span></summary>${items()}</details>`;

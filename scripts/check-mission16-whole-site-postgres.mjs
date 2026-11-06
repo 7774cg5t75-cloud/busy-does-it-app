@@ -9,6 +9,8 @@ import {privateWebsiteDraftAction} from '../supabase/functions/busy-website-publ
 import {applyWebsitePageChange,renderWebsiteHtml} from '../src/domain/websiteBuilder.js';
 import {prepareWholeWebsite,prepareWholeWebsiteRefinement,keepWholeWebsite} from '../src/core/wholeWebsitePlan.mjs';
 import {websiteRequestContent} from '../src/core/websiteRequestPlan.mjs';
+import {prepareWholeWebsiteCreativeDocumentReview} from '../src/core/wholeWebsitePlan.mjs';
+import {mission19MinimalCreativeDocument} from './lib/mission19-document-fixture.mjs';
 // Original canonical authorities on a guarded disposable local database only.
 // This does not read, unfuse, install or change the reviewed AI Lab SQL artifact.
 const bin=process.env.BUSY_LOCAL_PG_BIN||'/workspace/pg17-disposable/root/usr/lib/postgresql/17/bin/psql';
@@ -33,7 +35,7 @@ const request=async(action,payload={})=>{
  const route=connectedAccountRoutes[action];if(!route)throw Error('Unsupported original route '+action);return rpc(route[0],route[1].map(k=>payload[k]??(k==='businessId'?B:null)));
 };
 const stage=async(id,fn)=>{try{await fn();results.push({id,passed:true,exitCode:0});}catch(e){results.push({id,passed:false,error:String(e.stderr||e.stack).slice(-5000)});throw e;}};
-const context=()=>({website:basis.websiteDraft,ownerId:O,businessId:B,profileRevision:basis.profileRevision,goal:'I run a landscaping business in Devon. I need a professional website.'});
+const context=()=>({website:basis.websiteDraft,ownerId:O,businessId:B,profileRevision:basis.profileRevision,profile:basis.profile,goal:'I run a landscaping business in Devon. I need a professional website.'});
 const deps={pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml};
 const snapshots=d=>Object.fromEntries(d.pages.map(p=>[p.id,renderWebsiteHtml(d,p.id,{standalone:true})]));
 const hashes=pages=>Object.fromEntries(Object.entries(pages).map(([k,v])=>[k,createHash('sha256').update(v).digest('hex')]));
@@ -158,6 +160,25 @@ try{
   assert.equal((await keepWholeWebsite(creative,{getContext:context,apply:()=>{throw Error('Never replay accepted creative specification');}})).ok,false);assert.equal(writeCalls,calls+1);
   const undo=await fresh.website({basis:observed,action:'undo',ownerApproved:true});assert.equal(undo.ok,true,undo.reason);assert.deepEqual(hashes(snapshots(undo.observed.websiteDraft)),beforeHashes);assert.deepEqual(undo.observed.websiteDraft.creativeSpecification,beforeModel.creativeSpecification,'Undo must restore the exact prior approved creative direction, including one saved by an earlier refinement.');
   const redo=await fresh.website({basis:undo.observed,action:'redo',ownerApproved:true});assert.equal(redo.ok,true,redo.reason);assert.deepEqual(hashes(snapshots(redo.observed.websiteDraft)),expected);assert.equal(JSON.stringify(redo.observed.websiteDraft.sections),sourceWords);basis=await session.open(B);
+ });
+ await stage('mission19-expressive-document-real-original-save-independent-reopen-copy-edit-undo-redo',async()=>{
+  session=createConnectedBuilderSession({request});basis=await session.open(B);
+  const before=basis.websiteDraft,beforeHtml=hashes(snapshots(before)),fixture=mission19MinimalCreativeDocument(context());
+  const review=prepareWholeWebsiteCreativeDocumentReview(context(),fixture.document,deps,{approvedIntent:fixture.approvedIntent,origin:'deterministic-offline-fixture'});
+  assert.equal(review.ok,true,review.reason);assert.equal(review.operation.action,'apply-site-creative-document');assert.equal(review.candidate.pages.length,10);
+  const calls=writeCalls,expected=hashes(snapshots(review.candidate));
+  wholeSiteSourceCasReady=false;await assert.rejects(()=>direct(body(review.operation)));wholeSiteSourceCasReady=true;
+  for(const patch of [{...review.operation,expectedBusinessId:F},{...review.operation,expectedProfileRevision:basis.profileRevision-1},{...review.operation,publish:true}])await assert.rejects(()=>direct(body(patch)));
+  assert.equal(writeCalls,calls);
+  const kept=await keepWholeWebsite(review,{getContext:context,apply:async patch=>{const result=await session.website({basis,action:'edit_page',patch,ownerApproved:true});assert.equal(result.ok,true,result.reason);basis=result.observed;return {applied:true,verifiedPrivateReadback:{ownerId:basis.actorId,businessId:basis.businessId,recordHash:result.receipt.recordHash,websiteDraft:basis.websiteDraft}};}});
+  assert.equal(kept.ok,true,kept.reason);assert.equal(kept.accountSaved,true);assert.equal(writeCalls,calls+1);
+  const fresh=createConnectedBuilderSession({request}),observed=await fresh.open(B);assert.deepEqual(hashes(snapshots(observed.websiteDraft)),expected);assert.deepEqual(observed.websiteDraft.creativeDocumentPageModel,review.candidate.creativeDocumentPageModel);
+  assert.equal((await keepWholeWebsite(review,{getContext:context,apply:()=>{throw Error('No duplicate expressive save');}})).ok,false);assert.equal(writeCalls,calls+1);
+  const undo=await fresh.website({basis:observed,action:'undo',ownerApproved:true});assert.equal(undo.ok,true,undo.reason);assert.deepEqual(hashes(snapshots(undo.observed.websiteDraft)),beforeHtml);
+  const redo=await fresh.website({basis:undo.observed,action:'redo',ownerApproved:true});assert.equal(redo.ok,true,redo.reason);assert.deepEqual(hashes(snapshots(redo.observed.websiteDraft)),expected);
+  const section=redo.observed.websiteDraft.sections.find(section=>section.type==='creative-document'),item=section.items.find(item=>item.id==='creative-introduction'),wording='My exact approved owner introduction remains mine.';
+  const edit=await fresh.website({basis:redo.observed,action:'edit_text',ownerApproved:true,patch:{sectionId:section.id,itemId:item.id,field:'body',value:wording}});assert.equal(edit.ok,true,edit.reason);
+  const reopened=await createConnectedBuilderSession({request}).open(B),row=reopened.websiteDraft.sections.find(current=>current.id===section.id).items.find(current=>current.id===item.id);assert.equal(row.body,wording);assert.equal(row.creativeCopy.classification,'owner-authored');assert.ok(renderWebsiteHtml(reopened.websiteDraft,'home',{standalone:true}).includes(wording));basis=await session.open(B);
  });
  await stage('no-publication-provider-financial-or-foreign-record-mutation',()=>{
   assert.equal(sql('SELECT count(*) FROM public.busy_website_deployments'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_websites'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_mini_app_requests'),'0');assert.equal(sql('SELECT count(*) FROM public.business_work_quote_references'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_business_snapshots WHERE business_id='+q(F)),'0');

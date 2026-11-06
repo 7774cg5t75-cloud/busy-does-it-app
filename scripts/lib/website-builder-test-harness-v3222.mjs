@@ -1,3 +1,5 @@
+import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from '../../supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs';
+import {websiteCreativeDocumentPageModel} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
 import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';
 import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
 import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
@@ -44,6 +46,7 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from '../../supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs';",
  "import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';",
  "import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';",
  "import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';",
@@ -79,14 +82,14 @@ const AVAILABLE=new Set([
 function stripKnownModule(file){
  const body=source(file);
  assert.ok(trailer.test(body),"Expected an explicit named export trailer in "+file);
- const code=body.replace(trailer,"");
+ const code=body.replace(trailer,"").replace("import {websiteCreativeDocumentPageModel} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';","");
  assert.equal(/^\s*import\b/m.test(code),false,"New import needs reviewed harness: "+file);
  assert.equal(/^\s*export\b/m.test(code),false,"New export needs reviewed harness: "+file);
  return code;
 }
-const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
- "\nreturn {syncWebsitePageModel};")();
-const deps=Object.freeze({creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss,websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml,websiteHeroPhotos,servicePhotoHtml,purposeServiceProjection,renderWebsiteSiteNavigation,wholeSiteMenuMove,pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable,premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
+const management=Function("websiteCreativeDocumentPageModel",stripKnownModule("src/domain/websiteManagement.js")+
+ "\nreturn {syncWebsitePageModel};")(websiteCreativeDocumentPageModel);
+const deps=Object.freeze({renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml,creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss,websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml,websiteHeroPhotos,servicePhotoHtml,purposeServiceProjection,renderWebsiteSiteNavigation,wholeSiteMenuMove,pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable,premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
  testimonialSpotlightItems,
  websitePageGuide,websitePageHeadingHierarchy,serviceIndexHtml,serviceContactAction,heroServiceOverview,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,

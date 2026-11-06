@@ -5,6 +5,7 @@ import {websitePhotoSourcesCurrent} from './websitePhotoReview.mjs';
 import {wholeSiteServices,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent,wholeSiteOperationCount} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
 import {websiteOwnerLocks} from '../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs';
 import {validateWebsiteCreativeSpecification,deterministicWebsiteCreativeSpecification} from '../../supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs';
+import {validateWebsiteCreativeDocument,validateWebsiteCreativeIntent} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
 const clock=()=>globalThis.performance?.now?.()??Date.now();
 const byteLength=s=>{let n=0;for(const c of s){const p=c.codePointAt(0);n+=p<=127?1:p<=2047?2:p<=65535?3:4;}return n;};
 const issued=new WeakMap(),used=new WeakSet(),fail=reason=>({ok:false,reason});
@@ -36,6 +37,16 @@ export function prepareWholeWebsiteCreativeReview(context,specification,deps,{or
  if(!['deterministic-recommendation','deterministic-offline-fixture'].includes(origin)||typeof explanation!=='string'||!explanation.trim()||explanation.length>800||/[<>\u0000-\u001f\u007f]/.test(explanation))return fail('Review a supported creative direction with honest origin. No live model result was verified.');
  const checked=validateWebsiteCreativeSpecification(context.website,specification,{forEdit:true});if(!checked.ok)return checked;
  return prepare(context,{action:'apply-site-creative-specification',specification:JSON.parse(JSON.stringify(specification))},deps,context.goal||'Review a coordinated whole-site creative direction.',{origin,explanation,liveModelExecuted:false,sourceFactsChanged:false});
+}
+// A complete expressive proposal still enters the ORIGINAL page action and
+// exact one-use review. Permission is captured from the owner separately from
+// the model document; a model cannot grant itself rewriting or new-page rights.
+export function prepareWholeWebsiteCreativeDocumentReview(context,document,deps,{approvedIntent,origin='deterministic-offline-fixture',explanation='A source-grounded whole-site design proposal.'}={}){
+ if(!['deterministic-recommendation','deterministic-offline-fixture'].includes(origin)||typeof explanation!=='string'||!explanation.trim()||explanation.length>800||/[<>\u0000-\u001f\u007f]/.test(explanation))return fail('Review a supported creative proposal with its actual origin. No real model result was verified.');
+ if(!Number.isSafeInteger(context?.profileRevision)||context.profileRevision<1)return fail('Review the current approved business information before preparing this whole-site design.');
+ const intent=validateWebsiteCreativeIntent(context.website,approvedIntent);if(!intent.ok)return intent;
+ const checked=validateWebsiteCreativeDocument(context.website,document,{approvedIntent:intent.approvedIntent,profile:context.profile,forEdit:true});if(!checked.ok)return checked;
+ return prepare(context,{action:'apply-site-creative-document',document:JSON.parse(JSON.stringify(document)),approvedIntent:JSON.parse(JSON.stringify(intent.approvedIntent))},deps,context.goal||'Review a complete source-grounded website design.',{version:'busy.website-creative-document-review.v1',origin,explanation,liveModelExecuted:false,sourceFactsChanged:false,wordingMayChange:intent.approvedIntent.allowCopySuggestions||intent.approvedIntent.ownerRewriteSourceIds.length>0,brandMayChange:intent.approvedIntent.allowBrandChange,pagesMayChange:intent.approvedIntent.allowNewPages||intent.approvedIntent.allowRetireAiPages});
 }
 export function prepareWholeWebsite(context,deps){
  if(typeof context.goal!=='string'||context.goal.length>400||!/(website|whole site|complete site)/i.test(context.goal)||/\b(publish|send|pay|charge|deploy|book|invoice)\b/i.test(context.goal))return fail('Describe your private website goal. Publishing, sending and paid actions stay separate.');

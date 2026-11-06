@@ -11,6 +11,10 @@ on:
       - '.github/workflows/website-design-browser.yml'
       - '.github/workflows/mission16-websites.yml'
       - '.github/workflows/mission18-websites.yml'
+      - '.github/workflows/mission19-websites.yml'
+      - 'scripts/check-mission19-*.mjs'
+      - 'scripts/build-mission19-sites.mjs'
+      - 'scripts/lib/mission19-*.mjs'
       - 'scripts/check-mission18-*.mjs'
       - 'scripts/build-mission18-sites.mjs'
       - 'scripts/check-ai-lab-runner-foundation*.mjs'
@@ -255,6 +259,12 @@ jobs:
           node scripts/check-mission18-creative-rendering.mjs
           node scripts/check-mission18-creative-owner-flow.mjs
           node scripts/check-mission18-provider-projection.mjs
+          node scripts/check-mission19-creative-copy.mjs
+          node scripts/check-mission19-creative-document.mjs
+          node scripts/check-mission19-creative-review.mjs
+          node scripts/check-mission19-provider-projection.mjs
+          node scripts/check-mission19-creative-document-rendering.mjs
+          node scripts/check-mission19-creative-export.mjs
           node scripts/check-mission17-whole-site.mjs
           node scripts/check-mission17-inner-quality.mjs
           node scripts/check-mission17-navigation.mjs

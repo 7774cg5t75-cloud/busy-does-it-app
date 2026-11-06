@@ -7,6 +7,7 @@ import {validTestimonialSpotlight} from './websiteTestimonials.mjs';
 import {validServiceIndex} from './websiteServiceIndex.mjs';
 import {editWebsitePages} from "./websitePageEditing.mjs";
 import {textTypographyFields,textTypographySupports} from "./websiteTextTypography.mjs";
+import {websiteCreativeDocumentSection,websiteCreativeDocumentCopyRole,reconcileWebsiteCreativeBrand} from './websiteCreativeDocument.mjs';
 import {photographicCount} from './designPlanner.mjs';
 import {websiteLayoutLockReason,protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
@@ -239,12 +240,16 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
  if(action==="item-style"){
   const itemId=operation.itemId;
   const section=sections.find(x=>x?.id===sectionId&&x.enabled!==false);
-  if(!section||!["services","faq","testimonials"].includes(section.type)||
+  if(!section||!["services","faq","testimonials","creative-document"].includes(section.type)||
      !(operation.field==='headingScale'?['compact','normal','large']:Object.hasOwn(textTypographyFields,operation.field)?textTypographyFields[operation.field]:[]).includes(operation.value))
    return fail(draft,"Select an existing service, question or testimonial heading.");
   const matches=list(section.items).filter(item=>item?.id===itemId);
   if(typeof itemId!=="string"||!itemId||matches.length!==1)
    return fail(draft,"That exact heading no longer exists.");
+  if(section.type==='creative-document'){
+   const role=websiteCreativeDocumentCopyRole(draft,section,itemId),field=operation.field;
+   if(!role||role==='image-alt'||role==='heading'&&field!=='headingScale'&&!field.startsWith('title')||role!=='heading'&&!field.startsWith('body')&&!['mobileBodySize','desktopBodySize'].includes(field))return fail(draft,'Choose a current visible heading or text row and a compatible original typography control.');
+  }
   const at=list(section.items).findIndex(item=>item.id===itemId);
   const field=operation.field,defaultValue=field==='headingScale'?'normal':'brand';
   const item=section.items[at],present=text(item?.appearance?.[field])||defaultValue;
@@ -265,6 +270,8 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(matched.length!==1)
    return fail(draft,"Choose one visible section of your website.");
   const target=matched[0];
+  const creative=target.type==='creative-document'?websiteCreativeDocumentSection(draft,target):null;
+  if(target.type==='creative-document'&&!creative)return fail(draft,'Review the current source-bound creative section before editing its appearance.');
   if(operation.field==='readingLayout'&&['sequence','chapters','feature-chapters'].includes(operation.value)&&(!['text','about'].includes(target.type)||String(target.body||'').split(/\n\s*\n/).filter(x=>x.trim()).length<2||String(target.body||'').split(/\n\s*\n/).filter(x=>x.trim()).length>8))return fail(draft,'A reading sequence needs two to eight supplied paragraphs.');
   if(operation.field==='testimonialsLayout'&&operation.value==='spotlight'&&!validTestimonialSpotlight(target))return fail(draft,'Use at least two complete, distinctly identified supplied testimonials before comparing this layout.');
   const fields={
@@ -300,6 +307,9 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    desktopHeadingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    mobileGallerySize:["gallery"],desktopGallerySize:["gallery"]
   };
+  // Reuse ONLY the original finite text/spacing controls for the new original
+  // declarative section. Image geometry and arbitrary CSS remain unavailable.
+  for(const field of [...Object.keys(textTypographyFields),'bodyScale','mobileBodyScale','desktopBodyScale','headingScale','mobileHeadingScale','desktopHeadingScale','textAlign','sectionSpacing','mobileSectionSpacing','desktopSectionSpacing'])supports[field]=[...new Set([...(supports[field]||[]),'creative-document'])];
   const existing=target.appearance&&typeof target.appearance==="object"&&!Array.isArray(target.appearance)
    ?target.appearance:{};
   if(action==="reset-section-style"){
@@ -311,6 +321,10 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(!Object.prototype.hasOwnProperty.call(fields,field)||
      !fields[field].includes(value)||!supports[field].includes(target.type))
    return fail(draft,"Choose an available design control for this exact section.");
+  if(creative){
+   const kinds=new Set();const visit=nodes=>{for(const node of nodes){kinds.add(node.type);if(Array.isArray(node.children))visit(node.children);}};visit(creative.nodes);
+   if((field.startsWith('title')||/HeadingScale$/.test(field)||field==='headingScale')&&!kinds.has('heading')||(field.startsWith('body')||/Body(?:Size|Scale)$/.test(field))&&!['text','link','list'].some(kind=>kinds.has(kind))||field==='textAlign'&&!['heading','text','link','list'].some(kind=>kinds.has(kind)))return fail(draft,'This section has no visible text of that kind. Choose the exact heading or paragraph.');
+  }
   if(field==='serviceLayout'&&value==='index'&&!validServiceIndex(target))return fail(draft,'An indexed service directory needs distinct original service identities, titles and descriptions.');
   if(field==='faqLayout'&&value==='questions'&&(!list(target.items).length||list(target.items).some(item=>!text(item?.title).trim()||!text(item?.body).trim())))return fail(draft,'Each question needs its original answer before using expandable questions.');
   if(field==='desktopPhotoSide'&&value!=='brand'&&(target.asset?.approved!==true||!text(target.asset?.storagePath)))return fail(draft,'Choose an approved original picture before comparing its position.');
@@ -326,6 +340,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const defaults={testimonialsLayout:'brand',faqLayout:'brand',readingLayout:'brand',serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
     mobilePhotoCrop:"brand",desktopPhotoCrop:"brand",photoCrop:"center",photoSide:"left",desktopPhotoSide:"brand",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
+  if(creative&&!Object.hasOwn(existing,field)&&value===(Object.hasOwn(textTypographyFields,field)?'brand':defaults[field]))return fail(draft,'This creative section already uses its reviewed default for that control. Nothing changed.');
   if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;
   if(Object.keys(next).length)target.appearance=next;else delete target.appearance;
   return ready("Changed just this section's "+field+".");
@@ -542,6 +557,6 @@ function applyWebsiteLayoutOperation(draft,operation){
   for(const op of ops){const result=applyWebsiteLayoutOperation(next,op);if(!result.applied)return fail(draft,result.reason);next=result.draft;}
   return protectWebsiteOwnerLocks(draft,{applied:true,draft:next,reason:'Prepared coordinated appearance changes. All business content and brand colours remain unchanged.'});
  }
- return protectWebsiteOwnerLocks(draft,applyWebsiteLayoutOperationUnchecked(draft,operation));
+ return protectWebsiteOwnerLocks(draft,reconcileWebsiteCreativeBrand(draft,applyWebsiteLayoutOperationUnchecked(draft,operation),operation));
 }
 export {applyWebsiteLayoutOperation,websiteLayoutLockReason,allow as websiteAppearanceOptions};

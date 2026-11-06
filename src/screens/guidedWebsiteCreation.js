@@ -17,7 +17,7 @@ import {websiteRequestContent} from '../core/websiteRequestPlan.mjs';
 import {withWebsitePreviewViewport} from '../core/websiteResponsivePreview.mjs';
 import {applyStructuredWebsiteEdit,applyWebsiteLayoutChange,renderWebsiteHtml,rebuildPrivateWebsiteDraft} from '../domain/websiteBuilder';
 const deps={fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml,rebuild:rebuildPrivateWebsiteDraft};
-export function GuidedWebsiteCreation({s}){
+export function GuidedWebsiteCreation({s,creativeProposal=null}){
  const [ownedOriginal,setOwnedOriginal]=React.useState(null);
  const [copyChoices,setCopyChoices]=React.useState(null);
  const [pairingPhoto,setPairingPhoto]=React.useState({key:'',path:''});
@@ -36,7 +36,7 @@ export function GuidedWebsiteCreation({s}){
   <Field label="What would you like?" value={goal} maxLength={400} onChangeText={v=>update(setGoal,v)}/>
   {!context.website?<><ConnectedBusinessFacts s={s} forWebsite/><Text style={styles.cardBody}>First prepare your private starting point from the existing business information. No new facts will be invented.</Text><Button label="Prepare from my saved business information" onPress={()=>{if(!current())return false;return s.buildWebsiteFromBrandBrain?.();}}/></>:<>
   <Text style={styles.cardBody}>{creativeBrief.ok?"I can reuse your current offer, wording and approved pictures. "+(creativeBrief.optionalQuestion||"You can correct the direction after seeing it."):creativeBrief.question}</Text>
-  <WholeWebsiteReview s={s} goal={goal} isParentCurrent={current} disabled={busy||fenced||storyDirty||photoDirty||headlineDirty||changeDirty||!!journey&&!kept} onPrepared={()=>report(false)}/>
+  <WholeWebsiteReview s={s} goal={goal} creativeProposal={creativeProposal} isParentCurrent={current} disabled={busy||fenced||storyDirty||photoDirty||headlineDirty||changeDirty||!!journey&&!kept} onPrepared={()=>report(false)}/>
   <Button label="See my website" disabled={busy||fenced} onPress={()=>{if(!current()||flight.current||fenced)return false;const p=prepareGuidedWebsite({...context,goal},deps);if(!p.ok){setNotice(p.reason);return false;}const open=()=>{if(!current()||websiteRequestContent(live.current.context.website)!==source)return false;setJourney(p);report(true);setKept(false);setNotice('Prepared privately. Choose photographs or make a change, then review before keeping.');return true;};const allowed=report.commit(open);if(allowed!==false)return allowed;return s.requestOwnerEditTransition?s.requestOwnerEditTransition(open,{isCurrent:current}):false;}}/>
   {fresh&&!kept?<>
    <Text style={styles.cardBody}>Using {context.website.businessName}’s current website information. Your current colours, wording and unsaved draft are the starting point.</Text>

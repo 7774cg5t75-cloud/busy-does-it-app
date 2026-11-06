@@ -1,3 +1,4 @@
+import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from '../supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs';
 import {deterministicWebsiteCreativeSpecification} from '../supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs';
 import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';
 import assert from 'node:assert/strict';
@@ -17,11 +18,14 @@ import {renderWebsiteSiteNavigation} from '../supabase/functions/busy-website-wo
 import {prepareWholeWebsite} from '../src/core/wholeWebsitePlan.mjs';
 import {mission16Fixture} from './lib/mission16-site-fixtures.mjs';
 import {websiteMovementOptions,resolveWebsiteMovement} from '../src/core/websiteVisualMovement.mjs';
+import {compileWebsiteCreativeDocument} from '../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
+import {mission19MinimalCreativeDocument} from './lib/mission19-document-fixture.mjs';
+import {rebuildPrivateWebsiteDraft} from '../src/domain/websiteBuilder.js';
 const escape=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const workerSource=readFileSync('supabase/functions/busy-website-worker/index.ts','utf8');
 const fragment=(first,last)=>{const start=workerSource.indexOf('function '+first+'('),end=workerSource.indexOf(last,start);assert.ok(start>=0&&end>start);return workerSource.slice(start,end);};
 const workerCode=stripTypeScriptTypes(fragment('pageSeo','function renderSectionHtml(')+fragment('relativePageHref','function renderWebsiteHtml(')+fragment('renderWebsiteHtml','async function ensureBucket('));
-const workerDeps={creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss,renderSectionHtml:originalWebsiteSectionRuntime(),safeArray:value=>Array.isArray(value)?value:[],clean:value=>typeof value==='string'?value.trim():'',escapeHtml:escape,pageDirectionClass,craftedPage,designForWebsite,designCss,planWebsiteDesign,websiteGalleryPresentation,websitePageGuide,websitePageHeadingHierarchy,renderWebsiteSiteNavigation,responsivePhotoAttributes,websiteAssetAvailable,urlForAsset:(asset,urls)=>websiteAssetAvailable(asset)?urls[asset?.storagePath]||'':''};
+const workerDeps={renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml,creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss,renderSectionHtml:originalWebsiteSectionRuntime(),safeArray:value=>Array.isArray(value)?value:[],clean:value=>typeof value==='string'?value.trim():'',escapeHtml:escape,pageDirectionClass,craftedPage,designForWebsite,designCss,planWebsiteDesign,websiteGalleryPresentation,websitePageGuide,websitePageHeadingHierarchy,renderWebsiteSiteNavigation,responsivePhotoAttributes,websiteAssetAvailable,urlForAsset:(asset,urls)=>websiteAssetAvailable(asset)?urls[asset?.storagePath]||'':''};
 const worker=Function(...Object.keys(workerDeps),workerCode+';return renderWebsiteHtml;')(...Object.values(workerDeps));
 let cases=0;
 for(const [businessType,family] of [['Landscaping','split-editorial'],['Festival catering','story-spread'],['Creative studio','typography-first']]){
@@ -90,3 +94,17 @@ for(const page of creativeDraft.pages){
  assert.deepEqual(sectionIds(edge),sectionIds(native));assert.equal((edge.match(/<h1\b/g)||[]).length,1);
 }
 console.log('PASS Mission18 actual worker/native creative geometry and exact section-order parity across all seven original Quiet Light pages.');
+
+// Execute the COMPLETE original worker renderer as well as the native renderer:
+// a source denial must be visible and must never become a blank H1-less page.
+for(const index of [2,0]){
+ const c=mission16Fixture(index),planned=prepareWholeWebsite(c,{pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml});assert.equal(planned.ok,true);
+ const fixture=mission19MinimalCreativeDocument({...c,website:planned.candidate}),compiled=compileWebsiteCreativeDocument(planned.candidate,fixture.document,{approvedIntent:fixture.approvedIntent});assert.equal(compiled.ok,true,compiled.reason);
+ const denied=rebuildPrivateWebsiteDraft(compiled.draft);
+ if(index===2)denied.sections.find(section=>section.id==='hero').title='Newer exact owner wording';
+ else denied.sections.find(section=>section.type==='gallery').items[0].status='withdrawn';
+ const before=JSON.stringify(denied),page=denied.pages.find(page=>page.id==='home'),native=renderWebsiteHtml(denied,'home',{standalone:true}),edge=worker(denied,{},page,'synthetic-source-denial');
+ const body=html=>html.split('<main id="main">')[1].split('</main>')[0];
+ assert.equal(body(native),websiteCreativeDocumentUnavailableHtml);assert.equal(body(edge),body(native));assert.equal((body(edge).match(/<h1\b/g)||[]).length,1);assert.ok(!/<img\b|<a\b|<button\b|<script\b/.test(body(edge)));assert.equal(JSON.stringify(denied),before);
+}
+console.log('PASS 2 complete original worker/native review-notice cases, 14 assertions: stale wording and withdrawn photographs retain source bytes and show one truthful H1 without replacement assets or actions.');

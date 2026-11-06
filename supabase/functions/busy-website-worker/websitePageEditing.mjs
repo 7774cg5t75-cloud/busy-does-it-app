@@ -2,6 +2,7 @@ import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
 import {wholeSitePageSpecs,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent,wholeSiteOperationCount,wholeSiteMenuMove} from './websiteWholeSite.mjs';
 import {protectWebsiteOwnerLocks,websiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 import {validateWebsiteCreativeSpecification} from './websiteCreativeSpecification.mjs';
+import {compileWebsiteCreativeDocument} from './websiteCreativeDocument.mjs';
 /**
  * V3.135 owner-managed custom website pages.
  * Pure, deterministic, private draft only. Uses paths under /pages/
@@ -15,6 +16,14 @@ const fail=(draft,reason)=>({applied:false,draft,reason});
 function editWebsitePagesUnchecked(draft={},action={}){
  if(!draft?.id||!Array.isArray(draft.sections))return fail(draft,"Build a private website draft first.");
  if(!action||typeof action!=="object"||Array.isArray(action))return fail(draft,"Choose a page action.");
+ if(action.action==='apply-site-creative-document'){
+  const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision','document','approvedIntent'];
+  if(Object.keys(action).some(key=>!allowed.includes(key))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||draft.business_id&&draft.business_id!==draft.businessId||!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1)return fail(draft,'The owner business, approved source or website changed. Prepare a fresh creative review.');
+  // The compiler is trusted source code. Neither a model nor a client request
+  // may substitute validation callbacks, profile facts, styles or executable code.
+  const compiled=compileWebsiteCreativeDocument(draft,action.document,{approvedIntent:action.approvedIntent});
+  return compiled.ok&&compiled.applied?{applied:true,draft:compiled.draft,reason:compiled.reason||'Prepared the complete private website design for review. Nothing was published.'}:fail(draft,compiled.reason||'The source-grounded creative proposal needs review. Your current website was kept.');
+ }
  if(action.action==='apply-site-creative-specification'){
   const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision','specification'];
   if(Object.keys(action).some(key=>!allowed.includes(key))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||action.expectedProfileRevision!=null&&(!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1))return fail(draft,'The original owner business or website changed. Prepare a fresh creative review.');

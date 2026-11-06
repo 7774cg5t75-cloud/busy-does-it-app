@@ -5,6 +5,8 @@ on:
     paths:
       - 'src/core/websiteDesignIntelligence.mjs'
       - 'supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs'
+      - 'src/core/websiteCreativeDocumentReview.mjs'
+      - 'supabase/functions/busy-website-worker/websiteCreativeDocument.mjs'
   pull_request:
     paths:
       - "src/domain/growthCommandCentre.mjs"

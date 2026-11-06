@@ -1,5 +1,6 @@
 import {validPublicBusinessContent} from './businessContentRecords.mjs';
 import {protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
+import {websiteCreativeDocumentCopyRole} from './websiteCreativeDocument.mjs';
 /**
  * Owner-directed structured website copy edits (V3.133).
  * No AI call, public publish, remote URL, invented facts or media mutation.
@@ -21,7 +22,7 @@ const fieldChoices={
  text:["title","body"],
  "photo-feature":["title","body"],
 };
-const itemSections=new Set(["services","faq","testimonials"]);
+const itemSections=new Set(["services","faq","testimonials","creative-document"]);
 const bounds={title:140,body:2500,cta:120,ctaHref:120,phone:40,email:254,openingHours:250};
 const fail=(reason,draft)=>({applied:false,reason,draft});
 const collectionKinds=new Set(["services","faq","testimonials"]);
@@ -139,10 +140,12 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
  let sections,description;
  if(itemId!==undefined&&itemId!==null){
   if(typeof itemId!=="string"||!itemId||!itemSections.has(section.type)||
-     !["title","body"].includes(field))
+     !["title","body"].includes(field)||section.type==='creative-document'&&field!=='body')
    return fail("That individual item field cannot be edited here.",draft);
   const matches=list(section.items).filter(item=>item?.id===itemId);
   if(matches.length!==1)return fail("The selected item could not be matched uniquely. Nothing was changed.",draft);
+  if(section.type==='creative-document'&&!websiteCreativeDocumentCopyRole(draft,section,itemId))return fail('That copy row is not part of the current source-bound rendered design. Select the actual wording again.',draft);
+  if(section.type==='creative-document'&&!newValue)return fail('Keep meaningful owner wording here. Removing a creative element needs a separate reviewed design change.',draft);
   if(field==="title"&&!newValue&&section.type!=="testimonials")
    return fail("Service names and questions cannot be blank.",draft);
   if(field==="body"&&!newValue&&section.type==="testimonials")
@@ -150,7 +153,12 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
   if(newValue===clean(matches[0][field]))return fail("That text is already saved.",draft);
   sections=draft.sections.map(s=>s!==section?s:{
    ...s,...(collectionKinds.has(section.type)?{ownerEditedItems:true}:{}),
-   items:list(s.items).map(item=>item.id===itemId?{...item,[field]:newValue}:item)
+   items:list(s.items).map(item=>item.id===itemId?{...item,[field]:newValue,...(section.type==='creative-document'?{
+    ownerEditedFields:[...new Set([...list(item.ownerEditedFields),'body'])],
+    // This is deliberate WEBSITE wording, not a newly verified business fact.
+    // Previous references remain historical attribution for the old suggestion.
+    creativeCopy:{...item.creativeCopy,classification:'owner-authored',provenanceStatus:'historical-after-owner-edit'}
+   }:{})}:item)
   });
   description="Updated "+section.type+" item "+field+" in your private website draft.";
  }else{

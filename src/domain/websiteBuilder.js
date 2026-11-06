@@ -1,3 +1,4 @@
+import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from '../../supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs';
 import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';
 import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
 import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
@@ -208,10 +209,11 @@ function buildSections(brief = {}) {
 function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCreationIntelligence = null, businessId = "" } = {}) {
   const brief = brandBrain.websiteBrief || {};
   const now = new Date().toISOString();
+  const keepCreativeDocument=!!businessId&&previousDraft?.businessId===businessId&&(!previousDraft?.business_id||previousDraft.business_id===businessId)&&!!websiteCreativeDocumentSite(previousDraft);
   // Rebuilding factual Brand Brain content must never discard owner-created
   // pages or their authored text. It is a content refresh, not a page deletion.
   const preserved=safeArray(previousDraft?.sections).filter(section=>
-    (["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"))||(['products','events'].includes(section?.type)&&section.contentSource==='business_records_v1'));
+    (["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"))||(keepCreativeDocument&&section?.type==="creative-document"&&section.creativeGenerated===true)||(['products','events'].includes(section?.type)&&section.contentSource==='business_records_v1'));
   // A deliberate owner add/remove is authoritative for that private collection.
   // A later Brand Brain refresh must not silently restore a removed service/FAQ
   // or delete a newly added one. Unedited collections still update from the brief.
@@ -370,6 +372,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     ...(sameOwnerSource&&previousDraft?.siteComposition==='connected-pages-v1'?{siteComposition:'connected-pages-v1'}:{}),
     ...(sameOwnerSource&&Object.hasOwn(previousDraft||{},'sitePresentation')?{sitePresentation:previousDraft.sitePresentation}:{}),
     ...(keepCreative?{creativeSpecification:JSON.parse(JSON.stringify(previousDraft.creativeSpecification))}:{}),
+    ...(keepCreativeDocument?{creativeDocumentPageModel:JSON.parse(JSON.stringify(previousDraft.creativeDocumentPageModel))}:{}),
     ...(keepCreativeSourceOrder?{creativeSpecificationSourceOrder:JSON.parse(JSON.stringify(creativeSourceOrder))}:{}),
     customPages:safeArray(previousDraft?.customPages).map(page=>({
       ...page,sectionIds:safeArray(page?.sectionIds).slice()
@@ -719,8 +722,11 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     section?.enabled !== false && (!page || allowed.has(section.id)));
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections,theme:draft.theme});
   const design = designForWebsite({businessType:draft.businessType,theme:draft.theme,plan});
+  const documentSite=websiteCreativeDocumentSite(draft);
+  const documentUnavailable=Object.hasOwn(draft,'creativeDocumentPageModel')&&!documentSite;
+  const documentPage=!!documentSite&&sections.length>0&&sections.some(section=>section.type==='creative-document');
   const creativeClasses=creativeWebsiteClasses(draft,page?.id||'home');
-  const layoutCss = designCss(design)+(creativeClasses?creativeWebsiteCss:'');
+  const layoutCss = designCss(design)+(creativeClasses?creativeWebsiteCss:'')+(documentSite?websiteCreativeDocumentCss+documentSite.css:'');
   const identity = plan?.visualIdentity || {};
   const classes = [
     "visual-hero-" + (identity.heroLayout || "type-left"),
@@ -762,13 +768,14 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     return prefix+target.outputPath;
   };
   const renderedOrder=creativeWebsiteOrder(draft,page?.id||'home',page?.id==="home"||!page?plan.sectionOrder:safeArray(page.sectionIds));
-  const orderedSections=renderedOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
+  const activeOrder=documentPage?safeArray(page.sectionIds):renderedOrder;
+  const orderedSections=activeOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
   // Only visible sections may be targets for customer navigation or the hero
   // action. Optional empty contact/gallery blocks are intentionally omitted
   // from the HTML, so linking to them would create a broken customer journey.
   const renderedAnchors=new Set(["main"]);
   for(const section of orderedSections){
-    const visible=['products','events'].includes(section.type)?true:section.type==="hero"?false:
+    const visible=section.type==='creative-document'?!!documentSite:['products','events'].includes(section.type)?true:section.type==="hero"?false:
       ["services","faq","testimonials"].includes(section.type)?
         safeArray(section.items).some(item=>clean(item?.title||item?.body)):
       section.type==="photo-feature"?!!clean(section.body)&&safeArray(draft.customPages).some(p=>p.sourceServiceId&&safeArray(p.sectionIds).includes(section.id))||websiteAssetAvailable(section.asset,draft.businessId||draft.business_id,draft,section)&&!!approvedImage(section.asset):
@@ -786,6 +793,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     ?' class="owner-item-heading-large"':
     item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
   const rawSectionHtml = orderedSections.map(section=>{
+    if(section.type==='creative-document')return renderWebsiteCreativeDocument(draft,section,{pageId:page?.id||'home',resolveImage:approvedImage,responsiveImageAttrs:(asset,url,imageOptions)=>responsivePhotoAttributes(asset,url,options.assetVariants,escapeHtml,imageOptions),pageHref:linkToPage,editAttrs});
     const sectionClasses=sectionAppearanceClasses(section);
     const sectionAttrs=(sectionClasses?` class="${sectionClasses}"`:"")+editAttrs(section,"section");
     if(['products','events'].includes(section.type))return businessContentSectionHtml(section,{businessId:typeof draft.businessId==='string'&&(draft.business_id===undefined||draft.business_id===draft.businessId)?draft.businessId:null,recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml),'menu'),sectionClasses,narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))});
@@ -811,29 +819,29 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}>${draft.theme?.heroComposition?premiumHeroInner(draft.theme.heroComposition,{variation:draft.theme?.heroVariation,images:websiteHeroPhotos(draft).filter(({asset:a})=>approvedImage(a)).slice(0,2).map(({asset:a})=>`<img class="hero-image${galleryPhotoClass(a)}" loading="lazy" decoding="async" src="${escapeHtml(approvedImage(a))}" alt="${escapeHtml(clean(a.alt)||draft.businessName||"Business photograph")}">`),copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title)}</h1>${lead}${action}</div>`,image:art,hasImage:!!url,services:draft.theme?.heroComposition==='product-showcase'&&orderedSections.some(s=>s.type==='products')?`<div class="premium-product-link" role="navigation" aria-label="Product collection"><a href="#products">${escapeHtml(orderedSections.find(s=>s.type==='products').title||'Explore the collection')}</a></div>`:heroServiceOverview(sections.find(s=>s.type==='services'),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`}</section>`;
     }
     if(craftedPage(draft)&&section.type==='services'&&section.appearance?.serviceLayout!=='index'){
-      const heading=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      const heading=!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
       const projection=purposeServiceProjection(draft,section,{pageId:page?.id,editablePreview,pageHref:standalone?linkToPage:undefined});
       const content=craftedServices(projection?.section||section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,overview:!!projection,reviewedHeadingHrefs:projection?.reviewedHeadingHrefs||[],itemHeadingHref:item=>projection?.detailHrefs[item.id]||'',photoFor:item=>projection?.hiddenPhotoIds.includes(item.id)?'':['narrative','atelier'].includes(draft.theme.heroVariation)?servicePhotoHtml(draft,item,approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml)):'',escapeHtml,editAttrs,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:item=>serviceContactAction(item,renderedAnchors.has('contact')?'#contact':'',escapeHtml)});
       if(content)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${heading}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${heading}>${content}</div></section>`;
     }
     if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
       const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass,contactHref:renderedAnchors.has('contact')?'#contact':''});
-      const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      const headingTag=!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
       if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
     }
     if(section.type==='testimonials'&&section.appearance?.testimonialsLayout==='spotlight'){
       const items=testimonialSpotlightItems(section,{escapeHtml,editAttrs,itemHeadingClass,itemTypographyClasses});
-      const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      const headingTag=!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
       if(items)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${items}</div></section>`;
     }
     if(section.type==='faq'&&section.appearance?.faqLayout==='questions'){
-      const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      const headingTag=!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
       return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}><div class="faq-questions">${faqDisclosureItems(section,{escapeHtml,editAttrs,itemHeadingClass})}</div></div></section>`;
     }
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
-      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}${serviceContactAction(item,section.type==="services"&&renderedAnchors.has("contact")?"#contact":"",escapeHtml)}</article>`).join("")}</div></div></section>`;
+      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${!documentPage&&page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${!documentPage&&page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}${serviceContactAction(item,section.type==="services"&&renderedAnchors.has("contact")?"#contact":"",escapeHtml)}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="photo-feature"){
       const image=websiteAssetAvailable(section.asset,draft.businessId||draft.business_id,draft,section)?approvedImage(section.asset):'';
@@ -874,22 +882,22 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
      if(craftedPage(draft))return `<section id="contact"${sectionAttrs}>${craftedContact({family:draft.theme.heroComposition,heading:`<h2${editAttrs(section,'title')}>${escapeHtml(section.title||'Get in touch')}</h2>`,body:section.body?`<p${editAttrs(section,'body')}>${escapeHtml(section.body)}</p>`:'',channels:(phone?`<p><a${editAttrs(section,'phone')} href="tel:${escapeHtml(phone.replace(/\s+/g,''))}">${escapeHtml(phone)}</a></p>`:'')+(email?`<p><a${editAttrs(section,'email')} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:''),extra:handoffs+(section.openingHours?`<p${editAttrs(section,'openingHours')}>${escapeHtml(section.openingHours)}</p>`:'')})}</section>`;
      return `<section id="contact"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${handoffs}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
-    if(craftedPage(draft)&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{photo:presentationPhotoHtml(websiteSectionPhoto(draft,section),approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml),'story'),direction:draft.theme.heroVariation,family:draft.theme.heroComposition,escapeHtml,editAttrs,headingTag:page?.id!=='home'&&orderedSections[0]===section?'h1':'h2'})}</section>`;
+    if(craftedPage(draft)&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{photo:presentationPhotoHtml(websiteSectionPhoto(draft,section),approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml),'story'),direction:draft.theme.heroVariation,family:draft.theme.heroComposition,escapeHtml,editAttrs,headingTag:!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2'})}</section>`;
     if(draft.theme?.heroComposition&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body)){
       const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map(text=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
       return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2${editAttrs(section,'title')}>${escapeHtml(section.title)}</h2><div class="story-copy"${editAttrs(section,'body')}>${paragraphs}</div></div></section>`;
     }
     return clean(section.body)
-      ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
+      ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${!documentPage&&page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${!documentPage&&page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
       : "";
   }).join("");
-  const sectionHtml=websitePageHeadingHierarchy(rawSectionHtml,{draft,page,sections:orderedSections,escapeHtml,editAttrs,homeHref:standalone?homePath:'',pageHref:id=>standalone?linkToPage(id):''});
+  const sectionHtml=documentUnavailable?websiteCreativeDocumentUnavailableHtml:documentPage?rawSectionHtml:websitePageHeadingHierarchy(rawSectionHtml,{draft,page,sections:orderedSections,escapeHtml,editAttrs,homeHref:standalone?homePath:'',pageHref:id=>standalone?linkToPage(id):''});
   const business=escapeHtml(draft.businessName||"Business website");
   const area=clean(draft.serviceArea);
   const navigationItems=safeArray(draft.navigation)
-    .filter(item=>item?.id&&item?.label&&(standalone||renderedAnchors.has(String(item.id))))
+    .filter(item=>item?.id&&item?.label&&(documentSite||standalone||renderedAnchors.has(String(item.id))))
     .map(item=>{
-      if(!standalone)
+      if(!standalone&&!documentSite)
         return {id:item.id,label:item.label,href:'#'+item.id};
       const pageLink=linkToPage(item.id);
       const fragment=clean(item?.href);
@@ -898,12 +906,12 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
           ?fragment:homePath+fragment):"");
       return href?{id:item.id,label:item.label,href}:null;
     }).filter(Boolean);
-  const nav=navigationItems.map(item=>`<a${standalone&&item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
-  const purposefulNavigation=standalone?renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,pageHref:linkToPage}):null;
+  const nav=navigationItems.map(item=>`<a${documentSite?.model.navigationPresentation.primaryPageId===item.id?' class="site-nav-primary"':''}${standalone&&item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
+  const purposefulNavigation=standalone?renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,pageHref:linkToPage,primaryPageId:documentSite?.model.navigationPresentation.primaryPageId}):null;
   const navigationHtml=purposefulNavigation||(safeArray(draft.navigation).length>6
     ?`<div class="nav-links nav-long-desktop">${nav}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${nav}</div></details>`
     :`<div class="nav-links">${nav}</div>`);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="${creativeClasses?creativeClasses+' ':''}${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(draft.theme?.heroComposition||"")?"premium-site-"+draft.theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a>${navigationHtml}</div></nav><main id="main">${page?.id==='home'||!page?websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml):''}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="${documentSite?documentSite.classes+' ':''}${creativeClasses?creativeClasses+' ':''}${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(draft.theme?.heroComposition||"")?"premium-site-"+draft.theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a>${navigationHtml}</div></nav><main id="main">${page?.id==='home'||!page?websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml):''}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 

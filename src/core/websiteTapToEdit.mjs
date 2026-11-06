@@ -7,6 +7,7 @@ import {installWebsiteMovement} from "./websiteVisualMovement.mjs";
  */
 import {fieldChoices} from "./websiteStructuredEditing.mjs";
 import {resolveContextualToolbarAction,PRIMARY_LABELS} from "./contextualEditingCore.mjs";
+import {websiteCreativeDocumentSection,websiteCreativeDocumentCopyRole} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
 const CHANNEL="busy.website.tap-to-edit.v1";
 const list=v=>Array.isArray(v)?v:[];
 const clean=v=>typeof v==="string"?v:"";
@@ -172,11 +173,12 @@ function resolveTapSelection(draft,pageId,message){
  const pages=list(draft.pages),page=pages.find(p=>p?.id===pageId&&p.enabled!==false);
  if(!page)return null;
  const sectionId=clean(message.sectionId),field=clean(message.field);
- if(sectionId.length>90||!list(page.sectionIds).includes(sectionId))return null;
+ if(sectionId.length>128||!list(page.sectionIds).includes(sectionId))return null;
  const hits=draft.sections.filter(s=>s?.id===sectionId&&s.enabled!==false);
  if(hits.length!==1)return null;
  const section=hits[0],itemId=clean(message.itemId);
- if(itemId.length>90)return null;
+ const creative=section.type==='creative-document';
+ if(!creative&&(sectionId.length>90||itemId.length>90)||creative&&(itemId.length>128||!websiteCreativeDocumentSection(draft,section)))return null;
  if(field==="photo"){
   if(!supportedPhoto.has(section.type)||itemId)return null;
   const photoIndex=message.photoIndex===""?-1:Number(message.photoIndex);
@@ -190,6 +192,7 @@ function resolveTapSelection(draft,pageId,message){
  if(message.photoIndex!=="")return null;
  if(field==="section"&&!itemId)return {sectionId,field:"section",itemId:null};
  if(itemId){
+  if(creative)return field==='body'&&!!websiteCreativeDocumentCopyRole(draft,section,itemId)&&list(section.items).filter(item=>item?.id===itemId).length===1?{sectionId,field,itemId}:null;
   if(!["services","faq","testimonials"].includes(section.type)||
      !["title","body"].includes(field)||
      list(section.items).filter(x=>x?.id===itemId).length!==1)return null;

@@ -1,4 +1,5 @@
 import {textTypographySupports,textTypographyFields} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
+import {websiteCreativeDocumentSection,websiteCreativeDocumentCopyRole} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
 /**
  * V3.140: No-cost, context-bound "this/that" website editing.
  * Parses a deliberately SMALL grammar only after the owner taps an exact
@@ -23,10 +24,17 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
  const matches=draft.sections.filter(s=>s?.id===sectionId&&s.enabled!==false);
  if(matches.length!==1)return failure("This website section is no longer available.");
  const section=matches[0];
+ const creative=section.type==='creative-document';
+ if(creative&&!websiteCreativeDocumentSection(draft,section))return failure('Review the current source-bound creative section before selecting it again.');
+ const creativeRole=creative&&itemId?websiteCreativeDocumentCopyRole(draft,section,itemId):null;
  if(itemId&&(field!=="title"&&field!=="body"||
-    !["services","faq","testimonials"].includes(section.type)||
+    !["services","faq","testimonials","creative-document"].includes(section.type)||
+    creative&&(field!=='body'||!creativeRole)||
     list(section.items).filter(x=>x?.id===itemId).length!==1))
   return failure("That item is no longer available to edit.");
+ // Declarative copy has ONE canonical body field. Its validated node role
+ // supplies selection meaning without duplicating heading text in a title slot.
+ const semanticField=creativeRole==='heading'&&field==='body'?'title':field;
  if(!["section","title","body","cta","ctaHref","phone","email","openingHours","photo"].includes(field))
   return failure("Tap a supported heading, text, button or photo.");
  if(field==="photo"){
@@ -54,8 +62,8 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
  const replacement=text.match(/^(?:change|set|replace) (?:this|that|the selected) (?:heading|title|text|wording|paragraph|button(?: text)?|phone(?: number)?|email|hours) (?:to|with|as) (.+)$/i);
  if(replacement){
   const subject=text.match(/^(?:change|set|replace) (?:this|that|the selected) (heading|title|text|wording|paragraph|button(?: text)?|phone(?: number)?|email|hours) /i)?.[1]?.toLowerCase()||"";
-  const valid=subject==="heading"||subject==="title"?field==="title":
-    ["text","wording","paragraph"].includes(subject)?field==="body":
+  const valid=subject==="heading"||subject==="title"?semanticField==="title":
+    ["text","wording","paragraph"].includes(subject)?semanticField==="body":
     subject.startsWith("button")?field==="cta":
     subject.startsWith("phone")?field==="phone":
     subject==="email"?field==="email":subject==="hours"&&field==="openingHours";
@@ -65,7 +73,7 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
  }
  const paragraphSize=text.match(/^set (?:this|that|the selected) paragraph size to (brand|normal|large|extra-large)(?: on (phones|desktop))?$/i);
  if(paragraphSize){
-  if(field!=='body'||!itemId&&!textTypographySupports.bodySize.includes(section.type))return failure('Select a supported primary paragraph or card paragraph first.');
+  if(semanticField!=='body'||creativeRole==='image-alt'||!itemId&&!textTypographySupports.bodySize.includes(section.type))return failure('Select a supported primary paragraph or card paragraph first.');
   const device=paragraphSize[2]?.toLowerCase();
   return success('layout',{action:itemId?'item-style':'section-style',sectionId,...(itemId?{itemId}:{}),
    field:device?(device==='phones'?'mobileBodySize':'desktopBodySize'):'bodySize',value:paragraphSize[1].toLowerCase()},
@@ -81,7 +89,7 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   const target=typography[1].toLowerCase()==='heading'?'title':'body';
   const suffix={font:'Font',weight:'Weight','line spacing':'Leading',alignment:'Align',colour:'Colour',color:'Colour'}[typography[2].toLowerCase()];
   const style=target+suffix,value=typography[3].toLowerCase();
-  if(field!==target||(!itemId&&!textTypographySupports[style].includes(section.type))||!textTypographyFields[style].includes(value))
+  if(semanticField!==target||creativeRole==='image-alt'||(!itemId&&!textTypographySupports[style].includes(section.type))||!textTypographyFields[style].includes(value))
    return failure('Select a supported section heading or primary paragraph. Card text uses its existing controls.');
   return success('layout',{action:itemId?'item-style':'section-style',sectionId,...(itemId?{itemId}:{}),field:style,value},
    'Change only the selected '+(itemId?'card ':'section ')+(target==='title'?'heading':'primary paragraph')+'. Brand defaults and other content stay intact.');
@@ -132,7 +140,7 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
  }
  let m=text.match(/^(?:make|set) (?:this|that|the selected) (?:heading|title) (bigger|larger|smaller|normal)(?: (?:only )?on (phones?|mobile|desktop|computers?|wide screens?))?$/i);
  if(m){
-  if(field!=="title")return failure("Tap the heading you want to resize.");
+  if(semanticField!=="title")return failure("Tap the heading you want to resize.");
   if(itemId&&m[2])return failure("Select the whole section to change phone or desktop headings.");
   if(itemId)return success("layout",{action:"item-style",sectionId,itemId,
     field:"headingScale",value:states.headingScale[m[1].toLowerCase()]},

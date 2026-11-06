@@ -10,20 +10,21 @@ import {wholeWebsitePreviewDocument,wholeWebsitePreviewNavigation} from '../core
 import {withWebsitePreviewViewport} from '../core/websiteResponsivePreview.mjs';
 import {wholeSiteDerivedSourcesCurrent} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
 import {applyWebsitePageChange,renderWebsiteHtml} from '../domain/websiteBuilder';
+import {reviewWebsiteCreativeDocumentProposal} from '../core/websiteCreativeDocumentReview.mjs';
 const deps={pageEdit:applyWebsitePageChange,renderPage:renderWebsiteHtml};
 // A review surface in the existing Website Builder, never a second save authority.
-export function WholeWebsiteReview({s,goal='',disabled=false,onPrepared,isParentCurrent}){
+export function WholeWebsiteReview({s,goal='',disabled=false,onPrepared,isParentCurrent,creativeProposal=null}){
  const [review,setReview]=React.useState(null),[reviewScope,setReviewScope]=React.useState(''),[reviewGoal,setReviewGoal]=React.useState('');
  const [selected,setSelected]=React.useState('home'),[width,setWidth]=React.useState('phone');
  const [change,setChange]=React.useState(''),[notice,setNotice]=React.useState(''),[open,setOpen]=React.useState(false),[openScope,setOpenScope]=React.useState('');
  const [busy,setBusy]=React.useState(false),[fencedScope,setFencedScope]=React.useState('');
  const alive=React.useRef(true),flight=React.useRef(false),epoch=React.useRef(0),live=React.useRef(null),used=React.useRef(new WeakSet()),session=React.useRef({identity:null,workspace:null,version:0}),loaded=React.useRef({html:null,baseUrl:null,done:false});
  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
- const context={website:s.websiteDraft,ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,profileRevision:s.connectedRuntime?.profileRevision,goal};
+ const context={website:s.websiteDraft,ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,profileRevision:s.connectedRuntime?.profileRevision,profile:s.connectedRuntime?.profile,goal};
  const identity=JSON.stringify([context.ownerId,context.businessId,context.website?.id]);
  if(session.current.identity!==identity||session.current.workspace!==s.ownerWorkspaceScope){epoch.current++;session.current={identity,workspace:s.ownerWorkspaceScope,version:session.current.version+1};}
  const scope=identity+':'+session.current.version;
- live.current={s,context,scope,review,reviewScope,epoch:epoch.current};
+ live.current={s,context,scope,review,reviewScope,epoch:epoch.current,disabled,creativeProposal};
  const report=useOwnerEditNavigation(s,{source:context.website,projectId:context.website?.id,revision:context.website?.generation},()=>{
   if(flight.current)return false;epoch.current++;setReview(null);setChange('');setOpen(false);return true;
  });
@@ -46,6 +47,14 @@ export function WholeWebsiteReview({s,goal='',disabled=false,onPrepared,isParent
   const proposed=request?prepareWholeWebsiteRefinement(context,request,deps):prepareWholeWebsite(context,deps);
   if(!proposed?.ok){setNotice(proposed?.reason||'Review the approved business details before preparing the website.');return false;}
   epoch.current++;setReview(proposed);setReviewScope(scope);setReviewGoal(goal);setSelected('home');setOpen(true);setOpenScope(scope);setNotice('Prepared for your review. Your current website is unchanged.');
+  onPrepared?.();report(true);return true;
+ };
+ const imported=creativeProposal,importedPrepared=imported?.prepared,importedRaw=imported?.raw,importedOrigin=imported?.origin;
+ const prepareImported=()=>{
+  if(!current()||flight.current||disabled||live.current.disabled||fenced||scopedReview||change.trim()||!imported||live.current.creativeProposal!==imported||imported.prepared!==importedPrepared||imported.raw!==importedRaw||imported.origin!==importedOrigin)return false;
+  const proposed=reviewWebsiteCreativeDocumentProposal(importedPrepared,importedRaw,context,deps,{origin:importedOrigin});
+  if(!proposed?.ok){setNotice(proposed?.reason||'This design proposal needs a fresh current-source review. Your website is unchanged.');return false;}
+  epoch.current++;setReview(proposed.review);setReviewScope(scope);setReviewGoal(goal);setSelected('home');setOpen(true);setOpenScope(scope);setNotice('Prepared for your review. Your current website is unchanged.');
   onPrepared?.();report(true);return true;
  };
  const keep=async()=>{
@@ -73,7 +82,7 @@ export function WholeWebsiteReview({s,goal='',disabled=false,onPrepared,isParent
    {context.profileRevision==null?<Text style={styles.cardBody}>Using this website’s reviewed wording. Shared account facts and an account save have not been independently verified.</Text>:null}
    {scopedReview?<>
     <Text style={styles.cardBody}>{'Proposed outline — '+pages.length+' pages. Each page should help a visitor understand the business or take a useful next step.'}</Text>
-    {scopedReview.creativeDirection?.liveModelExecuted===false?<Text style={styles.cardBody}>A supported creative direction, prepared from your current website. Your words, colours, photographs and contact details are kept. No live AI model was used. Review the whole website before keeping.</Text>:null}
+    {scopedReview.creativeDirection?.liveModelExecuted===false?<Text style={styles.cardBody}>{scopedReview.creativeDirection.wordingMayChange||scopedReview.creativeDirection.brandMayChange?'This design follows your separately chosen presentation and wording permissions. Review the exact words, brand and every page. Your business facts are not rewritten. No live AI model was used. Nothing is published.':'A supported creative direction, prepared from your current website. Your words, colours, photographs and contact details are kept. No live AI model was used. Review the whole website before keeping.'}</Text>:null}
     {(scopedReview.pages||[]).map(p=><Text key={p.id} style={styles.cardBody}>{p.title+' — '+p.purpose}</Text>)}
     {!fresh?<Text style={styles.cardBody}>Your request, original website or approved business source changed. Your requested wording is kept; discard this stale preview and prepare a fresh review.</Text>:null}
    </>:null}
@@ -92,6 +101,7 @@ export function WholeWebsiteReview({s,goal='',disabled=false,onPrepared,isParent
    </>}
    {fenced?<Text style={styles.cardBody}>This attempt will not be replayed. Inspect the current result in the original Studio before preparing anything else.</Text>:null}
   </Card>:null}
+  {imported&&!scopedReview?<Button label="Review proposed whole-site design" disabled={disabled||busy||fenced||!!change.trim()} onPress={prepareImported}/>:null}
   {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
  </View>;
 }

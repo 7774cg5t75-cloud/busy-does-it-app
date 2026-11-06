@@ -3338,6 +3338,48 @@
         "scripts/check-mission18-provider-projection.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission19-creative-copy",
+      "args": [
+        "scripts/check-mission19-creative-copy.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission19-creative-document",
+      "args": [
+        "scripts/check-mission19-creative-document.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission19-creative-review",
+      "args": [
+        "scripts/check-mission19-creative-review.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission19-provider-projection",
+      "args": [
+        "scripts/check-mission19-provider-projection.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission19-creative-document-rendering",
+      "args": [
+        "scripts/check-mission19-creative-document-rendering.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission19-creative-export",
+      "args": [
+        "scripts/check-mission19-creative-export.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

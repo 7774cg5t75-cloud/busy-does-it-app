@@ -1,3 +1,4 @@
+import {websiteCreativeDocumentPageModel} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -45,6 +46,7 @@ function pageDescription(draft = {}, sectionIds = []) {
 }
 
 function buildWebsitePageModel(draft = {}) {
+  const creativeModel=websiteCreativeDocumentPageModel(draft);
   const businessName = clean(draft.businessName) || "Business";
   const businessType = clean(draft.businessType) || "Local business";
   const serviceArea = clean(draft.serviceArea);
@@ -110,7 +112,11 @@ function buildWebsitePageModel(draft = {}) {
       outputPath:"pages/"+slug+"/index.html",sectionIds:ownedIds,...(entry.sourceServiceId?{sourceServiceId:entry.sourceServiceId,sourceServiceSnapshot:entry.sourceServiceSnapshot}:{})});
   });
 
-  const navigation = singlePage
+  // A reviewed declarative document supplies only a validated projection over
+  // the ORIGINAL sections, custom pages and routes. Legacy derivation is exact.
+  if(creativeModel)pages.splice(0,pages.length,...creativeModel.pages);
+  const seoSource=creativeModel?.seo||draft.seo||{};
+  const navigation = creativeModel?creativeModel.navigation:singlePage
     ? [{id:"home",label:"Home",href:"#main"},
       ...homeIds.filter(id=>["services","about","gallery","contact","products","events"].includes(id))
         .map(id=>({id,label:(["Menu","Services","Our story","Enquire"].includes(safeArray(draft.sections).find(s=>s.id===id)?.navigationLabel)?safeArray(draft.sections).find(s=>s.id===id).navigationLabel:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact",products:"Products",events:"Events"})[id]),href:"#"+id})),
@@ -126,7 +132,7 @@ function buildWebsitePageModel(draft = {}) {
         ? businessType
         : page.title;
     const areaSuffix = serviceArea ? ` • ${serviceArea}` : "";
-    const owned=draft.seo?.ownerPages?.[page.id];
+    const owned=seoSource.ownerPages?.[page.id];
     const safeMetadata=(value,max)=>typeof value==='string'&&value.trim()&&value.length<=max&&!/[<>\u0000-\u001f\u007f]/.test(value);
     pageSeo[page.id] = {
       path: page.path,
@@ -158,7 +164,7 @@ function buildWebsitePageModel(draft = {}) {
     pages,
     navigation,
     seo: {
-      ...(draft.seo || {}),
+      ...seoSource,
       title: homeSeo.title,
       description: homeSeo.description,
       pages: pageSeo,
