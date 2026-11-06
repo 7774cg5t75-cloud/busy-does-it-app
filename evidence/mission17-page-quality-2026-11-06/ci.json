@@ -1,0 +1,169 @@
+{
+  "source": {
+    "commit": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "tree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+    "workingTreeChanged": false
+  },
+  "application": {
+    "sourceSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "sourceTree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+    "finalSourceSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "finalSourceTree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+    "sourceStable": true,
+    "workingTreeChanged": false,
+    "summary": {
+      "passed": 509,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    }
+  },
+  "foundation": {
+    "passed": 105,
+    "failed": 0
+  },
+  "deno": {
+    "originalEntrypoints": 26,
+    "proposalModules": 4,
+    "total": 30,
+    "exitCode": 0
+  },
+  "postgres": {
+    "commandSuites": 8,
+    "receiptSummaries": {
+      "ai-budget": {
+        "failed": 0,
+        "passed": 32
+      },
+      "ai-lab-foundation": {
+        "failed": 0,
+        "passed": 19
+      },
+      "enquiry-preparation": {
+        "failed": 0,
+        "passed": 13
+      },
+      "operational-work": {
+        "failed": 0,
+        "passed": 13
+      },
+      "preservation-foundation": {
+        "failed": 0,
+        "passed": 13
+      },
+      "public-form": {
+        "failed": 0,
+        "passed": 21
+      },
+      "whole-app": {
+        "failed": 0,
+        "passed": 126
+      },
+      "whole-site": {
+        "failed": 0,
+        "passed": 12
+      },
+      "work-preparation": {
+        "failed": 0,
+        "passed": 12
+      }
+    }
+  },
+  "focused": {
+    "wholeSiteCases": 10,
+    "innerCases": 17,
+    "innerAssertions": 258,
+    "navigationCases": 9,
+    "serviceOverviewCases": 10
+  },
+  "exports": {
+    "ownerPreviewIos": "passed unsigned export",
+    "isolatedStagingIos": "passed unsigned export",
+    "physicalDeviceAcceptance": false,
+    "signingOrDistribution": false
+  },
+  "workflows": [
+    {
+      "id": 42245631045,
+      "name": "V3.70 Platform Autopilot checks",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245631045",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245631065,
+      "name": "V3.69 Founder Operations Security",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245631065",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245631056,
+      "name": "V3.66 voice and project Operator checks",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245631056",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245631119,
+      "name": "V3.64 private growth workspace checks",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245631119",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245631030,
+      "name": "V3.65 Growth Command Centre checks",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245631030",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245631169,
+      "name": "V3.63 coordinated editable growth checks",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245631169",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245617705,
+      "name": "Mission 17 original Website quality and iPhone review evidence",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617705",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245617618,
+      "name": "Mission 16 original whole-site browser evidence",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617618",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245617654,
+      "name": "Premium Website original-renderer browser evidence",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617654",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42245617546,
+      "name": "Private App goal composition and original authority verification",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617546",
+      "headSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "proof": "Actual read-only completed GitHub job/API receipts; final-ci-receipt.json contains main source stability, counts and artifact checksum. Architecture and browser receipts retain their separate scopes.",
+  "noGrandTotal": "These are different units/suites. Do not add509 scripts,105 foundation assertions,258 focused assertions or nestedSQL stage counts into a fabricated unique-test total."
+}
