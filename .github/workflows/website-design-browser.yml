@@ -61,6 +61,7 @@ on:
       - 'scripts/check-mission15-phase*.mjs'
       - 'scripts/check-mission15-website-page-headings.mjs'
       - 'scripts/capture-website-design.mjs'
+      - 'scripts/capture-mission16-sites.mjs'
       - 'scripts/fetch-website-test-assets.py'
       - 'scripts/fixtures/website-design/**'
       - '.github/workflows/website-design-browser.yml'

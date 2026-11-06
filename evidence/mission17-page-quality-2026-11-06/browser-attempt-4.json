@@ -1,0 +1,376 @@
+{
+  "status": "failed_then_superseded",
+  "runId": 42239078463,
+  "jobId": 127964292013,
+  "summary": {
+    "source": {
+      "commit": "c50d5ac5fbf857c6e0cea2db98418dc7c96ea5ef",
+      "tree": "808734139a92969dbbe7803f6b1bd9f353546cd6",
+      "workingTreeChanged": false
+    },
+    "browser": "145.0.7632.6",
+    "reviewPack": {
+      "index": "iphone-review-pack/index.html",
+      "zip": "iphone-review-pack.zip",
+      "zipBytes": 5876510,
+      "zipSha256": "7d1dd834e2728484b0d37fe15969ccff9004326012f8faee2e2d3de80afaec3c",
+      "files": 83,
+      "imageCount": 64,
+      "comparisonCount": 16,
+      "source": {
+        "commit": "c50d5ac5fbf857c6e0cea2db98418dc7c96ea5ef",
+        "tree": "808734139a92969dbbe7803f6b1bd9f353546cd6",
+        "workingTreeDirty": false,
+        "before": "1f7feadb3bccbf87084da1813bea8655641ee616"
+      },
+      "browser": "145.0.7632.6",
+      "professionalAcceptance": false
+    },
+    "counterexampleCoverage": {
+      "bodyColumnCounterexample": true,
+      "bodyColumnControl": {
+        "site": "moor-meadow-rich",
+        "page": "page-seasonal-planting",
+        "type": "service-body-column-counterexample",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "negativeDetected": true,
+        "negativeWidths": [
+          279.140625,
+          279.140625
+        ],
+        "restoredWidths": [
+          516.109375,
+          516.109375
+        ]
+      },
+      "clippingControls": {
+        "runs": 1,
+        "visibleOverflowPass": 1,
+        "concealedCasesDetected": 5
+      },
+      "nativeMenuControls": {
+        "runs": 1,
+        "states": [
+          {
+            "closed": 0,
+            "keyboardOpen": 1,
+            "closedAgain": 0
+          }
+        ]
+      }
+    },
+    "serviceBodyEvidence": [
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-seasonal-planting",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-landscape-planning",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-borders-and-beds",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-a-garden-consultation",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "ember-rich",
+        "page": "page-a-buffet-to-share",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "ember-rich",
+        "page": "page-your-catering-plan",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-brand-direction",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-website-content",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-creative-review",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      }
+    ],
+    "pages": 35,
+    "fullPageScreenshots": 310,
+    "actualNavigationChecks": 222,
+    "afterFailures": [
+      "moor-meadow-rich/home/after/mobile open service group clipping",
+      "ember-rich/home/after/mobile open service group clipping",
+      "quiet-light-rich/home/after/mobile open service group clipping",
+      "quiet-light-rich/home/after/desktop open service group clipping",
+      "quiet-light-rich/page-brand-direction/after/desktop clipped content [{\"tag\":\"SUMMARY\",\"text\":\"Services+\",\"reason\":\"own text run exceeds element bounds\",\"element\":{\"tag\":\"SUMMARY\",\"className\":\"\",\"bounds\":{\"left\":28,\"top\":200.46875,\"right\":172.96875,\"bottom\":244.46875,\"width\":144.96875,\"height\":44},\"clientWidth\":145,\"clientHeight\":44,\"scrollWidth\":151,\"scrollHeight\":44,\"style\":{\"overflowX\":\"visible\",\"overflowY\":\"visible\",\"whiteSpace\":\"normal\",\"display\":\"flex\",\"transform\":\"none\"}},\"firstOffendingRun\":{\"text\":\"+\",\"bounds\":{\"left\":156.86561584472656,\"top\":210.74624633789062,\"right\":179.31625366210938,\"bottom\":233.19688415527344,\"width\":22.450637817382812,\"height\":22.450637817382812},\"parent\":{\"tag\":\"SPAN\",\"className\":\"site-nav-symbol\",\"bounds\":{\"left\":157.28546142578125,\"top\":212.16046142578125,\"right\":177.90203857421875,\"bottom\":232.77703857421875,\"width\":20.6165771484375,\"height\":20.6165771484375},\"clientWidth\":11,\"clientHeight\":18,\"scrollWidth\":11,\"scrollHeight\":19,\"style\":{\"overflowX\":\"visible\",\"overflowY\":\"visible\",\"whiteSpace\":\"normal\",\"display\":\"block\",\"transform\":\"matrix(0.707107, 0.707107, -0.707107, 0.707107, 0, 0)\"}}},\"clippingAncestor\":null}]",
+      "quiet-light-rich/page-website-content/after/desktop clipped content [{\"tag\":\"SUMMARY\",\"text\":\"Services+\",\"reason\":\"own text run exceeds element bounds\",\"element\":{\"tag\":\"SUMMARY\",\"className\":\"\",\"bounds\":{\"left\":28,\"top\":200.46875,\"right\":172.96875,\"bottom\":244.46875,\"width\":144.96875,\"height\":44},\"clientWidth\":145,\"clientHeight\":44,\"scrollWidth\":151,\"scrollHeight\":44,\"style\":{\"overflowX\":\"visible\",\"overflowY\":\"visible\",\"whiteSpace\":\"normal\",\"display\":\"flex\",\"transform\":\"none\"}},\"firstOffendingRun\":{\"text\":\"+\",\"bounds\":{\"left\":156.86561584472656,\"top\":210.74624633789062,\"right\":179.31625366210938,\"bottom\":233.19688415527344,\"width\":22.450637817382812,\"height\":22.450637817382812},\"parent\":{\"tag\":\"SPAN\",\"className\":\"site-nav-symbol\",\"bounds\":{\"left\":157.28546142578125,\"top\":212.16046142578125,\"right\":177.90203857421875,\"bottom\":232.77703857421875,\"width\":20.6165771484375,\"height\":20.6165771484375},\"clientWidth\":11,\"clientHeight\":18,\"scrollWidth\":11,\"scrollHeight\":19,\"style\":{\"overflowX\":\"visible\",\"overflowY\":\"visible\",\"whiteSpace\":\"normal\",\"display\":\"block\",\"transform\":\"matrix(0.707107, 0.707107, -0.707107, 0.707107, 0, 0)\"}}},\"clippingAncestor\":null}]",
+      "quiet-light-rich/page-creative-review/after/desktop clipped content [{\"tag\":\"SUMMARY\",\"text\":\"Services+\",\"reason\":\"own text run exceeds element bounds\",\"element\":{\"tag\":\"SUMMARY\",\"className\":\"\",\"bounds\":{\"left\":28,\"top\":200.46875,\"right\":172.96875,\"bottom\":244.46875,\"width\":144.96875,\"height\":44},\"clientWidth\":145,\"clientHeight\":44,\"scrollWidth\":151,\"scrollHeight\":44,\"style\":{\"overflowX\":\"visible\",\"overflowY\":\"visible\",\"whiteSpace\":\"normal\",\"display\":\"flex\",\"transform\":\"none\"}},\"firstOffendingRun\":{\"text\":\"+\",\"bounds\":{\"left\":156.86561584472656,\"top\":210.74624633789062,\"right\":179.31625366210938,\"bottom\":233.19688415527344,\"width\":22.450637817382812,\"height\":22.450637817382812},\"parent\":{\"tag\":\"SPAN\",\"className\":\"site-nav-symbol\",\"bounds\":{\"left\":157.28546142578125,\"top\":212.16046142578125,\"right\":177.90203857421875,\"bottom\":232.77703857421875,\"width\":20.6165771484375,\"height\":20.6165771484375},\"clientWidth\":11,\"clientHeight\":18,\"scrollWidth\":11,\"scrollHeight\":19,\"style\":{\"overflowX\":\"visible\",\"overflowY\":\"visible\",\"whiteSpace\":\"normal\",\"display\":\"block\",\"transform\":\"matrix(0.707107, 0.707107, -0.707107, 0.707107, 0, 0)\"}}},\"clippingAncestor\":null}]"
+    ],
+    "baselineFindings": 0,
+    "viewports": [
+      "mobile",
+      "desktop",
+      "tablet",
+      "narrow",
+      "retina"
+    ],
+    "maximumImageBodyBytes": 1251334,
+    "captureWallMs": 149829,
+    "nodeCpuMicroseconds": {
+      "user": 16178207,
+      "system": 1704324
+    },
+    "nodeMaxRssKiB": 423308,
+    "pixelReceiptBytes": 1705098,
+    "pixelReceiptCount": 35,
+    "professionalAcceptance": false,
+    "providerCalls": 0
+  },
+  "diagnosis": "Precise SUMMARY-level diagnostics identify the rotated decorative plus glyph extending 6.35px outside its control. Menu text is visible; there is no concealed ancestor. This is a component geometry defect, not grounds to drop clipping checks.",
+  "remedy": "Add a 10px right inset only to mobile service summaries and desktop studio service summaries. Default horizontal desktop inset, original labels/routes and every detector/counterexample remain unchanged.",
+  "artifacts": {
+    "full": {
+      "id": 13514596144,
+      "bytes": 98185854,
+      "sha256": "1fcbf4c7665be6c79420a221703ec7000610b9e3bc1b99f19f828463f5d5f412"
+    },
+    "compact": {
+      "id": 13513851346,
+      "bytes": 5073522,
+      "sha256": "6349558dcf37abe7e3fe60181edb2b4445d27b5d6b0069f3086a197b9e4971dd"
+    }
+  },
+  "goldStandardsApproved": 0,
+  "providerCalls": 0
+}

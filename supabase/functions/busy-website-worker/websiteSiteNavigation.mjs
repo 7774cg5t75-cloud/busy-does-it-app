@@ -81,7 +81,7 @@ nav .site-nav-panel a{justify-content:space-between;max-width:100%;padding:12px 
 nav .site-nav-panel li+li{border-top:1px solid var(--line)}
 .site-nav-link-hint{font-size:.875rem;font-weight:400}
 nav .site-nav-desktop{min-width:0}
-@media(min-width:1000px){.direction-studio-index nav .site-nav-items{display:flex;flex-direction:column;align-items:stretch;width:100%;gap:8px}.direction-studio-index nav .site-nav-panel{position:static;width:auto;min-width:0;max-width:100%;padding:8px 0 4px 12px;border:0;border-left:1px solid var(--line);box-shadow:none}.direction-studio-index nav .site-nav-group>summary{padding-inline:0}.direction-studio-index nav .site-nav-items a{padding-inline:0}.direction-studio-index nav .site-nav-panel a{font-size:.875rem}}
+@media(min-width:1000px){.direction-studio-index nav .site-nav-items{display:flex;flex-direction:column;align-items:stretch;width:100%;gap:8px}.direction-studio-index nav .site-nav-panel{position:static;width:auto;min-width:0;max-width:100%;padding:8px 0 4px 12px;border:0;border-left:1px solid var(--line);box-shadow:none}.direction-studio-index nav .site-nav-group>summary{padding-inline:0 10px}.direction-studio-index nav .site-nav-items a{padding-inline:0}.direction-studio-index nav .site-nav-panel a{font-size:.875rem}}
 @media(min-width:701px) and (max-width:999px){
 nav .site-nav-desktop{position:relative}
 nav .site-nav-desktop .site-nav-items>li,nav .site-nav-desktop .site-nav-group{position:static}
@@ -94,6 +94,7 @@ nav .site-nav-desktop .site-nav-panel{left:0;right:auto;width:340px;max-width:10
  nav .site-nav-mobile .site-nav-items>li{border-top:1px solid var(--line)}
  nav .site-nav-mobile .site-nav-items>li:first-child{border-top:0}
  nav .site-nav-mobile .site-nav-items>li>a,nav .site-nav-mobile .site-nav-group>summary{padding:12px 0;min-height:48px;justify-content:space-between;border-radius:0;background:transparent;opacity:1}
+ nav .site-nav-mobile .site-nav-group>summary{padding:12px 10px 12px 0}
  nav .site-nav-mobile .site-nav-panel{position:static;min-width:0;width:auto;max-width:100%;padding:0 0 8px 18px;border:0;border-left:1px solid var(--line);box-shadow:none;background:transparent}
  nav .site-nav-mobile .site-nav-panel a{font-size:.94rem;min-height:48px;padding:12px 0}
 }
