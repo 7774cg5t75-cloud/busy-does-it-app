@@ -10,7 +10,7 @@ This document refreshes the installation boundary for the expressive v2 creative
 | Organisation | `wrjfgasxtlznzfzmfrif` |
 | Region | Ireland, `eu-west-1`; owner acceptance applies to this fictional-data laboratory only |
 | Plan and engine | Free, PostgreSQL 17 |
-| Current source continuity | Mission 19 functional `f42028950b573ceee874994e5414763423abc5d4`, tree `5c5cc5af6656306cf979f4cf70892f89e2f16691`; report descendant `c6e2b2860798f06f1825168b81c267823a8a08c2` |
+| Original continuity baseline | Mission 19 functional `f42028950b573ceee874994e5414763423abc5d4`, tree `5c5cc5af6656306cf979f4cf70892f89e2f16691`; report descendant `c6e2b2860798f06f1825168b81c267823a8a08c2`. The final readiness commit/tree and fresh CI are recorded in the [mission report](AI_LAB_V2_READINESS_2026_11_06.md); all SQL hashes below remain unchanged. |
 | Requirements | Verified corrected private Master V22.85; original document and extraction stay outside Git |
 | Application scope | Original 28 public foundation tables, six private AI-budget tables, 69 original public foundation functions and five service-only AI functions |
 | Managed migration name | `mission18_ai_lab_foundation` |

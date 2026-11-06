@@ -1,0 +1,22 @@
+# Full-page visual judgement — not technical acceptance
+
+Both reviewers inspected the twelve actual full-page mobile/desktop JPEG receipts from frozen source4cf9bbf25fa6c739e60f0d659ee262f5ee182427. Final source21121ee462b27a77b30089ba69e2adcb28d15182 (tree333730364aa97026a7b897c8ccf9e626432d3c2b) was genuinely recaptured and all12 original PNG and JPEG hashes match those inspected pixels exactly. Their origins were known; this was **not a blind review or independent human agency acceptance**. The current original recommender and manually authored offline fixture use identical approved fictional facts and the original renderer. No model call occurred.
+
+| Candidate | Decision | Evidence |
+|---|---|---|
+|01 — current deterministic recommendation | **Needs further design improvement** | Credible readable service information and working navigation, but Home and Services repeat the complete “What we do” presentation. Mobile navigation stacks awkwardly beside the logo and consumes a large opening area. Contact repeats page introduction, “Get in touch” and a return-to-services conclusion rather than making one economical final action. |
+|02 — authored offline v2 fixture | **Needs further design improvement**, with stronger individual direction | The visitor-focused opening, warm cream/dark blue-green rhythm, sans/serif contrast, horizontal mobile navigation and direct email conclusion form a more coherent studio identity. Home uses the supplied philosophy while Services carries the detailed offering. This demonstrates what the existing grammar can express, not AI judgement. |
+
+Concrete remaining weaknesses:
+
+1. **Renderer/frame limitation:** Candidate02's short Contact page ends its footer around halfway down the desktop viewport, leaving a large cream void underneath; a smaller void is visible on mobile. The current page frame does not consistently resolve short-page height and footer placement. A model must not be credited or blamed for that shared underlying limitation.
+2. **Copy/composition choice:** “Clarity comes before decoration” appears as a heading and is immediately repeated in the first sentence. This is avoidable editorial repetition in the authored fixture, not missing business information.
+3. **Responsive typographic choice:** the mobile Services heading breaks at “direction. A”, weakening the intended two-part statement. It is readable and technically unclipped, yet needs deliberate editorial line handling or different type proportions.
+4. **Source-content limitation:** retained descriptions discuss not inventing credentials and not automatically publishing. These read like internal editing assurances rather than persuasive customer-facing service copy. A future model may propose a natural source-grounded rewrite where owner intent permits it; locked words must remain exact. No unsupported benefit or achievement should replace them.
+5. **Recommender limitation:** the old finite route repeats Home/Services structures and generic labels. The v2 fixture demonstrates a possible alternative, but does not establish that the current algorithm cannot be extended or that a real model will choose well.
+
+No renderer CSS or deterministic family was changed in this readiness mission. Visible differences come from the manually authored v2 proposal's typography, palette, composition and approved-copy placement. No extra facts, photographs, customer work or pricing made02 richer. The original eight families, equal free/paid rendering and three reference candidates/zero approved Gold Standards are preserved.
+
+The eventual first experiment should be described as **current deterministic workflow versus model-assisted v2 workflow**. Freeze the actual current A before seeing B. Preserve identical facts, approved intent, locks, source revisions and renderer; disclose A's finite v1 contract versus B's broader v2 composition/copy freedom. This can assess the combined workflow's desirability, not isolate model reasoning from expanded expressive capabilities. Preserve incomplete, invalid, unchanged and inferior B; select no automatic winner.
+
+The screenshots do not yet justify calling either complete site exceptional professionally commissioned work. The next evidence should be one genuinely receipted model proposal, with actual usage/cost and the same full-page factual, technical and professional review. A schema pass or one favourable comparison cannot establish reliable superiority or Gold Standard approval.

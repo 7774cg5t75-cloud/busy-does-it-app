@@ -1,0 +1,1193 @@
+{
+  "schemaVersion": 1,
+  "kind": "honest-failed-and-superseded-run-history",
+  "repository": "7774cg5t75-cloud/busy-does-it-app",
+  "scope": "This AI Lab v2 readiness mission only. Earlier missions retain their own evidence.",
+  "finalSource": {
+    "commit": "21121ee462b27a77b30089ba69e2adcb28d15182",
+    "tree": "333730364aa97026a7b897c8ccf9e626432d3c2b"
+  },
+  "priorSources": [
+    {
+      "commit": "5da2145ac09db2927c1c8ed27e742555e63e25ac",
+      "tree": "f745d9db34d80dffc381d710c171bc4a8bb2d63c",
+      "gitDataReadbackUrl": "https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/git/commits/5da2145ac09db2927c1c8ed27e742555e63e25ac"
+    },
+    {
+      "commit": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+      "tree": "10d6eedab4412fe1b97626f58adeeb85436d41cc",
+      "gitDataReadbackUrl": "https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/git/commits/4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+    }
+  ],
+  "outcomes": [
+    {
+      "runId": 42294282934,
+      "outcome": "failure",
+      "step": "Disposable local PostgreSQL, no TCP or hosted connection",
+      "originalAiBudgetStagesObserved": {
+        "passed": 30,
+        "failed": 1
+      },
+      "failedStage": "creative-operation-readback-separate-fuse-scope-and-retaining-rollback",
+      "actualError": "Foreign original source or protocol",
+      "causeAndFix": "The original legacy bridge omitted maxOutputTokens and used its independently read 1,000-output tariff. The reviewed 4cf9bb fix restored this original omission contract, retained denial of explicitly incompatible limits and kept v2 strict at 4,000. The original PostgreSQL assertion file and SQL were not weakened by that fix.",
+      "application": "Skipped, not passed.",
+      "exports": "Skipped, not passed."
+    },
+    {
+      "runId": 42294282939,
+      "outcome": "cancelled",
+      "step": "Install existing pinned Playwright Chromium",
+      "browserCapture": "Skipped; no completed browser acceptance claimed.",
+      "partialArtifact": "Retained as partial evidence only."
+    },
+    {
+      "runId": 42295455406,
+      "outcome": "cancelled-superseded",
+      "step": "Complete frozen-source regressions",
+      "actualPostgres": {
+        "commandSuites": 9,
+        "receiptSummaries": {
+          "ai-budget": {
+            "failed": 0,
+            "passed": 32
+          },
+          "ai-lab-foundation": {
+            "failed": 0,
+            "passed": 19
+          },
+          "ai-lab-runner-foundation": {
+            "failed": 0,
+            "passed": 15
+          },
+          "enquiry-preparation": {
+            "failed": 0,
+            "passed": 13
+          },
+          "operational-work": {
+            "failed": 0,
+            "passed": 13
+          },
+          "preservation-foundation": {
+            "failed": 0,
+            "passed": 13
+          },
+          "public-form": {
+            "failed": 0,
+            "passed": 21
+          },
+          "whole-app": {
+            "failed": 0,
+            "passed": 126
+          },
+          "whole-site": {
+            "failed": 0,
+            "passed": 14
+          },
+          "work-preparation": {
+            "failed": 0,
+            "passed": 12
+          }
+        }
+      },
+      "application": "Interrupted before complete summary; not passed.",
+      "exports": "Both unsigned exports succeeded before cancellation."
+    },
+    {
+      "runId": 42295455321,
+      "outcome": "success-superseded-source",
+      "quietBrowser": {
+        "source": {
+          "commit": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "tree": "10d6eedab4412fe1b97626f58adeeb85436d41cc",
+          "workingTreeChanged": false
+        },
+        "browser": "145.0.7632.6",
+        "inputDigest": "4c8a551a0467955054b26b9cb9c82e395e9ac34fac8776ccec772c1c7c741f67",
+        "wireDigest": "2288e92a5422b3cee1276a344a542356b273aff7e2c6e36d0fa15b98ef59725b",
+        "pages": 6,
+        "fullPageScreenshots": 24,
+        "checks": 742,
+        "passed": 742,
+        "failed": 0,
+        "failures": [],
+        "actualNavigationChecks": 12,
+        "viewports": [
+          "320x844@1",
+          "390x844@1",
+          "1440x1000@1",
+          "390x844@2"
+        ],
+        "imageRequests": 0,
+        "reviewPack": {
+          "index": "iphone-review-pack/index.html",
+          "zip": "iphone-review-pack.zip",
+          "zipBytes": 942892,
+          "zipSha256": "c604ae8a0cf26e8737c2147acaa1b716507a015abc1c6501e6f9f0e4867803fd",
+          "files": 18,
+          "images": 12,
+          "comparisons": 3,
+          "pixelLogBytes": 521870,
+          "source": {
+            "commit": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+            "tree": "10d6eedab4412fe1b97626f58adeeb85436d41cc",
+            "workingTreeChanged": false
+          },
+          "browser": "145.0.7632.6",
+          "genuineModelResult": false,
+          "professionalAcceptance": false
+        },
+        "pixelReceipts": 12,
+        "providerCalls": 0,
+        "genuineModelResult": false,
+        "professionalAcceptance": false
+      },
+      "note": "742 technical checks and 24 PNGs succeeded on 4cf9bb source; these are not substituted for final 211 evidence."
+    },
+    {
+      "runId": 42295455312,
+      "outcome": "success-superseded-source",
+      "scope": "General original-renderer benchmark succeeded on 4cf9bb; current 211 general workflow is separately recorded."
+    }
+  ],
+  "runs": [
+    {
+      "id": 42294282934,
+      "name": "Private App goal composition and original authority verification",
+      "event": "push",
+      "headSha": "5da2145ac09db2927c1c8ed27e742555e63e25ac",
+      "headBranch": "codex/builder-mission15-design-advancement",
+      "status": "completed",
+      "conclusion": "failure",
+      "attempt": 1,
+      "createdAt": "2026-11-06T21:08:49Z",
+      "updatedAt": "2026-11-06T21:12:40Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42294282934",
+      "jobs": [
+        {
+          "id": 128155382625,
+          "name": "original-source",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42294282934/job/128155382625",
+          "checkoutCommits": [
+            "5da2145ac09db2927c1c8ed27e742555e63e25ac"
+          ],
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Reviewed lock installation and security guard",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Original contract and component behaviour",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Original legacy Website worker scopes with real shared dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Genuine original Edge checks with pinned official verification tools",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 9
+            },
+            {
+              "name": "Unsigned original Owner Preview and isolated staging exports",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 10
+            },
+            {
+              "name": "Complete frozen-source regressions",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 11
+            },
+            {
+              "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 23
+            },
+            {
+              "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 24
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 25
+            }
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 13540768932,
+          "name": "private-app-goal-5da2145ac09db2927c1c8ed27e742555e63e25ac",
+          "sizeBytes": 141084,
+          "sha256": "29be1cdfb9cb59386e7204b9dff23362a9adcf1b3208200fabbf144cb381369c",
+          "expired": false,
+          "createdAt": "2026-11-06T21:12:35Z",
+          "expiresAt": "2026-11-13T21:12:34Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42294282934/artifacts/13540768932",
+          "workflowHeadSha": "5da2145ac09db2927c1c8ed27e742555e63e25ac"
+        }
+      ]
+    },
+    {
+      "id": 42294282939,
+      "name": "Quiet Light v2 offline original-renderer pilot comparison",
+      "event": "push",
+      "headSha": "5da2145ac09db2927c1c8ed27e742555e63e25ac",
+      "headBranch": "codex/builder-mission15-design-advancement",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "attempt": 1,
+      "createdAt": "2026-11-06T21:08:49Z",
+      "updatedAt": "2026-11-06T21:17:35Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42294282939",
+      "jobs": [
+        {
+          "id": 128155382442,
+          "name": "offline-original-renderer",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42294282939/job/128155382442",
+          "checkoutCommits": [],
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Reviewed dependency installation and original guard",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Exact offline synthetic source, original review and independent local readback",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Install existing pinned Playwright Chromium",
+              "status": "completed",
+              "conclusion": "cancelled",
+              "number": 6
+            },
+            {
+              "name": "Genuine sandboxed full-page capture — no provider or hosted access",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 7
+            },
+            {
+              "name": "Retain all original HTML, full PNGs, browser checks and honest provenance",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Compact actual-pixel iPhone review pack",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 13540834462,
+          "name": "quiet-light-v2-offline-evidence-5da2145ac09db2927c1c8ed27e742555e63e25ac",
+          "sizeBytes": 276361,
+          "sha256": "21113aea37b4aca4d7e91f01072a7401178d1bfb57834ecf2506dbb2ac99c20c",
+          "expired": false,
+          "createdAt": "2026-11-06T21:17:30Z",
+          "expiresAt": "2026-11-13T21:17:28Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42294282939/artifacts/13540834462",
+          "workflowHeadSha": "5da2145ac09db2927c1c8ed27e742555e63e25ac"
+        }
+      ]
+    },
+    {
+      "id": 42295455406,
+      "name": "Private App goal composition and original authority verification",
+      "event": "push",
+      "headSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+      "headBranch": "codex/builder-mission15-design-advancement",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "attempt": 1,
+      "createdAt": "2026-11-06T21:17:15Z",
+      "updatedAt": "2026-11-06T21:35:28Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455406",
+      "jobs": [
+        {
+          "id": 128159400368,
+          "name": "original-source",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455406/job/128159400368",
+          "checkoutCommits": [
+            "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+          ],
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Reviewed lock installation and security guard",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Original contract and component behaviour",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Original legacy Website worker scopes with real shared dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Genuine original Edge checks with pinned official verification tools",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Unsigned original Owner Preview and isolated staging exports",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Complete frozen-source regressions",
+              "status": "completed",
+              "conclusion": "cancelled",
+              "number": 11
+            },
+            {
+              "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 23
+            },
+            {
+              "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 24
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 25
+            }
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 13542402819,
+          "name": "private-app-goal-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 198314,
+          "sha256": "df05f39f320c4b4671cf08a47b7861705e7b030df08ab912994e23fe0c6cbc9e",
+          "expired": false,
+          "createdAt": "2026-11-06T21:35:24Z",
+          "expiresAt": "2026-11-13T21:35:23Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455406/artifacts/13542402819",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        }
+      ]
+    },
+    {
+      "id": 42295455321,
+      "name": "Quiet Light v2 offline original-renderer pilot comparison",
+      "event": "push",
+      "headSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+      "headBranch": "codex/builder-mission15-design-advancement",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "createdAt": "2026-11-06T21:17:14Z",
+      "updatedAt": "2026-11-06T21:19:03Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455321",
+      "jobs": [
+        {
+          "id": 128159556975,
+          "name": "offline-original-renderer",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455321/job/128159556975",
+          "checkoutCommits": [
+            "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+          ],
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Reviewed dependency installation and original guard",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Exact offline synthetic source, original review and independent local readback",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Install existing pinned Playwright Chromium",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Genuine sandboxed full-page capture — no provider or hosted access",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Retain all original HTML, full PNGs, browser checks and honest provenance",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Compact actual-pixel iPhone review pack",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 13541678134,
+          "name": "quiet-light-v2-offline-evidence-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 7747676,
+          "sha256": "3a7cf28b2776cda8b90f6b4b1529e3df7ed244892b0a3e39c9f9737eb479ab83",
+          "expired": false,
+          "createdAt": "2026-11-06T21:18:56Z",
+          "expiresAt": "2026-11-13T21:18:54Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455321/artifacts/13541678134",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541667115,
+          "name": "quiet-light-v2-iphone-review-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 823956,
+          "sha256": "fdb429f1766161e30753d76da2c16f00dd95d1709d8a6ff5d089e6f9b260931d",
+          "expired": false,
+          "createdAt": "2026-11-06T21:18:58Z",
+          "expiresAt": "2026-11-13T21:18:57Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455321/artifacts/13541667115",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        }
+      ]
+    },
+    {
+      "id": 42295455312,
+      "name": "Premium Website original-renderer browser evidence",
+      "event": "push",
+      "headSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+      "headBranch": "codex/builder-mission15-design-advancement",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "createdAt": "2026-11-06T21:17:14Z",
+      "updatedAt": "2026-11-06T21:27:20Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312",
+      "jobs": [
+        {
+          "id": 128159639470,
+          "name": "fictional-renderer",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/job/128159639470",
+          "checkoutCommits": [],
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Reviewed installation without package lifecycle scripts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Original renderer and pinned CC0 demonstration assets",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Install browser from existing exact Playwright dependency",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Capture with required Chromium sandbox and no external browser requests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Compare real current pixels with the exact previous guided evidence",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 8
+            },
+            {
+              "name": "Retain changed public fixture bytes for explicit review only",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 9
+            },
+            {
+              "name": "Retain expanded original pixels and HTML in a bounded archive",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Retain guided regression original pixels in a bounded archive",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Retain rich introduction originals and compact owner comparisons",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Retain controlled complete-page comparisons",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Retain five same-industry complete-page comparisons",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Retain authentic full-page controlled and source-richness comparisons",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            },
+            {
+              "name": "Retain rich and sparse storyboard original pixels",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Retain five same-industry storyboard originals",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Retain expressive catering original pixels",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Retain expressive gardening original pixels",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            },
+            {
+              "name": "Retain expressive studio original pixels",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20
+            },
+            {
+              "name": "Retain expressive gardens original pixels",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21
+            },
+            {
+              "name": "Retain menu-story catering original evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 22
+            },
+            {
+              "name": "Retain menu-story gardening original evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 23
+            },
+            {
+              "name": "Retain menu-story studio original evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 24
+            },
+            {
+              "name": "Retain menu-story gardens original evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 25
+            },
+            {
+              "name": "Retain menu-story delivery original evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 26
+            },
+            {
+              "name": "Retain creative catering evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 27
+            },
+            {
+              "name": "Retain creative gardening evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 28
+            },
+            {
+              "name": "Retain creative studio evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 29
+            },
+            {
+              "name": "Retain creative gardens evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 30
+            },
+            {
+              "name": "Retain creative delivery evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 31
+            },
+            {
+              "name": "Retain creative renderer evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 32
+            },
+            {
+              "name": "Retain 24-case benchmark and private-candidate evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 33
+            },
+            {
+              "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 65
+            },
+            {
+              "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 66
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 67
+            }
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "id": 13542790888,
+          "name": "website-acceptance-benchmark-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 14919610,
+          "sha256": "197984e893d17eabbfc448dd1de8133fac458ebba06b7a61746ab2d45843b329",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:17Z",
+          "expiresAt": "2026-11-13T21:27:15Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542790888",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542666181,
+          "name": "website-creative-renderer-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 17301621,
+          "sha256": "56ff42c0d512d9718dd463b08fc2d190060f625bedb1630af04ab9bd4c09fda7",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:15Z",
+          "expiresAt": "2026-11-13T21:27:13Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542666181",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542666148,
+          "name": "website-menu-story-studio-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 3580567,
+          "sha256": "8f59e6914494fa9acb198f6557f83a8a9fffc00ee5456642c83e851af7e7bd15",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:02Z",
+          "expiresAt": "2026-11-13T21:27:01Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542666148",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542651094,
+          "name": "website-excellence-rich-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 9151446,
+          "sha256": "cc575712469bfb93fe7e96a6afe8238a98f4b759a752940cfc2b81abe0cf32b6",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:38Z",
+          "expiresAt": "2026-11-13T21:26:37Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542651094",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542586045,
+          "name": "website-excellence-gardens-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 11757043,
+          "sha256": "e45ac1a2c4aed272a6d03eba26ef6894fa09bc160d6eede41f50043561ed2de4",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:40Z",
+          "expiresAt": "2026-11-13T21:26:38Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542586045",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542576113,
+          "name": "website-expansion-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 19037797,
+          "sha256": "b2221b9c6edee23359df808477c3184b63d3444c85abe701607faa80bdd0a67c",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:34Z",
+          "expiresAt": "2026-11-13T21:26:32Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542576113",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542561315,
+          "name": "website-creative-gardens-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 12633927,
+          "sha256": "37db29b323f59b3175ed92706a90e5003a9575190d3181893905123ebc774f25",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:11Z",
+          "expiresAt": "2026-11-13T21:27:10Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542561315",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542561296,
+          "name": "website-menu-story-gardens-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 11730858,
+          "sha256": "d1aa6f2f87a21e76a018417dd7690d74b8a8ddc990577c0e540c3251a6acb9e5",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:03Z",
+          "expiresAt": "2026-11-13T21:27:02Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542561296",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542521185,
+          "name": "website-introduction-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 8890933,
+          "sha256": "0411c2b845524d8124973e49aa15046afdb4c1fe52c0012ab50f406846196dc4",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:37Z",
+          "expiresAt": "2026-11-13T21:26:35Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542521185",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542501341,
+          "name": "website-art-direction-gardens-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 11596797,
+          "sha256": "161c38f10767f71d37265d33afb826cf0dae0e0247ad3fd1087c88455df4596a",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:57Z",
+          "expiresAt": "2026-11-13T21:26:51Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542501341",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542496314,
+          "name": "website-authentic-story-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 27480700,
+          "sha256": "75c844a9c204868583784216dfbc3125e01f87d998c261c8c817b558fb512e89",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:42Z",
+          "expiresAt": "2026-11-13T21:26:40Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542496314",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542456351,
+          "name": "website-creative-catering-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 16442884,
+          "sha256": "2054f823926c840580d34a969696bea80993d6c2afc8f6ab05dab83d75067f0e",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:06Z",
+          "expiresAt": "2026-11-13T21:27:05Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542456351",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542386556,
+          "name": "website-art-direction-studio-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 3213783,
+          "sha256": "8eecba1ccb086a19fbf79cec34bed08df53e77e0831ea922a1907e945bb709cb",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:50Z",
+          "expiresAt": "2026-11-13T21:26:49Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542386556",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13542012193,
+          "name": "website-storyboard-businesses-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 28202203,
+          "sha256": "f342900bb039a58fe579d844d7b3ada37b8c1ddb396ea96df0898d9931b9e7f0",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:44Z",
+          "expiresAt": "2026-11-13T21:26:42Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13542012193",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541772739,
+          "name": "website-menu-story-gardening-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 17379351,
+          "sha256": "1caf00e5676b4a946320830a40d7b0d2aa611b93868c7bb4b7bbaefe907765ae",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:00Z",
+          "expiresAt": "2026-11-13T21:26:59Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541772739",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541672788,
+          "name": "website-creative-studio-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 3943140,
+          "sha256": "f289e6f44973f8de0480328059ffd6e1ae01599dddae55e6bfc3dcad2eb7eff4",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:10Z",
+          "expiresAt": "2026-11-13T21:27:09Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541672788",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541642739,
+          "name": "website-menu-story-catering-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 16237484,
+          "sha256": "0b8b0d5e3e4c2267b9277d9357dc7549adf070b8377c92ea7dc82a43ebd5bf78",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:59Z",
+          "expiresAt": "2026-11-13T21:26:57Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541642739",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541478070,
+          "name": "website-creative-delivery-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 12522273,
+          "sha256": "7218552e5ff7cdb990a69e0c855a0bc2c2757cf244d3ceec43b87226377d1d8e",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:13Z",
+          "expiresAt": "2026-11-13T21:27:12Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541478070",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541462896,
+          "name": "website-creative-gardening-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 17649386,
+          "sha256": "5b53796593052715f1ea26ed2149573d4e57fa75f6765e29aa5a4d0feeedcd4e",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:08Z",
+          "expiresAt": "2026-11-13T21:27:07Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541462896",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541462889,
+          "name": "website-menu-story-delivery-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 12259399,
+          "sha256": "3bccdc0e99c89c7a667ce040ccac233dd46261488a3e12b436a9c3aca8f80722",
+          "expired": false,
+          "createdAt": "2026-11-06T21:27:05Z",
+          "expiresAt": "2026-11-13T21:27:04Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541462889",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541427875,
+          "name": "website-art-direction-catering-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 14985919,
+          "sha256": "a4a1e3c203a77612321d9be1c46bfea13ad00036ac12d4799d3b0a5a9291b53c",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:47Z",
+          "expiresAt": "2026-11-13T21:26:46Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541427875",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541308052,
+          "name": "website-art-direction-gardening-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 17021234,
+          "sha256": "a0a2f2336db93300ac4101e2346b8548becece5e936cc30a013fe64bc42a9af1",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:49Z",
+          "expiresAt": "2026-11-13T21:26:48Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541308052",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541288106,
+          "name": "website-storyboard-gardens-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 11675803,
+          "sha256": "fbe5b64f4cb006f931d885a8b191cf60c3765e2c89f8f34a97477dec322b8798",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:46Z",
+          "expiresAt": "2026-11-13T21:26:44Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541288106",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        },
+        {
+          "id": 13541288081,
+          "name": "website-guided-4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+          "sizeBytes": 6501480,
+          "sha256": "321bf77cd4a3d82a2adee90705add65bd07519d7178ebb9d30dbe991fc8c2aae",
+          "expired": false,
+          "createdAt": "2026-11-06T21:26:35Z",
+          "expiresAt": "2026-11-13T21:26:34Z",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42295455312/artifacts/13541288081",
+          "workflowHeadSha": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427"
+        }
+      ]
+    }
+  ],
+  "finalOutcomes": {
+    "main": {
+      "runId": 42297957647,
+      "status": "success",
+      "application": {
+        "sourceSha": "21121ee462b27a77b30089ba69e2adcb28d15182",
+        "sourceTree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+        "finalSourceSha": "21121ee462b27a77b30089ba69e2adcb28d15182",
+        "finalSourceTree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+        "sourceStable": true,
+        "workingTreeChanged": false,
+        "summary": {
+          "passed": 522,
+          "failed": 0,
+          "blocked": 0,
+          "unexecuted": 0
+        }
+      }
+    },
+    "quietBrowser": {
+      "runId": 42297957555,
+      "status": "success",
+      "checks": 742,
+      "failed": 0,
+      "pngs": 24
+    },
+    "generalBrowser": {
+      "runId": 42297957773,
+      "status": "success"
+    },
+    "sixOriginalLegacyPushWorkflows": "All six passed at exact 211 checkout, with detailed metadata in ci-results.json."
+  },
+  "additionalPrDuplicates": "Six PR-triggered success runs are separately labelled in ci-results.json; their synthetic test-merge tree equals the final functional tree, but their commit checkout is different.",
+  "limits": [
+    "No failed, cancelled, skipped or superseded application run is relabelled as a final passing run.",
+    "Positive browser passes on older sources do not establish final-source success.",
+    "No model call, key read, hosted installation, deployment, publication or CI dispatch was performed by this collection."
+  ]
+}
