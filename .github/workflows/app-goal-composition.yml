@@ -282,6 +282,43 @@ jobs:
           # Ubuntu's installed postgresql-common already supplies the SAME
           # public key. Verify package ownership and its full primary fingerprint;
           # missing/unreviewed key material stops without a network fallback.
+          # The runner image ships this root-owned public file with mode 0777.
+          # Tighten only this fixed file before the unchanged trust verification.
+          sudo /usr/bin/python3 - <<'PY'
+          import os, stat, sys
+          key = '/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc'
+          descriptor = None
+          def require(condition):
+              if not condition:
+                  raise RuntimeError('refused')
+          def identity(value):
+              return value.st_dev, value.st_ino, value.st_uid, value.st_size
+          try:
+              for directory in ('/', '/usr', '/usr/share', '/usr/share/postgresql-common', '/usr/share/postgresql-common/pgdg'):
+                  metadata = os.lstat(directory)
+                  require(stat.S_ISDIR(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode) and metadata.st_uid == 0 and metadata.st_mode & 0o022 == 0)
+              require(os.path.realpath(key) == key)
+              before = os.lstat(key)
+              require(stat.S_ISREG(before.st_mode) and not stat.S_ISLNK(before.st_mode) and before.st_uid == 0 and 0 < before.st_size <= 32768)
+              descriptor = os.open(key, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+              opened = os.fstat(descriptor)
+              require(stat.S_ISREG(opened.st_mode) and identity(opened) == identity(before))
+              original_bytes = os.read(descriptor, 32769)
+              require(len(original_bytes) == before.st_size)
+              os.fchmod(descriptor, 0o644)
+              after = os.fstat(descriptor)
+              os.lseek(descriptor, 0, os.SEEK_SET)
+              require(stat.S_ISREG(after.st_mode) and identity(after) == identity(before) and stat.S_IMODE(after.st_mode) == 0o644 and os.read(descriptor, 32769) == original_bytes)
+              current = os.lstat(key)
+              require(stat.S_ISREG(current.st_mode) and not stat.S_ISLNK(current.st_mode) and identity(current) == identity(before) and stat.S_IMODE(current.st_mode) == 0o644 and os.path.realpath(key) == key)
+              print('CI PGDG fixed packaged public-key mode is 0644; package and fingerprint verification still required.')
+          except (OSError, RuntimeError):
+              print('CI PGDG fixed packaged public-key mode restriction refused; no repository trust was changed.', file=sys.stderr)
+              raise SystemExit(1)
+          finally:
+              if descriptor is not None:
+                  os.close(descriptor)
+          PY
           node scripts/verify-ci-pgdg-key.mjs
           echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/busy-pgdg.list >/dev/null
           # Suppress all service starts in this ephemeral runner installation only.
