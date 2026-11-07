@@ -1,5 +1,6 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import {approvedHealthProbe} from './probeDestination.mjs';
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import { createClient } from "../_shared/supabaseClient.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -21,7 +22,7 @@ function clean(value: unknown, max = 4000) {
 
 async function validRequest(request: Request) {
   const authorization = request.headers.get("Authorization") || "";
-  if (authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
+  if (SERVICE_ROLE_KEY && authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
 
   const supplied = request.headers.get("x-busy-health-token") || "";
   if (!supplied) return false;
@@ -41,14 +42,16 @@ async function fetchWithDeadline(url: string, timeoutMs = 6000) {
   try {
     const response = await fetch(url, {
       method: "GET",
-      redirect: "follow",
+      redirect: "error",
       headers: {
         "User-Agent": "BUSY-Website-Health/3.53",
         Accept: "text/html,*/*;q=0.8",
       },
       signal: controller.signal,
     });
-    const text = await response.text();
+    const reader=response.body?.getReader();
+    const decoder=new TextDecoder();let text="",bytes=0;
+    if(reader)try{while(true){const part=await reader.read();if(part.done)break;bytes+=part.value.byteLength;if(bytes>500000){void reader.cancel().catch(()=>{});throw new Error("Website health response exceeds its safe bound.");}text+=decoder.decode(part.value,{stream:true});}text+=decoder.decode();}finally{reader.releaseLock();}
     return {
       ok: response.ok,
       status: response.status,
@@ -165,6 +168,7 @@ async function recordCheck({
   targetType: "live_alias" | "default_domain" | "custom_domain";
   url: string;
 }) {
+  if(!approvedHealthProbe(url,{projectUrl:SUPABASE_URL,rootDomain:Deno.env.get('BUSY_WEBSITE_ROOT_DOMAIN')||'busydoesit.co.uk',website}))return {status:'unverified',networkAttempted:false,reason:'reviewed_egress_required'};
   const result = await fetchWithDeadline(url);
   const marker = deploymentMarker(result.text);
   const expected = clean(website.current_live_deployment_id, 80);
@@ -231,6 +235,7 @@ async function checkWebsite(website: any) {
     targetType: "live_alias",
     url: liveUrl,
   });
+  if(live.status==='unverified')return {websiteId:website.id,status:'unverified',reason:'reviewed_egress_required',healthStateChanged:false};
   const liveFailureStreak =
     live.status === "healthy"
       ? 0
@@ -273,6 +278,7 @@ async function checkWebsite(website: any) {
   ]);
 
   const defaultResult: any = routeChecks[0];
+  if(routeChecks.some(result=>result?.status==='unverified'))return {websiteId:website.id,status:'unverified',reason:'reviewed_custom_domain_egress_required',healthStateChanged:false};
   const domainResults = routeChecks.slice(1);
   let maxDomainFailureStreak = 0;
 
@@ -488,7 +494,7 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16384) as Record<string,unknown>;
     const websiteId = clean(body?.websiteId, 80);
     const limit = Math.min(40, Math.max(1, Number(body?.limit) || 20));
     const websites = await websitesToCheck(websiteId, limit);
@@ -509,6 +515,7 @@ Deno.serve(async (request: Request) => {
       results,
     });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{error:error.message});
     return json(500, {
       error:
         error instanceof Error

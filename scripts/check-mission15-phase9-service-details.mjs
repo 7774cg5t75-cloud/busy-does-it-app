@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
+const rt=createRuntime(),{ServiceDetails}=rt.load('standalone/template/serviceDetails.js'),{MiniAppSurface}=rt.load('src/screens/miniApps.js');
+const walk=n=>Array.isArray(n)?n.flatMap(walk):n&&typeof n==='object'?[n,...walk(n.props?.children)]:[];
+const find=(t,label)=>walk(t).find(n=>n.props?.accessibilityLabel===label||n.props?.label===label);
+const colors={muted:'#334155',text:'#0f172a'},service={id:'survey',name:'Survey',description:'Approved owner detail. '.repeat(12)+'Final approved detail.',category:'Advice',priceLabel:'Discuss scope first',durationLabel:'Depends on requirements'};
+const props={service,colors};let tree=rt.render(ServiceDetails,props);
+assert.doesNotMatch(JSON.stringify(tree),/Final approved detail/);assert.match(JSON.stringify(tree),/Discuss scope first/);assert.match(JSON.stringify(tree),/Typical duration/);
+find(tree,'View details for Survey').props.onPress();tree=rt.render(ServiceDetails,props);assert.match(JSON.stringify(tree),/Final approved detail/);assert.match(JSON.stringify(tree),/does not confirm an appointment/);assert.equal(find(tree,'Back to service summary').props.accessibilityState.expanded,true);
+const old=find(tree,'Back to service summary');const changed={...props,service:{...service,description:'New approved service wording'}};tree=rt.render(ServiceDetails,changed);assert.ok(find(tree,'View details for Survey'));old.props.onPress();tree=rt.render(ServiceDetails,changed);assert.ok(find(tree,'View details for Survey'),'Old details callback cannot alter refreshed record');
+find(tree,'View details for Survey').props.onPress();tree=rt.render(ServiceDetails,changed);find(tree,'Back to service summary').props.onPress();tree=rt.render(ServiceDetails,changed);assert.equal(find(tree,'View details for Survey').props.accessibilityState.expanded,false);
+const config={modules:['business_profile','services','enquiry','booking_request'].map(key=>({key,enabled:true})),navigation:['business_profile','services','enquiry','booking_request'],publicProfile:{services:[service]}};
+const actions=[],surface=rt.render(MiniAppSurface,{config,interactive:true,onSelectService:(...a)=>actions.push(a)});
+const details=walk(surface).find(node=>node.type===ServiceDetails);assert.equal(details.props.service,service);assert.ok(details.props.colors);find(surface,'Ask about Survey').props.onPress();find(surface,'Request Survey').props.onPress();assert.deepEqual(actions,[['Survey','enquiry'],['Survey','booking_request']]);
+assert.match(readFileSync('scripts/prepare-standalone-prototype-v3154.mjs','utf8'),/"serviceDetails.js"/);
+console.log('PASS shared actual service detail summary/expansion, published-content refresh and stale callback preservation, owner facts without transaction promises, original marketplace enquiry/booking actions and export inclusion. Inert native/IO boundaries.');

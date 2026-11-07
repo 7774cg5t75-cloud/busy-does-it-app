@@ -1,0 +1,29 @@
+import {renderWebsiteCreativeDocument} from '../../supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs';
+import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
+import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
+import {purposeServiceProjection} from '../../supabase/functions/busy-website-worker/websiteServiceOverview.mjs';
+import {pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';
+import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
+import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
+import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
+import {serviceContactAction,serviceIndexHtml,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
+// Execute actual checked-in section renderer; signed asset URL resolution is
+// an inert map boundary. No Deno entrypoint, HTTP, provider or hosted execution.
+import {readFileSync} from 'node:fs';
+import {stripTypeScriptTypes} from 'node:module';
+import assert from 'node:assert/strict';
+import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
+export function originalWebsiteSectionRuntime(){
+ const source=readFileSync(new URL('../../supabase/functions/busy-website-worker/index.ts',import.meta.url),'utf8');
+ const boundaries=[['clean','safeArray'],['safeArray','escapeHtml'],['escapeHtml','contentTypeFor'],['renderSectionHtml','relativePageHref']];
+ const code=boundaries.map(([name,next])=>{
+  const marker='function '+name+'(',endMarker='function '+next+'(';
+  assert.equal(source.split(marker).length,2,name);assert.equal(source.split(endMarker).length,2,next);
+  const start=source.indexOf(marker),end=source.indexOf(endMarker,start);assert.ok(end>start);
+  const body=source.slice(start,end).trim();assert.ok(body.endsWith('}'),'Reviewed function boundary changed');
+  return body;
+ }).join('\n');
+ const js=stripTypeScriptTypes(code);
+ return Function('renderWebsiteCreativeDocument','websiteRecordPhoto','websiteSectionPhoto','presentationPhotoHtml','websiteHeroPhotos','servicePhotoHtml','purposeServiceProjection','serviceContactAction','serviceIndexHtml','pageDirectionClass','craftedPage','craftedServices','craftedStory','craftedContact','responsivePhotoAttributes','distinctWebsitePhotos','websiteGalleryPresentation','premiumHeroInner','heroServiceOverview','sectionAppearanceClasses','itemTypographyClasses','websiteAssetAvailable','urlForAsset',js+'\nreturn renderSectionHtml;')(renderWebsiteCreativeDocument,websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml,websiteHeroPhotos,servicePhotoHtml,purposeServiceProjection,serviceContactAction,serviceIndexHtml,pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,distinctWebsitePhotos,websiteGalleryPresentation,premiumHeroInner,heroServiceOverview,sectionAppearanceClasses,itemTypographyClasses,websiteAssetAvailable,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
+}

@@ -1,0 +1,47 @@
+import {ContentFormatChoices} from './ContentFormatChoices';
+import React from 'react';
+import {Text} from 'react-native';
+import {Card,Button} from './ui';
+import {ContentWordingChoices} from './ContentWordingChoices';
+import {styles} from '../theme/styles';
+import {buildContentBrandSnapshot} from '../core/businessBrandDnaV3195.mjs';
+import {prepareSocialBrandHandoff,confirmSocialBrandHandoff} from '../core/socialBrandHandoffV3199.mjs';
+
+// £0-first recommendations from the same Brand DNA. No fetch, save or publishing.
+export function GrowthContentIdeas({s}){
+ const [sourceChoice,setSourceChoice]=React.useState(null);
+ const sourceMode=sourceChoice?.owner===s.ownerSession?.userId&&sourceChoice?.business===s.cloudWorkspace?.businessId&&sourceChoice?.scope===s.ownerWorkspaceScope?sourceChoice.mode:'';
+ const input={sourceMode,website:s.websiteDraft,app:s.miniAppsStatus?.app,businessId:s.cloudWorkspace?.businessId,approvedProfile:s.businessCreationIntelligence?.sharedProfile};
+ const ownerId=s.ownerSession?.userId,live=React.useRef(null);live.current={...input,ownerId,s};
+ const [idea,setIdea]=React.useState(null);live.current.idea=idea;
+ const updateIdea=value=>{live.current.idea=value;setIdea(value);};
+ const snapshot=buildContentBrandSnapshot(input);
+ const current=()=>live.current.ownerId===ownerId&&live.current.businessId===input.businessId&&live.current.website===input.website&&live.current.app===input.app&&JSON.stringify(buildContentBrandSnapshot(live.current).source)===JSON.stringify(snapshot.source);
+ const checked=idea&&idea.ownerId===ownerId&&current()?confirmSocialBrandHandoff({...input,evidence:idea}):null;
+ if(!snapshot.ok||snapshot.conflicts.length){
+  const profile=buildContentBrandSnapshot({...input,sourceMode:'approved-profile'});
+  if(!profile.ok||!ownerId)return null;
+  return <Card eyebrow="Choose your marketing source" title="Review current business facts" body="Your builder information and current business profile need an explicit choice. You can use the approved profile for this content idea without changing your website or app.">
+   <Button label="Use current approved business profile" onPress={()=>{
+    if(!current())return false;
+    updateIdea(null);live.current.sourceMode='approved-profile';
+    setSourceChoice({owner:ownerId,business:input.businessId,scope:s.ownerWorkspaceScope,mode:'approved-profile'});return true;
+   }}/>
+  </Card>;
+ }
+ return <Card eyebrow="Get More Customers · £0-first idea" title="Tell customers what your business does"
+  body="A factual service post can help people understand what you do. These ideas use your current approved business facts and available branding; they are suggestions, not evidence of reach or new customers."
+  footer="Local text preview only. No paid generation, advertising, partner contact or publication." tone="blue">
+  <Button label="Review a business introduction" onPress={()=>{if(current())updateIdea({...prepareSocialBrandHandoff({...input,purpose:'business-introduction'}),ownerId});}}/>
+  {snapshot.services.slice(0,3).map(service=><Button key={service.name} label={'Review a post idea: '+service.name}
+   onPress={()=>{if(current())updateIdea({...prepareSocialBrandHandoff({...input,serviceName:service.name}),ownerId});}}/>)}
+  {checked?.ok?<>
+   <Text style={styles.sectionLabel}>{'Private wording idea · '+(checked.purpose==='business-introduction'?'Business introduction':checked.serviceName)}</Text>
+   <ContentFormatChoices pending={{purpose:checked.purpose,evidence:checked}} actions={{chooseFormat:(_,channel)=>{if(!current()||live.current.idea!==idea||!confirmSocialBrandHandoff({...input,evidence:idea}).ok)return false;const next=prepareSocialBrandHandoff({...input,serviceName:checked.serviceName,purpose:checked.purpose,sourceMode:checked.sourceMode,treatment:checked.treatment,channel});if(next.ok)updateIdea({...next,ownerId});return next.ok;}}}/>
+   <ContentWordingChoices pending={{purpose:checked.purpose,evidence:checked}} actions={{chooseTreatment:(_,treatment)=>{if(!current()||live.current.idea!==idea)return false;const next=prepareSocialBrandHandoff({...input,serviceName:checked.serviceName,purpose:checked.purpose,sourceMode:checked.sourceMode,treatment,channel:checked.channel||'social'});if(next.ok)updateIdea({...next,ownerId});return next.ok;}}}/>
+   <Text selectable style={styles.draftPreview}>{checked.copy}</Text>
+   <Text style={styles.cardBody}>{'Open this exact idea in Content Creator for review. Your existing caption, saved draft and selected media stay unchanged until you deliberately use the new idea.'}</Text>
+   <Button label="Open Content Creator for this idea" onPress={()=>{if(!current()||live.current.idea!==idea||!confirmSocialBrandHandoff({...input,evidence:idea}).ok)return;if(live.current.s.socialContentActions)live.current.s.socialContentActions.prepare(checked.serviceName,'',checked.sourceMode,checked.purpose,'',checked.treatment,false,checked.channel||'social');else live.current.s.go('socialCreator');}}/>
+  </>:idea?<Text style={styles.cardBody}>Your approved source changed. Review a current service idea again.</Text>:null}
+ </Card>;
+}

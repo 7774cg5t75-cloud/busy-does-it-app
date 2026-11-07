@@ -1,0 +1,210 @@
+[
+  {
+    "business": "Ember Festival Kitchen",
+    "technical": {
+      "passed": true,
+      "evidenceComplete": true,
+      "measurementScope": "Three viewports; overflow, clipping, decoded images, contrast and minimum eight-em long-text columns. Inline links fitting their text are valid.",
+      "status": "measured-checks-passed",
+      "failures": [],
+      "missingViewportEvidence": []
+    },
+    "content": {
+      "issues": [],
+      "sourceGrounding": "Original approved records and owner wording required; this check cannot verify external claims"
+    },
+    "visual": {
+      "treatment": "reviewed-complete-page",
+      "requiresActualRenderedReview": true,
+      "judgements": [
+        "Assess whole-page coherence, photographic suitability, distinctive hierarchy and customer journey. No automatic aesthetic acceptance."
+      ]
+    },
+    "customerReady": false,
+    "publicationAuthorised": false,
+    "freePaidQuality": "shared-original-renderer",
+    "noDesignScore": true
+  },
+  {
+    "business": "Clearleaf Gardens",
+    "technical": {
+      "passed": true,
+      "evidenceComplete": true,
+      "measurementScope": "Three viewports; overflow, clipping, decoded images, contrast and minimum eight-em long-text columns. Inline links fitting their text are valid.",
+      "status": "measured-checks-passed",
+      "failures": [],
+      "missingViewportEvidence": []
+    },
+    "content": {
+      "issues": [],
+      "sourceGrounding": "Original approved records and owner wording required; this check cannot verify external claims"
+    },
+    "visual": {
+      "treatment": "reviewed-complete-page",
+      "requiresActualRenderedReview": true,
+      "judgements": [
+        "Assess whole-page coherence, photographic suitability, distinctive hierarchy and customer journey. No automatic aesthetic acceptance."
+      ]
+    },
+    "customerReady": false,
+    "publicationAuthorised": false,
+    "freePaidQuality": "shared-original-renderer",
+    "noDesignScore": true
+  },
+  {
+    "business": "Quiet Light Studio",
+    "technical": {
+      "passed": true,
+      "evidenceComplete": true,
+      "measurementScope": "Three viewports; overflow, clipping, decoded images, contrast and minimum eight-em long-text columns. Inline links fitting their text are valid.",
+      "status": "measured-checks-passed",
+      "failures": [],
+      "missingViewportEvidence": []
+    },
+    "content": {
+      "issues": [],
+      "sourceGrounding": "Original approved records and owner wording required; this check cannot verify external claims"
+    },
+    "visual": {
+      "treatment": "reviewed-complete-page",
+      "requiresActualRenderedReview": true,
+      "judgements": [
+        "Assess whole-page coherence, photographic suitability, distinctive hierarchy and customer journey. No automatic aesthetic acceptance."
+      ]
+    },
+    "customerReady": false,
+    "publicationAuthorised": false,
+    "freePaidQuality": "shared-original-renderer",
+    "noDesignScore": true
+  },
+  {
+    "business": "Meadow & Moss",
+    "technical": {
+      "passed": true,
+      "evidenceComplete": true,
+      "measurementScope": "Three viewports; overflow, clipping, decoded images, contrast and minimum eight-em long-text columns. Inline links fitting their text are valid.",
+      "status": "measured-checks-passed",
+      "failures": [],
+      "missingViewportEvidence": []
+    },
+    "content": {
+      "issues": [],
+      "sourceGrounding": "Original approved records and owner wording required; this check cannot verify external claims"
+    },
+    "visual": {
+      "treatment": "reviewed-complete-page",
+      "requiresActualRenderedReview": true,
+      "judgements": [
+        "Assess whole-page coherence, photographic suitability, distinctive hierarchy and customer journey. No automatic aesthetic acceptance."
+      ]
+    },
+    "customerReady": false,
+    "publicationAuthorised": false,
+    "freePaidQuality": "shared-original-renderer",
+    "noDesignScore": true
+  },
+  {
+    "business": "Groundwork Gardens",
+    "technical": {
+      "passed": true,
+      "evidenceComplete": true,
+      "measurementScope": "Three viewports; overflow, clipping, decoded images, contrast and minimum eight-em long-text columns. Inline links fitting their text are valid.",
+      "status": "measured-checks-passed",
+      "failures": [],
+      "missingViewportEvidence": []
+    },
+    "content": {
+      "issues": [],
+      "sourceGrounding": "Original approved records and owner wording required; this check cannot verify external claims"
+    },
+    "visual": {
+      "treatment": "reviewed-complete-page",
+      "requiresActualRenderedReview": true,
+      "judgements": [
+        "Assess whole-page coherence, photographic suitability, distinctive hierarchy and customer journey. No automatic aesthetic acceptance."
+      ]
+    },
+    "customerReady": false,
+    "publicationAuthorised": false,
+    "freePaidQuality": "shared-original-renderer",
+    "noDesignScore": true
+  },
+  {
+    "business": "Quiet Plot",
+    "technical": {
+      "passed": true,
+      "evidenceComplete": true,
+      "measurementScope": "Three viewports; overflow, clipping, decoded images, contrast and minimum eight-em long-text columns. Inline links fitting their text are valid.",
+      "status": "measured-checks-passed",
+      "failures": [],
+      "missingViewportEvidence": []
+    },
+    "content": {
+      "issues": [],
+      "sourceGrounding": "Original approved records and owner wording required; this check cannot verify external claims"
+    },
+    "visual": {
+      "treatment": "reviewed-complete-page",
+      "requiresActualRenderedReview": true,
+      "judgements": [
+        "Assess whole-page coherence, photographic suitability, distinctive hierarchy and customer journey. No automatic aesthetic acceptance."
+      ]
+    },
+    "customerReady": false,
+    "publicationAuthorised": false,
+    "freePaidQuality": "shared-original-renderer",
+    "noDesignScore": true
+  },
+  {
+    "business": "Wild Corner",
+    "technical": {
+      "passed": true,
+      "evidenceComplete": true,
+      "measurementScope": "Three viewports; overflow, clipping, decoded images, contrast and minimum eight-em long-text columns. Inline links fitting their text are valid.",
+      "status": "measured-checks-passed",
+      "failures": [],
+      "missingViewportEvidence": []
+    },
+    "content": {
+      "issues": [],
+      "sourceGrounding": "Original approved records and owner wording required; this check cannot verify external claims"
+    },
+    "visual": {
+      "treatment": "reviewed-complete-page",
+      "requiresActualRenderedReview": true,
+      "judgements": [
+        "Assess whole-page coherence, photographic suitability, distinctive hierarchy and customer journey. No automatic aesthetic acceptance."
+      ]
+    },
+    "customerReady": false,
+    "publicationAuthorised": false,
+    "freePaidQuality": "shared-original-renderer",
+    "noDesignScore": true
+  },
+  {
+    "business": "Estate Garden Care",
+    "technical": {
+      "passed": true,
+      "evidenceComplete": true,
+      "measurementScope": "Three viewports; overflow, clipping, decoded images, contrast and minimum eight-em long-text columns. Inline links fitting their text are valid.",
+      "status": "measured-checks-passed",
+      "failures": [],
+      "missingViewportEvidence": []
+    },
+    "content": {
+      "issues": [],
+      "sourceGrounding": "Original approved records and owner wording required; this check cannot verify external claims"
+    },
+    "visual": {
+      "treatment": "reviewed-complete-page",
+      "requiresActualRenderedReview": true,
+      "judgements": [
+        "Assess whole-page coherence, photographic suitability, distinctive hierarchy and customer journey. No automatic aesthetic acceptance."
+      ]
+    },
+    "customerReady": false,
+    "publicationAuthorised": false,
+    "freePaidQuality": "shared-original-renderer",
+    "noDesignScore": true
+  }
+]

@@ -1,5 +1,6 @@
 import {validPublicBusinessContent} from './businessContentRecords.mjs';
 import {protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
+import {websiteCreativeDocumentCopyRole} from './websiteCreativeDocument.mjs';
 /**
  * Owner-directed structured website copy edits (V3.133).
  * No AI call, public publish, remote URL, invented facts or media mutation.
@@ -16,11 +17,12 @@ const fieldChoices={
  faq:["title"],
  testimonials:["title"],
  gallery:["title"],
+ products:["title"],events:["title"],
  contact:["title","body","phone","email","openingHours"],
  text:["title","body"],
  "photo-feature":["title","body"],
 };
-const itemSections=new Set(["services","faq","testimonials"]);
+const itemSections=new Set(["services","faq","testimonials","creative-document"]);
 const bounds={title:140,body:2500,cta:120,ctaHref:120,phone:40,email:254,openingHours:250};
 const fail=(reason,draft)=>({applied:false,reason,draft});
 const collectionKinds=new Set(["services","faq","testimonials"]);
@@ -117,7 +119,7 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
   else{
    if(!publicWord(change.title,80,true)||!['cards','rows'].includes(change.layout)||change.featuredId!==undefined&&change.featuredId!==''&&!/^[a-zA-Z0-9_-]{12,80}$/.test(change.featuredId))return fail('Choose the section heading, layout and optional featured record.',draft);
    if(change.previewFeed!==undefined&&(!validPublicBusinessContent(change.previewFeed)||change.previewFeed.businessId!==(draft.businessId||draft.business_id)))return fail('The approved record snapshot belongs to another business.',draft);
-   const section={...change.previewFeed?{previewFeed:change.previewFeed}:{},id:change.sectionId,type:change.sectionId,title:change.title,enabled:true,contentSource:'business_records_v1',contentLayout:change.layout,featuredId:change.featuredId||''};
+   const section={...(found[0]||{}),...change.previewFeed?{previewFeed:change.previewFeed}:{},id:change.sectionId,type:change.sectionId,title:change.title,enabled:true,contentSource:'business_records_v1',contentLayout:change.layout,featuredId:change.featuredId||''};
    sections=found.length?sections.map(s=>s.id===section.id?section:s):[...sections,section];
   }
   return {applied:true,draft:{...draft,sections},privateOnly:true,reason:'Updated the private shared-record section. Nothing was published.'};
@@ -133,14 +135,17 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
  if(sectionMatches.length!==1)return fail("That website section is missing or ambiguous.",draft);
  const section=sectionMatches[0];
  const allowed=fieldChoices[section.type]||[];
+ if(['products','events'].includes(section.type)&&field==='title'&&value.length>80)return fail('Shared-record headings support up to 80 characters.',draft);
  const newValue=clean(value);
  let sections,description;
  if(itemId!==undefined&&itemId!==null){
   if(typeof itemId!=="string"||!itemId||!itemSections.has(section.type)||
-     !["title","body"].includes(field))
+     !["title","body"].includes(field)||section.type==='creative-document'&&field!=='body')
    return fail("That individual item field cannot be edited here.",draft);
   const matches=list(section.items).filter(item=>item?.id===itemId);
   if(matches.length!==1)return fail("The selected item could not be matched uniquely. Nothing was changed.",draft);
+  if(section.type==='creative-document'&&!websiteCreativeDocumentCopyRole(draft,section,itemId))return fail('That copy row is not part of the current source-bound rendered design. Select the actual wording again.',draft);
+  if(section.type==='creative-document'&&!newValue)return fail('Keep meaningful owner wording here. Removing a creative element needs a separate reviewed design change.',draft);
   if(field==="title"&&!newValue&&section.type!=="testimonials")
    return fail("Service names and questions cannot be blank.",draft);
   if(field==="body"&&!newValue&&section.type==="testimonials")
@@ -148,7 +153,12 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
   if(newValue===clean(matches[0][field]))return fail("That text is already saved.",draft);
   sections=draft.sections.map(s=>s!==section?s:{
    ...s,...(collectionKinds.has(section.type)?{ownerEditedItems:true}:{}),
-   items:list(s.items).map(item=>item.id===itemId?{...item,[field]:newValue}:item)
+   items:list(s.items).map(item=>item.id===itemId?{...item,[field]:newValue,...(section.type==='creative-document'?{
+    ownerEditedFields:[...new Set([...list(item.ownerEditedFields),'body'])],
+    // This is deliberate WEBSITE wording, not a newly verified business fact.
+    // Previous references remain historical attribution for the old suggestion.
+    creativeCopy:{...item.creativeCopy,classification:'owner-authored',provenanceStatus:'historical-after-owner-edit'}
+   }:{})}:item)
   });
   description="Updated "+section.type+" item "+field+" in your private website draft.";
  }else{
@@ -166,7 +176,7 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
   if(field==="cta"&&newValue&&!clean(section.ctaHref))
    return fail("Add a valid button destination before giving the button a label.",draft);
   if(newValue===clean(section[field]))return fail("That text is already saved.",draft);
-  sections=draft.sections.map(s=>s!==section?s:{...s,[field]:newValue});
+  sections=draft.sections.map(s=>s!==section?s:{...s,[field]:newValue,...((['title','body'].includes(field)||s.type==='hero'&&['cta','ctaHref'].includes(field)||s.type==='contact'&&['email','phone','openingHours'].includes(field))?{ownerEditedFields:[...new Set([...list(s.ownerEditedFields).filter(f=>['title','body','cta','ctaHref','email','phone','openingHours'].includes(f)),...(s.type==='hero'&&['cta','ctaHref'].includes(field)?['cta','ctaHref']:[field])])]}:{})});
   description="Updated "+sectionId+" "+field+" in your private website draft.";
  }
  return {applied:true,reason:description+" Nothing has been published.",draft:{...draft,sections}};

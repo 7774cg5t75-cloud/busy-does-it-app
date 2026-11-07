@@ -8,5 +8,5 @@
   },
   "name": "busy-offline-verification-tools",
   "private": true,
-  "description": "Optional cached-only Babel tools for offline source and component-boundary checks; never bundled into the app."
+  "description": "Pinned isolated Babel tools for reproducible offline syntax and component-boundary checks; never bundled into the app."
 }

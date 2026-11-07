@@ -19,6 +19,7 @@ function isFounderUser(user) {
     user.aud === "authenticated"
   );
 }
+/** @param {unknown} rows @param {{exhaustive?:boolean,field?:string,maxRows?:number}} options */
 function aggregateUsageRows(rows, {exhaustive,field,maxRows=1000} = {}) {
   if (!exhaustive || !Array.isArray(rows) || rows.length > maxRows) return null;
   let sum=0;
@@ -30,7 +31,7 @@ function aggregateUsageRows(rows, {exhaustive,field,maxRows=1000} = {}) {
   }
   return sum;
 }
-function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,monitorRun=null,monitorIncidents=null,alertRows=null,founderDeviceCount=null,recoveryRows=null,evidenceRows=null}={}) {
+function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,monitorRun=null,monitorIncidents=/** @type {unknown[]|null} */(null),alertRows=/** @type {unknown[]|null} */(null),founderDeviceCount=/** @type {number|null} */(null),recoveryRows=/** @type {unknown[]|null} */(null),evidenceRows=/** @type {unknown[]|null} */(null)}={}) {
   // Caller MUST independently authenticate before executing the DB reads.
   if(!verifiedRole)return null;
   const count=k=>safeNumber(counts[k]);

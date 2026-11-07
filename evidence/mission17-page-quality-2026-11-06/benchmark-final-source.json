@@ -1,0 +1,58 @@
+{
+  "source": {
+    "commit": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "tree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2"
+  },
+  "workflow": {
+    "runId": 42245617654,
+    "jobId": 127986940048,
+    "status": "success"
+  },
+  "benchmark": {
+    "businesses": 24,
+    "pairedSectors": 12,
+    "scope": "Independently scoped sparse synthetic single-page sites, not24 generated multi-page journeys",
+    "viewports": [
+      320,
+      390,
+      1440
+    ],
+    "beforeAfterPngs": 144,
+    "countMethod": "Completed unique capture loops:24 businesses ×2 stages ×3 viewports"
+  },
+  "sameIndustry": {
+    "businesses": 5,
+    "scope": "Retained original gardening studies; not newly created Mission17 multi-page sites",
+    "viewports": [
+      320,
+      390,
+      1440
+    ],
+    "beforeAfterPngs": 30,
+    "countMethod": "Completed unique capture loops:5 businesses ×2 stages ×3 viewports",
+    "professionalLimitation": "Retained source/render regression does not establish exceptional supporting-section individuality; repeated service/story/contact patterns remain."
+  },
+  "candidateManifests": 3,
+  "approvedGoldStandards": 0,
+  "sandboxRequired": true,
+  "externalBrowserRequestsBlocked": true,
+  "professionalAcceptance": false,
+  "artifacts": [
+    {
+      "id": 13519342137,
+      "name": "website-creative-gardens-1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "bytes": 12633935,
+      "digest": "sha256:43cf2917cca7581d48dcdd24435ab0b666bf458c6a4d9f18ecb0248cf0b1be99",
+      "expiresAt": "2026-11-13T15:56:47Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617654/artifacts/13519342137"
+    },
+    {
+      "id": 13518102989,
+      "name": "website-acceptance-benchmark-1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "bytes": 14919650,
+      "digest": "sha256:d987754613e765bcb815b283686ed06e2abf61f709c2dc6035f4f13f587265e2",
+      "expiresAt": "2026-11-13T15:56:55Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617654/artifacts/13518102989"
+    }
+  ]
+}

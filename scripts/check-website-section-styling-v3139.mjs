@@ -1,3 +1,4 @@
+import {originalWebsiteSectionRuntime} from "./lib/original-website-section-runtime.mjs";
 import {websiteBuilderTestHarnessV3222} from "./lib/website-builder-test-harness-v3222.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -24,13 +25,16 @@ const brief={websiteReady:true,websiteBrief:{
  photos:[photo,photo2],heroAsset:photo,
  faqs:[{id:"one",question:"Where do you work?",answer:"Across Devon."}]
 }};
-const first=buildWebsiteDraft({brandBrain:brief});
+const generated=buildWebsiteDraft({brandBrain:brief});
+// Exercise explicit edits from an uncustomised section, independently of sector defaults.
+const first={...generated,sections:generated.sections.map(s=>({...s,appearance:undefined}))};
 const old=JSON.stringify(first);
 const style=(draft,sectionId,field,value)=>applyWebsiteLayoutChange(draft,
  {action:"section-style",sectionId,field,value});
 const heading=style(first,"services","headingScale","large");
 assert.ok(heading.applied,"Independent service heading scale applied");
-assert.ok(heading.draft.html.includes('id="services" class="owner-heading-large"'));
+const serviceClasses=draft=>draft.html.match(/id="services" class="([^"]*)"/)?.[1].split(/\s+/)||[];
+assert.ok(serviceClasses(heading.draft).includes('owner-heading-large'));
 assert.ok(!heading.draft.html.includes('<script>'));
 assert.equal(JSON.stringify(first),old,"Old draft never mutated");
 assert.equal(heading.draft.publicStatus,"Not published");
@@ -38,7 +42,7 @@ assert.equal(heading.draft.generation,first.generation+1);
 assert.equal(heading.draft.sections.find(s=>s.id==="hero").appearance,undefined);
 const centered=style(heading.draft,"services","textAlign","center");
 assert.ok(centered.applied);
-assert.ok(centered.draft.html.includes('class="owner-heading-large owner-align-center"'));
+assert.ok(['owner-heading-large','owner-align-center'].every(c=>serviceClasses(centered.draft).includes(c)));
 const spaced=style(centered.draft,"services","sectionSpacing","generous");
 assert.ok(spaced.applied&&spaced.draft.html.includes("owner-space-generous"));
 const cropped=style(spaced.draft,"hero","photoCrop","top");
@@ -111,16 +115,14 @@ for(const token of ["owner-heading-large","owner-heading-compact","owner-align-c
 }
 assert.ok(css.includes("@media(max-width:800px)"),"Responsive CSS available");
 assert.ok(css.includes("section.owner-photo-right .photo-feature-grid img"),"Photo side CSS uses section scope");
-const worker=read("supabase/functions/busy-website-worker/index.ts");
-assert.ok(worker.includes("function sectionAppearanceClasses(section: any)"));
-assert.ok(worker.includes('const sectionClasses=sectionAppearanceClasses(section);'));
-for(const part of [
- 'class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?',
- 'id="gallery"${sectionAttrs}',
- 'id="services"${sectionAttrs}',
- 'id="contact"${sectionAttrs}',
- 'class="photo-feature${sectionClasses?'
-]) assert.ok(worker.includes(part),"Worker honours section presentation: "+part);
+const hostedSection=originalWebsiteSectionRuntime();
+for(const section of spaced.draft.sections.filter(s=>s.enabled!==false)){
+ const output=hostedSection(spaced.draft,section,{[photo.storagePath]:'https://fictional.example.test/photo.jpg',[photo2.storagePath]:'https://fictional.example.test/photo2.jpg'},false);
+ const expected=section.appearance?.headingScale==='large'?'owner-heading-large':null;
+ if(expected)assert.ok(output.includes(expected),'Actual hosted renderer preserves selected section heading style');
+ if(section.id==='services')assert.ok(output.includes('owner-align-center')&&output.includes('owner-space-generous'));
+ assert.ok(!output.includes('<script'),'No editor script in hosted section');
+}
 const screen=read("src/screens/websiteTapEditor.js");
 assert.ok(screen.includes('onLayoutChange?.(change)'));
 assert.ok(screen.includes('action:"section-style"'));

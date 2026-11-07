@@ -1,0 +1,468 @@
+{
+  "startingRemoteCommit": "d32adf1a9f0a508180098210a0ec555a63f8d6c0",
+  "results": [
+    {
+      "command": "node scripts/check-mission13-conversations.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS Mission 13 actual scoped follow-up adapter, published FAQ grounding, latest-message intent, original selection context, version reapproval, guest/closed/wait suppression and failed/foreign reads. Inert DB only; no messages sent.\n"
+    },
+    {
+      "command": "node scripts/check-mission13-private-recovery.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "PASS encrypted-storage boundary fixtures, explicit save, reconstructed helper restore, account/version/expiry checks, newer-draft preservation, corrupted-storage denial and actual async hook stale-typing/account guards. No OS encryption/device-restart claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission13-customer-surfaces.mjs",
+      "exitCode": 0,
+      "seconds": 2.0,
+      "output": "PASS actual component navigation/selected states, revision-aware option reselection, real public HTML options without false handoff, multi-day non-UK/DST schedule wording and deployable contract parity. Hooks/DOM fixtures, no device/browser claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission13-communication-truth.mjs",
+      "exitCode": 0,
+      "seconds": 0.04,
+      "output": "(node:52971) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/mission13-git/src/domain/communicationsHub.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/mission13-git/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\nPASS existing Communications Hub distinguishes approval/draft/unsent/sending/failed/unknown from recorded sends, refuses delivery claims, suppresses uncertain duplicate contact and respects contact revocation. Pure projections, no provider calls.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-content-enquiry.mjs",
+      "exitCode": 0,
+      "seconds": 0.12,
+      "output": "PASS Mission 12 item/option context, stale/cancelled/foreign rejection, authenticated handoff, secure retry continuity, real trusted submit/sanitisation and replay; DB/provider boundaries are inert fixtures.\n(node:52979) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission12-builder-reuse.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS guided contact/FAQ preparation, typed/voice atomic FAQ editing, exact Undo, locks, additive bidirectional reuse, conflict preservation, scope/revision and shared trusted planner parity. Pure functional tests; no publication.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-intent.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS one shared capability-intent interpretation across universal plans, App Builder and customer advice: exclusions, lists, contradictory requests, dependency conflicts and unfamiliar businesses. No provider/model calls.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-live-form-logic.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS actual customer form logic: selected context, navigation/remount, unchanged submission, cleared completion; saved-record approval guard and actual controller FAQ apply. Hooks/transport are inert fixtures, no JSX/device claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-public-handoff.mjs",
+      "exitCode": 0,
+      "seconds": 0.15,
+      "output": "PASS real public HTML option/link handlers and actual Edge handoff route: exact app/version pins, selected item/revision/option, unexpected/duplicate query and disabled-action rejection. DOM/DB fixtures; no browser or deployed claim.\n(node:53011) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission12-record-review.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual record editor logic -> trusted adapter: exact saved-form approval, unsaved and stale-revision blocking, save/publish sequence and non-destructive refresh. Hooks/DB are fixtures; no native render claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-standalone-continuity.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual standalone form logic: selected context, typed fields, pending navigation, success receipt continuity, no implicit duplicate and stale listing rejection. Hooks/transport fixtures, no native rendering or live service claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission11-records.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual trusted product/event adapter: owner scope, durable row mutations in DB fixture, stable IDs, draft/approval separation, exact CAS/Undo, uncertain writes, cancellation, currency and DST validation. No hosted/Postgres claim.\nPASS option-currency approval, bounded owner list without history disclosure and image permission recheck at public approval.\n"
+    },
+    {
+      "command": "node scripts/check-mission11-intelligence.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS existing universal planner prepares exact product/event requests, structured currency amounts and cancellation, rejects unsupported actions, validates options and distinguishes record presentation from payments/live proof.\n"
+    },
+    {
+      "command": "node scripts/check-mission11-public-views.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS actual public Website loader/DOM mount: current deployment scope, shared approved event revisions, cancellation on refresh, stale-source rejection and clearing unavailable data. DOM/database fixtures; no browser/hosted claim.\nPASS inherited pending-App compatibility correction: only the exact current live version remains available; preview/mismatched versions rejected.\n"
+    },
+    {
+      "command": "node scripts/check-app-goal-content.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: goal-specific missing questions, real Studio proposal/inverse, exact custom service preservation, lock/tenant/hostile-field rejection and incomplete booking-content gating.\n"
+    },
+    {
+      "command": "node scripts/check-app-goal-editing.mjs",
+      "exitCode": 0,
+      "seconds": 0.11,
+      "output": "PASS: task-aware bounded editing, unavailable-task suppression, owner locks, shared server parity and preview component wiring/syntax. No real devices tested.\n"
+    },
+    {
+      "command": "node scripts/check-app-goal-decisions.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: task-ranked choices, unrelated gallery suppression, absent/unapproved content blockers, new static advisory rejection and both website tenant aliases. No real-world outcome claims.\n"
+    },
+    {
+      "command": "node scripts/check-app-builder-dual-track-v3153.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "V3.153 APP PATHS PASS: marketplace and private standalone planning, 13 businesses, catalogue restrictions, verified-billing gate, external costs, no confirmed bookings, no app-store submission.\n"
+    },
+    {
+      "command": "node scripts/check-mission10-information-reuse.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "PASS: same-business current-source FAQ/testimonial reuse, missing-only policy, existing custom content preservation, stale confirmation rejection and explicit fact-conflict approval.\n"
+    },
+    {
+      "command": "node scripts/check-mission9-builder-language.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: shared quote-aware builder clauses, real coordinated App copy/contact proposals with exact inverse, safe negation/ambiguity/unsupported action rejection and Website literal-copy preservation. No transcription or AI call.\n"
+    },
+    {
+      "command": "node scripts/check-mission10-public-information.mjs",
+      "exitCode": 0,
+      "seconds": 0.98,
+      "output": "PASS: FAQs/testimonials exact sparse Undo, locks, rebuild retention, bounded public allowlist, immutable live-only projection and trusted parity.\nPASS actual owner collection editor prepares Studio operation and actual Website rebuild retains owner testimonial collection. Inert React/native boundary.\nPASS actual trusted App batch handler: owner approval, exact App/business/revision predicates, finite collection edit, private receipt and raced-write rejection. Database fixture, not hosted RLS proof.\n"
+    },
+    {
+      "command": "node scripts/check-mission10-service-details.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "PASS: actual Studio richer service/menu labels, exact Undo, unknown/unsafe field rejection, public projection and category search without checkout or availability authority.\n"
+    },
+    {
+      "command": "node scripts/check-owner-outcome-v3235.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.231: 11 genuine JWT/tenant scenarios prepared, NOT run; hosted staging unchanged.\nV3.233: staged booking acceptance prepared with 11 unverified real-world scenarios. No remote writes.\nV3.234: 12 additional owner/customer follow-up acceptance cases prepared; NONE executed remotely.\nV3.235 staging outcome acceptance: 42 genuine scenarios still NOT VERIFIED. Zero hosted actions.\nV3.235: 251 exact tenant readback, saved outcome truth, code health and owner UI assertions passed.\n"
+    },
+    {
+      "command": "node scripts/check-communications-v3205.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.205 124 scoped owner-inbox, atomic reply recovery, provider evidence and no resend assertions PASS.\n"
+    },
+    {
+      "command": "node scripts/check-customer-journey-v3204.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.204 96 receipt isolation, ambiguous submission recovery, Business Brain evidence and no-live-side-effects contracts PASS.\n"
+    },
+    {
+      "command": "node scripts/check-mission9-reply-continuity.mjs",
+      "exitCode": 0,
+      "seconds": 2.06,
+      "output": "PASS: actual owner/customer sends stop after account/workspace changes, retain pending identity and suppress stale cleanup; original encrypted message retry preparation serialises and cannot clear a newer key. No message sent.\nPASS: actual conversation form retains newer typing after a successful earlier reply and is keyed by account/workspace/role/request. Native effects inert.\n"
+    },
+    {
+      "command": "node scripts/check-mission9-request-recovery.mjs",
+      "exitCode": 0,
+      "seconds": 0.04,
+      "output": "PASS: encrypted opaque request references, restart/key-order continuity, changed/version conflicts, concurrent remounts, strict provenance/corrupt-record preservation and write failures. Fake secure storage only.\n"
+    },
+    {
+      "command": "node scripts/check-message-integrity-v3185.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "V3.185 61 durable retry, outbox evidence and wiring assertions PASS.\n"
+    },
+    {
+      "command": "node scripts/check-builder-intelligence-v3240.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.240: 118 app goal/design, Brand DNA, responsive evidence, private approvals, tenant and revision assertions passed.\n"
+    },
+    {
+      "command": "node scripts/check-mission14-contextual-replies.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual same-tenant read adapter and owner proof: original listing context across replies, exact option/revision price, changed/missing/cancelled denial, live service facts and event schedules. Inert DB; no messages, bookings or provider claims.\n"
+    },
+    {
+      "command": "node scripts/check-mission14-content-intelligence.mjs",
+      "exitCode": 0,
+      "seconds": 0.82,
+      "output": "PASS enquiry-to-private-editor recommendations, 3-record threshold/tenant/time/dedup/privacy gates, canonical context exclusion, actual app/website preparation and multi-clause FAQ add/edit/remove with exact Undo/locks. Inert hooks; no publication.\n"
+    },
+    {
+      "command": "node scripts/check-mission14-experience-recovery.mjs",
+      "exitCode": 0,
+      "seconds": 2.51,
+      "output": "PASS actual marketplace and standalone category filtering, customer-only layout clarity, stale website revision retention/approval, strict encrypted draft schema and extracted fields -> original enquiry submit handler. Inert component/native/transport boundaries.\n"
+    },
+    {
+      "command": "node scripts/check-standalone-native-v3154.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.154 NATIVE ELIGIBILITY PASS: server evidence, native schema, no false bookings, no billing or store submission.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-editing-preview.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "Mission15: canonical promoted preview, relative section navigation, grouped private edits, stale/lock/overlap safety PASS\n"
+    },
+    {
+      "command": "node scripts/check-mission15-app-services.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS literal service preparation -> original validated Studio operations -> shared customer browse, relative navigation, exact Undo, locks/parity/unsupported paths. No hosted acceptance.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-design-candidates.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS original builder renders structurally distinct reviewed composition with atomic stale/tenant/lock guards and owner rejection; HTML evidence only.\n",
+      "initialFailure": "Inherited candidate test required replacing an explicit owner order. Split into owner-order preservation and automatic-order composition cases; retained stale/tenant/lock/HTML behaviour assertions."
+    },
+    {
+      "command": "node scripts/check-mission15-coherence.mjs",
+      "exitCode": 0,
+      "seconds": 0.11,
+      "output": "PASS selected-element premium/relative transaction, shared-service conflict review and measured text-coverage regression gates; synthetic counters, no screenshot claim.\n"
+    },
+    {
+      "command": "node scripts/check-website-page-instructions-v3149.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.149 PAGE PLAN PASS: exact named multi-section atomic changes, private preview, no cross-tenant or stale edits.\n"
+    },
+    {
+      "command": "node scripts/check-website-context-plan-v3147.mjs",
+      "exitCode": 0,
+      "seconds": 0.48,
+      "output": "V3.147 CONTEXT PASS: safe multi-step selected edits, literal 'and' text, atomic rollback, stale rejection, one Undo and no publishing.\n"
+    },
+    {
+      "command": "node scripts/check-website-context-v3140.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "V3.140 CONTEXT PASS: 43 selection, no-guess grammar, private changes, individual headings, rebuild and safety assertions.\n"
+    },
+    {
+      "command": "node scripts/check-website-measured-coach-v3144.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "V3.144 COACH PASS: measured suggestions, unchanged/worse rejection, preview-only candidate, explicit draft feedback, no global training or publishing.\n"
+    },
+    {
+      "command": "node scripts/check-website-coordinated-alternatives.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS: real coordinated renderer, content/colour/public-state preservation, no partial mutation, bounded finite operations, lock and owner-feedback rejection. No browser screenshot evidence.\n"
+    },
+    {
+      "command": "node scripts/check-mission7-website-decisions.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: measured partial progress, no hidden-content improvement, valid geometry, owner preference ordering and content-problem-first design hypotheses. Fixture reports, not browser evidence.\n"
+    },
+    {
+      "command": "node scripts/check-major-builders-v3195.mjs",
+      "exitCode": 0,
+      "seconds": 0.46,
+      "output": "V3.195 166 same-tenant, private Brand DNA, channel planning and architecture/refactor regressions PASS.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-copy.mjs",
+      "exitCode": 0,
+      "seconds": 0.46,
+      "output": "PASS actual page copy + appearance transaction, quoted conjunctions, visible owner-written FAQ, original controller runtime/history/tenant/stale guards; offline renderer, no device claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-responsive.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS scoped phone reading through actual builder HTML, immutable content/theme, shared hosted/export classes, locks and no-op guards. CSS/source evidence, not browser measurement.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-services.mjs",
+      "exitCode": 0,
+      "seconds": 0.65,
+      "output": "PASS actual service editor add/update, invalidated preview, retained conflict text, stable-ID rebase, removed target, exact Undo and live busy protection. Inert UI hooks only.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-measured-reading.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS synthetic small-text observation -> validated current-section candidate -> real first-party HTML; owner locks/preferences and regression gates. No browser measurements claimed.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-request-intent.mjs",
+      "exitCode": 0,
+      "seconds": 2.2,
+      "output": "PASS real marketplace service action -> original parent intent/fields -> original request submit for enquiry and booking request; inert transport, no real customer send.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-transfer-review.mjs",
+      "exitCode": 0,
+      "seconds": 0.95,
+      "output": "PASS actual bidirectional transfer and service-copy reviews hide stale proposals synchronously and reject old callbacks before original apply/preview; inert component hooks, no hosted claim.\n"
+    },
+    {
+      "command": "node scripts/check-app-studio-session.mjs",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS: Studio approval/undo lifecycle, exact receipt binding, duplicate actions, uncertain undo block, actor changes and unmount cancellation. Simulated service only.\n"
+    },
+    {
+      "command": "node scripts/check-app-studio-checkpoint.mjs",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "output": "PASS: encrypted checkpoint contract, restart proposal/undo, exact revision/actor binding, durable-before-write intent, no replay, unavailable storage, bounded records and serialized native writes. Simulated storage/transport only.\n"
+    },
+    {
+      "command": "node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-mission15-phase2-gallery",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "01-gardening-minimal: minimal / focused-landing / 1 page(s)\n02-exterior-cleaning: editorial / focused-landing / 1 page(s)\n03-catering-story: artisan / multi-page / 4 page(s)\n04-wellness-boutique: minimal / focused-landing / 1 page(s)\n05-professional-editorial: editorial / multi-page / 4 page(s)\n06-coastal-cleaning: conversion / focused-landing / 1 page(s)\n07-village-cleaning: editorial / focused-landing / 1 page(s)\n08-city-cleaning: conversion / focused-landing / 1 page(s)\n09-traditional-cleaning: minimal / focused-landing / 1 page(s)\nSaved 9 offline demonstration websites in /tmp/busy-mission15-phase2-gallery\n"
+    },
+    {
+      "command": "node scripts/check-builder-visual-receipt-v3238.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "V3.238: 40 source-only browser receipt, provenance, screenshot, rollout and owner approval checks passed.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-composition.mjs",
+      "exitCode": 0,
+      "seconds": 0.81,
+      "output": "PASS universal composition + reviewed same-business Brand DNA -> original layout/HTML operations, explicit UI review, immutable content, owner order/locks and stale source gates. No measured visual claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-content-review.mjs",
+      "exitCode": 0,
+      "seconds": 0.61,
+      "output": "PASS bounded exact public content diff and actual comparison UI for service rename/removal, FAQ answers, no-op, pagination and private/malformed data exclusion. No native visual claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-gallery.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS literal coordinated approved-gallery accessibility editing, exact public text review, sparse Undo, media identity, locks, duplicate/unsupported rejection and client/server parity. No media retrieval or visual claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-language.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS coordinated literal service rename/order/removal with IDs/Undo/locks/parity and multiple owner-written website sections through original transaction/rendering. No publishing.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-studio-recovery.mjs",
+      "exitCode": 0,
+      "seconds": 0.32,
+      "output": "PASS uncertain Studio save barrier, no replay/discard bypass, original-revision refusal, encrypted-phase restart, newer read-only recovery without inferred Undo/attribution, actor cancellation and actual controller read adapter. Inert storage/transport.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase4-app-capabilities.mjs",
+      "exitCode": 0,
+      "seconds": 2.19,
+      "output": "PASS original content-layout private edits with exact Undo/featured identity/locks, shared catalogue recommendation guards, duplicate and missing-capability rejection, owner-content prerequisites and client/server parity. No live capability claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase4-requirements.mjs",
+      "exitCode": 0,
+      "seconds": 2.94,
+      "output": "PASS actual enquiry form -> original submit payload, structured requirement limits, interrupted-edit protection and original scoped encrypted checkpoint boundary. Inert transport/storage, no device/hosted claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase4-website-spacing.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS original coordinated page transaction/rendered HTML for phone/desktop spacing, scoped finite CSS, original branding, no mutation/partial lock bypass, duplicate/no-op guards. Source/HTML evidence, no browser layout measurement.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase5-approved-records.mjs",
+      "exitCode": 0,
+      "seconds": 0.88,
+      "output": "PASS original scoped editor read -> approved-only snapshot -> existing planner/Studio composition and exact Undo; freshness/tenant/lock/exclusion gates, draft exclusion and actual hook account-epoch protection. Inert read boundary; no hosted acceptance.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase5-catalogue-editing.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS real website catalogue layout/title transaction preserving destination styling/featured identity, original locks/HTML/preview and coordinated app record order with exact Undo and parity. No browser/hosted claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase5-enquiry-review.mjs",
+      "exitCode": 0,
+      "seconds": 2.11,
+      "output": "PASS actual marketplace review/correction, exact sanitized payload, zero sends before confirmation, stale callback/account rejection, simultaneous confirmation guard and newer edit preservation. Original transport is inert.\n"
+    },
+    {
+      "command": "node scripts/check-mission11-composition.mjs",
+      "exitCode": 0,
+      "seconds": 0.65,
+      "output": "PASS actual App/Website composition: bounded blocks, exact Undo, locks, atomic voice planning, preserved copy, generated pages/HTML and regeneration retention. No publication.\n"
+    },
+    {
+      "command": "node scripts/prepare-standalone-prototype-v3154.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.154 OFFLINE EXPO PROTOTYPE READY: /workspace/mission13-git/.tmp/standalone-prototype-v3154\nNo signing, customer data, EAS project, store submission or provider charges.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase6-booking-review.mjs",
+      "exitCode": 0,
+      "seconds": 2.03,
+      "output": "PASS actual marketplace + standalone booking review/correction, exact request payload, no pre-confirm send, changed review invalidation, immediate duplicate guard, newer edit retention and shared policy parity. Inert IO; no confirmed appointment claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase6-hero-composition.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual canonical hero composition/HTML, coordinated alternatives, mobile fallback source, content/brand/order/lock preservation, gallery-only typography and rejected-image guards. No screenshot or measured aesthetic claim.\n"
+    },
+    {
+      "command": "node scripts/check-distinct-website-designs-v3101.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "V3.101 PASS: 257 distinct per-business styles, repeatable edits, safe user overrides and truthful design review checks\n"
+    },
+    {
+      "command": "node scripts/check-website-layout-v3134.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.134 WEBSITE LAYOUT PASS: 102 private section, HTML, custom homepage, photo provenance, CSS, atomic commands, and release-safety assertions\n"
+    },
+    {
+      "command": "node scripts/check-mission8-shared-request-entry.mjs",
+      "exitCode": 0,
+      "seconds": 3.62,
+      "output": "(node:55186) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/mission13-git/standalone/template/nativeGuestRequests.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/mission13-git/standalone/template/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\nPASS: shared standalone/marketplace request validator, no silent field truncation, approved service selection and preferred-date submission through actual marketplace form at narrow/tablet logical widths. No native/provider verification.\n"
+    }
+  ],
+  "sourceHashes": {
+    "scripts/check-mission12-live-form-logic.mjs": "f388a08dcc74c21ae561c3ca9eecbc1eee684d4b99bf2f103b8a738062c99f07",
+    "scripts/check-mission12-standalone-continuity.mjs": "008eda4727b9f87f87dd86e3b81b5c612f07923da5ee160a13e8a7dda106f435",
+    "scripts/check-mission15-design-candidates.mjs": "37a84440ed3b5869ba9b5e0cc1a2bfbe9186990c39224229554a2fa279274063",
+    "scripts/check-mission15-phase2-request-intent.mjs": "89ec8a7a823b92a3737306d93c7416de21380b5b81549bc08ffb7d5c82493f38",
+    "scripts/check-mission15-phase6-booking-review.mjs": "52eccff665843d069669b9038d0b2932d1835f8dac1eef4cc20a882e7f17f10d",
+    "scripts/check-mission15-phase6-hero-composition.mjs": "6441cfeb23070703577d36a80f53b444765ed7928893b0b277d2879315a81b21",
+    "scripts/check-mission8-shared-request-entry.mjs": "ac5e73abf8827f9ac0215132ee0d8230f7a2838e7f7b60f0b00fe7902e1597de",
+    "src/core/customerEnquiryRequirements.mjs": "2aa00060e205483292ca704200e7d067fdb55709e3344d79618697ffb020523b",
+    "src/core/ownerConversationPreparation.mjs": "295aa985b464902e1f951f89258d64419ec396b3c95bac9b38010a5e9baba9d7",
+    "src/core/websiteCoordinatedAlternatives.mjs": "807199338ef1e3804e4892ed072a2428f9547a2bbee28e37ddaf156cce22063c",
+    "src/core/websitePageInstructions.mjs": "df2d8845dd7711b85ee9e5f09b74f107cc4c92c242998f071b64c5ce417896ca",
+    "src/domain/websiteBuilder.js": "4375cd97eec2217d64a46472adf36e7e8f7b7fd0103557a34f0c96f33bb766f3",
+    "src/screens/businessAppCustomerRequestFields.js": "c21ec56d8374e25432aee58a4be5a34775f9906f799f45ae8f922e62592e52aa",
+    "src/screens/miniApps.js": "80c4729920df5b11ec8a758007ba0f57e0d18e29f3f940e87b4e688fbac2ea4e",
+    "src/screens/websiteBuilder.js": "2ffe4d1f5a51bad91b1895e7e6b5c5ce9be92049c8c72ffc0c2d0d37ac315d67",
+    "standalone/template/App.js": "f7361d9cda46e8a95d927a5d56d13a256e51e90c4e1d5e17d0d740609d59cfee",
+    "standalone/template/customerEnquiryRequirements.mjs": "2aa00060e205483292ca704200e7d067fdb55709e3344d79618697ffb020523b",
+    "supabase/functions/busy-mini-apps/ownerConversationPreparation.mjs": "295aa985b464902e1f951f89258d64419ec396b3c95bac9b38010a5e9baba9d7",
+    "supabase/functions/busy-website-worker/designPlanner.mjs": "a3070dcb86150d673fd6f9bed36988ddd1c7ce17edfa4230f54ea8b01548831d",
+    "supabase/functions/busy-website-worker/designSystem.mjs": "4b0ba7ba657b6ac608297a88b660f223f566c3a0a9b636f8016a6aabb4f935e2",
+    "supabase/functions/busy-website-worker/websiteLayoutEditing.mjs": "d70543e73d0b3d4b320ff1c6b4dd85e6031737e5ef1d0182fb90e487da0539af"
+  },
+  "syntax": {
+    "tool": "existing @babel/parser",
+    "changedSources": 21,
+    "passed": true,
+    "notTypeChecking": true
+  },
+  "evidence": "Offline actual planners, canonical HTML, original request/controller functions and component/hooks with inert IO. No screenshots, browser/device/hosted/provider acceptance."
+}

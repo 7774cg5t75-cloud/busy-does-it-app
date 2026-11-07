@@ -1,0 +1,574 @@
+{
+  "version": 1,
+  "mission": "Mission15 rich typed source-bound App screen composition",
+  "date": "2026-11-01",
+  "source": {
+    "startingGithub": "e2421ad68ab07f08f456429a067497c832f204f9",
+    "startingTree": "f8a13619ac8104e236b3e099b77c903ab93c9fa8",
+    "startingLocalRecovery": "d67ddaa703ad56daf0cae19ba6ed6e06382b564a",
+    "functionalGithub": "3238eba178144ead2fffec580bfd72a63a2ca3e2",
+    "functionalTree": "e821ffd5c58a1bd372b700075dedc0e6f713547a",
+    "equivalentLocal": "21f24a1aca9a37fdb990393092e407482ff1481b",
+    "reportDelivery": "Subsequent documentation-only commit; see history.",
+    "branch": "codex/builder-mission15-design-advancement",
+    "draftPr": 26,
+    "dependencyDrafts": [
+      25,
+      24,
+      23,
+      21
+    ],
+    "forcePush": false,
+    "merged": false
+  },
+  "master": {
+    "version": "22.72",
+    "freshOriginalAccessThisMission": false,
+    "priorOriginalVerificationSha256": "1eba92db38697b6753d673a1c704a0b29f8be16f81a7466ac50b0c6f909a06fa",
+    "basis": "Previously genuinely verified requirements and explicit current owner mission. No claim of fresh full-document reconciliation.",
+    "privateBytesCommitted": false
+  },
+  "ci": {
+    "runId": 41291487039,
+    "jobId": 124803528900,
+    "conclusion": "success",
+    "exitCode": 0,
+    "artifactId": 13077935868,
+    "artifactSha256": "a45598b7f93512e9d7c1588bfe72a706fa29c9913a814d51bcf7090dcbaeb3c0",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41291487039"
+  },
+  "application": {
+    "sourceSha": "3238eba178144ead2fffec580bfd72a63a2ca3e2",
+    "sourceTree": "e821ffd5c58a1bd372b700075dedc0e6f713547a",
+    "finalSourceSha": "3238eba178144ead2fffec580bfd72a63a2ca3e2",
+    "finalSourceTree": "e821ffd5c58a1bd372b700075dedc0e6f713547a",
+    "sourceStable": true,
+    "workingTreeChanged": false,
+    "selectedCount": 464,
+    "selectionSha256": "72276aacbf2f6819911b99a8222550e16fb6f29ad10f8f67c2f2f0172e041a4e",
+    "startedAt": "2026-11-01T09:06:22.063762+00:00",
+    "finishedAt": "2026-11-01T09:17:08.853996+00:00",
+    "summary": {
+      "passed": 464,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    }
+  },
+  "applicationExit": 0,
+  "observedChildExitCodes": [
+    0
+  ],
+  "postgres": {
+    "database": "busy_whole_app_disposable",
+    "results": [
+      {
+        "id": "fresh-disposable-auth-shim-not-hosted-auth",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "exact-source-fuse-denies-install",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "missing-genuine-auth-prerequisite-refused-without-partial-schema",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "preexisting-view-and-definer-entry-refused-not-silently-retained",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "late-install-failure-rolls-back-schema-and-privilege-changes",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "complete-atomic-fresh-staging-install-not-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "one-time-install-never-overwrites-existing-records",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "hostile-default-grants-closed-for-future-tables-sequences-and-routines",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fictional-two-business-memberships-prepared-only-locally",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "bounded-original-workspace-initialize-and-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "approved-profile-create-save-hash-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "profile-stale-source-and-unapproved-fields-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-website-create-wording-style-save-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-pages-create-revise-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-ten-step-page-save-is-one-atomic-generation-and-history-entry",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "ten-step-revocation-between-gateway-read-and-atomic-save-denies-all",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "whole-transaction-undo-redo-and-fresh-session-history-retention",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "whole-request-group-checkpoints-lost-ack-recovery-and-no-blind-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "history-cross-tenant-source-and-direct-writer-denial",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unsupported-batch-is-atomic-and-forged-history-candidate-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "real-concurrent-website-writers-create-only-one-history-step",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "undo-acknowledgement-loss-never-replays-and-restores-on-deliberate-review",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "revocation-between-history-read-and-transition-denies-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "bounded-persistent-history-and-redo-branch-invalidation",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "approved-context-revision-does-not-rewrite-existing-website",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-config-first-app-authority-client-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-studio-private-edit-undo-independent-read",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "goal-composition-original-writer-saves-reopens-and-undoes-exactly",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "goal-composition-revoked-member-denied-by-original-transaction",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-approved-business-records-into-private-layout-reopen-and-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "private-bespoke-project-original-app-save-fresh-reopen-and-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "private-project-history-bounded-and-original-config-retained",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "private-project-server-member-scope-and-malformed-descriptions-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "saved-project-corrections-original-spec-studio-reopen-and-exact-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "typed-screen-composition-original-writer-readback-exact-undo-and-unknown-denial",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-growth-context-record-review-no-provider-claims",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "growth-dropped-ack-blocks-pre-reviewed-second-write-until-exact-observation",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "creator-original-durable-save-with-reviewed-growth-source-and-fresh-read",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "reviewed-current-creator-copy-private-website-save-fresh-reopen-and-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "creator-lost-ack-exact-observation-and-no-blind-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fictional-original-enquiry-provisioned-locally-not-consumer-acceptance",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-enquiry-reviewed-import-explicit-customer-filing",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "canonical-private-quote-save-and-fresh-session-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "contextual-product-original-request-inbox-and-supported-customer-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "contextual-event-original-request-inbox-and-supported-customer-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "contextual-service-original-request-inbox-and-supported-customer-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "product-event-service-source-canonical-private-quotes-confirmed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "typed-listing-server-denials-preserve-pending-and-independent-source-history",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "listing-changed-withdrawn-and-corrupted-history-never-becomes-new-work-authority",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "untyped-prefix-direct-writer-refused-before-customer-write",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "listing-concurrent-filing-once-and-unknown-ack-independent-recovery",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "listing-source-change-and-membership-revocation-before-filing-deny-all",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "all-private-authorities-cross-owner-and-anonymous-denials",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "separate-business-initialize-facts-and-content-not-shared",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "separate-retail-product-enquiry-original-inbox-and-tenant-denial",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "membership-revoked-before-persisted-content-write-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "closed-lifecycle-and-internal-service-execution",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-immutable-guards-indexes-and-final-effective-grants",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "finite-facts-preserve-unexposed-profile-service-and-contact-extensions",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "private-business-facts-cannot-edit-an-already-public-profile",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "concurrent-exact-profile-cas-only-one-owner-write-commits",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "profile-dropped-acknowledgement-preserves-intent-without-success-or-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "goal-saved-wording-selection-original-copy-save-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "goal-enquiry-exact-source-to-canonical-private-quote-revision",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-corrections-use-original-facts-cas-and-confirmed-readback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-builder-read-contract-allows-scoped-recovery-without-fictitious-marker",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "governed-offline-proposal-original-website-save-readback-and-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-correction-revocation-after-review-denies-write",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "retaining-rollback-fused-and-real-write-denial-with-fresh-readers",
+        "passed": true,
+        "exitCode": 0
+      }
+    ],
+    "summary": {
+      "passed": 69,
+      "failed": 0
+    },
+    "hosted": false,
+    "syntheticAuthUid": true
+  },
+  "foundation": {
+    "assertions": 105,
+    "exitCode": 0
+  },
+  "deno": {
+    "originalEntryPoints": 25,
+    "exitCode": 0,
+    "denoVersion": "2.5.6",
+    "sdk": "Official @supabase/supabase-js@2.118.0",
+    "method": "Temporary official tools, byte-compared original src/supabase/standalone copy, original frozen Deno lock, manual node_modules; real compiler.",
+    "fakeSdkDeclarations": false,
+    "typeChecksSuppressed": false
+  },
+  "exports": {
+    "ownerPreviewIosHermes": 0,
+    "isolatedStagingIosHermes": 0,
+    "signedBuild": false,
+    "nativeAcceptance": false
+  },
+  "architecture": {
+    "sourceFiles": 1789,
+    "physicalLines": 170786,
+    "staticRelativeEdges": 3940,
+    "distinctStaticCycles": 0
+  },
+  "localChecks": {
+    "newThreeBusinessOriginalComponents": 0,
+    "originalStandaloneImportClosure": 0,
+    "originalProjectContinuation": 0,
+    "originalRecordComposition": 0,
+    "originalGoalComposition": 0,
+    "originalPrivateProject": 0,
+    "originalGalleryParity": 0,
+    "originalNativeServiceReturn": 0,
+    "affectedSyntax": 0,
+    "securityBaseline": 0,
+    "securityByDesign": 0,
+    "dependencyBackportGuard": 0,
+    "architecture": 0
+  },
+  "freshnessRegression": {
+    "defect": "No-change record-layout result dropped its source-review stamp before a screen-only change.",
+    "fixed": "Retain no-change code and exact recordReview; original Studio fresh-source check remains applicable.",
+    "isolatedMatchingPreFixHelpersExit": 1,
+    "observedOldFailure": "An unchanged collection layout must still carry its current source review into screen-only Studio approval: undefined !== true",
+    "repairedSourceExit": 0,
+    "firstIsolatedReplay": "Using only one prior helper with the new companion contract refused no-change; matched both pre-fix helper versions for the decisive replay. Active source was never reset."
+  },
+  "supersededCi": [
+    {
+      "run": 41289687912,
+      "commit": "98141e5417863347e87c70e3a36ff4279c657973",
+      "tree": "7ff8a09d6ddc862f27461d915f814e81ef5fe37b",
+      "summary": {
+        "passed": 95,
+        "failed": 1,
+        "blocked": 0,
+        "unexecuted": 368
+      },
+      "postgres": {
+        "passed": 69,
+        "failed": 0
+      },
+      "artifactSha256": "aaec275b144b07bc972e2dc30a308b39313a9667b930152e23db011c75a5f29f",
+      "conclusion": "cancelled by final source push; incomplete"
+    },
+    {
+      "run": 41289854961,
+      "commit": "8794254e0347776b85b36720b6f6210469fa93cf",
+      "tree": "0d1dd7c45e6a207fd48983c7ced3f4ffd756fd68",
+      "summary": {
+        "passed": 260,
+        "failed": 2,
+        "blocked": 0,
+        "unexecuted": 202
+      },
+      "failed": [
+        {
+          "id": "check-mission15-phase10-gallery-parity",
+          "exitCode": 1,
+          "output": "<anonymous_script>:25\n  const sectionKeys = appScreenSections(config, screen.key);\n                      ^\n\nReferenceError: appScreenSections is not defined\n    at LiveInfo (eval at <anonymous> (file:///home/runner/work/busy-does-it-app/busy-does-it-app/scripts/check-mission15-phase10-gallery-parity.mjs:28:14), <anonymous>:25:23)\n    at file:///home/runner/work/busy-does-it-app/busy-does-it-app/scripts/check-mission15-phase10-gallery-parity.mjs:29:14\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.19.0\n"
+        },
+        {
+          "id": "mission15-phase31-service-resume",
+          "exitCode": 1,
+          "output": "<anonymous_script>:25\n  const sectionKeys = appScreenSections(config, screen.key);\n                      ^\n\nReferenceError: appScreenSections is not defined\n    at LiveInfo (eval at <anonymous> (file:///home/runner/work/busy-does-it-app/busy-does-it-app/scripts/check-mission15-phase31-service-resume.mjs:10:42), <anonymous>:25:23)\n    at file:///home/runner/work/busy-does-it-app/busy-does-it-app/scripts/check-mission15-phase31-service-resume.mjs:11:30\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.19.0\n"
+        }
+      ],
+      "artifactSha256": "2568d5eea3380d05cb9ab93bbcb6f59146c777cad22e0480a9e156108fe21411",
+      "conclusion": "cancelled by dependency-fixture correction; incomplete"
+    },
+    {
+      "run": 41290406282,
+      "commit": "5ce01a04de8a92ab0b90eecc48e1c2b4039ad735",
+      "tree": "814a6baa1a76c965544de1f90cd381505429cc0b",
+      "summary": {
+        "passed": 446,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 18
+      },
+      "failed": [],
+      "artifactSha256": "51652d2dacf0f1d88cff0b2cf63ad9c3b933f63e9436a6fa59b692e02d993be0",
+      "conclusion": "Cancelled by source-freshness correction; incomplete"
+    }
+  ],
+  "otherFailures": {
+    "initialCategoryInteractionFixture": {
+      "exitCode": 1,
+      "cause": "Original inert native Text children are arrays; real button lookup corrected, assertions retained."
+    },
+    "onlineTemporarySdkInstall": {
+      "exitCode": 1,
+      "cause": "Sandbox cache/file permission failure; not clean registry evidence."
+    },
+    "offlineTemporarySdkInstall": {
+      "exitCode": 1,
+      "cause": "ENOTCACHED missing official transitive SDK cache."
+    },
+    "unselectedHistoricalCheck": {
+      "script": "scripts/check-app-builder-v3158.mjs",
+      "exitCode": 1,
+      "cause": "Old Preview edited service literal was already absent in starting committed source after earlier extraction. Assertion not weakened; canonical component selection reported separately."
+    },
+    "chromiumLaunch": {
+      "exitCode": 1,
+      "cause": "Sandbox setsockopt EPERM/SIGTRAP; one attempt, no unsafe bypass."
+    }
+  },
+  "visualEvidence": {
+    "originalComponentBodiesAndHandlersExecuted": true,
+    "genuineScreenshots": false,
+    "nativePixelsVerified": false
+  },
+  "dependencies": {
+    "rootVersionsAndLocksChanged": false,
+    "guardedDeepmergeBackportPasses": true,
+    "freshRegistryAuditClaimed": false,
+    "priorUnresolvedRawFinding": "Seven low affected nodes, one deepmerge advisory family; guarded local backport mitigation, not upstream clean audit."
+  },
+  "limitations": {
+    "supportedScreenTargets": [
+      "business_profile",
+      "services"
+    ],
+    "arbitraryNewExecutableFunctionality": false,
+    "publicHtmlReadingOrderParityImplemented": false,
+    "hostedJwtRlsVerified": false,
+    "newHostedSchemaApplied": false,
+    "providersActivated": false,
+    "publicIngressActivated": false,
+    "nativeAccepted": false,
+    "standaloneDistributionReady": false,
+    "productionReady": false,
+    "externalSpendingInitiated": false
+  }
+}

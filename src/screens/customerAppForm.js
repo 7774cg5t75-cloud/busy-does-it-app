@@ -1,0 +1,24 @@
+import React from 'react';
+import {Text} from 'react-native';
+import {Card,Button} from '../components/ui';
+import {styles} from '../theme/styles';
+import {createCustomerFormJourney,solveCustomerFormProof} from '../core/customerFormJourney.mjs';
+import {CustomerFormRehearsal} from './customerFormRehearsal';
+import {stableJson} from '../core/stableJson.mjs';
+export function CustomerAppForm({identity,request,integrity,isCurrent,interest=null,recovery=null,resume=false,active=true,onNew=null,beforeDispatch=async()=>true}){
+ const stamp=stableJson([identity,interest]),initial=React.useRef(stamp),live=React.useRef(null),alive=React.useRef(true);React.useEffect(()=>{alive.current=true;return ()=>{alive.current=false;};},[]);live.current={stamp,isCurrent,active};const scopeCurrent=()=>alive.current&&initial.current===live.current.stamp&&live.current.isCurrent?.()===true;const current=()=>scopeCurrent()&&live.current.active;
+ const api=React.useRef(null);if(!api.current)api.current=createCustomerFormJourney({identity,request,integrity,isCurrent:current,recovery,admit:beforeDispatch,solve:(c,check)=>solveCustomerFormProof(c,check,integrity)});
+ const [state,setState]=React.useState(api.current.state()),[busy,setBusy]=React.useState(false);const run=async fn=>{if(busy||!current())return false;setBusy(true);try{const promise=fn();if(current())setState(api.current.state());return await promise;}finally{if(scopeCurrent()){setState(api.current.state());setBusy(false);}}};React.useEffect(()=>{if(resume)void run(async()=>{if(!await api.current.restore())return false;return api.current.inspect();});},[]);if(!scopeCurrent())return null;
+ return <Card title="Enquire with this business" body="An enquiry helps the business understand your needs. It is not an order, booking, payment or marketing subscription.">
+ {state.phase==='unopened'?<Button label="Open the reviewed questions" disabled={busy} onPress={()=>run(()=>api.current.open())}/>:null}
+ {state.projection&&!['confirmed','reconciled'].includes(state.phase)?<CustomerFormRehearsal projection={state.projection} interest={interest} isCurrent={current} customerEntry deliveryState={state.phase} locked={busy||state.uncertain||!active} onEdit={()=>{api.current.edit();setState(api.current.state());}} review={async b=>{const r=await api.current.prepare(b.answers,b.contact,b.consent,b.interest);if(current())setState(api.current.state());const {ok,interest:_,...wire}=r;if(!ok)throw Error('Review unavailable');return wire;}}/>:null}
+ {state.phase==='reviewed'&&state.submissionPermitted?<Button label="Send this reviewed enquiry" disabled={busy} onPress={()=>run(()=>api.current.submit())}/>:null}
+ {state.phase==='reviewed'&&!state.submissionPermitted?<Text style={styles.cardBody}>These questions are available for review only. Sending is unavailable.</Text>:null}
+ {state.uncertain?<><Text accessibilityLiveRegion="polite" style={styles.cardBody}>{state.phase==='dispatched'?'Waiting for the original request and independent verification. Do not send it again.':'The outcome is unknown. Keep this view open to inspect the exact receipt. Nothing is automatically sent again.'}</Text><Button label="Inspect this enquiry receipt" disabled={busy} onPress={()=>run(()=>api.current.inspect())}/></>:null}
+ {state.receipt?<Text accessibilityLiveRegion="polite" selectable style={styles.cardBody}>{'Enquiry saved and independently verified. Reference: '+state.receipt.requestId+'. This does not confirm delivery of a message, booking or payment. Receipt access expires under the reviewed policy; that does not delete the business’s customer records.'}</Text>:null}
+ {state.receipt&&state.projection?<Card title="Your original reviewed answers" body="These questions belong to the original enquiry, even if the business has since changed its form.">{state.projection.fields.filter(f=>Object.hasOwn(state.receipt.review.answers,f.id)).map(f=><Text key={f.id} style={styles.cardBody}>{f.label+': '+(f.type==='choice'?f.options.find(o=>o.value===state.receipt.review.answers[f.id])?.label:f.type==='boolean'?(state.receipt.review.answers[f.id]?'Yes':'No'):String(state.receipt.review.answers[f.id]))}</Text>)}{state.projection.outputs.map(o=><Text key={o.id} style={styles.cardBody}>{o.label+': '+String(state.receipt.review.outputs?.[o.id])+' '+o.unit}</Text>)}</Card>:null}
+ {state.receipt?<Button label="Clear this device receipt and start a new enquiry" onPress={()=>run(async()=>{const ok=await api.current.clearConfirmedRecovery();if(ok&&scopeCurrent())onNew?.();return ok;})}/>:null}
+ {state.phase==='recovery_unavailable'?<Text style={styles.cardBody}>Protected recovery is expired, unavailable or could not be verified. Nothing is automatically sent.</Text>:null}
+ {state.phase==='unavailable'?<Text style={styles.cardBody}>This form is unavailable. Nothing has been submitted.</Text>:null}
+ </Card>;
+}

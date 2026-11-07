@@ -1,0 +1,863 @@
+{
+  "functionalSource": {
+    "commit": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+    "tree": "d36edcccb25104f7f3fea75c9003744dc64cf85b"
+  },
+  "main": {
+    "id": 42256801585,
+    "jobId": 128026020474,
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801585",
+    "conclusion": "success",
+    "BUSY_APP_POSTGRES": {
+      "passed": 126,
+      "failed": 0
+    },
+    "BUSY_PUBLIC_FORM_POSTGRES": {
+      "passed": 21,
+      "failed": 0
+    },
+    "BUSY_WHOLE_SITE_POSTGRES": {
+      "passed": 13,
+      "failed": 0
+    },
+    "BUSY_PG_SUITE_SUMMARIES": {
+      "commandSuites": 9,
+      "receiptSummaries": {
+        "ai-budget": {
+          "failed": 0,
+          "passed": 32
+        },
+        "ai-lab-foundation": {
+          "failed": 0,
+          "passed": 19
+        },
+        "ai-lab-runner-foundation": {
+          "failed": 0,
+          "passed": 15
+        },
+        "enquiry-preparation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "operational-work": {
+          "failed": 0,
+          "passed": 13
+        },
+        "preservation-foundation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "public-form": {
+          "failed": 0,
+          "passed": 21
+        },
+        "whole-app": {
+          "failed": 0,
+          "passed": 126
+        },
+        "whole-site": {
+          "failed": 0,
+          "passed": 13
+        },
+        "work-preparation": {
+          "failed": 0,
+          "passed": 12
+        }
+      }
+    },
+    "BUSY_APPLICATION_RESULT": {
+      "sourceSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "sourceTree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+      "finalSourceSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "finalSourceTree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+      "sourceStable": true,
+      "workingTreeChanged": false,
+      "summary": {
+        "passed": 514,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      }
+    },
+    "edge": true,
+    "foundation105": true
+  },
+  "browser": {
+    "id": 42256801763,
+    "jobId": 128026230222,
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801763",
+    "conclusion": "success",
+    "summary": {
+      "source": {
+        "commit": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+        "tree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+        "workingTreeChanged": false
+      },
+      "browser": "145.0.7632.6",
+      "reviewPack": {
+        "index": "iphone-review-pack/index.html",
+        "zip": "iphone-review-pack.zip",
+        "zipBytes": 5437582,
+        "zipSha256": "a4b7a5dda2a3a1f1b9b1330b74df3b65b20a82a74def5fe3a37571fdd2e90e34",
+        "files": 83,
+        "imageCount": 64,
+        "comparisonCount": 16,
+        "source": {
+          "commit": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+          "tree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+          "workingTreeDirty": false,
+          "before": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea"
+        },
+        "browser": "145.0.7632.6",
+        "professionalAcceptance": false
+      },
+      "counterexampleCoverage": {
+        "bodyColumnCounterexample": true,
+        "bodyColumnControl": {
+          "site": "moor-meadow-rich",
+          "page": "page-seasonal-planting",
+          "type": "service-body-column-counterexample",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "negativeDetected": true,
+          "negativeWidths": [
+            279.140625,
+            279.140625
+          ],
+          "restoredWidths": [
+            516.109375,
+            516.109375
+          ]
+        },
+        "clippingControls": {
+          "runs": 1,
+          "visibleOverflowPass": 1,
+          "concealedCasesDetected": 5
+        },
+        "nativeMenuControls": {
+          "runs": 1,
+          "states": [
+            {
+              "closed": 0,
+              "keyboardOpen": 1,
+              "closedAgain": 0
+            }
+          ]
+        }
+      },
+      "serviceBodyEvidence": [
+        {
+          "site": "moor-meadow-rich",
+          "page": "page-seasonal-planting",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 781.69,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": true,
+              "gap": 70
+            }
+          ]
+        },
+        {
+          "site": "moor-meadow-rich",
+          "page": "page-landscape-planning",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 781.69,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": true,
+              "gap": 70
+            }
+          ]
+        },
+        {
+          "site": "moor-meadow-rich",
+          "page": "page-borders-and-beds",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 781.69,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": true,
+              "gap": 70
+            }
+          ]
+        },
+        {
+          "site": "moor-meadow-rich",
+          "page": "page-a-garden-consultation",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 781.69,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": true,
+              "gap": 70
+            }
+          ]
+        },
+        {
+          "site": "ember-rich",
+          "page": "page-a-buffet-to-share",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 781.69,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": true,
+              "gap": 70
+            }
+          ]
+        },
+        {
+          "site": "ember-rich",
+          "page": "page-your-catering-plan",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 781.69,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": true,
+              "gap": 70
+            }
+          ]
+        },
+        {
+          "site": "quiet-light-rich",
+          "page": "page-brand-direction",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 728,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": false,
+              "gap": 84
+            }
+          ]
+        },
+        {
+          "site": "quiet-light-rich",
+          "page": "page-website-content",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 728,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": false,
+              "gap": 84
+            }
+          ]
+        },
+        {
+          "site": "quiet-light-rich",
+          "page": "page-creative-review",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "availableCopyWidth": 728,
+          "columns": [
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            },
+            {
+              "width": 516.11,
+              "minimumWidth": 480,
+              "parentWidth": 516.11,
+              "leftOffset": 0
+            }
+          ],
+          "methodRails": [
+            {
+              "sameRow": false,
+              "gap": 84
+            }
+          ]
+        }
+      ],
+      "pages": 35,
+      "fullPageScreenshots": 310,
+      "actualNavigationChecks": 222,
+      "afterFailures": [],
+      "baselineFindings": 0,
+      "viewports": [
+        "mobile",
+        "desktop",
+        "tablet",
+        "narrow",
+        "retina"
+      ],
+      "maximumImageBodyBytes": 637617,
+      "captureWallMs": 206276,
+      "nodeCpuMicroseconds": {
+        "user": 23825470,
+        "system": 3745289
+      },
+      "nodeMaxRssKiB": 440060,
+      "pixelReceiptBytes": 1774665,
+      "pixelReceiptCount": 41,
+      "professionalAcceptance": false,
+      "providerCalls": 0
+    },
+    "renderedReview": {
+      "source": {
+        "commit": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+        "tree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+        "workingTreeChanged": false
+      },
+      "browser": "145.0.7632.6",
+      "passed": 45,
+      "failed": 0,
+      "positiveReadOnlyBindings": 3,
+      "negativeDenials": 36,
+      "ownerSpacingChecks": 4,
+      "wideHeroChecks": 2,
+      "ownerSpacingReceipts": [
+        {
+          "site": "quiet-light-rich",
+          "pageId": "home",
+          "width": 390,
+          "selector": ".hero>.wrap",
+          "ownerAppearance": {
+            "sectionSpacing": "generous",
+            "mobileSectionSpacing": "generous",
+            "desktopSectionSpacing": "compact"
+          },
+          "values": [
+            {
+              "stage": "before",
+              "paddingTop": "88px",
+              "paddingBottom": "88px",
+              "creativeSite": false,
+              "automaticOpeningSpace": false
+            },
+            {
+              "stage": "after",
+              "paddingTop": "88px",
+              "paddingBottom": "88px",
+              "creativeSite": true,
+              "automaticOpeningSpace": false
+            }
+          ],
+          "passed": true
+        },
+        {
+          "site": "quiet-light-rich",
+          "pageId": "home",
+          "width": 1440,
+          "selector": ".hero>.wrap",
+          "ownerAppearance": {
+            "sectionSpacing": "generous",
+            "mobileSectionSpacing": "generous",
+            "desktopSectionSpacing": "compact"
+          },
+          "values": [
+            {
+              "stage": "before",
+              "paddingTop": "72px",
+              "paddingBottom": "72px",
+              "creativeSite": false,
+              "automaticOpeningSpace": false
+            },
+            {
+              "stage": "after",
+              "paddingTop": "72px",
+              "paddingBottom": "72px",
+              "creativeSite": true,
+              "automaticOpeningSpace": false
+            }
+          ],
+          "passed": true
+        },
+        {
+          "site": "quiet-light-rich",
+          "pageId": "page-brand-direction",
+          "width": 390,
+          "selector": ".purpose-service-opening",
+          "ownerAppearance": {
+            "readingLayout": "editorial",
+            "sectionSpacing": "generous",
+            "mobileSectionSpacing": "generous",
+            "desktopSectionSpacing": "compact"
+          },
+          "values": [
+            {
+              "stage": "before",
+              "paddingTop": "24px",
+              "paddingBottom": "32px",
+              "creativeSite": false,
+              "automaticOpeningSpace": false
+            },
+            {
+              "stage": "after",
+              "paddingTop": "24px",
+              "paddingBottom": "32px",
+              "creativeSite": true,
+              "automaticOpeningSpace": false
+            }
+          ],
+          "passed": true
+        },
+        {
+          "site": "quiet-light-rich",
+          "pageId": "page-brand-direction",
+          "width": 1440,
+          "selector": ".purpose-service-opening",
+          "ownerAppearance": {
+            "readingLayout": "editorial",
+            "sectionSpacing": "generous",
+            "mobileSectionSpacing": "generous",
+            "desktopSectionSpacing": "compact"
+          },
+          "values": [
+            {
+              "stage": "before",
+              "paddingTop": "48px",
+              "paddingBottom": "57.6px",
+              "creativeSite": false,
+              "automaticOpeningSpace": false
+            },
+            {
+              "stage": "after",
+              "paddingTop": "48px",
+              "paddingBottom": "57.6px",
+              "creativeSite": true,
+              "automaticOpeningSpace": false
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "wideHeroReceipts": [
+        {
+          "site": "moor-meadow-rich",
+          "pageId": "home",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "values": [
+            {
+              "stage": "before",
+              "wrapperWidth": 1120,
+              "figureWidth": 1120,
+              "figureHeight": 426.65625,
+              "imageWidth": 1120,
+              "aspectRatio": "21 / 8",
+              "naturalWidth": 1280,
+              "naturalHeight": 960,
+              "source": "https://mission18.invalid/moor-meadow-rich/assets/mission16-garden-path.jpg"
+            },
+            {
+              "stage": "after",
+              "wrapperWidth": 1120,
+              "figureWidth": 1120,
+              "figureHeight": 426.65625,
+              "imageWidth": 1120,
+              "aspectRatio": "21 / 8",
+              "naturalWidth": 1280,
+              "naturalHeight": 960,
+              "source": "https://mission18.invalid/moor-meadow-rich/assets/mission16-garden-path.jpg"
+            }
+          ],
+          "passed": true
+        },
+        {
+          "site": "ember-rich",
+          "pageId": "home",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "values": [
+            {
+              "stage": "before",
+              "wrapperWidth": 1120,
+              "figureWidth": 1120,
+              "figureHeight": 490,
+              "imageWidth": 1120,
+              "aspectRatio": "16 / 7",
+              "naturalWidth": 1280,
+              "naturalHeight": 964,
+              "source": "https://mission18.invalid/ember-rich/assets/mission16-food-plate.jpg"
+            },
+            {
+              "stage": "after",
+              "wrapperWidth": 1120,
+              "figureWidth": 1120,
+              "figureHeight": 490,
+              "imageWidth": 1120,
+              "aspectRatio": "16 / 7",
+              "naturalWidth": 1280,
+              "naturalHeight": 964,
+              "source": "https://mission18.invalid/ember-rich/assets/mission16-food-plate.jpg"
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "actualOriginalPngs": true,
+      "actualPngDecodeVerified": true,
+      "visionExecuted": false,
+      "pixelsSentToModel": false,
+      "providerCalls": 0,
+      "accountSaveClaimed": false,
+      "professionalAcceptance": false,
+      "limitations": [
+        "Actual PNG bytes and provenance are validated; no real AI vision request was made.",
+        "No invented aesthetic findings or model-generated improvement is claimed.",
+        "Human pixel review and explicit owner acceptance remain separate."
+      ]
+    },
+    "artifacts": [
+      {
+        "id": 13523691259,
+        "name": "mission18-iphone-review-9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+        "size": 4688514,
+        "digest": "sha256:3eb3a590b75987de7ef22c32255b1336547d875e83f9236c683e15fa3907dbe0",
+        "expiresAt": "2026-11-13T17:00:06Z",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801763/artifacts/13523691259"
+      },
+      {
+        "id": 13522813487,
+        "name": "mission18-website-quality-9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+        "size": 88254294,
+        "digest": "sha256:4fe969a502a61ac888ea532a5a16d60d1f2d9479d12a8a6599a873ccf86a5681",
+        "expiresAt": "2026-11-13T17:00:02Z",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801763/artifacts/13522813487"
+      }
+    ]
+  },
+  "workflows": [
+    {
+      "id": 42256813239,
+      "name": "V3.65 Growth Command Centre checks",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256813239"
+    },
+    {
+      "id": 42256813156,
+      "name": "V3.70 Platform Autopilot checks",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256813156"
+    },
+    {
+      "id": 42256813405,
+      "name": "V3.64 private growth workspace checks",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256813405"
+    },
+    {
+      "id": 42256813312,
+      "name": "V3.63 coordinated editable growth checks",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256813312"
+    },
+    {
+      "id": 42256813166,
+      "name": "V3.66 voice and project Operator checks",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256813166"
+    },
+    {
+      "id": 42256813223,
+      "name": "V3.69 Founder Operations Security",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256813223"
+    },
+    {
+      "id": 42256803346,
+      "name": "Mission 16 original whole-site browser evidence",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256803346"
+    },
+    {
+      "id": 42256801763,
+      "name": "Mission 18 original Website intelligence and offline-fixture evidence",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801763"
+    },
+    {
+      "id": 42256801409,
+      "name": "Premium Website original-renderer browser evidence",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801409"
+    },
+    {
+      "id": 42256801585,
+      "name": "Private App goal composition and original authority verification",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801585"
+    },
+    {
+      "id": 42256801468,
+      "name": "Mission 17 original Website quality and iPhone review evidence",
+      "headSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801468"
+    }
+  ],
+  "dependencies": [
+    {
+      "number": 26,
+      "draft": true,
+      "state": "open",
+      "head": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+      "base": "codex/builder-mission14-intelligent-followups"
+    },
+    {
+      "number": 25,
+      "draft": true,
+      "state": "open",
+      "head": "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+      "base": "codex/builder-mission13-customer-conversations"
+    },
+    {
+      "number": 24,
+      "draft": true,
+      "state": "open",
+      "head": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+      "base": "codex/builder-mission12-connected-journeys"
+    },
+    {
+      "number": 23,
+      "draft": true,
+      "state": "open",
+      "head": "f9b11034449a8d401ea71afe27627c5715325c72",
+      "base": "codex/disposable-supabase-review"
+    },
+    {
+      "number": 21,
+      "draft": true,
+      "state": "open",
+      "head": "55db12d247b149aa2052fc17f5d5dc536a77b8a7",
+      "base": "codex/builder-mission11-shared-records"
+    }
+  ],
+  "providerCalls": 0,
+  "hostedMutations": 0,
+  "paidUsageGBP": 0,
+  "publication": false,
+  "approvedGoldStandards": 0,
+  "limits": {
+    "hostedAuthOrRlsAcceptance": false,
+    "realModelQualityProven": false,
+    "physicalDeviceAcceptance": false,
+    "exceptionalDesignAccepted": false
+  },
+  "auxiliaryMission17": {
+    "run": 42256801468,
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42256801468",
+    "workflowConclusion": "cancelled",
+    "job": 128026019463,
+    "jobConclusion": "cancelled",
+    "stage": "Install exact existing Playwright Chromium",
+    "source": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+    "captureExecuted": false,
+    "classification": "Environment-blocked/cancelled while installing Chromium after approximately25minutes; capture skipped. Underlying installer stall cause unverified.",
+    "logEvidence": [
+      "2026-11-06T16:55:29Z playwright install --with-deps chromium started",
+      "2026-11-06T17:20:23Z The operation was canceled."
+    ],
+    "countedAsPass": false
+  },
+  "workflowSummary": {
+    "passed": 10,
+    "cancelled": 1,
+    "pending": 0
+  },
+  "supersededRuns": [
+    {
+      "id": 42254759151,
+      "name": "Private App goal composition and original authority verification",
+      "source": "40b0d2a22745360969e56b3a83941b118f0b1a31",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42254759151"
+    },
+    {
+      "id": 42255706021,
+      "name": "Private App goal composition and original authority verification",
+      "source": "ee004b0ff01142c6f7ec5234389fcf5750ffa0c4",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42255706021"
+    },
+    {
+      "id": 42254759213,
+      "name": "Mission 16 original whole-site browser evidence",
+      "source": "40b0d2a22745360969e56b3a83941b118f0b1a31",
+      "attempt": 2,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42254759213"
+    },
+    {
+      "id": 42255705966,
+      "name": "Mission 18 original Website intelligence and offline-fixture evidence",
+      "source": "ee004b0ff01142c6f7ec5234389fcf5750ffa0c4",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42255705966"
+    }
+  ]
+}

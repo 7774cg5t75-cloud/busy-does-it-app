@@ -1,0 +1,85 @@
+name: Mission 19 expressive original Website and genuine browser evidence
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths:
+      - '.github/workflows/mission19-websites.yml'
+      - 'scripts/build-mission19-sites.mjs'
+      - 'scripts/capture-mission19-sites.mjs'
+      - 'scripts/lib/mission19-site-fixtures.mjs'
+      - 'scripts/lib/mission19-creative-fixtures.mjs'
+      - 'scripts/lib/mission19-typography-expectations.mjs'
+      - 'scripts/check-mission19-*.mjs'
+      - 'scripts/lib/mission19-review-pack.mjs'
+      - 'src/core/websiteCreativeDocumentReview.mjs'
+      - 'src/core/websiteDesignIntelligence.mjs'
+      - 'supabase/functions/_shared/websiteCreativeSpecification.mjs'
+      - 'src/core/wholeWebsitePlan.mjs'
+      - 'src/core/wholeWebsitePreview.mjs'
+      - 'src/components/WholeWebsiteReview.js'
+      - 'src/screens/guidedWebsiteCreation.js'
+      - 'scripts/lib/mission16-site-fixtures.mjs'
+      - 'scripts/fixtures/mission16-export/**'
+      - 'src/core/websiteStandaloneArchive.mjs'
+      - 'src/core/websiteZipArchive.mjs'
+      - 'src/domain/websiteManagement.js'
+      - 'src/domain/websiteBuilder.js'
+      - 'supabase/functions/busy-website-worker/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mission19-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  original-whole-site:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: Reviewed lock installation and dependency mitigation
+        run: |
+          npm install --global npm@11.9.0 --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/apply-tooling-security-patches.mjs
+          node scripts/check-dependency-security.mjs
+          python3 scripts/testing/bootstrap.py --allow-network
+      - name: Pin original before renderer and build approved fictional whole sites
+        run: |
+          BASELINE="$RUNNER_TEMP/busy-mission19-baseline"
+          mkdir -p "$BASELINE"
+          git cat-file -e 9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda^{commit}
+          git archive 9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda | tar -x -C "$BASELINE"
+          BUSY_MISSION19_BASELINE_ROOT="$BASELINE" node scripts/build-mission19-sites.mjs
+      - name: Install exact existing Playwright Chromium
+        run: node_modules/.bin/playwright install --with-deps chromium
+      - name: Genuine sandboxed all-page capture and objective checks
+        run: node scripts/capture-mission19-sites.mjs .test-artifacts/mission19-sites
+      - name: Preserve original PNGs, HTML, comparison sheets and provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mission19-website-quality-${{ github.sha }}
+          path: .test-artifacts/mission19-sites/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
+      - name: Compact iPhone review pack — actual screenshot evidence only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mission19-iphone-review-${{ github.sha }}
+          path: .test-artifacts/mission19-sites/iphone-review-pack/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 6

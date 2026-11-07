@@ -1,0 +1,1027 @@
+{
+  "phase": "Mission 15 Phase 11",
+  "branch": "codex/builder-mission15-design-advancement",
+  "draftPr": 26,
+  "startingRemoteSha": "56ba27f14683012477c9386f354603f0e63648de",
+  "testedRemoteSha": "29015cb85dc244857d80087644a38ada0ce9677a",
+  "testedLocalSha": "9ac91f2d55b38075a3d19bcc9fbc46231b36329a",
+  "identicalSourceTree": "da21f69735772bf9ce931a74b8d2011479f60f9f",
+  "evidence": "Offline original components/renderers/planners with inert native, transport and IO boundaries. Not browser/device/hosted acceptance.",
+  "commands": [
+    "python3 scripts/testing/bootstrap.py --offline",
+    "node scripts/testing/health.mjs",
+    "python3 scripts/testing/regressions.py --output .test-artifacts/phase11-final-source.json",
+    "node scripts/testing/syntax.mjs <20 changed JS/JSX/MJS files>",
+    "python3 scripts/testing/check-environment.py",
+    "node scripts/audit-architecture-v3195.mjs"
+  ],
+  "health": {
+    "ok": true,
+    "node": "v24.19.0",
+    "expectedNode": "24.19.0",
+    "npm": "11.9.0",
+    "expectedNpm": "11.9.0",
+    "tools": {
+      "ok": true,
+      "problems": [],
+      "lockSha256": "27d64370fa5d0efba6d5d7426b09e5cf92093ce14593848bb4bc92615e0f503d",
+      "packages": 51
+    },
+    "scriptResolution": true,
+    "jsxAndTypeScriptTransform": true,
+    "optional": {
+      "applicationInstall": false,
+      "expoRequested": "~57.0.23",
+      "reactNativeRequested": "0.86.3",
+      "playwrightRequested": "1.58.2",
+      "rootLockfile": false
+    },
+    "note": "Offline component fixtures are not Expo bundles, native/device acceptance or Deno type checking."
+  },
+  "startedAt": "2026-10-18T19:37:05.045305+00:00",
+  "finishedAt": "2026-10-18T19:38:05.748938+00:00",
+  "summary": {
+    "passed": 101,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "sourceChangedDuringFinalRun": false,
+  "workingTreeChangedAtStart": true,
+  "workingTreeNote": "Only new closeout documentation/ARCHITECTURE additions were uncommitted. Product/test source stayed identical to the tested tree throughout the final run.",
+  "syntax": {
+    "passed": 20,
+    "failed": 0,
+    "evidence": "Pinned Babel syntax parsing only; not Expo/Deno semantic checking."
+  },
+  "environmentPolicyTests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "architecture": {
+    "version": "v3.195",
+    "type": "offline-source-architecture-audit",
+    "sourceFiles": 1110,
+    "physicalLines": 147916,
+    "staticRelativeEdges": 2198,
+    "distinctStaticCycles": 0,
+    "cycleExamples": [],
+    "largest": [
+      {
+        "file": "src/app/AppController.js",
+        "lines": 17850,
+        "bytes": 703942,
+        "incoming": 1,
+        "outbound": 83
+      },
+      {
+        "file": "src/screens/miniApps.js",
+        "lines": 5314,
+        "bytes": 280654,
+        "incoming": 2,
+        "outbound": 83
+      },
+      {
+        "file": "supabase/functions/busy-mini-apps/index.ts",
+        "lines": 4603,
+        "bytes": 183295,
+        "incoming": 0,
+        "outbound": 37
+      },
+      {
+        "file": "src/screens/work.js",
+        "lines": 4239,
+        "bytes": 187573,
+        "incoming": 2,
+        "outbound": 4
+      },
+      {
+        "file": "src/screens/customers.js",
+        "lines": 1986,
+        "bytes": 83362,
+        "incoming": 2,
+        "outbound": 3
+      },
+      {
+        "file": "src/screens/websiteBuilder.js",
+        "lines": 1657,
+        "bytes": 98787,
+        "incoming": 2,
+        "outbound": 50
+      },
+      {
+        "file": "src/core/runtime.js",
+        "lines": 1641,
+        "bytes": 62417,
+        "incoming": 15,
+        "outbound": 1
+      },
+      {
+        "file": "src/screens/social.js",
+        "lines": 1595,
+        "bytes": 62875,
+        "incoming": 2,
+        "outbound": 4
+      },
+      {
+        "file": "supabase/functions/busy-website-publish/index.ts",
+        "lines": 1543,
+        "bytes": 52162,
+        "incoming": 0,
+        "outbound": 7
+      },
+      {
+        "file": "supabase/functions/busy-social-publish/index.ts",
+        "lines": 1525,
+        "bytes": 56830,
+        "incoming": 0,
+        "outbound": 0
+      },
+      {
+        "file": "src/screens/settings.js",
+        "lines": 1390,
+        "bytes": 61096,
+        "incoming": 2,
+        "outbound": 3
+      },
+      {
+        "file": "src/screens/home.js",
+        "lines": 1369,
+        "bytes": 61157,
+        "incoming": 2,
+        "outbound": 4
+      },
+      {
+        "file": "supabase/functions/busy-website-worker/index.ts",
+        "lines": 1282,
+        "bytes": 44891,
+        "incoming": 0,
+        "outbound": 7
+      },
+      {
+        "file": "src/screens/websitePublishing.js",
+        "lines": 1277,
+        "bytes": 66832,
+        "incoming": 2,
+        "outbound": 13
+      },
+      {
+        "file": "supabase/functions/busy-website-provider/index.ts",
+        "lines": 1197,
+        "bytes": 40539,
+        "incoming": 0,
+        "outbound": 0
+      },
+      {
+        "file": "supabase/functions/busy-command/index.ts",
+        "lines": 1094,
+        "bytes": 69902,
+        "incoming": 0,
+        "outbound": 0
+      },
+      {
+        "file": "src/screens/intake.js",
+        "lines": 916,
+        "bytes": 36861,
+        "incoming": 2,
+        "outbound": 3
+      },
+      {
+        "file": "src/domain/websitePublishing.js",
+        "lines": 813,
+        "bytes": 27329,
+        "incoming": 1,
+        "outbound": 3
+      },
+      {
+        "file": "src/domain/websiteBuilder.js",
+        "lines": 794,
+        "bytes": 39683,
+        "incoming": 4,
+        "outbound": 10
+      },
+      {
+        "file": "src/domain/customerJourney2.js",
+        "lines": 734,
+        "bytes": 24158,
+        "incoming": 1,
+        "outbound": 0
+      }
+    ],
+    "highestFanOut": [
+      {
+        "file": "src/app/AppController.js",
+        "imports": 83,
+        "lines": 17850
+      },
+      {
+        "file": "src/screens/miniApps.js",
+        "imports": 83,
+        "lines": 5314
+      },
+      {
+        "file": "src/screens/websiteBuilder.js",
+        "imports": 50,
+        "lines": 1657
+      },
+      {
+        "file": "supabase/functions/busy-mini-apps/index.ts",
+        "imports": 37,
+        "lines": 4603
+      },
+      {
+        "file": "src/screens/index.js",
+        "imports": 29,
+        "lines": 337
+      },
+      {
+        "file": "src/screens/founderOperations.js",
+        "imports": 14,
+        "lines": 446
+      },
+      {
+        "file": "scripts/check-website-completion-browser-v3152.mjs",
+        "imports": 14,
+        "lines": 104
+      },
+      {
+        "file": "src/domain/miniApps.js",
+        "imports": 13,
+        "lines": 400
+      },
+      {
+        "file": "src/screens/websitePublishing.js",
+        "imports": 13,
+        "lines": 1277
+      },
+      {
+        "file": "src/screens/websiteAppHandoffReview.js",
+        "imports": 12,
+        "lines": 232
+      }
+    ],
+    "limitations": [
+      "Static relative imports only; dynamic/aliased imports and runtime flows not included.",
+      "Physical code lines include comments and blanks but exclude ignored docs, assets and dependencies.",
+      "No claims about live data, auth, provider permissions, signed builds, device UX or real customer completion."
+    ]
+  },
+  "results": [
+    {
+      "id": "check-mission13-conversations",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS Mission 13 actual scoped follow-up adapter, published FAQ grounding, latest-message intent, original selection context, version reapproval, guest/closed/wait suppression and failed/foreign reads. Inert DB only; no messages sent.\n"
+    },
+    {
+      "id": "check-mission13-private-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS encrypted-storage boundary fixtures, explicit save, reconstructed helper restore, account/version/expiry checks, newer-draft preservation, corrupted-storage denial and actual async hook stale-typing/account guards. No OS encryption/device-restart claim.\n"
+    },
+    {
+      "id": "check-mission13-customer-surfaces",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.5,
+      "output": "PASS actual component navigation/selected states, revision-aware option reselection, real public HTML options without false handoff, multi-day non-UK/DST schedule wording and deployable contract parity. Hooks/DOM fixtures, no device/browser claim.\n"
+    },
+    {
+      "id": "check-mission13-communication-truth",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "(node:52612) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/mission13-git/src/domain/communicationsHub.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/mission13-git/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\nPASS existing Communications Hub distinguishes approval/draft/unsent/sending/failed/unknown from recorded sends, refuses delivery claims, suppresses uncertain duplicate contact and respects contact revocation. Pure projections, no provider calls.\n"
+    },
+    {
+      "id": "check-mission12-content-enquiry",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12,
+      "output": "PASS Mission 12 item/option context, stale/cancelled/foreign rejection, authenticated handoff, secure retry continuity, real trusted submit/sanitisation and replay; DB/provider boundaries are inert fixtures.\n(node:52619) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "id": "check-mission12-builder-reuse",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS guided contact/FAQ preparation, typed/voice atomic FAQ editing, exact Undo, locks, additive bidirectional reuse, conflict preservation, scope/revision and shared trusted planner parity. Pure functional tests; no publication.\n"
+    },
+    {
+      "id": "check-mission12-intent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "PASS one shared capability-intent interpretation across universal plans, App Builder and customer advice: exclusions, lists, contradictory requests, dependency conflicts and unfamiliar businesses. No provider/model calls.\n"
+    },
+    {
+      "id": "check-mission12-live-form-logic",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS actual customer form logic: selected context, navigation/remount, unchanged submission, cleared completion; saved-record approval guard and actual controller FAQ apply. Hooks/transport are inert fixtures, no JSX/device claim.\n"
+    },
+    {
+      "id": "check-mission12-public-handoff",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.14,
+      "output": "PASS real public HTML option/link handlers and actual Edge handoff route: exact app/version pins, selected item/revision/option, unexpected/duplicate query and disabled-action rejection. DOM/DB fixtures; no browser or deployed claim.\n(node:52647) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "id": "check-mission12-record-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS actual record editor logic -> trusted adapter: exact saved-form approval, unsaved and stale-revision blocking, save/publish sequence and non-destructive refresh. Hooks/DB are fixtures; no native render claim.\n"
+    },
+    {
+      "id": "check-mission12-standalone-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS actual standalone form logic: selected context, typed fields, pending navigation, success receipt continuity, no implicit duplicate and stale listing rejection. Hooks/transport fixtures, no native rendering or live service claim.\n"
+    },
+    {
+      "id": "check-mission11-records",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual trusted product/event adapter: owner scope, durable row mutations in DB fixture, stable IDs, draft/approval separation, exact CAS/Undo, uncertain writes, cancellation, currency and DST validation. No hosted/Postgres claim.\nPASS option-currency approval, bounded owner list without history disclosure and image permission recheck at public approval.\n"
+    },
+    {
+      "id": "check-mission11-intelligence",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS existing universal planner prepares exact product/event requests, structured currency amounts and cancellation, rejects unsupported actions, validates options and distinguishes record presentation from payments/live proof.\n"
+    },
+    {
+      "id": "check-mission11-public-views",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS actual public Website loader/DOM mount: current deployment scope, shared approved event revisions, cancellation on refresh, stale-source rejection and clearing unavailable data. DOM/database fixtures; no browser/hosted claim.\nPASS inherited pending-App compatibility correction: only the exact current live version remains available; preview/mismatched versions rejected.\n"
+    },
+    {
+      "id": "check-app-goal-content",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: goal-specific missing questions, real Studio proposal/inverse, exact custom service preservation, lock/tenant/hostile-field rejection and incomplete booking-content gating.\n"
+    },
+    {
+      "id": "check-app-goal-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "output": "PASS: task-aware bounded editing, unavailable-task suppression, owner locks, shared server parity and preview component wiring/syntax. No real devices tested.\n"
+    },
+    {
+      "id": "check-app-goal-decisions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: task-ranked choices, unrelated gallery suppression, absent/unapproved content blockers, new static advisory rejection and both website tenant aliases. No real-world outcome claims.\n"
+    },
+    {
+      "id": "check-app-builder-dual-track-v3153",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "V3.153 APP PATHS PASS: marketplace and private standalone planning, 13 businesses, catalogue restrictions, verified-billing gate, external costs, no confirmed bookings, no app-store submission.\n"
+    },
+    {
+      "id": "check-mission10-information-reuse",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: same-business current-source FAQ/testimonial reuse, missing-only policy, existing custom content preservation, stale confirmation rejection and explicit fact-conflict approval.\n"
+    },
+    {
+      "id": "check-mission9-builder-language",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: shared quote-aware builder clauses, real coordinated App copy/contact proposals with exact inverse, safe negation/ambiguity/unsupported action rejection and Website literal-copy preservation. No transcription or AI call.\n"
+    },
+    {
+      "id": "check-mission10-public-information",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.14,
+      "output": "PASS: FAQs/testimonials exact sparse Undo, locks, rebuild retention, bounded public allowlist, immutable live-only projection and trusted parity.\nPASS actual owner collection editor prepares Studio operation and actual Website rebuild retains owner testimonial collection. Inert React/native boundary.\nPASS actual trusted App batch handler: owner approval, exact App/business/revision predicates, finite collection edit, private receipt and raced-write rejection. Database fixture, not hosted RLS proof.\n"
+    },
+    {
+      "id": "check-mission10-service-details",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "PASS: actual Studio richer service/menu labels, exact Undo, unknown/unsafe field rejection, public projection and category search without checkout or availability authority.\n"
+    },
+    {
+      "id": "check-owner-outcome-v3235",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.231: 11 genuine JWT/tenant scenarios prepared, NOT run; hosted staging unchanged.\nV3.233: staged booking acceptance prepared with 11 unverified real-world scenarios. No remote writes.\nV3.234: 12 additional owner/customer follow-up acceptance cases prepared; NONE executed remotely.\nV3.235 staging outcome acceptance: 42 genuine scenarios still NOT VERIFIED. Zero hosted actions.\nV3.235: 251 exact tenant readback, saved outcome truth, code health and owner UI assertions passed.\n"
+    },
+    {
+      "id": "check-communications-v3205",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "V3.205 124 scoped owner-inbox, atomic reply recovery, provider evidence and no resend assertions PASS.\n"
+    },
+    {
+      "id": "check-customer-journey-v3204",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.204 96 receipt isolation, ambiguous submission recovery, Business Brain evidence and no-live-side-effects contracts PASS.\n"
+    },
+    {
+      "id": "check-mission9-reply-continuity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.26,
+      "output": "PASS: actual owner/customer sends stop after account/workspace changes, retain pending identity and suppress stale cleanup; original encrypted message retry preparation serialises and cannot clear a newer key. No message sent.\nPASS: actual conversation form retains newer typing after a successful earlier reply and is keyed by account/workspace/role/request. Native effects inert.\n"
+    },
+    {
+      "id": "check-mission9-request-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.04,
+      "output": "PASS: encrypted opaque request references, restart/key-order continuity, changed/version conflicts, concurrent remounts, strict provenance/corrupt-record preservation and write failures. Fake secure storage only.\n"
+    },
+    {
+      "id": "check-message-integrity-v3185",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "V3.185 61 durable retry, outbox evidence and wiring assertions PASS.\n"
+    },
+    {
+      "id": "check-builder-intelligence-v3240",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.240: 118 app goal/design, Brand DNA, responsive evidence, private approvals, tenant and revision assertions passed.\n"
+    },
+    {
+      "id": "check-mission14-contextual-replies",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS actual same-tenant read adapter and owner proof: original listing context across replies, exact option/revision price, changed/missing/cancelled denial, live service facts and event schedules. Inert DB; no messages, bookings or provider claims.\n"
+    },
+    {
+      "id": "check-mission14-content-intelligence",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.82,
+      "output": "PASS enquiry-to-private-editor recommendations, 3-record threshold/tenant/time/dedup/privacy gates, canonical context exclusion, actual app/website preparation and multi-clause FAQ add/edit/remove with exact Undo/locks. Inert hooks; no publication.\n"
+    },
+    {
+      "id": "check-mission14-experience-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.36,
+      "output": "PASS actual marketplace and standalone category filtering, customer-only layout clarity, stale website revision retention/approval, strict encrypted draft schema and extracted fields -> original enquiry submit handler. Inert component/native/transport boundaries.\n"
+    },
+    {
+      "id": "check-standalone-native-v3154",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.154 NATIVE ELIGIBILITY PASS: server evidence, native schema, no false bookings, no billing or store submission.\n"
+    },
+    {
+      "id": "check-mission15-editing-preview",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "Mission15: canonical promoted preview, relative section navigation, grouped private edits, stale/lock/overlap safety PASS\n"
+    },
+    {
+      "id": "check-mission15-app-services",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS literal service preparation -> original validated Studio operations -> shared customer browse, relative navigation, exact Undo, locks/parity/unsupported paths. No hosted acceptance.\n"
+    },
+    {
+      "id": "check-mission15-design-candidates",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS original builder renders structurally distinct reviewed composition with atomic stale/tenant/lock guards and owner rejection; HTML evidence only.\n"
+    },
+    {
+      "id": "check-mission15-coherence",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS selected-element premium/relative transaction, shared-service conflict review and measured text-coverage regression gates; synthetic counters, no screenshot claim.\n"
+    },
+    {
+      "id": "check-website-page-instructions-v3149",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.149 PAGE PLAN PASS: exact named multi-section atomic changes, private preview, no cross-tenant or stale edits.\n"
+    },
+    {
+      "id": "check-website-context-plan-v3147",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.52,
+      "output": "V3.147 CONTEXT PASS: safe multi-step selected edits, literal 'and' text, atomic rollback, stale rejection, one Undo and no publishing.\n"
+    },
+    {
+      "id": "check-website-context-v3140",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.140 CONTEXT PASS: 43 selection, no-guess grammar, private changes, individual headings, rebuild and safety assertions.\n"
+    },
+    {
+      "id": "check-website-measured-coach-v3144",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "V3.144 COACH PASS: measured suggestions, unchanged/worse rejection, preview-only candidate, explicit draft feedback, no global training or publishing.\n"
+    },
+    {
+      "id": "check-website-coordinated-alternatives",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS: real coordinated renderer, content/colour/public-state preservation, no partial mutation, bounded finite operations, lock and owner-feedback rejection. No browser screenshot evidence.\n"
+    },
+    {
+      "id": "check-mission7-website-decisions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: measured partial progress, no hidden-content improvement, valid geometry, owner preference ordering and content-problem-first design hypotheses. Fixture reports, not browser evidence.\n"
+    },
+    {
+      "id": "check-major-builders-v3195",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.49,
+      "output": "V3.195 166 same-tenant, private Brand DNA, channel planning and architecture/refactor regressions PASS.\n"
+    },
+    {
+      "id": "check-mission15-phase2-copy",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.49,
+      "output": "PASS actual page copy + appearance transaction, quoted conjunctions, visible owner-written FAQ, original controller runtime/history/tenant/stale guards; offline renderer, no device claim.\n"
+    },
+    {
+      "id": "check-mission15-phase2-responsive",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS scoped phone reading through actual builder HTML, immutable content/theme, shared hosted/export classes, locks and no-op guards. CSS/source evidence, not browser measurement.\n"
+    },
+    {
+      "id": "check-mission15-phase2-services",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.7,
+      "output": "PASS actual service editor add/update, invalidated preview, retained conflict text, stable-ID rebase, removed target, exact Undo and live busy protection. Inert UI hooks only.\n"
+    },
+    {
+      "id": "check-mission15-phase2-measured-reading",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS synthetic small-text observation -> validated current-section candidate -> real first-party HTML; owner locks/preferences and regression gates. No browser measurements claimed.\n"
+    },
+    {
+      "id": "check-mission15-phase2-request-intent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 1.95,
+      "output": "PASS real marketplace service action -> original parent intent/fields -> original request submit for enquiry and booking request; inert transport, no real customer send.\n"
+    },
+    {
+      "id": "check-mission15-phase2-transfer-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.83,
+      "output": "PASS actual bidirectional transfer and service-copy reviews hide stale proposals synchronously and reject old callbacks before original apply/preview; inert component hooks, no hosted claim.\n"
+    },
+    {
+      "id": "check-app-studio-session",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS: Studio approval/undo lifecycle, exact receipt binding, duplicate actions, uncertain undo block, actor changes and unmount cancellation. Simulated service only.\n"
+    },
+    {
+      "id": "check-app-studio-checkpoint",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS: encrypted checkpoint contract, restart proposal/undo, exact revision/actor binding, durable-before-write intent, no replay, unavailable storage, bounded records and serialized native writes. Simulated storage/transport only.\n"
+    },
+    {
+      "id": "build-website-design-gallery-v3100",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "01-gardening-minimal: minimal / focused-landing / 1 page(s)\n02-exterior-cleaning: editorial / focused-landing / 1 page(s)\n03-catering-story: artisan / multi-page / 4 page(s)\n04-wellness-boutique: minimal / focused-landing / 1 page(s)\n05-professional-editorial: editorial / multi-page / 4 page(s)\n06-coastal-cleaning: conversion / focused-landing / 1 page(s)\n07-village-cleaning: editorial / focused-landing / 1 page(s)\n08-city-cleaning: conversion / focused-landing / 1 page(s)\n09-traditional-cleaning: minimal / focused-landing / 1 page(s)\nSaved 9 offline demonstration websites in /tmp/busy-mission15-phase2-gallery\n"
+    },
+    {
+      "id": "check-builder-visual-receipt-v3238",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "V3.238: 40 source-only browser receipt, provenance, screenshot, rollout and owner approval checks passed.\n"
+    },
+    {
+      "id": "check-mission15-phase3-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.8,
+      "output": "PASS universal composition + reviewed same-business Brand DNA -> original layout/HTML operations, explicit UI review, immutable content, owner order/locks and stale source gates. No measured visual claim.\n"
+    },
+    {
+      "id": "check-mission15-phase3-content-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.65,
+      "output": "PASS bounded exact public content diff and actual comparison UI for service rename/removal, FAQ answers, no-op, pagination and private/malformed data exclusion. No native visual claim.\n"
+    },
+    {
+      "id": "check-mission15-phase3-gallery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS literal coordinated approved-gallery accessibility editing, exact public text review, sparse Undo, media identity, locks, duplicate/unsupported rejection and client/server parity. No media retrieval or visual claim.\n"
+    },
+    {
+      "id": "check-mission15-phase3-language",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS coordinated literal service rename/order/removal with IDs/Undo/locks/parity and multiple owner-written website sections through original transaction/rendering. No publishing.\n"
+    },
+    {
+      "id": "check-mission15-phase3-studio-recovery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.28,
+      "output": "PASS uncertain Studio save barrier, no replay/discard bypass, original-revision refusal, encrypted-phase restart, newer read-only recovery without inferred Undo/attribution, actor cancellation and actual controller read adapter. Inert storage/transport.\n"
+    },
+    {
+      "id": "check-mission15-phase4-app-capabilities",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.33,
+      "output": "PASS original content-layout private edits with exact Undo/featured identity/locks, shared catalogue recommendation guards, duplicate and missing-capability rejection, owner-content prerequisites and client/server parity. No live capability claim.\n"
+    },
+    {
+      "id": "check-mission15-phase4-requirements",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.27,
+      "output": "PASS actual enquiry form -> original submit payload, structured requirement limits, interrupted-edit protection and original scoped encrypted checkpoint boundary. Inert transport/storage, no device/hosted claim.\n"
+    },
+    {
+      "id": "check-mission15-phase4-website-spacing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS original coordinated page transaction/rendered HTML for phone/desktop spacing, scoped finite CSS, original branding, no mutation/partial lock bypass, duplicate/no-op guards. Source/HTML evidence, no browser layout measurement.\n"
+    },
+    {
+      "id": "check-mission15-phase5-approved-records",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.91,
+      "output": "PASS original scoped editor read -> approved-only snapshot -> existing planner/Studio composition and exact Undo; freshness/tenant/lock/exclusion gates, draft exclusion and actual hook account-epoch protection. Inert read boundary; no hosted acceptance.\n"
+    },
+    {
+      "id": "check-mission15-phase5-catalogue-editing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS real website catalogue layout/title transaction preserving destination styling/featured identity, original locks/HTML/preview and coordinated app record order with exact Undo and parity. No browser/hosted claim.\n"
+    },
+    {
+      "id": "check-mission15-phase5-enquiry-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.41,
+      "output": "PASS actual marketplace review/correction, exact sanitized payload, zero sends before confirmation, stale callback/account rejection, simultaneous confirmation guard and newer edit preservation. Original transport is inert.\n"
+    },
+    {
+      "id": "check-mission11-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.67,
+      "output": "PASS actual App/Website composition: bounded blocks, exact Undo, locks, atomic voice planning, preserved copy, generated pages/HTML and regeneration retention. No publication.\n"
+    },
+    {
+      "id": "prepare-standalone-prototype-v3154",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "V3.154 OFFLINE EXPO PROTOTYPE READY: /workspace/mission13-git/.tmp/standalone-prototype-v3154\nNo signing, customer data, EAS project, store submission or provider charges.\n"
+    },
+    {
+      "id": "check-mission15-phase6-booking-review",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.36,
+      "output": "PASS actual marketplace + standalone booking review/correction, exact request payload, no pre-confirm send, changed review invalidation, immediate duplicate guard, newer edit retention and shared policy parity. Inert IO; no confirmed appointment claim.\n"
+    },
+    {
+      "id": "check-mission15-phase6-hero-composition",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS actual canonical hero composition/HTML, coordinated alternatives, mobile fallback source, content/brand/order/lock preservation, gallery-only typography and rejected-image guards. No screenshot or measured aesthetic claim.\n"
+    },
+    {
+      "id": "check-distinct-website-designs-v3101",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "V3.101 PASS: 257 distinct per-business styles, repeatable edits, safe user overrides and truthful design review checks\n"
+    },
+    {
+      "id": "check-website-layout-v3134",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "output": "V3.134 WEBSITE LAYOUT PASS: 102 private section, HTML, custom homepage, photo provenance, CSS, atomic commands, and release-safety assertions\n"
+    },
+    {
+      "id": "check-mission8-shared-request-entry",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 3.46,
+      "output": "(node:54612) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/mission13-git/standalone/template/nativeGuestRequests.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/mission13-git/standalone/template/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\nPASS: shared standalone/marketplace request validator, no silent field truncation, approved service selection and preferred-date submission through actual marketplace form at narrow/tablet logical widths. No native/provider verification.\n"
+    },
+    {
+      "id": "check-mission15-phase7-visual-movement",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS: canonical rendered ordering, source/locks/page guards, pointer drop/cancel/blur, keyboard alternative and one-shot save; inert DOM only.\n"
+    },
+    {
+      "id": "check-mission15-phase7-typography",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.85,
+      "output": "PASS finite typography choices, local/hosted original rendering, reload, per-field reset, Brand DNA/locks, exact selected transactions/Undo/stale checks and actual contextual choices; inert IO only.\n(node:54952) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "id": "check-mission15-phase7-app-selection",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.22,
+      "output": "PASS actual native header/navigation selection and outlines, original Studio typography/spacing/reorder proposals, no draft mutation, busy/lock controls and public interaction exclusion. Inert hooks/IO, not device acceptance.\n"
+    },
+    {
+      "id": "check-website-section-styling-v3139",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12,
+      "output": "V3.139 PASS: section-specific design, source/hosted style parity, media controls, repeatable revisions, private undo/redo, regeneration and no raw CSS.\n(node:55144) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "id": "check-mission15-phase7-reviewed-request",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.62,
+      "output": "PASS original signed-in handler rejects new stale/foreign review, preserves free-text/legacy contracts and reconciles saved idempotent requests before version gating. Inert DB only.\nPASS original client binds exact reviewed IDs, releases definitive no-write reference, retains uncertain retry key and rejects unsupported old backend before sending. Inert transport/store only.\n"
+    },
+    {
+      "id": "check-mission15-phase7-card-colours",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.21,
+      "output": "PASS exact card typography/colour and reset preservation, local/hosted render parity, locks/finite inputs, selected compound edit and calculated 4.5:1 accent contrast on supported canonical backgrounds. No screenshot/aesthetic claim.\n(node:55164) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "id": "check-mission15-phase7-page-movement",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual owner-page relative movement reuses original page operations, source-bound selected plan, real HTML order, reload, independent home, locks and atomic rejection. Offline only.\n"
+    },
+    {
+      "id": "check-website-pages-v3135",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.135 PAGES PASS: 55 owner pages, nested routes, real previews, SEO, atomic preservation, portability and no secrets\n"
+    },
+    {
+      "id": "check-website-tap-editor-v3138",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "V3.138 PASS: local tap selection, real HTML markers, strict scope, safe photo controls, native history and no implicit publication.\n"
+    },
+    {
+      "id": "check-mission15-phase8-quality",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "output": "PASS safe/advisory/critical distinctions, nonblocking owner preference, actual private commit scope/locks, shared app plans and trusted website/app pre-publication rejection before inert IO. No geometry/device/hosted claim.\n(node:55192) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "id": "check-mission15-phase8-sizing",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS actual finite paragraph/viewport and button size operations, original selected transaction, local HTML/CSS, reload, owner locks and preserved real action. Static renderer evidence, not measured browser geometry.\n"
+    },
+    {
+      "id": "check-mission15-phase8-service-questions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS bounded public-service questions, original preparation/validation/exact review, actual marketplace replacement/stale/account callbacks and standalone permission/scoped-draft callbacks. Inert state and transport boundaries; not native/device or hosted acceptance.\n"
+    },
+    {
+      "id": "check-mission15-phase8-website-suggestions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS original website candidate, finite advisory amendment, preserved quoted wording, original static rendering, locks/stale rejection and actual UI preview-only callback. Inert state boundary; no browser/native or hosted acceptance.\n"
+    },
+    {
+      "id": "check-mission15-phase9-studio-selection",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.25,
+      "output": "PASS actual App Studio service/gallery selection, original proposals/Undo, inline draft wording, stale callbacks/source conflict preservation, locks and public-action exclusion. Inert native/IO boundaries, not device acceptance.\n"
+    },
+    {
+      "id": "check-mission15-phase9-service-details",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.19,
+      "output": "PASS shared actual service detail summary/expansion, published-content refresh and stale callback preservation, owner facts without transaction promises, original marketplace enquiry/booking actions and export inclusion. Inert native/IO boundaries.\n"
+    },
+    {
+      "id": "check-mission15-phase9-browser-policy",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.04,
+      "output": "PASS actual browser launch policy uses sandbox and propagates startup failure without fallback; optional existing-version registry/integrity/license lock. Injected launch only, no Chromium executed.\n"
+    },
+    {
+      "id": "check-mission15-phase10-selected-images",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.27,
+      "output": "PASS actual selected-image controls, approved URI/raw-index binding, original description/reorder and exact Undo, JSON reload rendering, source conflicts, locks and public editor exclusion. Inert native/IO boundaries; no device or hosted claim.\n"
+    },
+    {
+      "id": "check-mission15-phase10-website-toolbar",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.83,
+      "output": "PASS actual compact typography controls, paragraph-to-heading recovery, stale choice exclusion, phone heading operation/render/reload and original contextual stage/preview/explicit private commit. Inert native/IO; no device geometry or screenshot claim.\n"
+    },
+    {
+      "id": "check-mission15-phase10-selected-instructions",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.77,
+      "output": "PASS existing selected parser/Studio operations, scoped image/text/style requests, honest gallery-wide size, exact Undo, unsupported/locked/stale denial and actual typed/voice adapter callbacks. Provider is an inert counter, no audio/customer/network action.\n"
+    },
+    {
+      "id": "check-mission15-phase10-gallery-parity",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.19,
+      "output": "PASS extracted original marketplace gallery, 20 palette solid-background contrast calculations, responsive/image observations, no public edit controls and exact standalone renderer caption/alt parity. Inert native/IO; not screenshot or accessibility certification.\n"
+    },
+    {
+      "id": "check-app-context-editor-v3155",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.155 CONTEXT EDITOR PASS: marketplace safe, typed selected-element instructions and one protected private revision.\n"
+    },
+    {
+      "id": "check-mission7-app-intent",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS: negation/ambiguity and external-intent rejection, shared voice parity, exact-source appearance/reorder approvals and valid selected App voice binding.\n"
+    },
+    {
+      "id": "check-app-voice-layout-v3156",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.81,
+      "output": "V3.156 APP VOICE/ORDER PASS: owner scope + finite 12/day voice allowance; one-step reversible section reorder shared by native and marketplace, never live.\n"
+    },
+    {
+      "id": "check-mission15-phase11-selected-services",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.42,
+      "output": "PASS original service selection -> scoped wording/order -> Studio proposals, locks, stale callback/source rejection, JSON reload, exact Undo and public enquiry/request actions. Inert native/IO boundaries; no device/hosted claim.\n"
+    },
+    {
+      "id": "check-mission15-phase11-website-pictures",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.93,
+      "output": "PASS actual website picture toolbar -> original preview/explicit commit, rendered/reloaded crop, source-bound callbacks and old wording-save exclusion. Inert native/IO, no browser screenshot or touch acceptance.\n"
+    },
+    {
+      "id": "check-mission15-phase11-brand-controls",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.32,
+      "output": "PASS 221 custom seeds + curated palettes on supported solid backgrounds, real palette/renderer parity, compact scoped controls, selected natural instruction, original Undo, JSON reload, source/branding locks and preserved actions. No screenshot/device certification.\n"
+    },
+    {
+      "id": "check-app-visual-comparison-v3161",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "V3.161 PASS: 3-change private batch, reversible approvals, two local captures, opt-in single-metered AI comparison, real native palette contrast and accessibility checks.\n"
+    },
+    {
+      "id": "check-major-builders-v3193",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.3,
+      "output": "V3.193 309 palette, owner branding, trusted validation, cross-builder, contrast and native service journey assertions PASS.\n"
+    },
+    {
+      "id": "check-mission15-phase11-selected-faq",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 2.49,
+      "output": "PASS actual selected FAQ controls and contextual instructions, exact original list operation/Undo, identifiers and other answers, copy locks, stale source, duplicate/content bounds, public editor exclusion and standalone approved projection parity. Inert IO/native, no hosted/device claim.\n"
+    }
+  ],
+  "sourceFiles": {
+    "scripts/check-app-visual-comparison-v3161.mjs": "b8a34748ece9970823b0529d66752f2e3bf0eee8d41f5215afcdda709bfe817e",
+    "scripts/check-major-builders-v3193.mjs": "4fd45775e0a13a97438e3677d138f3197535c42aebbd31afb9582de05baf511c",
+    "scripts/check-mission15-phase11-brand-controls.mjs": "61a0396d622f9b31f47dd8a8c6df9814f1fb28f8b721c9683be3adc14cee3980",
+    "scripts/check-mission15-phase11-selected-faq.mjs": "029b4f23154f13734b23231b8e8ec82bf9e87cb77d133a1a95afc73127cbc0c2",
+    "scripts/check-mission15-phase11-selected-services.mjs": "5bd3b22a19ee89f3578144c6df3fca291ea0dd071386b86485ac06c1933d856d",
+    "scripts/check-mission15-phase11-website-pictures.mjs": "67b27d40df753bc62fa21b561b27e4d9378ffd41138b395ca7bb526c58cfa473",
+    "scripts/testing/regressions.json": "3cb21cb8e2999007ca7d640d3a55c4163bcdb20d064a099454c4c1e2e15e9980",
+    "src/core/appContextInstruction.mjs": "f2f95a88c8f14b6b312e0aecbfa129947e2f67cc8a752b4f96b010115d357c20",
+    "src/core/appContrastAudit.mjs": "3799eefb3564ad8542c68f3f41c3f826d8b18ba40813da07ba9d07e1eca7050e",
+    "src/core/appSelectedFaq.mjs": "670e5ee08b55627310d181b8d4917ff4c4bb69bfc5acc84cf350f84549e243e4",
+    "src/core/appSelectedService.mjs": "8bd833a010aeca20b88416087f67432185f4261e0aa156d55376121fa5305e17",
+    "src/core/nativePalette.mjs": "a2baa714e1c17901874f654126313bf7c25f5f33bf6b33433aca6776803112f2",
+    "src/screens/appEntryEditButton.js": "b8f7c30ac90ea62f34e4efeee0663f368b36f44ff0414115186c8cb64acf13d5",
+    "src/screens/appSelectedBrandControls.js": "5d8855dd8394290ef9cba9a02c716ae43f6b40ebc5c3937f7dbe223911a85808",
+    "src/screens/appSelectedFaqControls.js": "ad93b6ca44520db32a80b2b07cd066862370cbb68517fe051c00bbfc60368ff2",
+    "src/screens/appSelectedInstruction.js": "85ab9b0acc8f78e5cb4897ea6e5a2126f0704f5c84bd3838482c8f959c6e3108",
+    "src/screens/appSelectedServiceControls.js": "b9d3ea96e31a6778c66e1201b3b97fcc7772020b4a6251be120a41873de74f57",
+    "src/screens/appVisualSelection.js": "67b88892b93cf361a867e8b63c7039b22ee817da5b5cc3bfabcffa5f19398e9c",
+    "src/screens/miniApps.js": "f5a11d4d566d746953b541b5835a6f26463a41f8837d5e932985e490165d0aa7",
+    "src/screens/websitePhotoControls.js": "a2f6615c7a674f834fa7385da0d20bf43bd9e49f890649a5f720fb7ecc38951c",
+    "src/screens/websiteTapEditor.js": "b4ff1f9a88e11b243f3e9ce2d01643c63a8e6bfe18258647a3a142e2a24a2108"
+  },
+  "remoteCheckpoints": [
+    "f3230ff33cb0dc1410c8055bcadbe3dd5c65f0df",
+    "51d00e1f99739fc4024c2a6748b910a5358373fa",
+    "d5a83619af70b500fe3ef35aad087eda67e67a8d",
+    "6b772e622698676921b294fbce91d138cce5f169",
+    "242f674cf0eba7ef14902947c55272dfd8dd2e6e",
+    "4536cf01ba113ed6045948402c432203da4c88a2",
+    "29015cb85dc244857d80087644a38ada0ce9677a"
+  ],
+  "dependencies": {
+    "25": "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+    "24": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+    "23": "f9b11034449a8d401ea71afe27627c5715325c72",
+    "21": "55db12d247b149aa2052fc17f5d5dc536a77b8a7"
+  },
+  "limitations": [
+    "No normal-sandbox browser or physical-device execution",
+    "No Expo/RN installation or root runtime lock",
+    "No Deno semantic or hosted Auth/RLS/provider acceptance",
+    "No arbitrary per-element App fonts/RGB/coordinates/native drag",
+    "Palette checks apply to supported solid backgrounds only"
+  ],
+  "externalSpendingGBP": 0,
+  "workflowDispatched": false,
+  "deployments": false,
+  "hostedDatabaseAccess": false
+}

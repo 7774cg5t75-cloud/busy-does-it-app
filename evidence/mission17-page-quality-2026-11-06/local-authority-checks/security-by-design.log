@@ -1,0 +1,5 @@
+(node:255619) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/busy-connected-recovery/src/domain/websiteBuilder.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/busy-connected-recovery/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS original Auth expiry/in-flight revocation, no refresh persistence, finite transport tool denial, five malicious enquiry data fixtures, original website XSS escaping and unsafe media denial. No LLM, JWT or hosted acceptance claimed.

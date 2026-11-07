@@ -14,7 +14,7 @@ const CONTEXT=new Set(["signed_in_submission","signed_in_receipt","guest_submiss
 const fail=(reason)=>({ok:false,reason,verifiedSaved:false,
  independentDiaryVerification:false,externalDeliveryVerified:false,
  shouldRetryCreate:false});
-function evaluateStoredRequestProof({request=null,link=null,businessId="",
+function evaluateStoredRequestProof({request=/** @type {{id:string,business_id:string,mini_app_id:string,request_type:string,status:string,request_origin:string,consumer_user_id?:string|null}|null} */ (null),link=/** @type {{request_id:string,business_id:string,bridge_state:string}|null} */ (null),businessId="",
  appId="",requestId="",context=""}={}){
  if(!CONTEXT.has(context)||!UUID.test(businessId)||!UUID.test(appId)||
    !UUID.test(requestId)||!request||typeof request!=="object"||

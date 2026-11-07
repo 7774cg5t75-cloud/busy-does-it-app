@@ -19,7 +19,7 @@ const plan=planWebsitePageInstructions(d,{...opts,instruction:sentence});
 assert.equal(plan.ok,true,plan.reason);
 assert.equal(plan.steps.length,4);
 assert.deepEqual(plan.steps.map(x=>x.change.field),[undefined,"mobileHeadingScale","desktopGallerySize","sectionSpacing"]);
-assert.equal(MAX_STEPS,5);
+assert.equal(MAX_STEPS,10);
 const safeLayout=(draft,change)=>{
  const next=applyWebsiteLayoutOperation(draft,change);
  return next.applied?{...next,draft:{...next.draft,generation:draft.generation+1}}:next;

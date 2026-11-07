@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {newsletterEditorDifferences} from '../src/core/newsletterAccountReadback.mjs';
+import {privateReplyCatalogueChanges} from '../src/core/privateReplySourceEvidence.mjs';
+const fixture=createRequire(import.meta.url)('./lib/content-preparation-fixture.cjs'),business='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const record={id:'newsletter',status:'Draft',text:'Subject: Saved\n\nSaved body',brief:'',photos:[],channels:[],contentEvidence:{businessId:business,channel:'newsletter'}};
+const current=text=>({text,brief:'',photos:[],channels:{},sourceContext:{contentEvidence:record.contentEvidence}});
+assert.deepEqual(newsletterEditorDifferences(current('Subject: New\n\nSaved body'),record),['subject']);
+assert.deepEqual(newsletterEditorDifferences(current('Subject: Saved\n\nNew body'),record),['body']);
+assert.deepEqual(newsletterEditorDifferences(current('Subject: Saved\nSaved body'),record),['subject/body spacing']);
+assert.deepEqual(newsletterEditorDifferences(current(record.text),record),[]);
+const item={rawText:'Listing reference: product_bowl / approved revision 1.'};
+const prepared=currency=>({businessId:business,selection:{recordId:'product_bowl',revision:2},recordStamp:JSON.stringify({id:'product_bowl',kind:'product',revision:2,data:{name:'Bowl',amountMinor:1000,currency}})});
+assert.ok(privateReplyCatalogueChanges({businessId:business,item,provenance:prepared('GBP'),current:prepared('EUR')}).includes('price currency'));
+assert.ok(privateReplyCatalogueChanges({businessId:business,item,provenance:prepared('GBP'),current:{...prepared('EUR'),businessId:'foreign'}}).includes('cannot be verified'));
+// Actual account component and original source hook: source failure must not claim matching account.
+const f=fixture({approvedProfile:{businessId:business,fingerprint:'first',businessName:'Elm',description:'Studio.'}});f.render();f.actions.prepare('','','','owner-announcement','Owner terms.','standard',false,'newsletter');f.render();f.actions.accept(f.data.sourceContext.pendingContentIdea,f.actions.capture());f.render();
+const saved={...record,text:f.data.text,contentEvidence:f.data.sourceContext.contentEvidence};f.data.records=[saved];f.data.selectedDraftId=saved.id;f.data.photos=[];f.data.brief='';f.data.channels={};f.render();
+const {NewsletterAccountReadback}=f.rt.load('src/components/NewsletterAccountReadback.js');let opens=0;
+const panel=()=>f.rt.render(NewsletterAccountReadback,{s:{...f.state(),cloudRevision:3,readPrivateContentAccount:async()=>({ok:true,businessId:business,revision:4,payload:{socialDrafts:[{...saved,text:'Subject: Different\n\nAccount words'}]}}),openSocialDraft:()=>{opens++;return true;}}});
+await f.find(panel(),'Check newsletter account copy').props.onPress();let tree=panel();assert.ok(JSON.stringify(tree).includes('subject; body'));
+f.data.approvedProfile={...f.data.approvedProfile,fingerprint:'corrected',description:'Corrected facts.'};f.render();
+await f.find(panel(),'Check newsletter account copy').props.onPress();tree=panel();const words=f.data.text;
+await f.find(tree,'Continue saved device version').props.onPress();tree=panel();
+assert.equal(opens,0);assert.equal(f.data.text,words);assert.ok(JSON.stringify(tree).includes('Account confirmation is separate from source approval.'));assert.ok(!JSON.stringify(tree).includes('The saved account record matches'));
+console.log('PASS exact subject/body/spacing recovery differences, currency-only source change and wrong-business denial; original newsletter component/source hook rejects changed source without opening, replacing wording or falsely confirming an account match.');

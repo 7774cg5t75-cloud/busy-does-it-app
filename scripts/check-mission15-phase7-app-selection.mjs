@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
+const rt=createRuntime(),{AppVisualSelection}=rt.load('src/screens/appVisualSelection.js'),{MiniAppSurface}=rt.load('src/screens/miniApps.js');
+const walk=n=>Array.isArray(n)?n.flatMap(walk):n&&typeof n==='object'?[n,...walk(n.props?.children)]:[],find=(tree,label)=>walk(tree).find(n=>n.props?.label===label||n.props?.accessibilityLabel===label);
+const config={modules:['business_profile','services','enquiry'].map(key=>({key,enabled:true})),navigation:['business_profile','services','enquiry'],publicProfile:{businessName:'Fictional Workshop',services:[{name:'Survey',description:'Ask us.'}]},presentation:{typeStyle:'balanced'}};
+const proposed=[],props={Surface:MiniAppSurface,config,onPrepare:p=>proposed.push(p)};let selectionTree,surface;
+const render=()=>{selectionTree=rt.render(AppVisualSelection,props);const preview=walk(selectionTree).find(n=>n.type===MiniAppSurface);surface=rt.render(MiniAppSurface,preview.props);};
+render();find(surface,'Select app header typography').props.onPress();render();assert.equal(find(surface,'Select app header typography').props.accessibilityState.selected,true);
+find(selectionTree,'Preview editorial typography').props.onPress();assert.equal(proposed.length,1);assert.equal(proposed[0].nextConfig.presentation.typeStyle,'editorial');assert.equal(config.presentation.typeStyle,'balanced');
+find(surface,'Select services navigation').props.onPress();render();assert.ok(find(surface,'Select services navigation').props.accessibilityState.selected);
+find(selectionTree,'Preview selected section up').props.onPress();assert.deepEqual(JSON.parse(JSON.stringify(proposed.at(-1).nextConfig.navigation)),['services','business_profile','enquiry']);
+find(selectionTree,'Select app spacing').props.onPress();render();find(selectionTree,'Preview airy spacing').props.onPress();assert.equal(proposed.at(-1).nextConfig.presentation.layoutDensity,'airy');
+const customer=rt.render(MiniAppSurface,{config,interactive:true,ownerEdit:{selection:{part:'header'},onSelect:()=>{throw Error('customer must not invoke editor');}}});assert.equal(find(customer,'Select app header typography'),undefined);
+props.busy=true;render();assert.equal(find(selectionTree,'Preview airy spacing').props.disabled,true);
+props.config={...config,presentation:{...config.presentation,ownerLockedElements:['all']}};props.busy=false;render();assert.equal(find(selectionTree,'Preview airy spacing').props.disabled,true);
+console.log('PASS actual native header/navigation selection and outlines, original Studio typography/spacing/reorder proposals, no draft mutation, busy/lock controls and public interaction exclusion. Inert hooks/IO, not device acceptance.');

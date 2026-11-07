@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "status": "executed-once-independently-verified-hosted-work-stopped",
+  "target": {
+    "project": "sbvkrvksnruiclcvclbd",
+    "organization": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "plan": "Free",
+    "postgresMajor": 17
+  },
+  "startingCommit": "ceb704ea6b5f9a11da335af7210593eeb1fc46ec",
+  "startingTree": "e2a8755fd8fadea2b6bae59e47a37d2011f19d53",
+  "preparationFunctionalCommit": "b57606fe53cddd210af5be2913f0fae5f94ffa6c",
+  "preparationFunctionalTree": "4ab185ce15aeea5e63392394082280b312def8e4",
+  "approvedFusedSha256": "3adff1e4574d68a9c2dcdbe4bf0cf3d47459d259c187c125a2555d4e8a16c8c4",
+  "submittedExecutionSha256": "865e2acdb036691a0e907bcdfbc0737b5bb403005880cd9c218ceafc047e77bc",
+  "submittedUtf8Bytes": 8373,
+  "nativeMigration": {
+    "version": "20261107000304",
+    "name": "ai_lab_quiet_light_owner_setup_v1",
+    "statementCount": 1,
+    "storedStatementEqualsSubmitted": true,
+    "storedStatementSha256": "865e2acdb036691a0e907bcdfbc0737b5bb403005880cd9c218ceafc047e77bc"
+  },
+  "managedAcknowledgementSuccess": true,
+  "hostedSubmissions": 1,
+  "retries": 0,
+  "rollbackExecutions": 0,
+  "businessCount": 1,
+  "ownerMembershipCount": 1,
+  "authUserCount": 1,
+  "authIdentityCount": 1,
+  "profileCount": 0,
+  "snapshotCount": 0,
+  "nativeMigrationCount": 2,
+  "priorFoundationReceiptUnchanged": true,
+  "authUnchanged": true,
+  "inspectedSecurityStateUnchanged": true,
+  "aiPolicyEnabled": false,
+  "aiMonthlyLimit": 0,
+  "aiAccountsPeriodsTariffsOperationsEvents": [0, 0, 0, 0, 0],
+  "independentEvidenceReview": {
+    "structuralChecksPassed": 490,
+    "scalarComparisonsPassed": 1800,
+    "failed": 0,
+    "mismatches": 0,
+    "reviewerHostedCalls": 0,
+    "fullPrivateReadbackSha256": "f5a715d9585f96fda9760f26249e8926e59d64ba818d5ca2d1a9ee9af6f25d29",
+    "privateReviewReceiptSha256": "0993f070f86a0bed919a016b578bfd6191e6b6bf51b63889b54701615c4afa5c"
+  },
+  "nativeBindingsAndSql": "retained privately outside Git",
+  "newRuntimeOrSqlSourceChanges": false,
+  "freshLocalPackageAttempt": {
+    "command": "node scripts/check-ai-lab-fictional-setup.mjs",
+    "passed": 15,
+    "environmentBlocked": 1,
+    "exitCode": 1,
+    "reason": "final CLI-refusal child process blocked by spawnSync node EPERM; no assertion weakened"
+  },
+  "historicalCi": {
+    "run": 42310320241,
+    "functionalCommit": "b57606fe53cddd210af5be2913f0fae5f94ffa6c",
+    "functionalTree": "4ab185ce15aeea5e63392394082280b312def8e4",
+    "passed": 524,
+    "failed": 0,
+    "rerunDuringB2ExecutionReport": false
+  },
+  "b3": "procedure prepared; trusted native-session/source binding not implemented or approved for execution",
+  "providerCalls": 0,
+  "spendingGbp": 0,
+  "otherProjectsAccessed": false,
+  "goldStandardApprovedCount": 0
+}

@@ -1,0 +1,104 @@
+{
+  "browser": "145.0.7632.6",
+  "sandboxRequired": true,
+  "sourceModule": "src/core/browserBusinessPhotoProcessor.mjs",
+  "outputs": [
+    {
+      "business": "Ember Festival Kitchen",
+      "source": {
+        "assetId": "eeeeeeee-eeee-4eee-8eee-000000000000",
+        "businessId": "bbbbbbbb-bbbb-4bbb-8bbb-000000000030",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+      },
+      "originalBytes": 6270184,
+      "sourceWidth": 4608,
+      "sourceHeight": 3456,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 480,
+          "contentType": "image/webp",
+          "sha256": "b960229bad24e2e0377f1ee2596e9f3d164e9560254acf38c097997c0cb75029",
+          "byteLength": 95384,
+          "file": "derivatives/catering-640.webp",
+          "url": "https://assets.example.invalid/catering-640.webp"
+        },
+        {
+          "width": 1280,
+          "height": 960,
+          "contentType": "image/webp",
+          "sha256": "c71f3e04a399de88fffc18061873223ec583b6f64b58b68a5b5673a74439930b",
+          "byteLength": 285330,
+          "file": "derivatives/catering-1280.webp",
+          "url": "https://assets.example.invalid/catering-1280.webp"
+        },
+        {
+          "width": 1920,
+          "height": 1440,
+          "contentType": "image/webp",
+          "sha256": "2fd918bc74b657850265c5eb33f7b587225c522441b85a688397cc0e1a433e1b",
+          "byteLength": 526836,
+          "file": "derivatives/catering-1920.webp",
+          "url": "https://assets.example.invalid/catering-1920.webp"
+        }
+      ],
+      "denials": {
+        "unavailable": true,
+        "tampered": true,
+        "stale": true,
+        "immutable": true
+      },
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "notSaved": true,
+      "delivery": "Original renderer trusted delivery-map rehearsal, no hosted derivative registration"
+    },
+    {
+      "business": "Clearleaf Gardens",
+      "source": {
+        "assetId": "eeeeeeee-eeee-4eee-8eee-000000000001",
+        "businessId": "bbbbbbbb-bbbb-4bbb-8bbb-000000000031",
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3"
+      },
+      "originalBytes": 613665,
+      "sourceWidth": 1280,
+      "sourceHeight": 1920,
+      "derivatives": [
+        {
+          "width": 640,
+          "height": 960,
+          "contentType": "image/webp",
+          "sha256": "6768710767b5a9400cb616fad421692d385b6ba69dc50fcbc477d44e11200e8a",
+          "byteLength": 159274,
+          "file": "derivatives/garden-640.webp",
+          "url": "https://assets.example.invalid/garden-640.webp"
+        },
+        {
+          "width": 1280,
+          "height": 1920,
+          "contentType": "image/webp",
+          "sha256": "b38dc86e8cbe085fdf4f444250d37741f60be6f9b257003d42560b50c3fbd21f",
+          "byteLength": 458134,
+          "file": "derivatives/garden-1280.webp",
+          "url": "https://assets.example.invalid/garden-1280.webp"
+        }
+      ],
+      "denials": {
+        "unavailable": true,
+        "tampered": true,
+        "stale": true,
+        "immutable": true
+      },
+      "decodedPixelsVerified": true,
+      "privateOnly": true,
+      "publicUseAuthorised": false,
+      "notSaved": true,
+      "delivery": "Original renderer trusted delivery-map rehearsal, no hosted derivative registration"
+    }
+  ],
+  "nativeAcceptance": false,
+  "hostedStorage": false
+}

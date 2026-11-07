@@ -10,7 +10,7 @@ const event={name:'Workshop',description:'Owner event',category:'Learning',image
 const write=(action,expectedRevision,data)=>manage(db,owner,{action,id:'event_record_001',kind:'event',expectedRevision,ownerApproved:true,...data?{data}:{}});
 await write('content_save',0,event);await write('content_publish',1);
 assert.deepEqual((await siteFeed(db,{expectedDeploymentId:deployment})).records,(await read(db,owner.businessId,{publicOnly:true})).records);
-const markup=html({id:'events',type:'events',title:'Upcoming events',contentSource:'business_records_v1',contentLayout:'rows'},{endpoint:'https://fixture.supabase.co/functions/v1/busy-mini-app-guest',deploymentId:deployment});assert.match(markup,/grid-template-columns:1fr/);assert.equal(html({id:'x',type:'script'}),'');
+const markup=html({id:'events',type:'events',title:'Upcoming events',contentSource:'business_records_v1',contentLayout:'rows'},{businessId:owner.businessId,endpoint:'https://fixture.supabase.co/functions/v1/busy-mini-app-guest',deploymentId:deployment});assert.match(markup,/grid-template-columns:1fr/);assert.equal(html({id:'x',type:'script'}),'');
 function element(tag='div'){return {tag,children:[],style:{},textContent:'',listeners:{},setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn;},appendChild(x){this.children.push(x);},replaceChildren(){this.children=[];}};}
 const target=element(),handlers={};let fail=false;
 const document={getElementById:()=>target,createElement:element,visibilityState:'visible',addEventListener:(name,fn)=>handlers[name]=fn};

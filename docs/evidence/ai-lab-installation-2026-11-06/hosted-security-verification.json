@@ -1,0 +1,1539 @@
+{
+  "policies": [],
+  "readOnly": "on",
+  "extensions": [
+    {
+      "name": "pg_stat_statements",
+      "schema": "extensions",
+      "version": "1.11"
+    },
+    {
+      "name": "pgcrypto",
+      "schema": "extensions",
+      "version": "1.3"
+    },
+    {
+      "name": "plpgsql",
+      "schema": "pg_catalog",
+      "version": "1.0"
+    },
+    {
+      "name": "supabase_vault",
+      "schema": "vault",
+      "version": "0.3.1"
+    },
+    {
+      "name": "uuid-ossp",
+      "schema": "extensions",
+      "version": "1.1"
+    }
+  ],
+  "observedAt": "2026-11-06T22:26:13.123772+00:00",
+  "policyRows": 1,
+  "eventTriggers": [
+    {
+      "name": "ensure_rls",
+      "tags": [
+        "CREATE TABLE",
+        "CREATE TABLE AS",
+        "SELECT INTO"
+      ],
+      "owner": "postgres",
+      "enabled": "O",
+      "function": "rls_auto_enable()"
+    },
+    {
+      "name": "issue_graphql_placeholder",
+      "tags": [
+        "DROP EXTENSION"
+      ],
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "set_graphql_placeholder()"
+    },
+    {
+      "name": "issue_pg_cron_access",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "grant_pg_cron_access()"
+    },
+    {
+      "name": "issue_pg_graphql_access",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "grant_pg_graphql_access()"
+    },
+    {
+      "name": "issue_pg_net_access",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "grant_pg_net_access()"
+    },
+    {
+      "name": "pgrst_ddl_watch",
+      "tags": null,
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "pgrst_ddl_watch()"
+    },
+    {
+      "name": "pgrst_drop_watch",
+      "tags": null,
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "pgrst_drop_watch()"
+    }
+  ],
+  "moduleCatalog": [
+    {
+      "module": "booking_request",
+      "status": "available",
+      "version": 1
+    },
+    {
+      "module": "business_profile",
+      "status": "available",
+      "version": 1
+    },
+    {
+      "module": "contact",
+      "status": "available",
+      "version": 1
+    },
+    {
+      "module": "enquiry",
+      "status": "available",
+      "version": 1
+    },
+    {
+      "module": "gallery",
+      "status": "available",
+      "version": 1
+    },
+    {
+      "module": "loyalty",
+      "status": "planned",
+      "version": 1
+    },
+    {
+      "module": "offers",
+      "status": "available",
+      "version": 1
+    },
+    {
+      "module": "payments",
+      "status": "planned",
+      "version": 1
+    },
+    {
+      "module": "services",
+      "status": "available",
+      "version": 1
+    }
+  ],
+  "publicRowCounts": [
+    {
+      "name": "business_work_agreement_decisions",
+      "rows": 0
+    },
+    {
+      "name": "business_work_agreement_evidence",
+      "rows": 0
+    },
+    {
+      "name": "business_work_engagements",
+      "rows": 0
+    },
+    {
+      "name": "business_work_private_drafts",
+      "rows": 0
+    },
+    {
+      "name": "business_work_quote_recipient_bindings",
+      "rows": 0
+    },
+    {
+      "name": "business_work_quote_references",
+      "rows": 0
+    },
+    {
+      "name": "busy_business_content",
+      "rows": 0
+    },
+    {
+      "name": "busy_business_memberships",
+      "rows": 0
+    },
+    {
+      "name": "busy_business_snapshots",
+      "rows": 0
+    },
+    {
+      "name": "busy_businesses",
+      "rows": 0
+    },
+    {
+      "name": "busy_creator_draft_heads",
+      "rows": 0
+    },
+    {
+      "name": "busy_creator_draft_versions",
+      "rows": 0
+    },
+    {
+      "name": "busy_growth_opportunities",
+      "rows": 0
+    },
+    {
+      "name": "busy_growth_opportunity_versions",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_app_entry_daily",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_app_entry_events",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_app_message_delivery_outbox",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_app_module_catalog",
+      "rows": 9
+    },
+    {
+      "name": "busy_mini_app_request_links",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_app_request_messages",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_app_requests",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_app_versions",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_app_work_bookings",
+      "rows": 0
+    },
+    {
+      "name": "busy_mini_apps",
+      "rows": 0
+    },
+    {
+      "name": "busy_public_business_profiles",
+      "rows": 0
+    },
+    {
+      "name": "busy_push_deliveries",
+      "rows": 0
+    },
+    {
+      "name": "busy_website_deployments",
+      "rows": 0
+    },
+    {
+      "name": "busy_websites",
+      "rows": 0
+    }
+  ],
+  "privateFunctions": [
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_ai_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_ai_private.cost(jsonb,integer,integer)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_ai_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_ai_private.immutable_tariff()",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_creator_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_creator_private.media_projection(uuid,uuid,jsonb,boolean)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_creator_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_creator_private.project(busy_creator_draft_versions)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_creator_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_creator_private.source_state(uuid,uuid,uuid,bigint,text,boolean)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_creator_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_creator_private.valid_content(jsonb)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_creator_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_creator_private.valid_editor_v3(jsonb,jsonb)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_creator_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_creator_private.valid_media_ref(jsonb)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_growth_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_growth_private.authorize(uuid)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_growth_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_growth_private.projection(busy_growth_opportunity_versions)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.file_app_enquiry_v2(uuid,bigint,jsonb)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.guard_initial_snapshot()",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.initial_reply_context(uuid,bigint,text,text)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.listing_candidate(uuid,uuid)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.listing_state(uuid,jsonb)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.lock_writer(uuid)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.owner_reply_context(uuid,text,text,bigint)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_snapshot_private.profile_facts(jsonb)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.valid_listing(uuid,jsonb)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_snapshot_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_snapshot_private.website_commit_original(uuid,uuid,bigint,jsonb,jsonb,bigint)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.agreement_state(business_work_agreement_evidence)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_work_private.authorize(uuid)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.hash(jsonb)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.project(business_work_engagements)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.protect_agreement()",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.protect_identity()",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_work_private.protect_legacy()",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.protect_quote_binding()",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.protect_quote_reference()",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.quote_terms(business_work_engagements)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_work_private.source_context(uuid,text,text,bigint)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": true,
+      "service": false,
+      "signature": "busy_work_private.target(uuid,text,uuid,bigint)",
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "schema": "busy_work_private",
+      "definer": false,
+      "service": false,
+      "signature": "busy_work_private.valid_quote(text,text,text,text)",
+      "authenticated": false
+    }
+  ],
+  "schemaPrivileges": [
+    {
+      "role": "anon",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_ai_private"
+    },
+    {
+      "role": "authenticated",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_ai_private"
+    },
+    {
+      "role": "service_role",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_ai_private"
+    },
+    {
+      "role": "anon",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_creator_private"
+    },
+    {
+      "role": "authenticated",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_creator_private"
+    },
+    {
+      "role": "service_role",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_creator_private"
+    },
+    {
+      "role": "anon",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_growth_private"
+    },
+    {
+      "role": "authenticated",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_growth_private"
+    },
+    {
+      "role": "service_role",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_growth_private"
+    },
+    {
+      "role": "anon",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_snapshot_private"
+    },
+    {
+      "role": "authenticated",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_snapshot_private"
+    },
+    {
+      "role": "service_role",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_snapshot_private"
+    },
+    {
+      "role": "anon",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_work_private"
+    },
+    {
+      "role": "authenticated",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_work_private"
+    },
+    {
+      "role": "service_role",
+      "owner": "postgres",
+      "usage": false,
+      "create": false,
+      "schema": "busy_work_private"
+    },
+    {
+      "role": "anon",
+      "owner": "pg_database_owner",
+      "usage": true,
+      "create": false,
+      "schema": "public"
+    },
+    {
+      "role": "authenticated",
+      "owner": "pg_database_owner",
+      "usage": true,
+      "create": false,
+      "schema": "public"
+    },
+    {
+      "role": "service_role",
+      "owner": "pg_database_owner",
+      "usage": true,
+      "create": false,
+      "schema": "public"
+    }
+  ],
+  "defaultPrivileges": [
+    {
+      "acl": "{postgres=X/postgres}",
+      "kind": "f",
+      "owner": "postgres",
+      "schema": "GLOBAL"
+    },
+    {
+      "acl": "{postgres=rwU/postgres}",
+      "kind": "S",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "kind": "f",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{postgres=arwdDxtm/postgres}",
+      "kind": "r",
+      "owner": "postgres",
+      "schema": "public"
+    },
+    {
+      "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+      "kind": "S",
+      "owner": "postgres",
+      "schema": "storage"
+    },
+    {
+      "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "kind": "f",
+      "owner": "postgres",
+      "schema": "storage"
+    },
+    {
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "kind": "r",
+      "owner": "postgres",
+      "schema": "storage"
+    }
+  ],
+  "sequencePrivileges": [
+    {
+      "name": "events_id_seq",
+      "role": "anon",
+      "access": false,
+      "schema": "busy_ai_private"
+    },
+    {
+      "name": "events_id_seq",
+      "role": "authenticated",
+      "access": false,
+      "schema": "busy_ai_private"
+    },
+    {
+      "name": "events_id_seq",
+      "role": "service_role",
+      "access": false,
+      "schema": "busy_ai_private"
+    }
+  ],
+  "nativeHookRolePrivileges": [
+    {
+      "role": "anon",
+      "execute": false
+    },
+    {
+      "role": "authenticated",
+      "execute": false
+    },
+    {
+      "role": "service_role",
+      "execute": false
+    },
+    {
+      "role": "postgres",
+      "execute": true
+    }
+  ],
+  "publicTableRolePrivileges": [
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "business_work_agreement_decisions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "business_work_agreement_decisions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "business_work_agreement_decisions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "business_work_agreement_evidence",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "business_work_agreement_evidence",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "business_work_agreement_evidence",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "business_work_engagements",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "business_work_engagements",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "business_work_engagements",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "business_work_private_drafts",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "business_work_private_drafts",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "business_work_private_drafts",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "business_work_quote_recipient_bindings",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "business_work_quote_recipient_bindings",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "business_work_quote_recipient_bindings",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "business_work_quote_references",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "business_work_quote_references",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "business_work_quote_references",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_business_content",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_business_content",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_business_content",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_business_memberships",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_business_memberships",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_business_memberships",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_business_snapshots",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_business_snapshots",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_business_snapshots",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_businesses",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_businesses",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_businesses",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_creator_draft_heads",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_creator_draft_heads",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_creator_draft_heads",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_creator_draft_versions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_creator_draft_versions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_creator_draft_versions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_growth_opportunities",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_growth_opportunities",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_growth_opportunities",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_growth_opportunity_versions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_growth_opportunity_versions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_growth_opportunity_versions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_entry_daily",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_entry_daily",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_entry_daily",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_entry_events",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_entry_events",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_entry_events",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_message_delivery_outbox",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_message_delivery_outbox",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_message_delivery_outbox",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_module_catalog",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_module_catalog",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_module_catalog",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_request_links",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_request_links",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_request_links",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_request_messages",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_request_messages",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_request_messages",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_requests",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_requests",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_requests",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_versions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_versions",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_versions",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_app_work_bookings",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_app_work_bookings",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_app_work_bookings",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_mini_apps",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_mini_apps",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_mini_apps",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_public_business_profiles",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_public_business_profiles",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_public_business_profiles",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_push_deliveries",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_push_deliveries",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_push_deliveries",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_website_deployments",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_website_deployments",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_website_deployments",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    },
+    {
+      "dml": false,
+      "role": "anon",
+      "table": "busy_websites",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "authenticated",
+      "table": "busy_websites",
+      "select": false,
+      "columnDml": false,
+      "columnSelect": false
+    },
+    {
+      "dml": false,
+      "role": "service_role",
+      "table": "busy_websites",
+      "select": true,
+      "columnDml": false,
+      "columnSelect": true
+    }
+  ]
+}

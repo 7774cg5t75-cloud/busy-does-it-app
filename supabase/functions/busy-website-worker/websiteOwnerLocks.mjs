@@ -16,7 +16,7 @@ function websiteLayoutLockReason(draft,operation={}){
   return 'Unlock the affected website section before editing it.';
  return '';
 }
-const visibleOrder=draft=>[...new Set([...(Array.isArray(draft?.theme?.sectionOrder)?draft.theme.sectionOrder:[]),
+const visibleOrder=draft=>[...new Set([...(Array.isArray(draft?.theme?.sectionOrder)&&draft.theme.sectionOrder.length?draft.theme.sectionOrder:Array.isArray(draft?.designPlan?.sectionOrder)?draft.designPlan.sectionOrder:[]),
  ...(draft?.sections||[]).filter(s=>s.enabled!==false).map(s=>s.id)])].filter(id=>(draft?.sections||[]).some(s=>s.id===id&&s.enabled!==false));
 function protectWebsiteOwnerLocks(before,result){
  if(!result?.applied)return result;

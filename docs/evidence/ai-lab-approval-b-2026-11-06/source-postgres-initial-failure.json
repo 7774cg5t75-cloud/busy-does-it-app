@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "mode": "disposable-postgresql17",
+  "hosted": false,
+  "nativeAuthAcceptance": false,
+  "providerCalls": 0,
+  "spendingGBP": 0,
+  "setupAuthorities": "Original connected session, profile writer, privateWebsiteDraftAction and original commit/history/transition. PostgreSQL mode invokes actual original SQL; offline mode uses a test-only synthetic RPC boundary.",
+  "results": [
+    {
+      "id": "original source authority preparation with fictional backend only",
+      "passed": true
+    },
+    {
+      "id": "original profile CAS preserves exact supported service facts",
+      "passed": true
+    },
+    {
+      "id": "original generator creates private image-free Home Services Contact",
+      "passed": true
+    },
+    {
+      "id": "original Studio adds supplied story without a profile extension or fourth page",
+      "passed": true
+    },
+    {
+      "id": "original instruction protects exact project action and existing destination",
+      "passed": true
+    },
+    {
+      "id": "independent reopen preserves story services pages and original renderer",
+      "passed": true
+    },
+    {
+      "id": "original saved Undo Redo preserves exact complete page output",
+      "passed": true
+    },
+    {
+      "id": "stale selected draft and foreign actor deny before persistence",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Owner|owner/. Input:\n\n'Error: Command failed: /workspace/pg17-disposable/root/usr/lib/postgresql/17/bin/psql -X -h /workspace/pg17-disposable/socket -U postgres -v ON_ERROR_STOP=1 -qAt -d busy_ai_lab_fictional_source_disposable\\n' +\n  'ERROR:  Not authorised\\n' +\n  'CONTEXT:  PL/pgSQL function busy_snapshot_private.lock_writer(uuid) line 10 at RAISE\\n' +\n  'PL/pgSQL function public.busy_connected_builder_read_v1(uuid) line 4 at assignment\\n'\n\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///workspace/busy-connected-recovery/scripts/check-ai-lab-fictional-source.mjs:66:432\n    at async test (file:///workspace/busy-connected-recovery/scripts/check-ai-lab-fictional-source.mjs:21:31)\n    at async file:///workspace/busy-connected-recovery/scripts/check-ai-lab-fictional-source.mjs:66:2"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 1,
+    "cases": 7,
+    "assertions": 46
+  }
+}

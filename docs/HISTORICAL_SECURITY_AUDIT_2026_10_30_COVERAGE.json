@@ -1,0 +1,651 @@
+{
+  "sourceCommit": "31ea363fb0373b663225871ba51630b2571c525f",
+  "sourceTree": "d5ba81f16c79d25f5a54a9b1017371586a32dfa1",
+  "coverage": [
+    {
+      "subsystem": "Home/mobile/AppController",
+      "completed": "All source parsed; static imports/storage/environment signals; existing application regressions; selected session and provider handoffs reviewed",
+      "notProven": "No complete line-by-line AppController review, native runtime, platform storage audit or physical acceptance"
+    },
+    {
+      "subsystem": "Website Builder and Cloudflare",
+      "completed": "Original planner/history/CAS/readback regressions, selected renderer/visual-AI boundaries, genuine Website gateway Deno and local SQL",
+      "notProven": "Hosted publishing/storage/IAM/domain configurations and actual browser/native visuals not verified"
+    },
+    {
+      "subsystem": "App Builder / Mini Apps",
+      "completed": "Original private transactions, request/customer provenance, current gateway Deno, selected function permission review and local SQL",
+      "notProven": "Every historical owner/consumer route not deeply reviewed; live marketplace/standalone distribution unavailable"
+    },
+    {
+      "subsystem": "Creator / Growth / Business Brain",
+      "completed": "Goal/proposal/approval regressions, original text drafts, selected provider/brand handoffs, private-table journey SQL",
+      "notProven": "All marketing connectors, image/video/upload providers and model behaviour not exhaustively reviewed"
+    },
+    {
+      "subsystem": "Inbox / Customers / Work / Get Paid",
+      "completed": "Original identity, contact-review, canonical engagement/private quote CAS/readback in selected local contracts",
+      "notProven": "Actual hosted communications, booking, financial providers, legal acceptance and public quote lifecycle not verified"
+    },
+    {
+      "subsystem": "AI proposal gateway",
+      "completed": "Source review of Auth/current membership, selected context, structured-output rejection, reservation ownership and offline provider; real local ledger tests",
+      "notProven": "No genuine hosted JWT, live model, deployment/rate limits/streaming adapter acceptance"
+    },
+    {
+      "subsystem": "AI cost controller",
+      "completed": "Selected actual SQL installed/executed;31 stages include cross-business platform ceiling, concurrent admission, entitlement/tariff/revocation, unknown liability, receipts and rollback",
+      "notProven": "Only synthetic local entitlement/Auth fixtures; administration/provisioning and real provider invoice reconciliation not accepted"
+    },
+    {
+      "subsystem": "Historical Edge endpoints",
+      "completed": "25 entry-point source inventory; all JS-family syntax;9 selected genuine Deno entry checks plus type fixture; direct-model census",
+      "notProven": "Other16 entries not genuinely Deno type checked; not all legacy route permissions/body limits/OAuth semantics reviewed"
+    },
+    {
+      "subsystem": "SQL/RLS/migrations",
+      "completed": "69 historical migrations inventoried/static signals; selected exact installation/failure/rollback and31+51+62 local stages",
+      "notProven": "Not a full replay or per-function review of all migrations; production DDL and hosted effective grants/defaults not inspected"
+    },
+    {
+      "subsystem": "CI/CD/supply chain",
+      "completed": "175 workflow inventory/parse; source-secret signals;543 locked dependencies/integrity/install-hook review; fresh registry audit",
+      "notProven": "Not full semantic review of every workflow/third-party action; deleted Git history, org IAM, signing and hosted secrets inaccessible"
+    },
+    {
+      "subsystem": "Configuration and docs",
+      "completed": "All tracked paths hashed;418 JSON/TOML/YAML/Python parse checks; full tracked-text redacted secret detector",
+      "notProven": "Finite detectors cannot prove no secret exists; historical deleted/untracked/private files outside repository not a public scan scope"
+    }
+  ],
+  "paidOperationInventory": [
+    {
+      "path": "busy-ai-intake:analyseWithOpenAI",
+      "category": "model",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-social-content:createContent",
+      "category": "model",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-command:transcribeAudio,routeOperator,interpretWebsitePageLanguage",
+      "category": "model (3 calls)",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-website-design-review:runVision,compareVision",
+      "category": "model (2 calls)",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-mini-apps:aiAppPlan,reviewAppDesignScreenshot",
+      "category": "model (2 calls)",
+      "status": "source-blocked; planning retains deterministic fallback"
+    },
+    {
+      "path": "busy-conversation-extract:handler",
+      "category": "model",
+      "status": "source-blocked; unintegrated"
+    },
+    {
+      "path": "busy-builder-proposals",
+      "category": "new structured model gateway",
+      "status": "offline adapter + local ledger integrated; default disabled; no live model admission accepted"
+    },
+    {
+      "path": "cloudflare/busy-website-screenshot",
+      "category": "Browser Rendering",
+      "status": "internal credential/binding gated; not central monetary-controller integrated; external metering not accepted"
+    },
+    {
+      "path": "busy-website-publish and Cloudflare infrastructure",
+      "category": "hosting/storage/domain operations",
+      "status": "separate authority/approval; AI controller not applicable as universal infrastructure budget; all actual costs not verified"
+    },
+    {
+      "path": "busy-social-publish / permitted media storage",
+      "category": "communications/social/storage",
+      "status": "legacy prototype restricted to configured verified Auth ID; canonical tenant/provider mapping incomplete; no activation acceptance"
+    },
+    {
+      "path": "calendar, OAuth, push and delivery integrations",
+      "category": "external integration/possible infrastructure cost",
+      "status": "own original gates; monetary coverage unverified; not admitted by this AI ledger"
+    },
+    {
+      "path": "paid images/video, advertisements, standalone signing/distribution",
+      "category": "planned or separately gated services",
+      "status": "not activated; not proven central-budget integrated"
+    },
+    {
+      "path": "Get Paid private quotes/invoices",
+      "category": "financial preparation",
+      "status": "private preparation only; no payment execution/provider integration accepted"
+    },
+    {
+      "path": "GitHub/EAS/mobile distribution",
+      "category": "build/infrastructure spending",
+      "status": "separate approval; no build/distribution run; not centrally AI-budget integrated"
+    }
+  ],
+  "warning": "10 known direct model HTTP call sites inventoried. Finite static census is not whole-program taint analysis or proof that all possible providers/SDKs are covered. Zero live billable model routes accepted as centrally protected.",
+  "phaseTwo": {
+    "startingGitHubCommit": "900ecb68a8983f1d6ffb9da5f4fabee7939a132e",
+    "functionalTree": "f062a772db1c532f72fdfdbee727296d545420b9",
+    "currentStatus": "All25 entry points genuinely type checked and source-classified at trust boundaries. Full per-helper deep security, hosted permissions and independent assurance remain incomplete.",
+    "endpoints": [
+      {
+        "endpoint": "busy-ai-intake",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "OPTIONS; POST source-denied",
+        "identityMembership": "Legacy prototype key is not identity; now denial before body",
+        "privilegedDataAndProvenance": "No privileged read or paid call reachable through closed entry",
+        "inputAndResourceControls": "Existing image limits behind entry denial",
+        "rateAndAbuseControls": "Unconditional source admission denial",
+        "externalNetworkAndSSRF": "Known direct model HTTP blocked; no live provider",
+        "revisionRetryAndUnknownOutcomes": "No model dispatch, write, retry or verified result",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Replace only with individual authenticated central reservation adapter",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-builder-proposals",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Disabled except exact separately enabled staging/offline mode",
+        "identityMembership": "Fresh getUser rejects anonymous identity; context/RPC verifies current member",
+        "privilegedDataAndProvenance": "Service client finite context/reserve/dispatch/finish RPCs; no client context authority",
+        "inputAndResourceControls": "Finite body/schema/goal/response/context bounds",
+        "rateAndAbuseControls": "Transactional allowance, concurrency, kill switch; no universal public ingress rate guarantee",
+        "externalNetworkAndSSRF": "Offline provider only; no live adapter/URL",
+        "revisionRetryAndUnknownOutcomes": "Nonce-owned exact admission; stale context, unknown liability, duplicate dispatch and original review/save/Undo exercised",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Real hosted JWT/permissions, live timeout/streaming/receipt acceptance unavailable",
+        "depth": "Selected gateway path and denial/accounting boundaries deeply reviewed and locally executed; live adapter absent"
+      },
+      {
+        "endpoint": "busy-calendar-oauth",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Verified owner POST status; mutation/callback source-denied",
+        "identityMembership": "Server Auth then own business membership for status; callback no longer relies on old state as active authority",
+        "privilegedDataAndProvenance": "Server-only connection/status projection; original privileged token writes closed",
+        "inputAndResourceControls": "Status JSON still not byte-stream bounded; provider callback denied before parsing/exchange",
+        "rateAndAbuseControls": "No general rate limiter; all mutating provider paths closed",
+        "externalNetworkAndSSRF": "Fixed Google endpoints in unreachable historical flows; fixed app redirect",
+        "revisionRetryAndUnknownOutcomes": "Historical state read/delete race and account-token reuse not treated as repaired transaction; source-blocked",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Canonical one-time state/actor/member/connection revision transaction; provider-subject-bound refresh; token protection and real revocation",
+        "depth": "Original OAuth state/token/callback/write flow source-reviewed; closure executed with inert transport"
+      },
+      {
+        "endpoint": "busy-calendar-sync",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "POST source-denied",
+        "identityMembership": "Original server Auth/membership retained but cannot authorise active event mutation",
+        "privilegedDataAndProvenance": "Original booking/customer labels from client are not authoritative lifecycle proof; provider operations closed",
+        "inputAndResourceControls": "No parsing/refresh/network before source denial",
+        "rateAndAbuseControls": "No generic transaction quota; closed entry",
+        "externalNetworkAndSSRF": "Fixed Google API URL; no provider access executed",
+        "revisionRetryAndUnknownOutcomes": "Historical multi-request event writes/retries lack complete revocation/CAS/unknown-outcome authority",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Original engagement/event-bound transactions, current membership, bounded reconciliation; no booking confirmation implied",
+        "depth": "Original dispatch and multi-request operation source review; closure executed"
+      },
+      {
+        "endpoint": "busy-command",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "OPTIONS; POST source-denied",
+        "identityMembership": "Historical voice/page branches retain original getUser/source checks but cannot spend",
+        "privilegedDataAndProvenance": "Model output is proposal only; no generic writer added",
+        "inputAndResourceControls": "Source denial precedes multipart/JSON parsing",
+        "rateAndAbuseControls": "Unconditional monetary admission denial",
+        "externalNetworkAndSSRF": "Three direct model/transcription HTTP paths blocked",
+        "revisionRetryAndUnknownOutcomes": "No automatic potentially billed retry; original local fallback unaffected",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Secure remote voice/model adapter and real provider receipts pending",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-conversation-extract",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "OPTIONS; POST source-denied",
+        "identityMembership": "Publishable key cannot grant identity or model authority",
+        "privilegedDataAndProvenance": "Fact suggestions are not trusted approved facts",
+        "inputAndResourceControls": "Entry denial before parsing",
+        "rateAndAbuseControls": "Unconditional source denial",
+        "externalNetworkAndSSRF": "Known direct model HTTP blocked",
+        "revisionRetryAndUnknownOutcomes": "No false fact-save or model completion",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Original suggestion contract needs governed adapter",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-founder-ops",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Verified founder-only POST",
+        "identityMembership": "Server Auth then original privileged founder grant; no editable metadata authority",
+        "privilegedDataAndProvenance": "Aggregate-only service reads, original evidence/usage/register records",
+        "inputAndResourceControls": "New2KiB streaming JSON; finite actions; bounded provider queries/timeouts",
+        "rateAndAbuseControls": "External evidence window claim; summary/other action quotas need scope review",
+        "externalNetworkAndSSRF": "Bounded managed-domain probes; provider URLs fixed by reviewed helpers",
+        "revisionRetryAndUnknownOutcomes": "Evidence/usage source revisions retained; observation is not consumer/provider completion",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Hosted founder grants, privacy samples and complete external reader egress/grants acceptance",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-mini-app-guest",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Public finite public_app/public_content/challenge/submit/status",
+        "identityMembership": "Guest browser challenge/token/HMAC/PoW; not identity-verified customer",
+        "privilegedDataAndProvenance": "Service reads only pinned live app/version or exact guest receipt; source payload and notification evidence checked",
+        "inputAndResourceControls": "New incremental32KiB request bytes and deadline; exact schema/field bounds remain",
+        "rateAndAbuseControls": "Existing per-browser/app count checks are not a proven race-free quota; forwarded-header trust unaccepted",
+        "externalNetworkAndSSRF": "No AI; server Supabase calls; no arbitrary URL proxy",
+        "revisionRetryAndUnknownOutcomes": "Original guest RPC + independent exact payload/intent readback; duplicate receipt and linkage invariants retained",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Atomic challenge quota and genuine gateway header trust; hosted guest/RLS and redacted-error acceptance",
+        "depth": "Selected public dispatch, challenge/receipt source and byte-bound handler executed; local SQL evidence retained"
+      },
+      {
+        "endpoint": "busy-mini-app-guest-alert-dispatch",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Disabled service-only POST",
+        "identityMembership": "Long secret hash comparison; no body actor/request authority",
+        "privilegedDataAndProvenance": "Leased original alert/request/business; current owner/admin lookup; private device evidence",
+        "inputAndResourceControls": "One lease;20 members/devices; provider timeout12s; no body read",
+        "rateAndAbuseControls": "SQL lease/quarantine, no automatic unknown resend; device query business filter still needs scope review",
+        "externalNetworkAndSSRF": "Fixed Expo push URL; no model calls",
+        "revisionRetryAndUnknownOutcomes": "Original request/type/lease and receipt classifiers; accepted is not delivered",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Real SQL grants, device business scoping, membership race at send and provider/device acceptance",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-mini-app-guest-alert-receipts",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Disabled service-only POST",
+        "identityMembership": "Long receipt worker secret; no client ticket authority",
+        "privilegedDataAndProvenance": "Private original accepted-ticket attempts only",
+        "inputAndResourceControls": "At most10 provider receipt IDs,12s timeout; no request body",
+        "rateAndAbuseControls": "Bounded read and terminal CAS; not push/send",
+        "externalNetworkAndSSRF": "Fixed Expo receipt URL",
+        "revisionRetryAndUnknownOutcomes": "Unknown/missing receipt remains unverified; no send/retry or phone-delivery claim",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Hosted RPC permissions, expired receipt lifecycle and real provider acceptance",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-mini-app-link",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Public GET",
+        "identityMembership": "No login expected; route is not customer identity",
+        "privilegedDataAndProvenance": "Service selects current live app/version and pinned source intent; no private request access",
+        "inputAndResourceControls": "Bounded slug/intent/query values; no body",
+        "rateAndAbuseControls": "No explicit route rate limiter; entry counters can amplify traffic",
+        "externalNetworkAndSSRF": "Redirect uses stored live public_web_url with HTTPS check; stricter authoritative destination allowlist remains",
+        "revisionRetryAndUnknownOutcomes": "Exact immutable website intent checked; links do not create/confirm requests",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Canonical public destination allowlist/current deployment, traffic/counter rate control; no arbitrary redirect acceptance",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-mini-apps",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "POST requires verified Auth",
+        "identityMembership": "Fresh getUser; role/member scope; connected staging exact allowlist and transaction writers",
+        "privilegedDataAndProvenance": "Service routes span owner/customer identities; exact source/request/message records; no shared CRM",
+        "inputAndResourceControls": "Numerous field/size limits but entry JSON not incrementally bounded",
+        "rateAndAbuseControls": "Original counters/finite operations; not a universal HTTP abuse limiter",
+        "externalNetworkAndSSRF": "Direct model paths source-blocked; push/provider effects require separate gates",
+        "revisionRetryAndUnknownOutcomes": "Selected private draft transactions lock members/CAS; not every historical publish/customer path transaction accepted",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Deep review of remaining legacy actions, public limits, cross-request revocation and provider effects",
+        "depth": "All entry branches classified, selected owner/consumer helpers sampled; NOT every4520-line gateway path deeply reviewed"
+      },
+      {
+        "endpoint": "busy-production-watch",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Authenticated member status/run_now or internal cron token",
+        "identityMembership": "Fresh server user + membership for owner calls; stored cron secret for platform watch",
+        "privilegedDataAndProvenance": "Service queries original snapshots/devices/events; source projection switch remains false",
+        "inputAndResourceControls": "Several bounded batches; body/aggregate invocation resources need hardening",
+        "rateAndAbuseControls": "Stored delivery dedupe; no complete authenticated rate ceiling",
+        "externalNetworkAndSSRF": "Fixed Expo/Auth/REST; no AI SDK",
+        "revisionRetryAndUnknownOutcomes": "Event/delivery records dedupe but provider failure/receipt uncertainty needs real authority",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Review cron ingress constant-time/limits, revocation, exact device scope, false active-status wording; no schedule activated",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-push-dispatch",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Authenticated POST test action",
+        "identityMembership": "Server Auth; caller-scoped RLS device read; business parameter narrows query",
+        "privilegedDataAndProvenance": "User ID comes from verified Auth; private device tokens not returned",
+        "inputAndResourceControls": "Input JSON and total devices/provider response not universally bounded",
+        "rateAndAbuseControls": "No dedicated test-send rate limiter; explicitly not provider-ready",
+        "externalNetworkAndSSRF": "Fixed Expo push/send; not central AI ledger",
+        "revisionRetryAndUnknownOutcomes": "No durable attempt/unknown send authority shown; provider tickets not actual device delivery",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Add original finite test-send allowance/idempotency/current business-device scope; do not activate",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-social-content",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "OPTIONS; POST source-denied",
+        "identityMembership": "Legacy key cannot enable model execution",
+        "privilegedDataAndProvenance": "Owner-selected creative input remains untrusted; no new model authority",
+        "inputAndResourceControls": "Existing image limits behind entry denial",
+        "rateAndAbuseControls": "Unconditional source admission denial",
+        "externalNetworkAndSSRF": "Known direct model HTTP blocked",
+        "revisionRetryAndUnknownOutcomes": "Existing manual/local creative preparation preserved",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Original remote creative path not admitted or accepted",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-social-publish",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Status/private save/delete/cancel through verified prototype owner; all provider actions source-denied",
+        "identityMembership": "Fresh server getUser + configured exact UUID; no email fallback; not a tenant model",
+        "privilegedDataAndProvenance": "Global prototype records remain prototype; old destructive callbacks fail closed",
+        "inputAndResourceControls": "Legacy private-draft JSON/media body not streaming bounded; callbacks closed before form/provider work",
+        "rateAndAbuseControls": "No universal limiter; provider denial is not tenant readiness",
+        "externalNetworkAndSSRF": "OAuth/token exchange/publish/account disconnect and both callback route styles denied",
+        "revisionRetryAndUnknownOutcomes": "Old state claim/reconnect/partial-token windows not accepted; private post revision/cancel guards preserved",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Canonical tenant/provider subject and atomic state/connection/revocation contracts, credential protection, scoped private media",
+        "depth": "Provider callback/owner authority closely source-reviewed; denial and passive HTML executed with inert dependencies"
+      },
+      {
+        "endpoint": "busy-website-design-review",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Auth/membership plus source-disabled visual readiness",
+        "identityMembership": "Server getUser + current business website/profile; global switch alone cannot open admission",
+        "privilegedDataAndProvenance": "Private screenshot proof + exact deployment/current source; finite suggestions only",
+        "inputAndResourceControls": "Finite screenshot/output/pass constraints; renderer response allocates before byte proof remains",
+        "rateAndAbuseControls": "Original request-count reservation is not monetary admission; source model denial effective",
+        "externalNetworkAndSSRF": "Private renderer/known model URL; live inference blocked",
+        "revisionRetryAndUnknownOutcomes": "Source/version validation and original proof; never publish; no fake completion",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "No real screenshot/provider/budget adapter or native acceptance; renderer monetary coverage unresolved",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-website-form",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Disabled public POST; explicit origin OPTIONS",
+        "identityMembership": "CORS not identity; live site + Turnstile proof",
+        "privilegedDataAndProvenance": "Server-selected website/business/deployment; original lead authority",
+        "inputAndResourceControls": "New8KiB streaming bytes/deadline, JSON/content/field validation",
+        "rateAndAbuseControls": "Single-use challenge + original finite form quota RPC",
+        "externalNetworkAndSSRF": "Fixed Turnstile verifier; deadline; no arbitrary URL",
+        "revisionRetryAndUnknownOutcomes": "Original uniqueness/duplicate outcome preserved; no auto communication",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Hosted quota/Turnstile/provenance and full RLS acceptance; no form activation",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-website-health",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Internal worker token or service authority POST",
+        "identityMembership": "Nonempty service key or stored private token; no client owner bypass",
+        "privilegedDataAndProvenance": "Bounded selected sites/domains; health/deployment evidence scoped",
+        "inputAndResourceControls": "Now500000-byte upstream streaming cap and redirected fetch rejection;10-site groups/max40",
+        "rateAndAbuseControls": "Internal credential gate, bounded batch; no universal per-worker admission",
+        "externalNetworkAndSSRF": "Stored approved hosts; redirect error now; custom DNS/rebinding still requires egress controls",
+        "revisionRetryAndUnknownOutcomes": "Original deployment marker/fallback/recovery records; failed probe not healthy",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Custom-host SSRF/egress/DNS and effective service configuration; source auth guard is not hosted proof",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-website-origin",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Public GET/HEAD",
+        "identityMembership": "Host is routing input, not auth",
+        "privilegedDataAndProvenance": "Service maps only live/default or verified custom host to business storage path",
+        "inputAndResourceControls": "Traversal normalization; streams upstream storage rather than full buffer",
+        "rateAndAbuseControls": "Edge cache; no proven origin abuse limiter",
+        "externalNetworkAndSSRF": "SDK fixed project public storage URL; follows storage redirect, egress still reviewable",
+        "revisionRetryAndUnknownOutcomes": "Only current recorded deployment; no private draft projection",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Hosted storage policies/cache invalidation/MIME/script policy and upstream redirect acceptance",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-website-original-media",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Authenticated private owner/admin POST",
+        "identityMembership": "Server Auth and current business membership; immutable path owner scope",
+        "privilegedDataAndProvenance": "Original private registry/storage, hashes and audit; upload-operation flag remains false",
+        "inputAndResourceControls": "New12.8MB incremental JSON;9MiB media bounds, magic/type/path/hash validation",
+        "rateAndAbuseControls": "Existing60/hour audit-count gate is not demonstrated atomic under concurrency",
+        "externalNetworkAndSSRF": "Fixed Supabase private bucket; no arbitrary remote URL proxy",
+        "revisionRetryAndUnknownOutcomes": "Revision/provenance/hash audit, no shared legacy bucket fallback",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Atomic membership/usage authority for multi-request upload/download and scoped cleanup; token/storage real acceptance",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-website-provider",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Internal token/service POST",
+        "identityMembership": "Nonempty service key or original private internal token",
+        "privilegedDataAndProvenance": "Privileged Cloudflare/website/domain/activation records; finite actions",
+        "inputAndResourceControls": "Bounded sync batch but JSON/provider response/timeout limits need followup",
+        "rateAndAbuseControls": "Internal token; no universal metered provider admission",
+        "externalNetworkAndSSRF": "Fixed Cloudflare/DNS endpoints; router template and defaults need explicit staging configuration",
+        "revisionRetryAndUnknownOutcomes": "Original activation/DNS/provider evidence; uncertain provisioning readback not exhaustively accepted",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "No deploy/provision activation; target/env-specific origin default and true external costs/permissions audit",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-website-publish",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Authenticated owner/admin finite action POST",
+        "identityMembership": "Fresh Auth/membership; connected staging exact allowlist + locked writers",
+        "privilegedDataAndProvenance": "Original website/design/profile/snapshot version identities; no generic JSON writer",
+        "inputAndResourceControls": "Many finite edit/source bounds; outer request body still unbounded before parse",
+        "rateAndAbuseControls": "Original quota/queue/wake controls; no complete per-identity ingress quota",
+        "externalNetworkAndSSRF": "Model separate closed reviewer; publication/domain/DNS require original approvals",
+        "revisionRetryAndUnknownOutcomes": "Selected create/save/history/Undo CAS/readback and stale/unknown outcomes locally tested",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Remaining legacy live writes need transactional revocation audit; no hosted publishing acceptance",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-website-signals",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Internal token/service POST",
+        "identityMembership": "Nonempty service key or private original token",
+        "privilegedDataAndProvenance": "Service daily usage/Cloudflare aggregates; not raw private tenant disclosure to app",
+        "inputAndResourceControls": "Bounded groups/dates; JSON/provider-response limits remain",
+        "rateAndAbuseControls": "Internal gate and sharding; no universal analytics request limiter",
+        "externalNetworkAndSSRF": "Fixed Cloudflare GraphQL; no model calls",
+        "revisionRetryAndUnknownOutcomes": "Partial result safety flag retained; no claiming full usage coverage",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Real scoped Cloudflare tokens, SQL grants and invocation/rate/timeout acceptance",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      },
+      {
+        "endpoint": "busy-website-worker",
+        "typeCheck": "Actual Deno2.5.6 check, pinned SDK2.118.0, frozen lockfile; no type suppression",
+        "access": "Internal token/service POST",
+        "identityMembership": "Nonempty service key or private worker token",
+        "privilegedDataAndProvenance": "Original leased queue, website/deployment/revision and storage records",
+        "inputAndResourceControls": "Bounded jobs/tenant groups, new valid form-policy import; input JSON not streaming bounded",
+        "rateAndAbuseControls": "Lease/retry/defer/quarantine limits, no generic public rate layer",
+        "externalNetworkAndSSRF": "Original fixed storage/provider paths; generated HTML escapes original input",
+        "revisionRetryAndUnknownOutcomes": "Original job claim/finalise/lease CAS, unknown outcomes need provider readback",
+        "errorsLoggingPrivacy": "Source inspected at entry/selected helpers; no production logs/tokens inspected; provider/network errors and detailed DB error redaction remain route-specific acceptance work",
+        "SQLAndEffectivePermissions": "Referenced source contracts examined; selected original local PostgreSQL suites pass; no current hosted ACL/default-grant acceptance",
+        "remainingGate": "Historical generated HTML/render/resource surfaces and real publication/storage authority not fully reviewed",
+        "depth": "Entry dispatch and selected trust-boundary source review; not every helper line"
+      }
+    ],
+    "workflowReview": {
+      "secretWorkflows": 23,
+      "writeTokenWorkflows": 3,
+      "unionReviewed": 24,
+      "scope": "Trigger, permissions, credentials, action/install/release blocks and representative invoked scripts; not every transitive action implementation.",
+      "changes": "None: signing/distribution/paid-build workflows deliberately preserved.",
+      "openRisks": [
+        "Floating action tags",
+        "Job-wide credentials and persisted checkout credentials",
+        "Historical automatic branch-triggered external operations",
+        "Unpinned @latest tooling and npm install in privileged jobs",
+        "Protected Environment/repository policy not independently inspected"
+      ]
+    },
+    "paidPaths": "All10 known direct model HTTP paths remain source-denied. Pinned Edge dependency graph contains no model-provider SDK; broader source search found no additional direct SDK inference path. This is finite evidence, not whole-program proof or future activation approval."
+  },
+  "phaseThree": {
+    "date": "2026-10-31",
+    "implementationCommit": "41bff13da839bb9b8adafeffd416876f308031e1",
+    "implementationTree": "61580d39f129a02ab79b8c3256bd205960c12efe",
+    "sourceCorrections": [
+      {
+        "area": "Public Mini App links",
+        "implemented": "Exact project/bucket/business/app/live-version redirect binding through original destination helper and actual-handler tests",
+        "remaining": "Hosted storage/public availability and inbound traffic controls"
+      },
+      {
+        "area": "Internal workers and calendar status",
+        "implemented": "16KiB incremental bytes/deadline for four original internal workers,8KiB calendar metadata body",
+        "remaining": "Not a universal ingress/rate limit; calendar/provider mutations remain source-denied"
+      },
+      {
+        "area": "Legacy source-write/publication workflows",
+        "implemented": "Four targeted workflows pinned to verified upstream v4 commit IDs; three privileged jobs require exact manual approval; EAS/Snack require separately set toolchain-review variable; read-only staging checkout does not persist credentials and install uses lock",
+        "remaining": "No workflow executed; other historical refs/jobs and repository protected Environments not accepted"
+      }
+    ],
+    "replacementContracts": [
+      {
+        "area": "Original social connection/state authority",
+        "status": "21-stage combined actual local PostgreSQL rehearsal includes provider transitions and legacy counter repair; no hosted installation",
+        "implemented": [
+          "Original tables extended, no parallel provider store",
+          "Five finite service-only operations with current-owner member locks and connection revision binding",
+          "Single-use hashed state, fixed staging callback, nonce claims and no blind exchange replay",
+          "No inherited refresh tokens/assets on replacement; exact disconnect and retained receipts",
+          "Direct table/column write closure plus table-owner/finite-operation trigger",
+          "10 starts per owner/business/hour, serialised for this pair; not a universal business ingress limiter"
+        ],
+        "remaining": [
+          "Genuine callback/Auth session/PKCE/provider verification transport",
+          "Calendar original DDL authority",
+          "Existing status-reader migration to finite metadata API",
+          "Token encryption/rotation, Auth-user deletion and retention compatibility",
+          "Full owner-transfer and external provider revocation/reconciliation"
+        ]
+      },
+      {
+        "area": "Mini App daily entry writer",
+        "status": "Review-only replacement of original RPC; exercised in real local PostgreSQL, not deployed",
+        "implemented": "App/business row binding under lock; original daily counter retained; mismatched historical scope rejected; direct table AND column write grants closed; retaining rollback closes writer",
+        "remaining": "Current hosted function/grant inventory, public counter abuse controls and other historical writer families"
+      }
+    ],
+    "legacyWriterReview": [
+      {
+        "authority": "Social connections/state direct service writes",
+        "coverage": "Original DDL/roles and direct REST writer path reviewed; new bound-row trigger/finite SQL tested, including forged GUC denial"
+      },
+      {
+        "authority": "Mini App entry record RPC",
+        "coverage": "Original CREATE/function source executed; reproduced mismatched-business acceptance; reviewed replacement/negative role/scoping/lockdown tested"
+      },
+      {
+        "authority": "Website enqueue/read/archive/retry RPCs",
+        "coverage": "Original service-only authority/search path/source routing sampled; full actor/approval/revocation closure not accepted"
+      },
+      {
+        "authority": "Mini App unread, guest-request and message paths",
+        "coverage": "Selected service-role grants/identity/proof boundaries source-reviewed; atomic guest challenge quotas and remaining legacy message/publication writes still incomplete"
+      }
+    ],
+    "verification": {
+      "application": 453,
+      "providerAndLegacyPostgresStages": 21,
+      "budgetPostgresStages": 31,
+      "allEdgeEntryChecks": 25,
+      "hosted": false
+    },
+    "riskRegister": [
+      {
+        "priority": "High before affected activation",
+        "item": "Live provider callback/session/subject verification and credential/deletion integration incomplete; keep all existing denial fences"
+      },
+      {
+        "priority": "High before affected deployment",
+        "item": "Existing hosted versions/grants not inspected; source fixes do not retroactively repair deployed legacy endpoints"
+      },
+      {
+        "priority": "Affected-path dependent; unresolved",
+        "item": "Four dependency advisory families; no compatible validated remediation; root lock unchanged"
+      },
+      {
+        "priority": "Medium/activation dependent",
+        "item": "Guest quota/proxy trust, custom-host DNS/egress, push receipts and remaining legacy writer races remain unaccepted"
+      },
+      {
+        "priority": "Operational approval gate",
+        "item": "Legacy EAS/Snack toolchain-review variable not set; no credential/protected-Environment acceptance or distribution run"
+      }
+    ],
+    "deepAuditComplete": false
+  },
+  "phaseFour": {
+    "status": "Source/local review; complete historical deep audit remains unfinished",
+    "provider": "Original staging session -> original social endpoint -> service-only metadata/intent RPC; default disabled. No exchange/key management/real provider acceptance.",
+    "publicGuest": "Original challenge admission and submit source locks; exact disposable SQL rehearsal; hosted edge rate infrastructure unverified.",
+    "network": "Custom health probes fail closed pending reviewed egress; no DNS-rebinding acceptance claim.",
+    "legacyWriters": "Guest submit and provider status reviewed; remaining publication/media/message action audit incomplete.",
+    "paidOperations": "Existing ten direct-model denial fences and budget controller unchanged; local accounting regression required.",
+    "unreviewed": "Full private media upload lifecycle, push/outbox dispatch, hosted storage IAM, all historical action grants and independent native/security assurance remain incomplete.",
+    "implementationCommit": "73605e55f33cd7aa856e02cf9cd537e0155dfa26",
+    "implementationTree": "4bb2c452385d980bde9d793985bc3fad3907b404",
+    "evidence": "docs/HISTORICAL_SECURITY_AUDIT_PHASE_FOUR_2026_10_31_CHECKS.json"
+  },
+  "phaseFive": {
+    "sourceDevelopmentDecision": "Yes, bounded reviewed paths with permanent security checks and quarantines",
+    "activationDecision": "No hosted or release readiness",
+    "media": "Original finite coordinator/SQL plus original endpoint readback/revocation/path/size review; no parallel registry; legacy upload source-quarantined",
+    "publicationAndCustomerActions": "Enumerated consequential Website/MiniApp actions, both customer message ingresses, shared App push dispatcher, publication worker/provider mutations and legacy push test source-quarantined; original message transaction corrected in fused SQL",
+    "credentials": "Managed Vault/KMS lifecycle reviewed; no live persistence/PKCE exchange/key provisioning implemented",
+    "limitations": "No complete line-by-line historical/native review; actual hosted Storage/IAM, provider acceptance and independent assurance remain open",
+    "implementationCommit": "9656e6ec5f360b9a49fd39499425cc5791874e76",
+    "implementationTree": "ec0da9ff9c9f3cd102663a01a34bc4d68ddd9b52",
+    "evidence": "docs/HISTORICAL_SECURITY_AUDIT_PHASE_FIVE_2026_10_31_CHECKS.json"
+  }
+}

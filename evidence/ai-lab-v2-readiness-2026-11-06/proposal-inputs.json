@@ -1,0 +1,48 @@
+{
+  "sourceSha": "21121ee462b27a77b30089ba69e2adcb28d15182",
+  "sourceTree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+  "kind": "Explicitly synthetic offline engineering input/proposals; no execution approval, account save, provider response or real model result",
+  "model": "gpt-6.1-sol",
+  "inputDigest": "4c8a551a0467955054b26b9cb9c82e395e9ac34fac8776ccec772c1c7c741f67",
+  "wireDigest": "2288e92a5422b3cee1276a344a542356b273aff7e2c6e36d0fa15b98ef59725b",
+  "files": [
+    {
+      "path": "approved-synthetic-input.json",
+      "canonicalBytes": 5877,
+      "canonicalSha256": "4c8a551a0467955054b26b9cb9c82e395e9ac34fac8776ccec772c1c7c741f67",
+      "fileSha256": "bf7e4f712fdd7ccd0d855a95ecce31e6061d95040f6308fd668296f148875177",
+      "fileBytes": 5878
+    },
+    {
+      "path": "strict-response-schema.json",
+      "canonicalBytes": 9012,
+      "canonicalSha256": "6855fe3522aa105b0bd38d43c7fbb23e94b6fd8d12cfc5903903a0b9b5cfeacb",
+      "fileSha256": "7ddc2bdfab05e3ef8020173cc6740b50f1b55a965d34dc7626a3886d14e124ee",
+      "fileBytes": 9013
+    },
+    {
+      "path": "complete-disabled-request.json",
+      "canonicalBytes": 15631,
+      "canonicalSha256": "2288e92a5422b3cee1276a344a542356b273aff7e2c6e36d0fa15b98ef59725b",
+      "fileSha256": "a9066a9892a30e3aefb746779c1fee9cbdab65560c9e1a182198fe1b5bc6de10",
+      "fileBytes": 15632
+    },
+    {
+      "path": "authored-offline-response.json",
+      "canonicalBytes": 8624,
+      "canonicalSha256": "7f4ba22e07cdc031cdf5da5718d3ab6e197007374e3345a8676ac4591c6a32e6",
+      "fileSha256": "4c18ef2a3db41bb20ed64a69f35e4aaf51d3c4fb54234fa787ca4543ae20be8c",
+      "fileBytes": 8625
+    },
+    {
+      "path": "frozen-deterministic-proposal.json",
+      "canonicalBytes": 1355,
+      "canonicalSha256": "f163efd5313fa592d2141b4a159edd7f2c9715234c48c456b9a17436fd74f680",
+      "fileSha256": "3c4c08fd24701f7bcf0daf0e4865e7c91a8c40a9421a9a71dc19569b5c6286bc",
+      "fileBytes": 1356
+    }
+  ],
+  "tokenCounts": null,
+  "providerCalls": 0,
+  "paidInference": false
+}

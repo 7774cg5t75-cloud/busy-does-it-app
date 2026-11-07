@@ -1,0 +1,114 @@
+{
+  "source": {
+    "commit": "1f7feadb3bccbf87084da1813bea8655641ee616",
+    "tree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41"
+  },
+  "rows": [
+    {
+      "business": "Moor & Meadow",
+      "pages": 10,
+      "photos": 2,
+      "filename": "moor-meadow.zip",
+      "bytes": 2358373,
+      "sha256": "f7243fb926866bd6f5f7d4a644acb7c11b6d0eb85c379071888037f58eb1c201",
+      "prepare": {
+        "pages": 10,
+        "addedPages": 5,
+        "sourceServicesReused": 5,
+        "elapsedMs": 25.7,
+        "modelBytes": 22954,
+        "renderedBytes": 1103187,
+        "providerCalls": 0,
+        "measuredTokenUsage": null,
+        "measuredProviderCost": null
+      },
+      "exportMs": 90.3,
+      "exportNodeCpuMicroseconds": {
+        "user": 106346,
+        "system": 6652
+      },
+      "providerCalls": 0,
+      "independentZipValidation": {
+        "crc": true,
+        "pages": 10,
+        "allLocalLinksAndImagesResolve": true,
+        "decodedUniqueImageFiles": 2
+      }
+    },
+    {
+      "business": "Ember Festival Kitchen",
+      "pages": 9,
+      "photos": 2,
+      "filename": "ember.zip",
+      "bytes": 1571131,
+      "sha256": "0ca97f93220328a1c7423e639e6f109c4404f861fd8d0b96afbce19588c394ca",
+      "prepare": {
+        "pages": 9,
+        "addedPages": 3,
+        "sourceServicesReused": 3,
+        "elapsedMs": 19.33,
+        "modelBytes": 18964,
+        "renderedBytes": 991321,
+        "providerCalls": 0,
+        "measuredTokenUsage": null,
+        "measuredProviderCost": null
+      },
+      "exportMs": 72.82,
+      "exportNodeCpuMicroseconds": {
+        "user": 61424,
+        "system": 13150
+      },
+      "providerCalls": 0,
+      "independentZipValidation": {
+        "crc": true,
+        "pages": 9,
+        "allLocalLinksAndImagesResolve": true,
+        "decodedUniqueImageFiles": 2
+      }
+    },
+    {
+      "business": "Quiet Light Studio",
+      "pages": 7,
+      "photos": 0,
+      "filename": "quiet-light.zip",
+      "bytes": 771382,
+      "sha256": "d0174c932cb153e38e4be235a9101dcd1e6d78f2271933074a0ccf04803ea541",
+      "prepare": {
+        "pages": 7,
+        "addedPages": 3,
+        "sourceServicesReused": 3,
+        "elapsedMs": 12.36,
+        "modelBytes": 15142,
+        "renderedBytes": 768330,
+        "providerCalls": 0,
+        "measuredTokenUsage": null,
+        "measuredProviderCost": null
+      },
+      "exportMs": 42.56,
+      "exportNodeCpuMicroseconds": {
+        "user": 30733,
+        "system": 12914
+      },
+      "providerCalls": 0,
+      "independentZipValidation": {
+        "crc": true,
+        "pages": 7,
+        "allLocalLinksAndImagesResolve": true,
+        "decodedUniqueImageFiles": 0
+      }
+    }
+  ],
+  "hosted": false,
+  "providerCalls": 0,
+  "independentValidation": {
+    "pages": 26,
+    "uniqueImageFiles": 4,
+    "passed": 3,
+    "failed": 0
+  },
+  "reproduction": {
+    "sourceVerifiedAgainstFrozenGit": true,
+    "identicalZipHashes": true,
+    "providerCalls": 0
+  }
+}

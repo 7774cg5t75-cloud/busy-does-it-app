@@ -1,3 +1,5 @@
+import {BusyOrb} from "../components/BusyOrb";
+import {orbState,appColors as C} from "../theme/appearance.mjs";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import {
@@ -12,7 +14,12 @@ import { styles } from "../theme/styles";
 import { Shell, Card, Button, MetricRow, StatusChip } from "../components/ui";
 
 function TalkToBusy({ s }) {
-  const [typedCommand, setTypedCommand] = useState("");
+  const typedScope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.cloudWorkspace?.role]);
+  const [localDraft,setLocalDraft]=useState({scope:typedScope,text:s.busyEntryText||""});
+  const typedCommand=localDraft.scope===typedScope?localDraft.text:"";
+  const typingEpoch=useRef(0);
+  const setTypedCommand=value=>{typingEpoch.current++;setLocalDraft({scope:typedScope,text:value});s.setBusyEntryText?.(value);};
+  const currentTyped=useRef(typedCommand);currentTyped.current=typedCommand;
   const [showQuickAsks, setShowQuickAsks] = useState(false);
   const [showConversation, setShowConversation] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -108,12 +115,14 @@ function TalkToBusy({ s }) {
     return () => clearTimeout(timer);
   }, [s.busyVoiceStartNonce]);
 
-  const submitTyped = async () => {
-    const text = typedCommand.trim();
+  const submitTyped = async (requestedText=typedCommand) => {
+    const text = requestedText.trim(),epoch=typingEpoch.current;
     if (!text) return;
-    await s.submitBusyCommand({ text });
-    setTypedCommand("");
+    const result=await s.submitBusyCommand({ text });
+    if(result&&typingEpoch.current===epoch&&currentTyped.current===requestedText)setTypedCommand("");
   };
+
+  useEffect(()=>{const ticket=s.busyEntrySubmission;if(!ticket)return;const approved=s.takeBusyEntrySubmission?.(ticket);if(typeof approved==='string'&&approved.trim())submitTyped(approved);},[s.busyEntrySubmission]);
 
   const result = s.busyCommandResult;
   const canRun = s.busyCommandHasAction(result);
@@ -172,21 +181,8 @@ function TalkToBusy({ s }) {
         tone={isListening ? "amber" : voiceStage === "error" ? "amber" : "blue"}
       >
         <View style={styles.talkRecordingWrap}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={isListening ? "Stop recording and send to BUSY" : "Start voice recording"}
-            onPress={isListening ? stopRecording : startRecording}
-            disabled={s.busyCommandStatus === "thinking" || voiceStage === "starting" || voiceStage === "sending"}
-            style={({ pressed }) => [
-              styles.talkRecordingButton,
-              isListening && styles.talkRecordingButtonActive,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.talkRecordingIcon}>
-              {isListening ? "■" : "🎙"}
-            </Text>
-          </Pressable>
+          <BusyOrb size={128} state={orbState({recording:isListening,status:voiceStage==='sending'?'processing':s.busyCommandStatus,error:voiceStage==='error'?voiceMessage:s.busyCommandError,approval:!!result?.requiresConfirmation})} onPress={isListening?stopRecording:startRecording} disabled={s.busyCommandStatus==='thinking'||voiceStage==='starting'||voiceStage==='sending'} label={isListening?'Stop recording and send to BUSY':'Start voice recording'}/>
+
           <Text style={styles.talkRecordingLabel}>
             {isListening
               ? "Tap to stop and send"
@@ -365,7 +361,8 @@ function TalkToBusy({ s }) {
           value={typedCommand}
           onChangeText={setTypedCommand}
           placeholder={result?.needsClarification ? "Your answer…" : s.websiteConversationMode ? "Describe your ideal website or the changes you'd like…" : "What do you want BUSY to do?"}
-          placeholderTextColor="#8A94A4"
+          placeholderTextColor={C.muted}
+          accessibilityLabel="Message to BUSY"
           multiline
           style={styles.talkInput}
           editable={s.busyCommandStatus !== "thinking"}
@@ -374,7 +371,7 @@ function TalkToBusy({ s }) {
           label={s.busyCommandStatus === "thinking" ? "BUSY is thinking…" : result?.needsClarification ? "Reply to BUSY" : "Ask BUSY"}
           primary
           disabled={!typedCommand.trim() || s.busyCommandStatus === "thinking"}
-          onPress={submitTyped}
+          onPress={()=>submitTyped()}
         />
       </Card>
 

@@ -1,3 +1,12 @@
+import {InteriorContext,InteriorHeader} from './InteriorChrome';
+import {interiorMood,interiorType} from '../theme/interior.mjs';
+import {OwnerPreviewNotice} from '../ownerPreview/OwnerPreviewNotice';
+import {FloatingOrbContext,useFloatingOrbLayout,useFloatingOrbAvoidance,OrbSafeRegion} from './FloatingOrbAvoidance';
+import {MotionReveal} from '../theme/motion';
+import {chromeLabel,workspaceDensity} from '../theme/interaction.mjs';
+import {BusyMiniOrb,BusyOrb} from "./BusyOrb";
+import {PremiumAtmosphere,ChromeIcon,BusyBrandStar} from "./PremiumAtmosphere";
+import {moodForScreen,orbState,getAppearance} from "../theme/appearance.mjs";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -16,6 +25,8 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -246,19 +257,19 @@ function BusyAssistantMark({ size = 38 }) {
 }
 
 function BusyBrandLockup({ size = 38, centered = false, inverse = false }) {
-  return (
-    <View style={[styles.busyBrandLockup, centered && styles.busyBrandLockupCentered]}>
-      <BusyAssistantMark size={size} />
-      <View style={styles.busyWordmarkWrap}>
-        <Text style={[styles.busyWordmarkBusy, inverse && styles.homeDarkText, { fontSize: Math.max(17, Math.round(size * 0.48)) }]}>BUSY</Text>
-        <Text style={[styles.busyWordmarkDoes, { fontSize: Math.max(13, Math.round(size * 0.34)) }]}>DOES IT</Text>
-      </View>
-    </View>
-  );
+ return <View accessibilityLabel="Busy Does It" style={[styles.busyBrandLockup,centered&&styles.busyBrandLockupCentered]}>
+  <View style={{width:32,height:32,alignItems:'center',justifyContent:'center',marginRight:7}}><BusyBrandStar size={32}/></View>
+  <Text style={{color:C.ink,fontSize:18,lineHeight:25,fontWeight:'700',letterSpacing:-.35,flexShrink:1,minWidth:0,textShadowColor:C.cyan,textShadowOffset:{width:0,height:0},textShadowRadius:getAppearance().resolved==='midnight'?3:0}}>Busy Does It</Text>
+ </View>;
 }
 
 function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = true, hideDevBadge = true, scrollRef }) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const home=s.screen==='home',dashboard=home||['results','workHub'].includes(s.screen);
+  const atmosphereVisible=home||['socialMedia','socialCreator','growthCommandCentre','websiteBuilder','miniAppBuilder'].includes(s.screen);
+  const overlay=useFloatingOrbLayout(JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.screen]));
+  const eligible=!noNav&&!keyboardVisible&&!s.busyMiniOrbHidden&&['workHub','customerRecords','growthCommandCentre','socialMedia','settings','results'].includes(s.screen)&&typeof s.openTalkToBusy==='function';
+  const orbObstacles=React.useMemo(()=>[...overlay.obstacles,...(Array.isArray(s.busyOrbAvoidRects)?s.busyOrbAvoidRects:[])],[overlay.obstacles,s.busyOrbAvoidRects]);
 
   useEffect(() => {
     const show = Keyboard.addListener(
@@ -276,158 +287,184 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
   }, []);
 
   return (
-    <View style={[styles.shell, dark && styles.homeDarkShell]}>
+    <View style={[styles.shell, dark && styles.homeDarkShell]}><InteriorContext.Provider value={home?null:interiorMood(s.screen)}>
+      <PremiumAtmosphere screen={s.screen}/>
       <KeyboardAvoidingView
         style={styles.keyboardAvoider}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
       >
+       <FloatingOrbContext.Provider value={eligible?overlay.context:null}><View ref={overlay.root} onLayout={overlay.onLayout} collapsable={false} style={{flex:1}}>
         <ScrollView
           ref={scrollRef}
-          style={[styles.scroll, dark && styles.homeDarkShell]}
+          onScrollBeginDrag={overlay.startScroll} onMomentumScrollBegin={overlay.startScroll} onScrollEndDrag={overlay.endScroll} onMomentumScrollEnd={overlay.endScroll}
+          style={[styles.scroll, dark && styles.homeDarkShell,atmosphereVisible&&{backgroundColor:"transparent"}]}
           contentContainerStyle={[
             styles.scrollContent,
             dark && styles.homeDarkContent,
+            home && {paddingTop:2,paddingHorizontal:16,paddingBottom:24},
+            eligible&&{paddingBottom:76},
             keyboardVisible && styles.scrollContentKeyboard,
           ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          automaticallyAdjustKeyboardInsets={false}
         >
-        <View style={[styles.topRow, dark && styles.homeDarkTopRow]}>
+        <MotionReveal identity={s.screen}>{!home?<InteriorHeader s={s} title={title} subtitle={subtitle} brandCue={brandCue?chromeLabel(brandCue):null} noBack={noBack}/>:<><View style={[styles.topRow, dark && styles.homeDarkTopRow,home&&{marginBottom:0}]}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <BusyBrandLockup size={36} inverse={dark} />
-            <Text style={[styles.tagline, dark && styles.homeDarkMuted]}>More work. Less fuss.</Text>
+            <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:4}}><OrbSafeRegion style={{alignSelf:"flex-start"}}><BusyBrandLockup size={36} inverse={dark} /></OrbSafeRegion>{home&&process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="owner-preview"?<OwnerPreviewNotice compact/>:null}</View>
+            <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.tagline, dark && styles.homeDarkMuted]}>Your business. A little more freedom.</Text></OrbSafeRegion>
             {!hideDevBadge ? <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text> : null}
           </View>
           {!noBack && s.history?.length > 0 ? (
-            <Pressable onPress={s.back} style={styles.backPill}>
+           <OrbSafeRegion><Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={s.back} style={({pressed})=>[styles.backPill,pressed&&styles.pressed]}>
               <Text style={styles.backText}>Back</Text>
-            </Pressable>
+            </Pressable></OrbSafeRegion>
           ) : null}
         </View>
 
-        {brandCue ? <Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{brandCue}</Text> : null}
-        {title ? <Text style={[styles.h1, dark && styles.homeDarkHeading]}>{title}</Text> : null}
-        {subtitle ? <Text style={[styles.subtitle, dark && styles.homeDarkMuted]}>{subtitle}</Text> : null}
+        {brandCue ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{chromeLabel(brandCue)}</Text></OrbSafeRegion> : null}
+        {title ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text accessibilityRole="header" style={[styles.h1, dark && styles.homeDarkHeading,dashboard&&{fontSize:home?21:22,lineHeight:home?28:29,letterSpacing:-.35}]}>{title}</Text></OrbSafeRegion> : null}
+        {subtitle ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text style={[styles.subtitle, dark && styles.homeDarkMuted,dashboard&&{fontSize:13,lineHeight:19,marginTop:3,marginBottom:home?0:12}]}>{subtitle}</Text></OrbSafeRegion> : null}
 
+        </>}</MotionReveal>
         {children}
         </ScrollView>
+        {eligible?<BusyMiniOrb key={s.screen} s={s} ready={overlay.ready} layoutVersion={overlay.version} bounds={overlay.bounds} obstacles={orbObstacles}/>:null}
+       </View></FloatingOrbContext.Provider>
       </KeyboardAvoidingView>
       {!noNav && !keyboardVisible ? <BottomNav s={s} dark={dark} /> : null}
-    </View>
+    </InteriorContext.Provider></View>
   );
 }
 
 function BottomNav({ s, dark = true }) {
-  const items = [
-    ["Home", "home"],
-    ["Work", "workHub"],
-    ["Results", "results"],
-    ["Settings", "settings"],
-  ];
-  return (
-    <View style={[styles.nav, dark && styles.homeDarkNav]}>
-      {items.map(([label, target]) => {
-        const active = s.tab === label;
-        return (
-          <Pressable
-            key={label}
-            style={styles.navItem}
-            onPress={() => {
-              s.setTab(label);
-              s.jump(target, label);
-            }}
-          >
-            <View style={[styles.navDot, active && styles.navDotActive]} />
-            <Text style={[styles.navText, dark && styles.homeDarkNavText, active && styles.navTextActive, dark && active && styles.homeDarkNavActive]}>{label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
+ const items=[['Home','home','home'],['Work','workHub','work'],['Results','results','results'],['Settings','settings','settings']];
+ const scope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.screen]);
+ const live=React.useRef(null);live.current={s,scope};
+ const run=fn=>()=>{if(live.current.scope===scope)fn(live.current.s);};
+ const tab=([label,target,icon])=><Pressable key={label} testID={"busy-nav-"+target} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:s.tab===label}} onPress={run(state=>state.jump(target,label))} style={({pressed})=>[styles.navItem,pressed&&{backgroundColor:C.surface}]}>
+  <ChromeIcon name={icon} size={20} color={s.tab===label?C.cyan:C.muted}/><Text style={[styles.navText,s.tab===label&&{color:C.cyan}]}>{label}</Text>
+  <View style={{height:2,width:14,borderRadius:2,backgroundColor:s.tab===label?C.cyan:'transparent',marginTop:3}}/>
+ </Pressable>;
+ return <View accessibilityRole="tablist" style={[styles.nav,dark&&styles.homeDarkNav]}>
+  {items.slice(0,2).map(tab)}
+  <View style={{flex:1,alignItems:'center',minWidth:0,paddingVertical:2}}><BusyOrb size={48} identifier="busy-dock-assistant" accessibilityHint="Fixed navigation control. Opens the original BUSY voice conversation." ambient={false} state={orbState({status:s.busyCommandStatus,error:s.busyCommandError})} label="Talk to BUSY" onPress={run(state=>state.openTalkToBusy?.(true))}/><Text style={{color:C.blueText,fontSize:10,lineHeight:12,textAlign:'center'}} accessibilityElementsHidden>Talk</Text></View>
+  {items.slice(2).map(tab)}
+ </View>;
 }
 
 function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
+  const interior=React.useContext(InteriorContext);
   const toneStyle =
-    tone === "green"
+    tone === "red" ? styles.cardRed : tone === "green"
       ? styles.cardGreen
       : tone === "amber"
       ? styles.cardAmber
       : styles.cardBlue;
-  const eyebrowText = eyebrow ? String(eyebrow).toUpperCase() : "";
+  const eyebrowText = eyebrow ? String(chromeLabel(eyebrow)).toUpperCase() : "";
   const showBusyMark = eyebrowText.startsWith("BUSY");
   return (
-    <View style={[styles.card, toneStyle]}>
+    <View style={[styles.card, toneStyle,interior&&{padding:16,borderRadius:20,borderTopColor:C[interior.accent]}]}>
       {eyebrow ? (
         showBusyMark ? (
           <View style={styles.busyEyebrowRow}>
-            <BusyAppMark size={21} />
+            <ChromeIcon name="spark" size={18} color={C.cyan}/>
             <Text style={[styles.eyebrow, styles.busyEyebrowText]}>{eyebrowText}</Text>
           </View>
         ) : (
           <Text style={styles.eyebrow}>{eyebrowText}</Text>
         )
       ) : null}
-      {title ? <Text style={styles.cardTitle}>{title}</Text> : null}
-      {body ? <Text style={styles.cardBody}>{body}</Text> : null}
-      {children}
+      {title ? <OrbSafeRegion style={{alignSelf:"flex-start"}}><Text accessibilityRole="header" style={[styles.cardTitle,interior&&{fontSize:interiorType.cardTitle,lineHeight:interiorType.cardTitleLine,marginBottom:5}]}>{title}</Text></OrbSafeRegion> : null}
+      {body ? <OrbSafeRegion><Text style={[styles.cardBody,interior&&{fontSize:14,lineHeight:21}]}>{body}</Text></OrbSafeRegion> : null}
+      {children ? <View style={styles.cardContent}>{children}</View> : null}
       {footer ? <Text style={styles.cardFooter}>{footer}</Text> : null}
     </View>
   );
 }
 
-function Button({ label, onPress, primary = false, danger = false, disabled = false }) {
+function Button({ label, onPress, primary = false, danger = false, disabled = false, selected, compact = false, loading = false, accessibilityHint }) {
+  const avoidance=useFloatingOrbAvoidance(),interior=React.useContext(InteriorContext);
+  disabled=disabled||loading;
   return (
-    <Pressable
+    <Pressable {...avoidance}
+      accessibilityRole="button"
+      accessibilityLabel={typeof label==="string"?label:undefined}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{disabled,busy:loading,...(selected===undefined?{}:{selected})}}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
+        compact && styles.buttonCompact,
+        selected && styles.buttonSelected,
         primary && styles.buttonPrimary,
         danger && styles.buttonDanger,
+        interior&&{borderRadius:18,paddingVertical:11,borderColor:selected?C[interior.accent]:C.border},
+        interior&&primary&&!danger&&{backgroundColor:C.blue,borderColor:C.blueText,shadowColor:C[interior.accent],shadowOpacity:.18,shadowRadius:9,shadowOffset:{width:0,height:3}},
         disabled && styles.buttonDisabled,
         pressed && !disabled && styles.pressed,
       ]}
     >
-      <Text
+      <View pointerEvents="none" style={styles.actionContent}>{interior&&primary?<View accessibilityElementsHidden style={{width:4,height:18,borderRadius:2,backgroundColor:C.onAction,opacity:.6}}/>:null}{loading?<ActivityIndicator accessibilityElementsHidden color={C.blueText} size="small"/>:null}<Text
         style={[
           styles.buttonText,
+          compact && styles.buttonTextCompact,
+          selected && styles.buttonTextSelected,
           primary && styles.buttonTextPrimary,
           danger && styles.buttonTextPrimary,
+          disabled && styles.buttonTextDisabled,
         ]}
       >
         {label}
-      </Text>
+      </Text></View>
     </Pressable>
   );
 }
 
 function SmallLink({ label, onPress }) {
+  const avoidance=useFloatingOrbAvoidance();
   return (
-    <Pressable onPress={onPress} style={styles.smallLinkWrap}>
+    <Pressable {...avoidance} accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({pressed})=>[styles.smallLinkWrap,pressed&&styles.pressed]}>
       <Text style={styles.smallLink}>{label}</Text>
     </Pressable>
   );
 }
 
-function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences" }) {
+function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength, editable = true, hint, error, onSubmitEditing, returnKeyType }) {
+  const avoidance=useFloatingOrbAvoidance();
+  const [focused,setFocused]=useState(false);
   return (
-    <View style={styles.fieldWrap}>
+    <View {...avoidance} style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.fieldBox}>
+      <View style={[styles.fieldBox, multiline && styles.fieldBoxMultiline, focused && editable && styles.fieldBoxFocused, !editable && styles.fieldBoxReadOnly,error && styles.fieldBoxError]}>
         {prefix ? <Text style={styles.fieldPrefix}>{prefix}</Text> : null}
         <TextInput
+          ref={inputRef}
+          onSubmitEditing={onSubmitEditing}
+          returnKeyType={returnKeyType}
+          accessibilityHint={error||hint}
+          onFocus={()=>{if(editable)setFocused(true);}}
+          onBlur={()=>setFocused(false)}
+          selectionColor={C.blueText}
+          textAlignVertical={multiline?"top":"center"}
+          maxLength={maxLength}
+          multiline={multiline}
+          accessibilityLabel={label}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={editable ? onChangeText : undefined}
+          editable={editable}
+          accessibilityState={{disabled:!editable}}
           placeholder={placeholder}
           keyboardType={keyboardType}
           secureTextEntry={secureTextEntry}
           autoCapitalize={autoCapitalize}
-          style={styles.fieldInput}
-          placeholderTextColor="#9AA3B2"
+          style={[styles.fieldInput,multiline && styles.fieldInputMultiline]}
+          placeholderTextColor={C.muted}
         />
       </View>
+      {error?<Text accessibilityLiveRegion="polite" style={styles.fieldError}>{error}</Text>:hint?<Text style={styles.fieldHint}>{hint}</Text>:null}
     </View>
   );
 }
@@ -467,7 +504,7 @@ function DatePickerField({ label, value, onChange, allowFuture = false, minimumD
   };
 
   return (
-    <View style={styles.fieldWrap}>
+    <View {...avoidance} style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <Pressable
         onPress={() => {
@@ -551,9 +588,25 @@ function DatePickerField({ label, value, onChange, allowFuture = false, minimumD
   );
 }
 
+// Read-only help only: never put an active editor or an approval action here.
+// Existing specialists retain all workflow and dirty-state ownership.
+function Details({ label, children }) {
+  const [expanded, setExpanded] = useState(false);
+  return <View style={styles.detailsPanel}>
+    <Pressable accessibilityRole="button" accessibilityState={{expanded}}
+      onPress={()=>setExpanded(value=>!value)}
+      style={({pressed})=>[styles.detailsToggle,pressed&&styles.pressed]}>
+      <Text style={styles.detailsLabel}>{label}</Text>
+      <Text accessibilityElementsHidden importantForAccessibility="no" style={styles.detailsIndicator}>{expanded?"−":"+"}</Text>
+    </Pressable>
+    {expanded?<MotionReveal identity={expanded} style={styles.detailsBody}>{children}</MotionReveal>:null}
+  </View>;
+}
+
 function Choice({ label, selected, onPress, sub }) {
+  const avoidance=useFloatingOrbAvoidance();
   return (
-    <Pressable onPress={onPress} style={[styles.choice, selected && styles.choiceSelected]}>
+    <Pressable {...avoidance} accessibilityRole="radio" accessibilityState={{checked:!!selected,selected:!!selected}} accessibilityLabel={label} accessibilityHint={sub} onPress={onPress} style={({pressed})=>[styles.choice, selected && styles.choiceSelected,pressed&&styles.pressed]}>
       <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected ? <View style={styles.radioCore} /> : null}
       </View>
@@ -566,39 +619,44 @@ function Choice({ label, selected, onPress, sub }) {
 }
 
 function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
+  const avoidance=useFloatingOrbAvoidance();
   return (
-    <View style={[styles.toggleRow, disabled && { opacity: 0.55 }]}>
+    <View {...avoidance} style={[styles.toggleRow, disabled && { opacity: 0.55 }]}>
       <View style={{ flex: 1, paddingRight: 12 }}>
         <Text style={styles.toggleTitle}>{title}</Text>
         {body ? <Text style={styles.toggleBody}>{body}</Text> : null}
       </View>
       <Switch
+        accessibilityLabel={title}
+        accessibilityHint={body}
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
-        trackColor={{ false: "#C8CFD9", true: "#9FC0FF" }}
-        thumbColor={value ? C.blue : "#FFFFFF"}
+        trackColor={{ false: C.controlBorder, true: C.blue }}
+        thumbColor={C.onAction}
       />
     </View>
   );
 }
 
 function MetricRow({ left, right, strong = false, onPress = null }) {
+  const avoidance=useFloatingOrbAvoidance(!!onPress);
+  const dimensions=useWindowDimensions(),stack=workspaceDensity(dimensions).metricStack;
   const content = (
     <>
       <Text style={[styles.metricLeft, strong && styles.metricStrong, onPress && styles.metricClickable]}>{left}</Text>
-      <View style={styles.metricRightWrap}>
-        <Text style={[styles.metricRight, strong && styles.metricStrong, onPress && styles.metricClickable]}>{right}</Text>
+      <View style={[styles.metricRightWrap,stack&&styles.metricRightStack]}>
+        <Text style={[styles.metricRight,stack&&styles.metricTextStack, strong && styles.metricStrong, onPress && styles.metricClickable]}>{right}</Text>
         {onPress ? <Text style={styles.metricChevron}>›</Text> : null}
       </View>
     </>
   );
   return onPress ? (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.metricRow, styles.metricRowClickable, pressed && styles.metricRowPressed]}>
+    <Pressable {...avoidance} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.metricRow,stack&&styles.metricRowStack, styles.metricRowClickable, pressed && styles.metricRowPressed]}>
       {content}
     </Pressable>
   ) : (
-    <View style={styles.metricRow}>{content}</View>
+    <View style={[styles.metricRow,stack&&styles.metricRowStack]}>{content}</View>
   );
 }
 
@@ -712,6 +770,7 @@ export {
   SmallLink,
   Field,
   DatePickerField,
+  Details,
   Choice,
   ToggleRow,
   MetricRow,

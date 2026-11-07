@@ -1,0 +1,14 @@
+{
+  "source": {
+    "commit": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102",
+    "tree": "71c2dd821ed20424b771c6dd3a366769b1d0b450"
+  },
+  "browser": "145.0.7632.6",
+  "archiveId": 13416474207,
+  "archiveSha256": "20c7ec34f9275abcf8dbe961beb7f6072423829c5104852255e71a127f8c773d",
+  "observedCapture": "5-after-mobile.png",
+  "sha256": "ee7a83b9ccb8732e6100013c2722efa83869d68b645421aeb0a718de8db0a36a",
+  "verdict": "Visual correction required: removing the process contrast repeated the services hierarchy. Final source restores a compact contrasting band, with separately aligned supplied explanation.",
+  "browserFailure": "Separate new benchmark inherited a one-image check from unrelated excellence fixtures; original check retained under its own scope and new benchmark asserts zero images.",
+  "downloadAttempt": "First read-only download transport closed; retried and independently SHA256-verified."
+}

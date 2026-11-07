@@ -1,0 +1,115 @@
+{
+  "mission": 19,
+  "starting": {
+    "reportCommit": "6d9064ac374ccfcbc0d8b347271cf163995f5c94",
+    "tree": "576ae5e2da99ae5b70f8745ac2a908719493a6b9",
+    "functional": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+    "functionalTree": "d36edcccb25104f7f3fea75c9003744dc64cf85b"
+  },
+  "attempts": [
+    {
+      "commit": "c2b53f57db072124c1222a943a9f20e1de5b0d1d",
+      "tree": "bcd165c39faa9d4fc5f5b6ace5199dca6eb78b09",
+      "main": 42270545820,
+      "mainJob": 128073642246,
+      "mainConclusion": "success",
+      "application": {
+        "passed": 520,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      },
+      "foundation": 105,
+      "postgresStages": 278,
+      "denoEntryPoints": 26,
+      "denoProposalModules": 5,
+      "browser": 42270545833,
+      "browserJob": 128073641592,
+      "browserConclusion": "failure",
+      "browserScreenshots": 160,
+      "browserFailures": {
+        "measurementParagraphJoining": 90,
+        "tabletHeadingGeometry": 1
+      },
+      "browserArtifact": 13528678700,
+      "phoneArtifact": 13528604051,
+      "note": "Actual pixel review additionally found excessive mobile headers and legacy font CSS overriding reviewed intent; fixed subsequently."
+    },
+    {
+      "commit": "0c18a668b435d222eee0659459f068fd15953676",
+      "tree": "ca06afc79699687fd36d439d04b5bab3401cf482",
+      "main": 42277654811,
+      "browser": 42277655000,
+      "browserJob": 128098082539,
+      "browserConclusion": "failure",
+      "browserArtifact": 13533372933,
+      "note": "Actual open native Menu indicator exceeded summary bounds; genuine check stopped capture. Complete browser evidence not claimed. Main superseded by next source; final status to read back.",
+      "mainConclusion": "cancelled"
+    },
+    {
+      "commit": "64628aecdec30a8e59edd3fcf9471543999ba031",
+      "tree": "66d58d74534bb5b3f89f81650a899e1ee4cc7877",
+      "main": 42278343493,
+      "browser": 42278343289,
+      "benchmark": 42278343221,
+      "mission16": 42278343244,
+      "mission17": 42278343266,
+      "mission18": 42278343224,
+      "legacy": [
+        42278343255,
+        42278343495,
+        42278343422,
+        42278343763,
+        42278343500,
+        42278343373
+      ],
+      "conclusion": "superseded",
+      "mainConclusion": "failure",
+      "mainFailure": "Public official PostgreSQL signing-key download timed out after30002ms (curl exit28); signature/ACL requirements unchanged.",
+      "browserConclusion": "success",
+      "browserScreenshots": 160
+    },
+    {
+      "commit": "f42028950b573ceee874994e5414763423abc5d4",
+      "tree": "5c5cc5af6656306cf979f4cf70892f89e2f16691",
+      "main": 42280268235,
+      "mainJob": 128107120131,
+      "mainConclusion": "success",
+      "browser": 42280268183,
+      "browserJob": 128107119521,
+      "browserConclusion": "success",
+      "application": {
+        "passed": 520,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      },
+      "foundationAssertions": 105,
+      "postgresStages": 278,
+      "denoEntryPoints": 26,
+      "denoProposalModules": 5,
+      "afterPages": 18,
+      "fullPagePngs": 160,
+      "openMenuPngs": 4,
+      "typographyChecks": 72,
+      "navigationChecks": 64,
+      "browserFailures": 0,
+      "note": "Final source includes v2-only current-page media selection; original renderer and fixtures are unchanged from the successful646capture. Fresh final-source browser confirms all36 durable PNG/JPEG receipt hashes identical."
+    }
+  ],
+  "localInflight": {
+    "report": "/tmp/mission19-early-regression.json",
+    "sourceStable": false,
+    "passed": 511,
+    "failed": 8,
+    "blocked": 1,
+    "note": "Non-final run while shared modules and HEAD changed. Eight import failures occurred before the new shared CopyRole export existed; frozen-source guard also blocked. Never used as final acceptance."
+  },
+  "supplementalLegacy": {
+    "script": "scripts/check-website-device-edits-v3149.mjs",
+    "registered": false,
+    "result": "failed",
+    "reason": "Pre-existing expectation MAX_STEPS=5 versus original current bound10; assertion not changed."
+  },
+  "scope": "Historical attempts retained; only the final record supplies final acceptance counts. No paid model inference, hosted installation or publication."
+}

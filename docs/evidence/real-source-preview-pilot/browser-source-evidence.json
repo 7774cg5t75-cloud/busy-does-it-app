@@ -1,0 +1,462 @@
+{
+  "status": "genuine-local-browser-evidence-of-authorised-hosted-source",
+  "functionalCommit": "0888dc3c896c1960de292acc9c98279625ad5218",
+  "functionalTree": "359c0353978849b84f3bbced89fe2092ab9ea3d1",
+  "notDeployedPreview": true,
+  "captures": [
+    {
+      "label": "saved-baseline",
+      "origin": "verified-hosted-source-local-original-renderer",
+      "code": {
+        "commit": "0888dc3c896c1960de292acc9c98279625ad5218",
+        "tree": "359c0353978849b84f3bbced89fe2092ab9ea3d1",
+        "workingTreeDirty": false,
+        "rendererFileSha256": "8ee2c91ebc2dd1f739ea9fbe828030fed5fb3ab8ffa8dbd87e0020bdf5c81a76"
+      },
+      "source": {
+        "target": {
+          "projectId": "sbvkrvksnruiclcvclbd",
+          "organizationId": "wrjfgasxtlznzfzmfrif",
+          "region": "eu-west-1"
+        },
+        "observedAt": "2026-11-07T15:19:21.260662+00:00",
+        "approvedManifestDigest": "3409c7d6f6d4850e0a9cb4c586aca3c89623c0b0f2580de358511d0bc0a403c3",
+        "evidenceSha256": "b8cbbb402a261612983dfc4e547518ed7f7fb60fa0d30f3740ecd54d764273f8",
+        "sourcePlanDigest": "0d8ef3e45ec96a9d608571dc1118c5095daa80f37a019a0813ccc1a614c97ddb",
+        "profileRevision": 1,
+        "snapshotRevision": 5,
+        "websiteGeneration": 4,
+        "sourceHashes": {
+          "profileHash": "2dbed341b135ec19b0fe06e1c84de34a273f2c592f3b604097dd32bba45aeeaa",
+          "websiteDraftHash": "4b9ba873205dd46eda20d682ab1644e0dfd344b8cc14455e9f2573ed05c98539",
+          "websiteHistoryHash": "c4cfe9a95d09e034e44edf483d8a1d36bb5a6347428a40387b40ea2db6e21c63"
+        },
+        "undoCount": 3,
+        "redoCount": 0,
+        "privateDraft": true,
+        "imageFree": true,
+        "approvedServices": 3,
+        "ownerStoryProtected": true,
+        "ownerActionProtected": true
+      },
+      "checks": 543,
+      "passed": 543,
+      "failed": 0,
+      "browser": "154.0.8037.57",
+      "sandboxRequired": true,
+      "resources": {
+        "startedAt": "2026-11-07T16:08:38.936Z",
+        "finishedAt": "2026-11-07T16:09:09.211Z",
+        "wallMs": 30275,
+        "nodeCpuMicroseconds": {
+          "user": 2845166,
+          "system": 417704
+        },
+        "nodeMaxRssKiB": 166828
+      },
+      "screenshots": [
+        {
+          "pageId": "home",
+          "label": "narrow",
+          "width": 320,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-home-narrow.png",
+          "sha256": "f1ab83461f6c4165808bc6bcddcbeb7cac6619bf74334d063657823b8123df3e",
+          "bytes": 186601,
+          "htmlSha256": "0fabfba815269de962850060788f3f398e103773be5a93e6a3dc071b1ab5fa13"
+        },
+        {
+          "pageId": "home",
+          "label": "mobile",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-home-mobile.png",
+          "sha256": "ccf3c6008beaa51573324e9c86711d89d562fc0d8c2e2f6280cf65e0a4e68881",
+          "bytes": 180425,
+          "htmlSha256": "0fabfba815269de962850060788f3f398e103773be5a93e6a3dc071b1ab5fa13"
+        },
+        {
+          "pageId": "home",
+          "label": "tablet",
+          "width": 768,
+          "height": 1024,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-home-tablet.png",
+          "sha256": "67936c27101e1a5ae90f07378f34eb75b38c699d05bb96e069d3de3f4d7442f1",
+          "bytes": 203645,
+          "htmlSha256": "0fabfba815269de962850060788f3f398e103773be5a93e6a3dc071b1ab5fa13"
+        },
+        {
+          "pageId": "home",
+          "label": "desktop",
+          "width": 1440,
+          "height": 1000,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-home-desktop.png",
+          "sha256": "dc77ab5dad8a5a8a1820a6e45da7ea7372236606080340849be245287f3f924f",
+          "bytes": 238815,
+          "htmlSha256": "0fabfba815269de962850060788f3f398e103773be5a93e6a3dc071b1ab5fa13"
+        },
+        {
+          "pageId": "home",
+          "label": "retina",
+          "width": 390,
+          "height": 844,
+          "dpr": 2,
+          "file": "screenshots/quiet-light-home-retina.png",
+          "sha256": "b3ba77ed97777b3deb49fc2c9dcb6392fc49841517c5ff2b66b514a3173ae394",
+          "bytes": 487254,
+          "htmlSha256": "0fabfba815269de962850060788f3f398e103773be5a93e6a3dc071b1ab5fa13"
+        },
+        {
+          "pageId": "services",
+          "label": "narrow",
+          "width": 320,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-services-narrow.png",
+          "sha256": "379e6aab17daa4fba00de83a8b7a3c2509d4cce1295cef3518b86978bec4da4f",
+          "bytes": 126520,
+          "htmlSha256": "1674c65a30e720e9570c0e8eb8e207ba359425af14c71c087aaca6d592cff5ff"
+        },
+        {
+          "pageId": "services",
+          "label": "mobile",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-services-mobile.png",
+          "sha256": "185c0d89a520fc536f2d27cc490a747a8f50185eb4727bcd2fc0babcbc882c13",
+          "bytes": 119309,
+          "htmlSha256": "1674c65a30e720e9570c0e8eb8e207ba359425af14c71c087aaca6d592cff5ff"
+        },
+        {
+          "pageId": "services",
+          "label": "tablet",
+          "width": 768,
+          "height": 1024,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-services-tablet.png",
+          "sha256": "2e8b1f32dbdfc2cb70e61a0d9fa1ffdc105ae8c71cbbd6a2e39e0cff35719b34",
+          "bytes": 130355,
+          "htmlSha256": "1674c65a30e720e9570c0e8eb8e207ba359425af14c71c087aaca6d592cff5ff"
+        },
+        {
+          "pageId": "services",
+          "label": "desktop",
+          "width": 1440,
+          "height": 1000,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-services-desktop.png",
+          "sha256": "16c8517f73aec6d952116b64553ed995a0354fc3e8f89e45dd57cb6c93a8fe20",
+          "bytes": 141448,
+          "htmlSha256": "1674c65a30e720e9570c0e8eb8e207ba359425af14c71c087aaca6d592cff5ff"
+        },
+        {
+          "pageId": "services",
+          "label": "retina",
+          "width": 390,
+          "height": 844,
+          "dpr": 2,
+          "file": "screenshots/quiet-light-services-retina.png",
+          "sha256": "b384cbda55d95faa745e66dde0ba9b41dfeb6f7fe9568d74ea3a4a9bf8f094a5",
+          "bytes": 331924,
+          "htmlSha256": "1674c65a30e720e9570c0e8eb8e207ba359425af14c71c087aaca6d592cff5ff"
+        },
+        {
+          "pageId": "contact",
+          "label": "narrow",
+          "width": 320,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-contact-narrow.png",
+          "sha256": "e65ee70357ed92bac1baab42e994421c48641d7a2e9fbd2e894e2b65cf75a0d5",
+          "bytes": 37904,
+          "htmlSha256": "13a5676c3e7d2a0f9a8b6a5689447932479f6351764e05c7770c8f1f7f40b4cd"
+        },
+        {
+          "pageId": "contact",
+          "label": "mobile",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-contact-mobile.png",
+          "sha256": "d60a3df9303148b58aa54c0c2aff6a764a951c92be1003957dec148f2e6b066f",
+          "bytes": 39046,
+          "htmlSha256": "13a5676c3e7d2a0f9a8b6a5689447932479f6351764e05c7770c8f1f7f40b4cd"
+        },
+        {
+          "pageId": "contact",
+          "label": "tablet",
+          "width": 768,
+          "height": 1024,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-contact-tablet.png",
+          "sha256": "db1cc62027df472dbcb27ad87dd689a79c8afd55e27decc0abeeb995c90fa1cb",
+          "bytes": 43079,
+          "htmlSha256": "13a5676c3e7d2a0f9a8b6a5689447932479f6351764e05c7770c8f1f7f40b4cd"
+        },
+        {
+          "pageId": "contact",
+          "label": "desktop",
+          "width": 1440,
+          "height": 1000,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-contact-desktop.png",
+          "sha256": "5648dd7c19eb0ecb801a6571ae8672737ad7e1e7832221f55bf3b576b4524c70",
+          "bytes": 54543,
+          "htmlSha256": "13a5676c3e7d2a0f9a8b6a5689447932479f6351764e05c7770c8f1f7f40b4cd"
+        },
+        {
+          "pageId": "contact",
+          "label": "retina",
+          "width": 390,
+          "height": 844,
+          "dpr": 2,
+          "file": "screenshots/quiet-light-contact-retina.png",
+          "sha256": "6650996d5436aa81ba151f795065fb6ec070ee9c343af40dfced2df33e8d7cbb",
+          "bytes": 95965,
+          "htmlSha256": "13a5676c3e7d2a0f9a8b6a5689447932479f6351764e05c7770c8f1f7f40b4cd"
+        }
+      ]
+    },
+    {
+      "label": "unsaved-deterministic-recommendation",
+      "origin": "deterministic-recommendation-from-verified-hosted-source",
+      "code": {
+        "commit": "0888dc3c896c1960de292acc9c98279625ad5218",
+        "tree": "359c0353978849b84f3bbced89fe2092ab9ea3d1",
+        "workingTreeDirty": false,
+        "preparationFileSha256": "6ec021e68427d6e96ca4bba87da04a2bbdcbf5292be5ea6d4ba8ae5917209ad6",
+        "bridgeFileSha256": "e8b38062ec02d302d6d3a9ab1f5cb9f74fbc23dffaad555733228db8d9f3df24",
+        "rendererFileSha256": "8ee2c91ebc2dd1f739ea9fbe828030fed5fb3ab8ffa8dbd87e0020bdf5c81a76"
+      },
+      "source": {
+        "target": {
+          "projectId": "sbvkrvksnruiclcvclbd",
+          "organizationId": "wrjfgasxtlznzfzmfrif",
+          "region": "eu-west-1"
+        },
+        "observedAt": "2026-11-07T15:19:21.260662+00:00",
+        "approvedManifestDigest": "3409c7d6f6d4850e0a9cb4c586aca3c89623c0b0f2580de358511d0bc0a403c3",
+        "evidenceSha256": "b8cbbb402a261612983dfc4e547518ed7f7fb60fa0d30f3740ecd54d764273f8",
+        "sourcePlanDigest": "0d8ef3e45ec96a9d608571dc1118c5095daa80f37a019a0813ccc1a614c97ddb",
+        "profileRevision": 1,
+        "snapshotRevision": 5,
+        "websiteGeneration": 4,
+        "sourceHashes": {
+          "profileHash": "2dbed341b135ec19b0fe06e1c84de34a273f2c592f3b604097dd32bba45aeeaa",
+          "websiteDraftHash": "4b9ba873205dd46eda20d682ab1644e0dfd344b8cc14455e9f2573ed05c98539",
+          "websiteHistoryHash": "c4cfe9a95d09e034e44edf483d8a1d36bb5a6347428a40387b40ea2db6e21c63"
+        },
+        "undoCount": 3,
+        "redoCount": 0,
+        "privateDraft": true,
+        "imageFree": true,
+        "approvedServices": 3,
+        "ownerStoryProtected": true,
+        "ownerActionProtected": true
+      },
+      "checks": 540,
+      "passed": 540,
+      "failed": 0,
+      "browser": "154.0.8037.57",
+      "sandboxRequired": true,
+      "resources": {
+        "startedAt": "2026-11-07T16:09:11.434Z",
+        "finishedAt": "2026-11-07T16:09:43.491Z",
+        "wallMs": 32057,
+        "nodeCpuMicroseconds": {
+          "user": 2393240,
+          "system": 432055
+        },
+        "nodeMaxRssKiB": 166848
+      },
+      "screenshots": [
+        {
+          "pageId": "home",
+          "label": "narrow",
+          "width": 320,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-home-narrow.png",
+          "sha256": "fe19f8aeef169e2f2d61b80e00aa7930159d1a2772c11354c03df68c60821822",
+          "bytes": 185394,
+          "htmlSha256": "60e0e51cd57128134cc25d27a8d4fca79581cc1ac88176ec94497cb8226eccba"
+        },
+        {
+          "pageId": "home",
+          "label": "mobile",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-home-mobile.png",
+          "sha256": "c0825d697245e18d5fe0dcac3e57ea2dabb8492c5c0f482c351238cbc32cdb63",
+          "bytes": 179203,
+          "htmlSha256": "60e0e51cd57128134cc25d27a8d4fca79581cc1ac88176ec94497cb8226eccba"
+        },
+        {
+          "pageId": "home",
+          "label": "tablet",
+          "width": 768,
+          "height": 1024,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-home-tablet.png",
+          "sha256": "c7f0f344ebb91ded55bbedc74db58ee7ba95616ea76344f7c8c437072fc058cc",
+          "bytes": 200663,
+          "htmlSha256": "60e0e51cd57128134cc25d27a8d4fca79581cc1ac88176ec94497cb8226eccba"
+        },
+        {
+          "pageId": "home",
+          "label": "desktop",
+          "width": 1440,
+          "height": 1000,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-home-desktop.png",
+          "sha256": "1a2d93aa277eed90c0da083da869a49581ec3816331d5d64ac2f78e151084808",
+          "bytes": 234097,
+          "htmlSha256": "60e0e51cd57128134cc25d27a8d4fca79581cc1ac88176ec94497cb8226eccba"
+        },
+        {
+          "pageId": "home",
+          "label": "retina",
+          "width": 390,
+          "height": 844,
+          "dpr": 2,
+          "file": "screenshots/quiet-light-home-retina.png",
+          "sha256": "7061386ff61f932b15a7c4e6ece7b45c9fe2441878be434e778b35c3f9770995",
+          "bytes": 484166,
+          "htmlSha256": "60e0e51cd57128134cc25d27a8d4fca79581cc1ac88176ec94497cb8226eccba"
+        },
+        {
+          "pageId": "services",
+          "label": "narrow",
+          "width": 320,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-services-narrow.png",
+          "sha256": "693a35147c373b6dad2271be22289b551e04f837f21f69e8f4e5716e79da303f",
+          "bytes": 126397,
+          "htmlSha256": "2f06236425ca1578b9357c6631b6d11d4947e6b79fd7185e7c1190a97d8152f4"
+        },
+        {
+          "pageId": "services",
+          "label": "mobile",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-services-mobile.png",
+          "sha256": "d674726f8a368dcdcc0bfea171d33a0cb945712b786490f3a4aefcf059f9fbf9",
+          "bytes": 119165,
+          "htmlSha256": "2f06236425ca1578b9357c6631b6d11d4947e6b79fd7185e7c1190a97d8152f4"
+        },
+        {
+          "pageId": "services",
+          "label": "tablet",
+          "width": 768,
+          "height": 1024,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-services-tablet.png",
+          "sha256": "db37d0f4044de569c524ebbf0bc9c2dfae82cb2ba6d13ff44361e7dbadde0cd4",
+          "bytes": 130973,
+          "htmlSha256": "2f06236425ca1578b9357c6631b6d11d4947e6b79fd7185e7c1190a97d8152f4"
+        },
+        {
+          "pageId": "services",
+          "label": "desktop",
+          "width": 1440,
+          "height": 1000,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-services-desktop.png",
+          "sha256": "5972dbd882c13c74d503a4cfdda636176d0a8bd808cf5574abdf82b964dc96eb",
+          "bytes": 139492,
+          "htmlSha256": "2f06236425ca1578b9357c6631b6d11d4947e6b79fd7185e7c1190a97d8152f4"
+        },
+        {
+          "pageId": "services",
+          "label": "retina",
+          "width": 390,
+          "height": 844,
+          "dpr": 2,
+          "file": "screenshots/quiet-light-services-retina.png",
+          "sha256": "68ab65f388d9e2c76d80e41e12b17c23ab90294d5ffd3050c33b78a227536c24",
+          "bytes": 331545,
+          "htmlSha256": "2f06236425ca1578b9357c6631b6d11d4947e6b79fd7185e7c1190a97d8152f4"
+        },
+        {
+          "pageId": "contact",
+          "label": "narrow",
+          "width": 320,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-contact-narrow.png",
+          "sha256": "acdf54b27efce9a35d50013b8fa67c8c0fe7013a4cd0ee3ab9c09d9943235210",
+          "bytes": 37479,
+          "htmlSha256": "951442fd3f37c3679b9d11ffa5f7590b6b63bb2e8dd0b596e1ae88babadfe978"
+        },
+        {
+          "pageId": "contact",
+          "label": "mobile",
+          "width": 390,
+          "height": 844,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-contact-mobile.png",
+          "sha256": "f83f50cede9c2c0b3fece7cab6fdea8cf2bf26dd827cbe5e96eca9a7c3dd2d56",
+          "bytes": 38593,
+          "htmlSha256": "951442fd3f37c3679b9d11ffa5f7590b6b63bb2e8dd0b596e1ae88babadfe978"
+        },
+        {
+          "pageId": "contact",
+          "label": "tablet",
+          "width": 768,
+          "height": 1024,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-contact-tablet.png",
+          "sha256": "1e8467b8348366cb0398be17611013f2a138fbf92a5ae506a06c60a87dd6ba24",
+          "bytes": 43439,
+          "htmlSha256": "951442fd3f37c3679b9d11ffa5f7590b6b63bb2e8dd0b596e1ae88babadfe978"
+        },
+        {
+          "pageId": "contact",
+          "label": "desktop",
+          "width": 1440,
+          "height": 1000,
+          "dpr": 1,
+          "file": "screenshots/quiet-light-contact-desktop.png",
+          "sha256": "e1d5f66e0e111eb012db0770e04ce1240cf88418b7092e250a83c4e564ea1ad0",
+          "bytes": 51337,
+          "htmlSha256": "951442fd3f37c3679b9d11ffa5f7590b6b63bb2e8dd0b596e1ae88babadfe978"
+        },
+        {
+          "pageId": "contact",
+          "label": "retina",
+          "width": 390,
+          "height": 844,
+          "dpr": 2,
+          "file": "screenshots/quiet-light-contact-retina.png",
+          "sha256": "ef1be61610ea9b359a7013073bf9be000af3afee01574ee793d02985e1fcda6b",
+          "bytes": 95180,
+          "htmlSha256": "951442fd3f37c3679b9d11ffa5f7590b6b63bb2e8dd0b596e1ae88babadfe978"
+        }
+      ]
+    }
+  ],
+  "controlledReviewPack": {
+    "originalPngs": 12,
+    "sha256": "6de8887ff6274bdceaa7d17acf5ef7ae01418a0a51ca9e18cf49d2ad3c6a1b69",
+    "bytes": 1564058,
+    "pixelEdits": 0,
+    "comparison": "same-hosted-source-before-and-after-renderer-owned-SVG-link-icon-fix"
+  },
+  "genuineModelResult": false,
+  "newNativeSignIns": 0,
+  "hostedSourceWrites": 0,
+  "providerCalls": 0,
+  "providerTokens": null,
+  "actualProviderSpendingGBP": 0,
+  "publication": false,
+  "professionalAcceptance": false,
+  "approvedGoldStandards": 0
+}

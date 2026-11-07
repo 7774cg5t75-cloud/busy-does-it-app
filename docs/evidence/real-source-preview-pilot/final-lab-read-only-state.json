@@ -1,0 +1,41 @@
+{
+  "functionalCommit": "0888dc3c896c1960de292acc9c98279625ad5218",
+  "functionalTree": "359c0353978849b84f3bbced89fe2092ab9ea3d1",
+  "readOnly": {
+    "observedAt": "2026-11-07T16:09:23.699958+00:00",
+    "readOnly": true,
+    "sourceUnchanged": true,
+    "profileRevision": 1,
+    "snapshotRevision": 5,
+    "websiteGeneration": 4,
+    "undoCount": 3,
+    "redoCount": 0,
+    "sourceHashes": {
+      "profileHash": "2dbed341b135ec19b0fe06e1c84de34a273f2c592f3b604097dd32bba45aeeaa",
+      "websiteDraftHash": "4b9ba873205dd46eda20d682ab1644e0dfd344b8cc14455e9f2573ed05c98539",
+      "websiteHistoryHash": "c4cfe9a95d09e034e44edf483d8a1d36bb5a6347428a40387b40ea2db6e21c63"
+    },
+    "aiPolicy": {
+      "enabled": false,
+      "monthlyHardLimit": 0
+    },
+    "aiOperations": 0,
+    "aiEvents": 0,
+    "publicWebsiteCount": 0,
+    "deploymentCount": 0,
+    "edgeFunctions": 0
+  },
+  "targetIdentity": {
+    "projectId": "sbvkrvksnruiclcvclbd",
+    "organizationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "status": "ACTIVE_HEALTHY",
+    "postgresVersion": "17.11.0.018"
+  },
+  "verificationScope": "Actual Lab read-only source and control-plane metadata, not a provider or deployed gateway test",
+  "newNativeSignIns": 0,
+  "hostedWrites": 0,
+  "providerCalls": 0,
+  "actualSpendingGBP": 0,
+  "publication": false
+}

@@ -1,0 +1,321 @@
+{
+  "version": 1,
+  "status": "corrected-frozen-functional-source-ci-complete",
+  "functionalCommit": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+  "functionalTree": "625a330ff609bcf4bcc007e4e59f093766f12e2f",
+  "main": {
+    "runId": 42342629038,
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42342629038",
+    "event": "push",
+    "conclusion": "success",
+    "startedAt": "2026-11-07T05:24:55Z",
+    "completedAt": "2026-11-07T05:49:04Z",
+    "jobId": 128313451057,
+    "application": {
+      "sourceSha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+      "sourceTree": "625a330ff609bcf4bcc007e4e59f093766f12e2f",
+      "finalSourceSha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+      "finalSourceTree": "625a330ff609bcf4bcc007e4e59f093766f12e2f",
+      "sourceStable": true,
+      "workingTreeChanged": false,
+      "summary": {
+        "passed": 527,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      }
+    },
+    "postgres": {
+      "commandSuites": 12,
+      "receiptSummaries": {
+        "ai-budget": {
+          "failed": 0,
+          "passed": 32
+        },
+        "ai-lab-b3": {
+          "failed": 0,
+          "passed": 10
+        },
+        "ai-lab-fictional-setup": {
+          "failed": 0,
+          "passed": 16
+        },
+        "ai-lab-fictional-source": {
+          "failed": 0,
+          "passed": 11
+        },
+        "ai-lab-foundation": {
+          "failed": 0,
+          "passed": 19
+        },
+        "ai-lab-runner-foundation": {
+          "failed": 0,
+          "passed": 15
+        },
+        "enquiry-preparation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "operational-work": {
+          "failed": 0,
+          "passed": 13
+        },
+        "preservation-foundation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "public-form": {
+          "failed": 0,
+          "passed": 21
+        },
+        "whole-app": {
+          "failed": 0,
+          "passed": 126
+        },
+        "whole-site": {
+          "failed": 0,
+          "passed": 14
+        },
+        "work-preparation": {
+          "failed": 0,
+          "passed": 12
+        }
+      }
+    },
+    "totalPostgresPassed": 315,
+    "postgresReceiptCount": 13,
+    "foundationAssertions": 105,
+    "deno": {
+      "genuineCommandExitCode": 0,
+      "originalCopiedEntries": 27,
+      "explicitProposalModules": 9,
+      "targets": 36,
+      "evidence": "Actual BUSY_EDGE_RESULT success marker; per-target compilation logs retained in artifact"
+    },
+    "exports": {
+      "ownerPreview": "unsigned JavaScript export passed",
+      "isolatedStaging": "unsigned JavaScript export passed",
+      "deployed": false
+    },
+    "securityEvidenceLines": [
+      "PASS actual Expo deepmerge entry backport, old counterexample, safe merge semantics, unknown-byte/check-only refusal, deterministic reinstall patch and local-only launcher. Registry findings remain visible.",
+      "PASS original Auth expiry/in-flight revocation, no refresh persistence, finite transport tool denial, five malicious enquiry data fixtures, original website XSS escaping and unsafe media denial. No LLM, JWT or hosted acceptance claimed.",
+      "PASS 13 source files parse; syntax only, not native/Expo or Deno semantic checks."
+    ],
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:24:59Z",
+        "completedAt": "2026-11-07T05:25:00Z"
+      },
+      {
+        "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:25:00Z",
+        "completedAt": "2026-11-07T05:25:05Z"
+      },
+      {
+        "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:25:05Z",
+        "completedAt": "2026-11-07T05:25:10Z"
+      },
+      {
+        "name": "Reviewed lock installation and security guard",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:25:10Z",
+        "completedAt": "2026-11-07T05:25:22Z"
+      },
+      {
+        "name": "Original contract and component behaviour",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:25:22Z",
+        "completedAt": "2026-11-07T05:27:02Z"
+      },
+      {
+        "name": "Original legacy Website worker scopes with real shared dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:27:02Z",
+        "completedAt": "2026-11-07T05:27:03Z"
+      },
+      {
+        "name": "Genuine original Edge checks with pinned official verification tools",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:27:03Z",
+        "completedAt": "2026-11-07T05:27:11Z"
+      },
+      {
+        "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:27:11Z",
+        "completedAt": "2026-11-07T05:27:24Z"
+      },
+      {
+        "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:27:24Z",
+        "completedAt": "2026-11-07T05:29:17Z"
+      },
+      {
+        "name": "Unsigned original Owner Preview and isolated staging exports",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:29:17Z",
+        "completedAt": "2026-11-07T05:30:26Z"
+      },
+      {
+        "name": "Complete frozen-source regressions",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:30:26Z",
+        "completedAt": "2026-11-07T05:48:59Z"
+      },
+      {
+        "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:48:59Z",
+        "completedAt": "2026-11-07T05:49:00Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:49:00Z",
+        "completedAt": "2026-11-07T05:49:00Z"
+      },
+      {
+        "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:49:00Z",
+        "completedAt": "2026-11-07T05:49:01Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-07T05:49:01Z",
+        "completedAt": "2026-11-07T05:49:01Z"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 13563390032,
+        "name": "private-app-goal-d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+        "size_in_bytes": 237181,
+        "url": "https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/actions/artifacts/13563390032",
+        "archive_download_url": "https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/actions/artifacts/13563390032/zip",
+        "expired": false,
+        "created_at": "2026-11-07T05:49:00Z",
+        "expires_at": "2026-11-14T05:48:59Z",
+        "updated_at": "2026-11-07T05:49:00Z",
+        "digest": "sha256:f4c907481f26ff831dd6def62d7606a84a3c147e233018b265b5aea6d05f0fbf",
+        "workflow_run": {
+          "id": 42342629038,
+          "repository_id": 1389663451,
+          "head_repository_id": 1389663451,
+          "head_branch": "codex/builder-mission15-design-advancement",
+          "head_sha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a"
+        }
+      }
+    ]
+  },
+  "legacy": {
+    "runs": [
+      {
+        "runId": 42342636771,
+        "name": "V3.63 coordinated editable growth checks",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42342636771",
+        "event": "pull_request",
+        "headSha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+        "conclusion": "success",
+        "jobId": 128313474934,
+        "checkoutSha": "f6e46e453e377f9bd23b652fbb8d0aeffda16e15"
+      },
+      {
+        "runId": 42342633884,
+        "name": "V3.66 voice and project Operator checks",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42342633884",
+        "event": "pull_request",
+        "headSha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+        "conclusion": "success",
+        "jobId": 128313466129,
+        "checkoutSha": "f6e46e453e377f9bd23b652fbb8d0aeffda16e15"
+      },
+      {
+        "runId": 42342633855,
+        "name": "V3.69 Founder Operations Security",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42342633855",
+        "event": "pull_request",
+        "headSha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+        "conclusion": "success",
+        "jobId": 128313465887,
+        "checkoutSha": "f6e46e453e377f9bd23b652fbb8d0aeffda16e15"
+      },
+      {
+        "runId": 42342633876,
+        "name": "V3.64 private growth workspace checks",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42342633876",
+        "event": "pull_request",
+        "headSha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+        "conclusion": "success",
+        "jobId": 128313466455,
+        "checkoutSha": "f6e46e453e377f9bd23b652fbb8d0aeffda16e15"
+      },
+      {
+        "runId": 42342633934,
+        "name": "V3.65 Growth Command Centre checks",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42342633934",
+        "event": "pull_request",
+        "headSha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+        "conclusion": "success",
+        "jobId": 128313466219,
+        "checkoutSha": "f6e46e453e377f9bd23b652fbb8d0aeffda16e15"
+      },
+      {
+        "runId": 42342633853,
+        "name": "V3.70 Platform Autopilot checks",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42342633853",
+        "event": "pull_request",
+        "headSha": "d7fdb898bf302177a81fa27ac6b3f46440f13f7a",
+        "conclusion": "success",
+        "jobId": 128313465943,
+        "checkoutSha": "f6e46e453e377f9bd23b652fbb8d0aeffda16e15"
+      }
+    ],
+    "checkout": {
+      "commit": "f6e46e453e377f9bd23b652fbb8d0aeffda16e15",
+      "tree": "625a330ff609bcf4bcc007e4e59f093766f12e2f",
+      "parents": [
+        "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+        "d7fdb898bf302177a81fa27ac6b3f46440f13f7a"
+      ],
+      "matchesFunctionalTree": true
+    },
+    "note": "Six successful PR workflows checked out GitHub's synthetic test commit with the identical functional tree. No PR was merged."
+  },
+  "superseded": {
+    "functionalCommit": "adb67f5e66ea5ce1134209a4656938522833788a",
+    "functionalTree": "8196c84c662785da84174e463c56c020b5755471",
+    "mainRunId": 42319284869,
+    "conclusion": "success",
+    "receipt": "superseded-ci-results.json",
+    "reason": "Earlier success is preserved separately; it predates explicit propagation of unknown native sign-in outcomes."
+  },
+  "evidenceCollectionNotes": [
+    "An unsupported direct actions/jobs/{id} GET caused a local receipt-reader JSON wrapper error; the supported run/jobs collection supplied the actual terminal job. No CI or hosted state failed as a result.",
+    "One in-progress log request was made during that superseded wrapper attempt; terminal job logs were read separately after completion."
+  ],
+  "evidenceLimits": "Actual GitHub run/job/application/SQL/compilation markers and artifact metadata verified. ZIP contents were not downloaded. CI uses local/disposable/synthetic boundaries, not native hosted Auth, B3 execution, model availability, paid inference, professional visual acceptance or release permission. No hosted database/provider/credential/deployment action by this evidence reader."
+}

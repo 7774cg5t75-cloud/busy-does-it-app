@@ -1,0 +1,57 @@
+{
+  "functionalCommit": "ba0adeb83401785d8692c3043478427649461b95",
+  "functionalTree": "a9df594d87d49f70d49f470d27d13df1d096eec7",
+  "application": {
+    "passed": 496,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "postgres": {
+    "postgres": {
+      "passed": 126,
+      "failed": 0
+    },
+    "public-form-postgres": {
+      "passed": 21,
+      "failed": 0
+    },
+    "enquiry-preparation-postgres": {
+      "passed": 13,
+      "failed": 0
+    },
+    "operational-work-postgres": {
+      "passed": 13,
+      "failed": 0
+    },
+    "work-preparation-postgres": {
+      "passed": 12,
+      "failed": 0
+    },
+    "ai-budget-postgres": {
+      "passed": 32,
+      "failed": 0
+    }
+  },
+  "foundationAssertions": 105,
+  "genuineDenoChecks": 28,
+  "unsignedExportModules": {
+    "owner": 1569,
+    "staging": 1628
+  },
+  "pngChecksumsVerified": 246,
+  "liveProviderCalls": 0,
+  "spending": 0,
+  "hostedAcceptance": false,
+  "sourceSyntax": "9 source files parse in main CI",
+  "mainRun": 42086316846,
+  "browserRun": 42086316850,
+  "legacyRuns": [
+    42086330445,
+    42086330432,
+    42086330344,
+    42086330380,
+    42086330351,
+    42086330404
+  ]
+}

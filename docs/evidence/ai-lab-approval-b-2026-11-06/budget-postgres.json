@@ -1,0 +1,173 @@
+{
+  "database": "busy_ai_budget_disposable",
+  "syntheticAuth": true,
+  "hosted": false,
+  "installSha256": "8649af5f487bde9dfc984009cbf80709b49112298d0d8d02e7ec43b039df19a3",
+  "rollbackSha256": "e20e0bfebf05391a10e99e60335600a161a3d20ce19a49daad120a09ccde0b39",
+  "results": [
+    {
+      "id": "local-only-postgresql-and-original-connected-foundation",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "budget-install-fused-atomic-and-disabled",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "two-fictional-businesses-original-profile-and-website",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "effective-private-table-and-finite-rpc-permissions",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "missing-entitlement-tariff-and-disabled-switch-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "reserve-release-exact-accounting-fx-buffer-and-idempotency",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "non-settlement-outcomes-reject-contradictory-usage-evidence",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "wrong-tenant-stale-project-profile-and-unsupported-binding-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "concurrent-reservations-cannot-double-spend-one-allowance",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "global-feature-expensive-expired-and-revoked-entitlement-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "capability-binding-cannot-borrow-a-different-feature-allowance",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "missing-policy-and-null-feature-allowance-fail-closed",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "dispatch-once-and-unknown-liability-never-released-or-retried",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "membership-revoked-after-reservation-denies-dispatch",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "cancel-before-dispatch-release-after-dispatch-hold",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "tariff-evidence-immutable-and-current-dispatch-controls-rechecked",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "concurrency-limit-independent-of-balance-and-expired-dispatch-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "reconciliation-after-membership-revocation-keeps-liability-and-denies-new-work",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "duplicate-concurrent-idempotency-and-goal-replay-conflict",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "changed-original-website-after-reserve-denies-dispatch",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "duplicate-provider-receipt-denied-with-liability-retained",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "expensive-service-bucket-cannot-borrow-and-does-not-block-standard-work",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "conflicting-request-cannot-release-an-earlier-reservation",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "lost-reservation-acknowledgements-respect-server-attempt-ownership",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "lost-dispatch-and-settlement-acknowledgements-never-replay",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "gateway-provider-failure-unknown-and-malicious-output-real-ledger",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "real-gateway-offline-proposal-original-review-save-reopen-and-undo",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-app-gateway-two-distinct-plans-studio-preview-save-and-undo",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "two-authorised-accounts-share-one-serialised-platform-ceiling",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "receipt-overrun-retained-and-emergency-stop-closed",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "creative-operation-readback-separate-fuse-scope-and-retaining-rollback",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "retaining-rollback-preserves-liabilities-and-settlement-authority",
+      "passed": true,
+      "exitCode": 0
+    }
+  ],
+  "summary": {
+    "passed": 32,
+    "failed": 0
+  }
+}

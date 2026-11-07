@@ -20,8 +20,8 @@ const A2W_TYPE=Object.freeze({
 });
 const A2W_LAYOUT=Object.freeze({cards:"cards",rows:"rows",spotlight:"outlines"});
 function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
- includeServices=false,includeDesign=true,includePublicInformation=false,includeMissingAnswers=false}={}){
- if(!["match","adapt","new"].includes(mode)||typeof includeServices!=="boolean"||typeof includeDesign!=="boolean"||typeof includePublicInformation!=="boolean"||typeof includeMissingAnswers!=="boolean")
+ includeServices=false,includeDesign=true,includePublicInformation=false,includeMissingAnswers=false,allowUnchanged=false}={}){
+ if(!["match","adapt","new"].includes(mode)||typeof includeServices!=="boolean"||typeof includeDesign!=="boolean"||typeof includePublicInformation!=="boolean"||typeof includeMissingAnswers!=="boolean"||typeof allowUnchanged!=="boolean")
   return {ok:false,reason:"Choose a supported branding approach."};
  if(!validPrivateBuilderPair(website,app,businessId)||
    (website.business_id&&website.business_id!==businessId)||
@@ -93,7 +93,7 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
   }
   if(informationCount)reasons.push('Reuse '+informationCount+' public app entries in missing website sections, preserving existing website collections.');
  }
- if(!operations.length&&!servicePlan&&!informationCount)return {ok:false,reason:'No missing content or supported design change is available.'};
+ if(!allowUnchanged&&!operations.length&&!servicePlan&&!informationCount)return {ok:false,reason:'No missing content or supported design change is available.'};
  const changes=[
   ...operations.map(op=>op.action==="brand-colour"?
    "Brand colour → "+op.value:

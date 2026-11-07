@@ -15,19 +15,19 @@ function restoreGalleryDescription(config,{index,expectedUri,value}={}){
    const field=value[k];return field&&typeof field==='object'&&!Array.isArray(field)&&
     typeof field.present==='boolean'&&Object.keys(field).every(key=>['present','value'].includes(key))&&
     (field.present?own(field,'value')&&text(field.value,k==='alt'?160:240):!own(field,'value'));
-  }))return {ok:false,reason:'Review the original image description before restoring it.'};
+  }))return {ok:/** @type {const} */ (false),reason:'Review the original image description before restoring it.'};
  // Validate the same locks, image approval, identity and text limits as an edit.
  const edit=proposeGalleryImageDescription(config,{index,expectedUri,value:{alt:value.alt.present?value.alt.value:null,caption:value.caption.present?value.caption.value:null},allowUnchanged:true});
  if(!edit.ok)return edit;
  const gallery=[...edit.nextConfig.publicProfile.assets.gallery],image={...gallery[index]};
  for(const key of ['alt','caption']){if(value[key].present)image[key]=value[key].value;else delete image[key];}
- if(JSON.stringify(captureGalleryDescription(config.publicProfile.assets.gallery[index]))===JSON.stringify(value))return {ok:false,reason:'These image descriptions are already restored.'};
+ if(JSON.stringify(captureGalleryDescription(config.publicProfile.assets.gallery[index]))===JSON.stringify(value))return {ok:/** @type {const} */ (false),reason:'These image descriptions are already restored.'};
  gallery[index]=image;
  return {...edit,nextConfig:{...edit.nextConfig,publicProfile:{...edit.nextConfig.publicProfile,assets:{...edit.nextConfig.publicProfile.assets,gallery}}}};
 }
 function proposeGalleryImageDescription(config,{index,expectedUri,value,allowUnchanged=false}={}){
  const locked=appEditLockReason(config,{kind:"photo_description"});
- if(locked)return {ok:false,reason:locked};
+ if(locked)return {ok:/** @type {const} */ (false),reason:locked};
  const gallery=config?.publicProfile?.assets?.gallery;
  if(!Array.isArray(config?.modules)||
    !config.modules.some(m=>m.key==="gallery"&&m.enabled===true)||
@@ -41,21 +41,21 @@ function proposeGalleryImageDescription(config,{index,expectedUri,value,allowUnc
    !Object.prototype.hasOwnProperty.call(value,"alt")||
    !Object.prototype.hasOwnProperty.call(value,"caption")||
    !text(value.alt,160)||!text(value.caption,240))
-  return {ok:false,reason:"Choose an approved current gallery image and short, safe descriptions."};
+  return {ok:/** @type {const} */ (false),reason:"Choose an approved current gallery image and short, safe descriptions."};
  const prior=gallery[index];
- if(["alt","caption"].some(k=>own(prior,k)&&!text(prior[k],k==="alt"?160:240)))return {ok:false,reason:"Review the existing image descriptions before changing them."};
+ if(["alt","caption"].some(k=>own(prior,k)&&!text(prior[k],k==="alt"?160:240)))return {ok:/** @type {const} */ (false),reason:"Review the existing image descriptions before changing them."};
  const alt=value.alt,caption=value.caption;
  if(!allowUnchanged&&(prior.alt??null)===alt&&(prior.caption??null)===caption)
-  return {ok:false,reason:"These image descriptions are already set."};
+  return {ok:/** @type {const} */ (false),reason:"These image descriptions are already set."};
  const revised={...prior};
  if(alt===null)delete revised.alt;else revised.alt=alt;
  if(caption===null)delete revised.caption;else revised.caption=caption;
  const next=[...gallery];next[index]=revised;
- return {ok:true,nextConfig:{...config,publicProfile:{
+ return {ok:/** @type {const} */ (true),nextConfig:{...config,publicProfile:{
   ...config.publicProfile,assets:{...config.publicProfile.assets,gallery:next}}},
   previous:{alt:prior.alt??null,caption:prior.caption??null},
   previousSnapshot:captureGalleryDescription(prior),
   description:"Updated accessible text for approved gallery photo "+(index+1),
   mediaUnchanged:true,privateUntilApproved:true,bookingsUnchanged:true};
 }
-export {proposeGalleryImageDescription,restoreGalleryDescription};
+export {proposeGalleryImageDescription,restoreGalleryDescription,text as validGalleryDescriptionText};

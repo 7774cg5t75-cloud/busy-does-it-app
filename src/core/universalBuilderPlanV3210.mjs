@@ -1,3 +1,4 @@
+import {supportedAppCatalogModule} from './appCatalogSupport.mjs';
 import {validateBusinessContent,parseContentPrice,localEventInstant,validContentLayout} from './businessContentRecords.mjs';
 /**
  * V3.210 - universal, industry-agnostic capability planner.
@@ -21,10 +22,10 @@ const INTENTS=Object.freeze([
  ["faq",/\b(?:faqs?|frequently asked|questions and answers)\b/i],
  ["testimonials",/\b(?:testimonials?|customer reviews?|client reviews?)\b/i],
  ["services",/\b(?:services?|service list|treatments?|menu|menus|what we (?:do|offer))\b/i],
- ["contact",/\b(?:contact details?|phone number|opening hours|address|find us|location map)\b/i],
- ["enquiry",/\b(?:enquir(?:e|es|ed|ing|y|ies)|inquir(?:e|es|ed|ing|y|ies)|quot(?:e|es)|contact forms?|send (?:a )?message|lead forms?)\b/i],
+ ["contact",/\b(?:contact (?:details?|information|us|me)|get in touch|phone number|opening hours|address|find us|location map)\b/i],
+ ["enquiry",/\b(?:enquir(?:e|es|ed|ing|y|ies)|inquir(?:e|es|ed|ing|y|ies)|quot(?:e|es)|contact forms?|send (?:a )?message|lead forms?|request (?:work|a job|service work))\b/i],
  ["booking_request",/\b(?:book(?:ings?|able)?|reservations?|reserve|appointments?|hire|rentals?|pitches|pitch booking)\b/i],
- ["availability",/\b(?:availability|available (?:dates?|pitches|rooms?|slots?|stock)|realtime (?:slots?|stock)|real.time (?:slots?|stock)|calendar availability|inventory|capacity)\b/i],
+ ["availability",/\b(?:availability|available (?:dates?|pitches|rooms?|slots?|stock)|realtime (?:slots?|stock)|real.time (?:slots?|stock)|calendar availability|inventory|stock tracking|track stock|stock levels|capacity)\b/i],
  ["accounts",/\b(?:sign.?in|log.?in|logins?|user accounts?|customer accounts?|register (?:an )?account|customer profiles?|member login)\b/i],
  ["catalogue",/\b(?:online (?:shop|store)|products?|catalogue|catalog|product listings?|stock listings?|e.?commerce)\b/i],
  ["checkout",/\b(?:shopping carts?|baskets?|checkouts?|place (?:an )?orders?|online orders?)\b/i],
@@ -34,11 +35,11 @@ const INTENTS=Object.freeze([
  ["subscriptions",/\b(?:subscriptions?|monthly billing|recurring payments?|monthly fees?)\b/i],
  ["uploads",/\b(?:upload(?:s|ing)?|submit (?:a )?(?:file|photo|document)|user submitted photos?|file submissions?)\b/i],
  ["voting",/\b(?:vot(?:e|es|ing)|polls?|competitions?|contests?)\b/i],
- ["events",/\b(?:events?|workshops?|class schedules?|event calendars?|event listings?|event schedules?|upcoming events?|concert schedules?|festival lineups?)\b/i],
+ ["events",/\b(?:events?|workshops?|class schedules?|event calendars?|event listings?|event schedules?|upcoming events?|concert schedules?|festival lineups?|trading next)\b/i],
  ["tickets",/\b(?:tickets?|ticketing|admissions?)\b/i],
  ["donations",/\b(?:donat(?:e|ion|ions)|fundrais(?:e|ing)|charity payments?)\b/i],
  ["search",/\b(?:search (?:my |the |for )?(?:site|website|products|listings|directory)|search bars?|directories|filters?)\b/i],
- ["notifications",/\b(?:confirmation e.?mails?|confirmation messages?|sms|email reminders?|text reminders?|automatic reminders?|send (?:a )?confirmation)\b/i],
+ ["notifications",/\b(?:confirmation e.?mails?|confirmation messages?|sms|email reminders?|text reminders?|automatic reminders?|send (?:a )?confirmation|(?:receive|get|send) (?:job |work |service )?updates)\b/i],
  ["offers",/\b(?:discounts?|promotions?|special offers?|coupons?|voucher codes?|special deals?)\b/i],
  ["loyalty",/\b(?:loyalty|reward points?|stamps? cards?|repeat customer rewards?)\b/i],
  ["course_content",/\b(?:online courses?|lessons?|training modules?|tutorials?|learning platforms?|homework)\b/i],
@@ -94,12 +95,8 @@ function assessSurfaceCapability(capability,surface,{website,app,catalog=[],busi
    presentInDraft:enabled,liveVerified:false,sectionId:descriptor.id};
  }
  if(descriptor.kind==="module"){
-  const item=list(catalog).find(row=>row?.module_key===descriptor.id&&
-   row.status==="available");
-  const eligible=!!item&&
-   (descriptor.id!=="booking_request"||
-    item.capabilities?.confirmation_required_by_business===true)&&
-   (descriptor.id!=="enquiry"||item.capabilities?.customer_action===true);
+  const item=supportedAppCatalogModule(catalog,descriptor.id);
+  const eligible=!!item;
   if(!eligible)return {status:"runtime_module_not_verified_available",
    reason:"The current business-scoped module catalogue does not verify this customer capability.",
    presentInDraft:false,liveVerified:false,moduleKey:descriptor.id};
@@ -189,8 +186,9 @@ function planWebsiteSectionComposition(website,explicit=[]){
   noBookingOrCheckoutCreated:true};
 }
 function planUniversalBuilderRequest({
- request="",businessType="",businessId="",website=null,app=null,catalog=[]
+ request="",businessType="",businessId="",website=null,app=null,catalog=[],projectPurpose="business"
 }={}){
+ if(!['business','personal','club'].includes(projectPurpose))return {ok:false,reason:'Choose business, personal or club planning.'};
  if(!validOwnerText(request)||typeof businessType!=="string"||
    businessType.length>160||typeof businessId!=="string"||businessId.length>128)
   return {ok:false,reason:"Enter a short plain-language requirement (up to 1,400 characters)."};
@@ -235,15 +233,17 @@ function planUniversalBuilderRequest({
    c.app.status!=="present_in_private_draft")).map(c=>c.id);
  const sectionPlan=planWebsiteSectionComposition(website,wanted);
  return {ok:true,kind:"universal_builder_plan_v3210",version:VERSION,
+  projectPurpose,existingBusinessProjectPreserved:!!(website||app),planningAudience:projectPurpose==='business'?'customers':'people using the project',
+  projectWorkspaceRequired:projectPurpose!=='business',projectWorkspaceAvailable:projectPurpose==='business',
   businessId:businessId||null,businessType:clean(businessType).slice(0,160),
   source:{websiteId:website?.id||null,websiteRevision:website?.generation||null,
    appId:app?.id||null,appRevision:app?.draft_revision||null},
   detectedGoals:wanted,declinedCapabilities:intent.declined,unfamiliarRequirement:unfamiliar,
-  noIndustryRestrictions:true,capabilities,capabilityCount:capabilities.length,
+  noIndustryRestrictions:true,capabilities:projectPurpose==='business'?capabilities:capabilities.map(c=>c.id==='identity'?{...c,title:'Project introduction',description:'Owner-written project name, purpose and approved information; no trading name or CRM is required to discuss an idea.'}:c),capabilityCount:capabilities.length,
   websiteDraftComponents:supportedInWebsite,appDraftModules:supportedInApp,
   developmentGaps:[...new Set(needsDevelopment)],requestedFeaturesNeedingReview:gaps,
   sectionPlan,
-  summary:unfamiliar?
+  summary:projectPurpose!=='business'?'We can discuss this '+projectPurpose+' project without inventing business details. Creation and saving need a separately implemented owner/project workspace; this is planning only.':unfamiliar?
    "This requirement does not match BUSY's currently described building blocks. It needs owner-reviewed bespoke planning, not a generic refusal or invented feature.":
    wanted.length?
     "BUSY identified "+wanted.length+" requested capability type(s) and "+(ids.length-wanted.length)+

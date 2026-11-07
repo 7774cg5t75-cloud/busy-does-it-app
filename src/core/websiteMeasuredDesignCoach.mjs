@@ -1,3 +1,4 @@
+import {websiteDesignDirection,createWebsiteDirectionReader} from './websiteDesignDirection.mjs';
 import {websiteLayoutLockReason,applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
 /**
  * V3.144: small, owner-controlled suggestions derived ONLY from measured
@@ -36,6 +37,17 @@ function recommendMeasuredWebsiteChange({draft,pageId,report}={}){
    tradeoff:located?"Other screen-size overrides and all content stay unchanged; this heading still needs remeasuring.":"The heading becomes less prominent; remeasure before keeping it.",
    targetSectionId:sectionId,source:"measured-layout-hint",notGuaranteed:true});
  }
+ if(ids.has('readability')&&(report.counts.viewport<=600||report.counts.viewport>=960)){
+  const device=report.counts.viewport<=600?'mobile':'desktop',field=device+'BodyScale';
+  for(const sectionId of array(report.targets?.smallTextSectionIds)){
+   const section=active(sectionId);if(!section||section.appearance?.[field]==='large'||ownerDesignPreference(draft,'readable-measured-body',pageId)==='disliked')continue;
+   candidates.push({id:'readable-measured-body',label:'Try more readable text in '+clean(section.title||sectionId),
+    explanation:'Small paragraph or list text was measured in this section. Prepare larger body text and line spacing only on '+device+' widths; remeasure before keeping it.',
+    tradeoff:'Longer lines may wrap and increase scrolling. Other width overrides, headings and all wording remain unchanged.',
+    operation:{action:'section-style',sectionId,field,value:'large'},targetSectionId:sectionId,
+    source:'measured-layout-hint',notGuaranteed:true});
+  }
+ }
  const overflowLocated=Array.isArray(report.targets?.overflowSectionIds);
  if(ids.has("overflow")&&(!overflowLocated||report.targets.overflowSectionIds.includes("services"))&&
     ownerDesignPreference(draft,"simpler-service-layout",pageId)!=="disliked"&&active("services")&&draft.theme?.cardLayout!=="rows"){
@@ -60,7 +72,7 @@ function compareWebsiteVisualReports(original,candidate){
  for(const report of [original,candidate])if(!Number.isFinite(report.counts.viewport)||report.counts.viewport<250||report.counts.viewport>3000||!Number.isFinite(report.counts.width)||report.counts.width<0)
   return {valid:false,reason:"Valid measured viewport and page widths are required."};
  const regressions=[],reducedMeasurements=[];
- for(const field of ['sections','headings','images']){
+ for(const field of ['sections','headings','images','textBlocks']){
   if(![original,candidate].some(r=>Object.hasOwn(r.counts,field)))continue;
   if(![original,candidate].every(r=>Number.isSafeInteger(r.counts[field])&&r.counts[field]>=0))return {valid:false,reason:'Content measurement coverage must be available for both designs.'};
   if(candidate.counts[field]<original.counts[field])regressions.push('Fewer '+field+' were checked');
@@ -103,7 +115,7 @@ function compareWebsiteVisualReports(original,candidate){
     "No new measured warnings at this width, but improvement is not proven. Decide which look you prefer."};
 }
 /** Explicit on-device customer feedback, not model training or global sharing. */
-function recordWebsiteOwnerDesignFeedback(draft,{draftId,pageId,choice,changeId,at}={}){
+function recordWebsiteOwnerDesignFeedback(draft,{draftId,pageId,choice,changeId,at,operation}={}){
  if(!draft?.id||draft.id!==draftId||
     !array(draft.pages).some(p=>p.id===pageId)||
     !["liked","disliked"].includes(choice)||
@@ -113,17 +125,23 @@ function recordWebsiteOwnerDesignFeedback(draft,{draftId,pageId,choice,changeId,
  const existing=array(draft.ownerDesignFeedback)
    .filter(e=>e?.draftId===draftId&&["liked","disliked"].includes(e.choice))
    .slice(-19);
- const next={draftId,pageId,choice,changeId,at:at.slice(0,30),
+ const direction=operation?websiteDesignDirection(draft,pageId,operation):null;
+ if(operation&&!direction)return {applied:false,draft,reason:"Select a current supported design change."};
+ const next={draftId,pageId,choice,changeId,at:at.slice(0,30),...(direction?{direction}:{}),
   source:"owner-explicit-feedback",scope:"this-website-draft-only"};
  return {applied:true,draft:{...draft,ownerDesignFeedback:[...existing,next]},
   reason:"Saved for this website draft only. Nothing was sent to other businesses or used to train a model."};
 }
-function ownerDesignPreference(draft,changeId,pageId=""){
- const rows=array(draft?.ownerDesignFeedback)
-  .filter(e=>e?.draftId===draft?.id&&e.changeId===changeId&&
-    (!pageId||e.pageId===pageId));
- return rows.length?rows[rows.length-1].choice:null;
+function createWebsitePreferenceReader(draft,pageId=''){
+ let readDirection=null;
+ const feedback=array(draft?.ownerDesignFeedback).filter(e=>e?.draftId===draft?.id&&(!pageId||e.pageId===pageId));
+ return (changeId,operation=null)=>{
+  const direction=operation&&pageId&&feedback.some(e=>e.direction)?(readDirection||(readDirection=createWebsiteDirectionReader(draft,pageId)))(operation):null;
+  const rows=feedback.filter(e=>e.direction?!!direction&&e.direction===direction:e.changeId===changeId);
+  return rows.length?rows[rows.length-1].choice:null;
+ };
 }
+function ownerDesignPreference(draft,changeId,pageId='',operation=null){return createWebsitePreferenceReader(draft,pageId)(changeId,operation);}
 /** Human-readable and bounded, not an ungrounded aesthetic score. */
 function describeWebsiteDesignComparison(comparison){
  if(!comparison?.valid)return {headline:"Comparison unavailable",
@@ -153,5 +171,5 @@ function withoutPrivateWebsiteDesignFeedback(draft){
  return safe;
 }
 export {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,
- recordWebsiteOwnerDesignFeedback,ownerDesignPreference,withoutPrivateWebsiteDesignFeedback,
+ recordWebsiteOwnerDesignFeedback,ownerDesignPreference,createWebsitePreferenceReader,withoutPrivateWebsiteDesignFeedback,
  describeWebsiteDesignComparison};

@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
 import {isFounderUser,aggregateUsageRows,buildFounderReport} from "./report.mjs";
 import {VALID_KEYS} from "./alertInbox.mjs";
 import {probeManagedWebsite,buildExternalRealityDigest} from "./externalReality.mjs";
@@ -13,6 +13,7 @@ import {readConfiguredProviders,readGitHubUsage,readCloudflareTraffic} from "./p
  * NO client request parameter can grant privilege or choose another identity.
  * The service key remains on this server; only aggregate counters are returned.
  */
+const TRUSTED_SNAPSHOT_PROJECTIONS_ENABLED = false; // Separate staged service cutover.
 const ROOT=Deno.env.get("SUPABASE_URL")||"";
 function injectedKey(name:string){
   try{
@@ -77,11 +78,19 @@ async function queryUsageSum(table:string,field:string,dateColumn:string){
 async function safely<T>(query:()=>Promise<T>):Promise<T|null>{
   try{return await query();}catch{return null;}
 }
+async function snapshotActivityCount(){
+  if(!TRUSTED_SNAPSHOT_PROJECTIONS_ENABLED)return queryCount("busy_business_snapshots","business_id",{"updated_at":"gte."+new Date(Date.now()-7*86400000).toISOString()});
+  const reply=await fetch(ROOT+"/rest/v1/rpc/busy_service_snapshot_count_v1",{method:"POST",headers:{...serviceHeaders(),"Content-Type":"application/json"},body:"{}",signal:AbortSignal.timeout(8500)});
+  if(!reply.ok)throw Error("Snapshot aggregate unavailable");
+  const value=await reply.json();
+  if(!value||Object.keys(value).join(',')!=="activeWorkspaces7d"||!Number.isSafeInteger(value.activeWorkspaces7d)||value.activeWorkspaces7d<0)throw Error("Invalid snapshot aggregate");
+  return value.activeWorkspaces7d;
+}
 async function aggregates(){
   const entries=await Promise.all([
     safely(()=>queryCount("busy_businesses","id")),
     safely(()=>queryCount("busy_business_memberships","business_id")),
-    safely(()=>queryCount("busy_business_snapshots","business_id",{"updated_at":"gte."+new Date(Date.now()-7*86400000).toISOString()})),
+    safely(()=>snapshotActivityCount()),
     safely(()=>queryCount("busy_website_publish_jobs","id",{"status":"in.(queued,processing,retry_wait)"})),
     safely(()=>queryCount("busy_website_publish_jobs","id",{"status":"eq.failed"})),
     safely(()=>queryCount("busy_social_posts","id",{"status":"eq.Failed"})),
@@ -337,7 +346,7 @@ async function getServiceInventory(){
 }
 async function recordServiceSnapshot(body:any, founderId:string){
   const checked=validateServiceSnapshot(body);
-  if(!checked.ok)throw new Error(checked.error);
+  if(!checked.ok||!checked.record)throw new Error(checked.error||"Invalid service snapshot.");
   if(!SECRET_KEY)throw new Error("Founder reporting is not configured.");
   const q=new URLSearchParams({select:"service_key,request_key,recorded_at"});
   const response=await fetch(ROOT+"/rest/v1/busy_founder_service_snapshots?"+q,{
@@ -374,8 +383,8 @@ Deno.serve(async(req:Request)=>{
   let payload:unknown;
   try{
     if(Number(req.headers.get("content-length")||0)>2048)return send(413,{error:"request_too_large"});
-    payload=await req.json();
-  }catch{return send(400,{error:"invalid_request"});}
+    payload=await boundedJson(req,2048);
+  }catch(error){return send(error instanceof BoundedRequestError?error.status:400,{error:"invalid_request"});}
 
   if(!payload||typeof payload!=="object"||Array.isArray(payload))
     return send(400,{error:"unsupported_action"});

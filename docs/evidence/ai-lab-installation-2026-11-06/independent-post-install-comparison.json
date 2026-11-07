@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "reviewerRole": "Independent delegated local comparison of root-obtained hosted technical readback against approved-SQL-derived contracts",
+  "project": "sbvkrvksnruiclcvclbd",
+  "observedAt": "2026-11-06T22:20:39.943464+00:00",
+  "sourceCommit": "088cde2634df0b7fee1e2566b06296524eb38766",
+  "inputs": {
+    "hostedPostInstall": {
+      "path": "docs/evidence/ai-lab-installation-2026-11-06/hosted-post-install.json",
+      "sha256": "8b032b9ebd1fde895cfff87aaa063a73bb7b63d07650ff0a6dc2472b88124fd2"
+    },
+    "expectedContracts": {
+      "path": "docs/evidence/ai-lab-installation-2026-11-06/expected-object-contracts.json",
+      "sha256": "ab21b282162a4261213e29c154799d41e3dfe2da3e7904b53b6735f15fd0a855"
+    },
+    "approvedSqlSha256": "b825989b37e2fef0f874ccdb03405a6650f8dc6ddfe27f94086952cc1cec225d"
+  },
+  "normalization": "Only remove optional public. prefix and normalise whitespace adjacent to argument commas; preserve type names, exact source-derived signatures, definer flags, search_path and role grants.",
+  "scope": {
+    "exactPublicTables": 28,
+    "exactPrivateAiTables": 6,
+    "exactPublicFunctions": 74,
+    "expectedAuthenticatedOnly": 32,
+    "expectedServiceOnly": 11,
+    "expectedNoApiExecute": 31,
+    "expectedDefiners": 70,
+    "expectedInvokers": 4
+  },
+  "summary": {
+    "passed": 582,
+    "failed": 0,
+    "fieldComparisons": 582,
+    "mismatchCount": 0
+  },
+  "categoryCounts": {
+    "evidence-binding": {
+      "passed": 3,
+      "failed": 0
+    },
+    "approved-artifact": {
+      "passed": 2,
+      "failed": 0
+    },
+    "table-contracts": {
+      "passed": 104,
+      "failed": 0
+    },
+    "function-contracts": {
+      "passed": 445,
+      "failed": 0
+    },
+    "native-hook": {
+      "passed": 7,
+      "failed": 0
+    },
+    "default-privileges": {
+      "passed": 7,
+      "failed": 0
+    },
+    "default-off-and-empty-authority": {
+      "passed": 9,
+      "failed": 0
+    },
+    "private-schema-access": {
+      "passed": 4,
+      "failed": 0
+    },
+    "reported-table-set": {
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "mismatches": [],
+  "decision": "Exact supplied post-install table/function/native-hook/default-privilege/default-off contracts match approved-source expectations.",
+  "notCovered": "Root supplemental effective public-table/column/sequence/schema ACL, detailed policy and independent migration-receipt checks are separate. This comparison makes no new hosted call, mutation, provider dispatch or installation replay."
+}

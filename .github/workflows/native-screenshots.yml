@@ -1,0 +1,96 @@
+name: Genuine native screenshots (free simulator)
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths:
+      - scripts/native-capture/request.json
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact Mission15 ancestor SHA for before/after; blank captures this request
+        required: false
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: busy-native-capture-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ios:
+    if: github.repository == '7774cg5t75-cloud/busy-does-it-app' && github.event.repository.private == false && github.ref == 'refs/heads/codex/builder-mission15-design-advancement'
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_NO_DOTENV: '1'
+      EXPO_PUBLIC_BUSY_ENVIRONMENT: owner-preview
+      BUSY_BUILD_PROFILE: owner-preview
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      CAPTURE_SOURCE: ${{ inputs.source_sha || '' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.19.0
+      - name: Prepare exact source with inert capture transport
+        run: python3 scripts/native-capture/prepare.py
+      - name: Check attachment export policy with inert fixtures
+        timeout-minutes: 1
+        run: python3 scripts/native-capture/check_attachments.py
+      - name: Select installed compatible Xcode
+        run: python3 scripts/native-capture/xcode.py
+      - name: Verify Apple attachment exporter before compilation
+        timeout-minutes: 1
+        run: python3 scripts/native-capture/export_attachments.py --check-tool
+      - name: Install integrity-locked declared app dependencies
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify reviewed dependency policy and apply deterministic security backport
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: |
+          node --input-type=module -e "import {verifyToolingDependencyPolicy}from'./scripts/dependency-policy.mjs';verifyToolingDependencyPolicy()"
+          node scripts/apply-tooling-security-patches.mjs
+          node scripts/apply-tooling-security-patches.mjs --check
+      - name: Preflight actual iOS JavaScript and Hermes bundle
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: node scripts/run-expo-safe.mjs export --platform ios --max-workers 2 --output-dir "$RUNNER_TEMP/busy-bundle-preflight"
+      - name: Generate actual native application
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: npx --no-install expo prebuild --platform ios --no-install
+      - name: Prepare CocoaPods and original application UI tests
+        working-directory: ${{ env.CAPTURE_WORK }}
+        run: |
+          pod install --project-directory=ios
+          if ! ruby -r xcodeproj -e 'puts Xcodeproj::VERSION'; then
+            gem install --user-install xcodeproj --version 1.27.0 --no-document
+          fi
+          ruby scripts/native-capture/project.rb "$PWD"
+      - name: Compile native app and XCTest bundle (no launch)
+        timeout-minutes: 25
+        run: python3 scripts/native-capture/native_stage.py build
+      - name: Boot supported iPhone after compilation
+        timeout-minutes: 8
+        run: python3 scripts/native-capture/simulator.py
+      - name: Run only Midnight Home XCTest (no compilation)
+        timeout-minutes: 5
+        run: python3 scripts/native-capture/native_stage.py test
+      - name: Export and validate source-bound Midnight Home attachment
+        id: artifacts
+        timeout-minutes: 2
+        if: success()
+        run: python3 scripts/native-capture/export_attachments.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: success() && steps.artifacts.outputs.safe == 'true'
+        with:
+          name: native-ios-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/native-screenshots/*.png
+            artifacts/native-screenshots/manifest.json
+          retention-days: 1
+          compression-level: 9
+          if-no-files-found: error

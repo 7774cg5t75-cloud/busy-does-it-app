@@ -1,0 +1,48 @@
+import {websiteStoryboardInstructions} from './websiteStoryboard.mjs';
+import {premiumWebsiteDirections} from './premiumWebsiteDirections.mjs';
+import {deriveSector} from '../../supabase/functions/busy-website-worker/designPlanner.mjs';
+import {websiteDraftHasScope} from './websiteDraftScope.mjs';
+import {prepareWebsiteRequest} from './websiteRequestPlan.mjs';
+// Owner-goal recogniser for finite existing builder operations, not a model.
+export function premiumWebsiteGoal({request,website,businessId,pageId='home',source='owner'}={},deps={}){
+ if(source!=='owner'||typeof request!=='string'||request.length>400||/[<>\u0000-\u001f]/.test(request))return null;
+ const words=request.trim().replace(/[.!?]+$/,'');let instruction='',explanation='';
+
+ const storyboardGoal=/^(?:make my catering website more impressive|make it look more like a premium creative business|try another full-page design|keep all my wording but change the presentation|make it look amazing without photos|make the menu stand out more|make my website look exceptional|keep my words but improve the design|make the whole page more elegant|try a more distinctive design|tell our story better|make our menu the main attraction|show these photographs alongside the right services)$/i.test(words);
+ if(storyboardGoal){
+  const base={recognised:true,requiresReview:true,mayExecute:false,providerCalls:0,ownerWording:request};if(!websiteDraftHasScope(website,businessId))return {...base,ready:false,question:'Open this business’s current website first.'};
+  const family=website.theme?.heroComposition||premiumWebsiteDirections(website)[0]?.id||'typography-first',proposal=websiteStoryboardInstructions({...website,theme:{...website.theme,heroComposition:family}},{goal:words});if(!proposal.ok)return {...base,ready:false,question:proposal.reason};
+  const instruction=(website.theme?.heroComposition?'':'use the reviewed "'+family+'" opening; ')+proposal.instruction,prepared=prepareWebsiteRequest(website,{draftId:website.id,pageId,generation:website.generation,instruction},deps);return {...base,ready:prepared.ok,prepared:prepared.ok?prepared:null,instruction,question:prepared.ok?null:prepared.reason,findings:['Review the complete visitor journey using only supplied facts, exact picture relationships and existing destinations.'],outline:proposal.outline};
+ }
+ const individual=/^(?:I want my website to look really professional and reflect my business|make it feel more individual|give (?:the |my )?(?:site|website) more personality|make (?:the )?(?:entire |whole )?website more elegant|keep the headline but change everything around it)$/i.test(words);
+ if(individual){
+  if(!websiteDraftHasScope(website,businessId))return {recognised:true,ready:false,mayExecute:false,question:'Open this business’s current website first.',providerCalls:0};
+  const family=website.theme?.heroComposition,chosen=family||premiumWebsiteDirections(website)[0]?.id||'typography-first';
+  const instruction=(family?'':'use the reviewed "'+chosen+'" opening; ')+'compose an individual complete website';
+  const prepared=prepareWebsiteRequest(website,{draftId:website.id,pageId,generation:website.generation,instruction},deps);
+  return {recognised:true,ready:prepared.ok,prepared:prepared.ok?prepared:null,question:prepared.ok?null:prepared.reason,requiresReview:true,mayExecute:false,providerCalls:0,ownerWording:request,instruction,findings:['Compare a full-page art direction using your approved words, pictures and customer destinations. Explicit service and reading choices are retained.'],limitations:['Finite presentation proposal. No new facts, source order changes, public availability or publication.']};
+ }
+ const whole=/^(?:make (?:the )?(?:whole |entire )?website (?:look |feel )?(?:more professional|less generic)|keep the headline but change the layout|make the services stand out|make the homepage more welcoming)$/i.test(words);
+ const design=/^(?:i need|i want) a professional website(?: for (?:my |our )?(.+))?$|^give (?:the |my )?(?:homepage|website) a more premium appearance$/i.exec(words);
+ if(whole){const services=website?.sections?.find(s=>s.type==='services'&&s.enabled!==false);const explore=/less generic/i.test(words)&&services&&services.appearance?.serviceLayout&&services.appearance.serviceLayout!=='brand';const keepTreatment=/^crafted(?:-(?:airy|compact))?$/.test(website?.theme?.heroVariation||'');instruction=explore?['show services as the original layout',...(keepTreatment?[]:['refine the complete website design'])].join('; '):'refine the complete website design';explanation=explore?'Compare a coordinated service layout instead of your current service presentation. This is a new reviewable alternative; keep your words, photographs and source order.':'Prepare coordinated service, story and contact layouts while keeping your words and approved sources.';}
+ else if(design){
+  if(/\b(publish|send|pay|purchase|buy|invoice|charge|execute|javascript|sql|script)\b/i.test(words)||/\b(?:and|then|also|plus)\s+(?:book|order|email|message|notify|take payments|accept payments|sell)\b/i.test(words))return {recognised:true,ready:false,question:'That request includes an unavailable action. Choose a private website design change first; nothing is sent, booked, published or paid.',providerCalls:0,mayExecute:false};
+  const vocabulary=new Set([...(String(website?.businessType||'').toLowerCase().match(/[a-z]+/g)||[]),'business','company','studio','practice','shop','independent','small','local','my','our','and','the']);
+  if(design[1]&&(design[1].toLowerCase().match(/[a-z]+/g)||[]).some(word=>!vocabulary.has(word)))return {recognised:true,ready:false,question:'Please clarify the extra requirements or review your current business information first. I have not prepared a partial change.',providerCalls:0,mayExecute:false};
+  const sector=deriveSector(website?.businessType||'');
+  if(design[1]&&deriveSector(design[1])!==sector)return {recognised:true,ready:false,question:'Your saved business information describes a different kind of business. Review that information first; I have not changed it.',providerCalls:0,mayExecute:false};
+  const next=premiumWebsiteDirections(website)[0],id=next?.id||'typography-first',kind=({'story-spread':'food story','quiet-portrait':'calm portrait'}[id]||id);
+  instruction='prepare a '+kind+' homepage; refine the complete website design';explanation='Compare a '+kind+' opening using your current wording, services and approved photographs. Colours and customer destinations stay unchanged.';
+ }else if(/^(?:try a completely different design|give (?:the |my )?homepage more personality|make it more premium)$/i.test(words)){
+  const next=premiumWebsiteDirections(website)[0];if(!next)return {recognised:true,ready:false,mayExecute:false,question:'No suitable different direction is available with the current approved content. Your design is unchanged.',providerCalls:0};
+  instruction='prepare a '+next.id+' homepage';explanation=next.reason;
+ }else if(/^(?:make (?:my|our|the) services easier for customers to understand|make (?:my|our|the) services clearer)$/i.test(words)){instruction='show services as a directory';explanation='Give the existing services a clearer directory layout without rewriting their scope.';}
+ else if(/^put (?:my|our|the) best photographs near the top$/i.test(words))return {recognised:true,ready:false,question:'Which approved photograph is your best? Choose its exact image in the existing photo controls; I will not guess.',providerCalls:0,mayExecute:false};
+ else if(/^make it easier for customers to (?:request a quote|contact us)$/i.test(words)){instruction='make the main button stand out';explanation='Emphasise the existing verified contact destination. This does not create a quote or send an enquiry.';}
+ else if(/^make the mobile version look less crowded$/i.test(words)){instruction='give the page more space on phones';explanation='Compare more breathing room on phones without changing desktop spacing or your wording.';}
+ else return null;
+ const base={recognised:true,goal:'premium-website-presentation',ownerWording:request,providerCalls:0,mayExecute:false,requiresReview:true,verifiedOutcome:false,findings:[explanation],limitations:['Private design proposal only. Review actual mobile and desktop rendering before customer use. Nothing is saved or published.']};
+ if(!websiteDraftHasScope(website,businessId)||!website.pages?.some(p=>p.id===pageId&&p.enabled!==false))return {...base,ready:false,question:'Open the current page of your own business website first.'};
+ const prepared=prepareWebsiteRequest(website,{draftId:website.id,pageId,generation:website.generation,instruction},deps);
+ return {...base,instruction,ready:prepared.ok,prepared:prepared.ok?prepared:null,question:prepared.ok?null:prepared.reason,nextAction:'Compare this private design'};
+}

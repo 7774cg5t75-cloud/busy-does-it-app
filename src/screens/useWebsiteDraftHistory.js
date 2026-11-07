@@ -13,13 +13,14 @@ function useWebsiteDraftHistory(scope){
  const state=editor.snapshot();
  const storageKey=websiteDraftHasScope(scope.draft,scope.businessId)?websiteHistoryCheckpointKey(scope):'';
  React.useEffect(()=>{
-  let active=true;const source=scope.draft;
+  let active=true;const source=scope.draft,historyRevision=editor.revision();
   setRecovery({key,ready:false,notice:''});
   if(!storageKey||!source){setRecovery({key,ready:false,notice:'Encrypted recovery needs a website verified in this business workspace. Open its current cloud draft first.'});return;}
   const store=createWebsiteHistoryCheckpoint(SecureStore,scope);
   store.load(source).then(saved=>{
    if(!active||!editor.isCurrent(key))return;
    if(live.current.draft!==source){setRecovery({key,ready:true,notice:'The draft changed during recovery. Saved history was not applied.'});return;}
+   if(saved&&editor.revision()!==historyRevision){setRecovery({key,ready:true,notice:'Editing continued while device history was checked. Earlier history was not applied.'});return;}
    if(saved&&editor.snapshot().undo.length===0&&editor.snapshot().redo.length===0&&!editor.snapshot().point){
     for(const field of ['undo','redo','point'])editor.update(field,saved[field],key);
     redraw(n=>n+1);

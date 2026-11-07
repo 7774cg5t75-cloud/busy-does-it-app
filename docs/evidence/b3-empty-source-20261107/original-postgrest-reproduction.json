@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "scope": "Local synthetic-only original SQL with real signed JWT and genuine PostgREST HTTP",
+  "hosted": false,
+  "providerCalls": 0,
+  "spendingGbp": 0,
+  "nativeSupabaseAuth": false,
+  "cases": [
+    {
+      "id": "real-jwt-role-owner-membership-http200",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "id": "original40001-retries-survive-client-abort",
+      "passed": true,
+      "clientTimeoutSeconds": 2,
+      "clientResult": {
+        "timedOut": true
+      },
+      "errorsAtClientAbort": 7103,
+      "errorsAfterAdditionalWait": 17853,
+      "continuedErrorsAfterAbort": 10750,
+      "serverBackendsAfterAbort": [
+        {
+          "pid": 608241,
+          "state": "active",
+          "application": "PostgREST 14.18"
+        }
+      ],
+      "sourceUnchanged": {
+        "aiLimit": 0,
+        "profiles": 0,
+        "aiEnabled": false,
+        "snapshots": 0
+      },
+      "elapsedSeconds": 5.234
+    }
+  ],
+  "fixtureReadinessHttpStatuses": [
+    503,
+    503,
+    200
+  ],
+  "postgres": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)",
+  "postgrest": "PostgREST 14.18",
+  "postgrestBinarySha256": "e62299f98f67938f754291340b2fc07b69685546e6017b455ef3e776daef45ee",
+  "originalFoundationSha256": "b825989b37e2fef0f874ccdb03405a6650f8dc6ddfe27f94086952cc1cec225d",
+  "transport": "AF_UNIX genuine HTTP, local PostgreSQL Unix socket; no public listener",
+  "errorSamples": [
+    "2026-11-07 10:31:45.697 UTC [608241] sqlstate=40001 ERROR:  Workspace unavailable",
+    "2026-11-07 10:31:45.697 UTC [608241] sqlstate=40001 ERROR:  Workspace unavailable",
+    "2026-11-07 10:31:45.697 UTC [608241] sqlstate=40001 ERROR:  Workspace unavailable",
+    "2026-11-07 10:31:45.698 UTC [608241] sqlstate=40001 ERROR:  Workspace unavailable",
+    "2026-11-07 10:31:45.699 UTC [608241] sqlstate=40001 ERROR:  Workspace unavailable",
+    "2026-11-07 10:31:45.699 UTC [608241] sqlstate=40001 ERROR:  Workspace unavailable"
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 0
+  },
+  "cleanup": {
+    "ownedPostgrestStopped": true,
+    "ownedPostgresStopped": true
+  }
+}

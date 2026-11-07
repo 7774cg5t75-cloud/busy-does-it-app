@@ -1,0 +1,603 @@
+{
+  "source": {
+    "commit": "1f7feadb3bccbf87084da1813bea8655641ee616",
+    "tree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41",
+    "workingTreeChanged": false
+  },
+  "summary": {
+    "source": {
+      "commit": "1f7feadb3bccbf87084da1813bea8655641ee616",
+      "tree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41",
+      "workingTreeChanged": false
+    },
+    "pages": 35,
+    "fullPageScreenshots": 294,
+    "actualNavigationChecks": 222,
+    "afterFailures": [],
+    "baselineFindings": 50,
+    "viewports": [
+      "mobile",
+      "desktop",
+      "tablet",
+      "narrow",
+      "retina"
+    ],
+    "maximumImageBodyBytes": 1251334,
+    "captureWallMs": 170096,
+    "nodeCpuMicroseconds": {
+      "user": 18302539,
+      "system": 3049855
+    },
+    "nodeMaxRssKiB": 426316,
+    "pixelReceiptBytes": 1465067,
+    "pixelReceiptCount": 24,
+    "professionalAcceptance": false,
+    "providerCalls": 0
+  },
+  "images": [
+    {
+      "id": "moor-meadow-rich-home-after-mobile",
+      "filename": "review-moor-meadow-rich-home-after-mobile.jpg",
+      "sha256": "b2633c24f0a05ac7cc06ea006c091f1722280573a537015814d188fbd37ed373",
+      "bytes": 93343,
+      "originalPng": "moor-meadow-rich-home-after-mobile.png",
+      "originalSha256": "6d1655ddef7623c7131e02266dd7929f6111f177751f62fd8afc61dbfe145aa5",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 4385,
+      "renderedWidth": 360,
+      "renderedHeight": 4048,
+      "quality": 30,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow-rich",
+      "page": "home",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-rich-home-after-desktop",
+      "filename": "review-moor-meadow-rich-home-after-desktop.jpg",
+      "sha256": "c057d5574a3d35127ba10573165b3d9c63820875ba847c5d89eb4b0357e0795a",
+      "bytes": 90338,
+      "originalPng": "moor-meadow-rich-home-after-desktop.png",
+      "originalSha256": "e25ba1034650110952d0a3f7cae511f6664f5bbc9fa628d171124915fba0688f",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 4132,
+      "renderedWidth": 720,
+      "renderedHeight": 2066,
+      "quality": 40,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow-rich",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "moor-meadow-rich-page-garden-maintenance-after-mobile",
+      "filename": "review-moor-meadow-rich-page-garden-maintenance-after-mobile.jpg",
+      "sha256": "924a5046d87bffa055df2a69976174e3547081b5fac825638e86aec0d05656f9",
+      "bytes": 71141,
+      "originalPng": "moor-meadow-rich-page-garden-maintenance-after-mobile.png",
+      "originalSha256": "26f10d6a31c1b2750f79d1aaafad85fd88ec8711e215f463dd301c172ff6300b",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1852,
+      "renderedWidth": 390,
+      "renderedHeight": 1852,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow-rich",
+      "page": "page-garden-maintenance",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-rich-page-garden-maintenance-after-desktop",
+      "filename": "review-moor-meadow-rich-page-garden-maintenance-after-desktop.jpg",
+      "sha256": "9fcda74c0bd8af01160afa7dcc395e19973f98cf2315a353b32023e53073e517",
+      "bytes": 52224,
+      "originalPng": "moor-meadow-rich-page-garden-maintenance-after-desktop.png",
+      "originalSha256": "50d8f556b4e096919e7c6da6a7d4d6cb22729d9370decb5f50177d25d831d8aa",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 2241,
+      "renderedWidth": 720,
+      "renderedHeight": 1121,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow-rich",
+      "page": "page-garden-maintenance",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "moor-meadow-rich-about-after-mobile",
+      "filename": "review-moor-meadow-rich-about-after-mobile.jpg",
+      "sha256": "8c323533f582f9dd3038d5443c186e7170a414f78ab5cfb3dee6dc5d603214ac",
+      "bytes": 38437,
+      "originalPng": "moor-meadow-rich-about-after-mobile.png",
+      "originalSha256": "6b56e229c80da9fb217038669eddfe2b0095d6cf2bc93c2ab8e904d0813cc76b",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1402,
+      "renderedWidth": 390,
+      "renderedHeight": 1402,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow-rich",
+      "page": "about",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-rich-about-after-desktop",
+      "filename": "review-moor-meadow-rich-about-after-desktop.jpg",
+      "sha256": "5a539285b5d57876a105d650842f9b6889c352dac6851259b6fa172dbbc009ab",
+      "bytes": 25500,
+      "originalPng": "moor-meadow-rich-about-after-desktop.png",
+      "originalSha256": "9f08bccfefbd67374929ca93e293c7a84600665c95da4065cf94ced8ecc12d7d",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1487,
+      "renderedWidth": 720,
+      "renderedHeight": 744,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow-rich",
+      "page": "about",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "moor-meadow-rich-home-before-mobile",
+      "filename": "review-moor-meadow-rich-home-before-mobile.jpg",
+      "sha256": "c73e98f518324d809f754e15f6a5b52c5ee6666e3632483cb888abb2cb03f0a2",
+      "bytes": 96743,
+      "originalPng": "moor-meadow-rich-home-before-mobile.png",
+      "originalSha256": "94be96f74eb33ee9b81bcff9352ea8a7dbfd59b75e7b1b0c4a839a67c4875126",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 4618,
+      "renderedWidth": 360,
+      "renderedHeight": 4263,
+      "quality": 30,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "moor-meadow-rich",
+      "page": "home",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "moor-meadow-rich-page-garden-maintenance-before-mobile",
+      "filename": "review-moor-meadow-rich-page-garden-maintenance-before-mobile.jpg",
+      "sha256": "90aa3b9d416acb2fbf83c4a006534b5b18eb09f1a4dddf81bf2309d848d65a50",
+      "bytes": 68765,
+      "originalPng": "moor-meadow-rich-page-garden-maintenance-before-mobile.png",
+      "originalSha256": "6a0aee51cb30dce089ffe9668e52b29985e2500ec10ea9731616cfd5787cacca",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1608,
+      "renderedWidth": 390,
+      "renderedHeight": 1608,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "moor-meadow-rich",
+      "page": "page-garden-maintenance",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-rich-home-after-mobile",
+      "filename": "review-ember-rich-home-after-mobile.jpg",
+      "sha256": "1164c540512ea0e4096655dac83a3a10f4c13516e453c164945cbe236821a2db",
+      "bytes": 95552,
+      "originalPng": "ember-rich-home-after-mobile.png",
+      "originalSha256": "68f968fe24e9fc5cb452981653bcf23ca786fb80f90f443757bcadd6806c09b1",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 4294,
+      "renderedWidth": 360,
+      "renderedHeight": 3964,
+      "quality": 40,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember-rich",
+      "page": "home",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-rich-home-after-desktop",
+      "filename": "review-ember-rich-home-after-desktop.jpg",
+      "sha256": "4fe062d5c953885d9aae001ad73ae35cf3e25f05eee0b929dcc77f1ec4ddbd64",
+      "bytes": 91550,
+      "originalPng": "ember-rich-home-after-desktop.png",
+      "originalSha256": "8b170d94c176cb7698b18cbf9db1d3135e43f0b2dc40d1a898f967544364cb8c",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 5242,
+      "renderedWidth": 720,
+      "renderedHeight": 2621,
+      "quality": 40,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember-rich",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "ember-rich-page-festival-plates-after-mobile",
+      "filename": "review-ember-rich-page-festival-plates-after-mobile.jpg",
+      "sha256": "9a0d254146b916a731b4ec70438fdc03748ad9f442543ecf97b04475ad544617",
+      "bytes": 61637,
+      "originalPng": "ember-rich-page-festival-plates-after-mobile.png",
+      "originalSha256": "482c1a938fa6101284ee6ce768164b42bc4d8a2e800e3bef14d8cb74bc346218",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1851,
+      "renderedWidth": 390,
+      "renderedHeight": 1851,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember-rich",
+      "page": "page-festival-plates",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-rich-page-festival-plates-after-desktop",
+      "filename": "review-ember-rich-page-festival-plates-after-desktop.jpg",
+      "sha256": "2451820477dcb9872b746f16d33400d2531b4992487e9474ed374f5dae31f68d",
+      "bytes": 44154,
+      "originalPng": "ember-rich-page-festival-plates-after-desktop.png",
+      "originalSha256": "31f81729c65b8177f41ef74b75fca73715f9d5859f42cdd577e5dd514682213d",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 2238,
+      "renderedWidth": 720,
+      "renderedHeight": 1119,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember-rich",
+      "page": "page-festival-plates",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "ember-rich-about-after-mobile",
+      "filename": "review-ember-rich-about-after-mobile.jpg",
+      "sha256": "2fddb44321b6a4dd16c9c67319fef233dff0b0295a21b6ecb55f19a7a8833f87",
+      "bytes": 37877,
+      "originalPng": "ember-rich-about-after-mobile.png",
+      "originalSha256": "45eb628c160efb1dc960e5edf6bbdbf3e98eab2f08bb1601501d245cd09d5e8c",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1368,
+      "renderedWidth": 390,
+      "renderedHeight": 1368,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember-rich",
+      "page": "about",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-rich-about-after-desktop",
+      "filename": "review-ember-rich-about-after-desktop.jpg",
+      "sha256": "2eee18092c8ca486c2fd60b752e7ee591811b3e85bdee4a71401e72e443c1879",
+      "bytes": 25293,
+      "originalPng": "ember-rich-about-after-desktop.png",
+      "originalSha256": "f9c05cded61397077e0c3b06ee38be2e4269186af793c307b8ac6e1132edd512",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1529,
+      "renderedWidth": 720,
+      "renderedHeight": 765,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember-rich",
+      "page": "about",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "ember-rich-home-before-mobile",
+      "filename": "review-ember-rich-home-before-mobile.jpg",
+      "sha256": "f98e18f8f519cc05828a9e0e9666f55d91b09b61f13adf7060a385ce16b319b7",
+      "bytes": 98358,
+      "originalPng": "ember-rich-home-before-mobile.png",
+      "originalSha256": "36add7f2446baecc92ed0170fa40e201668316463a0f2b087eb0a29d8836d0c6",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 4458,
+      "renderedWidth": 360,
+      "renderedHeight": 4115,
+      "quality": 40,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "ember-rich",
+      "page": "home",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "ember-rich-page-festival-plates-before-mobile",
+      "filename": "review-ember-rich-page-festival-plates-before-mobile.jpg",
+      "sha256": "aa6cf1815037da85620dd9349cd188e856396eb9db681e3787fe395ad6a29740",
+      "bytes": 56433,
+      "originalPng": "ember-rich-page-festival-plates-before-mobile.png",
+      "originalSha256": "f805b2d3f39fc5b09ab26c578f23e77789adf35fb0ed2a23779445b0e8eb548e",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1488,
+      "renderedWidth": 390,
+      "renderedHeight": 1488,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "ember-rich",
+      "page": "page-festival-plates",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-rich-home-after-mobile",
+      "filename": "review-quiet-light-rich-home-after-mobile.jpg",
+      "sha256": "96a245587da9dc373f88a231d53d77ae0ebeaaf7204bcb77d4566dd954b460f5",
+      "bytes": 97109,
+      "originalPng": "quiet-light-rich-home-after-mobile.png",
+      "originalSha256": "f9d40e9fea44881c5444d6effaa4dd7f5c4a2a0573288d1b4d2cb535ab6774ac",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2986,
+      "renderedWidth": 390,
+      "renderedHeight": 2986,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light-rich",
+      "page": "home",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-rich-home-after-desktop",
+      "filename": "review-quiet-light-rich-home-after-desktop.jpg",
+      "sha256": "e21782c53c7824fbd045b36b7c470161697228c03222c910943da385507ae160",
+      "bytes": 56828,
+      "originalPng": "quiet-light-rich-home-after-desktop.png",
+      "originalSha256": "aa710c64ba502a19e0d2cf13f6d6e884cc637adf6295fd03e0b16fb97c86469d",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 3042,
+      "renderedWidth": 720,
+      "renderedHeight": 1521,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "quiet-light-rich",
+      "page": "home",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "quiet-light-rich-page-brand-direction-after-mobile",
+      "filename": "review-quiet-light-rich-page-brand-direction-after-mobile.jpg",
+      "sha256": "24d0d5bc9772ba76c5778ca75db5661f53e441bffc468ed1e5eecbac0653f6ea",
+      "bytes": 42370,
+      "originalPng": "quiet-light-rich-page-brand-direction-after-mobile.png",
+      "originalSha256": "544a4cc82ef9b0f75136e354d50bdb2fd7797bfeeac07c6705920977c4665746",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1460,
+      "renderedWidth": 390,
+      "renderedHeight": 1460,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light-rich",
+      "page": "page-brand-direction",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-rich-page-brand-direction-after-desktop",
+      "filename": "review-quiet-light-rich-page-brand-direction-after-desktop.jpg",
+      "sha256": "783f23d7a8b6114053e73529078efbed4e892f605718d3006721f657a1626c0c",
+      "bytes": 29441,
+      "originalPng": "quiet-light-rich-page-brand-direction-after-desktop.png",
+      "originalSha256": "01b6cd03830e5c86e19094d2b7090f9c5b0c5360ff766ac24c5d2a02785b96c7",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1513,
+      "renderedWidth": 720,
+      "renderedHeight": 757,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "quiet-light-rich",
+      "page": "page-brand-direction",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "quiet-light-rich-about-after-mobile",
+      "filename": "review-quiet-light-rich-about-after-mobile.jpg",
+      "sha256": "3601194549f4cbfa0e451de9ed94e3c2fd4093b272df903d44f791951706652f",
+      "bytes": 38022,
+      "originalPng": "quiet-light-rich-about-after-mobile.png",
+      "originalSha256": "30e87fd213dff273eca63dbcf1bd86a6a2b523b0f3d376d00b999cdeb915a684",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1488,
+      "renderedWidth": 390,
+      "renderedHeight": 1488,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light-rich",
+      "page": "about",
+      "stage": "after",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-rich-about-after-desktop",
+      "filename": "review-quiet-light-rich-about-after-desktop.jpg",
+      "sha256": "9d0920bc8663c85117ee7c0e943cfb9fa39c737d02c363ba397d4b88a882f9a1",
+      "bytes": 24209,
+      "originalPng": "quiet-light-rich-about-after-desktop.png",
+      "originalSha256": "c368747b8f7dc6ec37fc1600efaad3cafdeec7596f64cce66dbfe93ae2621926",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1484,
+      "renderedWidth": 720,
+      "renderedHeight": 742,
+      "quality": 60,
+      "method": "Aspect-ratio-preserving scale of genuine complete-page PNG; no reflow or invented content",
+      "site": "quiet-light-rich",
+      "page": "about",
+      "stage": "after",
+      "label": "desktop"
+    },
+    {
+      "id": "quiet-light-rich-home-before-mobile",
+      "filename": "review-quiet-light-rich-home-before-mobile.jpg",
+      "sha256": "cfc1a6e13d2628d4ddbe0d873054d7cbc457bf23ba9af134b7965b0bfa4cecd7",
+      "bytes": 90962,
+      "originalPng": "quiet-light-rich-home-before-mobile.png",
+      "originalSha256": "10f3d1a13ecb1cebf4a5e79c3e624e65a3797c80b1a460210bbd896a62bc8e44",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 3210,
+      "renderedWidth": 390,
+      "renderedHeight": 3210,
+      "quality": 50,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light-rich",
+      "page": "home",
+      "stage": "before",
+      "label": "mobile"
+    },
+    {
+      "id": "quiet-light-rich-page-brand-direction-before-mobile",
+      "filename": "review-quiet-light-rich-page-brand-direction-before-mobile.jpg",
+      "sha256": "b235946e0007df49d6b1b1281765895c530472c244dde37ef51c14a4c42aefa9",
+      "bytes": 38781,
+      "originalPng": "quiet-light-rich-page-brand-direction-before-mobile.png",
+      "originalSha256": "81291840b2eb5a6527093e5975a9dc218e70c3304e326f582051bd8e91137e12",
+      "originalViewport": {
+        "width": 390,
+        "height": 844
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1309,
+      "renderedWidth": 390,
+      "renderedHeight": 1309,
+      "quality": 60,
+      "method": "Recompressed genuine complete-page PNG at original pixel width",
+      "site": "quiet-light-rich",
+      "page": "page-brand-direction",
+      "stage": "before",
+      "label": "mobile"
+    }
+  ],
+  "fullResolutionArtifact": {
+    "id": 13502534707,
+    "sha256": "4a379e3a3fd84ecc2d2f365e5add3048fdd3bbd9645aeee799332271160a7bfb",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42221404767/artifacts/13502534707",
+    "retentionDays": 7
+  },
+  "localInspection": "All 24 JPEGs and original PNG hashes independently match the earlier inspected passing run; final run regenerated them on the final source. These are actual screenshot derivatives, not AI mockups.",
+  "comparisons": [
+    {
+      "file": "moor-meadow-rich-service-comparison.jpg",
+      "sha256": "39c7a72cf5186a43030c1c280fcd8c600ab6be083079510aa043e845943f87a5",
+      "sourceScreenshots": [
+        "review-moor-meadow-rich-page-garden-maintenance-before-mobile.jpg",
+        "review-moor-meadow-rich-page-garden-maintenance-after-mobile.jpg"
+      ],
+      "method": "Side-by-side composition of hash-verified genuine screenshot JPEG derivatives; no invented website pixels. Originals and all desktop/narrow/retina pages remain in the CI artifact."
+    },
+    {
+      "file": "ember-rich-service-comparison.jpg",
+      "sha256": "13f058ee7a13df689aad1705468d4d1312d417e39e10aeaefc513e0b7536206d",
+      "sourceScreenshots": [
+        "review-ember-rich-page-festival-plates-before-mobile.jpg",
+        "review-ember-rich-page-festival-plates-after-mobile.jpg"
+      ],
+      "method": "Side-by-side composition of hash-verified genuine screenshot JPEG derivatives; no invented website pixels. Originals and all desktop/narrow/retina pages remain in the CI artifact."
+    },
+    {
+      "file": "quiet-light-rich-service-comparison.jpg",
+      "sha256": "9c1f7b9e7aae67df8427381ddad7c5b5f6e38499a3556d73cb0e79ae157df862",
+      "sourceScreenshots": [
+        "review-quiet-light-rich-page-brand-direction-before-mobile.jpg",
+        "review-quiet-light-rich-page-brand-direction-after-mobile.jpg"
+      ],
+      "method": "Side-by-side composition of hash-verified genuine screenshot JPEG derivatives; no invented website pixels. Originals and all desktop/narrow/retina pages remain in the CI artifact."
+    }
+  ]
+}

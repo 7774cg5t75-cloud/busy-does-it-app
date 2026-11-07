@@ -1,0 +1,125 @@
+{
+  "sourceSha": "6fa7b7c761813881d55b5a61899a27d51c01ab75",
+  "sourceTree": "4d2e1d7a68f64eeeda3e647da96dcc108365f86c",
+  "sourceStable": true,
+  "workingTreeChanged": false,
+  "application": {
+    "passed": 490,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "applicationExit": 0,
+  "allIndividualApplicationExitCodes": 0,
+  "postgres": [
+    {
+      "file": "postgres.json",
+      "summary": {
+        "passed": 123,
+        "failed": 0
+      },
+      "exit": 0
+    },
+    {
+      "file": "public-form-postgres.json",
+      "summary": {
+        "passed": 21,
+        "failed": 0
+      },
+      "exit": 0
+    },
+    {
+      "file": "enquiry-preparation-postgres.json",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "exit": 0
+    },
+    {
+      "file": "operational-work-postgres.json",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "exit": 0
+    },
+    {
+      "file": "work-preparation-postgres.json",
+      "summary": {
+        "passed": 12,
+        "failed": 0
+      },
+      "exit": 0
+    }
+  ],
+  "postgresTotal": 182,
+  "foundation": {
+    "assertions": 105,
+    "exit": 0
+  },
+  "deno": {
+    "entries": 25,
+    "version": "2.5.6",
+    "exit": 0
+  },
+  "unsignedExports": {
+    "ownerPreview": 0,
+    "isolatedStaging": 0
+  },
+  "mainRun": 41911822671,
+  "browserRun": 41911822758,
+  "browserExit": 0,
+  "newPngsHashVerified": 84,
+  "newBrowserZipDigestsVerified": 5,
+  "mainArtifact": {
+    "id": 13364941005,
+    "sha256": "3ea2b142e2cdefbf701fa68bf47e9d56742ebcd5e9d4cb9210ab6a0f9763af9a"
+  },
+  "hostedAcceptance": false,
+  "publicActivation": false,
+  "providerCalls": 0,
+  "independentAestheticAcceptance": false,
+  "guards": [
+    {
+      "id": "security-by-design-adversarial",
+      "exit": 0,
+      "status": "passed"
+    },
+    {
+      "id": "security-baseline",
+      "exit": 0,
+      "status": "passed"
+    },
+    {
+      "id": "historical-security-boundaries",
+      "exit": 0,
+      "status": "passed"
+    },
+    {
+      "id": "security-phase3",
+      "exit": 0,
+      "status": "passed"
+    },
+    {
+      "id": "check-security-phase4",
+      "exit": 0,
+      "status": "passed"
+    },
+    {
+      "id": "check-security-phase5",
+      "exit": 0,
+      "status": "passed"
+    },
+    {
+      "id": "dependency-security",
+      "exit": 0,
+      "status": "passed"
+    },
+    {
+      "id": "dependency-compatibility",
+      "exit": 0,
+      "status": "passed"
+    }
+  ]
+}

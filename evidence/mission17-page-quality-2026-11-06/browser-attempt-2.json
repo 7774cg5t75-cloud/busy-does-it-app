@@ -1,0 +1,20 @@
+{
+  "status": "failed_then_superseded",
+  "runId": 42235855242,
+  "jobId": 127953694523,
+  "source": {
+    "commit": "2b2e068fc22bd759f829bf129dd7c36e2899944a",
+    "tree": "5f60b3488adbc0a1f18f469d3286991ed7809654"
+  },
+  "assertion": "Closed native outer Menu must conceal its nested service group",
+  "diagnosis": "Native closed DETAILS descendants retained layout rectangles; the old visibility metric ignored the closed ancestor. Actual keyboard control revealed this measurement bug.",
+  "remedy": "Visibility now checks every closed DETAILS ancestor and permits only descendants of its direct SUMMARY. Closed/open/closed expected states, exact group counts, real keyboard navigation, clipping controls and body-width controls remain required.",
+  "artifact": {
+    "id": 13512900549,
+    "bytes": 19363710,
+    "sha256": "0537b14d32c3aa49990d2fb0923d30a07f62fb5f7233ee55e83cfca602090bde"
+  },
+  "completeCapture": false,
+  "compactPackCreated": false,
+  "providerCalls": 0
+}

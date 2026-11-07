@@ -64,7 +64,11 @@ function tokens(background,seed){
  const light=luminance(background)>.22;
  const text=light?"#14212B":"#F8FAFF";
  const surface=mix(background,text,light?.07:.075);
- const accent=improveContrast(seed,background,4.6);
+ // Accent is also small text on service cards, not only a button on the page.
+ // The surface is closer to text luminance than the page background; ensuring
+ // contrast here protects both supported solid backgrounds without changing
+ // the stored owner-supplied seed or introducing arbitrary styling.
+ const accent=improveContrast(seed,surface,4.6);
  const muted=improveContrast(mix(surface,text,.68),surface,4.55);
  return Object.freeze({bg:background,surface,text,muted,accent,
   line:mix(surface,text,light?.19:.23)});

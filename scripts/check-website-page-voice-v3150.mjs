@@ -21,7 +21,7 @@ assert.ok(ctl.includes('form.append("mode","website-page-transcript-v1")'));
 assert.ok(ctl.includes("now.generation===scope?.generation"));
 assert.ok(ctl.includes("if(!isCurrent())return"));
 assert.ok(screen.includes('onTranscribe={s.transcribeWebsitePageAudio}'));
-assert.ok(screen.includes('setPageInstruction(String(words||"").slice(0,400))'));
+assert.ok(screen.includes('requestPageInstruction(String(words||"").slice(0,400))'));
 assert.ok(screen.includes("Please read the transcript, then preview the proposed edits"));
 assert.ok(microphone.includes('contextLabel==="page"'));
 const from=backend.indexOf("async function interpretWebsitePageLanguage(");

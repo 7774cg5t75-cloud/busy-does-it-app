@@ -1,0 +1,728 @@
+{
+  "source": {
+    "commit": "38735083a148029e8eb5984fe1034b6ecfff7f82",
+    "tree": "4c4329aa55ccd1e3f02a2a80408cd627574a46e8"
+  },
+  "browser": "145.0.7632.6",
+  "sandboxRequired": true,
+  "renderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+  "assetManifest": {
+    "license": "CC0 or public-domain dedication as recorded on each Commons file page. Illustrative test photographs, not these fictional businesses’ work or premises.",
+    "images": [
+      {
+        "name": "catering",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Ugandan_food_buffet_serving.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Ugandan_food_buffet_serving.jpg&oldid=1210355536",
+        "credit": "Rebeccananonof, Ugandan food buffet serving, CC0",
+        "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046",
+        "width": 4608,
+        "height": 3456
+      },
+      {
+        "name": "garden",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+        "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition",
+        "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+        "width": 1280,
+        "height": 1920
+      },
+      {
+        "name": "studio",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+        "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition; explicit illustrative botanical choice for fictional wellness preview, not studio premises",
+        "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+        "width": 1280,
+        "height": 1920
+      }
+    ]
+  },
+  "results": [
+    {
+      "business": "Ember Festival Kitchen",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "0-before-mobile.png",
+      "sha256": "c7300535d07f882e9135a3cdaf16b1ae395214a738c9402f81bbdd3c557747ed",
+      "metrics": {
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 356,
+            "displayHeight": 320,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 356,
+            "displayHeight": 175,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Ember Festival Kitchen"
+          }
+        ],
+        "imageCount": 2,
+        "height": 3250
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        }
+      ],
+      "imageTransferBytes": 6270184,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Ember Festival Kitchen",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "0-after-mobile.png",
+      "sha256": "6a6a190a822eeaf180b7518f8df8c3055e24ffec0ea6cb9eb43fa300bd810391",
+      "metrics": {
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering-640.webp",
+            "srcset": "https://assets.example.invalid/catering-640.webp 640w, https://assets.example.invalid/catering-1280.webp 1280w, https://assets.example.invalid/catering-1920.webp 1920w",
+            "naturalWidth": 390,
+            "naturalHeight": 292,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Food that brings your gathering together."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3077
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering-640.webp",
+          "bytes": 95384,
+          "sha256": "b960229bad24e2e0377f1ee2596e9f3d164e9560254acf38c097997c0cb75029"
+        }
+      ],
+      "imageTransferBytes": 95384,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Ember Festival Kitchen",
+      "family": "story-spread",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "0-before-desktop.png",
+      "sha256": "e7bdbd32d3234936a46923ef7da90ed440628b51b4f0b107228d49e3316def84",
+      "metrics": {
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 621,
+            "displayHeight": 625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering.jpg",
+            "srcset": "",
+            "naturalWidth": 4608,
+            "naturalHeight": 3456,
+            "displayWidth": 1120,
+            "displayHeight": 240,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 414,
+            "fontSize": 83.2,
+            "text": "Ember Festival Kitchen"
+          }
+        ],
+        "imageCount": 2,
+        "height": 3219
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering.jpg",
+          "bytes": 6270184,
+          "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046"
+        }
+      ],
+      "imageTransferBytes": 6270184,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Ember Festival Kitchen",
+      "family": "story-spread",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "0-after-desktop.png",
+      "sha256": "23eddae8ec6e76a8edaac0fafbe7bf17d863304935e15a5565485ee80b59d823",
+      "metrics": {
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/catering.jpg",
+            "currentSrc": "https://assets.example.invalid/catering-1280.webp",
+            "srcset": "https://assets.example.invalid/catering-640.webp 640w, https://assets.example.invalid/catering-1280.webp 1280w, https://assets.example.invalid/catering-1920.webp 1920w",
+            "naturalWidth": 960,
+            "naturalHeight": 720,
+            "displayWidth": 610.875,
+            "displayHeight": 458.15625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 775,
+            "fontSize": 92.8,
+            "text": "Food that brings your gathering together."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3225
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/catering-1280.webp",
+          "bytes": 285330,
+          "sha256": "c71f3e04a399de88fffc18061873223ec583b6f64b58b68a5b5673a74439930b"
+        }
+      ],
+      "imageTransferBytes": 285330,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Clearleaf Gardens",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "1-before-mobile.png",
+      "sha256": "dc58b96ddd0f1ce5db8af2e6519809d3244936823828b8baf8fc9b46ec34e2f8",
+      "metrics": {
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 356,
+            "displayHeight": 253.5,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 356,
+            "displayHeight": 280,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "Clearleaf Gardens"
+          }
+        ],
+        "imageCount": 2,
+        "height": 3205
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613665,
+          "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3"
+        }
+      ],
+      "imageTransferBytes": 613665,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Clearleaf Gardens",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "1-after-mobile.png",
+      "sha256": "7fbfc45e1ff22765ab9cc9784a9b354f0d79e047d47332b1956d237a1b82f19e",
+      "metrics": {
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden-640.webp",
+            "srcset": "https://assets.example.invalid/garden-640.webp 640w, https://assets.example.invalid/garden-1280.webp 1280w",
+            "naturalWidth": 390,
+            "naturalHeight": 585,
+            "displayWidth": 356,
+            "displayHeight": 267,
+            "objectPosition": "50% 0%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 43.2,
+            "text": "More room to enjoy your garden."
+          }
+        ],
+        "imageCount": 1,
+        "height": 2770
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden-640.webp",
+          "bytes": 159274,
+          "sha256": "6768710767b5a9400cb616fad421692d385b6ba69dc50fcbc477d44e11200e8a"
+        }
+      ],
+      "imageTransferBytes": 159274,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Clearleaf Gardens",
+      "family": "service-led",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "1-before-desktop.png",
+      "sha256": "fc5c4f65437cefb2bf0e8abc68b6faf9a9840ab9cf155cb8a6a1e64a505126b1",
+      "metrics": {
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 445.40625,
+            "displayHeight": 547.1875,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          },
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden.jpg",
+            "srcset": "",
+            "naturalWidth": 1280,
+            "naturalHeight": 1920,
+            "displayWidth": 1120,
+            "displayHeight": 450,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 602.59375,
+            "fontSize": 102.4,
+            "text": "Clearleaf Gardens"
+          }
+        ],
+        "imageCount": 2,
+        "height": 3464
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden.jpg",
+          "bytes": 613665,
+          "sha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3"
+        }
+      ],
+      "imageTransferBytes": 613665,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Clearleaf Gardens",
+      "family": "service-led",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "1-after-desktop.png",
+      "sha256": "29def1b08aac9898702559b6ddfdb45631bf6f2350f4ea84a03f60d1959ae8f3",
+      "metrics": {
+        "imageSizes": [
+          {
+            "src": "https://assets.example.invalid/garden.jpg",
+            "currentSrc": "https://assets.example.invalid/garden-1280.webp",
+            "srcset": "https://assets.example.invalid/garden-640.webp 640w, https://assets.example.invalid/garden-1280.webp 1280w",
+            "naturalWidth": 960,
+            "naturalHeight": 1440,
+            "displayWidth": 1120,
+            "displayHeight": 426.65625,
+            "objectPosition": "50% 50%",
+            "objectFit": "cover"
+          }
+        ],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 83.52,
+            "text": "More room to enjoy your garden."
+          }
+        ],
+        "imageCount": 1,
+        "height": 3313
+      },
+      "servedImages": [
+        {
+          "url": "https://assets.example.invalid/garden-1280.webp",
+          "bytes": 458134,
+          "sha256": "b38dc86e8cbe085fdf4f444250d37741f60be6f9b257003d42560b50c3fbd21f"
+        }
+      ],
+      "imageTransferBytes": 458134,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Quiet Light Studio",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "2-before-mobile.png",
+      "sha256": "0f1b6275a66dca2cc14ba57ed513a98553a57fe63051c79905e6176737d9fb19",
+      "metrics": {
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "Quiet Light Studio"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2364
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Quiet Light Studio",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "label": "mobile",
+      "filename": "2-after-mobile.png",
+      "sha256": "c33193a2e36c03541a1b725a5f177622937959ac329156d4c51c651a95bcc262",
+      "metrics": {
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 390,
+        "viewport": 390,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 356,
+            "fontSize": 48,
+            "text": "A clearer expression of your business."
+          }
+        ],
+        "imageCount": 0,
+        "height": 2610
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Quiet Light Studio",
+      "family": "typography-first",
+      "stage": "before",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "2-before-desktop.png",
+      "sha256": "6ad2a910a806abf6cc7eb3b015a3dfbe51075ed8c24fd9db5fb8f315a8c5bcac",
+      "metrics": {
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 840,
+            "fontSize": 136,
+            "text": "Quiet Light Studio"
+          }
+        ],
+        "imageCount": 0,
+        "height": 2733
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0
+    },
+    {
+      "business": "Quiet Light Studio",
+      "family": "typography-first",
+      "stage": "after",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "label": "desktop",
+      "filename": "2-after-desktop.png",
+      "sha256": "3d444ba1d7861977716ae5d3957d0960136e3094112debdf395728b788b3d4c6",
+      "metrics": {
+        "imageSizes": [],
+        "contrastFailures": [],
+        "contrastUnmeasured": [],
+        "ctaTargets": [
+          {
+            "width": 141.328125,
+            "height": 50
+          }
+        ],
+        "documentWidth": 1440,
+        "viewport": 1440,
+        "overflow": [],
+        "broken": [],
+        "unreadable": [],
+        "targets": [],
+        "headings": [
+          {
+            "width": 640.6875,
+            "fontSize": 136,
+            "text": "A clearer expression of your business."
+          }
+        ],
+        "imageCount": 0,
+        "height": 3085
+      },
+      "servedImages": [],
+      "imageTransferBytes": 0,
+      "blockedRequests": 0
+    }
+  ],
+  "failures": [],
+  "hostedAcceptance": false
+}

@@ -1,0 +1,369 @@
+{
+  "source": {
+    "commit": "c5651bbadb3ce5ba346eb98c373d049c8495d431",
+    "tree": "caa56a42dab9d174e438935d6e12ff0194438482"
+  },
+  "browser": "145.0.7632.6",
+  "sandboxRequired": true,
+  "fullPageCaptures": 90,
+  "nativeInteractionCaptures": 4,
+  "deliveryCaptures": 8,
+  "viewports": [
+    320,
+    390,
+    1440
+  ],
+  "highDPR": {
+    "cssWidth": 390,
+    "deviceScaleFactor": 2,
+    "fullPageCaptures": 6,
+    "pngWidth": 780
+  },
+  "sheets": [
+    {
+      "file": "ember-controlled-mobile.jpg",
+      "sha256": "84a319aef649a6ab86d0e6b31763606e3306cda8d92bdb2d777507bfee1cbfb4",
+      "inputs": [
+        {
+          "file": "1-before-mobile.png",
+          "sha256": "da591eb835321bc08e7a1bd25193890cd9bf69493295b27d00417b7f7eac665c"
+        },
+        {
+          "file": "1-after-mobile.png",
+          "sha256": "1e8b4a75332c9dbc9b2c29b1c890d9e7cf22705b4d54ea0dec4c427a7e0a9765"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "ember-controlled-desktop.jpg",
+      "sha256": "4f723c766be6638b675062c106b538946680554deed61ef48c63ad3b666e953a",
+      "inputs": [
+        {
+          "file": "1-before-desktop.png",
+          "sha256": "f14bd1a7d96621b253debed395c500469bace48b89efd573097cc5f35f0921d6"
+        },
+        {
+          "file": "1-after-desktop.png",
+          "sha256": "f14bd1a7d96621b253debed395c500469bace48b89efd573097cc5f35f0921d6"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "ember-source-richness.jpg",
+      "sha256": "83f2c1f5b56dc3471d6cb43b69bbbc8b282e7540d88241ce45468844e04d3262",
+      "inputs": [
+        {
+          "file": "0-after-mobile.png",
+          "sha256": "a89b70031eaf37fec2017e8245d1262314136802ba1f600524244453635d4a21"
+        },
+        {
+          "file": "1-after-mobile.png",
+          "sha256": "1e8b4a75332c9dbc9b2c29b1c890d9e7cf22705b4d54ea0dec4c427a7e0a9765"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "clearleaf-controlled-mobile.jpg",
+      "sha256": "315ccd830078f34e71c2b5fe9a914621cea711d07314427955a698fe2ab5845e",
+      "inputs": [
+        {
+          "file": "3-before-mobile.png",
+          "sha256": "9452f68c8b865149050feaf81ed8af9eefaa42827df885c574921b8115a3ef0a"
+        },
+        {
+          "file": "3-after-mobile.png",
+          "sha256": "be021748395151f79efda07f5beba4a2f5fa07ce5c3de406634662eecc17cb7c"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "clearleaf-controlled-desktop.jpg",
+      "sha256": "ee7f4f3554752a9334e1637c137e98e1a1593649e549bfe4d3fe88205b0bcf20",
+      "inputs": [
+        {
+          "file": "3-before-desktop.png",
+          "sha256": "5d7c112674b2ab04f737bce73da17996a8c1fd85e382f4e6a2df0cf20363f7ed"
+        },
+        {
+          "file": "3-after-desktop.png",
+          "sha256": "5d7c112674b2ab04f737bce73da17996a8c1fd85e382f4e6a2df0cf20363f7ed"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "clearleaf-source-richness.jpg",
+      "sha256": "e71cd57380b0c4cb21068f5b5cd858490b5d1ee7bfeccdb19fabdf7733ded6a6",
+      "inputs": [
+        {
+          "file": "2-after-mobile.png",
+          "sha256": "955a5f3f8ecadf7bb0b7d73b8d1a30cb1b19fc830751a57a31a6d7ae2444aedb"
+        },
+        {
+          "file": "3-after-mobile.png",
+          "sha256": "be021748395151f79efda07f5beba4a2f5fa07ce5c3de406634662eecc17cb7c"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "quiet-light-controlled-mobile.jpg",
+      "sha256": "57a9098f0d966ed9dfbf6fffe698885992a00669a5f12109ad6e4c1b9d6e6c86",
+      "inputs": [
+        {
+          "file": "5-before-mobile.png",
+          "sha256": "5f977c5019f3aa96a767f2932119c346c4f9f7fb424aa9cbabbdda8465c40279"
+        },
+        {
+          "file": "5-after-mobile.png",
+          "sha256": "0fbcd041dba275a2438c4eb30b46c857f619ed4af5676bbafa7af6a1db2b61fd"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "quiet-light-controlled-desktop.jpg",
+      "sha256": "318bfd5465a0eaaaea7cf88dbe25137886f7ed6e6d8e73d7ecdebb80c3528272",
+      "inputs": [
+        {
+          "file": "5-before-desktop.png",
+          "sha256": "4f392037b7fae123436ffabe67086763d09dc66825d61309583ec0d95d1e2e48"
+        },
+        {
+          "file": "5-after-desktop.png",
+          "sha256": "48537a62ca477de1c151a058db8d101dfd34221aae5b8fae5de984da43a2411c"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "quiet-light-source-richness.jpg",
+      "sha256": "f28ccb99d311680bef1ae7e3d11c68da944eb62f32bb78f92bb06055f8c7539b",
+      "inputs": [
+        {
+          "file": "4-after-mobile.png",
+          "sha256": "1e7db763200dfb9b01643cad1920fdfc9a9669383a2bc3d648f1e1c76d209721"
+        },
+        {
+          "file": "5-after-mobile.png",
+          "sha256": "0fbcd041dba275a2438c4eb30b46c857f619ed4af5676bbafa7af6a1db2b61fd"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "five-gardens.jpg",
+      "sha256": "d6672c505d1ce5b27e954cc3bb7e82320fb2a597504ff90a4a7a5789f53aceb8",
+      "inputs": [
+        {
+          "file": "6-after-mobile.png",
+          "sha256": "d540c2bff8ee86bd841d0d402e59d0026eaefad982618b40b4469c52a3cf8806"
+        },
+        {
+          "file": "7-after-mobile.png",
+          "sha256": "422c4aaf62ab128866da5a8113e453ef6d34b5c885825c8277b3a9e01d454edb"
+        },
+        {
+          "file": "8-after-mobile.png",
+          "sha256": "fc92555cb2b54fea0a6720699b4bf2c033389efb6a0f3247633e9a7c5eaf3b5f"
+        },
+        {
+          "file": "9-after-mobile.png",
+          "sha256": "1b78e7e0cbc80b79bb41b82f63ec2cfb225bf64e35e92c801c8bead297f2b29c"
+        },
+        {
+          "file": "10-after-mobile.png",
+          "sha256": "ed86f3f2044b1d1eac565c24c8dc3fc3f6dc642a765094c5057a9a33dfb2c0c6"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "native-menu-interactions.jpg",
+      "sha256": "3b7c68e48e439a0761a0870211872a9230869b7a68a2b9887eeb04b1df67b850",
+      "inputs": [
+        {
+          "file": "1-menu-open-narrow.png",
+          "sha256": "d9276c6433a79dcb496d14fc1291bc8e7ab2e7541d9e33313dc6effd8a82cc02"
+        },
+        {
+          "file": "1-menu-open-mobile.png",
+          "sha256": "347b1d4fbe1557fd9a579b229679112afe9be9fa35923e701a7f4892adafd760"
+        },
+        {
+          "file": "1-menu-open-desktop.png",
+          "sha256": "75793d9cc390bea7f3723e074534f95df3a71a8e965e63d0722bd0efd07885e4"
+        },
+        {
+          "file": "1-menu-open-retina.png",
+          "sha256": "7391ae275248440f67511caf4c3926b666121b3056f0cc03468f4a47923ae84c"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "ember-renderer-only-mobile.jpg",
+      "sha256": "512224e2e6e553f56daa499d2bb1555c3a6673a0259a9f16648394085b861fa9",
+      "inputs": [
+        {
+          "file": "11-before-mobile.png",
+          "sha256": "9f5303849ba6eb422dae46e31b7e0dd7c2cff665741572ff483b3e9765606cc8"
+        },
+        {
+          "file": "11-after-mobile.png",
+          "sha256": "9f5303849ba6eb422dae46e31b7e0dd7c2cff665741572ff483b3e9765606cc8"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "ember-renderer-only-desktop.jpg",
+      "sha256": "f38490c0e6ec617fe7d5bc0f07bd9c1fd2420d486e7058056873f07e8beb3518",
+      "inputs": [
+        {
+          "file": "11-before-desktop.png",
+          "sha256": "754dfd547865f1eb63498e38a177cae982daa47b294b0732c63ee93373f1c1d9"
+        },
+        {
+          "file": "11-after-desktop.png",
+          "sha256": "754dfd547865f1eb63498e38a177cae982daa47b294b0732c63ee93373f1c1d9"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "clearleaf-renderer-only-mobile.jpg",
+      "sha256": "c7301ac07723296ded3d569b9ca198aad3c82abc3eab8d3aa5598d5f0c98b3b6",
+      "inputs": [
+        {
+          "file": "12-before-mobile.png",
+          "sha256": "05fb9e5284e2821361dea9da71ebf2c37f72590974e88c633919df557eb91993"
+        },
+        {
+          "file": "12-after-mobile.png",
+          "sha256": "05fb9e5284e2821361dea9da71ebf2c37f72590974e88c633919df557eb91993"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "clearleaf-renderer-only-desktop.jpg",
+      "sha256": "ab246871049139f34b5d4cb2ba60adf825052ea738d2442e76e4bcb323297c8c",
+      "inputs": [
+        {
+          "file": "12-before-desktop.png",
+          "sha256": "70cde339dbc52feaaf0a8bb33dd19bea7229202632f496af29007664dbc01a0b"
+        },
+        {
+          "file": "12-after-desktop.png",
+          "sha256": "70cde339dbc52feaaf0a8bb33dd19bea7229202632f496af29007664dbc01a0b"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "quiet-light-renderer-only-mobile.jpg",
+      "sha256": "0e5dfb789c0d91d699090b6a1fa7ddc5bc74f583ad47bd59cce20331678446c3",
+      "inputs": [
+        {
+          "file": "13-before-mobile.png",
+          "sha256": "77ab0ee2f93941f7d5f77d850320e8d67151c8af574ef37f12fb2b8fa305ab51"
+        },
+        {
+          "file": "13-after-mobile.png",
+          "sha256": "0fbcd041dba275a2438c4eb30b46c857f619ed4af5676bbafa7af6a1db2b61fd"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "quiet-light-renderer-only-desktop.jpg",
+      "sha256": "d083eac50333193a3d77cb2dac619b0e7f1166b411a64647c4881da856a6d9e8",
+      "inputs": [
+        {
+          "file": "13-before-desktop.png",
+          "sha256": "9ee8cd82e65da93c298e6517db663ca51ec050bcafe6d4065efaa66448b1ff82"
+        },
+        {
+          "file": "13-after-desktop.png",
+          "sha256": "48537a62ca477de1c151a058db8d101dfd34221aae5b8fae5de984da43a2411c"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "catering-delivery-mobile.jpg",
+      "sha256": "b990f7130b0e54e66e8c8c71cddedc3dcbff2e5a91fbbca73cef63c0ec164983",
+      "inputs": [
+        {
+          "file": "delivery-original-mobile.png",
+          "sha256": "9f5303849ba6eb422dae46e31b7e0dd7c2cff665741572ff483b3e9765606cc8"
+        },
+        {
+          "file": "delivery-responsive-mobile.png",
+          "sha256": "1e8b4a75332c9dbc9b2c29b1c890d9e7cf22705b4d54ea0dec4c427a7e0a9765"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    },
+    {
+      "file": "catering-delivery-desktop.jpg",
+      "sha256": "b7667fa96c978f926c699addcee9b70742f0a7b29f7e3b9bf3682fc6807788b1",
+      "inputs": [
+        {
+          "file": "delivery-original-desktop.png",
+          "sha256": "754dfd547865f1eb63498e38a177cae982daa47b294b0732c63ee93373f1c1d9"
+        },
+        {
+          "file": "delivery-responsive-desktop.png",
+          "sha256": "f14bd1a7d96621b253debed395c500469bace48b89efd573097cc5f35f0921d6"
+        }
+      ],
+      "operation": "Only labelled, proportional LANCZOS reductions of verified original pixels. Pillow12.3.0, JPEG80. No synthetic UI or images."
+    }
+  ],
+  "archives": [
+    {
+      "id": 13373960244,
+      "name": "website-creative-delivery-c5651bbadb3ce5ba346eb98c373d049c8495d431",
+      "bytes": 12030591,
+      "sha256": "c6021301ea011def92bcf3567f0dd9e8c5bb1203a0be83b836a953da1a0f899f"
+    },
+    {
+      "id": 13373555992,
+      "name": "website-creative-gardening-c5651bbadb3ce5ba346eb98c373d049c8495d431",
+      "bytes": 17119963,
+      "sha256": "b9cb907f86e11ca96aac96e5ae09962a7a24502d4c6e75cc41213f9a55b07d97"
+    },
+    {
+      "id": 13373441350,
+      "name": "website-creative-gardens-c5651bbadb3ce5ba346eb98c373d049c8495d431",
+      "bytes": 12276462,
+      "sha256": "e180a377cecab6871a5a3b2fa894c271aff721b59bba61adc93b8442ee8555b1"
+    },
+    {
+      "id": 13372793383,
+      "name": "website-creative-studio-c5651bbadb3ce5ba346eb98c373d049c8495d431",
+      "bytes": 3682971,
+      "sha256": "63522f4326b237fd6eaef39b306d41253f8817efb0f16e7a2d14998e0f551a29"
+    },
+    {
+      "id": 13372349192,
+      "name": "website-creative-catering-c5651bbadb3ce5ba346eb98c373d049c8495d431",
+      "bytes": 16334346,
+      "sha256": "f9eb2d5d87e7645fbe96eec1e8f44c46e59847aa7ec7b89bd54e0a71a4a9a099"
+    },
+    {
+      "id": 13372299461,
+      "name": "website-creative-renderer-c5651bbadb3ce5ba346eb98c373d049c8495d431",
+      "bytes": 16652092,
+      "sha256": "8f063b33046da7e6a7eb823b3ed4c51f6b2f248217851426bfc276a0c5030a88"
+    }
+  ],
+  "originalsRetentionDays": 7,
+  "professionalAcceptance": false
+}

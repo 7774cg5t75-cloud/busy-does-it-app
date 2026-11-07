@@ -1,0 +1,971 @@
+{
+  "sourceSha": "f00a8d0c379efc264962abbc8bd0204e377d6194",
+  "workingTreeChanged": false,
+  "selectionSha256": "fff6ac60500b853011c3488486facc9e1a2ab9d4983ae9e8fc08f383afcd278c",
+  "startedAt": "2026-10-18T22:40:44.271321+00:00",
+  "evidence": "Offline original code with inert boundaries; not hosted/native/browser acceptance.",
+  "results": [
+    {
+      "id": "check-mission13-conversations",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission13-private-recovery",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission13-customer-surfaces",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 4.08
+    },
+    {
+      "id": "check-mission13-communication-truth",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.15
+    },
+    {
+      "id": "check-mission12-content-enquiry",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.25
+    },
+    {
+      "id": "check-mission12-builder-reuse",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.22
+    },
+    {
+      "id": "check-mission12-intent",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.18
+    },
+    {
+      "id": "check-mission12-live-form-logic",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "check-mission12-public-handoff",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.19
+    },
+    {
+      "id": "check-mission12-record-review",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission12-standalone-continuity",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission11-records",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission11-intelligence",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission11-public-views",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-app-goal-content",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-app-goal-editing",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "check-app-goal-decisions",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-app-builder-dual-track-v3153",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission10-information-reuse",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission9-builder-language",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission10-public-information",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.35
+    },
+    {
+      "id": "check-mission10-service-details",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-owner-outcome-v3235",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-communications-v3205",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-customer-journey-v3204",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission9-reply-continuity",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.63
+    },
+    {
+      "id": "check-mission9-request-recovery",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "check-message-integrity-v3185",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.05
+    },
+    {
+      "id": "check-builder-intelligence-v3240",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission14-contextual-replies",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission14-content-intelligence",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.96
+    },
+    {
+      "id": "check-mission14-experience-recovery",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 4.02
+    },
+    {
+      "id": "check-standalone-native-v3154",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-editing-preview",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission15-app-services",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-design-candidates",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-coherence",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-website-page-instructions-v3149",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-website-context-plan-v3147",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.51
+    },
+    {
+      "id": "check-website-context-v3140",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-website-measured-coach-v3144",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-website-coordinated-alternatives",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission7-website-decisions",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-major-builders-v3195",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.52
+    },
+    {
+      "id": "check-mission15-phase2-copy",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.56
+    },
+    {
+      "id": "check-mission15-phase2-responsive",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission15-phase2-services",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.8
+    },
+    {
+      "id": "check-mission15-phase2-measured-reading",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission15-phase2-request-intent",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.62
+    },
+    {
+      "id": "check-mission15-phase2-transfer-review",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.5
+    },
+    {
+      "id": "check-app-studio-session",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-app-studio-checkpoint",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.13
+    },
+    {
+      "id": "build-website-design-gallery-v3100",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "check-builder-visual-receipt-v3238",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase3-composition",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.06
+    },
+    {
+      "id": "check-mission15-phase3-content-review",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.31
+    },
+    {
+      "id": "check-mission15-phase3-gallery",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase3-language",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission15-phase3-studio-recovery",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.57
+    },
+    {
+      "id": "check-mission15-phase4-app-capabilities",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 3.29
+    },
+    {
+      "id": "check-mission15-phase4-requirements",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.45
+    },
+    {
+      "id": "check-mission15-phase4-website-spacing",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission15-phase5-approved-records",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.11
+    },
+    {
+      "id": "check-mission15-phase5-catalogue-editing",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission15-phase5-enquiry-review",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 3.31
+    },
+    {
+      "id": "check-mission11-composition",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.66
+    },
+    {
+      "id": "prepare-standalone-prototype-v3154",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.06
+    },
+    {
+      "id": "check-mission15-phase6-booking-review",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 3.28
+    },
+    {
+      "id": "check-mission15-phase6-hero-composition",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-distinct-website-designs-v3101",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-website-layout-v3134",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "id": "check-mission8-shared-request-entry",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 5.19
+    },
+    {
+      "id": "check-mission15-phase7-visual-movement",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission15-phase7-typography",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.29
+    },
+    {
+      "id": "check-mission15-phase7-app-selection",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 3.09
+    },
+    {
+      "id": "check-website-section-styling-v3139",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.12
+    },
+    {
+      "id": "check-mission15-phase7-reviewed-request",
+      "phase8Blocked": true,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.63
+    },
+    {
+      "id": "check-mission15-phase7-card-colours",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.23
+    },
+    {
+      "id": "check-mission15-phase7-page-movement",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-website-pages-v3135",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-website-tap-editor-v3138",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase8-quality",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "check-mission15-phase8-sizing",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-mission15-phase8-service-questions",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "check-mission15-phase8-website-suggestions",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission15-phase9-studio-selection",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.58
+    },
+    {
+      "id": "check-mission15-phase9-service-details",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.43
+    },
+    {
+      "id": "check-mission15-phase9-browser-policy",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "check-mission15-phase10-selected-images",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 3.26
+    },
+    {
+      "id": "check-mission15-phase10-website-toolbar",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.64
+    },
+    {
+      "id": "check-mission15-phase10-selected-instructions",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.0
+    },
+    {
+      "id": "check-mission15-phase10-gallery-parity",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.67
+    },
+    {
+      "id": "check-app-context-editor-v3155",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.08
+    },
+    {
+      "id": "check-mission7-app-intent",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-app-voice-layout-v3156",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.7
+    },
+    {
+      "id": "check-mission15-phase11-selected-services",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 3.43
+    },
+    {
+      "id": "check-mission15-phase11-website-pictures",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.99
+    },
+    {
+      "id": "check-mission15-phase11-brand-controls",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.72
+    },
+    {
+      "id": "check-app-visual-comparison-v3161",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.07
+    },
+    {
+      "id": "check-major-builders-v3193",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.31
+    },
+    {
+      "id": "check-mission15-phase11-selected-faq",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.72
+    },
+    {
+      "id": "check-mission15-phase12-component-styles",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.74
+    },
+    {
+      "id": "check-mission15-phase12-explore",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 4.97
+    },
+    {
+      "id": "check-mission15-phase12-explore-handoff",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.7
+    },
+    {
+      "id": "check-mission15-phase13-explore-experience",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 1.11
+    },
+    {
+      "id": "check-mission15-phase13-faq-styles",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.64
+    },
+    {
+      "id": "check-mission15-phase13-trusted-explore",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.04
+    },
+    {
+      "id": "check-mission15-phase13-website-reading",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.62
+    },
+    {
+      "id": "check-mission15-phase14-image-styles",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.95
+    },
+    {
+      "id": "check-mission15-phase14-explore-context",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.11
+    },
+    {
+      "id": "check-mission15-phase14-picture-presets",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.91
+    },
+    {
+      "id": "check-mission15-phase14-navigation-labels",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 3.38
+    },
+    {
+      "id": "check-mission15-phase15-service-buttons",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.35
+    },
+    {
+      "id": "check-mission15-phase15-neutral-planning",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.09
+    },
+    {
+      "id": "check-mission15-phase15-brand-typography",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.59
+    },
+    {
+      "id": "check-mission15-phase18-customer-browsing",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.41
+    },
+    {
+      "id": "check-mission15-phase19-journeys",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 2.53
+    },
+    {
+      "id": "check-mission15-phase19-editing",
+      "phase8Blocked": false,
+      "status": "passed",
+      "reason": "",
+      "exitCode": 0,
+      "seconds": 0.79
+    }
+  ],
+  "selectedCount": 118,
+  "summary": {
+    "passed": 118,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "finishedAt": "2026-10-18T22:42:30.542723+00:00",
+  "functionalGitHubCommit": "57c6cd1e752fd66697e915dc45622e24c2ff0afa",
+  "functionalTree": "1fb78a74d6e12e4715a89c51099100813a4c982e",
+  "sourceMapping": "Local commit metadata differs from API commits; exact tree equality verified before each remote update. Final functional tree remained frozen throughout the complete run. Later checkpoint records evidence only.",
+  "syntaxFilesPassed": 19,
+  "architecture": {
+    "sourceFiles": 1158,
+    "physicalLines": 149364,
+    "staticRelativeEdges": 2345,
+    "distinctStaticCycles": 0
+  }
+}

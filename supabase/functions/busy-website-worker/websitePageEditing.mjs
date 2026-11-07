@@ -1,4 +1,8 @@
+import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
+import {wholeSitePageSpecs,wholeSiteBasePageIds,wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent,wholeSiteOperationCount,wholeSiteMenuMove} from './websiteWholeSite.mjs';
 import {protectWebsiteOwnerLocks,websiteOwnerLocks} from "./websiteOwnerLocks.mjs";
+import {validateWebsiteCreativeSpecification} from './websiteCreativeSpecification.mjs';
+import {compileWebsiteCreativeDocument} from './websiteCreativeDocument.mjs';
 /**
  * V3.135 owner-managed custom website pages.
  * Pure, deterministic, private draft only. Uses paths under /pages/
@@ -12,6 +16,69 @@ const fail=(draft,reason)=>({applied:false,draft,reason});
 function editWebsitePagesUnchecked(draft={},action={}){
  if(!draft?.id||!Array.isArray(draft.sections))return fail(draft,"Build a private website draft first.");
  if(!action||typeof action!=="object"||Array.isArray(action))return fail(draft,"Choose a page action.");
+ if(action.action==='apply-site-creative-document'){
+  const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision','document','approvedIntent'];
+  if(Object.keys(action).some(key=>!allowed.includes(key))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||draft.business_id&&draft.business_id!==draft.businessId||!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1)return fail(draft,'The owner business, approved source or website changed. Prepare a fresh creative review.');
+  // The compiler is trusted source code. Neither a model nor a client request
+  // may substitute validation callbacks, profile facts, styles or executable code.
+  const compiled=compileWebsiteCreativeDocument(draft,action.document,{approvedIntent:action.approvedIntent});
+  return compiled.ok&&compiled.applied?{applied:true,draft:compiled.draft,reason:compiled.reason||'Prepared the complete private website design for review. Nothing was published.'}:fail(draft,compiled.reason||'The source-grounded creative proposal needs review. Your current website was kept.');
+ }
+ if(action.action==='apply-site-creative-specification'){
+  const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision','specification'];
+  if(Object.keys(action).some(key=>!allowed.includes(key))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||action.expectedProfileRevision!=null&&(!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1))return fail(draft,'The original owner business or website changed. Prepare a fresh creative review.');
+  const checked=validateWebsiteCreativeSpecification(draft,action.specification,{forEdit:true});
+  if(!checked.ok)return fail(draft,checked.reason);
+  return {applied:true,draft:{...draft,creativeSpecification:JSON.parse(JSON.stringify(checked.specification)),creativeSpecificationSourceOrder:checked.specification.pages.map(proposed=>({pageId:proposed.pageId,sectionOrder:[...draft.pages.find(page=>page.id===proposed.pageId).sectionIds]}))},reason:'Prepared a coordinated direction over the original pages. Exact approved words, sources, imagery, brand and destinations are kept.'};
+ }
+ if(['compose-service-pages','refine-site-pages','update-site-contact'].includes(action.action)){
+  const allowed=['kind','action','expectedWebsiteId','expectedGeneration','expectedBusinessId','expectedProfileRevision',...(action.action==='compose-service-pages'?['serviceIds']:action.action==='update-site-contact'?['field','value']:['direction'])];
+  if(Object.keys(action).some(k=>!allowed.includes(k))||action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation||!draft.businessId||action.expectedBusinessId!==draft.businessId||action.expectedProfileRevision!=null&&(!Number.isSafeInteger(action.expectedProfileRevision)||action.expectedProfileRevision<1)||draft.business_id&&draft.business_id!==draft.businessId)
+   return fail(draft,'The owner business or website changed. Prepare a fresh whole-site review.');
+  if(!wholeSiteContentCurrent(draft))return fail(draft,'Review current approved menu/product/event information before a complete-site change.');
+  if(!wholeSiteDerivedSourcesCurrent(draft))return fail(draft,'A service changed or was removed. Review its related pages in the original Studio; your wording was kept.');
+  if(Object.hasOwn(draft,'sitePresentation')&&draft.sitePresentation!=='purposeful-v1')return fail(draft,'This website uses a newer presentation. Its approved design was kept; use a compatible original editor.');
+  if(action.action==='update-site-contact'){
+   if(!['email','phone'].includes(action.field)||typeof action.value!=='string'||!action.value.trim())return fail(draft,'Choose one exact contact email address or phone number.');
+   return editWebsiteDraftField(draft,{sectionId:'contact',field:action.field,value:action.value});
+  }
+  if(action.action==='refine-site-pages'){
+   if(['purposeful','menu-first'].includes(action.direction)){
+    const locks=websiteOwnerLocks(draft);if(!locks.ok||locks.locks.length)return fail(draft,'Review the website section locks before changing the whole-site presentation. Your current design was kept.');
+    if(action.direction==='purposeful'&&draft.sitePresentation==='purposeful-v1'||action.direction==='menu-first'&&!wholeSiteMenuMove(draft,{explicit:true}))return fail(draft,'This supported presentation is already present, or there is no current approved menu on Home. Nothing changed.');
+    return {applied:true,draft:{...draft,sitePresentation:'purposeful-v1'},reason:action.direction==='menu-first'?'Prepared the exact approved menu as the first supporting section.':'Prepared clearer page purposes, source-grounded service gateways, story and navigation. Your words, fonts, colours and photographs were kept.'};
+   }
+   if(!['premium','services','mobile'].includes(action.direction))return fail(draft,'Choose a supported inner-page refinement.');
+   const targets=new Set(list(draft.customPages).filter(p=>p.sourceServiceId).flatMap(p=>p.sectionIds||[]));
+   if(!targets.size||targets.size>10)return fail(draft,'Prepare current service pages before refining them.');
+   let changed=0;
+   const sections=draft.sections.map((s,index)=>{
+    if(!targets.has(s.id))return s;
+    const field=action.direction==='mobile'?'mobileBodyScale':s.type==='photo-feature'?'desktopPhotoSide':'readingLayout';
+    const value=action.direction==='mobile'?'large':s.type==='photo-feature'?(s.appearance?.desktopPhotoSide==='left'?'right':'left'):action.direction==='premium'?'editorial':index%2?'feature-chapters':'chapters';
+    if(s.appearance?.[field]===value)return s;changed++;return {...s,appearance:{...s.appearance,[field]:value}};
+   });
+   return changed?{applied:true,draft:{...draft,sections},reason:'Prepared a bounded inner-page design change; original words, brand and customer destinations are preserved.'}:fail(draft,'These supported settings are already present. Nothing changed.');
+  }
+  const proposed=wholeSitePageSpecs(draft,action.serviceIds);if(!proposed.ok)return fail(draft,proposed.reason);
+  const locks=websiteOwnerLocks(draft),adoptPresentation=locks.ok&&!locks.locks.length;
+  const purposeful=draft.sitePresentation==='purposeful-v1'||adoptPresentation;
+  if(adoptPresentation&&wholeSiteOperationCount(draft,action.serviceIds)>10)return fail(draft,'Prepare fewer service pages in this one review. No source or existing page was removed.');
+  if(wholeSiteBasePageIds(draft).length+list(draft.customPages).length+proposed.specs.length>10||list(draft.customPages).length+proposed.specs.length>8||draft.sections.length+proposed.specs.reduce((n,p)=>n+1+(!purposeful&&p.detail?1:0),0)>30)
+   return fail(draft,'This site needs a smaller supported scope. No pages or wording were removed.');
+  let working={...draft,siteComposition:'connected-pages-v1',...(adoptPresentation?{sitePresentation:'purposeful-v1'}:{})};
+  for(const spec of proposed.specs){
+   const purposeful=working.sitePresentation==='purposeful-v1';
+   const created=editWebsitePagesUnchecked(working,{action:'create-page',title:spec.title,body:purposeful?spec.sourceServiceSnapshot.body:spec.opening});if(!created.applied)return fail(draft,created.reason);working=created.draft;
+   const p=working.customPages.at(-1);p.sourceServiceId=spec.serviceId;p.sourceServiceSnapshot={...spec.sourceServiceSnapshot};
+   const section=working.sections.find(s=>s.id===p.sectionIds[0]);
+   if(spec.photo){section.type='photo-feature';section.asset={...spec.photo};section.appearance={...spec.photo.appearance,desktopPhotoSide:proposed.specs.indexOf(spec)%2?'right':'left'};}
+   else section.appearance={readingLayout:'editorial'};
+   if(spec.detail&&!purposeful){const extra=editWebsitePagesUnchecked(working,{action:'add-page-section',pageId:p.id,title:'A closer look',body:spec.detail});if(!extra.applied)return fail(draft,extra.reason);working=extra.draft;working.sections.find(s=>s.id===working.customPages.find(x=>x.id===p.id).sectionIds.at(-1)).appearance={readingLayout:'feature-chapters'};}
+  }
+  // Five page creations plus five optional details is the original ten-change bound.
+  return {applied:true,draft:working,reason:'Prepared source-grounded service pages as one private Studio revision. Existing owner pages and copy were kept.'};
+ }
  if(['edit-page-metadata','reset-page-metadata'].includes(action.action)){
   if(action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation)return fail(draft,'The website changed. Select the page again before editing its search details.');
   if(typeof action.pageId!=='string'||!/^(?:home|services|about|gallery|faq|contact|products|events|page-[a-z0-9][a-z0-9-]{1,68})$/.test(action.pageId))return fail(draft,'Choose a supported page identifier.');
@@ -125,10 +192,13 @@ function editWebsitePagesUnchecked(draft={},action={}){
  }
  if(action.action==="move-page-section"){
   const id=action.sectionId,at=page.sectionIds.indexOf(id);
-  const by=action.direction==="up"?-1:action.direction==="down"?1:0;
-  if(!by||at<0||at+by<0||at+by>=page.sectionIds.length)
-   return fail(draft,"Choose a page section that can move up or down.");
-  [page.sectionIds[at],page.sectionIds[at+by]]=[page.sectionIds[at+by],page.sectionIds[at]];
+  if(action.expectedWebsiteId!==undefined&&(action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation))
+   return fail(draft,"The website changed. Review the current section order first.");
+  if(page.sectionIds.filter(x=>x===id).length!==1||!sectionBy(id))return fail(draft,"Choose one unambiguous current page section.");
+  const target=action.direction==="up"?at-1:action.direction==="down"?at+1:action.direction==="first"?0:action.direction==="last"?page.sectionIds.length-1:-1;
+  if(at<0||target<0||target>=page.sectionIds.length||target===at)
+   return fail(draft,"Choose a page section that can move to another position.");
+  page.sectionIds.splice(at,1);page.sectionIds.splice(target,0,id);
   return change("Changed the order of sections on "+page.title+".");
  }
  if(action.action==="delete-page"){

@@ -1,0 +1,27 @@
+{
+  "aiEvents": 0,
+  "aiPolicy": {
+    "limit": 0,
+    "enabled": false
+  },
+  "profiles": 0,
+  "readOnly": "on",
+  "aiPeriods": 0,
+  "aiTariffs": 0,
+  "authUsers": 0,
+  "snapshots": 0,
+  "aiAccounts": 0,
+  "businesses": 0,
+  "observedAt": "2026-11-06T23:37:27.230888+00:00",
+  "memberships": 0,
+  "aiOperations": 0,
+  "authIdentities": 0,
+  "nativeMigrations": [
+    {
+      "name": "mission18_ai_lab_foundation",
+      "sha256": "231b7eecdab788f3829d93c4f1995ce111a6b2b4a953644bdc6d0f785b6a5987",
+      "version": "20261106221950",
+      "statements": 1
+    }
+  ]
+}

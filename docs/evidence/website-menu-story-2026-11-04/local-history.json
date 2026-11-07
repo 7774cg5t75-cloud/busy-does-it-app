@@ -1,0 +1,63 @@
+{
+  "failures": [
+    {
+      "exit": 1,
+      "check": "initial navigation label test",
+      "cause": "New helper referenced sections instead of original draft.sections; corrected to current source."
+    },
+    {
+      "exit": 1,
+      "check": "governed v3 proposal test",
+      "cause": "Attempted to reapply identical approved introduction. Planner now omits no-op copy while preserving original already-active denial."
+    },
+    {
+      "exit": 1,
+      "check": "actual guided menu selection",
+      "cause": "Refinement reintroduced an already-active expressive style. Corrected composition to retain only meaningful approved operations."
+    },
+    {
+      "exit": 1,
+      "check": "first genuine Deno run41909405984",
+      "cause": "Three exact callback return/arity inference errors; added precise callback type contracts, no runtime assertion or compiler relaxation."
+    },
+    {
+      "exit": 1,
+      "check": "first browser41909406067",
+      "cause": "Two new delivery-resolution assertions used density-normalised naturalWidth rather than independently decoded encoded pixels. Corrected to verified hash-bound derivative dimensions; original minimum physical resolution and byte-reduction assertions retained."
+    },
+    {
+      "exit": 1,
+      "check": "additional model reset regression",
+      "cause": "Assertion expected an explicit brand appearance; original writer represents brand by removing override. Check now validates the original semantic default and genuine Menu-to-Contact route."
+    }
+  ],
+  "sourceChecks": {
+    "newOriginalMenuStoryAndUi": 0,
+    "legacyArt": 0,
+    "legacyGuided": 0,
+    "legacyGoverned": 0,
+    "syntax20": 0,
+    "foundation105": 0,
+    "securityBaseline": 0,
+    "securityByDesign": 0,
+    "dependencyBackportGuard": 0,
+    "architecture": 0,
+    "finalGovernedProposal": 0,
+    "finalGuidedJourney": 0
+  },
+  "noAssertionsRelaxed": true,
+  "superseded": [
+    {
+      "run": 41911087321,
+      "source": "bec02b8ab2b46c3ec78629b3d826c3dba4f809c4",
+      "conclusion": "cancelled",
+      "reason": "Original concurrency policy superseded run when final proposal destination correction was committed."
+    },
+    {
+      "run": 41911087413,
+      "source": "bec02b8ab2b46c3ec78629b3d826c3dba4f809c4",
+      "conclusion": "cancelled",
+      "reason": "Original browser concurrency superseded intermediate source; retain genuine status and partial artifacts."
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import {appColors as C} from '../theme/appearance.mjs';
 import React from "react";
 import {Pressable,Text,View} from "react-native";
 import {AudioModule,RecordingPresets,setAudioModeAsync,
@@ -141,14 +142,14 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
  };
  const listening=stage==="recording";
  const busy=["starting","stopping","transcribing"].includes(stage);
- const button=(label,handler,disabled=false,color="#285B92")=>
+ const button=(label,handler,disabled=false,color=C.blue)=>
   <Pressable accessibilityRole="button" accessibilityLabel={label}
    accessibilityState={{disabled:disabled||busy}}
    disabled={disabled||busy} onPress={handler}
-   style={({pressed})=>({backgroundColor:color,paddingVertical:15,
+   style={({pressed})=>({backgroundColor:disabled||busy?C.surface:color,minHeight:48,justifyContent:"center",paddingVertical:15,
     paddingHorizontal:14,borderRadius:12,marginVertical:5,
-    opacity:pressed?.8:disabled?.5:1})}>
-   <Text style={{color:"#FFFFFF",fontWeight:"800",textAlign:"center",fontSize:16}}>
+    opacity:pressed?.88:1})}>
+   <Text style={{color:disabled||busy?C.muted:color===C.surface?C.ink:C.onAction,fontWeight:"700",textAlign:"center",fontSize:16,lineHeight:23}}>
     {label}
    </Text>
   </Pressable>;
@@ -163,7 +164,7 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
   </Text>
   {listening?(
    <View accessibilityLiveRegion="polite">
-    <Text style={{color:"#F7F8FE",fontSize:22,fontWeight:"800"}}>
+    <Text style={{color:C.red,fontSize:22,lineHeight:30,fontWeight:"700"}}>
      {"● Recording  "+time.elapsed+" / 05:00"}
     </Text>
     <Text style={styles.cardBody}>
@@ -177,12 +178,12 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
     <Text style={styles.cardBody}>{"Recorded "+voiceDurationState(elapsedAtStop).elapsed+
       ". Sending uses one of today\'s 12 voice requests; no edits are applied automatically."}</Text>
     {button("Send recording for transcription",send)}
-    {button("Discard recording — do not send",discard,false,"#5A5665")}
+    {button("Discard recording — do not send",discard,false,C.surface)}
    </>
   ):(
    button(listening?"■ Stop recording — keep it for review":
      busy?"BUSY is preparing…":forApp?"🎙 Start recording app change":contextLabel==="page"?"🎙 Start recording page request":"🎙 Start recording this part",
-     listening?()=>stop(false):start,busy,listening?"#9F4F3E":"#285B92")
+     listening?()=>stop(false):start,busy,listening?C.redAction:C.blue)
   )}
   {message?<Text accessibilityRole="alert" style={styles.cardBody}>{message}</Text>:null}
  </View>;

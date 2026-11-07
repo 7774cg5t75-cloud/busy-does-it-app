@@ -1,0 +1,325 @@
+{
+  "functionalCommit": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+  "functionalTree": "9cea4908e3c83e095f31fa2d35d34174901d2d92",
+  "scope": "Frozen local genuine PostgreSQL/PostgREST; synthetic native Auth facade, real JWT verification and original SQL/HTTP; no hosted execution",
+  "receiptSha256": "6f0cb940357dea4f8ffdca53e2b813df76c4c78b3062767b90e8fa56651c59f0",
+  "testFileSha256": "8f394480edb3444a5e73439e9dd76ddff0b083b905f669b08e4f72ae553084c9",
+  "helperFileSha256": "c96cc89bbc196d6e3d4d3e0426e40535a4ff60ad3e9b1ac9303e9a89035e7011",
+  "receipt": {
+    "version": 1,
+    "transport": "Actual PostgREST HTTP",
+    "postgrest": {
+      "version": "14.18",
+      "sha256": "e62299f98f67938f754291340b2fc07b69685546e6017b455ef3e776daef45ee",
+      "postgres": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)"
+    },
+    "hosted": false,
+    "hostedMutations": 0,
+    "nativeAuthAcceptance": false,
+    "syntheticDataOnly": true,
+    "authFixture": "Synthetic native Auth facade and auth.uid compatibility fixture; real locally signed HS256 JWT verification, roles, original SQL/RLS/CAS and HTTP.",
+    "providerCalls": 0,
+    "spendingGBP": 0,
+    "sourcePlanDigest": "0d8ef3e45ec96a9d608571dc1118c5095daa80f37a019a0813ccc1a614c97ddb",
+    "sourcePlanWrites": 6,
+    "preFix": {
+      "clientDeadlineMs": 450,
+      "elapsedMs": 457,
+      "engine40001Errors": 1242,
+      "responseReceived": false,
+      "cleanup": "Owned local PostgREST child and its private-cluster backends stopped"
+    },
+    "faultEvidence": {
+      "emptySource": {
+        "status": 200,
+        "elapsedMs": 9,
+        "keys": [
+          "actorId",
+          "businessId",
+          "empty",
+          "profileExists",
+          "snapshotExists",
+          "version"
+        ]
+      },
+      "legacyMissing": {
+        "status": 500,
+        "code": "P0002",
+        "elapsedMs": 5,
+        "keys": [
+          "code",
+          "details",
+          "hint",
+          "message"
+        ]
+      },
+      "lockTimeout": {
+        "status": 500,
+        "code": "55P03",
+        "elapsedMs": 2005
+      },
+      "deadlock": {
+        "actualEngineSqlstate": "40P01",
+        "engineFailures": 1,
+        "status": 503,
+        "responseCode": "PT503",
+        "elapsedMs": 126,
+        "sourceBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+        "sourceBodyChanged": false,
+        "reviewedDefinitionVerified": true
+      },
+      "serialization": {
+        "actualEngineSqlstate": "40001",
+        "engineFailures": 1,
+        "status": 503,
+        "responseCode": "PT503",
+        "elapsedMs": 68,
+        "sourceBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+        "sourceBodyChanged": false,
+        "reviewedDefinitionVerified": true,
+        "isolationConfigRestored": true
+      }
+    },
+    "lastHappy": {
+      "writes": 6,
+      "originalWriteNames": [
+        "busy_connected_initialize_v1",
+        "busy_connected_profile_write_v1",
+        "busy_connected_website_commit_v1",
+        "busy_connected_website_commit_v1",
+        "busy_connected_website_commit_v1",
+        "busy_connected_website_commit_v1"
+      ],
+      "runtimeCounters": {
+        "authSignIns": 1,
+        "nativeUserReads": 39,
+        "ownerRpcs": 53,
+        "serviceRpcs": 4
+      },
+      "runtimeWriteCounts": {
+        "busy_connected_initialize_v1": 1,
+        "busy_connected_profile_write_v1": 1,
+        "busy_connected_website_commit_v1": 4
+      },
+      "snapshotRevision": 5,
+      "profileRevision": 1,
+      "websiteGeneration": 4,
+      "undoCount": 3,
+      "realHttp": true
+    },
+    "cleanupCompleted": true,
+    "results": [
+      {
+        "id": "pinned-postgrest-and-self-owned-loopback-pg17-cluster",
+        "passed": true,
+        "elapsedMs": 793,
+        "detail": {
+          "version": "14.18",
+          "sha256": "e62299f98f67938f754291340b2fc07b69685546e6017b455ef3e776daef45ee",
+          "postgres": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)"
+        }
+      },
+      {
+        "id": "original-foundation-and-synthetic-native-prerequisites",
+        "passed": true,
+        "elapsedMs": 550
+      },
+      {
+        "id": "pre-fix-real-http-40001-retry-reproduction-has-client-deadline",
+        "passed": true,
+        "elapsedMs": 679,
+        "detail": {
+          "clientDeadlineMs": 450,
+          "elapsedMs": 457,
+          "engine40001Errors": 1242,
+          "responseReceived": false,
+          "cleanup": "Owned local PostgREST child and its private-cluster backends stopped"
+        }
+      },
+      {
+        "id": "reviewed-nonretry-source-contract-installs-locally-only",
+        "passed": true,
+        "elapsedMs": 227,
+        "detail": {
+          "sqlSha256": "37992a8a4600709affec86a2168460ca847a54120d4309a008b853e0f04050f4",
+          "executionSha256": "564a516eca321797e191c54efcfb1fd0efeed5e98740f83757c4a4364778bda5"
+        }
+      },
+      {
+        "id": "empty-source-is-exact-bounded-http200-and-legacy-read-terminates",
+        "passed": true,
+        "elapsedMs": 61,
+        "detail": {
+          "sourceStateStatus": 200,
+          "sourceStateMs": 9,
+          "legacyStatus": 500,
+          "legacyMs": 5
+        }
+      },
+      {
+        "id": "existing-snapshot-and-profile-only-including-disabled-never-authorise-writes",
+        "passed": true,
+        "elapsedMs": 235
+      },
+      {
+        "id": "jwt-signature-role-foreign-business-revoked-owner-and-rls-denials",
+        "passed": true,
+        "elapsedMs": 126
+      },
+      {
+        "id": "probe-membership-lock-timeout-is-terminal-and-never-empty",
+        "passed": true,
+        "elapsedMs": 2055,
+        "detail": {
+          "status": 500,
+          "code": "55P03",
+          "elapsedMs": 2005
+        }
+      },
+      {
+        "id": "actual-engine-deadlock-is-caught-as-terminal-http503",
+        "passed": true,
+        "elapsedMs": 219,
+        "detail": {
+          "actualEngineSqlstate": "40P01",
+          "engineFailures": 1,
+          "status": 503,
+          "responseCode": "PT503",
+          "elapsedMs": 126,
+          "sourceBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+          "sourceBodyChanged": false,
+          "reviewedDefinitionVerified": true
+        }
+      },
+      {
+        "id": "actual-engine-serialization-is-caught-as-terminal-http503",
+        "passed": true,
+        "elapsedMs": 627,
+        "detail": {
+          "actualEngineSqlstate": "40001",
+          "engineFailures": 1,
+          "status": 503,
+          "responseCode": "PT503",
+          "elapsedMs": 68,
+          "sourceBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+          "sourceBodyChanged": false,
+          "reviewedDefinitionVerified": true,
+          "isolationConfigRestored": true
+        }
+      },
+      {
+        "id": "six-real-http-writes-use-original-handler-session-and-full-readback",
+        "passed": true,
+        "elapsedMs": 488,
+        "detail": {
+          "writes": 6,
+          "originalWriteNames": [
+            "busy_connected_initialize_v1",
+            "busy_connected_profile_write_v1",
+            "busy_connected_website_commit_v1",
+            "busy_connected_website_commit_v1",
+            "busy_connected_website_commit_v1",
+            "busy_connected_website_commit_v1"
+          ],
+          "runtimeCounters": {
+            "authSignIns": 1,
+            "nativeUserReads": 39,
+            "ownerRpcs": 53,
+            "serviceRpcs": 4
+          },
+          "runtimeWriteCounts": {
+            "busy_connected_initialize_v1": 1,
+            "busy_connected_profile_write_v1": 1,
+            "busy_connected_website_commit_v1": 4
+          },
+          "snapshotRevision": 5,
+          "profileRevision": 1,
+          "websiteGeneration": 4,
+          "undoCount": 3,
+          "realHttp": true
+        }
+      },
+      {
+        "id": "original-studio-undo-and-redo-persist-through-real-http",
+        "passed": true,
+        "elapsedMs": 61
+      },
+      {
+        "id": "stale-cas-and-history-conflicts-return-bounded-http409",
+        "passed": true,
+        "elapsedMs": 26,
+        "detail": [
+          {
+            "name": "busy_connected_profile_write_v1",
+            "status": 409,
+            "elapsedMs": 5
+          },
+          {
+            "name": "busy_connected_website_commit_v1",
+            "status": 409,
+            "elapsedMs": 7
+          },
+          {
+            "name": "busy_connected_website_history_v1",
+            "status": 409,
+            "elapsedMs": 3
+          }
+        ]
+      },
+      {
+        "id": "staleProfile-stops-original-runtime-without-replay",
+        "passed": true,
+        "elapsedMs": 151
+      },
+      {
+        "id": "staleCommit-stops-original-runtime-without-replay",
+        "passed": true,
+        "elapsedMs": 181
+      },
+      {
+        "id": "withdraw-stops-original-runtime-without-replay",
+        "passed": true,
+        "elapsedMs": 182
+      },
+      {
+        "id": "lost-initialize-http-acknowledgement-never-replays-actual-committed-write",
+        "passed": true,
+        "elapsedMs": 145
+      },
+      {
+        "id": "lost-profile-http-acknowledgement-never-replays-actual-committed-write",
+        "passed": true,
+        "elapsedMs": 160
+      },
+      {
+        "id": "lost-create-http-acknowledgement-never-replays-actual-committed-write",
+        "passed": true,
+        "elapsedMs": 199
+      },
+      {
+        "id": "original-table-counts-private-defaults-and-zero-spending-remain",
+        "passed": true,
+        "elapsedMs": 127,
+        "detail": {
+          "reviewedProbeDefinition": {
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, pg_temp",
+              "lock_timeout=2s"
+            ],
+            "bodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+            "anonExecute": false,
+            "publicExecute": false,
+            "serviceExecute": false,
+            "securityDefiner": true,
+            "authenticatedExecute": true
+          }
+        }
+      }
+    ],
+    "summary": {
+      "passed": 20,
+      "failed": 0
+    }
+  }
+}

@@ -1,5 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient} from "jsr:@supabase/supabase-js@2";
+import {createClient} from "../_shared/supabaseClient.ts";
 import {classifyPushServiceReceiptV3230}
  from "../busy-mini-app-guest-alert-dispatch/pushServiceReceiptV3230.mjs";
 

@@ -1,0 +1,101 @@
+{
+  "source": {
+    "commit": "5c6e165b60c508a8f5886ae40c075d86ff612cd2",
+    "tree": "d6723c2e54f334583ab63ce5c971ed82699ba644"
+  },
+  "browser": "145.0.7632.6",
+  "sheets": [
+    {
+      "filename": "comparison-narrow.jpg",
+      "sha256": "3986e7cbaa726b990d25a1ce9707bc5de9c3ea8333fe45c83b248d4e6091caaa",
+      "inputs": [
+        {
+          "filename": "0-before-narrow.png",
+          "sha256": "24c9c27a35dd8f7ba040564bc96ef4c6d08a4cded23e6614f40083b651fd1820"
+        },
+        {
+          "filename": "0-after-narrow.png",
+          "sha256": "c308a9a4a715640b1fa2ee05517f645bb1c976b85e23698ed9852d104853ab75"
+        },
+        {
+          "filename": "1-before-narrow.png",
+          "sha256": "68035894165be6bb6c6267ec2d101aa1fc8129047390ecd06a667ebb830b2bbf"
+        },
+        {
+          "filename": "1-after-narrow.png",
+          "sha256": "fbfb66df25d9e4599c61eaf83095bd0facc42ae62bb791ef938502d58509b3a8"
+        },
+        {
+          "filename": "2-before-narrow.png",
+          "sha256": "b5a508b4197538573594d4431359b84b2a014193ddf52dac73e2c44399a9172f"
+        },
+        {
+          "filename": "2-after-narrow.png",
+          "sha256": "dc1474c0421df1740ff82e56ecb98bad96ed36594cf3b3afb2c03c6175d1aafb"
+        }
+      ]
+    },
+    {
+      "filename": "comparison-mobile.jpg",
+      "sha256": "124a4dfa149115e8268d65d82be7665f156a1cfb3188170cfe066ba204f0a811",
+      "inputs": [
+        {
+          "filename": "0-before-mobile.png",
+          "sha256": "a9a43c651ddc75529390af509ef57cc3d0d88388e5129b17dff8ff321b26bb7d"
+        },
+        {
+          "filename": "0-after-mobile.png",
+          "sha256": "8ff6cbfa05a9069eff3393b3d7d56478b022b520b1a8110db6c083dad3911e95"
+        },
+        {
+          "filename": "1-before-mobile.png",
+          "sha256": "e9ef01935fdc16d57f82c4e88ad5b3a9de2d8f2150765d345350492a0cbd975e"
+        },
+        {
+          "filename": "1-after-mobile.png",
+          "sha256": "467fd707538a7cfce400a98430632f761ec642ecde23c7366bcbb36d137b4a23"
+        },
+        {
+          "filename": "2-before-mobile.png",
+          "sha256": "e245f2affb1b1cc2fc93e4a8bfa75e80e212b77b77fa0b3fdf48c239aa358cbb"
+        },
+        {
+          "filename": "2-after-mobile.png",
+          "sha256": "1120bc7b981c2cc56bb721d9542af023d5bcba60d71e9e38e87b6cce9d927676"
+        }
+      ]
+    },
+    {
+      "filename": "comparison-desktop.jpg",
+      "sha256": "5c9c079af4e95761048cc19e131c558147fff3c7df7a1f9380db35e3e520656f",
+      "inputs": [
+        {
+          "filename": "0-before-desktop.png",
+          "sha256": "94256af76c205c79a1407f26dce3e767e2d5d2d9fe7a812f624278836e6ce0ab"
+        },
+        {
+          "filename": "0-after-desktop.png",
+          "sha256": "363cb8920ee43e5f2dad100f8804c357740cf9e7002a9aedaa81225c65133d9a"
+        },
+        {
+          "filename": "1-before-desktop.png",
+          "sha256": "0b8100fe7b1d38492eb2542be068fd6aa8c966c7747e22ca563e4cc82c9a7d9e"
+        },
+        {
+          "filename": "1-after-desktop.png",
+          "sha256": "40e20978257488bc0ef0e6515b98d4c0c3810d1f0e72f426230c36287a08b9d0"
+        },
+        {
+          "filename": "2-before-desktop.png",
+          "sha256": "0a832aba5f9fea502309e44cd8363635f4ca7a622057d0afe139bf819d7ac427"
+        },
+        {
+          "filename": "2-after-desktop.png",
+          "sha256": "5b43fd291b1baefd08b6d8e17d2a0663207f6cc9c39069fdedda9f9975c7a61f"
+        }
+      ]
+    }
+  ],
+  "syntheticBusinessData": true,
+  "professionalAcceptance": false
+}

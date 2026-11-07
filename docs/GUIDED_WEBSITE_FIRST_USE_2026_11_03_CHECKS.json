@@ -1,0 +1,171 @@
+{
+  "mission": "From Natural Business Goal to Beautiful, Kept Website",
+  "missionDate": "2026-11-02",
+  "deliveryDate": "2026-11-03",
+  "initial": {
+    "commit": "42d7944d7b8c2cbcdf1070ca934757128c826467",
+    "tree": "22307d15265b1801ac550eccd8aed89aa631603b"
+  },
+  "functional": {
+    "commit": "4de05a9c51c507f155e40708b4aa772c76025bf1",
+    "tree": "7937b372be35ae9c4d8dfa5422ff5549b75feb4a",
+    "localEquivalent": "09a27d4f8fd610f95db6768d8c3bdfe361a61b01",
+    "sourceStable": true,
+    "workingTreeChanged": false
+  },
+  "application": {
+    "run": 41618490530,
+    "passed": 482,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0,
+    "exit": 0,
+    "artifact": 13223373151,
+    "artifactSha256": "f435602599dc1f34a7d32372c1a44aa7f550bfdd71d67263939a48bd581ca609"
+  },
+  "foundation": {
+    "passed": 105,
+    "exit": 0
+  },
+  "postgres": {
+    "wholeApp": 102,
+    "publicForm": 21,
+    "enquiryPreparation": 13,
+    "quotePreparation": 12,
+    "operationalPlacement": 13,
+    "exits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "countsNote": "First two printed CI summaries; final three finite source stages and loops, successful commands; artifact JSON not locally extracted.",
+    "hosted": false
+  },
+  "deno": {
+    "entries": 25,
+    "passed": 25,
+    "exit": 0
+  },
+  "exports": {
+    "ownerPreview": 0,
+    "isolatedStaging": 0,
+    "signed": false,
+    "physicalDevice": false
+  },
+  "legacy": [
+    {
+      "run": 41618500145,
+      "conclusion": "success",
+      "exit": 0
+    },
+    {
+      "run": 41618500173,
+      "conclusion": "success",
+      "exit": 0
+    },
+    {
+      "run": 41618500209,
+      "conclusion": "success",
+      "exit": 0
+    },
+    {
+      "run": 41618500146,
+      "conclusion": "success",
+      "exit": 0
+    },
+    {
+      "run": 41618500107,
+      "conclusion": "success",
+      "exit": 0
+    },
+    {
+      "run": 41618500124,
+      "conclusion": "success",
+      "exit": 0
+    }
+  ],
+  "browser": {
+    "run": 41618490517,
+    "artifact": 13221977937,
+    "artifactSha256": "e980eb850bf38a1e771b14957ac8f2199c202aa0059c777b6db0883e2e035ffd",
+    "artifactBytes": 36992625,
+    "expires": "2026-11-10",
+    "playwright": "1.58.2",
+    "chromium": "145.0.7632.6",
+    "sandboxRequired": true,
+    "renderer": "src/domain/websiteBuilder.js renderWebsiteHtml",
+    "viewports": [
+      {
+        "width": 390,
+        "height": 844
+      },
+      {
+        "width": 1440,
+        "height": 1000
+      }
+    ],
+    "existingScreenshots": 32,
+    "guidedScreenshots": 12,
+    "totalScreenshots": 44,
+    "exit": 0,
+    "checks": [
+      "decoded images",
+      "no horizontal/content overflow",
+      "14px minimum text",
+      "valid internal anchors",
+      "44px primary actions",
+      "measurable text contrast",
+      "reviewed phone/desktop focal points",
+      "zero external browser requests"
+    ],
+    "perScreenshotManifest": "website-expansion/browser-results.json and guided-websites/browser-results.json within artifact",
+    "locallyExtracted": false,
+    "pixelsFreshlyInspected": false,
+    "reason": "Execution workspace unavailable at final artifact retrieval; capture itself confirmed from successful original workflow."
+  },
+  "negativeCoverage": [
+    "foreign/withdrawn/undersized image",
+    "stale website/profile revision",
+    "unknown executable or contradictory instructions",
+    "unsaved correction wording blocks keep",
+    "unavailable selected image blocks keep",
+    "foreign/tampered readback",
+    "lost acknowledgement no replay",
+    "duplicate/stale callbacks",
+    "missing photography Typography First",
+    "existing same-industry differentiation and renderer/worker parity"
+  ],
+  "failures": [
+    {
+      "run": 41531692110,
+      "exit": 1,
+      "reason": "Invalid new profile fixture version; original whitelist retained"
+    },
+    {
+      "run": 41531692160,
+      "exit": 1,
+      "reason": "PxHere403 before capture"
+    },
+    {
+      "run": 41532379262,
+      "exit": 1,
+      "reason": "Unsupported Wikimedia thumbnail size"
+    },
+    {
+      "run": 41532955740,
+      "exit": 1,
+      "reason": "Third photo request429; final uses two pinned original downloads without third request"
+    }
+  ],
+  "release": {
+    "hosted": false,
+    "published": false,
+    "anonymousAcquisition": false,
+    "visitorAccountHandoff": false,
+    "paidInference": false,
+    "customerAction": false
+  },
+  "dependencyNote": "No version changes; guarded deepmerge backport verified; no fresh registry-audit/clean-upstream claim."
+}

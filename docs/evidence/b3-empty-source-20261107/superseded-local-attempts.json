@@ -1,0 +1,83 @@
+{
+  "scope": "Retained local engineering failures, not hosted B3 attempts; raw receipts remain outside Git. These are not final frozen test results.",
+  "attempts": [
+    {
+      "attempt": "package-first",
+      "receiptSha256": "7a23bbb6457c240bef607c8e03f40e67f38211714e6770266dc840b8dbb540f3",
+      "summary": {
+        "passed": 1,
+        "failed": 1
+      },
+      "explanation": "Test derivative expectation used JavaScript replacement interpolation; corrected expectation without SQL weakening.",
+      "superseded": true,
+      "hosted": false
+    },
+    {
+      "attempt": "package-second",
+      "receiptSha256": "8710b6d85c6dab3583b57b7a065bcc57b57a81ef80be0ff50d7a3b455c12e0c0",
+      "summary": {
+        "passed": 6,
+        "failed": 1
+      },
+      "explanation": "Test matched a comment containing SQLERRM; corrected assertion scope without SQL weakening.",
+      "superseded": true,
+      "hosted": false
+    },
+    {
+      "attempt": "postgres-first",
+      "receiptSha256": "e1ab310e521cfa2be5d195d456d8a680e4e49048a58a7d3e59849ea0526217ec",
+      "summary": {
+        "passed": 9,
+        "failed": 1
+      },
+      "explanation": "Anonymous claim fixture used invalid SET = NULL SQL; corrected to an empty native claim.",
+      "superseded": true,
+      "hosted": false
+    },
+    {
+      "attempt": "postgrest-first",
+      "receiptSha256": "a57e1358727e621a4817347f5d50c2184a7da91af045d7ca33b795b1e54d1e94",
+      "summary": {
+        "passed": 4,
+        "failed": 1
+      },
+      "explanation": "Initial legacy P0002 HTTP expectation was 404; stopped before later stages.",
+      "superseded": true,
+      "hosted": false
+    },
+    {
+      "attempt": "postgrest-second",
+      "receiptSha256": "033ad1ed7f410aa901c5b335a85d5f7fd71d5864543085299ed8a0017084d4bd",
+      "summary": {
+        "passed": 4,
+        "failed": 1
+      },
+      "explanation": "Initial corrected legacy P0002 HTTP expectation was 400; real wire proved fatal 500/P0002, not empty.",
+      "superseded": true,
+      "hosted": false
+    }
+  ],
+  "environmentBlocks": [
+    {
+      "issue": "Managed subagent network permission tool did not start commands; cancelled",
+      "reportedSeconds": [
+        1609,
+        1141,
+        639
+      ],
+      "sqlOrHttpTestsExecuted": false
+    },
+    {
+      "issue": "Normal-sandbox private PostgreSQL Unix socket bind denied EPERM; no hosted action"
+    },
+    {
+      "issue": "Minimal reproduction output-directory collision; initial error report overwritten before collision guard was added; original PostgreSQL bind-error log retained"
+    },
+    {
+      "issue": "Initial minimal HTTP fixture startup PGRST002/503 readiness failure; bounded metadata-read readiness added before any owner RPC"
+    }
+  ],
+  "hostedMutations": 0,
+  "providerCalls": 0,
+  "spendingGbp": 0
+}

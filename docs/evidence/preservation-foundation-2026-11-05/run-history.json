@@ -1,0 +1,99 @@
+{
+  "final": [
+    {
+      "id": 42118845714,
+      "name": "V3.65 Growth Command Centre checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845696,
+      "name": "V3.66 voice and project Operator checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845686,
+      "name": "V3.64 private growth workspace checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845682,
+      "name": "V3.70 Platform Autopilot checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845730,
+      "name": "V3.63 coordinated editable growth checks",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118845834,
+      "name": "V3.69 Founder Operations Security",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118836376,
+      "name": "Premium Website original-renderer browser evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    },
+    {
+      "id": 42118836138,
+      "name": "Private App goal composition and original authority verification",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "f790872f4e3177f47bb617eff24a2940b629979a",
+      "attempt": 1
+    }
+  ],
+  "unsuccessfulOrSuperseded": [
+    {
+      "id": 42117650369,
+      "name": "Private App goal composition and original authority verification",
+      "status": "completed",
+      "conclusion": "failure",
+      "sha": "d8eae099d655ba44fd4cc1b9a2b8ce6c857a3940",
+      "attempt": 1
+    },
+    {
+      "id": 42117650583,
+      "name": "Premium Website original-renderer browser evidence",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "sha": "d8eae099d655ba44fd4cc1b9a2b8ce6c857a3940",
+      "attempt": 1
+    },
+    {
+      "id": 42118719091,
+      "name": "Private App goal composition and original authority verification",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "sha": "b79f1d4a105a2c86ffd0380b29215f84175c5e44",
+      "attempt": 1
+    }
+  ],
+  "workspaceReconnect": {
+    "sourcePreserved": true,
+    "evidenceUploadInterruptedAndResumed": true,
+    "noTestResultInvented": true
+  }
+}

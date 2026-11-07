@@ -1,0 +1,28 @@
+{
+  "package": "expo-crypto",
+  "version": "57.0.4",
+  "sdkRecommendation": "~57.0.4",
+  "license": "MIT",
+  "integrity": "sha512-LqMMs/N6wvwZyw4deVmcl3AgXgqMwCVQ9WyWf2eaWyrk99TXSKk5da3QspiLOOjnn5Qv9f8C50cDNuoyLThpdw==",
+  "tarballSHA256": "a538ba96802f2f927adebb42566214bea79db5f0c5b4f0b66408d1d12d619055",
+  "reviewedSourceSHA256": {
+    "package.json": "c85d574f13742a3e47d84b7551108461814cfcec0ac82257cd852c205cc502c5",
+    "LICENSE": "fb3ca4a837f5779e83cef89b78253a8949cfb9429c340309f62d0465ec6610b4",
+    "expo-module.config.json": "dbe083a693230ece24deed2fd5ed2822c464d96e8415de22c0c2c71d302e8582",
+    "ios/CryptoModule.swift": "d98973555610ae3ab5d8cecfffd0e0749286496cbf7d6a834f4bd60f9748bfed",
+    "ios/DigestAlgorithm.swift": "e9feb7c50bb2e93d5da4d3f06b39ebc31446f0052d56b6692df212e0a5b41715",
+    "ios/ExpoCrypto.podspec": "4bad7960cae20fbb95ac78251ba991975975374c25827531f628bd4a17da1266",
+    "android/src/main/java/expo/modules/crypto/CryptoModule.kt": "526a6452033ea7ccd0a68db29544bc506b460f7b43aa77101832587d6e9919bf",
+    "src/Crypto.ts": "cfa00034b9e1f497248ee025bf8b4423800bd5b59c7d68d0a230a51de0d33143"
+  },
+  "nativeMethods": [
+    "randomUUID",
+    "digestStringAsync"
+  ],
+  "algorithm": "SHA-256",
+  "encoding": "UTF-8; hex digest",
+  "optionalNativeLookup": true,
+  "mathRandomFallback": false,
+  "actualDeviceAccepted": false,
+  "build29Rebuilt": false
+}

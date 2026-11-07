@@ -1,0 +1,128 @@
+{
+  "runId": 42233903179,
+  "runUrl": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42233903179",
+  "jobId": 127946442153,
+  "sourceSha": "cc01032d1cc590b8afd4fa41ae660756d397fd22",
+  "sourceTree": "03ca53ea15fe6c0091070586fc2f668fee7b3534",
+  "status": "failed",
+  "failure": {
+    "step": "Original legacy Website worker scopes with real shared dependencies",
+    "script": "scripts/check-mission15-phase28-page-guide.mjs",
+    "error": "ReferenceError: renderWebsiteSiteNavigation is not defined",
+    "cause": "The focused legacy test extracted the original worker renderer but its explicit dependency inventory did not yet inject the newly shared navigation helper.",
+    "assertionsWeakened": false,
+    "remedy": "Inject the actual renderWebsiteSiteNavigation and purposeServiceProjection into the original phase28 and original page-heading extraction harnesses, preserving all assertions. A new functional source and full CI run are required."
+  },
+  "passedBeforeFailure": {
+    "dependencyGuard": true,
+    "originalContractComponentStep": true,
+    "foundationAssertions": 105,
+    "mission16WholeSiteCases": 22,
+    "mission17WholeSiteCases": 10,
+    "mission17InnerPageCases": 12,
+    "mission17InnerPageAssertions": 150,
+    "mission17ServiceOverviewCases": 10
+  },
+  "application509": "NOT RUN; skipped after the legacy harness failure. No passing claim.",
+  "postgres": "NOT RUN; skipped after the legacy harness failure. No passing claim.",
+  "deno": "NOT RUN; skipped after the legacy harness failure. No passing claim.",
+  "exports": "NOT RUN; skipped after the legacy harness failure. No passing claim.",
+  "artifact": {
+    "id": 13510663406,
+    "sha256": "7ef4001b519c1042efa6740e45c4b310b98b751cb87fdec8d7dea0208a766a0e",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42233903179/artifacts/13510663406"
+  },
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1
+    },
+    {
+      "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2
+    },
+    {
+      "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3
+    },
+    {
+      "name": "Reviewed lock installation and security guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4
+    },
+    {
+      "name": "Original contract and component behaviour",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5
+    },
+    {
+      "name": "Original legacy Website worker scopes with real shared dependencies",
+      "status": "completed",
+      "conclusion": "failure",
+      "number": 6
+    },
+    {
+      "name": "Genuine original Edge checks with pinned official verification tools",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 7
+    },
+    {
+      "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 8
+    },
+    {
+      "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 9
+    },
+    {
+      "name": "Unsigned original Owner Preview and isolated staging exports",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 10
+    },
+    {
+      "name": "Complete frozen-source regressions",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 11
+    },
+    {
+      "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 12
+    },
+    {
+      "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 23
+    },
+    {
+      "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 24
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 25
+    }
+  ],
+  "evidenceScope": "Read-only GitHub Actions job metadata and actual decoded job logs. No hosted database, provider or secret access."
+}

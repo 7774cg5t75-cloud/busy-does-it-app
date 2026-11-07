@@ -1,0 +1,13 @@
+{
+  "cases": 24,
+  "distinctStructuralFingerprints": 24,
+  "findings": [],
+  "approvedGoldStandards": 0,
+  "independentReview": "pending; automated rendering is not independent professional acceptance",
+  "cadence": {
+    "smallChanges": "affected automated source and visual regressions",
+    "majorDesignChanges": "24 whole pages plus five same-industry and sparse/rich three-industry comparison",
+    "substantialReview": "founder and independent uncoached review before marketing-quality claim"
+  },
+  "fixtureDigest": "36ce8d36b4f90e8c787876b4f0e6bf798abc434f1911166cbb6782b8840a1291"
+}

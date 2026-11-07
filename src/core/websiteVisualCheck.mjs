@@ -75,14 +75,18 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
     }
     return [255,255,255,1];
    }
+   var textBlocks=[].slice.call(document.querySelectorAll('main p,main li')).filter(function(node){
+    var rect=node.getBoundingClientRect(),style=getComputedStyle(node);
+    return node.textContent.trim()&&rect.width>0&&rect.height>0&&style.visibility!=='hidden'&&style.display!=='none';
+   }).length;
    var samples=[].slice.call(document.querySelectorAll("main h1,main h2,main h3,main p,main li,main a,main button")).slice(0,120);
-   var lowContrast=0,contrastUnknown=0,contrastChecked=0,smallBodyText=0;
+   var lowContrast=0,contrastUnknown=0,contrastChecked=0,smallBodyText=0,smallTextNodes=[];
    samples.forEach(function(node){
     if(!node.textContent||!node.textContent.trim())return;
     var bounds=node.getBoundingClientRect(),style=getComputedStyle(node);
     if(bounds.width<=0||bounds.height<=0||style.visibility==="hidden"||style.display==="none")return;
     var size=parseFloat(style.fontSize)||0;
-    if(/^(P|LI)$/.test(node.tagName)&&size>0&&size<14)smallBodyText++;
+    if(/^(P|LI)$/.test(node.tagName)&&size>0&&size<14){smallBodyText++;smallTextNodes.push(node);}
     var front=rgb(style.color),back=backgroundFor(node);
     if(!front||!back||front[3]<.99){contrastUnknown++;return;}
     contrastChecked++;
@@ -95,11 +99,12 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
    var value={channel:"busy.website.visual-review.v1",key:${JSON.stringify(inspectionKey)},
     viewport:Math.max(0,Math.round(window.innerWidth)),
     width:Math.max(0,Math.round(document.documentElement.scrollWidth)),
+    textBlocks:Math.min(10000,textBlocks),
     overflow:Math.min(99,overflow),images:Math.min(99,imgs.length),
     missingAlt:Math.min(99,missing),unloadedImages:Math.min(99,unloaded),
     smallTargets:Math.min(99,small),badAnchors:Math.min(99,anchors),
     clippedHeadings:Math.min(99,clipped),
-    clippedSectionIds:sectionIds(clippedNodes),overflowSectionIds:sectionIds(overflowNodes),
+    clippedSectionIds:sectionIds(clippedNodes),overflowSectionIds:sectionIds(overflowNodes),smallTextSectionIds:sectionIds(smallTextNodes),
     lowContrast:Math.min(99,lowContrast),contrastUnknown:Math.min(99,contrastUnknown),
     contrastChecked:Math.min(99,contrastChecked),smallBodyText:Math.min(99,smallBodyText),
     headings:Math.min(99,headings.length),
@@ -129,8 +134,14 @@ function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
  }
  if(counts.viewport<250||counts.viewport>3000||
     counts.width<0||counts.width>100000)return null;
+ // Optional for compatibility with earlier retained report packets. If a
+ // report supplies coverage, the comparator requires it on both sides.
+ if(message.textBlocks!==undefined){
+  if(!Number.isSafeInteger(message.textBlocks)||message.textBlocks<0||message.textBlocks>10000)return null;
+  counts.textBlocks=message.textBlocks;
+ }
  const targets={};
- for(const [key,counter] of [["clippedSectionIds","clippedHeadings"],["overflowSectionIds","overflow"]]){
+ for(const [key,counter] of [["clippedSectionIds","clippedHeadings"],["overflowSectionIds","overflow"],["smallTextSectionIds","smallBodyText"]]){
   if(message[key]===undefined)continue;
   const ids=message[key];
   if(!Array.isArray(ids)||ids.length>6||ids.length>counts[counter]||new Set(ids).size!==ids.length||

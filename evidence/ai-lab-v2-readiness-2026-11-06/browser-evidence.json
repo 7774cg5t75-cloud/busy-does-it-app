@@ -1,0 +1,333 @@
+{
+  "source": {
+    "commit": "21121ee462b27a77b30089ba69e2adcb28d15182",
+    "tree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+    "workingTreeChanged": false
+  },
+  "browser": "145.0.7632.6",
+  "summary": {
+    "source": {
+      "commit": "21121ee462b27a77b30089ba69e2adcb28d15182",
+      "tree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+      "workingTreeChanged": false
+    },
+    "browser": "145.0.7632.6",
+    "inputDigest": "4c8a551a0467955054b26b9cb9c82e395e9ac34fac8776ccec772c1c7c741f67",
+    "wireDigest": "2288e92a5422b3cee1276a344a542356b273aff7e2c6e36d0fa15b98ef59725b",
+    "pages": 6,
+    "fullPageScreenshots": 24,
+    "checks": 742,
+    "passed": 742,
+    "failed": 0,
+    "failures": [],
+    "actualNavigationChecks": 12,
+    "viewports": [
+      "320x844@1",
+      "390x844@1",
+      "1440x1000@1",
+      "390x844@2"
+    ],
+    "imageRequests": 0,
+    "reviewPack": {
+      "index": "iphone-review-pack/index.html",
+      "zip": "iphone-review-pack.zip",
+      "zipBytes": 942892,
+      "zipSha256": "6f8f5c7f4df6d6e070a52f890ecd0240768f6e18241234aa882b9a8698ea2a7e",
+      "files": 18,
+      "images": 12,
+      "comparisons": 3,
+      "pixelLogBytes": 521870,
+      "source": {
+        "commit": "21121ee462b27a77b30089ba69e2adcb28d15182",
+        "tree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+        "workingTreeChanged": false
+      },
+      "browser": "145.0.7632.6",
+      "genuineModelResult": false,
+      "professionalAcceptance": false
+    },
+    "pixelReceipts": 12,
+    "providerCalls": 0,
+    "genuineModelResult": false,
+    "professionalAcceptance": false
+  },
+  "pixelReceipts": [
+    {
+      "id": "candidate-01-home-mobile",
+      "filename": "review-candidate-01-home-mobile.jpg",
+      "sha256": "e5382d8e3d9243bde7f3888c0ff6ea8cffa3375a2a6205f98df64e6104a3307a",
+      "bytes": 76939,
+      "originalPng": "candidate-01-home-mobile.png",
+      "originalSha256": "fbf20baa53fb6a142b2ede9daaefbbea40c1661f78f19e5b4f10ade8ea4d269e",
+      "originalViewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 1
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2483,
+      "renderedWidth": 390,
+      "renderedHeight": 2483,
+      "quality": 60,
+      "candidateId": "candidate-01",
+      "page": "home",
+      "label": "mobile",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-01-home-desktop",
+      "filename": "review-candidate-01-home-desktop.jpg",
+      "sha256": "a1d6f55121d4f67f1bbf25deb1a2eb5aac63db94f82019f393aae0cc347f19da",
+      "bytes": 44283,
+      "originalPng": "candidate-01-home-desktop.png",
+      "originalSha256": "e1d845e9618f3af83f7fe07813effeecf259eba40f942b8fdaac0a29a44e0a4b",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000,
+        "dpr": 1
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 2376,
+      "renderedWidth": 720,
+      "renderedHeight": 1188,
+      "quality": 60,
+      "candidateId": "candidate-01",
+      "page": "home",
+      "label": "desktop",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-01-services-mobile",
+      "filename": "review-candidate-01-services-mobile.jpg",
+      "sha256": "fe5dab3ba15f42dad751ca88bd1be2d16eba5939a18d9ad414b5ab98449e3d59",
+      "bytes": 70567,
+      "originalPng": "candidate-01-services-mobile.png",
+      "originalSha256": "d41e16907d234e631515f91f49b4067ccf2d3fee17211ed35790236465b2b679",
+      "originalViewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 1
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2287,
+      "renderedWidth": 390,
+      "renderedHeight": 2287,
+      "quality": 60,
+      "candidateId": "candidate-01",
+      "page": "services",
+      "label": "mobile",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-01-services-desktop",
+      "filename": "review-candidate-01-services-desktop.jpg",
+      "sha256": "fb31665efa653226b02b73276422fedb046105444346bae91a58c14f23a39365",
+      "bytes": 33854,
+      "originalPng": "candidate-01-services-desktop.png",
+      "originalSha256": "143f06a694d9d37a55b5c23ec50acd514774c2250df9e7a6f3df44e7f6ccc165",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000,
+        "dpr": 1
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1887,
+      "renderedWidth": 720,
+      "renderedHeight": 944,
+      "quality": 60,
+      "candidateId": "candidate-01",
+      "page": "services",
+      "label": "desktop",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-01-contact-mobile",
+      "filename": "review-candidate-01-contact-mobile.jpg",
+      "sha256": "b7d706e2bdbbcc9f6a3f904d0e8ba25a7178277e7730ad4a0801cf137278294a",
+      "bytes": 26515,
+      "originalPng": "candidate-01-contact-mobile.png",
+      "originalSha256": "ce41c7c07b9b3567b26f05dcd0d99ec999f0e55ac58532105901c5d19c85f7b1",
+      "originalViewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 1
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1299,
+      "renderedWidth": 390,
+      "renderedHeight": 1299,
+      "quality": 60,
+      "candidateId": "candidate-01",
+      "page": "contact",
+      "label": "mobile",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-01-contact-desktop",
+      "filename": "review-candidate-01-contact-desktop.jpg",
+      "sha256": "358efcd4f9b4a266ed6bdb4d79001b1dac2683a0d2f1b15e80cecf900904d377",
+      "bytes": 18714,
+      "originalPng": "candidate-01-contact-desktop.png",
+      "originalSha256": "828237a7e9c4cf81ba2f2c4e52d279446ba1fdf7580f7911558736bb946b95fd",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000,
+        "dpr": 1
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1548,
+      "renderedWidth": 720,
+      "renderedHeight": 774,
+      "quality": 60,
+      "candidateId": "candidate-01",
+      "page": "contact",
+      "label": "desktop",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-02-home-mobile",
+      "filename": "review-candidate-02-home-mobile.jpg",
+      "sha256": "f93d7af04fc0d44f1357534dddf53271837c74bec90cff6e5515fa8eb811ebb8",
+      "bytes": 50526,
+      "originalPng": "candidate-02-home-mobile.png",
+      "originalSha256": "d10074254a3780c069150a358f8804caba0a5f60172fb8daccc5ec17d16c0c10",
+      "originalViewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 1
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 1284,
+      "renderedWidth": 390,
+      "renderedHeight": 1284,
+      "quality": 60,
+      "candidateId": "candidate-02",
+      "page": "home",
+      "label": "mobile",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-02-home-desktop",
+      "filename": "review-candidate-02-home-desktop.jpg",
+      "sha256": "7e8f6d9773b35ac78546f541be83a8deaf23428af0d7c855061290712904688f",
+      "bytes": 31329,
+      "originalPng": "candidate-02-home-desktop.png",
+      "originalSha256": "81a21851ba51aab6e982907b79047c88e418bc5ee186447223b9ec07fd1065c3",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000,
+        "dpr": 1
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1117,
+      "renderedWidth": 720,
+      "renderedHeight": 559,
+      "quality": 60,
+      "candidateId": "candidate-02",
+      "page": "home",
+      "label": "desktop",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-02-services-mobile",
+      "filename": "review-candidate-02-services-mobile.jpg",
+      "sha256": "cc8fe3fb4be1d15cd4baaf4b37cd42b8b3414e9aaa666ac503cc2442b8f61244",
+      "bytes": 92422,
+      "originalPng": "candidate-02-services-mobile.png",
+      "originalSha256": "f05389c1b1e6f06ba2c3d8bb5948950e3dc553feb3a7f73986566ede8514ef2e",
+      "originalViewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 1
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 2016,
+      "renderedWidth": 390,
+      "renderedHeight": 2016,
+      "quality": 60,
+      "candidateId": "candidate-02",
+      "page": "services",
+      "label": "mobile",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-02-services-desktop",
+      "filename": "review-candidate-02-services-desktop.jpg",
+      "sha256": "8e0763d8a354e97df16b610e9cd1f9d1bf03f4a6b3fc42333c0714af890c59b4",
+      "bytes": 38644,
+      "originalPng": "candidate-02-services-desktop.png",
+      "originalSha256": "4a8ffb53f07ee3f1fe45548a0f30d43248fda69a3286f919229bf1e91d6c768f",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000,
+        "dpr": 1
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1406,
+      "renderedWidth": 720,
+      "renderedHeight": 703,
+      "quality": 60,
+      "candidateId": "candidate-02",
+      "page": "services",
+      "label": "desktop",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-02-contact-mobile",
+      "filename": "review-candidate-02-contact-mobile.jpg",
+      "sha256": "e045961ce399caa402491b9a322663b76dfdfc87a9c7396c14e37a452a853b30",
+      "bytes": 22670,
+      "originalPng": "candidate-02-contact-mobile.png",
+      "originalSha256": "5f14b76b3f5a86db3a216c585a44345c505275638f1eab3db4e1cbfb1c77cbb9",
+      "originalViewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 1
+      },
+      "originalPixelWidth": 390,
+      "originalPixelHeight": 844,
+      "renderedWidth": 390,
+      "renderedHeight": 844,
+      "quality": 60,
+      "candidateId": "candidate-02",
+      "page": "contact",
+      "label": "mobile",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    },
+    {
+      "id": "candidate-02-contact-desktop",
+      "filename": "review-candidate-02-contact-desktop.jpg",
+      "sha256": "ec7418e931364874b391e4c468c7b58ae5c976eebfe664d6b7571542dd7cdd1c",
+      "bytes": 15407,
+      "originalPng": "candidate-02-contact-desktop.png",
+      "originalSha256": "29f29efeea409180f4b8042f233f6f9468ea27170e756aa6a1e7d03c87996b55",
+      "originalViewport": {
+        "width": 1440,
+        "height": 1000,
+        "dpr": 1
+      },
+      "originalPixelWidth": 1440,
+      "originalPixelHeight": 1000,
+      "renderedWidth": 720,
+      "renderedHeight": 500,
+      "quality": 60,
+      "candidateId": "candidate-02",
+      "page": "contact",
+      "label": "desktop",
+      "method": "Aspect-ratio-preserving derivative of actual complete-page original-renderer PNG; no reflow or invented content."
+    }
+  ],
+  "method": "Original CI full-page PNGs; checksum-verified JPEG derivatives from genuine-pixel log receipts. Final recapture matches the initially inspected PNG/JPEG hashes exactly. No AI images.",
+  "run": 42297957555,
+  "job": 128167984840,
+  "initialInspectedSource": {
+    "commit": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+    "tree": "10d6eedab4412fe1b97626f58adeeb85436d41cc",
+    "workingTreeChanged": false
+  },
+  "finalPixelParity": {
+    "checked": 12,
+    "different": 0,
+    "bothOriginalPngAndJpegHashesMatch": true
+  }
+}

@@ -1,0 +1,3 @@
+BUSY owner iPhone enrollment request
+Approved by owner on 28 October 2026.
+Intent: EAS apple-device-registration-request only. No build, distribution, certificate changes, or payments.

@@ -1,7 +1,7 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient} from "jsr:@supabase/supabase-js@2";
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {createClient} from "../_shared/supabaseClient.ts";
 import {formReadiness,cleanPublicSubmission,verifiedChallenge,expectedSiteOrigin} from "./formPolicy.mjs";
-import {validatedLeadInput} from "./leadWorkflow.mjs";
+import {validatedLeadInput} from "../busy-website-publish/leadWorkflow.mjs";
 
 const ROOT=Deno.env.get("SUPABASE_URL")||"";
 const SECRET=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
@@ -12,7 +12,7 @@ const service=ROOT&&SECRET?createClient(ROOT,SECRET,
 const HEADERS={"Content-Type":"application/json","Cache-Control":"no-store",
   "Access-Control-Allow-Methods":"POST,OPTIONS",
   "Access-Control-Allow-Headers":"content-type"};
-function safeOrigin(value){
+function safeOrigin(value:unknown){
   if(typeof value!=="string")return null;
   try{
     const url=new URL(value);
@@ -24,12 +24,12 @@ function safeOrigin(value){
     return "https://"+name;
   }catch{return null;}
 }
-function result(status,body,origin){
+function result(status:number,body:unknown,origin:string|null){
   return new Response(JSON.stringify(body),{status,headers:{
     ...HEADERS,...(origin?{"Access-Control-Allow-Origin":origin,"Vary":"Origin"}:{})
   }});
 }
-async function verifyTurnstile(token){
+async function verifyTurnstile(token:string){
   const payload=new URLSearchParams({secret:CHALLENGE_SECRET,response:token});
   const response=await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify",{
     method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
@@ -54,9 +54,7 @@ Deno.serve(async(req)=>{
   if(!/^application\/json(?:;|$)/i.test(req.headers.get("content-type")||""))
     return result(415,{error:"json_required"},origin);
   try{
-    const raw=await req.text();
-    if(raw.length>8192)return result(413,{error:"request_too_large"},origin);
-    const body=cleanPublicSubmission(JSON.parse(raw));
+    const body=cleanPublicSubmission(await boundedJson(req,8192));
     if(!body)return result(400,{error:"invalid_submission"},origin);
     const checked=validatedLeadInput(body);
     if(!checked.ok)return result(400,{error:checked.error},origin);
@@ -93,7 +91,8 @@ Deno.serve(async(req)=>{
     }
     return result(200,{ok:true,received:true,
       note:"Your enquiry has been received. The business will review it."},origin);
-  }catch{
+  }catch(error){
+    if(error instanceof BoundedRequestError)return result(error.status,{error:"invalid_or_oversized_request"},origin);
     return result(503,{error:"website_enquiry_unavailable"},origin);
   }
 });

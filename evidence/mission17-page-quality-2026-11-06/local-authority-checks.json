@@ -1,0 +1,226 @@
+{
+  "evidence": "Fresh local focused checks on an explicitly UNFROZEN Mission17 working tree; not final frozen CI, PostgreSQL execution, browser aesthetic acceptance or hosted verification. Counts are per-suite units and must not be summed into application test assertions.",
+  "startedAt": "2026-11-06T14:20:43.220476+00:00",
+  "baselineHead": "a75ad932ea69807e21e9d0d41fe71bc1e3e1f66d",
+  "baselineTree": "c52faffe2f1381b2f8fba863f0e3b2ec89c23a64",
+  "workingTreeChanged": true,
+  "workingTreeStatusAtStart": [
+    "M .github/workflows/app-goal-composition.yml",
+    " M AGENTS.md",
+    " M ARCHITECTURE.md",
+    " M docs/CODEX_MASTER_ACCESS.md",
+    " M docs/CODEX_PRODUCT_BRIEF.md",
+    " M scripts/capture-mission16-sites.mjs",
+    " M scripts/check-mission16-inner-pages.mjs",
+    " M scripts/check-mission16-whole-site-postgres.mjs",
+    " M scripts/lib/original-website-section-runtime.mjs",
+    " M scripts/lib/website-builder-test-harness-v3222.mjs",
+    " M scripts/testing/regressions.json",
+    " M src/core/wholeWebsitePlan.mjs",
+    " M src/domain/websiteBuilder.js",
+    " M supabase/functions/busy-website-worker/designSystem.mjs",
+    " M supabase/functions/busy-website-worker/index.ts",
+    " M supabase/functions/busy-website-worker/websiteCraftedPage.mjs",
+    " M supabase/functions/busy-website-worker/websiteInnerPages.mjs",
+    " M supabase/functions/busy-website-worker/websitePageEditing.mjs",
+    " M supabase/functions/busy-website-worker/websiteWholeSite.mjs",
+    "?? .github/workflows/mission17-websites.yml",
+    "?? evidence/mission17-page-quality-2026-11-06/",
+    "?? scripts/build-mission17-sites.mjs",
+    "?? scripts/check-mission17-inner-quality.mjs",
+    "?? scripts/check-mission17-navigation.mjs",
+    "?? scripts/check-mission17-service-overview.mjs",
+    "?? scripts/check-mission17-whole-site.mjs",
+    "?? scripts/lib/mission17-review-pack.mjs",
+    "?? supabase/functions/busy-website-worker/websitePagePurpose.mjs",
+    "?? supabase/functions/busy-website-worker/websiteServiceOverview.mjs",
+    "?? supabase/functions/busy-website-worker/websiteSiteNavigation.mjs"
+  ],
+  "results": [
+    {
+      "name": "foundation-105",
+      "command": [
+        "node",
+        "scripts/check-production.mjs"
+      ],
+      "exitCode": 0,
+      "status": "passed",
+      "seconds": 1.44,
+      "countUnits": {
+        "foundationAssertions": 105
+      },
+      "log": "evidence/mission17-page-quality-2026-11-06/local-authority-checks/foundation-105.log",
+      "logSha256": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e"
+    },
+    {
+      "name": "mission16-whole-site",
+      "command": [
+        "node",
+        "scripts/check-mission16-whole-site.mjs"
+      ],
+      "exitCode": 0,
+      "status": "passed",
+      "seconds": 4.04,
+      "countUnits": {
+        "workflowCases": 22
+      },
+      "log": "evidence/mission17-page-quality-2026-11-06/local-authority-checks/mission16-whole-site.log",
+      "logSha256": "0fe358fcba8a4830fddb168b616d7d9102a7c15d308ea2066fd576ed1b6e3cb2"
+    },
+    {
+      "name": "mission16-original-ui",
+      "command": [
+        "node",
+        "scripts/check-mission16-whole-site-ui.mjs"
+      ],
+      "exitCode": 0,
+      "status": "passed",
+      "seconds": 3.62,
+      "countUnits": {
+        "scriptSuites": 1
+      },
+      "log": "evidence/mission17-page-quality-2026-11-06/local-authority-checks/mission16-original-ui.log",
+      "logSha256": "307671fd2db875a1f92d12cecc3144d60b129efc6448c664095719b050c5fd6c"
+    },
+    {
+      "name": "mission17-whole-site",
+      "command": [
+        "node",
+        "scripts/check-mission17-whole-site.mjs"
+      ],
+      "exitCode": 0,
+      "status": "passed",
+      "seconds": 2.58,
+      "countUnits": {
+        "workflowCases": 10
+      },
+      "log": "evidence/mission17-page-quality-2026-11-06/local-authority-checks/mission17-whole-site.log",
+      "logSha256": "20a485e9a64859df6a84a964d6e8ba1d0988765af4a3bba2e7aa1d8490233904"
+    },
+    {
+      "name": "security-by-design",
+      "command": [
+        "node",
+        "scripts/check-security-by-design.mjs"
+      ],
+      "exitCode": 0,
+      "status": "passed",
+      "seconds": 1.12,
+      "countUnits": {
+        "scriptSuites": 1
+      },
+      "log": "evidence/mission17-page-quality-2026-11-06/local-authority-checks/security-by-design.log",
+      "logSha256": "600afc58f1505a3cd24b29ecd07d7cf45b91947006c15403e712a624f5d21bce"
+    },
+    {
+      "name": "dependency-guard",
+      "command": [
+        "node",
+        "scripts/check-dependency-security.mjs"
+      ],
+      "exitCode": 0,
+      "status": "passed",
+      "seconds": 1.07,
+      "countUnits": {
+        "scriptSuites": 1
+      },
+      "log": "evidence/mission17-page-quality-2026-11-06/local-authority-checks/dependency-guard.log",
+      "logSha256": "b13dad40449d6f0b486902876dedcbf937bec523ca044806377a82bcf3035da1"
+    },
+    {
+      "name": "fused-ai-lab-source",
+      "command": [
+        "node",
+        "scripts/check-ai-lab-foundation.mjs"
+      ],
+      "exitCode": 0,
+      "status": "passed",
+      "seconds": 0.79,
+      "countUnits": {
+        "scriptSuites": 1
+      },
+      "log": "evidence/mission17-page-quality-2026-11-06/local-authority-checks/fused-ai-lab-source.log",
+      "logSha256": "b3438008fc75e60d9a758260b8b94d04cdd862d93e59687412af754c61bed97b"
+    },
+    {
+      "name": "changed-authority-syntax",
+      "command": [
+        "node",
+        "scripts/testing/syntax.mjs",
+        "src/core/wholeWebsitePlan.mjs",
+        "src/domain/websiteBuilder.js",
+        "supabase/functions/busy-website-worker/websitePageEditing.mjs",
+        "supabase/functions/busy-website-worker/websiteWholeSite.mjs",
+        "scripts/check-mission16-whole-site-postgres.mjs"
+      ],
+      "exitCode": 0,
+      "status": "passed",
+      "seconds": 2.06,
+      "countUnits": {
+        "parsedFiles": 5
+      },
+      "log": "evidence/mission17-page-quality-2026-11-06/local-authority-checks/changed-authority-syntax.log",
+      "logSha256": "f7da23651c0ebc74d194349324d469161254ccfc5e26271d80037b29000e5fd9"
+    }
+  ],
+  "limits": [
+    "No local PostgreSQL server is available;12-stage original whole-site PostgreSQL script was syntax-checked, not executed here. GitHub Actions must provide genuine PG17 results.",
+    "No hosted SQL, provider call, secret access, paid use or publication occurred.",
+    "Full509application selection and actual browser/Edge/legacy results must be separately obtained on the exact frozen functional commit."
+  ],
+  "priorObservedFailure": {
+    "suite": "mission17-service-overview",
+    "phase": "Earlier unfrozen concurrent source development",
+    "result": "Failed at assert.ok(p.detailHrefs[item.id]) in long source positive fixture after newly enforcing full-detail equality. Sent to owning agent; no assertion removed and no passing claim for that attempt."
+  },
+  "finishedAt": "2026-11-06T14:21:00.509808+00:00",
+  "summary": {
+    "suitesPassed": 8,
+    "suitesFailed": 0
+  },
+  "trackedWorkingDiffSha256": "64fdc1021a5d31f5e74bdf72c253e05448fd94acb72822877eb31b5727d82aae",
+  "sourceChecksums": {
+    "scripts/check-mission16-whole-site-postgres.mjs": "ad4e77995f987b143e6181257a2bd092d05394dcd9fd3b97d2c051cdf48e4002",
+    "scripts/check-mission17-inner-quality.mjs": "d4676ff604e16effb19dfeeaf961673e6d682cbc55f70bd932388bf50f95626d",
+    "scripts/check-mission17-navigation.mjs": "9bab70d4883143430250dc881ec9b502050f2b46473d6dfb84a23c3df00f085f",
+    "scripts/check-mission17-service-overview.mjs": "4f1cae4ca9d61a8ce27d86e2e03ff25e2917ee1decf9c4a956d9117769252b30",
+    "scripts/check-mission17-whole-site.mjs": "12097718af5102c4cfeb214197a791d877203b37fcdc357b1fe73f888794fe68",
+    "src/core/wholeWebsitePlan.mjs": "9e9f43003b3ef599e76ace213d8a19a5793d1890a23906ca8c99ee0756d7f1aa",
+    "src/domain/websiteBuilder.js": "63df275280b83aec1df43d19e8a8166472e3e7c3a23a004732786f434a96c92e",
+    "supabase/functions/busy-website-worker/businessContentRecords.mjs": "29ea5205dbfe37cc0ca7e88f4d7ddf11f7c9d74f52a39e47719a2ce19d348669",
+    "supabase/functions/busy-website-worker/designEdits.mjs": "52e05a7a9634925c72a1baa039954646e4f73fca59a61bd6600ba1faf5db6844",
+    "supabase/functions/busy-website-worker/designPlanner.mjs": "1e07be4a638a9a44b64f13940485f99c7bb0f4b50816941503f768fa90ae0b82",
+    "supabase/functions/busy-website-worker/designReview.mjs": "babfb6470ec8fc8c8e04f3f9c729bfe3e89c4ace43c660b5820466abc2b96ee9",
+    "supabase/functions/busy-website-worker/designSystem.mjs": "c26ae4ac677081b3e4841c3b12d62ccd18394d54b847b2bf31dc1a409f29cc4c",
+    "supabase/functions/busy-website-worker/formHtml.mjs": "18bab18748686a3e61bf80f15d183673dfcecf4528ee44626536d698ee636c7d",
+    "supabase/functions/busy-website-worker/visualCriticContract.mjs": "c896668e47fbd3c4e7bcafcf9bc89bf6d925231e0ffad27ecc396d6ea77dcfbd",
+    "supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs": "48962aaabce459edadb7d1a8b473e3fbf812a9381cd961fc7f833ad34413eff9",
+    "supabase/functions/busy-website-worker/websiteContentPhotos.mjs": "6294869d7ac86f76eb84c6dfb36421de6f22ca0c59f3601ae89cbebc3c8acaf5",
+    "supabase/functions/busy-website-worker/websiteCraftedPage.mjs": "30c9b8745c88755f93a0e4a79631a1f1c84f11c4259e425ecf4f38b7b657c200",
+    "supabase/functions/busy-website-worker/websiteDesignDecision.mjs": "717f76bf56d21a1bf7eac6aa7cf2842d92b6505d670cc0c4d795a7bcdb29ef5b",
+    "supabase/functions/busy-website-worker/websiteEditingQuality.mjs": "cd7579f479c7ec0f41a924bb255593bd3e3aee165565664513342695042b23a3",
+    "supabase/functions/busy-website-worker/websiteFaqPresentation.mjs": "19e7254cea7dfdb3c889dde60e895c9a043f7a0bf6465ac389a04665ef998246",
+    "supabase/functions/busy-website-worker/websiteHeroFamilies.mjs": "a645afb69972cb9ba078d0ea8333ff5830807d9d2f34681e1587f2211956369a",
+    "supabase/functions/busy-website-worker/websiteInnerPages.mjs": "6b02262a67bbfbbc0e718b761a4d7410bb4f3ef08ed44b58d0201877f6a54f61",
+    "supabase/functions/busy-website-worker/websiteLayoutEditing.mjs": "97a28f151ee3c18413e2f8ca25d98b56042a190c5d3134f73886324bf3c05fb9",
+    "supabase/functions/busy-website-worker/websiteOutcomeEvidence.mjs": "cd10fb09d02288e117b1f8ea0849d7020eeef7b54b8f7082a79b56581aac2841",
+    "supabase/functions/busy-website-worker/websiteOwnerLocks.mjs": "a8dc8b96e2c00edc8f9db0bebaa6e876b0cbb97d5458cfc380923c94af6e2a19",
+    "supabase/functions/busy-website-worker/websitePageEditing.mjs": "15a9c8097aafc67b5f0f22d6a9084779ec70ab102ac7bd62fe45cd8742bdf4d5",
+    "supabase/functions/busy-website-worker/websitePageGuide.mjs": "27c55aa143be4c7beaa6537730d1b7559e5e48fb793e8aa31eb30be0655a624b",
+    "supabase/functions/busy-website-worker/websitePagePurpose.mjs": "a59131ec8928ced4824ec54b5053c4e59b800fde866dffa5679240253a0dcda3",
+    "supabase/functions/busy-website-worker/websitePhotoPresentation.mjs": "6d817d7b86d7546cdcaa4be4e4ad1278ad96e11f58424ae67a55433af7fbf95c",
+    "supabase/functions/busy-website-worker/websitePremiumHero.mjs": "852173c977a51baf145a3e53da1b454ebe0c71f250a81eae10329aa6ac089271",
+    "supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs": "6577548004da7f663305946426f9b897ce2766a43486544bcae4247e8033ee8b",
+    "supabase/functions/busy-website-worker/websiteReviewAdvice.mjs": "21af48dde51f15691735ccd970d3fb2879b464196437ade886769c5ecedb96f9",
+    "supabase/functions/busy-website-worker/websiteReviewCycle.mjs": "af0654736ef658634f1f9c93c47167e5ac901c05e40dafa1f53091569819fc3f",
+    "supabase/functions/busy-website-worker/websiteServiceIndex.mjs": "d88d9dd47528a9c78c9fe547dd6fdb3ffbc0d2eb3ee4d6c82e3ea7ce90e0a800",
+    "supabase/functions/busy-website-worker/websiteServiceOverview.mjs": "31374e0b770f5508cf6659fbca853a60f33eec0c81bf6207911136873e96a932",
+    "supabase/functions/busy-website-worker/websiteServicePhotos.mjs": "0590df8bbea5057544c2a8effbcf43d36ce19941283cf260a8824ad3635aef58",
+    "supabase/functions/busy-website-worker/websiteSiteNavigation.mjs": "def9ce695a0e79082549b1d1336317c4044b020a159279c6aceba0e03acc1862",
+    "supabase/functions/busy-website-worker/websiteStructuredEditing.mjs": "16ed42fd2b06d3f409d883de7c18215e0905b2bd435c43efdad7263cf5cf0af6",
+    "supabase/functions/busy-website-worker/websiteTestimonials.mjs": "e1159e9696430c993b128ffd04e3e537b4196c52a04e197225d017154efd3416",
+    "supabase/functions/busy-website-worker/websiteTextColours.mjs": "5336f3affea9c77f3e6f8f2bf1a2e779748dcb872bb2f1c74e5dd7d62893c168",
+    "supabase/functions/busy-website-worker/websiteTextTypography.mjs": "403667e4606fb0cf15396badbeca72e840e08a2e3c82bd178ad3cc37258f30d1",
+    "supabase/functions/busy-website-worker/websiteWholeSite.mjs": "2d3d8601511b3fac6dfa4024312a3af975acf431f88532adbe063def18e201fa"
+  }
+}

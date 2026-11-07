@@ -1,0 +1,503 @@
+-- REVIEW CANDIDATE, not a deployable migration. Original provisioning unchanged.
+BEGIN;
+DO $$ BEGIN RAISE EXCEPTION 'CANONICAL WORK REVIEW FUSE: separate hosted approval required'; END $$;
+DO $$ BEGIN IF EXISTS(SELECT 1 FROM pg_proc WHERE pronamespace='public'::regnamespace AND left(proname,10)='busy_work_') THEN RAISE EXCEPTION 'Canonical RPC namespace already in use';END IF;END $$;
+-- New canonical authority; NOT another customer DB or a replacement booking ledger.
+CREATE SCHEMA busy_work_private AUTHORIZATION postgres;
+REVOKE ALL ON SCHEMA busy_work_private FROM PUBLIC,anon,authenticated,service_role;
+CREATE TABLE public.business_work_engagements(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ business_id uuid NOT NULL REFERENCES public.busy_businesses(id) ON DELETE RESTRICT,
+ customer_id text NOT NULL CHECK(length(customer_id) BETWEEN 1 AND 240),
+ enquiry_id text NOT NULL CHECK(length(enquiry_id) BETWEEN 1 AND 240),
+ created_by uuid NOT NULL, modified_by uuid NOT NULL,
+ kind text NOT NULL CHECK(kind='quote'), status text NOT NULL CHECK(status='Prepared'),
+ schema_version integer NOT NULL DEFAULT 1 CHECK(schema_version=1),
+ revision bigint NOT NULL DEFAULT 1 CHECK(revision>0),
+ source_snapshot_revision bigint NOT NULL CHECK(source_snapshot_revision>0),
+ customer_hash text NOT NULL CHECK(customer_hash ~ '^[0-9a-f]{64}$'), source_hash text NOT NULL CHECK(source_hash ~ '^[0-9a-f]{64}$'),
+ source_evidence jsonb NOT NULL CHECK(jsonb_typeof(source_evidence)='object' AND octet_length(source_evidence::text)<=262144),
+ work_data jsonb NOT NULL CHECK(jsonb_typeof(work_data) IS NOT DISTINCT FROM 'object' AND work_data->>'type' IS NOT DISTINCT FROM 'quote' AND jsonb_typeof(work_data->'details') IS NOT DISTINCT FROM 'object' AND octet_length(work_data::text)<=262144),
+ creation_operation_id text NOT NULL CHECK(creation_operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),
+ legacy_record_hash text,
+ created_at timestamptz NOT NULL DEFAULT clock_timestamp(),updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ UNIQUE(business_id,customer_id,id),UNIQUE(business_id,customer_id,enquiry_id),UNIQUE(business_id,created_by,creation_operation_id)
+);
+CREATE INDEX business_work_customer_page ON public.business_work_engagements(business_id,customer_id,created_by,id);
+CREATE INDEX business_work_owner_page ON public.business_work_engagements(business_id,created_by,id);
+CREATE TABLE public.business_work_private_drafts(
+ business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,owner_id uuid NOT NULL,
+ kind text NOT NULL CHECK(kind IN ('reply','followup','work_notes')),revision bigint NOT NULL DEFAULT 1 CHECK(revision>0),
+ engagement_revision bigint NOT NULL,source_hash text NOT NULL,
+ text text NOT NULL CHECK(octet_length(text) BETWEEN 1 AND 10000 AND btrim(text)<>''),
+ extensions jsonb NOT NULL DEFAULT '{}' CHECK(jsonb_typeof(extensions)='object'),
+ operation_id text NOT NULL,updated_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ PRIMARY KEY(business_id,customer_id,engagement_id,owner_id,kind),
+ FOREIGN KEY(business_id,customer_id,engagement_id) REFERENCES public.business_work_engagements(business_id,customer_id,id) ON DELETE RESTRICT
+);
+ALTER TABLE public.business_work_engagements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_work_private_drafts ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.business_work_engagements,public.business_work_private_drafts FROM PUBLIC,anon,authenticated,service_role;
+
+-- Local-only owner-report evidence. No lifecycle/booking permission follows creation.
+CREATE TABLE public.business_work_agreement_evidence(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,
+ created_by uuid NOT NULL,quote_revision bigint NOT NULL CHECK(quote_revision>0),
+ evidence_class text NOT NULL CHECK(evidence_class='owner_reported_offline'),
+ verification text NOT NULL CHECK(verification='unverified'),
+ quote_terms jsonb NOT NULL CHECK(jsonb_typeof(quote_terms)='object'),
+ terms_hash text NOT NULL CHECK(terms_hash ~ '^[0-9a-f]{64}$'),
+ source_hash text NOT NULL CHECK(source_hash ~ '^[0-9a-f]{64}$'),
+ owner_account text NOT NULL CHECK(btrim(owner_account)<>'' AND octet_length(owner_account)<=5000),
+ revision bigint NOT NULL DEFAULT 1 CHECK(revision=1),
+ recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ creation_operation_id text NOT NULL CHECK(creation_operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),
+ FOREIGN KEY(business_id,customer_id,engagement_id) REFERENCES public.business_work_engagements(business_id,customer_id,id) ON DELETE RESTRICT,
+ UNIQUE(business_id,engagement_id,created_by,quote_revision),UNIQUE(business_id,created_by,creation_operation_id),
+ UNIQUE(business_id,customer_id,engagement_id,created_by,id,quote_revision,terms_hash)
+);
+CREATE INDEX busy_work_agreement_page ON public.business_work_agreement_evidence(business_id,customer_id,engagement_id,created_by,id);
+ALTER TABLE public.business_work_agreement_evidence ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.business_work_agreement_evidence FROM PUBLIC,anon,authenticated,service_role;
+-- Disabled/local-only append-only correction proposal; withdrawal is not erasure.
+CREATE TABLE public.business_work_agreement_decisions(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ evidence_id uuid NOT NULL,
+ business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,created_by uuid NOT NULL,
+ decision_revision bigint NOT NULL CHECK(decision_revision>0),
+ action text NOT NULL CHECK(action IN ('correct','withdraw')),
+ statement text NOT NULL CHECK(btrim(statement)<>'' AND octet_length(statement)<=5000),
+ quote_revision bigint NOT NULL,terms_hash text NOT NULL,
+ reviewed_engagement_revision bigint NOT NULL,reviewed_source_hash text NOT NULL,
+ operation_id text NOT NULL CHECK(operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),
+ recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ FOREIGN KEY(business_id,customer_id,engagement_id) REFERENCES public.business_work_engagements(business_id,customer_id,id) ON DELETE RESTRICT,
+ FOREIGN KEY(business_id,customer_id,engagement_id,created_by,evidence_id,quote_revision,terms_hash) REFERENCES public.business_work_agreement_evidence(business_id,customer_id,engagement_id,created_by,id,quote_revision,terms_hash) ON DELETE RESTRICT,
+ UNIQUE(evidence_id,decision_revision),UNIQUE(business_id,created_by,operation_id)
+);
+CREATE INDEX busy_work_agreement_decision_latest ON public.business_work_agreement_decisions(evidence_id,decision_revision DESC);
+ALTER TABLE public.business_work_agreement_decisions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.business_work_agreement_decisions FROM PUBLIC,anon,authenticated,service_role;
+-- Private quote-version preparation only; never a sent offer or customer token.
+CREATE TABLE public.business_work_quote_references(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,
+ created_by uuid NOT NULL,quote_revision bigint NOT NULL CHECK(quote_revision>0),
+ terms jsonb NOT NULL CHECK(jsonb_typeof(terms)='object'),terms_hash text NOT NULL CHECK(terms_hash ~ '^[0-9a-f]{64}$'),source_hash text NOT NULL,
+ state text NOT NULL DEFAULT 'prepared_not_presented' CHECK(state='prepared_not_presented'),
+ operation_id text NOT NULL CHECK(operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ FOREIGN KEY(business_id,customer_id,engagement_id) REFERENCES public.business_work_engagements(business_id,customer_id,id) ON DELETE RESTRICT,
+ UNIQUE(business_id,engagement_id,created_by,quote_revision),UNIQUE(business_id,created_by,operation_id),
+ UNIQUE(business_id,customer_id,engagement_id,id,created_by,quote_revision,terms_hash)
+);
+CREATE INDEX busy_work_quote_reference_page ON public.business_work_quote_references(business_id,customer_id,engagement_id,created_by,id);
+ALTER TABLE public.business_work_quote_references ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.business_work_quote_references FROM PUBLIC,anon,authenticated,service_role;
+-- V22.52 owner-private intent. No foreign keys block erasure of original requests/users.
+CREATE TABLE public.business_work_quote_recipient_bindings(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),business_id uuid NOT NULL,customer_id text NOT NULL,engagement_id uuid NOT NULL,reference_id uuid NOT NULL,created_by uuid NOT NULL,
+ quote_revision bigint NOT NULL,terms_hash text NOT NULL,source_hash text NOT NULL,review_hash text NOT NULL,
+ consumer_id uuid NOT NULL,request_id uuid NOT NULL,link_id uuid NOT NULL,linking_owner_id uuid NOT NULL,app_id uuid NOT NULL,app_version_id uuid NOT NULL,
+ request_revision text NOT NULL,link_revision text NOT NULL,
+ provenance text NOT NULL CHECK(provenance='owner_linked_signed_in_request'),
+ revision bigint NOT NULL DEFAULT 1 CHECK(revision=1),state text NOT NULL DEFAULT 'owner_private_only' CHECK(state='owner_private_only'),
+ operation_id text NOT NULL CHECK(operation_id ~ '^[A-Za-z0-9_-]{8,120}$'),recorded_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ FOREIGN KEY(business_id,customer_id,engagement_id,reference_id,created_by,quote_revision,terms_hash) REFERENCES public.business_work_quote_references(business_id,customer_id,engagement_id,id,created_by,quote_revision,terms_hash) ON DELETE RESTRICT,
+ UNIQUE(business_id,reference_id,created_by),UNIQUE(business_id,created_by,operation_id)
+);
+ALTER TABLE public.business_work_quote_recipient_bindings ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.business_work_quote_recipient_bindings FROM PUBLIC,anon,authenticated,service_role;
+CREATE FUNCTION busy_work_private.authorize(b uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE actor uuid:=auth.uid();r text;
+BEGIN
+ IF actor IS NULL OR b IS NULL THEN RAISE EXCEPTION 'Not authorised' USING ERRCODE='42501';END IF;
+ -- SHARE permits independent engagements while UPDATE/DELETE revocation serializes.
+ SELECT role INTO r FROM public.busy_business_memberships WHERE business_id=b AND user_id=actor FOR SHARE;
+ IF r IS DISTINCT FROM 'owner' THEN RAISE EXCEPTION 'Owner required' USING ERRCODE='42501';END IF;
+ RETURN actor;
+END $$;
+CREATE FUNCTION busy_work_private.hash(v jsonb) RETURNS text LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $$SELECT encode(sha256(convert_to(v::text,'UTF8')),'hex')$$;
+CREATE FUNCTION busy_work_private.source_context(b uuid,c text,e text,expected bigint DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE actor uuid:=busy_work_private.authorize(b);s public.busy_business_snapshots%ROWTYPE;cust jsonb;item jsonb;projection jsonb;n integer;
+BEGIN
+ IF c IS NULL OR e IS NULL OR length(c) NOT BETWEEN 1 AND 240 OR length(e) NOT BETWEEN 1 AND 240 THEN RAISE EXCEPTION 'Invalid identity' USING ERRCODE='22023';END IF;
+ SELECT * INTO s FROM public.busy_business_snapshots WHERE business_id=b FOR SHARE;
+ IF NOT FOUND OR s.schema_version IS DISTINCT FROM 1 OR expected IS NOT NULL AND expected IS DISTINCT FROM s.revision THEN RAISE EXCEPTION 'Snapshot conflict' USING ERRCODE='40001';END IF;
+ IF jsonb_typeof(s.payload->'customers') IS DISTINCT FROM 'array' OR jsonb_typeof(s.payload->'inboxItems') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'Unsupported source collections' USING ERRCODE='22023';END IF;
+ SELECT count(*) INTO n FROM jsonb_array_elements(s.payload->'customers') a WHERE a->>'id'=c;
+ IF n<>1 THEN RAISE EXCEPTION 'Missing or ambiguous customer' USING ERRCODE='22023';END IF;
+ SELECT a INTO cust FROM jsonb_array_elements(s.payload->'customers') a WHERE a->>'id'=c;
+ SELECT count(*) INTO n FROM jsonb_array_elements(s.payload->'inboxItems') a WHERE a->>'id'=e;
+ IF n<>1 THEN RAISE EXCEPTION 'Missing or ambiguous enquiry' USING ERRCODE='22023';END IF;
+ SELECT a INTO item FROM jsonb_array_elements(s.payload->'inboxItems') a WHERE a->>'id'=e;
+ IF (cust ? 'businessId' AND cust->>'businessId' IS DISTINCT FROM b::text) OR (cust ? 'business_id' AND cust->>'business_id' IS DISTINCT FROM b::text) OR (cust ? 'ownerId' AND cust->>'ownerId' IS DISTINCT FROM actor::text) OR (item ? 'registeredBy' AND item->>'registeredBy' IS DISTINCT FROM actor::text) OR (item ? 'businessId' AND item->>'businessId' IS DISTINCT FROM b::text) OR (item ? 'business_id' AND item->>'business_id' IS DISTINCT FROM b::text) THEN RAISE EXCEPTION 'Source scope mismatch' USING ERRCODE='42501';END IF;
+ IF jsonb_typeof(cust->'id') IS DISTINCT FROM 'string' OR jsonb_typeof(item->'id') IS DISTINCT FROM 'string' OR jsonb_typeof(item->'filedCustomerId') IS DISTINCT FROM 'string' OR jsonb_typeof(cust->'name') IS DISTINCT FROM 'string' OR jsonb_typeof(cust->'service') IS DISTINCT FROM 'string' OR cust ? 'version' OR item ? 'version' OR cust->>'contactOk'='false' OR item->>'status' IS DISTINCT FROM 'Filed' OR item->>'filedCustomerId' IS DISTINCT FROM c OR jsonb_typeof(item->'rawText') IS DISTINCT FROM 'string' OR octet_length(item->>'rawText')>10000 OR item->>'rawText' LIKE '%Listing reference:%' OR coalesce(item->>'reviewedAt','') !~ '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$' THEN RAISE EXCEPTION 'Unsupported Filed source' USING ERRCODE='22023';END IF;
+ SELECT coalesce(jsonb_object_agg(key,value),'{}') INTO projection FROM jsonb_each(cust) WHERE key IN ('id','businessId','business_id','name','service','phone','email','address','contactOk','sourceMiniAppRequestId');
+ RETURN jsonb_build_object('actor',actor,'revision',s.revision,'customer',projection,'enquiry',item,'customerHash',busy_work_private.hash(projection),'sourceHash',busy_work_private.hash(item),'legacy',s.payload->'replyActions'->c);
+END $$;
+CREATE FUNCTION busy_work_private.project(r public.business_work_engagements) RETURNS jsonb LANGUAGE sql STABLE SET search_path=pg_catalog,pg_temp AS $$
+ SELECT jsonb_build_object('businessId',r.business_id,'customerId',r.customer_id,'engagementId',r.id,'enquiryId',r.enquiry_id,'ownerId',r.created_by,'revision',r.revision,'schemaVersion',r.schema_version,'type',r.kind,'status',r.status,'sourceHash',r.source_hash,'customerHash',r.customer_hash,'recordHash',busy_work_private.hash(r.work_data),'createdAt',r.created_at,'updatedAt',r.updated_at,
+ 'record',jsonb_build_object('type',r.kind,'done',r.work_data->'done','details',jsonb_build_object('quoteStatus',r.status,'quoteAmount',r.work_data->'details'->'quoteAmount','message',r.work_data->'details'->'message','plannedSentDate',r.work_data->'details'->'plannedSentDate')),'readOnlyObservation',true,'notOwnReceipt',true)
+$$;
+CREATE FUNCTION busy_work_private.target(b uuid,c text,id uuid,expected bigint DEFAULT NULL) RETURNS public.business_work_engagements LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE actor uuid:=busy_work_private.authorize(b);r public.business_work_engagements%ROWTYPE;ctx jsonb;
+BEGIN
+ -- Snapshot source lock precedes engagement locks everywhere; no reversed lock order.
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=b AND customer_id=c AND business_work_engagements.id=target.id;
+ IF NOT FOUND OR r.created_by<>actor THEN RAISE EXCEPTION 'Engagement unavailable' USING ERRCODE='42501';END IF;
+ ctx:=busy_work_private.source_context(b,c,r.enquiry_id);
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=b AND customer_id=c AND business_work_engagements.id=target.id FOR UPDATE;
+ IF r.created_by<>actor OR expected IS NOT NULL AND r.revision IS DISTINCT FROM expected OR r.source_hash IS DISTINCT FROM ctx->>'sourceHash' OR r.customer_hash IS DISTINCT FROM ctx->>'customerHash' THEN RAISE EXCEPTION 'Engagement/source conflict' USING ERRCODE='40001';END IF;
+ RETURN r;
+END $$;
+CREATE FUNCTION busy_work_private.valid_quote(amount text,words text,day text,op text) RETURNS void LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
+BEGIN
+ IF amount IS NULL OR amount !~ '^[0-9]+(\.[0-9]{1,2})?$' OR length(amount)>18 OR words IS NULL OR btrim(words)='' OR octet_length(words)>10000 OR day IS NULL OR day !~ '^\d{4}-\d{2}-\d{2}$' OR op IS NULL OR op !~ '^[A-Za-z0-9_-]{8,120}$' THEN RAISE EXCEPTION 'Invalid reviewed quote' USING ERRCODE='22023';END IF;
+ BEGIN IF to_char(day::date,'YYYY-MM-DD')<>day THEN RAISE EXCEPTION 'Invalid day' USING ERRCODE='22023';END IF;EXCEPTION WHEN datetime_field_overflow OR invalid_datetime_format THEN RAISE EXCEPTION 'Invalid day' USING ERRCODE='22023';END;
+END $$;
+CREATE FUNCTION public.busy_work_source_review_v1(p_business_id uuid,p_customer_id text,p_enquiry_id text,p_expected_snapshot_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE x jsonb:=busy_work_private.source_context(p_business_id,p_customer_id,p_enquiry_id,p_expected_snapshot_revision);a jsonb:=x->'legacy';
+BEGIN
+ IF p_expected_snapshot_revision IS NULL OR p_expected_snapshot_revision<1 THEN RAISE EXCEPTION 'Expected snapshot revision required' USING ERRCODE='22023';END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'enquiryId',p_enquiry_id,'ownerId',x->'actor','snapshotRevision',x->'revision','schemaVersion',1,'sourceHash',x->'sourceHash','customerHash',x->'customerHash','customer',jsonb_build_object('id',p_customer_id,'name',x->'customer'->'name','service',x->'customer'->'service'),'enquiry',jsonb_build_object('id',p_enquiry_id,'rawText',x->'enquiry'->'rawText','reviewedAt',x->'enquiry'->'reviewedAt'),'hasLegacyWork',coalesce(a->'details'->'enquiryReference'->>'inboxId'=p_enquiry_id,false),'readOnlyObservation',true,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_create_quote_v1(p_business_id uuid,p_customer_id text,p_enquiry_id text,p_expected_snapshot_revision bigint,p_customer_hash text,p_source_hash text,p_amount text,p_text text,p_date text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE x jsonb:=busy_work_private.source_context(p_business_id,p_customer_id,p_enquiry_id,p_expected_snapshot_revision);r public.business_work_engagements%ROWTYPE;
+BEGIN
+ IF p_expected_snapshot_revision IS NULL OR p_expected_snapshot_revision<1 THEN RAISE EXCEPTION 'Expected snapshot revision required' USING ERRCODE='22023';END IF;
+ PERFORM busy_work_private.valid_quote(p_amount,p_text,p_date,p_operation_id);
+ IF x->>'customerHash' IS DISTINCT FROM p_customer_hash OR x->>'sourceHash' IS DISTINCT FROM p_source_hash THEN RAISE EXCEPTION 'Source changed' USING ERRCODE='40001';END IF;
+ -- The exact original legacy source must be migrated explicitly, never duplicated.
+ IF x->'legacy'->'details'->'enquiryReference'->>'inboxId'=p_enquiry_id THEN RAISE EXCEPTION 'Review legacy migration' USING ERRCODE='40001';END IF;
+ INSERT INTO public.business_work_engagements(business_id,customer_id,enquiry_id,created_by,modified_by,kind,status,source_snapshot_revision,customer_hash,source_hash,source_evidence,work_data,creation_operation_id)
+ VALUES(p_business_id,p_customer_id,p_enquiry_id,(x->>'actor')::uuid,(x->>'actor')::uuid,'quote','Prepared',(x->>'revision')::bigint,p_customer_hash,p_source_hash,jsonb_build_object('customer',x->'customer','enquiry',x->'enquiry'),jsonb_build_object('type','quote','task','Prepare a private quote','origin','manual','done',true,'details',jsonb_build_object('quoteStatus','Prepared','quoteAmount',p_amount,'message',p_text,'plannedSentDate',p_date)),p_operation_id) RETURNING * INTO r;
+ RETURN jsonb_build_object('operation','engagement_create_quote','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'enquiryId',p_enquiry_id,'engagementId',r.id,'actorId',r.created_by,'previousRevision',0,'revision',1,'schemaVersion',1,'sourceHash',r.source_hash,'recordHash',busy_work_private.hash(r.work_data));
+END $$;
+CREATE FUNCTION public.busy_work_migrate_legacy_v1(p_business_id uuid,p_customer_id text,p_enquiry_id text,p_expected_snapshot_revision bigint,p_legacy_hash text,p_source_hash text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE x jsonb:=busy_work_private.source_context(p_business_id,p_customer_id,p_enquiry_id,p_expected_snapshot_revision);a jsonb:=x->'legacy';e jsonb:=x->'enquiry';ref jsonb;r public.business_work_engagements%ROWTYPE;
+BEGIN
+ IF p_expected_snapshot_revision IS NULL OR p_expected_snapshot_revision<1 THEN RAISE EXCEPTION 'Expected snapshot revision required' USING ERRCODE='22023';END IF;
+ IF p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' OR a IS NULL OR busy_work_private.hash(a) IS DISTINCT FROM p_legacy_hash OR x->>'sourceHash' IS DISTINCT FROM p_source_hash THEN RAISE EXCEPTION 'Legacy review changed' USING ERRCODE='40001';END IF;
+ ref:=a->'details'->'enquiryReference';
+ IF a ? 'version' OR a->>'type' IS DISTINCT FROM 'quote' OR a->>'origin' IS DISTINCT FROM 'manual' OR a->'details'->>'sourceMiniAppRequestId' IS NOT NULL OR a->'details'->>'quoteStatus' IS DISTINCT FROM 'Prepared' OR jsonb_typeof(a->'done') IS DISTINCT FROM 'boolean' OR ref->>'version' IS DISTINCT FROM '1' OR ref->>'businessId' IS DISTINCT FROM p_business_id::text OR ref->>'customerId' IS DISTINCT FROM p_customer_id OR ref->>'inboxId' IS DISTINCT FROM p_enquiry_id OR ref->>'reviewedAt' IS DISTINCT FROM e->>'reviewedAt' OR coalesce(ref->>'queuedAt','')<>coalesce(e->>'queuedAt','') OR coalesce((ref->>'snapshotRevision')::bigint,0) NOT BETWEEN 1 AND (x->>'revision')::bigint THEN RAISE EXCEPTION 'Unsupported legacy source' USING ERRCODE='22023';END IF;
+ PERFORM busy_work_private.valid_quote(a->'details'->>'quoteAmount',a->'details'->>'message',a->'details'->>'plannedSentDate',p_operation_id);
+ INSERT INTO public.business_work_engagements(business_id,customer_id,enquiry_id,created_by,modified_by,kind,status,source_snapshot_revision,customer_hash,source_hash,source_evidence,work_data,creation_operation_id,legacy_record_hash)
+ VALUES(p_business_id,p_customer_id,p_enquiry_id,(x->>'actor')::uuid,(x->>'actor')::uuid,'quote','Prepared',(x->>'revision')::bigint,x->>'customerHash',p_source_hash,jsonb_build_object('customer',x->'customer','enquiry',e),a,p_operation_id,p_legacy_hash) RETURNING * INTO r;
+ RETURN jsonb_build_object('operation','engagement_migrate_legacy','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'enquiryId',p_enquiry_id,'engagementId',r.id,'actorId',r.created_by,'previousRevision',0,'revision',1,'schemaVersion',1,'sourceHash',r.source_hash,'recordHash',busy_work_private.hash(r.work_data));
+END $$;
+CREATE FUNCTION public.busy_work_list_v1(p_business_id uuid,p_customer_id text,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE actor uuid:=busy_work_private.authorize(p_business_id);items jsonb;more boolean;cursor uuid;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 OR p_customer_id IS NULL THEN RAISE EXCEPTION 'Invalid page' USING ERRCODE='22023';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('engagementId',id,'enquiryId',enquiry_id,'type',kind,'status',status,'revision',revision) ORDER BY id),'[]') INTO items FROM (SELECT * FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND created_by=actor AND (p_after IS NULL OR id>p_after) ORDER BY id LIMIT p_limit) a;
+ IF jsonb_array_length(items)>0 THEN cursor:=(items->(jsonb_array_length(items)-1)->>'engagementId')::uuid;END IF;
+ SELECT EXISTS(SELECT 1 FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND created_by=actor AND id>cursor) INTO more;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'ownerId',actor,'items',items,'nextCursor',CASE WHEN more THEN cursor ELSE NULL END,'readOnlyObservation',true,'notOwnReceipt',true);
+END $$;
+-- Retained history is not current source/mutation authority. No reassociation.
+CREATE FUNCTION public.busy_work_history_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE actor uuid:=busy_work_private.authorize(p_business_id);r public.business_work_engagements%ROWTYPE;x jsonb;state text:='current';
+BEGIN
+ -- Current source checks lock membership/snapshot before the retained row.
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND id=p_engagement_id;
+ IF NOT FOUND OR r.created_by<>actor THEN RAISE EXCEPTION 'Engagement unavailable' USING ERRCODE='42501';END IF;
+ BEGIN
+  x:=busy_work_private.source_context(p_business_id,p_customer_id,r.enquiry_id);
+  IF x->>'sourceHash' IS DISTINCT FROM r.source_hash OR x->>'customerHash' IS DISTINCT FROM r.customer_hash THEN state:='changed';END IF;
+ EXCEPTION WHEN SQLSTATE '42501' THEN state:='restricted'; WHEN SQLSTATE '22023' THEN state:='unsupported'; WHEN SQLSTATE '40001' THEN state:='unavailable';
+ END;
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND id=p_engagement_id FOR SHARE;
+ IF NOT FOUND OR r.created_by<>actor THEN RAISE EXCEPTION 'Engagement unavailable' USING ERRCODE='42501';END IF;
+ RETURN busy_work_private.project(r)||jsonb_build_object('historicalOnly',true,'sourceState',state,'mutationAuthorised',false,
+  'originalSource',jsonb_build_object('enquiryId',r.enquiry_id,'snapshotRevision',r.source_snapshot_revision,'sourceHash',r.source_hash,'reviewedAt',r.source_evidence->'enquiry'->'reviewedAt'));
+END $$;
+-- Fresh owner entry without assuming a customer exists on this device.
+CREATE FUNCTION public.busy_work_discover_v1(p_business_id uuid,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE actor uuid:=busy_work_private.authorize(p_business_id);items jsonb;cursor uuid;more boolean;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 THEN RAISE EXCEPTION 'Invalid page' USING ERRCODE='22023';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('engagementId',id,'customerId',customer_id,'enquiryId',enquiry_id,'type',kind,'status',status,'revision',revision) ORDER BY id),'[]') INTO items FROM (SELECT * FROM public.business_work_engagements WHERE business_id=p_business_id AND created_by=actor AND (p_after IS NULL OR id>p_after) ORDER BY id LIMIT p_limit) a;
+ IF jsonb_array_length(items)>0 THEN cursor:=(items->(jsonb_array_length(items)-1)->>'engagementId')::uuid;END IF;
+ SELECT EXISTS(SELECT 1 FROM public.business_work_engagements WHERE business_id=p_business_id AND created_by=actor AND id>cursor) INTO more;
+ RETURN jsonb_build_object('businessId',p_business_id,'ownerId',actor,'items',items,'nextCursor',CASE WHEN more THEN cursor ELSE NULL END,'readOnlyObservation',true,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_compare_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE h jsonb:=public.busy_work_history_v1(p_business_id,p_customer_id,p_engagement_id);r public.business_work_engagements%ROWTYPE;x jsonb;original jsonb;current_source jsonb;state text:=h->>'sourceState';
+BEGIN
+ SELECT * INTO r FROM public.business_work_engagements WHERE business_id=p_business_id AND customer_id=p_customer_id AND id=p_engagement_id FOR SHARE;
+ IF NOT FOUND OR r.created_by IS DISTINCT FROM auth.uid() THEN RAISE EXCEPTION 'Engagement unavailable' USING ERRCODE='42501';END IF;
+ original:=jsonb_build_object('customerName',CASE WHEN octet_length(r.source_evidence->'customer'->>'name')<=2000 THEN r.source_evidence->'customer'->'name' ELSE NULL END,'service',CASE WHEN octet_length(r.source_evidence->'customer'->>'service')<=2000 THEN r.source_evidence->'customer'->'service' ELSE NULL END,'enquiryText',r.source_evidence->'enquiry'->'rawText','reviewedAt',r.source_evidence->'enquiry'->'reviewedAt');
+ IF state IN ('current','changed') THEN
+  x:=busy_work_private.source_context(p_business_id,p_customer_id,r.enquiry_id);
+  IF octet_length(x->'customer'->>'name')>2000 OR octet_length(x->'customer'->>'service')>2000 THEN state:='unsupported';
+  ELSE current_source:=jsonb_build_object('customerName',x->'customer'->'name','service',x->'customer'->'service','enquiryText',x->'enquiry'->'rawText','reviewedAt',x->'enquiry'->'reviewedAt');END IF;
+ END IF;
+ RETURN h||jsonb_build_object('sourceState',state,'originalContext',original,'currentContext',current_source,'comparisonOnly',true,'currentSnapshotRevision',CASE WHEN current_source IS NOT NULL THEN x->'revision' ELSE NULL END,'customerEvidenceChanged',CASE WHEN current_source IS NOT NULL THEN r.customer_hash IS DISTINCT FROM x->>'customerHash' ELSE NULL END,'enquiryEvidenceChanged',CASE WHEN current_source IS NOT NULL THEN r.source_hash IS DISTINCT FROM x->>'sourceHash' ELSE NULL END);
+END $$;
+-- Current finite editor eligibility; never a restored customer or historical capability.
+CREATE FUNCTION public.busy_work_edit_context_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;ops text[]:=ARRAY['edit_quote'];snapshot_rev bigint;
+BEGIN
+ IF p_expected_revision IS NULL OR p_expected_revision<1 THEN RAISE EXCEPTION 'Expected engagement revision required' USING ERRCODE='22023';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);
+ IF has_function_privilege('authenticated',to_regprocedure('public.busy_work_edit_quote_v1(uuid,text,uuid,bigint,text,text,text,text,text)'),'EXECUTE') IS DISTINCT FROM true THEN RAISE EXCEPTION 'Quote editing unavailable' USING ERRCODE='42501';END IF;
+ IF has_function_privilege('authenticated',to_regprocedure('public.busy_work_private_write_v1(uuid,text,uuid,bigint,bigint,text,text,text,text)'),'EXECUTE') THEN ops:=array_append(ops,'private_followup');END IF;
+ SELECT revision INTO snapshot_rev FROM public.busy_business_snapshots WHERE business_id=p_business_id;
+ RETURN busy_work_private.project(r)||jsonb_build_object('currentEditContext',true,'allowedOperations',to_jsonb(ops),'contextSnapshotRevision',snapshot_rev);
+END $$;
+CREATE FUNCTION public.busy_work_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);
+BEGIN RETURN busy_work_private.project(r);END $$;
+CREATE FUNCTION public.busy_work_edit_quote_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint,p_source_hash text,p_amount text,p_text text,p_date text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);before bigint:=r.revision;
+BEGIN
+ PERFORM busy_work_private.valid_quote(p_amount,p_text,p_date,p_operation_id);
+ IF r.status<>'Prepared' OR r.source_hash IS DISTINCT FROM p_source_hash OR p_expected_revision IS NULL THEN RAISE EXCEPTION 'Quote conflict' USING ERRCODE='40001';END IF;
+ UPDATE public.business_work_engagements SET work_data=jsonb_set(jsonb_set(jsonb_set(r.work_data,'{details,quoteAmount}',to_jsonb(p_amount)),'{details,message}',to_jsonb(p_text)),'{details,plannedSentDate}',to_jsonb(p_date)),revision=r.revision+1,modified_by=auth.uid(),updated_at=clock_timestamp() WHERE id=r.id RETURNING * INTO r;
+ RETURN jsonb_build_object('operation','engagement_edit_quote','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',r.id,'actorId',auth.uid(),'previousRevision',before,'revision',r.revision,'schemaVersion',1,'sourceHash',r.source_hash,'recordHash',busy_work_private.hash(r.work_data));
+END $$;
+CREATE FUNCTION public.busy_work_private_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_kind text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);d public.business_work_private_drafts%ROWTYPE;
+BEGIN
+ IF p_kind IS NULL OR p_kind NOT IN ('reply','followup','work_notes') THEN RAISE EXCEPTION 'Unsupported draft' USING ERRCODE='22023';END IF;
+ SELECT * INTO d FROM public.business_work_private_drafts WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND owner_id=auth.uid() AND kind=p_kind;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'kind',p_kind,'revision',coalesce(d.revision,0),'text',d.text,'engagementRevision',d.engagement_revision,'needsReview',d.engagement_revision IS DISTINCT FROM r.revision,'readOnlyObservation',true,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_private_write_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_engagement_revision bigint,p_expected_draft_revision bigint,p_source_hash text,p_kind text,p_text text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_engagement_revision);d public.business_work_private_drafts%ROWTYPE;next_rev bigint;
+BEGIN
+ IF p_kind IS NULL OR p_kind NOT IN ('reply','followup','work_notes') OR p_text IS NULL OR btrim(p_text)='' OR octet_length(p_text)>10000 OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' OR p_expected_draft_revision IS NULL OR p_expected_draft_revision<0 THEN RAISE EXCEPTION 'Invalid private wording' USING ERRCODE='22023';END IF;
+ IF p_engagement_revision IS NULL OR r.source_hash IS DISTINCT FROM p_source_hash THEN RAISE EXCEPTION 'Private source changed' USING ERRCODE='40001';END IF;
+ SELECT * INTO d FROM public.business_work_private_drafts WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND owner_id=auth.uid() AND kind=p_kind FOR UPDATE;
+ IF coalesce(d.revision,0)<>p_expected_draft_revision THEN RAISE EXCEPTION 'Private revision conflict' USING ERRCODE='40001';END IF;
+ next_rev:=p_expected_draft_revision+1;
+ IF p_expected_draft_revision=0 THEN INSERT INTO public.business_work_private_drafts(business_id,customer_id,engagement_id,owner_id,kind,engagement_revision,source_hash,text,operation_id) VALUES(p_business_id,p_customer_id,p_engagement_id,auth.uid(),p_kind,r.revision,r.source_hash,p_text,p_operation_id);
+ ELSE UPDATE public.business_work_private_drafts SET text=p_text,engagement_revision=r.revision,source_hash=p_source_hash,revision=next_rev,operation_id=p_operation_id,updated_at=clock_timestamp() WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND owner_id=auth.uid() AND kind=p_kind;END IF;
+ RETURN jsonb_build_object('operation','engagement_private_wording','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'actorId',auth.uid(),'kind',p_kind,'previousRevision',p_expected_draft_revision,'revision',next_rev,'engagementRevision',r.revision,'schemaVersion',1,'textHash',busy_work_private.hash(to_jsonb(p_text)));
+END $$;
+CREATE FUNCTION busy_work_private.quote_terms(r public.business_work_engagements) RETURNS jsonb LANGUAGE sql STABLE SET search_path=pg_catalog,pg_temp AS $$
+ SELECT jsonb_build_object('engagementId',r.id,'customerId',r.customer_id,'enquiryId',r.enquiry_id,'quoteRevision',r.revision,'termsSchemaVersion',1,'recordHash',busy_work_private.hash(r.work_data),'sourceHash',r.source_hash,'presentation','internal_prepared_quote','amount',r.work_data->'details'->'quoteAmount','plannedQuoteDate',r.work_data->'details'->'plannedSentDate','wording',r.work_data->'details'->'message','service',r.source_evidence->'customer'->'service')
+$$;
+CREATE FUNCTION public.busy_work_agreement_review_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;terms jsonb;
+BEGIN
+ IF p_expected_revision IS NULL OR p_expected_revision<1 THEN RAISE EXCEPTION 'Exact quote revision required' USING ERRCODE='22023';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);
+ IF NOT has_function_privilege('authenticated',to_regprocedure('public.busy_work_agreement_create_v1(uuid,text,uuid,bigint,text,text,text)'),'EXECUTE') THEN RAISE EXCEPTION 'Evidence recording unavailable' USING ERRCODE='42501';END IF;
+ terms:=busy_work_private.quote_terms(r);
+ RETURN busy_work_private.project(r)||jsonb_build_object('currentAgreementReview',true,'terms',terms,'termsHash',busy_work_private.hash(terms),'evidenceClass','owner_reported_offline','verification','unverified','bookingEligible',false);
+END $$;
+CREATE FUNCTION public.busy_work_agreement_create_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint,p_terms_hash text,p_owner_account text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;terms jsonb;e public.business_work_agreement_evidence%ROWTYPE;
+BEGIN
+ IF p_expected_revision IS NULL OR p_expected_revision<1 OR p_owner_account IS NULL OR btrim(p_owner_account)='' OR octet_length(p_owner_account)>5000 OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' THEN RAISE EXCEPTION 'Invalid owner report' USING ERRCODE='22023';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);terms:=busy_work_private.quote_terms(r);
+ IF p_terms_hash IS NULL OR p_terms_hash IS DISTINCT FROM busy_work_private.hash(terms) THEN RAISE EXCEPTION 'Quote terms changed' USING ERRCODE='40001';END IF;
+ IF EXISTS(SELECT 1 FROM public.business_work_agreement_evidence WHERE business_id=p_business_id AND engagement_id=p_engagement_id AND created_by=auth.uid() AND quote_revision=r.revision) THEN RAISE EXCEPTION 'Owner report already recorded for this version; inspect without replay' USING ERRCODE='40001';END IF;
+ INSERT INTO public.business_work_agreement_evidence(business_id,customer_id,engagement_id,created_by,quote_revision,evidence_class,verification,quote_terms,terms_hash,source_hash,owner_account,creation_operation_id)
+ VALUES(p_business_id,p_customer_id,p_engagement_id,auth.uid(),r.revision,'owner_reported_offline','unverified',terms,p_terms_hash,r.source_hash,p_owner_account,p_operation_id) RETURNING * INTO e;
+ RETURN jsonb_build_object('operation','engagement_owner_report','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'evidenceId',e.id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',0,'revision',1,'quoteRevision',r.revision,'termsHash',e.terms_hash,'sourceHash',r.source_hash,'evidenceClass',e.evidence_class,'verification',e.verification,'recordedAt',e.recorded_at,'bookingEligible',false);
+END $$;
+CREATE FUNCTION public.busy_work_agreement_list_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);items jsonb;cursor uuid;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 THEN RAISE EXCEPTION 'Invalid page size' USING ERRCODE='22023';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('evidenceId',id,'quoteRevision',quote_revision,'evidenceClass',evidence_class,'verification',verification) ORDER BY id),'[]') INTO items FROM (SELECT * FROM public.business_work_agreement_evidence WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND created_by=auth.uid() AND (p_after IS NULL OR id>p_after) ORDER BY id LIMIT p_limit) x;
+ IF jsonb_array_length(items)=p_limit THEN cursor:=(items->(p_limit-1)->>'evidenceId')::uuid;END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'items',items,'nextCursor',cursor,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION busy_work_private.agreement_state(e public.business_work_agreement_evidence) RETURNS jsonb LANGUAGE plpgsql STABLE SET search_path=pg_catalog,pg_temp AS $$
+DECLARE d public.business_work_agreement_decisions%ROWTYPE;
+BEGIN
+ SELECT * INTO d FROM public.business_work_agreement_decisions WHERE evidence_id=e.id ORDER BY decision_revision DESC LIMIT 1;
+ RETURN jsonb_build_object('decisionRevision',coalesce(d.decision_revision,0),'decisionId',d.id,'reportState',CASE WHEN d.action='withdraw' THEN 'withdrawn' WHEN d.action='correct' THEN 'corrected' ELSE 'original' END,'currentOwnerAccount',CASE WHEN d.action='withdraw' THEN NULL ELSE coalesce(d.statement,e.owner_account) END,'decisionStatement',d.statement,'decisionRecordedAt',d.recorded_at);
+END $$;
+CREATE FUNCTION public.busy_work_agreement_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_evidence_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);e public.business_work_agreement_evidence%ROWTYPE;current_terms jsonb;
+BEGIN
+ SELECT * INTO e FROM public.business_work_agreement_evidence WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND id=p_evidence_id AND created_by=auth.uid();
+ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence unavailable' USING ERRCODE='42501';END IF;
+ current_terms:=busy_work_private.quote_terms(r);
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'evidenceId',e.id,'revision',e.revision,'quoteRevision',e.quote_revision,'terms',e.quote_terms,'termsHash',e.terms_hash,'ownerAccount',e.owner_account,'evidenceClass',e.evidence_class,'verification',e.verification,'recordedAt',e.recorded_at,'recordedTimeMeaning','server_recorded_owner_report_not_external_event','currentQuoteRevision',r.revision,'currentTerms',current_terms,'termsChanged',busy_work_private.hash(current_terms) IS DISTINCT FROM e.terms_hash,'bookingEligible',false,'notOwnReceipt',true,'requestAssociationState','not_established_by_protocol')||busy_work_private.agreement_state(e);
+END $$;
+-- Finite readiness inspection. Does not query/adopt requests by customer or guess a link.
+CREATE FUNCTION public.busy_work_booking_readiness_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_evidence_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE v jsonb:=public.busy_work_agreement_read_v1(p_business_id,p_customer_id,p_engagement_id,p_evidence_id);
+BEGIN
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'evidenceId',p_evidence_id,'quoteRevision',v->'quoteRevision','currentQuoteRevision',v->'currentQuoteRevision','terms',v->'terms','currentTerms',v->'currentTerms','termsChanged',v->'termsChanged','decisionRevision',v->'decisionRevision','reportState',v->'reportState','verification','unverified','customerResponseEvidence','not_established_by_protocol','requestAssociationState','unsupported_missing_canonical_request_contract','bookingEligible',false,'executionAuthorised',false,'notOwnReceipt',true,'requirements',jsonb_build_array('Reviewed agreement policy and exact customer acceptance evidence','Persisted canonical quote-version/request/link association','Original request/link/Work-ledger transaction authority','Current diary conflicts, owner approval and target-specific receipt'));
+END $$;
+-- Review is source-current mutation context, never a historical observation/receipt.
+CREATE FUNCTION public.busy_work_agreement_decision_review_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_evidence_id uuid,p_expected_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);e public.business_work_agreement_evidence%ROWTYPE;
+BEGIN
+ IF p_expected_revision IS NULL OR NOT has_function_privilege('authenticated',to_regprocedure('public.busy_work_agreement_decide_v1(uuid,text,uuid,uuid,bigint,bigint,text,text,text,text)'),'EXECUTE') THEN RAISE EXCEPTION 'Correction unavailable' USING ERRCODE='42501';END IF;
+ SELECT * INTO e FROM public.business_work_agreement_evidence WHERE id=p_evidence_id AND business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND created_by=auth.uid();
+ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence unavailable' USING ERRCODE='42501';END IF;
+ RETURN busy_work_private.project(r)||jsonb_build_object('currentDecisionReview',true,'evidenceId',e.id,'quoteRevision',e.quote_revision,'termsHash',e.terms_hash,'terms',e.quote_terms,'originalOwnerAccount',e.owner_account,'verification','unverified','bookingEligible',false)||busy_work_private.agreement_state(e);
+END $$;
+CREATE FUNCTION public.busy_work_agreement_decide_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_evidence_id uuid,p_expected_revision bigint,p_expected_decision_revision bigint,p_terms_hash text,p_action text,p_statement text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;e public.business_work_agreement_evidence%ROWTYPE;d public.business_work_agreement_decisions%ROWTYPE;state jsonb;
+BEGIN
+ IF p_expected_revision IS NULL OR p_expected_decision_revision IS NULL OR p_expected_decision_revision<0 OR p_action IS NULL OR p_action NOT IN ('correct','withdraw') OR p_statement IS NULL OR btrim(p_statement)='' OR octet_length(p_statement)>5000 OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' THEN RAISE EXCEPTION 'Invalid evidence decision' USING ERRCODE='22023';END IF;
+ -- Original membership/source/engagement lock precedes evidence lock; serializes quote and decisions.
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);
+ SELECT * INTO e FROM public.business_work_agreement_evidence WHERE id=p_evidence_id AND business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND created_by=auth.uid() FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Evidence unavailable' USING ERRCODE='42501';END IF;
+ state:=busy_work_private.agreement_state(e);
+ IF e.terms_hash IS DISTINCT FROM p_terms_hash OR (state->>'decisionRevision')::bigint<>p_expected_decision_revision OR state->>'reportState'='withdrawn' THEN RAISE EXCEPTION 'Evidence decision conflict' USING ERRCODE='40001';END IF;
+ INSERT INTO public.business_work_agreement_decisions(evidence_id,business_id,customer_id,engagement_id,created_by,decision_revision,action,statement,quote_revision,terms_hash,reviewed_engagement_revision,reviewed_source_hash,operation_id)
+ VALUES(e.id,p_business_id,p_customer_id,p_engagement_id,auth.uid(),p_expected_decision_revision+1,p_action,p_statement,e.quote_revision,e.terms_hash,r.revision,r.source_hash,p_operation_id) RETURNING * INTO d;
+ RETURN jsonb_build_object('operation','engagement_owner_report_decision','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',r.id,'evidenceId',e.id,'decisionId',d.id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',p_expected_decision_revision,'revision',d.decision_revision,'engagementRevision',r.revision,'quoteRevision',e.quote_revision,'termsHash',e.terms_hash,'sourceHash',r.source_hash,'action',p_action,'verification','unverified','recordedAt',d.recorded_at,'bookingEligible',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_reference_review_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;terms jsonb;
+BEGIN
+ IF p_expected_revision IS NULL OR NOT has_function_privilege('authenticated',to_regprocedure('public.busy_work_quote_reference_create_v1(uuid,text,uuid,bigint,text,text)'),'EXECUTE') THEN RAISE EXCEPTION 'Quote preparation unavailable' USING ERRCODE='42501';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);terms:=busy_work_private.quote_terms(r);
+ RETURN busy_work_private.project(r)||jsonb_build_object('currentQuoteReferenceReview',true,'terms',terms,'termsHash',busy_work_private.hash(terms),'presentationState','prepared_not_presented','executionAuthorised',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_reference_create_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_expected_revision bigint,p_terms_hash text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE;t jsonb;q public.business_work_quote_references%ROWTYPE;
+BEGIN
+ IF p_expected_revision IS NULL OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' THEN RAISE EXCEPTION 'Invalid preparation' USING ERRCODE='22023';END IF;
+ r:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id,p_expected_revision);t:=busy_work_private.quote_terms(r);
+ IF p_terms_hash IS NULL OR p_terms_hash IS DISTINCT FROM busy_work_private.hash(t) THEN RAISE EXCEPTION 'Quote terms changed' USING ERRCODE='40001';END IF;
+ INSERT INTO public.business_work_quote_references(business_id,customer_id,engagement_id,created_by,quote_revision,terms,terms_hash,source_hash,operation_id)
+ VALUES(p_business_id,p_customer_id,r.id,auth.uid(),r.revision,t,p_terms_hash,r.source_hash,p_operation_id) RETURNING * INTO q;
+ RETURN jsonb_build_object('operation','engagement_quote_reference','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',r.id,'actorId',auth.uid(),'referenceId',q.id,'schemaVersion',1,'previousRevision',0,'revision',1,'quoteRevision',r.revision,'termsHash',q.terms_hash,'sourceHash',r.source_hash,'presentationState',q.state,'recordedAt',q.recorded_at,'executionAuthorised',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_reference_list_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);items jsonb;cursor uuid;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 THEN RAISE EXCEPTION 'Invalid page size' USING ERRCODE='22023';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('referenceId',id,'quoteRevision',quote_revision,'presentationState',state) ORDER BY id),'[]') INTO items FROM (SELECT * FROM public.business_work_quote_references WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND created_by=auth.uid() AND (p_after IS NULL OR id>p_after) ORDER BY id LIMIT p_limit) x;
+ IF jsonb_array_length(items)=p_limit THEN cursor:=(items->(p_limit-1)->>'referenceId')::uuid;END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'items',items,'nextCursor',cursor,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_quote_reference_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r public.business_work_engagements%ROWTYPE:=busy_work_private.target(p_business_id,p_customer_id,p_engagement_id);q public.business_work_quote_references%ROWTYPE;t jsonb;
+BEGIN
+ SELECT * INTO q FROM public.business_work_quote_references WHERE id=p_reference_id AND business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND created_by=auth.uid();
+ IF NOT FOUND THEN RAISE EXCEPTION 'Quote reference unavailable' USING ERRCODE='42501';END IF;
+ t:=busy_work_private.quote_terms(r);
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'ownerId',auth.uid(),'referenceId',q.id,'revision',1,'quoteRevision',q.quote_revision,'terms',q.terms,'termsHash',q.terms_hash,'sourceHash',q.source_hash,'recordedAt',q.recorded_at,'presentationState',q.state,'currentQuoteRevision',r.revision,'currentTerms',t,'termsChanged',busy_work_private.hash(t) IS DISTINCT FROM q.terms_hash,'notOwnReceipt',true,'executionAuthorised',false,'providerEvidence','not_established_by_protocol','customerResponseEvidence','no_exact_quote_reference_in_original_protocol','requestAssociationState','not_established_by_protocol');
+END $$;
+-- Original-link lookup only; no new identity store or permission grant.
+CREATE INDEX busy_quote_recipient_link_lookup ON public.busy_mini_app_request_links(business_id,customer_record_id,linked_by,request_id);
+-- Identity observation only. Owner-linked CRM/request provenance is not verified personhood.
+CREATE FUNCTION public.busy_work_quote_recipient_candidates_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_after uuid DEFAULT NULL,p_limit integer DEFAULT 20) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE v jsonb:=public.busy_work_quote_reference_read_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id);items jsonb;cursor uuid;
+BEGIN
+ IF p_limit IS NULL OR p_limit NOT BETWEEN 1 AND 50 THEN RAISE EXCEPTION 'Invalid recipient page' USING ERRCODE='22023';END IF;
+ IF v->>'termsChanged'='true' THEN RAISE EXCEPTION 'Current exact quote reference required' USING ERRCODE='40001';END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('requestId',id,'appId',mini_app_id,'requestRevision',updated_at) ORDER BY id),'[]') INTO items FROM (
+ SELECT r.id,r.mini_app_id,r.updated_at FROM public.busy_mini_app_requests r JOIN public.busy_mini_app_request_links l ON l.business_id=r.business_id AND l.request_id=r.id
+ WHERE r.business_id=p_business_id AND l.customer_record_id=p_customer_id AND l.linked_by=auth.uid() AND r.consumer_user_id IS NOT NULL AND r.status='reviewing' AND l.bridge_state IN ('enquiry_linked','booking_draft') AND (p_after IS NULL OR r.id>p_after) ORDER BY r.id LIMIT p_limit) x;
+ IF jsonb_array_length(items)=p_limit THEN cursor:=(items->(p_limit-1)->>'requestId')::uuid;END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'items',items,'nextCursor',cursor,'candidateOnly',true,'notOwnReceipt',true,'consumerAccessAuthorised',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_recipient_review_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_request_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE v jsonb:=public.busy_work_quote_reference_read_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id);r public.busy_mini_app_requests%ROWTYPE;l public.busy_mini_app_request_links%ROWTYPE;a public.busy_mini_apps%ROWTYPE;version public.busy_mini_app_versions%ROWTYPE;reason text:='missing_or_unsupported_request';identified boolean:=false;
+BEGIN
+ IF v->>'termsChanged'='true' THEN RAISE EXCEPTION 'Current exact quote reference required' USING ERRCODE='40001';END IF;
+ -- Shared original request/link/app locks stabilise this observation only; no future execution authority.
+ SELECT * INTO r FROM public.busy_mini_app_requests WHERE id=p_request_id AND business_id=p_business_id FOR SHARE;
+ IF FOUND THEN
+  SELECT * INTO l FROM public.busy_mini_app_request_links WHERE request_id=r.id AND business_id=p_business_id FOR SHARE;
+  IF FOUND AND l.customer_record_id=p_customer_id AND l.linked_by=auth.uid() AND r.status='reviewing' AND ((r.request_type='enquiry' AND r.module_key='enquiry' AND l.bridge_state='enquiry_linked') OR (r.request_type='booking_request' AND r.module_key='booking_request' AND l.bridge_state='booking_draft' AND l.action_record_id IS NOT NULL)) THEN
+   SELECT * INTO a FROM public.busy_mini_apps WHERE id=r.mini_app_id AND business_id=p_business_id FOR SHARE;
+   IF FOUND AND a.status IN ('live','update_pending') AND a.current_live_version_id IS NOT NULL AND a.current_live_version_id=r.version_id THEN
+    SELECT * INTO version FROM public.busy_mini_app_versions WHERE id=r.version_id AND mini_app_id=a.id AND business_id=p_business_id AND state='live' FOR SHARE;
+    IF FOUND AND r.consumer_user_id IS NOT NULL AND EXISTS(SELECT 1 FROM auth.users WHERE id=r.consumer_user_id) AND coalesce(to_jsonb(r)->>'request_origin','signed_in')='signed_in' THEN
+     IF EXISTS(SELECT 1 FROM public.busy_mini_app_request_links x JOIN public.busy_mini_app_requests y ON y.id=x.request_id AND y.business_id=x.business_id WHERE x.business_id=p_business_id AND x.customer_record_id=p_customer_id AND y.consumer_user_id IS DISTINCT FROM r.consumer_user_id) THEN reason:='ambiguous_consumer_associations';
+     ELSE identified:=true;reason:='owner_linked_signed_in_request';END IF;
+    ELSE reason:='unsupported_consumer_or_request_origin';END IF;
+   ELSE reason:='app_or_reviewed_version_unavailable';END IF;
+  ELSE reason:='missing_or_incompatible_owner_link';END IF;
+ END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'quoteRevision',v->'quoteRevision','termsHash',v->'termsHash','recipientIdentified',identified,'provenance',reason,'notOwnReceipt',true,'consumerAccessAuthorised',false,'quoteRequestAssociated',false,'customerResponseLinked',false,'executionAuthorised',false,'recipient',CASE WHEN identified THEN jsonb_build_object('consumerId',r.consumer_user_id,'requestId',r.id,'requestRevision',r.updated_at,'linkId',l.id,'linkRevision',l.updated_at,'appId',a.id,'appVersionId',version.id,'actionId',l.action_record_id) ELSE NULL END);
+END $$;
+CREATE FUNCTION public.busy_work_quote_binding_context_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_request_id uuid,p_expected_quote_revision bigint) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE q jsonb:=public.busy_work_quote_reference_read_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id);v jsonb;
+BEGIN
+ IF p_expected_quote_revision IS NULL OR (q->>'quoteRevision')::bigint<>p_expected_quote_revision OR q->>'termsChanged'='true' THEN RAISE EXCEPTION 'Quote version changed' USING ERRCODE='40001';END IF;
+ IF NOT has_function_privilege('authenticated',to_regprocedure('public.busy_work_quote_binding_write_v1(uuid,text,uuid,uuid,uuid,bigint,bigint,text,text)'),'EXECUTE') THEN RAISE EXCEPTION 'Private binding unavailable' USING ERRCODE='42501';END IF;
+ v:=public.busy_work_quote_recipient_review_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id,p_request_id);
+ IF v->>'recipientIdentified' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'Recipient unsupported; no private binding' USING ERRCODE='42501';END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'revision',p_expected_quote_revision,'quoteRevision',p_expected_quote_revision,'sourceHash',q->'sourceHash','recordHash',q->'terms'->'recordHash','termsHash',q->'termsHash','terms',q->'terms','recipientReview',v,'reviewHash',busy_work_private.hash(v),'currentBindingReview',true,'bindingExists',EXISTS(SELECT 1 FROM public.business_work_quote_recipient_bindings WHERE business_id=p_business_id AND reference_id=p_reference_id AND created_by=auth.uid()),'consumerAccessAuthorised',false,'notOwnReceipt',true);
+END $$;
+CREATE FUNCTION public.busy_work_quote_binding_write_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid,p_request_id uuid,p_expected_quote_revision bigint,p_expected_binding_revision bigint,p_review_hash text,p_operation_id text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE v jsonb;r jsonb;b public.business_work_quote_recipient_bindings%ROWTYPE;
+BEGIN
+ IF p_expected_binding_revision IS DISTINCT FROM 0 OR p_operation_id IS NULL OR p_operation_id !~ '^[A-Za-z0-9_-]{8,120}$' THEN RAISE EXCEPTION 'Unsupported private binding revision' USING ERRCODE='40001';END IF;
+ v:=public.busy_work_quote_binding_context_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id,p_request_id,p_expected_quote_revision);
+ IF p_review_hash IS NULL OR v->>'reviewHash' IS DISTINCT FROM p_review_hash OR v->>'bindingExists'='true' THEN RAISE EXCEPTION 'Recipient evidence changed or binding already exists' USING ERRCODE='40001';END IF;
+ r:=v->'recipientReview'->'recipient';
+ INSERT INTO public.business_work_quote_recipient_bindings(business_id,customer_id,engagement_id,reference_id,created_by,quote_revision,terms_hash,source_hash,review_hash,consumer_id,request_id,link_id,linking_owner_id,app_id,app_version_id,request_revision,link_revision,provenance,operation_id)
+ VALUES(p_business_id,p_customer_id,p_engagement_id,p_reference_id,auth.uid(),p_expected_quote_revision,v->>'termsHash',v->>'sourceHash',p_review_hash,(r->>'consumerId')::uuid,p_request_id,(r->>'linkId')::uuid,auth.uid(),(r->>'appId')::uuid,(r->>'appVersionId')::uuid,r->>'requestRevision',r->>'linkRevision','owner_linked_signed_in_request',p_operation_id) RETURNING * INTO b;
+ RETURN jsonb_build_object('operation','quote_recipient_binding','operationId',p_operation_id,'businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'bindingId',b.id,'actorId',auth.uid(),'schemaVersion',1,'previousRevision',0,'revision',1,'quoteRevision',b.quote_revision,'termsHash',b.terms_hash,'sourceHash',b.source_hash,'reviewHash',b.review_hash,'consumerId',b.consumer_id,'requestId',b.request_id,'recordedAt',b.recorded_at,'consumerAccessAuthorised',false,'quoteRequestAssociated',false,'executionAuthorised',false);
+END $$;
+CREATE FUNCTION public.busy_work_quote_binding_read_v1(p_business_id uuid,p_customer_id text,p_engagement_id uuid,p_reference_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE q jsonb:=public.busy_work_quote_reference_read_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id);b public.business_work_quote_recipient_bindings%ROWTYPE;v jsonb;eligibility text;recipient jsonb;
+BEGIN
+ SELECT * INTO b FROM public.business_work_quote_recipient_bindings WHERE business_id=p_business_id AND customer_id=p_customer_id AND engagement_id=p_engagement_id AND reference_id=p_reference_id AND created_by=auth.uid();
+ IF NOT FOUND THEN eligibility:='absent';
+ ELSIF q->>'termsChanged'='true' THEN eligibility:='stale_quote_version';
+ ELSE
+  v:=public.busy_work_quote_recipient_review_v1(p_business_id,p_customer_id,p_engagement_id,p_reference_id,b.request_id);
+  IF v->>'recipientIdentified' IS DISTINCT FROM 'true' THEN eligibility:='unavailable_recipient';
+  ELSIF busy_work_private.hash(v) IS DISTINCT FROM b.review_hash THEN eligibility:='changed_source_evidence';
+  ELSE eligibility:='current';recipient:=v->'recipient';END IF;
+ END IF;
+ RETURN jsonb_build_object('businessId',p_business_id,'customerId',p_customer_id,'engagementId',p_engagement_id,'referenceId',p_reference_id,'ownerId',auth.uid(),'binding',CASE WHEN b.id IS NULL THEN NULL ELSE jsonb_build_object('bindingId',b.id,'revision',b.revision,'quoteRevision',b.quote_revision,'termsHash',b.terms_hash,'reviewHash',b.review_hash,'recordedAt',b.recorded_at,'provenance',b.provenance) END,'eligibility',eligibility,'recipient',recipient,'notOwnReceipt',true,'consumerAccessAuthorised',false,'quoteRequestAssociated',false,'executionAuthorised',false);
+END $$;
+-- Separate public-facing boundary. Hard denial precedes any private data lookup.
+CREATE FUNCTION public.busy_work_consumer_quote_access_v1(p_binding_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Consumer quote access disabled pending separate disclosure approval' USING ERRCODE='42501';END $$;
+CREATE FUNCTION public.busy_work_consumer_quote_response_v1(p_binding_id uuid,p_action text,p_idempotency_key text) RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Consumer quote response disabled; no authorised access context' USING ERRCODE='42501';END $$;
+CREATE FUNCTION busy_work_private.protect_quote_binding() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Immutable private recipient binding; replacement/revocation requires a separate finite contract' USING ERRCODE='42501';END $$;
+CREATE TRIGGER busy_work_quote_binding_immutable BEFORE UPDATE ON public.business_work_quote_recipient_bindings FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_quote_binding();
+CREATE FUNCTION busy_work_private.protect_quote_reference() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Immutable private quote preparation; no presentation or acceptance inferred' USING ERRCODE='42501';END $$;
+CREATE TRIGGER busy_work_quote_reference_immutable BEFORE UPDATE ON public.business_work_quote_references FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_quote_reference();
+CREATE FUNCTION busy_work_private.protect_agreement() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
+BEGIN RAISE EXCEPTION 'Immutable evidence; use a separately reviewed append-only decision' USING ERRCODE='42501';END $$;
+CREATE TRIGGER busy_work_agreement_immutable BEFORE UPDATE ON public.business_work_agreement_evidence FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_agreement();
+CREATE TRIGGER busy_work_agreement_decision_immutable BEFORE UPDATE ON public.business_work_agreement_decisions FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_agreement();
+CREATE FUNCTION busy_work_private.protect_identity() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog,pg_temp AS $$
+BEGIN
+ IF ROW(NEW.id,NEW.business_id,NEW.customer_id,NEW.enquiry_id,NEW.created_by,NEW.creation_operation_id,NEW.created_at,NEW.legacy_record_hash,NEW.source_hash,NEW.customer_hash,NEW.source_evidence,NEW.kind,NEW.status,NEW.schema_version) IS DISTINCT FROM ROW(OLD.id,OLD.business_id,OLD.customer_id,OLD.enquiry_id,OLD.created_by,OLD.creation_operation_id,OLD.created_at,OLD.legacy_record_hash,OLD.source_hash,OLD.customer_hash,OLD.source_evidence,OLD.kind,OLD.status,OLD.schema_version) THEN RAISE EXCEPTION 'Immutable engagement/source identity' USING ERRCODE='42501';END IF;
+ RETURN NEW;
+END $$;
+CREATE TRIGGER busy_canonical_identity BEFORE UPDATE ON public.business_work_engagements FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_identity();
+-- Migrated legacy Work becomes read-only: no writable second authority.
+CREATE FUNCTION busy_work_private.protect_legacy() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
+DECLARE r record;
+BEGIN
+ FOR r IN SELECT customer_id FROM public.business_work_engagements WHERE business_id=OLD.business_id AND legacy_record_hash IS NOT NULL LOOP
+  IF TG_OP='DELETE' OR OLD.payload->'replyActions'->r.customer_id IS DISTINCT FROM NEW.payload->'replyActions'->r.customer_id THEN RAISE EXCEPTION 'Canonical legacy Work is read-only' USING ERRCODE='42501';END IF;
+ END LOOP;
+ IF TG_OP='DELETE' THEN RETURN OLD;END IF;RETURN NEW;
+END $$;
+CREATE TRIGGER busy_canonical_legacy_readonly BEFORE UPDATE OR DELETE ON public.busy_business_snapshots FOR EACH ROW EXECUTE FUNCTION busy_work_private.protect_legacy();
+DO $$ DECLARE f record;r text;t regclass;
+BEGIN
+ FOR f IN SELECT p.oid::regprocedure AS signature,p.proname FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND p.proname IN ('busy_work_source_review_v1','busy_work_create_quote_v1','busy_work_migrate_legacy_v1','busy_work_list_v1','busy_work_discover_v1','busy_work_compare_v1','busy_work_edit_context_v1','busy_work_history_v1','busy_work_read_v1','busy_work_edit_quote_v1','busy_work_private_read_v1','busy_work_private_write_v1','busy_work_agreement_review_v1','busy_work_agreement_create_v1','busy_work_agreement_list_v1','busy_work_agreement_read_v1','busy_work_agreement_decision_review_v1','busy_work_agreement_decide_v1','busy_work_booking_readiness_v1','busy_work_quote_reference_review_v1','busy_work_quote_reference_create_v1','busy_work_quote_reference_list_v1','busy_work_quote_reference_read_v1','busy_work_quote_recipient_candidates_v1','busy_work_quote_recipient_review_v1','busy_work_quote_binding_context_v1','busy_work_quote_binding_write_v1','busy_work_quote_binding_read_v1','busy_work_consumer_quote_access_v1','busy_work_consumer_quote_response_v1') LOOP
+  EXECUTE format('ALTER FUNCTION %s OWNER TO postgres',f.signature);EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated,service_role',f.signature);
+  IF f.proname LIKE 'busy_work_%' AND f.proname<>'busy_work_migrate_legacy_v1' THEN EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated',f.signature);END IF;
+ END LOOP;
+ FOREACH r IN ARRAY ARRAY['anon','authenticated','service_role'] LOOP
+  FOREACH t IN ARRAY ARRAY['public.business_work_engagements'::regclass,'public.business_work_private_drafts'::regclass,'public.business_work_agreement_evidence'::regclass,'public.business_work_agreement_decisions'::regclass,'public.business_work_quote_references'::regclass,'public.business_work_quote_recipient_bindings'::regclass] LOOP
+   IF has_any_column_privilege(r,t,'SELECT,INSERT,UPDATE,REFERENCES') OR has_table_privilege(r,t,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN RAISE EXCEPTION 'Effective raw privilege remains for % on %',r,t;END IF;
+  END LOOP;
+  IF has_any_column_privilege(r,'public.busy_business_snapshots','UPDATE') OR has_table_privilege(r,'public.busy_business_snapshots','SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN RAISE EXCEPTION 'Snapshot fence missing';END IF;
+  IF EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='public.busy_business_snapshots'::regclass AND attnum>0 AND NOT attisdropped AND attname<>'business_id' AND has_column_privilege(r,'public.busy_business_snapshots',attname,'SELECT,INSERT')) THEN RAISE EXCEPTION 'Broad snapshot column access remains';END IF;
+  IF has_schema_privilege(r,'busy_work_private','USAGE') THEN RAISE EXCEPTION 'Private helper schema exposed';END IF;
+  FOR f IN SELECT p.oid,p.proname,p.pronamespace FROM pg_proc p WHERE p.pronamespace='busy_work_private'::regnamespace OR p.pronamespace='public'::regnamespace AND left(p.proname,10)='busy_work_' LOOP
+   IF (f.pronamespace='busy_work_private'::regnamespace OR f.proname='busy_work_migrate_legacy_v1' OR r<>'authenticated') AND has_function_privilege(r,f.oid,'EXECUTE') THEN RAISE EXCEPTION 'Unexpected inherited RPC execution' USING ERRCODE='42501';END IF;
+  END LOOP;
+ END LOOP;
+END $$;
+COMMIT;

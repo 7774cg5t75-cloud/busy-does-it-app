@@ -1,0 +1,164 @@
+{
+  "runId": 42240164104,
+  "runUrl": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42240164104",
+  "jobId": 127968412715,
+  "sourceSha": "addb27c7ccf4db7524a0f5c266484c0b10779461",
+  "sourceTree": "ece198e17c67c618ec5b7ed11ef0ea1b94114595e",
+  "status": "cancelled-superseded",
+  "observedCancellation": "Complete frozen-source regressions cancelled at2026-11-06T15:17:38.1376947Z after the next functional source was pushed. No complete application passing result is claimed.",
+  "application509": "Interrupted before final result; not passed.",
+  "passedBeforeCancellation": {
+    "dependencyGuard": true,
+    "originalContractComponentStep": true,
+    "foundationAssertions": 105,
+    "allEightLegacyWebsiteScopeScripts": true,
+    "genuineDeno": {
+      "originalEntrypoints": 26,
+      "proposalModules": 4,
+      "total": 30,
+      "exitCode": 0
+    },
+    "disposablePostgres": {
+      "commandSuites": 8,
+      "receiptSummaries": {
+        "ai-budget": {
+          "failed": 0,
+          "passed": 32
+        },
+        "ai-lab-foundation": {
+          "failed": 0,
+          "passed": 19
+        },
+        "enquiry-preparation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "operational-work": {
+          "failed": 0,
+          "passed": 13
+        },
+        "preservation-foundation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "public-form": {
+          "failed": 0,
+          "passed": 21
+        },
+        "whole-app": {
+          "failed": 0,
+          "passed": 126
+        },
+        "whole-site": {
+          "failed": 0,
+          "passed": 12
+        },
+        "work-preparation": {
+          "failed": 0,
+          "passed": 12
+        }
+      }
+    },
+    "unsignedOwnerPreviewExport": true,
+    "unsignedIsolatedStagingExport": true
+  },
+  "countUnits": "SQL passed/failed stage counts are per nine receipts from eight commands, including nested operational-work. They are not unique application assertions.",
+  "artifact": {
+    "id": 13516675579,
+    "sha256": "68df61451be54a63838b4e19f5a17291b3dd1002f3e471dd4b0ae241ba97ca8d",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42240164104/artifacts/13516675579"
+  },
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1
+    },
+    {
+      "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2
+    },
+    {
+      "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3
+    },
+    {
+      "name": "Reviewed lock installation and security guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4
+    },
+    {
+      "name": "Original contract and component behaviour",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5
+    },
+    {
+      "name": "Original legacy Website worker scopes with real shared dependencies",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 6
+    },
+    {
+      "name": "Genuine original Edge checks with pinned official verification tools",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7
+    },
+    {
+      "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 8
+    },
+    {
+      "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9
+    },
+    {
+      "name": "Unsigned original Owner Preview and isolated staging exports",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 10
+    },
+    {
+      "name": "Complete frozen-source regressions",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "number": 11
+    },
+    {
+      "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 12
+    },
+    {
+      "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 23
+    },
+    {
+      "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 24
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 25
+    }
+  ],
+  "evidenceScope": "Read-only GitHub Actions metadata and actual integer receipt summaries. No hosted database, credentials, provider call or publication."
+}

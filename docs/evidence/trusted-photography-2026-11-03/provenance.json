@@ -1,0 +1,26 @@
+{
+  "current": {
+    "commit": "38735083a148029e8eb5984fe1034b6ecfff7f82",
+    "tree": "4c4329aa55ccd1e3f02a2a80408cd627574a46e8"
+  },
+  "previous": {
+    "commit": "5f0ffe5d75559db2dd34ad642d9a3a9eea0a733d",
+    "tree": "3968fdecc822c097ec4b538725ea7e1fcd8b260c"
+  },
+  "comparison": "Cropped and downscaled actual prior AFTER versus current AFTER PNGs: top900px phone/top1800px desktop, same fictional businesses. Full originals remain in Actions. Layouts deliberately retained; not evidence of new supporting layouts or AI imagery.",
+  "originalPngLocation": "GitHub Actions artifacts; seven-day retention. Full PNG checksums in each source manifest.",
+  "previousRun": 41631925193,
+  "currentRun": 41665646890,
+  "currentArtifact": 13244268204,
+  "currentArtifactSha256": "ad3a39ab2889857e9cd471ebf2a0de7c05a0728eb93d70e49f1d07f555478ca2",
+  "files": {
+    "actual-mobile.jpg": "4fa3f2ed6d34e3ab2ff244c47a4a4fc2d55a08664eb11be83738b0a0543e3020",
+    "processed-photos.json": "ae5d50c4fd27fc411ea26ec87b29c9849327d980c1592549e4113af8d1094efa",
+    "browser-results.json": "3dacb94ff8ef2378986e4ff6e1b2301d399446d1c8ec2c76f43b715853eb275f",
+    "actual-desktop.jpg": "404c966fd20853553813cb83b608041c51f4f00f38c4a0d31ce9be7132387bc7",
+    "comparison-desktop.jpg": "6164f1f050a2299db886bf00f61bd6eee9bcd24910a13ec5ff0d69ea4afcf05b",
+    "comparison-mobile.jpg": "84d18c1d46ee8a4cceff090980a970dd3bc7832cf657845c4fa359959b4c6111"
+  },
+  "assets": "Original pinned CC0 illustrative fixture photographs; no actual owner business work, customer data or private originals.",
+  "finalPixelsExactlyMatchInspectedIntermediate": true
+}

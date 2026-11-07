@@ -1,0 +1,168 @@
+{
+  "version": "busy.creative-pilot-budget-proposal.v1",
+  "status": "review-proposal-only-not-authorized",
+  "preparedOn": "2026-11-07",
+  "source": {
+    "reviewStartCommit": "b59ace495b67f3166795390aca7be8424ab52e83",
+    "reviewStartTree": "3ef950076ba32835f524518080853207347dce42",
+    "unchangedFunctionalCommit": "0888dc3c896c1960de292acc9c98279625ad5218",
+    "unchangedFunctionalTree": "359c0353978849b84f3bbced89fe2092ab9ea3d1"
+  },
+  "proposedCeilings": {
+    "astraMicroGBP": 1000000,
+    "cumulativeComparisonMicroGBP": 3000000,
+    "includesInitialAstra": true,
+    "retries": 0,
+    "fallbacks": 0,
+    "tools": 0,
+    "maximumInferenceRequests": 2,
+    "inferenceRequestsPerModel": 1,
+    "additionalAccountOrCountingRequests": "Not authorised; require enumerated separate scope and any cost included in the cumulative ceiling"
+  },
+  "proposedTokenEnvelope": {
+    "completeInput": 8000,
+    "totalOutputIncludingReasoning": 12000,
+    "exactInputCounts": {
+      "astra": null,
+      "sol": null
+    },
+    "completeUsefulOutputFit": "unproven",
+    "reasoningSetting": "unset; same explicit setting requires final review",
+    "requestDigests": {
+      "astra": null,
+      "sol": null
+    },
+    "requiresPreservingOriginalConstraintMigration": true
+  },
+  "currentRuntimeLimitsUnchanged": {
+    "input": 4000,
+    "totalOutput": 4000,
+    "maximumGBP": 0.1,
+    "actualSourcePreparationModel": "gpt-6.1-sol"
+  },
+  "readOnlyLabState": {
+    "projectId": "sbvkrvksnruiclcvclbd",
+    "organizationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "spent": 0,
+    "events": 0,
+    "policy": {
+      "enabled": false,
+      "monthlyHardLimit": 0
+    },
+    "periods": 0,
+    "tariffs": 0,
+    "accounts": 0,
+    "readOnly": "on",
+    "reserved": 0,
+    "observedAt": "2026-11-07T16:33:34.174211+00:00",
+    "operations": 0,
+    "tariffChecks": [
+      "CHECK (((buffer_bps >= 0) AND (buffer_bps <= 20000)))",
+      "CHECK (((currency <> 'GBP'::text) OR (fx_gbp_ppm = 1000000)))",
+      "CHECK ((currency = ANY (ARRAY['GBP'::text, 'USD'::text, 'EUR'::text])))",
+      "CHECK (((length(evidence_reference) >= 1) AND (length(evidence_reference) <= 160)))",
+      "CHECK ((feature = ANY (ARRAY['website-design'::text, 'app-requirements'::text])))",
+      "CHECK (((fx_gbp_ppm >= 1) AND (fx_gbp_ppm <= 10000000)))",
+      "CHECK (((input_micro_per_1000 >= 0) AND (input_micro_per_1000 <= 100000000)))",
+      "CHECK (((max_input >= 1) AND (max_input <= 8000)))",
+      "CHECK (((max_output >= 1) AND (max_output <= 4000)))",
+      "CHECK (((output_micro_per_1000 >= 0) AND (output_micro_per_1000 <= 100000000)))",
+      "CHECK ((revision > 0))"
+    ]
+  },
+  "availability": {
+    "officialApiIds": [
+      "gpt-6-astra",
+      "gpt-6.1-sol"
+    ],
+    "accountEligibility": "unverified; no authenticated provider-account route used",
+    "modelAccountOrCountRequests": 0
+  },
+  "liveReservation": null,
+  "executionApproval": null,
+  "authority": {
+    "hostedMutation": false,
+    "policyChange": false,
+    "credentialAccess": false,
+    "deployment": false,
+    "providerActivation": false,
+    "providerCall": false,
+    "spending": false,
+    "publication": false
+  },
+  "freshLocalVerification": {
+    "originalBudgetRealPostgrestCases": {
+      "passed": 20,
+      "failed": 0,
+      "syntheticProviderUsage": true,
+      "providerCalls": 0,
+      "cleanupCompleted": true
+    },
+    "actualSourceBaseline": {
+      "passed": 23,
+      "failed": 0
+    },
+    "actualSourceCreativeBridge": {
+      "passed": 17,
+      "failed": 0
+    },
+    "newHigherLimitRuntimeTested": false,
+    "baselineBuiltFromVerifiedPrivateExport": true,
+    "newBrowserScreenshotSet": false
+  },
+  "warning": "Evidence only, never a runtime budget authority, execution permit or admitted tariff.",
+  "planningArithmetic": {
+    "notAdmittedTariff": true,
+    "referenceDate": "2026-11-06",
+    "referenceSource": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+    "eurUSD": "1.1165",
+    "eurGBP": "0.83415",
+    "derivedUSDPerGBP": "1.338488281484145537373374093",
+    "assumptions": {
+      "input": "highest listed12h cache-write rate, not a requested caching feature",
+      "regionalUplift": "10%",
+      "vatScenario": "20%, actual treatment unverified",
+      "fxFeeScenario": "3%, assumed not verified",
+      "fixedCharges": "not established, not included"
+    },
+    "rounding": "Upward per operation toGBP micro-units; original tariff-unit rounding may be higher",
+    "scenarios": [
+      {
+        "completeInput": 8000,
+        "totalOutputIncludingReasoning": 8000,
+        "astraGBP": "0.609464",
+        "solGBP": "0.121893",
+        "sumPerOperationRoundedGBP": "0.731357"
+      },
+      {
+        "completeInput": 8000,
+        "totalOutputIncludingReasoning": 12000,
+        "astraGBP": "0.812619",
+        "solGBP": "0.162524",
+        "sumPerOperationRoundedGBP": "0.975143"
+      },
+      {
+        "completeInput": 8000,
+        "totalOutputIncludingReasoning": 16000,
+        "astraGBP": "1.015773",
+        "solGBP": "0.203155",
+        "sumPerOperationRoundedGBP": "1.218928"
+      },
+      {
+        "completeInput": 8000,
+        "totalOutputIncludingReasoning": 25000,
+        "astraGBP": "1.472871",
+        "solGBP": "0.294575",
+        "sumPerOperationRoundedGBP": "1.767446"
+      }
+    ]
+  },
+  "privacy": {
+    "rawContactValuesProjected": false,
+    "credentialsProjected": false,
+    "b3PermitsProjected": false,
+    "nativeOwnerBusinessAndWebsiteScopeProjected": true,
+    "exactExternalInputReviewRequiredBeforeModelOrCountingRequests": true
+  }
+}

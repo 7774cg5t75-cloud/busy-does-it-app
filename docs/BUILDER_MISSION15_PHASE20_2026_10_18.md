@@ -1,0 +1,27 @@
+# Mission 15 Phase 20 — five rounds plus scope correction
+
+Same branch/PR #26 continues verified `d01c0063524b1076bd8bc62e8226d0b396c0322d`. PR #25/#24/#23/#21 remain open, draft, unmerged at their verified heads. Approved private V22.35 was fully read and verified earlier in this current task; unchanged requirements and project instructions were reused. Private documents remain outside Git.
+
+## Delivered and checkpointed
+
+1. **Catalogue continuity and editable questions** — `34fbbeecfc89d451d55959371bfcd3fc34c469a9`: extracted pure public browse/detail transitions into `catalogueState.mjs`, retaining the original shared component and request adapter. Tests cover product/event identity, revision review, options, query/category return, removal, stale source and business/kind/context reset. Shared question shortcuts prepare an empty topic only; current quantity/timing/location/access details stay editable and use original exact review/submission. Nothing is sent by a shortcut.
+2. **Content-led website composition** — `4263f0c558ff4ff25bf4bc56f780b0946fb620bc`: service-rich pages can prepare an original-lifecycle compact service-guide candidate. Canonical desktop service rows separate titles from details while phones stack. Original content/colours/assets and owner order remain authoritative. Bounded heading prominence and explicit original-wording preservation use original atomic operations; contradictory edits fail entirely.
+3. **Simpler scoped controls in both builders** — `9943b7d204174b67f119c0ef3ea0cd7e657894cf`: one App Studio preview coordinates only the selected card and named enquiry/booking-request button. Original label/action/service identity, locks and exact Undo remain. Website paragraph controls offer a whole-section phone-reading/spacing proposal with scope explained; colours, wording and desktop remain unchanged.
+4. **Grounded Talk & Explore** — `3d486447480e70f424391e66a89d17be004c227d`: discusses actual Home sections/information order and contrasts coordinated page styling with phone-only reading. Alternatives are dry-validated through original planners, never applied by discussion. Explicit handoff and separate original editor approval remain required; unsupported/locked alternatives are filtered.
+5. **Queued customer-input preservation** — `33c8c042ed7658b7cd6c1650bf2f0cab0f13d1e7`: suggestions merge only an empty topic against the latest queued requirements in both original forms. Newly typed fields and a newer own question cannot be replaced by an older shortcut snapshot. Original busy/uncertain-send/review guards remain.
+
+Additional verified correction: `60ec8d2be64b7f274a6e8d72069bc355a6edc963` discards old catalogue state on a scope switch, including switching back. The pure helper and actual component are tested. Optional `contextKey` permits callers to scope public browsing state further; this is not a newly authenticated account/session boundary. Current real account/tenant/request authorisation remains in the existing trusted forms/server. No private customer input is stored by the browsing helper.
+
+## Verification and boundaries
+
+Focused behavioural checks run actual components, canonical HTML/layout operations, original requirement preparation, review/submission boundaries and inverse operations with inert native/auth/IO. Nineteen changed source/test modules parse; original requirement-policy copies match. Standalone fictional fixture packaging includes both new modules. No package installation.
+
+The initial broad run passed 120 checks but was superseded by the late scope-switch correction. Final complete rerun against the corrected frozen checkpoint: **120 passed, 0 failed, 0 blocked, 0 unexecuted**. It began from a clean committed tree and no functional code changed during execution. The accompanying checks JSON records exact source mapping and individual results. Source evidence is not browser geometry, aesthetics, physical device, signed Expo, hosted RLS or provider acceptance. No Chromium retry or workflow dispatch.
+
+No new catalogue/request/editor/Brain engine, schema, durable personal workspace, generated-code executor, service-image association or remote Explore route/tools/paid voice. Stable approved service-asset identity still requires the prior explicit contract proposal. General creation stays planning-only. Existing safe/advisory/critical quality gates remain; wording preservation adds a finite transaction constraint, not aesthetic certification.
+
+Architecture: original catalogue component retains rendering, callbacks and request adapter; pure helper owns source-bound transitions/projections. AppController, miniApps and main Edge entry unchanged. Standalone exports must package new helper/component files; compatible client/worker/shared bundles and regenerated exports are required for a later approved rollout. None was deployed.
+
+Next worthwhile implementation: pass explicit authenticated/public-view context keys from original runtime boundaries where available; improve return-to-request/detail navigation without persisting private fields outside existing encrypted recovery; continue finite responsive design candidate refinement and reduce contextual editor clutter. Maintain true authority at original trusted boundaries, not mode flags or caller-supplied context keys.
+
+Mission 15 remains open. No merges, deployments, hosted DB/schema changes, publication, customer/provider actions, billing/credential changes, paid builds or additional external spending. £0.

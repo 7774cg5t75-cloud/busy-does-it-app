@@ -1,5 +1,9 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
+import {connectedStagingAction} from '../_shared/connectedStagingActions.mjs';
+import {privateWebsiteDraftAction} from './privateDraftService.mjs';
+import {builderExploreRemoteGuard} from '../_shared/builderExploreRemoteGuard.mjs';
+import {createClient} from "../_shared/supabaseClient.ts";
 import {evaluateLaunchPreflight} from "./launchPreflight.mjs";
 import {validatedLeadInput,validTransition,buildLeadDigest} from "./leadWorkflow.mjs";
 import {isVerifiedDomainTxtAnswer} from "./domainOwnership.mjs";
@@ -1058,7 +1062,7 @@ async function inspectDomainDns(businessId: string, domainId: string) {
   if(result.error)throw result.error;
   if(!result.data)throw Error("This domain does not belong to the selected business.");
   const records=requestedDnsRecords(result.data);
-  const checks=await Promise.all(records.map(async record=>{
+  const checks=await Promise.all(records.map(async (record:{name:string,type:string})=>{
     let evidence;
     try{
       const url="https://cloudflare-dns.com/dns-query?name="+
@@ -1303,7 +1307,7 @@ async function listWebsiteLeads(businessId:string){
 }
 async function addWebsiteLead(userId:string,businessId:string,body:any){
   const checked=validatedLeadInput(body);
-  if(!checked.ok)throw new Error(checked.error);
+  if(!checked.ok||!checked.record)throw new Error(checked.error||"Reviewed record unavailable");
   const website=await websiteForBusiness(businessId);
   const values={...checked.record,created_by:userId,business_id:businessId,
     website_id:website?.id||null};
@@ -1342,10 +1346,15 @@ Deno.serve(async (request: Request) => {
 
   try {
     const user = await requireUser(request);
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16_000_000) as Record<string,unknown>;
+    const exploreGate=builderExploreRemoteGuard(body);
+    if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
     const action = cleanText(body?.action, 80);
+    if(!connectedStagingAction({projectUrl:SUPABASE_URL,enabled:Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED"),domain:"website",action}).allowed)return json(403,{ok:false,error:"This action is not enabled in connected staging"});
+    if(!legacyConsequentialAllowed('website',action))return json(503,{ok:false,error:'This hosted action requires its separately reviewed authority. Your private draft is unchanged.'});
     const requestedBusinessId = cleanText(body?.businessId, 80);
     const writeActions = new Set([
+      "website_create","website_edit_text","website_edit_design","website_edit_page","website_edit_instruction","website_undo","website_redo",
       "prepare",
       "publish",
       "launch_preflight",
@@ -1377,6 +1386,17 @@ Deno.serve(async (request: Request) => {
       cleanText(request.headers.get("x-busy-request-id"), 180) ||
       cleanText(body?.idempotencyKey, 180);
 
+    if(action==="website_create"||action==="website_edit_text"||action==="website_edit_design"||action==="website_edit_page"||action==="website_edit_instruction"||action==="website_undo"||action==="website_redo"){
+      if(SUPABASE_URL!=="https://pnjdlogwegnqbsfpcofw.supabase.co"||Deno.env.get("BUSY_CONNECTED_BUILDERS_ENABLED")!=="true")
+        return json(403,{ok:false,error:"Connected staging builders are not activated"});
+      const reader=createClient(SUPABASE_URL,SERVICE_ROLE_KEY,{auth:{persistSession:false},global:{headers:{Authorization:request.headers.get("Authorization")||""}}});
+      const value=await privateWebsiteDraftAction({action,body:{...body,businessId},userId:user.id,
+        read:async(id:string)=>{const r=await reader.rpc("busy_connected_builder_read_v1",{p_business_id:id});if(r.error)throw r.error;return r.data;},
+        history:async(id:string,revision:number,hash:string,direction:string)=>{const r=await reader.rpc("busy_connected_website_history_v1",{p_business_id:id,p_expected_revision:revision,p_expected_hash:hash,p_direction:direction});if(r.error)throw r.error;return r.data;},
+        transition:async(args:any)=>{const r=await supabase.rpc("busy_connected_website_transition_v1",args);if(r.error)throw r.error;return r.data;},
+        commit:async(args:any)=>{const r=await supabase.rpc("busy_connected_website_commit_v1",args);if(r.error)throw r.error;return r.data;}});
+      return json(200,value);
+    }
     if(action==="lead_list"){
       return json(200,{ok:true,leads:await listWebsiteLeads(businessId)});
     }
@@ -1435,7 +1455,7 @@ Deno.serve(async (request: Request) => {
     }
     if(action==="design_feedback_record"){
       const checked=validateDesignFeedback(body);
-      if(!checked.ok)throw Error(checked.error);
+      if(!checked.ok||!checked.record)throw Error(checked.error||"Reviewed record unavailable");
       const {data,error}=await supabase.from("busy_website_design_feedback")
         .insert({...checked.record,business_id:businessId,created_by:user.id})
         .select("id").single();
@@ -1536,6 +1556,7 @@ Deno.serve(async (request: Request) => {
 
     return json(400, { error: "Unknown website publishing action." });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{ok:false,error:error.message});
     return json(400, {
       error: error instanceof Error ? error.message : "Website publishing request failed.",
     });

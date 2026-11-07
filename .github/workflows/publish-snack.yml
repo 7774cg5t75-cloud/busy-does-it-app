@@ -14,9 +14,14 @@ on:
       - SNACK_PREVIEW.json
       - 'docs/**'
   workflow_dispatch:
+    inputs:
+      approval_phrase:
+        description: "Explicit approval for this legacy external/source operation"
+        required: true
+        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: publish-snack-${{ github.ref }}
@@ -24,15 +29,18 @@ concurrency:
 
 jobs:
   publish:
+    if: github.event_name == 'workflow_dispatch' && inputs.approval_phrase == 'APPROVE_EXTERNAL_SNACK_PREVIEW' && vars.BUSY_LEGACY_TOOLCHAIN_REVIEWED == 'true'
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out source branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 verified upstream commit
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4 verified upstream commit
         with:
           node-version: 20
 
@@ -55,26 +63,14 @@ jobs:
             echo "Preview metadata unchanged"
           else
             git commit -m "Update Snack preview [skip ci]"
-            # The development agent may have added another commit while the
-            # preview was uploading. Retry a normal fast-forward integration;
-            # never force-push or overwrite somebody else's work.
-            for attempt in 1 2 3; do
-              if git push origin "HEAD:${GITHUB_REF_NAME}"; then
-                echo "Snack preview link saved"
-                break
-              fi
-              if [ "${attempt}" -eq 3 ]; then
-                echo "Could not safely update preview metadata after retries"
-                exit 1
-              fi
-              git fetch origin "${GITHUB_REF_NAME}"
-              git rebase "origin/${GITHUB_REF_NAME}"
-              sleep "${attempt}"
-            done
+            # Publish may already have succeeded. Preserve its receipt; never
+            # re-publish or rewrite history to hide an unconfirmed metadata push.
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
 
       - name: Upload preview metadata
-        uses: actions/upload-artifact@v4
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4 verified upstream commit
         with:
           name: snack-preview
           path: SNACK_PREVIEW.json

@@ -8,20 +8,22 @@ import {splitBuilderInstructionClauses} from './builderInstructionClauses.mjs';
  * single immutable transaction is prepared.
  */
 import {interpretSelectedWebsiteRequest} from "./websiteContextualEdit.mjs";
-const MAX_STEPS=5;
-const MAX_CHARACTERS=400;
+import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from './websiteEditingLimits.mjs';
+const MAX_STEPS=WEBSITE_ATOMIC_CHANGES;
+const MAX_CHARACTERS=WEBSITE_ATOMIC_CHARACTERS;
 const list=x=>Array.isArray(x)?x:[];
 const error=reason=>({ok:false,reason,steps:[]});
 function splitSelectedWebsiteInstruction(text){
  if(typeof text!=="string"||!text.trim()||text.length>MAX_CHARACTERS)return null;
- return splitBuilderInstructionClauses(text,{website:true,max:MAX_STEPS});
+ return splitBuilderInstructionClauses(text,{website:true,max:MAX_STEPS,maxCharacters:MAX_CHARACTERS});
 }
 function planSelectedWebsiteChanges(draft,pageId,selection,instruction){
  const clauses=splitSelectedWebsiteInstruction(instruction);
- if(!clauses)return error("Ask for up to five short changes. Separate them with 'and then' or a semicolon.");
- const steps=[];
+ if(!clauses)return error("Describe clear changes separated by 'and then' or a semicolon. Longer requests can be reviewed in groups.");
+ const steps=[];let preserveColours=false;
  const changed=new Set();
  for(let i=0;i<clauses.length;i++){
+  if(/^keep (?:my |the |our )?(?:existing )?colou?rs$/i.test(clauses[i])){preserveColours=true;continue;}
   const result=interpretSelectedWebsiteRequest(draft,pageId,selection,clauses[i]);
   if(!result.ok)return error("No changes were made. Step "+(i+1)+": "+result.reason);
   const c=result.change||{};
@@ -33,12 +35,19 @@ function planSelectedWebsiteChanges(draft,pageId,selection,instruction){
    c.field||"",
    c.action==="image-style"||c.action==="move-gallery-photo"?c.photoIndex:"",
   ].join(":");
-  if(changed.has(target))
+  const targets=c.action==='style-group'?c.operations.map(op=>['layout',op.action,op.sectionId||'',op.itemId||'',op.field||'',''].join(':')):[target];
+  if(targets.some(key=>changed.has(key)))
    return error("Two instructions would change the same setting. Choose one change for that setting.");
-  changed.add(target);
+  targets.forEach(key=>changed.add(key));
   steps.push({type:result.type,change:{...c},description:result.reason,spoken:clauses[i]});
  }
- return {ok:true,steps,requiresExplicitApproval:true,
+ if(!steps.length)return error('Choose a supported change; keeping colours alone does not change your website.');
+ if(preserveColours){
+  // Only operations whose canonical contracts leave colours untouched may enter.
+  const safe=op=>op.action==='style-group'?op.operations.every(safe):['move','move-relative','move-gallery-photo'].includes(op.action)||op.action==='style'&&['heroLayout','heroSize','photoFocus'].includes(op.field)||op.action==='section-style'&&['testimonialsLayout','readingLayout','desktopPhotoSide','serviceLayout','photoSide','photoCrop','sectionSpacing','mobileSectionSpacing','desktopSectionSpacing','bodyScale','mobileBodyScale','desktopBodyScale','headingScale','mobileHeadingScale','desktopHeadingScale','gallerySize','mobileGallerySize','desktopGallerySize','textAlign'].includes(op.field);
+  if(steps.some(step=>step.type!=='layout'||!safe(step.change)))return error('No changes were made. Use picture placement, reading size, spacing or movement when keeping all existing colours.');
+ }
+ return {ok:true,steps,preservesColours:preserveColours,requiresExplicitApproval:true,
   summary:steps.length===1?"One change to the selected part":
    steps.length+" changes to the selected part, all saved together with one Undo"};
 }

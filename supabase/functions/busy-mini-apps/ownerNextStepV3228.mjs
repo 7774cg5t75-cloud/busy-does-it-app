@@ -2,8 +2,8 @@
  * V3.228: ONE conservative next step based only on existing same-business
  * owner/admin server readbacks. Does not authenticate or modify records.
  */
-function chooseOwnerRequestNextStepV3228({queue=null,alerts=null}={}){
- const deny=reason=>({ok:false,reason,readOnly:true,maySend:false,
+function chooseOwnerRequestNextStepV3228({queue=/** @type {ReturnType<import('./ownerRequestQueueV3225.mjs').classifyOwnerRequestQueueV3225>|null} */ (null),alerts=/** @type {ReturnType<import('./ownerGuestAlertEvidenceV3227.mjs').ownerGuestAlertEvidenceV3227>|null} */ (null)}={}){
+ const deny=reason=>({ok:/** @type {const} */ (false),reason,readOnly:true,maySend:false,
   mayConfirmBooking:false,deviceDelivered:false});
  const uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
  if(!queue||queue.ok!==true||!alerts||alerts.ok!==true||
@@ -39,7 +39,7 @@ function chooseOwnerRequestNextStepV3228({queue=null,alerts=null}={}){
   up_to_date:["No immediate enquiry action",
    "No enquiries are marked new or under review. Earlier phone notifications are not proven delivered."]
  };
- return {ok:true,kind:"owner_request_next_step_v3228",businessId:queue.businessId,
+ return {ok:/** @type {const} */ (true),kind:"owner_request_next_step_v3228",businessId:queue.businessId,
   appId:queue.appId,action,title:copy[action][0],
   explanation:copy[action][1],
   latestRequestId:queue.received>0?queue.latestRequestId:null,

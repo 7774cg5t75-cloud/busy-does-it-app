@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {wholeAppStagingPackage} from './lib/whole-app-staging-package.mjs';
+import {preservationFoundationPackage} from './lib/preservation-foundation-package.mjs';
+const hash=s=>createHash('sha256').update(s).digest('hex'),fresh=wholeAppStagingPackage(process.cwd()),p=preservationFoundationPackage(process.cwd()),dir='docs/sql-proposals/preservation-foundation';
+assert.equal(fresh.sha256,'7eb4fcf0f924d478ffaf34073788d9657becf2d056b9401f89f57567224cac50');assert.equal(fresh.rollbackSha256,'f8ae624572303f06f21bf7224b8d8dcbab544be8601c975c70e38374fac40441');
+assert.equal(readFileSync(dir+'/install.sql','utf8'),p.sql);assert.equal(readFileSync(dir+'/rollback-retain.sql','utf8'),p.rollback);
+const {sql,rollback,...manifest}=p;assert.deepEqual(JSON.parse(readFileSync(dir+'/manifest.json')),manifest);assert.equal(hash(sql),p.sha256);assert.equal(hash(rollback),p.rollbackSha256);
+assert.match(sql,/PRESERVATION FOUNDATION REVIEW FUSE/);assert.match(rollback,/PRESERVATION ROLLBACK REVIEW FUSE/);assert.equal(p.autoExecute,false);assert.equal(p.providerEnabled,false);assert.equal(p.policyEnabled,false);assert.equal(p.authUsersCreated,false);assert.equal(p.entitlementsCreated,false);assert.equal(p.receiptReaderRetained,true);
+assert.deepEqual(p.preservation.names,['busy_marketing_waitlist','busy_staging_rls_canary']);assert.equal(p.preservation.defaultsChanged,false);assert.equal(p.preservation.rawRowsExported,false);assert.equal(p.preservation.installationInternalHashReads,true);
+assert.ok(sql.includes('Preserved onboarding data or sequence state changed'));assert.ok(sql.includes('Preserved object identity, defaults or event triggers changed'));assert.ok(!/ALTER DEFAULT PRIVILEGES/i.test(sql));assert.ok(!/nextval\([^)]*busy_marketing_waitlist|setval\(|TRUNCATE public\.busy_marketing_waitlist|UPDATE public\.busy_marketing_waitlist|DELETE FROM public\.busy_marketing_waitlist/i.test(sql));
+assert.ok(!rollback.includes('REVOKE ALL ON FUNCTION public.busy_ai_operation_read_v1'));assert.ok(!/DROP (?:SCHEMA|TABLE)|TRUNCATE /i.test(rollback));assert.throws(()=>wholeAppStagingPackage(process.cwd(),{preserveOnboarding:'yes'}));
+console.log('PASS byte-identical original fresh installer/rollback, exact generated review-fused preservation package and hashes, fixed scope, internal-only data fingerprints, unchanged defaults and retained cost readback. No connection or mutation.');

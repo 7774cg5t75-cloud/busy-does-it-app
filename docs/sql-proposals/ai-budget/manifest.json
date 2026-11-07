@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "designatedProject": "pnjdlogwegnqbsfpcofw",
+  "hostedAuthorised": false,
+  "defaultGatewayEnabled": false,
+  "defaultLedgerEnabled": false,
+  "providerMode": "offline-simulation-only",
+  "baselineGitHubCommit": "637c5d4e181ea152a444c24120b795e4df83f2d1",
+  "baseWholeAppInstallSha256": "77db9ed80a0352c20ce10c3b17c143433aeedac17e7d74228e9390fb29d9a7c8",
+  "sourceSha256": {
+    "docs/sql-proposals/ai-budget/install.sql": "8649af5f487bde9dfc984009cbf80709b49112298d0d8d02e7ec43b039df19a3",
+    "docs/sql-proposals/ai-budget/rollback-retain.sql": "e20e0bfebf05391a10e99e60335600a161a3d20ce19a49daad120a09ccde0b39",
+    "supabase/functions/busy-builder-proposals/index.ts": "a08e7e9c96672eaaa023814dfb1330cc27326fc7298c3be05169870b51cca3c2",
+    "supabase/functions/busy-builder-proposals/gateway.mjs": "15301f47117e569d018a38e0342f6408f400c2d4a6d83a2e4b40fa8d47c8d1e8",
+    "supabase/functions/busy-builder-proposals/offlineProvider.mjs": "5ee16421a280c231542e09a39ad908c5a7fc9f8da2c03d2a6e1cfa19240bfffe",
+    "src/core/governedBuilderProposal.mjs": "db0b649e7795a1c40792695ec8bc0deb7be9e60c08e60cfca051293043f8735c",
+    "src/core/builderGatewayReview.mjs": "20f91f7c044f75e26d60a409c7205f92358e80d4a773e96ea8fa768e17f9a4ff"
+  },
+  "localRehearsalOnlyExecutionSha256": "d6e909737d72aa0ad3b3b80b6253eae5037e2b245a77906445269b71c6b481b7",
+  "fuseTransform": "Remove exactly the standalone AI BUDGET REVIEW FUSE line only in disposable local execution material. No hosted authority."
+}

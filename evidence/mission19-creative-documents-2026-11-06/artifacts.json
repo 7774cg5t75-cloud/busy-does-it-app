@@ -1,0 +1,25 @@
+{
+  "run": 42280268183,
+  "source": "f42028950b573ceee874994e5414763423abc5d4",
+  "tree": "5c5cc5af6656306cf979f4cf70892f89e2f16691",
+  "artifacts": [
+    {
+      "id": 13534878238,
+      "name": "mission19-website-quality-f42028950b573ceee874994e5414763423abc5d4",
+      "size": 76300993,
+      "digest": "sha256:5ddd0efc0b36930afe34e06fa4777b7fb152fbf0399fdbf048cc1382ef1b9361",
+      "createdAt": "2026-11-06T19:34:03Z",
+      "expiresAt": "2026-11-13T19:33:59Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42280268183/artifacts/13534878238"
+    },
+    {
+      "id": 13534338632,
+      "name": "mission19-iphone-review-f42028950b573ceee874994e5414763423abc5d4",
+      "size": 5444643,
+      "digest": "sha256:ad797ddeda1e8f9e31f227998a5637f6fcc55e62455d4499b6c06526fa95a942",
+      "createdAt": "2026-11-06T19:34:05Z",
+      "expiresAt": "2026-11-13T19:34:03Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42280268183/artifacts/13534338632"
+    }
+  ]
+}

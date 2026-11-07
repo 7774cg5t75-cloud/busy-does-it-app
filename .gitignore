@@ -1,0 +1,12 @@
+# Local runtime and isolated verification dependencies; never commit packages.
+node_modules/
+.test-artifacts/
+
+__pycache__/
+.tmp/
+
+# Local Expo export/prebuild metadata
+.expo/
+
+# The reviewed offline-tool bootstrap creates this dependency symlink.
+/scripts/node_modules

@@ -1,0 +1,152 @@
+{
+  "recordedAt": "2026-11-06T11:18:08.466155+00:00",
+  "startingHead": "879054bfad3da6920ad1c9e487935acc45b801f1",
+  "approvedFunctionalCommit": "57148cbba4a61c2ecb50361f1914196b8717022e",
+  "approvedFunctionalTree": "9305def084ec1d64eb8d68387cc86da27806990d",
+  "master": {
+    "sha256": "1b09e3eac692a859479adafe776508bb998d49e94c656b76c0082c8490521da2",
+    "bytes": 378379,
+    "zipMembers": 20,
+    "xmlMembersParsed": 19,
+    "paragraphs": 3325,
+    "tables": 20,
+    "coverVersionPresent": true,
+    "section93ExactParagraphsPreserved": true,
+    "section94ExactParagraphsPreserved": true,
+    "trackedInsertions": 0,
+    "trackedDeletions": 0,
+    "externalRelationships": 0,
+    "macroParts": 0
+  },
+  "masterVersion": "22.84",
+  "masterDate": "2026-11-06",
+  "completeInheritedComparisonRangesReviewed": 38,
+  "privateContentCommitted": false,
+  "installation": {
+    "state": "not_executed",
+    "attempts": 0,
+    "fuseRemoved": false,
+    "executionDerivativePrepared": false,
+    "approvedSqlChanged": false,
+    "hostedWrites": 0,
+    "failedMandatoryCondition": "Runner handling of embedded BEGIN/COMMIT and migration history atomicity cannot be independently established"
+  },
+  "freshTests": {
+    "runnerPostgres": {
+      "hosted": false,
+      "approvedFoundationExecuted": false,
+      "fuseRemoved": false,
+      "providerCalls": 0,
+      "evidence": "Synthetic transaction-wrapper counterexample; not proof of the actual hosted implementation",
+      "results": [
+        {
+          "id": "guarded-unix-only-pg17-and-approved-sql-bytes-unchanged",
+          "passed": true
+        },
+        {
+          "id": "single-runner-transaction-rolls-back-schema-when-history-fails",
+          "passed": true
+        },
+        {
+          "id": "embedded-commit-counterexample-persists-schema-before-history-failure",
+          "passed": true
+        }
+      ],
+      "summary": {
+        "passed": 3,
+        "failed": 0
+      }
+    },
+    "productionFoundation": {
+      "passed": 105,
+      "failed": 0
+    },
+    "deno": {
+      "entryTargets": 26,
+      "additionalModules": 4,
+      "exitCode": 0
+    },
+    "syntax": {
+      "passed": 1,
+      "failed": 0
+    },
+    "sourceManifestAndHashGuards": {
+      "exitCode": 0
+    },
+    "securityByDesign": {
+      "exitCode": 0
+    },
+    "guardedDependencyCheck": {
+      "exitCode": 0
+    }
+  },
+  "logs": {
+    "105": {
+      "sha256": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e",
+      "exitCode": 0
+    },
+    "security": {
+      "sha256": "f71c006f0ce7110b7a5028c1f0a3a140c49dd0c912b1852acfbf1c9851bd6eb8",
+      "exitCode": 0
+    },
+    "dependencies": {
+      "sha256": "b13dad40449d6f0b486902876dedcbf937bec523ca044806377a82bcf3035da1",
+      "exitCode": 0
+    },
+    "deno": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0
+    },
+    "runner-final": {
+      "sha256": "fe964e84e3680926023cfe0bad27c37d9c3f01fd93dd9fa7d6da7907b4d88c79",
+      "exitCode": 0
+    }
+  },
+  "baselineOnlyNotRerun": {
+    "functionalCommit": "57148cbba4a61c2ecb50361f1914196b8717022e",
+    "mainCi": 42198749461,
+    "browserCi": 42198749462,
+    "application": {
+      "passed": 499,
+      "failed": 0,
+      "blocked": 0
+    },
+    "postgres": {
+      "passed": 249,
+      "failed": 0
+    },
+    "legacyWorkflowSuccesses": 6
+  },
+  "sources": [
+    {
+      "url": "https://supabase.com/kb/troubleshooting/partial-migrations-and-schema-inconsistencies-from-embedded-transactions-13ae82",
+      "updated": "2026-11-04",
+      "supports": "Embedded transaction controls can defeat migration-wrapper atomicity/history consistency."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-begin.html",
+      "supports": "Nested BEGIN does not create nested transaction."
+    },
+    {
+      "url": "https://supabase.com/docs/guides/integrations/supabase-for-platforms#make-database-changes",
+      "supports": "General API migration/history rollback promise; does not independently resolve the exact embedded COMMIT interaction."
+    },
+    {
+      "url": "https://github.com/supabase/mcp/blob/8af504280d5689537c481924f8a11222ae0ceaeb/packages/mcp-server-supabase/src/platform/api-platform.ts#L259",
+      "supports": "Client forwards name/query and checks success, not backend transaction/history implementation."
+    }
+  ],
+  "limits": {
+    "hostedDdlProbe": false,
+    "credentialsAccess": false,
+    "providerCalls": 0,
+    "paidUsage": 0,
+    "websiteVisualImplementationChange": false,
+    "goldStandardApprovals": 0
+  },
+  "verificationNotes": [
+    "Initial master string-slice comparison differed on a trailing section separator; exact Word paragraph comparison confirms both Sections93/94 unchanged. No genuine master integrity failure.",
+    "Prior local and CI baseline results are explicitly not counted as fresh execution in this mission.",
+    "Synthetic transaction counterexample is expected negative evidence, not proof of actual hosted runner implementation."
+  ]
+}

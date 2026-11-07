@@ -1,0 +1,54 @@
+{
+  "mission": "19",
+  "observedAt": "2026-11-06",
+  "source": {
+    "startingReport": "6d9064ac374ccfcbc0d8b347271cf163995f5c94",
+    "startingTree": "576ae5e2da99ae5b70f8745ac2a908719493a6b9",
+    "mission18Functional": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+    "mission18Tree": "d36edcccb25104f7f3fea75c9003744dc64cf85b"
+  },
+  "privateMaster": {
+    "version": "22.85 corrected",
+    "sha256": "9dc5e697e5a0f5c676db86aedc5aaf1db7be85808fb3320af438ed945d38e22c",
+    "bytes": 381415,
+    "paragraphs": 3353,
+    "tables": 20,
+    "zipCrcAndXmlVerified": true,
+    "privateBytesOutsideGit": true
+  },
+  "aiLab": {
+    "connection": "AI Lab-specific Supabase integration",
+    "project": "sbvkrvksnruiclcvclbd",
+    "organisation": "wrjfgasxtlznzfzmfrif",
+    "name": "Busy Does It AI Lab",
+    "region": "eu-west-1",
+    "status": "ACTIVE_HEALTHY",
+    "databaseVersion": "17.11.0.018",
+    "catalogReadOnly": true,
+    "publicTables": 0,
+    "authUsers": 0,
+    "privateAiSchema": 0,
+    "migrations": 0,
+    "edgeFunctions": 0,
+    "nativeRlsEvent": "O",
+    "installationStatus": "Uninstalled. Mission19 neither authorises nor performs installation.",
+    "planEvidence": "Free previously verified; not re-queried this mission."
+  },
+  "boundaries": {
+    "hostedMutations": 0,
+    "providerRequests": 0,
+    "providerTokenCountRequests": 0,
+    "providerCredentialReads": 0,
+    "spending": 0,
+    "publication": false,
+    "otherProjectsAccessed": false,
+    "goldCandidates": 3,
+    "approvedGoldStandards": 0
+  },
+  "reviewedSql": {
+    "oldFused": "3ebf79cdcc5614d7be3573e0ecad68ae93ec8e5c3bf751fa2c0c6cbac5a9030b",
+    "mission18RunnerFused": "b825989b37e2fef0f874ccdb03405a6650f8dc6ddfe27f94086952cc1cec225d",
+    "changed": false,
+    "unfused": false
+  }
+}

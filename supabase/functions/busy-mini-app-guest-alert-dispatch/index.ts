@@ -1,5 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabaseClient.ts";
 import {classifyGuestAlertProviderTicketsV3227}
  from "./dispatchReceiptV3227.mjs";
 import {buildGuestDeviceGatewayEvidenceV3229}
@@ -71,6 +70,7 @@ async function runOnce(){
   if(request.error||!request.data||request.data.request_origin!=="guest_web"||
    !["enquiry","booking_request"].includes(request.data.request_type))
    throw Error("The original guest request cannot be verified.");
+  const originalRequest=request.data;
   const members=await store.from("busy_business_memberships")
    .select("user_id").eq("business_id",item.business_id)
    .in("role",["owner","admin"]).limit(20);
@@ -92,7 +92,7 @@ async function runOnce(){
      headers:{"content-type":"application/json","accept":"application/json"},
      body:JSON.stringify(tokens.map(to=>({
       to,sound:"default",
-      title:request.data.request_type==="booking_request"?
+      title:originalRequest.request_type==="booking_request"?
        "BUSY Apps • New booking request":"BUSY Apps • New enquiry",
       body:"A new customer request is waiting in your BUSY Business App.",
       data:{route:"mini_app_request",role:"business",
@@ -114,7 +114,7 @@ async function runOnce(){
     deviceResults=mapped.items;
     // Both classifiers must agree; any malformed or duplicated ticket
     // remains uncertain, never mistakenly accepted by the whole batch.
-    outcome=check.outcome===mapped.outcome?mapped.outcome:"uncertain";
+    outcome=check.outcome===mapped.outcome&&mapped.outcome==="provider_accepted"?"provider_accepted":check.outcome===mapped.outcome&&mapped.outcome==="definitively_rejected"?"definitively_rejected":"uncertain";
     if(outcome==="provider_accepted"){
       // Store a digest of gateway tickets, NOT the raw Expo tokens, customer
       // identity or the receipts; even acceptance is NOT delivery evidence.

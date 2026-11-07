@@ -1,0 +1,138 @@
+{
+  "runId": 42237166558,
+  "runUrl": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42237166558",
+  "jobId": 127957688429,
+  "sourceSha": "d78e7a8ceee80acbb45b8fd491e7b263403ab1b7",
+  "sourceTree": "b672aa7fa32bee110307214df4c598bb5a93d020",
+  "status": "cancelled-superseded",
+  "observedCancellation": "Complete frozen-source regressions was cancelled at2026-11-06T15:02:05.8233128Z after the newer frozen source was pushed. Earlier verification stages succeeded; this is not a passing complete application run.",
+  "application509": "Interrupted before final result; no complete pass count claimed.",
+  "passedBeforeCancellation": {
+    "dependencyGuard": true,
+    "originalContractComponentStep": true,
+    "foundationAssertions": 105,
+    "allEightLegacyWebsiteScopeScripts": true,
+    "genuineDeno": {
+      "originalEntrypoints": 26,
+      "proposalModules": 4,
+      "total": 30,
+      "exitCode": 0
+    },
+    "disposablePostgresCommandSuites": 8,
+    "printedPostgresSummaries": {
+      "whole-app": {
+        "passed": 126,
+        "failed": 0
+      },
+      "public-form": {
+        "passed": 21,
+        "failed": 0
+      },
+      "whole-site": {
+        "passed": 12,
+        "failed": 0
+      }
+    },
+    "unsignedOwnerPreviewExport": true,
+    "unsignedIsolatedStagingExport": true
+  },
+  "unreadCounts": "Individual other PostgreSQL receipt stage counts were retained in the artifact but not printed by this superseded workflow. No invented counts.",
+  "artifact": {
+    "id": 13513735909,
+    "sha256": "31e8b1ebc7a4251c7369b011186deed4f325eac594da30a636c621900aac45b1",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42237166558/artifacts/13513735909"
+  },
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1
+    },
+    {
+      "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2
+    },
+    {
+      "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3
+    },
+    {
+      "name": "Reviewed lock installation and security guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4
+    },
+    {
+      "name": "Original contract and component behaviour",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5
+    },
+    {
+      "name": "Original legacy Website worker scopes with real shared dependencies",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 6
+    },
+    {
+      "name": "Genuine original Edge checks with pinned official verification tools",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7
+    },
+    {
+      "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 8
+    },
+    {
+      "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9
+    },
+    {
+      "name": "Unsigned original Owner Preview and isolated staging exports",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 10
+    },
+    {
+      "name": "Complete frozen-source regressions",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "number": 11
+    },
+    {
+      "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 12
+    },
+    {
+      "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 23
+    },
+    {
+      "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 24
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 25
+    }
+  ],
+  "evidenceScope": "Read-only GitHub job metadata and actual decoded console logs. Disposable synthetic PostgreSQL, unsigned exports and static checks are not hosted installation, paid provider execution or publication."
+}

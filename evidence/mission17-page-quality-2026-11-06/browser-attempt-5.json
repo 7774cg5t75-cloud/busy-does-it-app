@@ -1,0 +1,372 @@
+{
+  "status": "failed_then_superseded",
+  "runId": 42240164223,
+  "jobId": 127968029482,
+  "summary": {
+    "source": {
+      "commit": "addb27c7ccf4db7524a0f5c266484c0b10779461",
+      "tree": "ce198e17c67c618ec5b7ed11ef0ea1b94114595e",
+      "workingTreeChanged": false
+    },
+    "browser": "145.0.7632.6",
+    "reviewPack": {
+      "index": "iphone-review-pack/index.html",
+      "zip": "iphone-review-pack.zip",
+      "zipBytes": 5876500,
+      "zipSha256": "ee50f682f43b9cb84eed8b371688156c029f426ff746512471ea25c59957e7f5",
+      "files": 83,
+      "imageCount": 64,
+      "comparisonCount": 16,
+      "source": {
+        "commit": "addb27c7ccf4db7524a0f5c266484c0b10779461",
+        "tree": "ce198e17c67c618ec5b7ed11ef0ea1b94114595e",
+        "workingTreeDirty": false,
+        "before": "1f7feadb3bccbf87084da1813bea8655641ee616"
+      },
+      "browser": "145.0.7632.6",
+      "professionalAcceptance": false
+    },
+    "counterexampleCoverage": {
+      "bodyColumnCounterexample": true,
+      "bodyColumnControl": {
+        "site": "moor-meadow-rich",
+        "page": "page-seasonal-planting",
+        "type": "service-body-column-counterexample",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "negativeDetected": true,
+        "negativeWidths": [
+          279.140625,
+          279.140625
+        ],
+        "restoredWidths": [
+          516.109375,
+          516.109375
+        ]
+      },
+      "clippingControls": {
+        "runs": 1,
+        "visibleOverflowPass": 1,
+        "concealedCasesDetected": 5
+      },
+      "nativeMenuControls": {
+        "runs": 1,
+        "states": [
+          {
+            "closed": 0,
+            "keyboardOpen": 1,
+            "closedAgain": 0
+          }
+        ]
+      }
+    },
+    "serviceBodyEvidence": [
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-seasonal-planting",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-landscape-planning",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-borders-and-beds",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-a-garden-consultation",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "ember-rich",
+        "page": "page-a-buffet-to-share",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "ember-rich",
+        "page": "page-your-catering-plan",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-brand-direction",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-website-content",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-creative-review",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      }
+    ],
+    "pages": 35,
+    "fullPageScreenshots": 310,
+    "actualNavigationChecks": 222,
+    "afterFailures": [
+      "moor-meadow-rich/home/after/mobile open service group clipping",
+      "ember-rich/home/after/mobile open service group clipping",
+      "quiet-light-rich/home/after/mobile open service group clipping"
+    ],
+    "baselineFindings": 0,
+    "viewports": [
+      "mobile",
+      "desktop",
+      "tablet",
+      "narrow",
+      "retina"
+    ],
+    "maximumImageBodyBytes": 1251334,
+    "captureWallMs": 215227,
+    "nodeCpuMicroseconds": {
+      "user": 24299850,
+      "system": 3962632
+    },
+    "nodeMaxRssKiB": 349164,
+    "pixelReceiptBytes": 1705110,
+    "pixelReceiptCount": 35,
+    "professionalAcceptance": false,
+    "providerCalls": 0
+  },
+  "diagnosis": "The inner service and desktop studio control overhangs are resolved. Three remaining reports occur only with the outer mobile Menu open; its inherited rotating plus also had no right inset.",
+  "remedy": "Apply the same 10px right inset to the outer purposeful mobile Menu. Keep all detector conditions and five negative controls; expose complete clipping diagnostics for both outer and nested open menus.",
+  "artifacts": {
+    "full": {
+      "id": 13514832652,
+      "bytes": 98181794,
+      "sha256": "54497e0929ee64ca8c84531fb729c4d3e0193d3a99ca2be5e4f39df1830c3671"
+    },
+    "compact": {
+      "id": 13514592605,
+      "bytes": 5073200,
+      "sha256": "ba89e3704edaefaf3103ba67771eb4f9147f1675b4f0b2f5137d74ceeb4553f2"
+    }
+  },
+  "goldStandardsApproved": 0,
+  "providerCalls": 0
+}

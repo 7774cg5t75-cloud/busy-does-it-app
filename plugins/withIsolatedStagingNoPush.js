@@ -11,7 +11,7 @@
 const {withEntitlementsPlist}=require("expo/config-plugins");
 module.exports=function withIsolatedStagingNoPush(config){
  return withEntitlementsPlist(config,mod=>{
-  if(process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="isolated-staging"){
+  if(["isolated-staging","owner-preview"].includes(process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT)){
    delete mod.modResults["aps-environment"];
   }
   return mod;

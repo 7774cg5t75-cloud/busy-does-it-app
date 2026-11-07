@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "project": "sbvkrvksnruiclcvclbd",
+  "reviewerRole": "Independent delegated local comparison; no hosted access",
+  "method": "Expected service SELECT allowlist, function definitions/move/rename/closed grants, module registry, no-policy design and empty authority derived from approved SQL only. Compare native events/extensions directly to root-obtained immediate preflight; compare saved supplemental/final hosted metadata locally.",
+  "approvedFusedSourceSha256": "b825989b37e2fef0f874ccdb03405a6650f8dc6ddfe27f94086952cc1cec225d",
+  "inputs": {
+    "hosted-security-verification.json": "2873f5905ead5a4bc000b2d6bed814327ec609459d5006fe08def5b4182553ab",
+    "preflight.json": "65968645384d80c764a5d5e9a42076a65c2cec42a187ed84ac3e162a08e791d1",
+    "final-invariants.json": "af4f1d002eb4d806a87f7941c5f7a2d7fac24372f65c620b0923bffdcb71a0c3"
+  },
+  "observedAt": "2026-11-06T22:26:13.123772+00:00",
+  "finalObservedAt": "2026-11-06T22:27:50.141703+00:00",
+  "expectedServiceSelectTables": [
+    "busy_business_content",
+    "busy_business_memberships",
+    "busy_businesses",
+    "busy_mini_app_entry_daily",
+    "busy_mini_app_entry_events",
+    "busy_mini_app_message_delivery_outbox",
+    "busy_mini_app_module_catalog",
+    "busy_mini_app_request_links",
+    "busy_mini_app_request_messages",
+    "busy_mini_app_requests",
+    "busy_mini_app_versions",
+    "busy_mini_app_work_bookings",
+    "busy_mini_apps",
+    "busy_public_business_profiles",
+    "busy_push_deliveries",
+    "busy_website_deployments",
+    "busy_websites"
+  ],
+  "expectedPrivateFunctionSignatures": [
+    "busy_ai_private.cost(jsonb,integer,integer)",
+    "busy_ai_private.immutable_tariff()",
+    "busy_creator_private.media_projection(uuid,uuid,jsonb,boolean)",
+    "busy_creator_private.project(busy_creator_draft_versions)",
+    "busy_creator_private.source_state(uuid,uuid,uuid,bigint,text,boolean)",
+    "busy_creator_private.valid_content(jsonb)",
+    "busy_creator_private.valid_editor_v3(jsonb,jsonb)",
+    "busy_creator_private.valid_media_ref(jsonb)",
+    "busy_growth_private.authorize(uuid)",
+    "busy_growth_private.projection(busy_growth_opportunity_versions)",
+    "busy_snapshot_private.file_app_enquiry_v2(uuid,bigint,jsonb)",
+    "busy_snapshot_private.guard_initial_snapshot()",
+    "busy_snapshot_private.initial_reply_context(uuid,bigint,text,text)",
+    "busy_snapshot_private.listing_candidate(uuid,uuid)",
+    "busy_snapshot_private.listing_state(uuid,jsonb)",
+    "busy_snapshot_private.lock_writer(uuid)",
+    "busy_snapshot_private.owner_reply_context(uuid,text,text,bigint)",
+    "busy_snapshot_private.profile_facts(jsonb)",
+    "busy_snapshot_private.valid_listing(uuid,jsonb)",
+    "busy_snapshot_private.website_commit_original(uuid,uuid,bigint,jsonb,jsonb,bigint)",
+    "busy_work_private.agreement_state(business_work_agreement_evidence)",
+    "busy_work_private.authorize(uuid)",
+    "busy_work_private.hash(jsonb)",
+    "busy_work_private.project(business_work_engagements)",
+    "busy_work_private.protect_agreement()",
+    "busy_work_private.protect_identity()",
+    "busy_work_private.protect_legacy()",
+    "busy_work_private.protect_quote_binding()",
+    "busy_work_private.protect_quote_reference()",
+    "busy_work_private.quote_terms(business_work_engagements)",
+    "busy_work_private.source_context(uuid,text,text,bigint)",
+    "busy_work_private.target(uuid,text,uuid,bigint)",
+    "busy_work_private.valid_quote(text,text,text,text)"
+  ],
+  "scope": {
+    "publicTableRoleRows": 84,
+    "schemaRoleRows": 18,
+    "privateFunctionRows": 33,
+    "sequenceRoleRows": 3,
+    "hookRoleRows": 4,
+    "policies": 0,
+    "canonicalModuleRows": 9,
+    "otherPublicTablesEmpty": 27,
+    "nativeEventTriggers": 7,
+    "nativeExtensions": 5
+  },
+  "summary": {
+    "fieldComparisons": 750,
+    "passed": 750,
+    "failed": 0,
+    "mismatchCount": 0
+  },
+  "categoryCounts": {
+    "approved-source": {
+      "passed": 1,
+      "failed": 0
+    },
+    "read-only": {
+      "passed": 2,
+      "failed": 0
+    },
+    "public-table-role-access": {
+      "passed": 337,
+      "failed": 0
+    },
+    "schema-role-access": {
+      "passed": 55,
+      "failed": 0
+    },
+    "private-function-access": {
+      "passed": 232,
+      "failed": 0
+    },
+    "sequence-access": {
+      "passed": 4,
+      "failed": 0
+    },
+    "hook-execute": {
+      "passed": 5,
+      "failed": 0
+    },
+    "row-security-policies": {
+      "passed": 2,
+      "failed": 0
+    },
+    "canonical-registry": {
+      "passed": 19,
+      "failed": 0
+    },
+    "public-record-counts": {
+      "passed": 29,
+      "failed": 0
+    },
+    "native-events": {
+      "passed": 36,
+      "failed": 0
+    },
+    "native-extensions": {
+      "passed": 11,
+      "failed": 0
+    },
+    "global-public-defaults": {
+      "passed": 9,
+      "failed": 0
+    },
+    "final-disabled-empty-authority": {
+      "passed": 8,
+      "failed": 0
+    }
+  },
+  "mismatches": [],
+  "decision": "All compared effective permissions, records, defaults, native events/extensions and final disabled-state contracts match approved source/preflight.",
+  "limits": "These are metadata and effective privilege comparisons, not real-client JWT or populated-account acceptance. Native storage default ACLs are outside the public/global foundation scope and were not in the immediate preflight projection; no before/after equality is claimed for those rows. No source/artifact changes or hosted calls were performed by this reviewer."
+}

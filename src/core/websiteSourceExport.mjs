@@ -4,11 +4,33 @@
  * customer records are deliberately NOT included or represented as portable.
  * JSON is designed to be human-readable and transferable without credentials.
  */
+import {websiteCreativeDocumentSection,websiteCreativeDocumentPageModel} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
 const clean=v=>typeof v==="string"?v.trim():"";
 const list=v=>Array.isArray(v)?v:[];
 const scalar=(v,n)=>clean(v).slice(0,n);
 const fields=(obj,keys)=>Object.fromEntries(keys.map(([key,n])=>[key,scalar(obj?.[key],n)]));
-function publicSection(section={}){
+function publicSection(section={},draft){
+ if(section.type==='creative-document'){
+  const composition=websiteCreativeDocumentSection(draft,section);
+  // Validation precedes traversal; only bounded trusted node fields leave the
+  // owner export. Private source records and storage identities stay private.
+  if(!composition)return null;
+  const media=[];
+  const nodeSource=node=>{
+   const result={...node};
+   for(const key of ['copyId','altCopyId','itemCopyIds'])delete result[key];
+   for(const key of ['copy','alt'])if(result[key])result[key]={text:result[key].text,classification:result[key].classification};
+   if(result.items)result.items=result.items.map(copy=>({text:copy.text,classification:copy.classification}));
+   if(result.asset){
+    const inventory={label:scalar(node.alt?.text||'Owner-approved website photograph',140),originalFileRequired:true};
+    media.push(inventory);result.asset={...inventory};
+   }
+   if(result.children)result.children=result.children.map(nodeSource);
+   return result;
+  };
+  return {id:scalar(section.id,100),type:'creative-document',enabled:section.enabled!==false,
+   layout:composition.layout,nodes:composition.nodes.map(nodeSource),media};
+ }
  const type=["hero","services","faq","testimonials","gallery","contact","text","photo-feature"].includes(section.type)?section.type:"text";
  const base={id:scalar(section.id,80),type,enabled:section.enabled!==false,
   ...fields(section,[["title",140],["body",2500]])};
@@ -31,6 +53,8 @@ function publicSection(section={}){
 }
 function buildPortableWebsiteSource(draft={}){
  if(!draft?.id||!Array.isArray(draft.sections))return {ok:false,reason:"Build a website draft before exporting its content."};
+ const creativeModel=draft.creativeDocumentPageModel?websiteCreativeDocumentPageModel(draft):null;
+ if(draft.creativeDocumentPageModel&&!creativeModel)return {ok:false,reason:'Review the current creative design and approved sources before exporting.'};
  if(draft.sections.length>150||draft.sections.some(section=>
   ["services","faq","testimonials"].includes(section?.type)&&list(section.items).length>80||
   section?.type==="gallery"&&list(section.items).length>80))
@@ -40,7 +64,8 @@ function buildPortableWebsiteSource(draft={}){
   path:scalar(p.path,100),outputPath:scalar(p.outputPath,140),
   sectionIds:list(p.sectionIds).filter(x=>typeof x==="string").slice(0,30)
  }));
- const sections=draft.sections.slice(0,150).map(publicSection);
+ const sections=draft.sections.slice(0,150).map(section=>publicSection(section,draft));
+ if(sections.some(section=>!section))return {ok:false,reason:'A creative composition or its approved source changed. Review it before exporting.'};
  const payload={
   format:"busy-does-it-portable-website-source",
   schemaVersion:1,
@@ -66,6 +91,10 @@ function buildPortableWebsiteSource(draft={}){
    "Review public phone numbers, email addresses and supplied text before sharing this file."
   ]
  };
+ if(creativeModel)payload.creativeDesign={version:creativeModel.version,brand:creativeModel.brand,
+  navigation:creativeModel.navigation,navigationPresentation:creativeModel.navigationPresentation,
+  copyAuthority:'Reviewed presentation wording; not a canonical business-fact record',
+  fontAvailability:'Platform fonts and compatible fallbacks; exact installed font availability varies by device'};
  const json=JSON.stringify(payload,null,2);
  if(json.length>85000)return {ok:false,
   reason:"This website is too large for a reliable phone text share. A file-based archive export is still needed.",bytes:json.length};

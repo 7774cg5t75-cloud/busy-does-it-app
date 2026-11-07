@@ -1,0 +1,229 @@
+{
+  "records": [
+    {
+      "version": "busy.design-acceptance.v1",
+      "id": "ember-candidate",
+      "revision": 1,
+      "state": "candidate",
+      "evidence": {
+        "version": "busy.design-acceptance.v1",
+        "id": "ember-candidate",
+        "classification": "fictional-licensed",
+        "commit": "3852ffb4e92efa275bbd0edb4f41902af6be5878",
+        "tree": "5d68b140371ae8bde2dd71a966c143c45d9a0f97",
+        "sourceDigest": "ac3edb53aba4bb10f9ee559ff60c6136c32c935388a4a94d9ad67abd12ca1f6c",
+        "assetManifestDigest": "2dc5a7534195f2fb82d3e6b1259357bd840903a064c14eea5928ce48f6bc1076",
+        "scope": {
+          "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+          "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000150",
+          "projectId": "website-1793900420651",
+          "sourceRevision": 1,
+          "profileRevision": 1,
+          "candidateRevision": 2,
+          "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+        },
+        "renderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+        "browser": "145.0.7632.6",
+        "captures": [
+          {
+            "width": 320,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "d2dd01a3b2aac488c38e3192db5c67dc205f0c08bd6133d436a3800870a1be63",
+            "filename": "1-after-narrow.png"
+          },
+          {
+            "width": 390,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "3479414c47cfbe50abc7ce4eb85fd67f166c9b47826120212743deab2a08c179",
+            "filename": "1-after-mobile.png"
+          },
+          {
+            "width": 1440,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "350df44aa3ee2de96cdf97c12f5c0e7a895bffe06b360bb8a0111efc9f929b6c",
+            "filename": "1-after-desktop.png"
+          },
+          {
+            "width": 390,
+            "dpr": 2,
+            "fullPage": true,
+            "sha256": "36573a46e101473e220e5dd67f3d75564075c0ba0e483e724f999a1d44bf8002",
+            "filename": "1-after-retina.png"
+          }
+        ],
+        "technical": {
+          "content": true,
+          "privacy": true,
+          "responsive": true,
+          "safeActions": true,
+          "sourceCurrent": true
+        },
+        "permission": {
+          "internalReview": true,
+          "revisionDigest": "2dc5a7534195f2fb82d3e6b1259357bd840903a064c14eea5928ce48f6bc1076",
+          "expiresAt": 1794505379400,
+          "withdrawn": false
+        }
+      },
+      "review": null,
+      "ownerAcceptance": null,
+      "history": [],
+      "permittedUse": "internal-principles-only"
+    },
+    {
+      "version": "busy.design-acceptance.v1",
+      "id": "clearleaf-candidate",
+      "revision": 1,
+      "state": "candidate",
+      "evidence": {
+        "version": "busy.design-acceptance.v1",
+        "id": "clearleaf-candidate",
+        "classification": "fictional-licensed",
+        "commit": "3852ffb4e92efa275bbd0edb4f41902af6be5878",
+        "tree": "5d68b140371ae8bde2dd71a966c143c45d9a0f97",
+        "sourceDigest": "30e3812846d3bb3fa481a97edcdc911236d19d9b2ff3e45302a608f6d0b25c5e",
+        "assetManifestDigest": "2dc5a7534195f2fb82d3e6b1259357bd840903a064c14eea5928ce48f6bc1076",
+        "scope": {
+          "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+          "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000151",
+          "projectId": "website-1793900420805",
+          "sourceRevision": 1,
+          "profileRevision": 1,
+          "candidateRevision": 2,
+          "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+        },
+        "renderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+        "browser": "145.0.7632.6",
+        "captures": [
+          {
+            "width": 320,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "8e54324a5e2320523ce1d7d583762a4d3e1a07848074c926296adc6d346dc23a",
+            "filename": "3-after-narrow.png"
+          },
+          {
+            "width": 390,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "ade8a8022a8cc12649cb26f81b4476d7d55f41192eead3f58efca3e42fdde840",
+            "filename": "3-after-mobile.png"
+          },
+          {
+            "width": 1440,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "8b72d8fa466caca864487ea1a488698c95c0025f9f783455d805615e7de90486",
+            "filename": "3-after-desktop.png"
+          },
+          {
+            "width": 390,
+            "dpr": 2,
+            "fullPage": true,
+            "sha256": "17d46ed489ee881c7a06798769c770f8f38d8d9121ea5d4834373f6106ba85fb",
+            "filename": "3-after-retina.png"
+          }
+        ],
+        "technical": {
+          "content": true,
+          "privacy": true,
+          "responsive": true,
+          "safeActions": true,
+          "sourceCurrent": true
+        },
+        "permission": {
+          "internalReview": true,
+          "revisionDigest": "2dc5a7534195f2fb82d3e6b1259357bd840903a064c14eea5928ce48f6bc1076",
+          "expiresAt": 1794505379400,
+          "withdrawn": false
+        }
+      },
+      "review": null,
+      "ownerAcceptance": null,
+      "history": [],
+      "permittedUse": "internal-principles-only"
+    },
+    {
+      "version": "busy.design-acceptance.v1",
+      "id": "quiet-light-candidate",
+      "revision": 1,
+      "state": "candidate",
+      "evidence": {
+        "version": "busy.design-acceptance.v1",
+        "id": "quiet-light-candidate",
+        "classification": "fictional-licensed",
+        "commit": "3852ffb4e92efa275bbd0edb4f41902af6be5878",
+        "tree": "5d68b140371ae8bde2dd71a966c143c45d9a0f97",
+        "sourceDigest": "acf599ee82af867165fb01746352c85d287ef9c77046415ca1f197ea4a2d59f1",
+        "assetManifestDigest": "2dc5a7534195f2fb82d3e6b1259357bd840903a064c14eea5928ce48f6bc1076",
+        "scope": {
+          "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+          "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000152",
+          "projectId": "website-1793900420903",
+          "sourceRevision": 1,
+          "profileRevision": 1,
+          "candidateRevision": 2,
+          "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+        },
+        "renderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+        "browser": "145.0.7632.6",
+        "captures": [
+          {
+            "width": 320,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "74bc6513030f7f30d1ff43c5c14b0acf4256e3378c5c3943d92cc8e6279bf4a5",
+            "filename": "5-after-narrow.png"
+          },
+          {
+            "width": 390,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "925e494e49812c4d9799cce9c546690f5808292bef0e9b60a96d5464a29010ad",
+            "filename": "5-after-mobile.png"
+          },
+          {
+            "width": 1440,
+            "dpr": 1,
+            "fullPage": true,
+            "sha256": "37a5c4fcc1e95eb80d99a81f363e0f4fcaf1eae93cb5b94c079f19a9daf42881",
+            "filename": "5-after-desktop.png"
+          },
+          {
+            "width": 390,
+            "dpr": 2,
+            "fullPage": true,
+            "sha256": "2ea98b30caf7f6001e3608dee30966e169d8bbcda1f6046c21ee141ebdb93588",
+            "filename": "5-after-retina.png"
+          }
+        ],
+        "technical": {
+          "content": true,
+          "privacy": true,
+          "responsive": true,
+          "safeActions": true,
+          "sourceCurrent": true
+        },
+        "permission": {
+          "internalReview": true,
+          "revisionDigest": "2dc5a7534195f2fb82d3e6b1259357bd840903a064c14eea5928ce48f6bc1076",
+          "expiresAt": 1794505379400,
+          "withdrawn": false
+        }
+      },
+      "review": null,
+      "ownerAcceptance": null,
+      "history": [],
+      "permittedUse": "internal-principles-only"
+    }
+  ],
+  "approvedCount": 0,
+  "privacy": "Non-sensitive fictional/licensed metadata only. Private working catalogue is retained separately outside Git.",
+  "rights": "Fixture licence/provenance is not independent verification of a customer upload.",
+  "ownerAcceptance": "Not supplied; no current design approved.",
+  "releaseReady": false,
+  "starterPackage": "Separate package not found; reconcile when supplied."
+}

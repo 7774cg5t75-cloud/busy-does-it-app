@@ -1,0 +1,15 @@
+{
+  "docs/sql-proposals/ai-budget/install.sql": "8649af5f487bde9dfc984009cbf80709b49112298d0d8d02e7ec43b039df19a3",
+  "docs/sql-proposals/ai-budget/rollback-retain.sql": "e20e0bfebf05391a10e99e60335600a161a3d20ce19a49daad120a09ccde0b39",
+  "docs/sql-proposals/ai-creative-receipt/install.sql": "799cf68878971bb888254ed2e92fc2fcb7543267c0e17c20332733eb9202e6fe",
+  "docs/sql-proposals/ai-creative-receipt/rollback-retain.sql": "a053e7f6d1b97c82327ffe367b43c7b464708c13dd4162ecc211b5b79acd2ead",
+  "scripts/lib/whole-app-staging-package.mjs": "ad0027a1cf53200c0350c551743628d79c538368a898842ae0acd81e5d6032d8",
+  "supabase/functions/busy-builder-proposals/index.ts": "a08e7e9c96672eaaa023814dfb1330cc27326fc7298c3be05169870b51cca3c2",
+  "supabase/functions/busy-builder-proposals/executionBootstrap.mjs": "96d31b3c62bf763bf3426051442c104ee4b4dcf8be7578c502df6a6c117fae73",
+  "supabase/functions/busy-creative-pilot/index.ts": "f23d1e30b1e21bd03c41eb4382b0f0602a5048ac5949c993724957bccf903573",
+  "supabase/config.toml": "6878b05b628aae3ed691eaf8801bfe599b25f1fac8d81d3566eb6f9cc3f09c64",
+  "supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs": "7b4bfec086b1f29859395b511431ba148a19099c5bd442b3ba318cb3222c1cae",
+  "src/core/guidedWebsiteJourney.mjs": "599b26069274aba414e047993e10792b8455a7b64fb80ddc32673ece183ecf2b",
+  "src/core/websiteCreativeBrief.mjs": "43b4d2386cd1cf23a8f622544d3aad783e74b9a9fc9825b7916eae68d4d43a84",
+  "scripts/check-creative-execution-bootstrap.mjs": "4857f00e5fe225bf2b8b86896c7023f9be7615c2cf796ac686faeda58b0c7ffe"
+}

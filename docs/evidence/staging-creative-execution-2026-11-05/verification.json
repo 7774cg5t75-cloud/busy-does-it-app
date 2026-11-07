@@ -1,0 +1,64 @@
+{
+  "functionalCommit": "9f8378cfee17cf8498ed067f0092bebfc58df041",
+  "functionalTree": "d707723456f536c36aebb25343e678215892ef33",
+  "application": {
+    "passed": 497,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "sourceStable": true,
+  "postgres": {
+    "postgres": {
+      "passed": 126,
+      "failed": 0
+    },
+    "public-form-postgres": {
+      "passed": 21,
+      "failed": 0
+    },
+    "enquiry-preparation-postgres": {
+      "passed": 13,
+      "failed": 0
+    },
+    "operational-work-postgres": {
+      "passed": 13,
+      "failed": 0
+    },
+    "work-preparation-postgres": {
+      "passed": 12,
+      "failed": 0
+    },
+    "ai-budget-postgres": {
+      "passed": 32,
+      "failed": 0
+    }
+  },
+  "foundationAssertions": 105,
+  "genuineDenoChecks": 30,
+  "sourceSyntaxFiles": 7,
+  "ciAdditionalSyntaxFiles": 9,
+  "staticCycles": 0,
+  "unsignedExportModules": {
+    "owner": 1569,
+    "staging": 1628
+  },
+  "verifiedPNGCount": 246,
+  "browser": "145.0.7632.6",
+  "mainRun": 42105793788,
+  "browserRun": 42105793791,
+  "legacyRuns": [
+    42105804605,
+    42105804636,
+    42105804508,
+    42105804660,
+    42105804731,
+    42105804533
+  ],
+  "liveProviderCalls": 0,
+  "spending": 0,
+  "hostedDatabaseMutation": false,
+  "deployment": false,
+  "hostedReadiness": false,
+  "goldStandardsApproved": 0
+}
