@@ -79,3 +79,16 @@ Assess factual truth, source/owner-lock fidelity, technical navigation/accessibi
 Measure real input/output/cache/reasoning usage, authoritative reserved/settled GBP/unknown liability, local compilation/capture time and all correction costs. Acceptable-website cost includes every attempted generation, not just the attractive result; with no accepted model website the ratio is undefined. One pair supplies exploratory evidence only. Maintain identical professional quality across free previews, Grow and Pro, and use the economical model only when it meets that same approved standard.
 
 No model/count/account API call, credential access, hosted mutation, paid usage or new visual-quality result is claimed by this research. Actual account eligibility, admitted GBP cost, compatible counts and useful complete output remain open gates.
+
+## Frozen Approval D preparation, still not executable
+
+[Technical request evidence](evidence/sol-first-pilot/comparison-proposal.json) is generated from functional source `687624bd1aaf0807cb1e89766a49297fe29c9791`, tree `3accdb48e6cd48bca1044dd33403d57709eda066`. The private actual-source request files remain outside Git; the public evidence contains hashes, sizes, limits and false authority flags only. Both arms have approved-facts digest `972b5fe173ed4d5f3955d23d460302b6efb91207f551e40d767f5d0c5158100f`, strict-schema digest `c5958b3b5448a012123016f8e18e9425e368a14f4a75461fddb0e48e85e04545` and the same43-file renderer digest `4c55a4d33388e54fba7ea7bd0baa829dac23d83bde60b2676584ec27aaadf172`.
+
+| Exact prepared arm | Complete wire SHA256 | Original ledger goal SHA256 |
+| --- | --- | --- |
+| Sol first | `34d7a83cb0a6056f256af60f7d639acfd09f895fbf286e86898654b42b0aeb33` | `8263d74eb0f4b2e0af0a13eb962c71e6d8ef42700c3d22fefe57e63175a85844` |
+| Astra later | `2bcf2c1b3e6b64b3a2282aa8c7c2b0106705bf6a68d6015b47502c99ae91c0f1` | `56e9f114cc88679fe5ec4201cfcfdfa8420ed241afe0d67fe4686f2c0d5ff594` |
+
+Each final wire measures15,290UTF-8 bytes; input5,558 and schema8,996. Counts remainnull. Local preparation took233ms wall time,267,955microseconds CPU and68,188KiB maximum process RSS in this run. These are one local preparation measurement, not Edge runtime, model latency, token usage or paid cost. Source observation remains the original verified export at15:19:21UTC, independently matched by a fresh read-only source check at16:56:03UTC; preparing files does not create a new hosted read receipt.
+
+No live operation/nonce, short expiry, real model receipt, admitted tariff or reservation exists. A future exact D request must bind those fresh values, the actual native owner/session/source, complete count evidence and an independently verified maximum. The smallest proposed first execution remains one complete Sol request capped£0.25, one dispatch, no tools/retries/fallback/save/publication. Astra is a later separate decision capped£1 and requires the resolved original Sol receipt. The£3 cumulative ceiling includes both and any approved preflight charges; it does not authorise an additional request.

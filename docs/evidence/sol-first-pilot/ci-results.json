@@ -1,0 +1,144 @@
+{
+  "functionalCommit": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+  "functionalTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+  "status": "github-main-environment-blocked-local-checks-complete",
+  "mainRun": {
+    "id": 42402373175,
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42402373175",
+    "attempts": [
+      {
+        "attempt": 1,
+        "jobId": 128492786620,
+        "conclusion": "failure",
+        "reason": "Official PostgreSQL signing-key download timed out after30002ms; curl exit28",
+        "foundationPassed": 105,
+        "denoEntrypointsPassed": 27,
+        "denoProposalModulesPassed": 9,
+        "postgresHttpExportsFullRegressions": "skipped",
+        "artifact": {
+          "id": 13585697655,
+          "bytes": 124886,
+          "digest": "33b8113e835b227d90d0c50e552f54f0d4ac282420cfe4eb823e1e45bdda9094"
+        }
+      },
+      {
+        "attempt": 2,
+        "jobId": 128494514921,
+        "conclusion": "failure",
+        "reason": "Official PostgreSQL signing-key download timed out after30002ms; curl exit28",
+        "foundationPassed": 105,
+        "denoEntrypointsPassed": 27,
+        "denoProposalModulesPassed": 9,
+        "postgresHttpExportsFullRegressions": "skipped",
+        "artifact": {
+          "id": 13585509101,
+          "bytes": 124886,
+          "digest": "98aaa602076845ccbf4968795204d7ba36064d3f042bf00c8fad4a84e1b55b34"
+        }
+      }
+    ],
+    "additionalRetries": 0,
+    "fullRegressionPassClaim": false
+  },
+  "legacyRuns": [
+    {
+      "id": 42402378253,
+      "name": "Growth workspace",
+      "conclusion": "success",
+      "event": "pull_request",
+      "headSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+      "actualCheckoutCommit": "995e5bb7d71f6787975784ce8382b4a9afd92731",
+      "actualCheckoutTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+      "syntheticPullRequestMergeOnly": true,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42402378253"
+    },
+    {
+      "id": 42402378254,
+      "name": "Founder",
+      "conclusion": "success",
+      "event": "pull_request",
+      "headSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+      "actualCheckoutCommit": "995e5bb7d71f6787975784ce8382b4a9afd92731",
+      "actualCheckoutTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+      "syntheticPullRequestMergeOnly": true,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42402378254"
+    },
+    {
+      "id": 42402378304,
+      "name": "Voice/operator",
+      "conclusion": "success",
+      "event": "pull_request",
+      "headSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+      "actualCheckoutCommit": "995e5bb7d71f6787975784ce8382b4a9afd92731",
+      "actualCheckoutTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+      "syntheticPullRequestMergeOnly": true,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42402378304"
+    },
+    {
+      "id": 42402378166,
+      "name": "Platform",
+      "conclusion": "success",
+      "event": "pull_request",
+      "headSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+      "actualCheckoutCommit": "995e5bb7d71f6787975784ce8382b4a9afd92731",
+      "actualCheckoutTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+      "syntheticPullRequestMergeOnly": true,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42402378166"
+    },
+    {
+      "id": 42402378187,
+      "name": "Growth command centre",
+      "conclusion": "success",
+      "event": "pull_request",
+      "headSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+      "actualCheckoutCommit": "995e5bb7d71f6787975784ce8382b4a9afd92731",
+      "actualCheckoutTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+      "syntheticPullRequestMergeOnly": true,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42402378187"
+    },
+    {
+      "id": 42402378290,
+      "name": "Growth drafts",
+      "conclusion": "success",
+      "event": "pull_request",
+      "headSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+      "actualCheckoutCommit": "995e5bb7d71f6787975784ce8382b4a9afd92731",
+      "actualCheckoutTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+      "syntheticPullRequestMergeOnly": true,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42402378290"
+    }
+  ],
+  "supersededRun": {
+    "id": 42400992924,
+    "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+    "conclusion": "cancelled",
+    "updatedAt": "2026-11-07T18:39:48Z",
+    "reason": "Existing replacement concurrency; no manual cancellation",
+    "fullRegressions": "cancelled-no-final-count",
+    "originalPostgresStagesPassed": 332,
+    "compatibilityStagesPassed": 23,
+    "b3HttpPassed": 20,
+    "budgetHttpPassed": 20
+  },
+  "providerCalls": 0,
+  "hostedMutations": 0,
+  "localVerification": {
+    "regressions": "frozen-local-regression-results.json",
+    "distinctChecksVerified": 535,
+    "initialFullSelection": {
+      "passed": 534,
+      "failed": 1,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "strictFailedCheckRerun": {
+      "passed": 1,
+      "failed": 0
+    },
+    "singleRunAllGreen": false,
+    "database": "frozen-database-verification.json",
+    "databaseStagesPassed": 355,
+    "realHttpCasesPassed": 40,
+    "unsignedExports": "unsigned-export-verification.json"
+  }
+}

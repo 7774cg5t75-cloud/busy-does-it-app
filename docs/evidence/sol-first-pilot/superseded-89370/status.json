@@ -1,0 +1,6 @@
+{
+  "status": "superseded-before-approval",
+  "reason": "C protected-handoff inventory hashed Buffers as JSON rather than original bytes; independent smoke inventory disagreed. No hosted action or approval followed.",
+  "functionalCommit": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+  "authorised": false
+}

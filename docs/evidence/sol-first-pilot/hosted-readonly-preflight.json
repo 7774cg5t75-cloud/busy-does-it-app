@@ -1,0 +1,60 @@
+{
+  "version": "busy.ai-lab-sol-first-readonly-state.v1",
+  "projectId": "sbvkrvksnruiclcvclbd",
+  "organizationId": "wrjfgasxtlznzfzmfrif",
+  "region": "eu-west-1",
+  "plan": "free",
+  "controlPlaneReconfirmed": "2026-11-07",
+  "compatibilityPreflight": {
+    "policy": {
+      "enabled": false,
+      "monthlyHardLimit": 0
+    },
+    "aiCounts": {
+      "events": 0,
+      "periods": 0,
+      "tariffs": 0,
+      "accounts": 0,
+      "operations": 0
+    },
+    "readOnly": "on",
+    "liability": {
+      "spent": 0,
+      "reserved": 0
+    },
+    "observedAt": "2026-11-07T17:47:49.371318+00:00",
+    "rlsPreserved": true,
+    "postgresVersion": "17.11",
+    "outputConstraint": "CHECK (((max_output >= 1) AND (max_output <= 4000)))",
+    "publicTableCount": 28,
+    "privateAiTableCount": 6,
+    "nativeRlsHookMatches": true,
+    "migrationReceiptCount": 0,
+    "nativeRlsEventEnabled": true,
+    "originalFunctionCount": 108,
+    "serviceOnlyAiFunctions": true,
+    "allOriginalFunctionBodiesMatch": true,
+    "expectedOutputConstraintMatches": true,
+    "exactStoredStatementReceiptCount": 0
+  },
+  "sourceRead": {
+    "observedAt": "2026-11-07T16:56:03.033446+00:00",
+    "readOnly": "on",
+    "profileRevision": 1,
+    "snapshotRevision": 5,
+    "websiteGeneration": 4,
+    "profileHash": "2dbed341b135ec19b0fe06e1c84de34a273f2c592f3b604097dd32bba45aeeaa",
+    "websiteDraftHash": "4b9ba873205dd46eda20d682ab1644e0dfd344b8cc14455e9f2573ed05c98539",
+    "websiteHistoryHash": "c4cfe9a95d09e034e44edf483d8a1d36bb5a6347428a40387b40ea2db6e21c63",
+    "pageCount": 3,
+    "publicWebsiteCount": 0,
+    "deploymentCount": 0,
+    "aiOperations": 0,
+    "aiEvents": 0
+  },
+  "writes": 0,
+  "credentialsRead": 0,
+  "providerCalls": 0,
+  "spentGBP": 0,
+  "sourceValuesOrNativeIdentitiesIncluded": false
+}

@@ -1,0 +1,44 @@
+{
+  "sourceSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+  "sourceTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+  "functionalSourceUnchanged": true,
+  "trackedDocumentationChangesOnly": [
+    "docs/AI_LAB_APPROVAL_C_SOL_FIRST_2026_11_07.md",
+    "docs/AI_LAB_SOL_FIRST_ASTRA_COMPARISON_2026_11_07.md"
+  ],
+  "guardedExpoLauncher": true,
+  "offline": true,
+  "exports": [
+    {
+      "environment": "owner-preview",
+      "exitCode": 0,
+      "platform": "ios",
+      "unsigned": true,
+      "nativeDeviceAcceptance": false,
+      "modules": 1585,
+      "metroBundleMs": 69282,
+      "bundleBytes": 9232592,
+      "bundleSha256": "b229f81bb2109a2bb22326082834df144a7074e47584a363d3a7500e77a65c68",
+      "metadataSha256": "fc41a580d7f2c0e197b8516036c6a47e5248ab0bd5bf9eda41525428bc3d056c",
+      "output": ".test-artifacts/sol-first-owner-export-687624"
+    },
+    {
+      "environment": "isolated-staging",
+      "exitCode": 0,
+      "platform": "ios",
+      "unsigned": true,
+      "nativeDeviceAcceptance": false,
+      "modules": 1644,
+      "metroBundleMs": 41044,
+      "bundleBytes": 9342194,
+      "bundleSha256": "3649beaf9ff67dc3005e6fcbcf5bde68c6a9b01a4615fab78823fdcfb07a0b84",
+      "metadataSha256": "fd576283bf0bfc3a4605251776e02ef316bf4d1efe9cf734803c6493ebf7ff68",
+      "output": ".test-artifacts/sol-first-staging-export-687624"
+    }
+  ],
+  "hostedConnectionsOrWrites": 0,
+  "providerCalls": 0,
+  "signing": false,
+  "distribution": false,
+  "publication": false
+}

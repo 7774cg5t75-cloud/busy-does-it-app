@@ -1,0 +1,156 @@
+{
+  "sourceSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+  "sourceTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+  "execution": "fresh clean local disposable environments; not hosted CI",
+  "postgresVersion": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)",
+  "existingReviewedPostgresBinarySha256": "6468a969338215cb3912cf9c0b894bdbbd37b9a709926db078e9a5bf8bdc3e16",
+  "commandSuites": 16,
+  "postgresReceiptSummaries": {
+    "whole-app/postgres.json": {
+      "sha256": "ace3638dce35affe5c8fd56db5d01a403493b053d3b86d97fd0d2b39ba2299ea",
+      "summary": {
+        "passed": 126,
+        "failed": 0
+      }
+    },
+    "public-form/postgres.json": {
+      "sha256": "24ac6c25102a886908366ee914f2d170396301711542d5603f6ffc599dc6fdac",
+      "summary": {
+        "passed": 21,
+        "failed": 0
+      }
+    },
+    "enquiry-preparation/postgres.json": {
+      "sha256": "5c14f1badbf02e84cf24c231036adce8c57ddd408bae117952095f6b3eee7853",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      }
+    },
+    "operational-work/postgres.json": {
+      "sha256": "36e5207d16316908487c7b12025d57c153b1b1534929f43d3b90a067a555516c",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      }
+    },
+    "work-preparation/postgres.json": {
+      "sha256": "895c56e792151c192a7115b15b57278fb2980a1e16b64313a31c2d23a1966ad3",
+      "summary": {
+        "passed": 12,
+        "failed": 0
+      }
+    },
+    "ai-gateway/postgres.json": {
+      "sha256": "ae5bc0ca5b97515a69d04e2d7a94b3e367c6c4b35e8cd8c29b7be9de7baa8b9f",
+      "summary": {
+        "passed": 32,
+        "failed": 0
+      }
+    },
+    "preservation-foundation/postgres.json": {
+      "sha256": "81b3272873ae512b13fe09fc94d03b4495032b8441c9db94452de478cc9600d5",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      }
+    },
+    "ai-lab-foundation/postgres.json": {
+      "sha256": "1e625a9598ec7f22c4285c092550e1f89fb5d6f70b4acc838dfe450b5dfcb1a6",
+      "summary": {
+        "passed": 19,
+        "failed": 0
+      }
+    },
+    "ai-lab-runner-foundation/postgres.json": {
+      "sha256": "de58d13759faa658ded92fc2f191d8ca330b11a762f6636b10ca211a7cee62d4",
+      "summary": {
+        "passed": 15,
+        "failed": 0
+      }
+    },
+    "ai-lab-fictional-setup/postgres.json": {
+      "sha256": "6f779cb24819fcc1db927b661beedf451c5d4fe81f8e34f366e8fa6076904129",
+      "summary": {
+        "passed": 16,
+        "failed": 0
+      }
+    },
+    "ai-lab-fictional-source/postgres.json": {
+      "sha256": "5b10bf9283fae32229f17539a388801676a42a477445352c773a94b69d498463",
+      "summary": {
+        "passed": 11,
+        "failed": 0,
+        "cases": 11,
+        "assertions": 68
+      }
+    },
+    "ai-lab-b3/postgres.json": {
+      "sha256": "8acfe6f4588059a5f9c61c4051fb90a4826a3cec3e0d8d65e53335a701d5c836",
+      "summary": {
+        "passed": 10,
+        "failed": 0
+      }
+    },
+    "ai-lab-b3-source-contract/postgres.json": {
+      "sha256": "013cd54071ca13c44c8353c015f474e0efb97f86b7f0e3dd8af0d6160b3e331c",
+      "summary": {
+        "passed": 17,
+        "failed": 0
+      }
+    },
+    "mission16-whole-site/postgres.json": {
+      "sha256": "34409e04429490c8ec64e5dee5a18fcdb3fbf905f0ada27d5cb81591f8855c9a",
+      "summary": {
+        "passed": 14,
+        "failed": 0
+      }
+    },
+    "ai-lab-budget-compatibility/postgres.json": {
+      "sha256": "b8b113e593dda1faa3e9cad1c797c7bd089062450418a449aea05b26e55b5c08",
+      "summary": {
+        "passed": 23,
+        "failed": 0
+      }
+    }
+  },
+  "sumDatabaseStagesPassed": 355,
+  "sumDatabaseStagesFailed": 0,
+  "realLoopbackHttpReceipts": {
+    "ai-lab-b3/postgrest.json": {
+      "sha256": "e83159a11832e45af10f7b5c2b3bd20d83a842da44b2bbad1f599f96f94a2aac",
+      "summary": {
+        "passed": 20,
+        "failed": 0
+      },
+      "cleanupCompleted": true,
+      "pinnedTransport": {
+        "version": "14.18",
+        "sha256": "e62299f98f67938f754291340b2fc07b69685546e6017b455ef3e776daef45ee",
+        "postgres": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)"
+      }
+    },
+    "ai-budget-http/postgrest.json": {
+      "sha256": "ed0912760fa9c87f2d4d8863f039a22ae77a5783d35e2cea1f64ffa4de8ae611",
+      "summary": {
+        "passed": 20,
+        "failed": 0
+      },
+      "cleanupCompleted": true,
+      "pinnedTransport": {
+        "version": "14.18",
+        "sha256": "e62299f98f67938f754291340b2fc07b69685546e6017b455ef3e776daef45ee",
+        "postgres": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)"
+      }
+    }
+  },
+  "httpPassed": 40,
+  "httpFailed": 0,
+  "compatibilityHttpStagesAlreadyIncludedIn23": true,
+  "cleanupCompleted": true,
+  "sourceStable": true,
+  "hostedMutations": 0,
+  "providerCalls": 0,
+  "actualSpendingGBP": 0,
+  "supabaseHostedRunnerOrRealProviderAcceptance": false
+}
