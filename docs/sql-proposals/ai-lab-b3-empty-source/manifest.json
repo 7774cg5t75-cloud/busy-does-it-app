@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "targetProject": "sbvkrvksnruiclcvclbd",
+  "targetOrganization": "wrjfgasxtlznzfzmfrif",
+  "expectedRegion": "eu-west-1",
+  "expectedPlan": "free",
+  "expectedPostgresMajor": 17,
+  "migrationName": "ai_lab_b3_nonretry_source_contract_v1",
+  "wireVersion": "busy.connected-builder-source-state.v1",
+  "newFunction": "public.busy_connected_builder_source_state_v1(uuid)",
+  "newFunctionBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+  "originalFunctionChanges": [
+    {
+      "signature": "public.busy_connected_builder_read_v1(uuid)",
+      "originalBodySha256": "982d44f7c0b010f5630d6401fd5e2cc75fe9309ecc78ee838632fb920868e01b",
+      "revisedBodySha256": "538e9d3f088f54f8385ca1c13f34fe75d61eb3c5e54d4ca51ae6f8092285881d",
+      "branchCount": 1,
+      "code": "P0002"
+    },
+    {
+      "signature": "public.busy_connected_profile_write_v1(uuid,bigint,jsonb,jsonb,boolean)",
+      "originalBodySha256": "9277f526b0831b4a1e18d5a5c97316c9178504007df59eda26bb992efee9be7e",
+      "revisedBodySha256": "33b6b3320a73a59d3ca8747f2d6cd7e2eecfe51b1ac039a2e17191787bccf7a4",
+      "branchCount": 2,
+      "code": "PT409"
+    },
+    {
+      "signature": "busy_snapshot_private.website_commit_original(uuid,uuid,bigint,jsonb,jsonb,bigint)",
+      "originalBodySha256": "997063595e72c09a7d931d03123eee84283b4a154ff239852e9ffc21059f8a46",
+      "revisedBodySha256": "6fcc34afbf762a18279d7582a02550071724ae085bb60d7b77fadcdc9c9d7cc8",
+      "branchCount": 2,
+      "code": "PT409"
+    },
+    {
+      "signature": "public.busy_connected_website_transition_v1(uuid,uuid,bigint,jsonb,jsonb,bigint,text)",
+      "originalBodySha256": "51ee8001e59d10104e0baef91c052d744d3d50fc74cd57ef868119992d9b34a7",
+      "revisedBodySha256": "7c4d0ebade250c5f9cb049898675a9e256fdce695405a42f8266fe026c88530c",
+      "branchCount": 3,
+      "code": "PT409"
+    },
+    {
+      "signature": "public.busy_connected_website_history_v1(uuid,bigint,text,text)",
+      "originalBodySha256": "12fb5a25d40ee5493b0fa25175b3c2688c24f745e85d98f0d5065dee200a2127",
+      "revisedBodySha256": "ad737c9f8b4c81e65661be067b57df84144ec9ebbaae7de233f2e47029f5981a",
+      "branchCount": 1,
+      "code": "PT409"
+    }
+  ],
+  "sha256": "37992a8a4600709affec86a2168460ca847a54120d4309a008b853e0f04050f4",
+  "executionDerivativeSha256": "564a516eca321797e191c54efcfb1fd0efeed5e98740f83757c4a4364778bda5",
+  "rollbackSha256": "e17b2406fe209729deaa94ef9f3ea74c37aa2f7cc19b94728aca05f03a79ca25",
+  "rollbackExecutionDerivativeSha256": "324203c52d5883c5f2fe91ba2007bc690cc89c7cadd29a3ade17b254bfb1ec66",
+  "reviewFuse": "DO $$ BEGIN RAISE EXCEPTION 'AI LAB B3 SOURCE CONTRACT REVIEW FUSE: separate exact migration approval required'; END $$;",
+  "rollbackReviewFuse": "DO $$ BEGIN RAISE EXCEPTION 'AI LAB B3 SOURCE CONTRACT ROLLBACK REVIEW FUSE: separate exact retaining rollback approval required'; END $$;",
+  "runnerOwnsTransaction": true,
+  "hostedExecutionAuthorised": false,
+  "approvalRequired": true,
+  "originalApprovalsReusable": false,
+  "rollbackRetainsNonretryCorrections": true,
+  "addedTables": 0,
+  "addedBusinessStores": 0,
+  "providerCalls": 0,
+  "spendingGbp": 0,
+  "preflightSha256": "8d3ff4903f35c883c414957625370c4efe601c3892af3dd0ce14ccac25b4957a",
+  "verificationSha256": "e60166f4ed9e3f4cf78e800c0d799e7ba709a6791612614a632fcb7f3def8f0e"
+}

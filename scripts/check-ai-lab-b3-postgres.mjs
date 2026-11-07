@@ -3,6 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import {aiLabRunnerFoundationPackage,runnerExecutionDerivative} from './lib/ai-lab-runner-foundation-package.mjs';
+import {aiLabB3SourceContractPackage,sourceContractExecutionDerivative} from './lib/ai-lab-b3-source-contract-package.mjs';
 import {AI_LAB_B3_SOURCE_PLAN as plan,AI_LAB_B3_SOURCE_PLAN_DIGEST,createAiLabB3SourceOrchestrator} from './lib/ai-lab-b3-source.mjs';
 import {AI_LAB_B3_RUNTIME_VERSION,AI_LAB_B3_URL,createAiLabB3Runtime} from './lib/ai-lab-b3-runtime.mjs';
 import {renderWebsiteHtml} from '../src/domain/websiteBuilder.js';
@@ -13,13 +14,14 @@ import {renderWebsiteHtml} from '../src/domain/websiteBuilder.js';
 const bin=process.env.BUSY_LOCAL_PG_BIN||'/workspace/pg17-disposable/root/usr/lib/postgresql/17/bin/psql';
 const socket=process.env.BUSY_LOCAL_PG_SOCKET||'/workspace/pg17-disposable/socket';
 const data=process.env.BUSY_LOCAL_PG_DATA||'/workspace/pg17-disposable/data';
+const port=process.env.BUSY_LOCAL_PG_PORT||'5432';
 const db='busy_ai_lab_b3_source_disposable',O=randomUUID(),B=randomUUID(),F=randomUUID(),results=[];
 const q=v=>v==null?'NULL':"'"+(typeof v==='object'?JSON.stringify(v):String(v)).replaceAll("'","''")+"'";
-const sql=(s,d=db,atomic=true)=>execFileSync(bin,['-X','-h',socket,'-U','postgres','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-qAt','-d',d],{input:atomic?'BEGIN;\n'+s+';\nCOMMIT;\n':s,encoding:'utf8',stdio:['pipe','pipe','pipe'],maxBuffer:32*1024*1024}).trim();
+const sql=(s,d=db,atomic=true)=>execFileSync(bin,['-X','-h',socket,'-p',port,'-U','postgres','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-qAt','-d',d],{input:atomic?'BEGIN;\n'+s+';\nCOMMIT;\n':s,encoding:'utf8',stdio:['pipe','pipe','pipe'],maxBuffer:32*1024*1024}).trim();
 const json=s=>JSON.parse(sql(s)),clone=v=>JSON.parse(JSON.stringify(v));
 const stage=async(id,fn)=>{try{await fn();results.push({id,passed:true});}catch(e){results.push({id,passed:false,error:String(e.stderr||e.stack).slice(-3000)});throw e;}};
 const signatures={
- busy_connected_workspaces_v1:[],busy_connected_initialize_v1:['p_business_id'],busy_connected_builder_read_v1:['p_business_id'],
+ busy_connected_workspaces_v1:[],busy_connected_initialize_v1:['p_business_id'],busy_connected_builder_read_v1:['p_business_id'],busy_connected_builder_source_state_v1:['p_business_id'],
  busy_connected_profile_write_v1:['p_business_id','p_expected_revision','p_expected_profile','p_profile','p_owner_approved'],
  busy_connected_website_commit_v1:['p_business_id','p_actor_id','p_expected_revision','p_expected_draft','p_candidate','p_profile_revision'],
  busy_ai_context_v1:['p_actor','p_business','p_binding'],
@@ -51,12 +53,13 @@ function fixture(options={}){
   const r=invoke('service_role',name,actual);if(lose===name){lose=null;throw Error('Synthetic lost acknowledgement after actual original PostgreSQL commit');}return r;
  };
  const absentCounts=()=>sql('SELECT NOT EXISTS(SELECT 1 FROM public.busy_business_snapshots WHERE business_id='+q(B)+') AND NOT EXISTS(SELECT 1 FROM public.busy_public_business_profiles WHERE business_id='+q(B)+')')==='t';
- const missingWorkspace=e=>/\b40001:\s+Workspace unavailable(?:\n|$)/.test(String(e.stderr||e));
  let runtime=null;const bridgeTrace=[];
  let ownerPort=authenticatedRpc,servicePort=serviceRpc,verifyOwner=async()=>({id:options.foreignOwner?F:O,anonymous:false,emailConfirmed:true});
  let verifySourceEmpty=async binding=>{
   assert.equal(binding.ownerId,O);assert.equal(binding.businessId,B);
-  try{ownerRpc('busy_connected_builder_read_v1',{p_business_id:B});return {empty:false};}catch(e){if(!missingWorkspace(e))throw e;return {empty:absentCounts()};}
+  const state=ownerRpc('busy_connected_builder_source_state_v1',{p_business_id:B});
+  assert.equal(state.version,'busy.connected-builder-source-state.v1');assert.equal(state.actorId,O);assert.equal(state.businessId,B);
+  return {empty:state.empty===true&&state.snapshotExists===false&&state.profileExists===false&&absentCounts()};
  };
  if(options.runtimeBridge){
   const now=Date.parse('2026-11-07T12:00:00Z'),publishableKey='sb_publishable_SYNTHETIC_ONLY_0000000000000000',serviceKey='sb_secret_SYNTHETIC_ONLY_000000000000000000',password='SYNTHETIC_NOT_A_REAL_PASSWORD_000000',token='synthetic_header.synthetic_payload.synthetic_signature';
@@ -69,7 +72,7 @@ function fixture(options={}){
    assert.ok(parsed.pathname.startsWith('/rest/v1/rpc/'));const name=parsed.pathname.slice('/rest/v1/rpc/'.length),args=JSON.parse(init.body);let value;
    try{
     if(headers.get('apikey')===serviceKey){assert.equal(headers.get('authorization'),null);value=await serviceRpc(name,args);}else{assert.equal(headers.get('apikey'),publishableKey);assert.equal(headers.get('authorization'),'Bearer '+token);value=await authenticatedRpc(name,args);}
-   }catch(e){if(missingWorkspace(e))return response({code:'40001',message:'Workspace unavailable',details:null,hint:null},500);throw e;}
+   }catch(e){const error=String(e.stderr||e).match(/\b(?:ERROR|FATAL):\s+([A-Z0-9]{5}):\s+([^\n]+)/);if(!error)throw e;const code=error[1],status=code.startsWith('PT')?Number(code.slice(2)):({P0002:500,'42501':403,'22023':400,'23505':409,'55P03':500,'40001':500}[code]);if(!Number.isInteger(status))throw e;return response({code,message:error[2],details:null,hint:null},status);}
    bridgeTrace.at(-1).responseKeys=Object.keys(value).sort();return response(value);
   }});
   ownerPort=runtime.ownerRpc;servicePort=runtime.serviceRpc;verifyOwner=runtime.verifyOwner;verifySourceEmpty=async binding=>{assert.equal(binding.ownerId,O);assert.equal(binding.businessId,B);const result=await runtime.probeEmptySource();assert.equal(absentCounts(),true);return result;};
@@ -83,7 +86,10 @@ try{
   assert.ok(socket.startsWith('/')&&data.startsWith('/'));assert.equal(sql('SHOW listen_addresses','postgres'),'');assert.equal(sql('SHOW data_directory','postgres'),data);const version=Number(sql('SHOW server_version_num','postgres'));assert.ok(version>=170000&&version<180000);
   sql('DROP DATABASE IF EXISTS '+db,'postgres',false);sql('CREATE DATABASE '+db,'postgres',false);sql(readFileSync('scripts/fixtures/ai-lab/empty-native.sql','utf8'));
   const foundation=aiLabRunnerFoundationPackage(process.cwd());assert.equal(foundation.sha256,'b825989b37e2fef0f874ccdb03405a6650f8dc6ddfe27f94086952cc1cec225d');sql(runnerExecutionDerivative(foundation.sql));
-  sql('INSERT INTO auth.users(id) VALUES('+q(O)+'),('+q(F)+');INSERT INTO public.busy_businesses(id,name,created_by) VALUES('+[B,plan.profile.businessName,O].map(q).join(',')+');INSERT INTO public.busy_business_memberships(business_id,user_id,role) VALUES('+[B,O,'owner'].map(q).join(',')+');');
+  sql('INSERT INTO auth.users(id) VALUES('+q(O)+');INSERT INTO public.busy_businesses(id,name,created_by) VALUES('+[B,plan.profile.businessName,O].map(q).join(',')+');INSERT INTO public.busy_business_memberships(business_id,user_id,role) VALUES('+[B,O,'owner'].map(q).join(',')+');CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY,statements text[] DEFAULT ARRAY[]::text[],name text NOT NULL);INSERT INTO supabase_migrations.schema_migrations(version,name) VALUES(\'20261106221950\',\'mission18_ai_lab_foundation\'),(\'20261107000304\',\'ai_lab_quiet_light_owner_setup_v1\');');
+  // Synthetic local native-history labels, never hosted installation evidence.
+  const contract=aiLabB3SourceContractPackage(process.cwd());sql(sourceContractExecutionDerivative(contract.sql));
+  sql('INSERT INTO auth.users(id) VALUES('+q(F)+');');
   assert.equal(sql('SELECT count(*) FROM public.busy_business_snapshots'),'0');assert.equal(sql('SELECT count(*) FROM public.busy_public_business_profiles'),'0');noSpending();
  });
  await stage('new-orchestrator-six-real-original-writes-exact-source-pages-history-and-readback',async()=>{

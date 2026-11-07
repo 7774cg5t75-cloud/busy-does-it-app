@@ -3429,6 +3429,13 @@
         "scripts/check-ai-lab-b3-package.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-b3-source-contract",
+      "args": [
+        "scripts/check-ai-lab-b3-source-contract.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

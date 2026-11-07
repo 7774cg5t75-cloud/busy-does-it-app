@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createAiLabB3Runtime,AiLabB3RuntimeError,AI_LAB_B3_RUNTIME_VERSION,AI_LAB_B3_URL} from './lib/ai-lab-b3-runtime.mjs';
+import {createAiLabB3Runtime,AiLabB3RuntimeError,AI_LAB_B3_RUNTIME_VERSION,AI_LAB_B3_URL,AI_LAB_B3_SOURCE_STATE_RPC,AI_LAB_B3_SOURCE_STATE_VERSION} from './lib/ai-lab-b3-runtime.mjs';
 
 // Entirely synthetic native/API responses. No real UUID, credential, login,
 // transport, hosted RPC, provider request or billing is used by this script.
@@ -14,6 +14,7 @@ const gate=()=>({version:AI_LAB_B3_RUNTIME_VERSION,projectId:'sbvkrvksnruiclcvcl
 const nativeOwner=()=>({id:OWNER,email:'quiet-light-owner@busy-ai-lab.invalid',email_confirmed_at:'2026-11-07T07:00:00.000Z',role:'authenticated',aud:'authenticated',is_anonymous:false,identities:[{provider:'email',user_id:OWNER}],user_metadata:{role:'service_role',ownerId:FOREIGN}});
 const member=()=>({actorId:OWNER,items:[{businessId:BUSINESS,businessName:'Quiet Light Studio',role:'owner'}]});
 const emptyBuilder=()=>({actorId:OWNER,businessId:BUSINESS,revision:1,websiteUndoCount:0,websiteRedoCount:0,websiteHistoryHash:null,websiteDraft:null,websiteDraftHash:null,profileRevision:null,profileHash:null,profile:null});
+const sourceState=(snapshotExists=true,profileExists=false)=>({version:AI_LAB_B3_SOURCE_STATE_VERSION,actorId:OWNER,businessId:BUSINESS,snapshotExists,profileExists,empty:!snapshotExists&&!profileExists});
 const response=(data,status=200,headers={})=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json',...headers}});
 const profileArgs=()=>({p_business_id:BUSINESS,p_expected_revision:0,p_expected_profile:null,p_profile:{businessName:'Quiet Light Studio'},p_owner_approved:true});
 const commitArgs=(generation=1)=>({p_business_id:BUSINESS,p_actor_id:OWNER,p_expected_revision:generation,p_expected_draft:generation===1?null:{businessId:BUSINESS,id:'website-synthetic',generation:generation-1},p_candidate:{id:'website-synthetic',businessId:BUSINESS,status:'Draft',publicStatus:'Not published',generation,sections:[]},p_profile_revision:1});
@@ -31,6 +32,7 @@ function harness({manifest=gate(),intercept,permit,credentials,password,timeout=
    if(url===AI_LAB_B3_URL+'/auth/v1/user')return response(nativeOwner());
    const rpc=url.slice((AI_LAB_B3_URL+'/rest/v1/rpc/').length),a=call.body;
    if(rpc==='busy_connected_workspaces_v1')return response(member());
+   if(rpc===AI_LAB_B3_SOURCE_STATE_RPC)return response(sourceState());
    if(rpc==='busy_connected_initialize_v1'||rpc==='busy_connected_builder_read_v1')return response(emptyBuilder());
    if(rpc==='busy_connected_profile_write_v1')return response({businessId:BUSINESS,actorId:OWNER,profileRevision:a.p_expected_revision+1,profile:a.p_profile,privateOnly:true,publicationChanged:false,recordHash:HASH});
    if(rpc==='busy_connected_website_commit_v1')return response({ok:true,businessId:BUSINESS,actorId:OWNER,previousRevision:a.p_expected_revision,revision:a.p_expected_revision+1,draftId:a.p_candidate.id,generation:a.p_candidate.generation,recordHash:HASH,privateOnly:true,operation:'edit',undoCount:a.p_expected_draft===null?0:1,redoCount:0,historyHash:HASH});
@@ -85,7 +87,7 @@ await test('wrong RPC authority, unknown/prototype methods and extra params are 
  for(const [kind,name,args] of [['ownerRpc','busy_connected_website_commit_v1',commitArgs()],['serviceRpc','busy_connected_profile_write_v1',profileArgs()],['serviceRpc','busy_ai_reserve_v1',{}],['serviceRpc','busy_connected_website_transition_v1',{}],['ownerRpc','busy_connected_website_history_v1',{}],['ownerRpc','toString',{}],['ownerRpc','../auth/v1/user',{}],['ownerRpc','busy_connected_builder_read_v1',{p_business_id:BUSINESS,execute:true}]]){const h=harness();await denied(h.runtime[kind](name,args),'rpc_scope');assert.equal(h.calls.length,0);assert.equal(h.reads().permitReads,0);}
 });
 await test('foreign source/actor, missing owner approval and invalid/private-draft inputs fail before reads',async()=>{
- const attempts=[['ownerRpc','busy_connected_builder_read_v1',{p_business_id:FOREIGN}],['ownerRpc','busy_connected_profile_write_v1',{...profileArgs(),p_owner_approved:false}],['serviceRpc','busy_connected_website_commit_v1',{...commitArgs(),p_actor_id:FOREIGN}],['serviceRpc','busy_connected_website_commit_v1',{...commitArgs(),p_candidate:{...commitArgs().p_candidate,publicStatus:'Published'}}],['serviceRpc','busy_connected_website_commit_v1',{...commitArgs(),p_expected_revision:0}]];
+ const attempts=[['ownerRpc',AI_LAB_B3_SOURCE_STATE_RPC,{p_business_id:FOREIGN}],['ownerRpc','busy_connected_builder_read_v1',{p_business_id:FOREIGN}],['ownerRpc','busy_connected_profile_write_v1',{...profileArgs(),p_owner_approved:false}],['serviceRpc','busy_connected_website_commit_v1',{...commitArgs(),p_actor_id:FOREIGN}],['serviceRpc','busy_connected_website_commit_v1',{...commitArgs(),p_candidate:{...commitArgs().p_candidate,publicStatus:'Published'}}],['serviceRpc','busy_connected_website_commit_v1',{...commitArgs(),p_expected_revision:0}]];
  for(const [kind,name,args] of attempts){const h=harness();await denied(h.runtime[kind](name,args));assert.equal(h.calls.length,0);}
 });
 await test('cyclic/getter/executable/oversized arguments are refused without executing data or touching secrets',async()=>{
@@ -132,16 +134,82 @@ await test('native session expiry never refreshes a token or repeats password lo
 await test('concurrent entry and external gate mutation cannot create duplicate native dispatch',async()=>{
  const m=gate();let release;const h=harness({manifest:m,permit:async e=>{await new Promise(r=>release=r);return {status:'consumed',executionId:e.executionId,requestNonce:e.requestNonce,manifestDigest:e.manifestDigest};}});const first=h.runtime.verifyOwner();await Promise.resolve();await denied(h.runtime.verifyOwner(),'in_flight');m.ownerId=FOREIGN;m.approval.status='pending';release();assert.equal((await first).id,OWNER);assert.equal(h.calls.filter(c=>c.url.includes('/token?')).length,1);
 });
-await test('only exact read-only missing-workspace error permits empty source preparation',async()=>{
- const h=harness({intercept:c=>c.url.endsWith('/busy_connected_builder_read_v1')?response({code:'40001',message:'Workspace unavailable',details:null,hint:null},500):undefined});assert.deepEqual(await h.runtime.probeEmptySource(),{empty:true});await h.runtime.ownerRpc('busy_connected_initialize_v1',{p_business_id:BUSINESS});assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,1);
+await test('only a successful typed scoped source-state response proves absence',async()=>{
+ const h=harness({intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?response(sourceState(false,false)):undefined});
+ assert.deepEqual(await h.runtime.probeEmptySource(),{empty:true});
+ const probe=h.calls.find(c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC));
+ assert.deepEqual(probe.body,{p_business_id:BUSINESS});assert.equal(probe.options.headers.Authorization,'Bearer '+TOKEN);assert.equal(probe.options.headers.apikey,KEY);
+ assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_builder_read_v1')).length,0);
+ await h.runtime.ownerRpc('busy_connected_initialize_v1',{p_business_id:BUSINESS});assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,1);
 });
-await test('existing revision-one empty source is not mistaken for absence',async()=>{const h=harness();await denied(h.runtime.probeEmptySource(),'source_already_exists_or_unverified');assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);});
-await test('wrong status/code/text/extra error data cannot masquerade as missing source',async()=>{
- const good={code:'40001',message:'Workspace unavailable',details:null,hint:null};
- for(const [body,status] of [[good,409],[good,200],[{...good,code:'42501'},500],[{...good,message:'Workspace unavailable '},500],[{...good,hint:'try again'},500],[{...good,execute:true},500],[{...good,details:PASSWORD},500]]){const h=harness({intercept:c=>c.url.endsWith('/busy_connected_builder_read_v1')?response(body,status):undefined});await denied(h.runtime.probeEmptySource());assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);}
+await test('existing revision-one snapshot, profile-only and disabled-profile presence never prove empty source',async()=>{
+ for(const [snapshotExists,profileExists] of [[true,false],[false,true],[true,true]]){
+  const h=harness({intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?response(sourceState(snapshotExists,profileExists)):undefined});
+  await denied(h.runtime.probeEmptySource(),'source_already_exists_or_unverified',false);
+  assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);
+ }
 });
-await test('missing-source error body is itself type/size/JSON bounded',async()=>{
- for(const make of [()=>response({code:'40001',message:'Workspace unavailable',details:'x'.repeat(2049),hint:null},500),()=>new Response('SYNTHETIC_PRIVATE_ERROR',{status:500,headers:{'Content-Type':'application/json'}})]){const h=harness({intercept:c=>c.url.endsWith('/busy_connected_builder_read_v1')?make():undefined});await denied(h.runtime.probeEmptySource());}
+await test('wrong source identity, version, field types and contradictory absence replies fail closed',async()=>{
+ const good=sourceState(false,false),missing={...good};delete missing.profileExists;
+ const cases=[null,[],false,'empty',missing,{...good,actorId:FOREIGN},{...good,businessId:FOREIGN},{...good,version:'busy.connected-builder-source-state.v0'},{...good,version:undefined},{...good,empty:'true'},{...good,snapshotExists:'false'},{...good,profileExists:0},{...good,profileExists:null},{...good,snapshotExists:true},{...good,profileExists:true},{...good,empty:false},{...good,execute:true},{...good,details:PASSWORD}];
+ for(const body of cases){const h=harness({intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?response(body):undefined});await denied(h.runtime.probeEmptySource(),'rpc_response',false);assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);}
+});
+await test('no HTTP database failure including the legacy 40001 error is accepted as absence',async()=>{
+ const failure={code:'40001',message:'Workspace unavailable',details:null,hint:null};
+ for(const status of [400,401,403,409,422,500,503,504]){
+  const h=harness({intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?response(failure,status):undefined});
+  await denied(h.runtime.probeEmptySource(),status===401||status===403?'access_denied':'request_rejected',false);
+  assert.equal(h.calls.filter(c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)).length,1);
+  assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);
+  await denied(h.runtime.probeEmptySource(),'already_stopped');
+  assert.equal(h.calls.filter(c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)).length,1);
+ }
+});
+await test('genuine serialization, deadlock and lock failures remain errors without reading private error data',async()=>{
+ for(const code of ['40001','40P01','55P03','PT503']){
+  const h=harness({intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?response({code,message:'SYNTHETIC_PRIVATE_ERROR '+PASSWORD,details:SERVICE,hint:TOKEN},code==='PT503'?503:500):undefined});
+  await denied(h.runtime.probeEmptySource(),'request_rejected',false);
+  assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);
+  assert.equal(h.runtime.inspect().mayReplay,false);
+ }
+});
+await test('only HTTP200 can carry the typed source-state contract',async()=>{
+ for(const status of [201,202,206]){const h=harness({intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?response(sourceState(false,false),status):undefined});await denied(h.runtime.probeEmptySource(),'request_rejected',false);assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);}
+});
+await test('source-state bodies enforce JSON type, length, stream and UTF8 bounds',async()=>{
+ const cases=[()=>new Response('{}',{headers:{'Content-Type':'text/html'}}),()=>new Response('{}',{headers:{'Content-Type':'application/json','Content-Length':'2049'}}),()=>response({value:'x'.repeat(2049)}),()=>new Response('SYNTHETIC_PRIVATE_ERROR',{headers:{'Content-Type':'application/json'}}),()=>new Response(new Uint8Array([0xff,0xfe]),{headers:{'Content-Type':'application/json'}})];
+ for(const make of cases){const h=harness({intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?make():undefined});await denied(h.runtime.probeEmptySource(),undefined,false);assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);}
+});
+await test('read-only source-state timeout stops after one attempt without source writes or backend controls',async()=>{
+ const h=harness({timeout:10,intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?new Promise(()=>{}):undefined});
+ await denied(h.runtime.probeEmptySource(),'request_timeout',false);await denied(h.runtime.probeEmptySource(),'already_stopped');
+ assert.equal(h.calls.filter(c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)).length,1);
+ assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);
+ assert.ok(h.calls.every(c=>!/cancel|terminate|retry|refresh|functions/.test(c.url)));
+});
+await test('source withdrawn after initialization fails the canonical read and never repeats writes',async()=>{
+ const h=harness({intercept:c=>c.url.endsWith('/busy_connected_builder_read_v1')?response({code:'P0002',message:'Workspace unavailable',details:null,hint:null},400):undefined});
+ await h.runtime.ownerRpc('busy_connected_initialize_v1',{p_business_id:BUSINESS});
+ await denied(h.runtime.ownerRpc('busy_connected_builder_read_v1',{p_business_id:BUSINESS}),'request_rejected',false);
+ await denied(h.runtime.ownerRpc('busy_connected_initialize_v1',{p_business_id:BUSINESS}),'already_stopped');
+ assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,1);
+});
+await test('revoked owner membership denies the source-state call itself',async()=>{
+ const h=harness({intercept:c=>c.url.endsWith('/busy_connected_workspaces_v1')?response({actorId:OWNER,items:[]}):undefined});
+ await denied(h.runtime.probeEmptySource(),'rpc_response');
+ assert.equal(h.calls.filter(c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)).length,0);
+ assert.equal(h.calls.filter(c=>c.url.endsWith('/busy_connected_initialize_v1')).length,0);
+});
+await test('failure diagnostics retain only finite first code and status without error getters or bodies',async()=>{
+ const h=harness({intercept:c=>c.url.endsWith('/'+AI_LAB_B3_SOURCE_STATE_RPC)?response({code:'40001',message:PASSWORD},503):undefined});
+ await denied(h.runtime.probeEmptySource(),'request_rejected',false);
+ assert.deepEqual(h.runtime.inspect().failure,{code:'request_rejected',httpStatus:503});
+ await denied(h.runtime.probeEmptySource(),'already_stopped');assert.deepEqual(h.runtime.inspect().failure,{code:'request_rejected',httpStatus:503});
+ let touched=false;const error=new AiLabB3RuntimeError('SYNTHETIC_PRIVATE_ERROR',true);
+ Object.defineProperty(error,'code',{get(){touched=true;return PASSWORD;}});Object.defineProperty(error,'httpStatus',{get(){touched=true;return SERVICE;}});Object.defineProperty(error,'cause',{get(){touched=true;return TOKEN;}});
+ const bad=harness({intercept:c=>{if(c.url.includes('/token?'))throw error;}});
+ await denied(bad.runtime.verifyOwner(),'runtime_unavailable',true);assert.equal(touched,false);assert.deepEqual(bad.runtime.inspect().failure,{code:'runtime_unavailable',httpStatus:null});
+ for(const secret of [KEY,SERVICE,PASSWORD,TOKEN,REFRESH,'SYNTHETIC_PRIVATE_ERROR'])assert.ok(!JSON.stringify({first:h.runtime.inspect(),second:bad.runtime.inspect()}).includes(secret));
 });
 await test('safe diagnostics and close expose no secrets or native refresh tokens',async()=>{
  const h=harness();await h.runtime.verifyOwner();const output=JSON.stringify({owner:await h.runtime.verifyOwner(),inspect:h.runtime.inspect()});for(const secret of [KEY,SERVICE,PASSWORD,TOKEN,REFRESH])assert.ok(!output.includes(secret));h.runtime.close();assert.equal(h.runtime.inspect().authenticated,false);await denied(h.runtime.verifyOwner(),'already_stopped');assert.equal(h.runtime.inspect().providerCalls,0);

@@ -1,7 +1,9 @@
 // Server-only original-authority transport for one separately approved B3 run.
 // No HTTP server, environment lookup, deployment, logging, provider API,
 // publication endpoint, token refresh or automatic retry is defined here.
-export const AI_LAB_B3_RUNTIME_VERSION='busy.ai-lab-b3-runtime.v1';
+export const AI_LAB_B3_RUNTIME_VERSION='busy.ai-lab-b3-runtime.v2';
+export const AI_LAB_B3_SOURCE_STATE_RPC='busy_connected_builder_source_state_v1';
+export const AI_LAB_B3_SOURCE_STATE_VERSION='busy.connected-builder-source-state.v1';
 export const AI_LAB_B3_URL='https://sbvkrvksnruiclcvclbd.supabase.co';
 const PROJECT='sbvkrvksnruiclcvclbd',ORGANIZATION='wrjfgasxtlznzfzmfrif';
 const OWNER_EMAIL='quiet-light-owner@busy-ai-lab.invalid';
@@ -12,19 +14,28 @@ const exact=(v,keys)=>object(v)&&Object.keys(v).sort().join(',')===[...keys].sor
 const positive=v=>Number.isSafeInteger(v)&&v>0;
 const nullableHash=v=>v===null||digest(v);
 const encoder=new TextEncoder();
-const EXPECTED_EMPTY_SOURCE=Symbol('independently-authenticated-missing-workspace');
 const OWNER_RPCS=Object.freeze({
  busy_connected_workspaces_v1:[],
+ [AI_LAB_B3_SOURCE_STATE_RPC]:['p_business_id'],
  busy_connected_initialize_v1:['p_business_id'],
  busy_connected_builder_read_v1:['p_business_id'],
  busy_connected_profile_write_v1:['p_business_id','p_expected_revision','p_expected_profile','p_profile','p_owner_approved']
 });
 const SERVICE_RPCS=Object.freeze({busy_connected_website_commit_v1:['p_business_id','p_actor_id','p_expected_revision','p_expected_draft','p_candidate','p_profile_revision']});
 const WRITE_LIMITS=Object.freeze({busy_connected_initialize_v1:1,busy_connected_profile_write_v1:1,busy_connected_website_commit_v1:4});
+const FAILURE_CODES=new Set(['disabled','already_stopped','in_flight','approval_expired','request_size','request_schema','rpc_scope','rpc_arguments','write_limit','response_schema','response_origin','request_rejected','access_denied','response_size_or_type','response_size','response_json','request_timeout','transport_unavailable','native_sign_in_already_attempted','dispatch_permit_unavailable','dispatch_permit_denied','credentials_unavailable','credentials_invalid','native_sign_in_response','native_session_expired','rpc_response','credential_in_rpc_response','native_identity_changed','source_already_exists_or_unverified','runtime_unavailable']);
+const HTTP_STATUSES=new Set([200,201,202,204,206,300,301,302,303,304,307,308,400,401,402,403,404,405,406,408,409,410,411,412,413,414,415,416,417,418,421,422,423,424,425,426,428,429,431,451,500,501,502,503,504,505,506,507,508,510,511]);
 export class AiLabB3RuntimeError extends Error{
- constructor(code,unknownOutcome=false){super('AI Lab B3 stopped: '+code);this.name='AiLabB3RuntimeError';this.code=code;this.unknownOutcome=unknownOutcome;this.mayReplay=false;}
+ constructor(code,unknownOutcome=false,httpStatus=null){super('AI Lab B3 stopped: '+code);this.name='AiLabB3RuntimeError';this.code=code;this.unknownOutcome=unknownOutcome;this.httpStatus=HTTP_STATUSES.has(httpStatus)?httpStatus:null;this.mayReplay=false;}
 }
-const fail=(code,unknown=false)=>new AiLabB3RuntimeError(code,unknown);
+const fail=(code,unknown=false,status=null)=>new AiLabB3RuntimeError(code,unknown,status);
+function sanitizeFailure(error){
+ // Only own data descriptors and finite diagnostic values; never inspect an
+ // exception body/message/cause, invoke a getter or copy a native error object.
+ let code,unknown,status;
+ try{code=Object.getOwnPropertyDescriptor(error,'code')?.value;unknown=Object.getOwnPropertyDescriptor(error,'unknownOutcome')?.value;status=Object.getOwnPropertyDescriptor(error,'httpStatus')?.value;}catch{}
+ return fail(FAILURE_CODES.has(code)?code:'runtime_unavailable',unknown===true,HTTP_STATUSES.has(status)?status:null);
+}
 
 function validateGate(m,now){
  if(!exact(m,['version','projectId','organizationId','region','ownerId','businessId','executionId','requestNonce','sourcePlanDigest','approval'])||m.version!==AI_LAB_B3_RUNTIME_VERSION||m.projectId!==PROJECT||m.organizationId!==ORGANIZATION||m.region!=='eu-west-1'||!['ownerId','businessId','executionId','requestNonce'].every(k=>uuid(m[k]))||new Set([m.ownerId,m.businessId,m.executionId,m.requestNonce]).size!==4||!digest(m.sourcePlanDigest)||!exact(m.approval,['status','manifestDigest','expiresAt'])||m.approval.status!=='owner-approved'||!digest(m.approval.manifestDigest)||typeof m.approval.expiresAt!=='string')return false;
@@ -64,6 +75,7 @@ function validateOwner(v,m){
 function validRpcResult(name,r,a,m){
  if(name==='busy_connected_workspaces_v1')return validateMember(r,m);
  if(!object(r)||r.actorId!==m.ownerId||r.businessId!==m.businessId)return false;
+ if(name===AI_LAB_B3_SOURCE_STATE_RPC)return exact(r,['version','actorId','businessId','snapshotExists','profileExists','empty'])&&r.version===AI_LAB_B3_SOURCE_STATE_VERSION&&['snapshotExists','profileExists','empty'].every(k=>typeof r[k]==='boolean')&&r.empty===(!r.snapshotExists&&!r.profileExists);
  if(name==='busy_connected_builder_read_v1'||name==='busy_connected_initialize_v1'){
   return exact(r,['actorId','businessId','revision','websiteUndoCount','websiteRedoCount','websiteHistoryHash','websiteDraft','websiteDraftHash','profileRevision','profileHash','profile'])&&positive(r.revision)&&['websiteUndoCount','websiteRedoCount'].every(k=>Number.isSafeInteger(r[k])&&r[k]>=0&&r[k]<=8)&&nullableHash(r.websiteHistoryHash)&&nullableHash(r.websiteDraftHash)&&nullableHash(r.profileHash)&&(r.profileRevision===null||positive(r.profileRevision))&&(r.profile===null||object(r.profile))&&(r.websiteDraft===null||(object(r.websiteDraft)&&r.websiteDraft.businessId===m.businessId));
  }
@@ -72,28 +84,29 @@ function validRpcResult(name,r,a,m){
 }
 
 export function createAiLabB3Runtime(manifest,{fetchImpl,credentialReader,ownerPasswordReader,consumeDispatchPermit,now=Date.now,requestTimeoutMs=10000}={}){
- let m=null,state='disabled',locked=false,session=null,keys=null,loginAttempted=false,permitAttempted=false,permitConsumed=false;
+ let m=null,state='disabled',locked=false,session=null,keys=null,loginAttempted=false,permitAttempted=false,permitConsumed=false,failure=null;
  const writes={},counts={authSignIns:0,nativeUserReads:0,ownerRpcs:0,serviceRpcs:0};
  const timeout=Number.isSafeInteger(requestTimeoutMs)&&requestTimeoutMs>=1&&requestTimeoutMs<=10000?requestTimeoutMs:10000;
  try{if(validateGate(manifest,now())&&[fetchImpl,credentialReader,ownerPasswordReader,consumeDispatchPermit].every(v=>typeof v==='function')){m=Object.freeze({...manifest,approval:Object.freeze({...manifest.approval})});state='unused';}}catch{/* Disabled without credential reads or network access. */}
- const halt=(code,unknown=false)=>{state='stopped';session=null;keys=null;return fail(code,unknown);};
+ const rememberFailure=error=>{const safe=sanitizeFailure(error);if(failure===null)failure=Object.freeze({code:safe.code,httpStatus:safe.httpStatus});return safe;};
+ const halt=(code,unknown=false)=>{state='stopped';session=null;keys=null;return rememberFailure(fail(code,unknown));};
  const current=()=>{if(state==='disabled')throw fail('disabled');if(state==='stopped'||state==='closed')throw fail('already_stopped');if(!validateGate(m,now()))throw halt('approval_expired');};
  const exclusive=async fn=>{
   current();if(locked)throw fail('in_flight');locked=true;
-  try{return await fn();}catch(error){const safe=error instanceof AiLabB3RuntimeError?error:fail('runtime_unavailable');state='stopped';session=null;keys=null;throw safe;}finally{locked=false;}
+  try{return await fn();}catch(error){const safe=rememberFailure(error instanceof AiLabB3RuntimeError?error:fail('runtime_unavailable'));state='stopped';session=null;keys=null;throw safe;}finally{locked=false;}
  };
- async function request(path,{method='GET',headers={},body,write=false,maxBytes=650000,probeEmpty=false}={}){
+ async function request(path,{method='GET',headers={},body,write=false,maxBytes=650000,expectedStatus}={}){
   current();const controller=new AbortController();let timer,reader;
   const requestUrl=AI_LAB_B3_URL+path;
   const execute=async()=>{
    const response=await fetchImpl(requestUrl,{method,headers:{Accept:'application/json',...headers},body,signal:controller.signal,redirect:'error',cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});
    if(!response||!Number.isInteger(response.status)||response.status<100||response.status>599)throw fail('response_schema',write);
    if(response.url&&response.url!==requestUrl)throw fail('response_origin',write);
-   // PostgREST maps PostgreSQL40* toHTTP500. This one read-only probe permits
-   // only the exact original missing-workspace error, never a generic500.
-   const expectedError=probeEmpty&&response.status===500;
-   if((response.status<200||response.status>=300)&&!expectedError){try{void response.body?.cancel()?.catch(()=>{});}catch{}throw fail(response.status===401||response.status===403?'access_denied':'request_rejected',write&&response.status>=500);}
-   const limit=expectedError?2048:maxBytes;
+   // A successful typed source-state response is the only absence proof.
+   // Every HTTP error is terminal; no error body is interpreted as an empty
+   // workspace and no client retry or backend cancellation is performed.
+   if(response.status<200||response.status>=300||(expectedStatus!==undefined&&response.status!==expectedStatus)){try{void response.body?.cancel()?.catch(()=>{});}catch{}throw fail(response.status===401||response.status===403?'access_denied':'request_rejected',write&&response.status>=500,response.status);}
+   const limit=maxBytes;
    const type=response.headers?.get('content-type')||'',length=response.headers?.get('content-length');
    if(!/^application\/json(?:;|$)/i.test(type)||(length!==null&&length!==undefined&&(!/^\d+$/.test(length)||Number(length)>limit)))throw fail('response_size_or_type',write);
    reader=response.body?.getReader();if(!reader)throw fail('response_schema',write);
@@ -101,7 +114,6 @@ export function createAiLabB3Runtime(manifest,{fetchImpl,credentialReader,ownerP
    while(true){const part=await reader.read();if(part.done)break;if(!(part.value instanceof Uint8Array)||(size+=part.value.byteLength)>limit)throw fail('response_size',write);chunks.push(part.value);}
    const bytes=new Uint8Array(size);let at=0;for(const chunk of chunks){bytes.set(chunk,at);at+=chunk.byteLength;}
    let json;try{json=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{throw fail('response_json',write);}
-   if(expectedError){if(exact(json,['code','message','details','hint'])&&json.code==='40001'&&json.message==='Workspace unavailable'&&json.details===null&&json.hint===null)return EXPECTED_EMPTY_SOURCE;throw fail('source_probe_denied');}
    return json;
   };
   try{return await Promise.race([execute(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(fail('request_timeout',write));},Math.min(timeout,Math.max(1,Date.parse(m.approval.expiresAt)-now())));})]);}
@@ -133,7 +145,8 @@ export function createAiLabB3Runtime(manifest,{fetchImpl,credentialReader,ownerP
   const write=Object.hasOwn(WRITE_LIMITS,name);
   if(write){if((writes[name]||0)>=WRITE_LIMITS[name])throw fail('write_limit');writes[name]=(writes[name]||0)+1;}
   counts[service?'serviceRpcs':'ownerRpcs']++;
-  const r=await request('/rest/v1/rpc/'+name,{method:'POST',headers:service?{apikey:keys.serviceKey,'Content-Type':'application/json','Accept-Profile':'public','Content-Profile':'public'}:ownerHeaders(),body:encoded.text,write});
+  const sourceState=name===AI_LAB_B3_SOURCE_STATE_RPC;
+  const r=await request('/rest/v1/rpc/'+name,{method:'POST',headers:service?{apikey:keys.serviceKey,'Content-Type':'application/json','Accept-Profile':'public','Content-Profile':'public'}:ownerHeaders(),body:encoded.text,write,...(sourceState?{maxBytes:2048,expectedStatus:200}:{})});
   if(!validRpcResult(name,r,encoded.value,m))throw fail('rpc_response',write);
   const serial=JSON.stringify(r);
   if([keys.publishableKey,keys.serviceKey,session.token].some(secret=>serial.includes(secret)))throw fail('credential_in_rpc_response',write);
@@ -149,12 +162,12 @@ export function createAiLabB3Runtime(manifest,{fetchImpl,credentialReader,ownerP
  }
  return Object.freeze({
   verifyOwner:()=>exclusive(async()=>(await identityAndMembership()).owner),
-  probeEmptySource:()=>exclusive(async()=>{await identityAndMembership();counts.ownerRpcs++;const result=await request('/rest/v1/rpc/busy_connected_builder_read_v1',{method:'POST',headers:ownerHeaders(),body:JSON.stringify({p_business_id:m.businessId}),probeEmpty:true});if(result!==EXPECTED_EMPTY_SOURCE)throw fail('source_already_exists_or_unverified');return Object.freeze({empty:true});}),
+  probeEmptySource:()=>exclusive(async()=>{await identityAndMembership();const result=await callRpc(AI_LAB_B3_SOURCE_STATE_RPC,{p_business_id:m.businessId},false);if(result.empty!==true)throw fail('source_already_exists_or_unverified');return Object.freeze({empty:true});}),
   ownerRpc:(name,args)=>exclusive(async()=>{const a=wireArguments(args).value;validateArgs(name,a,m,false);const checked=await identityAndMembership();return name==='busy_connected_workspaces_v1'?checked.membership:callRpc(name,a,false);}),
   serviceRpc:(name,args)=>exclusive(async()=>{const a=wireArguments(args).value;validateArgs(name,a,m,true);await identityAndMembership();return callRpc(name,a,true);}),
   // Consumed means acknowledgement verified, never proof that an attempted
   // permit with a lost acknowledgement remained unused. Inspect durable state.
-  inspect:()=>Object.freeze({state,permitAttempted,permitConsumed,loginAttempted,authenticated:session!==null,mayReplay:false,providerCalls:0,counts:Object.freeze({...counts}),writes:Object.freeze({...writes})}),
+  inspect:()=>Object.freeze({state,permitAttempted,permitConsumed,loginAttempted,authenticated:session!==null,mayReplay:false,providerCalls:0,counts:Object.freeze({...counts}),writes:Object.freeze({...writes}),failure}),
   close:()=>{state='closed';session=null;keys=null;}
  });
 }

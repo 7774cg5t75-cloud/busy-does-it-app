@@ -39,24 +39,39 @@ jobs:
           PRIVATE_APPROVAL: ${{ secrets.BUSY_AI_LAB_B3_APPROVAL_JSON }}
         run: |
           python3 - <<'PY'
-          import os,json,pathlib,hashlib,datetime
+          import os,json,pathlib,hashlib,datetime,re
           # No imports or execution of repository code before this gate.
           try:
             m=json.loads(os.environ['PRIVATE_MANIFEST']);a=json.loads(os.environ['PRIVATE_APPROVAL'])
+            assert m['version']=='busy.ai-lab-b3-manifest.v2'
+            assert a['version']=='busy.ai-lab-b3-owner-approval.v2'
             digest=hashlib.sha256(json.dumps(m,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
             assert a['status']=='owner-approved' and a['manifestDigest']==digest
+            assert a['executionId']==m['binding']['executionId'] and a['requestNonce']==m['binding']['requestNonce']
+            assert a['maxExecutionCount']==1
             assert a['runId']==os.environ['GITHUB_RUN_ID'] and os.environ['GITHUB_RUN_ATTEMPT']=='1'
             assert a['eventSha']==os.environ['GITHUB_SHA'] and a['actor']==os.environ['GITHUB_ACTOR']
             assert a['environmentProtectionIndependentlyReviewed'] is True and a['standardRunnerZeroCostConfirmed'] is True
             expiry=datetime.datetime.fromisoformat(a['expiresAt'].replace('Z','+00:00'))
-            assert datetime.datetime.now(datetime.timezone.utc)<expiry
+            now=datetime.datetime.now(datetime.timezone.utc)
+            assert now<expiry<=now+datetime.timedelta(hours=1)
             root=pathlib.Path.cwd().resolve()
             for name,expected in m['code']['files'].items():
               p=root/name
               assert p.resolve().is_relative_to(root) and not p.is_symlink()
               assert hashlib.sha256(p.read_bytes()).hexdigest()==expected
+            # Independently verified installation evidence is part of the
+            # reviewed packet; original B2 alone cannot unlock new source IO.
+            sql=json.loads((root/'docs/sql-proposals/ai-lab-b3-empty-source/manifest.json').read_text())
+            revised=[{'signature':f['signature'],'revisedBodySha256':f['revisedBodySha256']} for f in sql['originalFunctionChanges']]
+            expected_db={'version':'busy.ai-lab-b3-database-contract.v1','migrationName':sql['migrationName'],'executionSha256':sql['executionDerivativeSha256'],'sourceStateVersion':sql['wireVersion'],'sourceStateBodySha256':sql['newFunctionBodySha256'],'revisedFunctionsSha256':hashlib.sha256(json.dumps(revised,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()}
+            db=m['databaseContract']
+            assert set(db)==set(expected_db)|{'migrationVersion','verificationSha256'}
+            assert all(db[k]==v for k,v in expected_db.items())
+            assert re.fullmatch(r'[0-9]{14}',db['migrationVersion'])
+            assert re.fullmatch(r'[0-9a-f]{64}',db['verificationSha256']) and db['verificationSha256']==m['b2']['evidenceSha256']
             marker=json.loads((root/'.github/ai-lab-b3-execution-request.json').read_text())
-            assert marker=={'version':'busy.ai-lab-b3-execution-request.v1','manifestDigest':digest,'executionId':m['binding']['executionId']}
+            assert marker=={'version':'busy.ai-lab-b3-execution-request.v2','manifestDigest':digest,'executionId':m['binding']['executionId']}
           except BaseException:
             raise SystemExit("B3 pre-secret validation refused; no private values logged") from None
           PY
