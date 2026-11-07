@@ -1,0 +1,71 @@
+{
+  "version": "busy.final-ai-pilot-readiness.readonly.v1",
+  "target": {
+    "project": "sbvkrvksnruiclcvclbd",
+    "organization": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "plan": "free"
+  },
+  "database": {
+    "policy": {
+      "enabled": false,
+      "monthlyHardLimit": 0
+    },
+    "aiCounts": {
+      "events": 0,
+      "periods": 0,
+      "tariffs": 0,
+      "accounts": 0,
+      "operations": 0
+    },
+    "readOnly": "on",
+    "liability": {
+      "spent": 0,
+      "reserved": 0
+    },
+    "observedAt": "2026-11-07T19:36:13.355945+00:00",
+    "rlsPreserved": true,
+    "postgresVersion": "17.11",
+    "outputConstraint": "CHECK (((max_output >= 1) AND (max_output <= 4000)))",
+    "publicTableCount": 28,
+    "privateAiTableCount": 6,
+    "nativeRlsHookMatches": true,
+    "migrationReceiptCount": 0,
+    "nativeRlsEventEnabled": true,
+    "originalFunctionCount": 108,
+    "serviceOnlyAiFunctions": true,
+    "allOriginalFunctionBodiesMatch": true,
+    "expectedOutputConstraintMatches": true,
+    "exactStoredStatementReceiptCount": 0
+  },
+  "savedSource": {
+    "observedAt": "2026-11-07T19:40:49.822642+00:00",
+    "readOnly": "on",
+    "ownerMatches": true,
+    "businessMatches": true,
+    "profileHashMatches": true,
+    "draftHashMatches": true,
+    "historyHashMatches": true,
+    "profileRevision": 1,
+    "snapshotRevision": 5,
+    "websiteGeneration": 4,
+    "pageCount": 3,
+    "publicWebsiteCount": 0,
+    "deploymentCount": 0,
+    "aiOperations": 0,
+    "aiEvents": 0,
+    "aiPolicy": {
+      "enabled": false,
+      "monthlyHardLimit": 0
+    },
+    "undoCount": 3,
+    "redoCount": 0
+  },
+  "functionsDeployed": 0,
+  "evidenceScope": "Fresh authorised read-only metadata and original saved-source hash comparison; not installation, deployment or new rendering evidence",
+  "hostedMutations": 0,
+  "credentialReads": 0,
+  "providerRequests": 0,
+  "spendingGBP": 0,
+  "databaseReceiptScope": "The migrationReceiptCount and exactStoredStatementReceiptCount fields refer only to the separately proposed, uninstalled 12k output-compatibility migration. They do not count the installed original foundation/B2/B3 migrations. The original installed authority is independently evidenced here by 28 public/6 private tables,108 matching function bodies and preserved RLS/native hook/service permissions."
+}

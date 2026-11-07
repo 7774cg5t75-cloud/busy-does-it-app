@@ -1,0 +1,109 @@
+{
+  "version": "busy.ci-infrastructure-failure-preservation.v1",
+  "currentMissionRuns": [
+    {
+      "run": 42407891294,
+      "attempt": 1,
+      "source": "90f69454a03a5eec3013979d82923f52fc74243a",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-11-07T19:47:19Z",
+      "updatedAt": "2026-11-07T19:49:17Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42407891294",
+      "observedReason": "Packaged-key guard refusal; later database/HTTP/exports/full-selection steps skipped"
+    },
+    {
+      "run": 42408434020,
+      "attempt": 1,
+      "source": "3a54fb2d2c56039c8ccda6bff90e7b07e50f757c",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-11-07T19:54:11Z",
+      "updatedAt": "2026-11-07T19:56:27Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42408434020",
+      "observedReason": "Key ownership/mode/size refusal; not an application failure"
+    },
+    {
+      "run": 42409058799,
+      "attempt": 1,
+      "source": "1929b906607672126a06e26dedf378191966e964",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-11-07T20:02:06Z",
+      "updatedAt": "2026-11-07T20:02:23Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42409058799",
+      "observedReason": "Actual fixed public key uid0 mode0777 bytes4812 refused"
+    },
+    {
+      "run": 42409626764,
+      "attempt": 1,
+      "source": "200850b0e7c6fa3b1dea6b087fa8428fbd1f01c6",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-11-07T20:08:54Z",
+      "updatedAt": "2026-11-07T20:09:10Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42409626764",
+      "observedReason": "Permission-hardening ancestry guard refused before repository trust"
+    },
+    {
+      "run": 42409877997,
+      "attempt": 1,
+      "source": "c3f8bed868b934dfd1afd843c48a68cbfbf86b0b",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-11-07T20:11:50Z",
+      "updatedAt": "2026-11-07T20:12:08Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42409877997",
+      "observedReason": "Actual /usr/share directory uid0 mode0777 refused"
+    },
+    {
+      "run": 42410162382,
+      "attempt": 1,
+      "source": "36946c7ab92e83bb0d5aed047a5d46149273a70f",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-11-07T20:15:20Z",
+      "updatedAt": "2026-11-07T20:15:39Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42410162382",
+      "observedReason": "Protected exclusive copy passed; package-owner assertion refused before fingerprint check"
+    },
+    {
+      "run": 42410369873,
+      "attempt": 1,
+      "source": "b311d752987b33e4b5cb61c52377c1f7bfadb8ae",
+      "status": "completed",
+      "conclusion": "failure",
+      "createdAt": "2026-11-07T20:17:55Z",
+      "updatedAt": "2026-11-07T20:18:15Z",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42410369873",
+      "observedReason": "Exact dpkg owner was postgresql-client-common; strict legacy common-only assertion refused"
+    }
+  ],
+  "priorEvidence": {
+    "failedSigningKeyDownload": {
+      "run": 42402373175,
+      "attempts": [
+        1,
+        2
+      ],
+      "source": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+      "conclusion": "failure",
+      "curlExit": 28,
+      "timeoutMilliseconds": 30002,
+      "foundationPassed": 105,
+      "denoEntryPointsPassed": 27,
+      "denoProposalModulesPassed": 9,
+      "laterStages": "skipped",
+      "preservedIn": "../sol-first-pilot/"
+    },
+    "cancelled": {
+      "run": 42400992924,
+      "conclusion": "cancelled",
+      "cause": "native concurrency replacement",
+      "notPassing": true
+    }
+  },
+  "security": "Same full PGDG fingerprint and signed apt; no downloads/fallback, no arbitrary owner or trust path accepted",
+  "hostedMutations": 0,
+  "providerCalls": 0
+}

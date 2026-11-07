@@ -1,0 +1,27 @@
+{
+  "version": "busy.private-saved-source-review-preservation.v1",
+  "pdfSha256": "f90e3d66a5267443a8f438f7b54cc2a4f42c0067e61891b04bf9e49b38068914",
+  "pdfBytes": 731641,
+  "fileMode": "0600",
+  "parentMode": "0700",
+  "reviewImages": 6,
+  "retainedOriginalBaselineImages": 15,
+  "viewportSizes": [
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "rendererFiles": 43,
+  "rendererFilesDigest": "4c55a4d33388e54fba7ea7bd0baa829dac23d83bde60b2676584ec27aaadf172",
+  "newRendering": false,
+  "historicalBrowserAssertions": 543,
+  "newModelResults": 0,
+  "publicUpload": false,
+  "websiteWrites": 0,
+  "captureEvidence": "Preserved original local renderer captures of verified actual hosted saved source, not fixture approximation or public preview"
+}
