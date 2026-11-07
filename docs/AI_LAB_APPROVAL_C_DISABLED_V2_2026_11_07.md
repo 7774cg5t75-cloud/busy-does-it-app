@@ -1,5 +1,7 @@
 # Approval C review: disabled AI Lab creative-document route
 
+**Later budget preparation:** the owner now proposes£1 for one Astra request and£3 cumulative for the initial pair; see the [revised proposal](AI_CREATIVE_PILOT_REVISED_BUDGET_2026_11_07.md). This does not change C's disabled bytes, inventory, approval boundary or original historical£0.10 request references below. Higher token/cost capabilities require a newly reviewed compatible source and original-ledger change; no deployment, activation or spend follows from this document.
+
 Status: **review proposal only; no deployment, secret access, smoke request, account sign-in or inference is authorised by this document**. B3 run `42377316843`, attempt 1, completed on functional source `e1edc5cef820f55672502a546a0e4c6a121715d3`. Its authority is consumed. The saved three-page source is not a live model result and must not be recreated or overwritten for this deployment.
 
 The owner identifies private Master V22.86 as current. Its original is not available in this task; do not claim to have read it. The verified corrected V22.85 original and the owner's explicit current requirements govern this source-neutral preparation pending reconciliation. Three design references remain unapproved and free/paid quality parity remains permanent.

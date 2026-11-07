@@ -1,5 +1,7 @@
 # Real creative comparison: model and cost readiness
 
+**Budget/FX continuity update:** the previous£0.10 planning scenario below is historical. See the [revised£1 Astra /£3 cumulative comparison proposal](AI_CREATIVE_PILOT_REVISED_BUDGET_2026_11_07.md), with rechecked pricing, newer6November ECB reference FX and explicit account/tax/token/compatibility gates. Original findings/hashes are retained unchanged; no runtime activation or spend is authorised.
+
 Checked 7 November 2026. This is public-document research and a proposed evaluation protocol, not an execution approval. No provider metadata, token-count or inference request was sent; no account, credential, tariff, reservation or hosted record was changed.
 
 The current official catalogue identifies **`gpt-6.1-sol`** and **`gpt-6-astra`** as OpenAI API models. These IDs were checked directly; their presence in Codex's model selector was not used as evidence. Both list Responses and Structured Outputs, text output and image input. Both support reasoning effort `low`, `medium`, `high`, `xhigh` and `max`; both list a 1,050,000-token context and 128,000-token maximum output. Those model capacities do not enlarge Busy’s proposed pilot limits. [Sol model](https://developers.openai.com/api/docs/models/gpt-6.1-sol), [Astra model](https://developers.openai.com/api/docs/models/gpt-6-astra).

@@ -1,5 +1,7 @@
 # Approval D preparation: one real creative-document request
 
+**Historical £0.10 proposal, superseded for budget planning:** the owner now requests a [£1 Astra /£3 cumulative comparison proposal](AI_CREATIVE_PILOT_REVISED_BUDGET_2026_11_07.md). The old request hashes,4k token limits and execution denials below remain original evidence; they are not transferred to the revised scope. No spending approval or runtime/hosted limit change follows from the new proposal.
+
 Status: **blocked review proposal, not execution-ready and not authorised**. No model, availability or token-count endpoint was called. No provider credential was configured or read. B3 is consumed; it must not be repeated. Approval C does not grant this spending authority.
 
 The proposed first request uses the actual, independently read Quiet Light source: Home, Services and Contact; profile revision1, snapshot revision5, Website generation4. The private source envelope and original PostgreSQL text bind the approved facts, complete service descriptions, story and protected action. Native identities and the full source/request remain outside public Git. If any source, membership, wording lock or renderer changes, prepare a new comparison from a fresh read; do not silently alter this request.
