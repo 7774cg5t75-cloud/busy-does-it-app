@@ -3477,6 +3477,13 @@
       "id": "check-ai-lab-budget-configuration",
       "args": ["scripts/check-ai-lab-budget-configuration.mjs"],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-ci-pgdg-key",
+      "args": [
+        "scripts/check-ci-pgdg-key.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

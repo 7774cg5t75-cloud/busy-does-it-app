@@ -1,0 +1,33 @@
+// Synthetic colon listings only, never evidence that a runner has the real key.
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {verifyCiPgdgKeyListing,CI_PGDG_FINGERPRINT} from './verify-ci-pgdg-key.mjs';
+const now=1700000000;
+const pub=['pub','-','4096','1',CI_PGDG_FINGERPRINT.slice(-16),'1318537154','','','','','','scSC'].join(':')+':';
+const fpr='fpr:::::::::'+CI_PGDG_FINGERPRINT+':';
+const valid=()=>[pub,fpr,'uid:-::::::::PostgreSQL Debian Repository:'].join('\n')+'\n';
+let passed=0;const test=(name,run)=>{run();passed++;console.log('PASS '+name);};
+const deny=(name,value)=>test(name,()=>assert.throws(()=>verifyCiPgdgKeyListing(value,now)));
+test('one reviewed full public signing fingerprint is recognised',()=>assert.deepEqual(verifyCiPgdgKeyListing(valid(),now),{fingerprint:CI_PGDG_FINGERPRINT,primaryKeys:1}));
+deny('missing key material is refused','');
+deny('wrong complete fingerprint is refused',valid().replace(CI_PGDG_FINGERPRINT,'0'.repeat(40)));
+deny('multiple public primary keys are refused',valid()+valid());
+deny('secret primary key material is refused',valid().replace('pub:','sec:'));
+deny('secret subkey material is refused',valid()+'ssb:-:::::::::\n');
+deny('unreviewed public subkeys are refused',valid()+'sub:-:::::::::\n');
+deny('revoked public key is refused',valid().replace('pub:-:','pub:r:'));
+deny('expired public key validity is refused',valid().replace('pub:-:','pub:e:'));
+deny('expired timestamp cannot hide behind unknown validity',valid().replace('1318537154::','1318537154:1699999999:'));
+deny('disabled key is refused',valid().replace('pub:-:','pub:d:'));
+deny('missing full fingerprint is refused',pub+'\n');
+deny('multiple fingerprints are refused',valid()+fpr+'\n');
+deny('fingerprint before public primary is refused',fpr+'\n'+pub+'\n');
+deny('future creation timestamp is refused',valid().replace('1318537154','1700000001'));
+deny('oversized key listing is refused','x'.repeat(32769));
+test('invalid verification clock is refused',()=>assert.throws(()=>verifyCiPgdgKeyListing(valid(),NaN)));
+test('CLI refuses arbitrary path and fallback arguments before any package/key access',()=>{
+ const result=spawnSync(process.execPath,[fileURLToPath(new URL('./verify-ci-pgdg-key.mjs',import.meta.url)),'--key=/nonexistent','--fallback=https://example.invalid'],{encoding:'utf8',timeout:10000});
+ assert.equal(result.error,undefined);assert.equal(result.status,1);assert.equal(result.stdout,'');assert.match(result.stderr,/CI PGDG packaged-key verification refused/);
+});
+console.log(JSON.stringify({passed,failed:0,engineeringFixturesOnly:true,actualPackagedKeyAcceptance:false,downloads:0,hostedActions:0,providerCalls:0}));

@@ -1,4 +1,8 @@
-## Current authority availability — owner-declared V22.86, 7 November 2026
+## Current authority availability — owner-declared V22.87, 7 November 2026
+
+The owner declares V22.87 current and supplies its security/simplicity principle. Its Word original, complete contents and checksum are not available here and are not claimed as verified. Preserve the supplied V22.86 Section98 policy and every earlier approved requirement. Apply the explicit bounded final-readiness mission without rebuilding a master from partial information or treating policy advancement as hosted/provider/spending permission. The corrected V22.85 original remains byte-verified at its existing private location; both later originals require authorised private transfer before decisions needing their unavailable full content. Private masters/extracts remain outside Git.
+
+## Earlier authority availability — owner-declared V22.86, 7 November 2026
 
 `Busy_Master_V22.86.docx` is reported in the owner's private ChatGPT Library. Expected SHA256, supplied by the owner: `e5c7af156e64fdc994b89281916944f6176a6b6306bcd13ce751df93d522c78a`. The Word original is not available in this authorised workspace; complete-file access, integrity and inherited-content verification are **not claimed**. The owner explicitly permits this mission to continue with the corrected byte-verified V22.85 original and their supplied Section98 policy. The original V22.86 must be transferred privately before decisions needing its unavailable full content. Do not recreate or replace it, publish private extracts or infer deployment/provider/spending authority.
 

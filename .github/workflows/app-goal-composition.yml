@@ -4,6 +4,7 @@ on:
     branches: [codex/builder-mission15-design-advancement]
     paths:
       - '.github/workflows/app-goal-composition.yml'
+      - 'scripts/*ci-pgdg-key.mjs'
       - '.github/workflows/ai-lab-b3-source.yml'
       - '.github/workflows/ai-lab-creative-smoke.yml'
       - 'scripts/*ai-lab-creative-smoke*.mjs'
@@ -379,10 +380,10 @@ jobs:
           # PostgreSQL16 cannot represent staging's existing MAINTAIN privilege.
           # Official PGDG signing fingerprint: postgresql.org/download/linux/ubuntu/.
           test "$(. /etc/os-release; echo "$VERSION_CODENAME")" = noble
-          PG_KEY="$RUNNER_TEMP/busy-pgdg.asc"
-          curl --fail --silent --show-error --location --max-time 30 https://www.postgresql.org/media/keys/ACCC4CF8.asc -o "$PG_KEY"
-          test "$(gpg --show-keys --with-colons "$PG_KEY" | awk -F: '$1=="fpr"{print $10;exit}')" = B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
-          sudo install -m 0644 "$PG_KEY" /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          # Ubuntu's installed postgresql-common already supplies the SAME
+          # public key. Verify package ownership and its full primary fingerprint;
+          # missing/unreviewed key material stops without a network fallback.
+          node scripts/verify-ci-pgdg-key.mjs
           echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/busy-pgdg.list >/dev/null
           # Suppress all service starts in this ephemeral runner installation only.
           if sudo test -e /usr/sbin/policy-rc.d; then sudo cp -p /usr/sbin/policy-rc.d "$RUNNER_TEMP/busy-policy-rc.d"; fi
