@@ -1,0 +1,11 @@
+{
+  "version": "busy.ai-lab.smoke-preparation-file-hashes.v1",
+  "files": {
+    "fresh-preflight.json": "a813477966e3400074bbc01f79608eded14502550f06e156cd5c10517fe279d3",
+    "handoff-review.json": "375a0b0a3c40430bfbfdd8ff98d2e3f47652fedcb8c77fe0ed86b1ee82a7c0df",
+    "limited-acceptance.json": "4296919b42b08d1c6efc4f8a33f6c0b329bae539efa782fa5ba4741f6995e86e"
+  },
+  "queueAuthorised": false,
+  "executionAuthorised": false,
+  "fullSavedBranchValueVerified": false
+}
