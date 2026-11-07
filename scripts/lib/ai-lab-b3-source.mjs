@@ -109,8 +109,13 @@ export function createAiLabB3SourceOrchestrator({manifest,authenticatedRpc,servi
     phase='independent-readback';basis=await session.read();const verified=validatePreparedSource(basis,binding);
     if(writesAttempted!==6||completedSteps.length!==6)throw Error('source_operation_count_changed');
     state='complete';return {ok:true,status:'source-prepared',phase,mayReplay:false,writesAttempted,completedSteps:[...completedSteps],receipts:clone(receipts),observed:basis,source:{version:AI_LAB_B3_SOURCE_VERSION,sourcePlanDigest:binding.sourcePlanDigest,storySectionId:verified.storySectionId,sourceIds:verified.sourceIds},binding:{surface:'website',projectId:basis.websiteDraft.id,sourceRevision:basis.websiteDraft.generation,profileRevision:basis.profileRevision,snapshotRevision:basis.revision,pageId:'home'},providerCalls:0,publication:false};
-   }catch{
-    state='stopped';return {ok:false,status:uncertain?'unknown-outcome':writesAttempted?'stopped-partial':'denied',phase,mayReplay:false,writesAttempted,completedSteps:[...completedSteps],providerCalls:0,requiresIndependentInspection:writesAttempted>0};
+   }catch(error){
+    // Native sign-in can have an uncertain Auth-session outcome before any
+    // source write. Copy only the runtime's own boolean flag, never its text,
+    // cause, provider response or credential-bearing details.
+    let nativeUnknown=false;try{nativeUnknown=Object.getOwnPropertyDescriptor(error,'unknownOutcome')?.value===true;}catch{}
+    uncertain=uncertain||nativeUnknown;
+    state='stopped';return {ok:false,status:uncertain?'unknown-outcome':writesAttempted?'stopped-partial':'denied',phase,mayReplay:false,writesAttempted,completedSteps:[...completedSteps],providerCalls:0,requiresIndependentInspection:uncertain||writesAttempted>0};
    }
   }
  });

@@ -18,7 +18,7 @@ function fixture(options={}){
  const manifest={ownerId:O,businessId:B,executionId:E,requestNonce:N,sourcePlanDigest:AI_LAB_B3_SOURCE_PLAN_DIGEST};
  let packet={actorId:O,businessId:B,revision:1,profile:null,profileRevision:0,websiteDraft:null,websiteUndoCount:0,websiteRedoCount:0,websiteHistoryHash:null},nativeReads=0,approvals=0,sourceTokenConsumed=false,snapshot=options.preExistingSnapshot===true,serviceWrites=0;
  const calls=[],writes=[],undo=[],redo=[];
- const readAuthenticatedOwner=async()=>{nativeReads++;return options.owner?clone(options.owner):{id:O,anonymous:false,emailConfirmed:true};};
+ const readAuthenticatedOwner=async()=>{nativeReads++;if(options.ownerError)throw options.ownerError;return options.owner?clone(options.owner):{id:O,anonymous:false,emailConfirmed:true};};
  const authenticatedRpc=async(name,args)=>{
   calls.push({role:'authenticated',name,args:clone(args)});
   if(name==='busy_connected_workspaces_v1')return {actorId:O,items:options.workspaces||[{businessId:B,businessName:'Quiet Light Studio',role:'owner'}]};
@@ -73,7 +73,11 @@ try{
   for(const options of [{missingApproval:true},{approvalChanges:{businessId:F}},{approvalChanges:{executionId:F}},{approvalChanges:{sourcePlanDigest:'f'.repeat(64)}}]){const f=fixture(options),r=await f.runner.run();check.equal(r.ok,false);check.equal(r.phase,'consume-source-approval');check.equal(r.writesAttempted,0);check.equal(f.writes.length,0);check.equal(r.mayReplay,false);}
  });
  await test('foreign anonymous or unconfirmed native owner denies before approval and writes',async()=>{
-  for(const owner of [{id:F,anonymous:false,emailConfirmed:true},{id:O,anonymous:true,emailConfirmed:true},{id:O,anonymous:false,emailConfirmed:false}]){const f=fixture({owner}),r=await f.runner.run();check.equal(r.ok,false);check.equal(r.writesAttempted,0);check.equal(f.counters.approvals,0);check.equal(f.calls.length,0);}
+  for(const owner of [{id:F,anonymous:false,emailConfirmed:true},{id:O,anonymous:true,emailConfirmed:true},{id:O,anonymous:false,emailConfirmed:false}]){const f=fixture({owner}),r=await f.runner.run();check.equal(r.ok,false);check.equal(r.status,'denied');check.equal(r.requiresIndependentInspection,false);check.equal(r.writesAttempted,0);check.equal(f.counters.approvals,0);check.equal(f.calls.length,0);}
+ });
+ await test('uncertain native sign-in is preserved before any source write without leaking the error',async()=>{
+  const error=Error('PRIVATE_AUTH_ERROR_SENTINEL');error.unknownOutcome=true;error.cause={privateToken:'PRIVATE_TOKEN_SENTINEL'};
+  const f=fixture({ownerError:error}),r=await f.runner.run();check.equal(r.ok,false);check.equal(r.status,'unknown-outcome');check.equal(r.writesAttempted,0);check.equal(r.requiresIndependentInspection,true);check.equal(r.mayReplay,false);check.equal(f.counters.approvals,0);check.equal(f.calls.length,0);check.equal(f.writes.length,0);check.ok(!JSON.stringify(r).includes('PRIVATE_'));check.equal((await f.runner.run()).status,'already-used');check.equal(f.counters.nativeReads,1);check.equal(f.writes.length,0);
  });
  await test('foreign revoked wrong-role or unexpected workspace denies before source approval',async()=>{
   for(const workspaces of [[],[{businessId:F,businessName:plan.profile.businessName,role:'owner'}],[{businessId:B,businessName:plan.profile.businessName,role:'staff'}],[{businessId:B,businessName:'Different business',role:'owner'}],[{businessId:B,businessName:plan.profile.businessName,role:'owner'},{businessId:F,businessName:'Other',role:'owner'}]]){const f=fixture({workspaces}),r=await f.runner.run();check.equal(r.ok,false);check.equal(f.writes.length,0);check.equal(f.counters.approvals,0);}
