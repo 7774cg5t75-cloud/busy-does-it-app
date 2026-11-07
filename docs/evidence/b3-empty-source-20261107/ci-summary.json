@@ -1,0 +1,670 @@
+{
+  "functionalCommit": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+  "functionalTree": "9cea4908e3c83e095f31fa2d35d34174901d2d92",
+  "master": {
+    "version": "22.85 corrected",
+    "originalSha256": "9dc5e697e5a0f5c676db86aedc5aaf1db7be85808fb3320af438ed945d38e22c"
+  },
+  "workflowRuns": [
+    {
+      "id": 42365381851,
+      "name": "V3.64 private growth workspace checks",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42365381851"
+    },
+    {
+      "id": 42365381744,
+      "name": "V3.69 Founder Operations Security",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42365381744"
+    },
+    {
+      "id": 42365381787,
+      "name": "V3.65 Growth Command Centre checks",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42365381787"
+    },
+    {
+      "id": 42365381766,
+      "name": "V3.63 coordinated editable growth checks",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42365381766"
+    },
+    {
+      "id": 42365381742,
+      "name": "V3.66 voice and project Operator checks",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42365381742"
+    },
+    {
+      "id": 42365381776,
+      "name": "V3.70 Platform Autopilot checks",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42365381776"
+    },
+    {
+      "id": 42365375672,
+      "name": "Private App goal composition and original authority verification",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42365375672"
+    }
+  ],
+  "mainJob": {
+    "id": 128382212941,
+    "status": "completed",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1
+      },
+      {
+        "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2
+      },
+      {
+        "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3
+      },
+      {
+        "name": "Reviewed lock installation and security guard",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4
+      },
+      {
+        "name": "Original contract and component behaviour",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5
+      },
+      {
+        "name": "Original legacy Website worker scopes with real shared dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6
+      },
+      {
+        "name": "Genuine original Edge checks with pinned official verification tools",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7
+      },
+      {
+        "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8
+      },
+      {
+        "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9
+      },
+      {
+        "name": "Genuine PostgreSQL 17 and PostgREST B3 HTTP regression",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10
+      },
+      {
+        "name": "Unsigned original Owner Preview and isolated staging exports",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11
+      },
+      {
+        "name": "Complete frozen-source regressions",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12
+      },
+      {
+        "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13
+      },
+      {
+        "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 25
+      },
+      {
+        "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 26
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 27
+      }
+    ]
+  },
+  "prTestMerge": {
+    "commit": "002f976256e4bef7598a823175f348048c47f4d6",
+    "tree": "9cea4908e3c83e095f31fa2d35d34174901d2d92",
+    "matchesFunctionalTree": true,
+    "branchMerged": false
+  },
+  "artifact": {
+    "id": 13572495629,
+    "name": "private-app-goal-9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+    "sizeBytes": 244000,
+    "sha256": "c36651037cdd3ff08e10c4a977f38a709cbec316a78d1a6babd3a4a0f0e8a7a3",
+    "expiresAt": "2026-11-14T11:06:55Z"
+  },
+  "loggedCounts": {
+    "app": {
+      "sourceSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "sourceTree": "9cea4908e3c83e095f31fa2d35d34174901d2d92",
+      "finalSourceSha": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+      "finalSourceTree": "9cea4908e3c83e095f31fa2d35d34174901d2d92",
+      "sourceStable": true,
+      "workingTreeChanged": false,
+      "summary": {
+        "passed": 528,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      }
+    },
+    "pg": {
+      "commandSuites": 13,
+      "receiptSummaries": {
+        "ai-budget": {
+          "failed": 0,
+          "passed": 32
+        },
+        "ai-lab-b3": {
+          "failed": 0,
+          "passed": 10
+        },
+        "ai-lab-b3-source-contract": {
+          "failed": 0,
+          "passed": 17
+        },
+        "ai-lab-fictional-setup": {
+          "failed": 0,
+          "passed": 16
+        },
+        "ai-lab-fictional-source": {
+          "failed": 0,
+          "passed": 11
+        },
+        "ai-lab-foundation": {
+          "failed": 0,
+          "passed": 19
+        },
+        "ai-lab-runner-foundation": {
+          "failed": 0,
+          "passed": 15
+        },
+        "enquiry-preparation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "operational-work": {
+          "failed": 0,
+          "passed": 13
+        },
+        "preservation-foundation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "public-form": {
+          "failed": 0,
+          "passed": 21
+        },
+        "whole-app": {
+          "failed": 0,
+          "passed": 126
+        },
+        "whole-site": {
+          "failed": 0,
+          "passed": 14
+        },
+        "work-preparation": {
+          "failed": 0,
+          "passed": 12
+        }
+      }
+    },
+    "http": {
+      "passed": 20,
+      "failed": 0
+    },
+    "pgStages": 332,
+    "pgFailed": 0
+  },
+  "foundation": {
+    "passed": 105,
+    "failed": 0
+  },
+  "edge": {
+    "denoVersion": "2.5.6",
+    "originalEntrypoints": 27,
+    "proposalModules": 9,
+    "totalTargets": 36,
+    "failed": 0,
+    "scope": "Original genuine Deno checks; no deployment"
+  },
+  "compilation": {
+    "ownerPreviewUnsignedIos": true,
+    "isolatedStagingUnsignedIos": true,
+    "scope": "Build/export only; no signing, deployment or physical-device acceptance"
+  },
+  "security": {
+    "baseline": "passed",
+    "byDesign": "passed",
+    "dependencyInstallGuards": "passed",
+    "sourceSyntaxAndArchitecture": "passed",
+    "registryAuditCleanClaim": false
+  },
+  "hostedFixInstalled": false,
+  "hostedB3Executed": false,
+  "newB3JobQueued": false,
+  "hostedMutations": 0,
+  "providerCalls": 0,
+  "spendingGbp": 0,
+  "postgrest": {
+    "version": 1,
+    "transport": "Actual PostgREST HTTP",
+    "postgrest": {
+      "version": "14.18",
+      "sha256": "e62299f98f67938f754291340b2fc07b69685546e6017b455ef3e776daef45ee",
+      "postgres": "postgres (PostgreSQL) 17.11 (Ubuntu 17.11-1.pgdg24.04+2)"
+    },
+    "hosted": false,
+    "hostedMutations": 0,
+    "nativeAuthAcceptance": false,
+    "syntheticDataOnly": true,
+    "authFixture": "Synthetic native Auth facade and auth.uid compatibility fixture; real locally signed HS256 JWT verification, roles, original SQL/RLS/CAS and HTTP.",
+    "providerCalls": 0,
+    "spendingGBP": 0,
+    "sourcePlanDigest": "0d8ef3e45ec96a9d608571dc1118c5095daa80f37a019a0813ccc1a614c97ddb",
+    "sourcePlanWrites": 6,
+    "preFix": {
+      "clientDeadlineMs": 450,
+      "elapsedMs": 454,
+      "engine40001Errors": 1804,
+      "responseReceived": false,
+      "cleanup": "Owned local PostgREST child and its private-cluster backends stopped"
+    },
+    "faultEvidence": {
+      "emptySource": {
+        "status": 200,
+        "elapsedMs": 4,
+        "keys": [
+          "actorId",
+          "businessId",
+          "empty",
+          "profileExists",
+          "snapshotExists",
+          "version"
+        ]
+      },
+      "legacyMissing": {
+        "status": 500,
+        "code": "P0002",
+        "elapsedMs": 3,
+        "keys": [
+          "code",
+          "details",
+          "hint",
+          "message"
+        ]
+      },
+      "lockTimeout": {
+        "status": 500,
+        "code": "55P03",
+        "elapsedMs": 2004
+      },
+      "deadlock": {
+        "actualEngineSqlstate": "40P01",
+        "engineFailures": 1,
+        "status": 503,
+        "responseCode": "PT503",
+        "elapsedMs": 114,
+        "sourceBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+        "sourceBodyChanged": false,
+        "reviewedDefinitionVerified": true
+      },
+      "serialization": {
+        "actualEngineSqlstate": "40001",
+        "engineFailures": 1,
+        "status": 503,
+        "responseCode": "PT503",
+        "elapsedMs": 51,
+        "sourceBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+        "sourceBodyChanged": false,
+        "reviewedDefinitionVerified": true,
+        "isolationConfigRestored": true
+      }
+    },
+    "lastHappy": {
+      "writes": 6,
+      "originalWriteNames": [
+        "busy_connected_initialize_v1",
+        "busy_connected_profile_write_v1",
+        "busy_connected_website_commit_v1",
+        "busy_connected_website_commit_v1",
+        "busy_connected_website_commit_v1",
+        "busy_connected_website_commit_v1"
+      ],
+      "runtimeCounters": {
+        "authSignIns": 1,
+        "nativeUserReads": 39,
+        "ownerRpcs": 53,
+        "serviceRpcs": 4
+      },
+      "runtimeWriteCounts": {
+        "busy_connected_initialize_v1": 1,
+        "busy_connected_profile_write_v1": 1,
+        "busy_connected_website_commit_v1": 4
+      },
+      "snapshotRevision": 5,
+      "profileRevision": 1,
+      "websiteGeneration": 4,
+      "undoCount": 3,
+      "realHttp": true
+    },
+    "cleanupCompleted": true,
+    "results": [
+      {
+        "id": "pinned-postgrest-and-self-owned-loopback-pg17-cluster",
+        "passed": true,
+        "elapsedMs": 1015,
+        "detail": {
+          "version": "14.18",
+          "sha256": "e62299f98f67938f754291340b2fc07b69685546e6017b455ef3e776daef45ee",
+          "postgres": "postgres (PostgreSQL) 17.11 (Ubuntu 17.11-1.pgdg24.04+2)"
+        }
+      },
+      {
+        "id": "original-foundation-and-synthetic-native-prerequisites",
+        "passed": true,
+        "elapsedMs": 339
+      },
+      {
+        "id": "pre-fix-real-http-40001-retry-reproduction-has-client-deadline",
+        "passed": true,
+        "elapsedMs": 1340,
+        "detail": {
+          "clientDeadlineMs": 450,
+          "elapsedMs": 454,
+          "engine40001Errors": 1804,
+          "responseReceived": false,
+          "cleanup": "Owned local PostgREST child and its private-cluster backends stopped"
+        }
+      },
+      {
+        "id": "reviewed-nonretry-source-contract-installs-locally-only",
+        "passed": true,
+        "elapsedMs": 138,
+        "detail": {
+          "sqlSha256": "37992a8a4600709affec86a2168460ca847a54120d4309a008b853e0f04050f4",
+          "executionSha256": "564a516eca321797e191c54efcfb1fd0efeed5e98740f83757c4a4364778bda5"
+        }
+      },
+      {
+        "id": "empty-source-is-exact-bounded-http200-and-legacy-read-terminates",
+        "passed": true,
+        "elapsedMs": 27,
+        "detail": {
+          "sourceStateStatus": 200,
+          "sourceStateMs": 4,
+          "legacyStatus": 500,
+          "legacyMs": 3
+        }
+      },
+      {
+        "id": "existing-snapshot-and-profile-only-including-disabled-never-authorise-writes",
+        "passed": true,
+        "elapsedMs": 135
+      },
+      {
+        "id": "jwt-signature-role-foreign-business-revoked-owner-and-rls-denials",
+        "passed": true,
+        "elapsedMs": 104
+      },
+      {
+        "id": "probe-membership-lock-timeout-is-terminal-and-never-empty",
+        "passed": true,
+        "elapsedMs": 2039,
+        "detail": {
+          "status": 500,
+          "code": "55P03",
+          "elapsedMs": 2004
+        }
+      },
+      {
+        "id": "actual-engine-deadlock-is-caught-as-terminal-http503",
+        "passed": true,
+        "elapsedMs": 182,
+        "detail": {
+          "actualEngineSqlstate": "40P01",
+          "engineFailures": 1,
+          "status": 503,
+          "responseCode": "PT503",
+          "elapsedMs": 114,
+          "sourceBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+          "sourceBodyChanged": false,
+          "reviewedDefinitionVerified": true
+        }
+      },
+      {
+        "id": "actual-engine-serialization-is-caught-as-terminal-http503",
+        "passed": true,
+        "elapsedMs": 433,
+        "detail": {
+          "actualEngineSqlstate": "40001",
+          "engineFailures": 1,
+          "status": 503,
+          "responseCode": "PT503",
+          "elapsedMs": 51,
+          "sourceBodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+          "sourceBodyChanged": false,
+          "reviewedDefinitionVerified": true,
+          "isolationConfigRestored": true
+        }
+      },
+      {
+        "id": "six-real-http-writes-use-original-handler-session-and-full-readback",
+        "passed": true,
+        "elapsedMs": 378,
+        "detail": {
+          "writes": 6,
+          "originalWriteNames": [
+            "busy_connected_initialize_v1",
+            "busy_connected_profile_write_v1",
+            "busy_connected_website_commit_v1",
+            "busy_connected_website_commit_v1",
+            "busy_connected_website_commit_v1",
+            "busy_connected_website_commit_v1"
+          ],
+          "runtimeCounters": {
+            "authSignIns": 1,
+            "nativeUserReads": 39,
+            "ownerRpcs": 53,
+            "serviceRpcs": 4
+          },
+          "runtimeWriteCounts": {
+            "busy_connected_initialize_v1": 1,
+            "busy_connected_profile_write_v1": 1,
+            "busy_connected_website_commit_v1": 4
+          },
+          "snapshotRevision": 5,
+          "profileRevision": 1,
+          "websiteGeneration": 4,
+          "undoCount": 3,
+          "realHttp": true
+        }
+      },
+      {
+        "id": "original-studio-undo-and-redo-persist-through-real-http",
+        "passed": true,
+        "elapsedMs": 123
+      },
+      {
+        "id": "stale-cas-and-history-conflicts-return-bounded-http409",
+        "passed": true,
+        "elapsedMs": 16,
+        "detail": [
+          {
+            "name": "busy_connected_profile_write_v1",
+            "status": 409,
+            "elapsedMs": 3
+          },
+          {
+            "name": "busy_connected_website_commit_v1",
+            "status": 409,
+            "elapsedMs": 3
+          },
+          {
+            "name": "busy_connected_website_history_v1",
+            "status": 409,
+            "elapsedMs": 2
+          }
+        ]
+      },
+      {
+        "id": "staleProfile-stops-original-runtime-without-replay",
+        "passed": true,
+        "elapsedMs": 179
+      },
+      {
+        "id": "staleCommit-stops-original-runtime-without-replay",
+        "passed": true,
+        "elapsedMs": 130
+      },
+      {
+        "id": "withdraw-stops-original-runtime-without-replay",
+        "passed": true,
+        "elapsedMs": 219
+      },
+      {
+        "id": "lost-initialize-http-acknowledgement-never-replays-actual-committed-write",
+        "passed": true,
+        "elapsedMs": 91
+      },
+      {
+        "id": "lost-profile-http-acknowledgement-never-replays-actual-committed-write",
+        "passed": true,
+        "elapsedMs": 113
+      },
+      {
+        "id": "lost-create-http-acknowledgement-never-replays-actual-committed-write",
+        "passed": true,
+        "elapsedMs": 132
+      },
+      {
+        "id": "original-table-counts-private-defaults-and-zero-spending-remain",
+        "passed": true,
+        "elapsedMs": 96,
+        "detail": {
+          "reviewedProbeDefinition": {
+            "owner": "postgres",
+            "config": [
+              "search_path=pg_catalog, pg_temp",
+              "lock_timeout=2s"
+            ],
+            "bodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+            "anonExecute": false,
+            "publicExecute": false,
+            "serviceExecute": false,
+            "securityDefiner": true,
+            "authenticatedExecute": true
+          }
+        }
+      }
+    ],
+    "summary": {
+      "passed": 20,
+      "failed": 0
+    }
+  },
+  "targetedCases": {
+    "check-ai-lab-b3-runtime": {
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12,
+      "summary": {
+        "passed": 40,
+        "failed": 0,
+        "hosted": false,
+        "nativeAuthCreated": false,
+        "nativeSignIn": false,
+        "syntheticTransportsOnly": true,
+        "realSecretsRead": 0,
+        "providerCalls": 0,
+        "spendGBP": 0
+      }
+    },
+    "check-ai-lab-b3-source": {
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.13,
+      "summary": {
+        "passed": 18,
+        "failed": 0,
+        "cases": 18,
+        "assertions": 535
+      }
+    },
+    "check-ai-lab-b3-package": {
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.76,
+      "summary": {
+        "passed": 20,
+        "failed": 0
+      }
+    },
+    "check-ai-lab-b3-source-contract": {
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11,
+      "summary": {
+        "passed": 9,
+        "failed": 0
+      }
+    }
+  },
+  "artifactIndependentlyDownloadedAndChecksumVerified": true,
+  "applicationSelectionSha256": "ec0f4deaddbe160d131c8ab2039daedd1cf8354551b40981f7a4eea20f6d110a",
+  "applicationStartedAt": "2026-11-07T10:52:11.080968+00:00",
+  "evidenceLimit": "CI/nativeAuth fixtures are synthetic. Genuine PostgREST/JWT/SQL/RLS/CAS and Deno/build checks do not attest hosted B3 or provider acceptance. Counts are overlapping selections and must not be summed as unique assertions."
+}

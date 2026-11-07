@@ -74,7 +74,7 @@ Provider calls, model token requests, spending, automatic retries and publicatio
 
 ## Required sequence before another B3 attempt
 
-1. Finish genuine PostgreSQL/PostgREST reproduction, corrected-path and adversarial verification on the frozen local source. Retain unsuccessful and superseded evidence honestly.
+1. Use the completed frozen PostgreSQL/PostgREST reproduction, corrected-path and adversarial verification in the final report. Retain unsuccessful and superseded evidence honestly.
 2. Review the final hash-pinned fix migration, retaining rollback and exact isolated-Lab preflight. Obtain a separate explicit installation approval. Do not reinstall the original foundation or use its old installation approval for this migration.
 3. After any separately approved installation, independently verify native history, exact `prosrc`/ACL/ownership/RLS contracts, unchanged source records, disabled/zero AI controls and no partial installation. A missing, stale or uncertain receipt blocks packet preparation.
 4. Prepare a fresh private v2 manifest and current code/source binding. Preserve the actual native owner and business identities in private evidence; never publish those identifiers or credential values in public Git. No credential re-entry is indicated by the empty-source incident; any future secret configuration requires its own authority.
@@ -88,11 +88,13 @@ An eventual AI comparison remains a later, separately approved milestone using t
 
 | Evidence | Status here |
 | --- | --- |
-| Runtime v2 source and synthetic boundary tests | Implemented; final frozen counts pending report |
-| Original source orchestration and six-write preservation | Existing path retained; final frozen counts pending report |
+| Runtime v2 source and synthetic boundary tests | Frozen CI: 40 passed, 0 failed |
+| Original source orchestration and six-write preservation | Frozen CI: 18 cases/535 assertions, 0 failed |
 | Genuine PostgreSQL 17/PostgREST pre-fix reproduction | PostgreSQL 17.11 / PostgREST 14.18: 2 passed, 0 failed; original SQL kept retrying after client abort |
-| Genuine PostgreSQL 17/PostgREST corrected-path tests | 20 passed, 0 failed locally; final frozen verification recorded in the report |
-| Migration, rollback, ACL/RLS and fault-injection checks | 17 passed, 0 failed locally; final frozen verification recorded in the report |
+| Genuine PostgreSQL 17/PostgREST corrected-path tests | Frozen PostgreSQL 17.11/PostgREST 14.18 CI: 20 passed, 0 failed |
+| Migration, rollback, ACL/RLS and fault-injection checks | Frozen PostgreSQL 17 CI: 17 passed, 0 failed |
 | Hosted fix migration, new native B3 save or real AI comparison | Not performed under this mission |
+
+The final frozen functional source is `9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4`, tree `9cea4908e3c83e095f31fa2d35d34174901d2d92`. See [the complete report](B3_EMPTY_SOURCE_FIX_2026_11_07.md) and [independent CI evidence](evidence/b3-empty-source-20261107/ci-summary.json) for 528 application passes, 332 disposable SQL stages, 105 foundation assertions, 36 Deno targets, security/install/compilation and six legacy successes.
 
 Passing technical tests cannot approve professional visual quality. Free/paid rendering quality remains equal, and the three design-reference candidates remain separate from the zero approved Gold Standards.
