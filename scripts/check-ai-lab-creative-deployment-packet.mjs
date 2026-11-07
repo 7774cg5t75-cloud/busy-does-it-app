@@ -37,6 +37,12 @@ test('target and manifest are review metadata with JWT retained and no execution
  assert.ok(!Object.hasOwn(inventory,'credential'));
 });
 test('unchanged copied public source produces the same dependency digest',()=>fixture(dir=>assert.equal(creativeDocumentDeploymentFiles(dir).filesDigest,inventory.filesDigest)));
+test('changed original renderer bytes require a newly reviewed server binding',()=>fixture(dir=>{
+ change(dir,'src/domain/websiteBuilder.js',s=>s+'\n// Synthetic renderer drift\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/renderer graph binding/);
+}));
+test('missing renderer identity at the actual server entry is refused',()=>fixture(dir=>{
+ change(dir,entry,s=>s.replace('Handler({readManifest,rendererDigest,','Handler({readManifest,'));assert.throws(()=>creativeDocumentDeploymentFiles(dir),/renderer graph binding/);
+}));
 test('unversioned external dependencies cannot enter a reviewed bundle',()=>fixture(dir=>{
  change(dir,entry,s=>s+'\nimport "npm:@supabase/supabase-js@2";\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unreviewed external/);
 }));

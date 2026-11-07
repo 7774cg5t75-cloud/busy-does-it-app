@@ -1,6 +1,7 @@
 import {stableJson} from '../../../src/core/stableJson.mjs';
 import {creativeDocumentPilotProfile} from './creativeDocumentPilotProfiles.mjs';
-// Exact original service-only RPCs. Readback proposal is separate and uninstalled.
+// Exact original service-only RPCs. Installation/readiness is independently
+// verified per target; a compiled reader never grants execution authority.
 function originalCreativeLedger({rpc,actor,business,binding,operationId,requestNonce,integrity,clock=()=>Date.now()},maximumOutputTokens,documentProfile=null,expectedModel=null){
  let expectation=null,ownsFreshReservation=false;
  const maximumInputTokens=documentProfile?.inputTokens??4000,maximumMicroGBP=Math.round((documentProfile?.maximumGBP??.10)*1e6);

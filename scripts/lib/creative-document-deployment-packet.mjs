@@ -53,6 +53,7 @@ export function creativeDocumentDeploymentFiles(root){
  need(!read(mainGatewayPath).source.includes('creativeDocumentExecution'),'General gateway must remain disconnected');
  const files=Object.fromEntries([...seen].sort().map(name=>[name,creativeDeploymentDigest(read(name).source)]));
  const rendererFiles=Object.fromEntries(Object.entries(files).filter(([name])=>rendererNames.has(name)));
+ need(entry.includes(`const rendererDigest='${creativeDeploymentDigest(rendererFiles)}';`)&&entry.includes('createLabCreativeDocumentExecutionHandler({readManifest,rendererDigest,'),'Original renderer graph binding is missing or stale');
  return {files,filesDigest:creativeDeploymentDigest(files),rendererFiles,rendererFilesDigest:creativeDeploymentDigest(rendererFiles),externalImports:[...external].sort(),entrySha256:files[CREATIVE_DOCUMENT_DEPLOYMENT_TARGET.entrypoint],runtimeConfigSha256:files[configPath],lockSha256:files[lockPath],configStanza:'[functions.busy-creative-document-pilot]\nverify_jwt = true\n',fullProjectConfigSha256:creativeDeploymentDigest(projectConfig),generalGatewaySha256:creativeDeploymentDigest(read(mainGatewayPath).source)};
 }
 
