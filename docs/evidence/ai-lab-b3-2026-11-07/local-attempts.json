@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "scope": "local engineering attempts; not native hosted Auth or provider acceptance",
+  "newTargetedGroups": {
+    "nativeTransport": {
+      "passed": 33,
+      "failed": 0
+    },
+    "sourceOrchestrator": {
+      "passed": 18,
+      "assertions": 535,
+      "failed": 0
+    },
+    "privatePackageAndJobGates": {
+      "passed": 17,
+      "failed": 0
+    },
+    "postgresRuntimeBridge": {
+      "passed": 10,
+      "failed": 0,
+      "note": "local rehearsal before final Auth-label correction; final corrected-source PostgreSQL proof is in CI receipt"
+    }
+  },
+  "initialPostgresAttempt": {
+    "passed": 1,
+    "failed": 1,
+    "reason": "Extra history-read test supplied websiteHistoryHash; original contract requires websiteDraftHash. Six-write runtime path had succeeded. Only test argument corrected; SQL and security unchanged."
+  },
+  "otherAttempts": [
+    {
+      "kind": "initial PostgreSQL startup",
+      "result": "sandbox denied default TCP listener; subsequent explicitly Unix-only disposable startup succeeded and server was stopped"
+    },
+    {
+      "kind": "interrupted local command group",
+      "result": "completed source/package logs inspected after resume; proposed PostgreSQL repeat not claimed"
+    },
+    {
+      "kind": "empty private job entry",
+      "result": "expected fixed refusal, exit 1; no native request"
+    },
+    {
+      "kind": "private checksum helper",
+      "result": "IndentationError before file write, corrected; no source change"
+    }
+  ],
+  "hostedB3Writes": 0,
+  "realNativeSignIns": 0,
+  "credentialReads": 0,
+  "providerCalls": 0,
+  "spendingGbp": 0,
+  "aestheticOrLiveModelAcceptance": false
+}
