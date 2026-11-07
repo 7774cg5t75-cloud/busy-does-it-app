@@ -1,0 +1,52 @@
+{
+  "version": "busy.disabled-creative-smoke.consumed-public-receipt.v1",
+  "authorizationConsumed": true,
+  "mayReplay": false,
+  "runId": 42422002792,
+  "attempt": 1,
+  "actor": "7774cg5t75-cloud",
+  "commit": "59487ed94f0604e50914570807e453fd788c0685",
+  "environment": "busy-ai-lab-b3-source",
+  "jobId": 128552229763,
+  "conclusion": "success",
+  "completedBy": "2026-11-07T23:07:01Z",
+  "approvalExpiry": "2026-11-07T23:30:00Z",
+  "targetProjectId": "sbvkrvksnruiclcvclbd",
+  "functionName": "busy-creative-document-pilot",
+  "functionVersion": 1,
+  "jwtVerification": true,
+  "requestsAttempted": 3,
+  "results": [
+    {
+      "id": "missing-credentials",
+      "status": 401
+    },
+    {
+      "id": "invalid-bearer",
+      "status": 401
+    },
+    {
+      "id": "publishable-key-disabled",
+      "status": 503
+    }
+  ],
+  "nativeSignIns": 0,
+  "applicationWrites": 0,
+  "providerCalls": 0,
+  "reservations": 0,
+  "spendingGBP": 0,
+  "ownerAuthenticationProven": false,
+  "nativeArtifactId": 13594303849,
+  "artifactSha256": "d9ce95402b82dd12a95e397058e1421df72feb785d32c87e7a697026f23f6b18",
+  "intentRawSha256": "83b1c336ad7fae316962510466ecb8325b1c68d9c96f6e57ba2ce86bf0ee0bff",
+  "outcomeRawSha256": "e4c61d5ac4c7fc053f483937987fe2c30726ffdce04be6fd866ea328c42deddd",
+  "postflightObservedAt": "2026-11-07T23:36:53.613225+00:00",
+  "originalSavedSourceUnchanged": true,
+  "aiPolicy": {
+    "enabled": false,
+    "monthlyHardLimitGBP": 0
+  },
+  "activeAiReady": false,
+  "fullBuildProvenanceVerified": false,
+  "newAuthorityGranted": false
+}
