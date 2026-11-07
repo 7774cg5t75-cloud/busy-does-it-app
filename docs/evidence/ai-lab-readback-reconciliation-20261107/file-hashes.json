@@ -1,0 +1,11 @@
+{
+  "version": "busy.ai-lab.readback-reconciliation-file-hashes.v1",
+  "files": {
+    "assessment.json": "13ab34c9d298ae2e7031aea9df4b5a8ffb204c6e502bab247fa0aa55a92ad213"
+  },
+  "reconciliationReportSha256": "354acbe9723b78413a90edad39b7d34bc9b8a71a5d29ef8629d4198c0051fd08",
+  "ownerAcceptance": false,
+  "queueAuthority": false,
+  "executionAuthority": false,
+  "activeReady": false
+}
