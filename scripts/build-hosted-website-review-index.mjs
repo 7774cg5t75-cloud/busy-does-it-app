@@ -8,10 +8,11 @@ import {fileURLToPath} from 'node:url';
 import {makeWebsiteZip} from '../src/core/websiteZipArchive.mjs';
 import {stableJson} from '../src/core/stableJson.mjs';
 import {baselineHash} from './lib/hosted-website-baseline.mjs';
+import {assertPrivateWebsiteEvidenceOutsideRepository} from './lib/private-website-evidence-paths.mjs';
 const values={};for(const arg of process.argv.slice(2)){const m=arg.match(/^--(before|after|output)=(.+)$/);assert.ok(m&&!values[m[1]],'Use --before=/private/capture --after=/private/capture --output=/private/new-pack');values[m[1]]=resolve(m[2]);}
 assert.deepEqual(Object.keys(values).sort(),['after','before','output']);
 const repo=realpathSync(resolve(dirname(fileURLToPath(import.meta.url)),'..'));
-for(const path of Object.values(values))assert.ok(relative(repo,path).startsWith('..'),'Private source evidence must remain outside the public repository');
+assertPrivateWebsiteEvidenceOutsideRepository(repo,...Object.values(values));
 const privatePath=path=>{assert.equal(realpathSync(path),path);assert.equal(lstatSync(path).mode&0o077,0,'Private evidence permissions required');};
 for(const path of [values.before,values.after,dirname(values.output)])privatePath(path);
 assert.ok(!existsSync(values.output),'Do not overwrite prior evidence');

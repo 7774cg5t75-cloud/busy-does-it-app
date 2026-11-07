@@ -9,14 +9,15 @@ import {buildPortableWebsiteSource} from '../src/core/websiteSourceExport.mjs';
 import {buildStandaloneWebsiteArchive} from '../src/core/websiteStandaloneArchive.mjs';
 import {renderWebsiteHtml} from '../src/domain/websiteBuilder.js';
 import {renderHostedBaseline,baselineHash} from './lib/hosted-website-baseline.mjs';
+import {assertPrivateWebsiteEvidenceOutsideRepository} from './lib/private-website-evidence-paths.mjs';
 const args=process.argv.slice(2),values={};
 for(const arg of args){const m=arg.match(/^--(input|output)=(.+)$/);assert.ok(m&&!values[m[1]],'Use exactly --input=/private/source.json --output=/private/new-directory');values[m[1]]=m[2];}
 assert.deepEqual(Object.keys(values).sort(),['input','output']);
 const root=realpathSync(resolve(dirname(fileURLToPath(import.meta.url)),'..')),input=resolve(values.input),output=resolve(values.output);
+assertPrivateWebsiteEvidenceOutsideRepository(root,input,output);
 const privatePath=path=>{assert.ok(isAbsolute(path));assert.equal(realpathSync(path),path,'Symlinked private evidence path refused');const mode=lstatSync(path).mode;assert.equal(mode&0o077,0,'Private owner-only permissions required');};
 privatePath(input);assert.ok(lstatSync(input).isFile());assert.ok(lstatSync(input).size<=2000000);
 privatePath(dirname(output));assert.ok(lstatSync(dirname(output)).isDirectory());assert.ok(!existsSync(output),'Evidence output must be new; no overwrite');
-assert.ok(relative(root,output).startsWith('..'),'Private hosted source must remain outside the public repository');
 const inputBytes=readFileSync(input);let envelope;try{envelope=JSON.parse(inputBytes);}catch{throw Error('Invalid private source export JSON; no contents logged');}
 const before=baselineHash(inputBytes),clock=performance.now(),cpu=process.cpuUsage();
 const result=renderHostedBaseline(envelope);

@@ -8,9 +8,11 @@ import {chromium} from 'playwright';
 import {measureWebsiteQuality} from './lib/websiteQualityAudit-v3107.mjs';
 import {launchFixtureBrowser} from './testing/browser-policy.mjs';
 import {HOSTED_BASELINE_VERSION,HOSTED_BASELINE_SOURCE_HASHES,baselineHash} from './lib/hosted-website-baseline.mjs';
+import {assertPrivateWebsiteEvidenceOutsideRepository} from './lib/private-website-evidence-paths.mjs';
 const args=process.argv.slice(2),arg=args.filter(x=>x.startsWith('--folder='));assert.ok(arg.length===1&&args.length===(args.includes('--system-chromium')?2:1),'Use --folder=/private/built-baseline and optional --system-chromium');
-const folder=resolve(arg[0].slice(9));assert.equal(realpathSync(folder),folder);assert.equal(lstatSync(folder).mode&0o077,0,'Owner-private evidence directory required');
-assert.ok(relative(realpathSync(resolve(dirname(fileURLToPath(import.meta.url)),'..')),folder).startsWith('..'),'Private source evidence must remain outside the public repository');
+const folder=resolve(arg[0].slice(9));
+assertPrivateWebsiteEvidenceOutsideRepository(realpathSync(resolve(dirname(fileURLToPath(import.meta.url)),'..')),folder);
+assert.equal(realpathSync(folder),folder);assert.equal(lstatSync(folder).mode&0o077,0,'Owner-private evidence directory required');
 const systemChromium=args.includes('--system-chromium');
 if(systemChromium){for(const file of ['/usr/bin/chromium',realpathSync('/usr/bin/chromium')])assert.equal(lstatSync(file).mode&0o022,0,'System Chromium cannot be writable by this task');}
 const local=file=>{assert.ok(typeof file==='string'&&!file.startsWith('/')&&!file.includes('\0'));const path=resolve(folder,file);assert.ok(relative(folder,path)&&!relative(folder,path).startsWith('..'));assert.equal(realpathSync(path),path);return path;};

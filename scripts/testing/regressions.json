@@ -3450,6 +3450,13 @@
         "scripts/check-disabled-creative-document-smoke.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-private-website-evidence-paths",
+      "args": [
+        "scripts/check-private-website-evidence-paths.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
