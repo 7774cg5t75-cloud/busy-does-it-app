@@ -10,6 +10,7 @@ import {execFileSync} from 'node:child_process';
 
 export const CI_PGDG_KEY='/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc';
 export const CI_PGDG_FINGERPRINT='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8';
+let verificationStage='arguments';
 
 // Engineering listing fixtures test this parser; only the fixed-path CLI below
 // obtains real cryptographic fingerprints from the installed public key bytes.
@@ -33,20 +34,30 @@ export function verifyCiPgdgKeyListing(listing,nowSeconds=Math.floor(Date.now()/
 }
 
 function verifyInstalledKey(){
+ verificationStage='source-file';
  const stat=lstatSync(CI_PGDG_KEY);
+ verificationStage='source-type';
  assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&realpathSync(CI_PGDG_KEY)===CI_PGDG_KEY,'Regular non-symlink packaged key required');
+ verificationStage='source-owner-mode-size';
  assert.ok(stat.uid===0&&(stat.mode&0o022)===0&&stat.size>0&&stat.size<=32768,'Root-owned bounded public key required');
  const run=(file,args,env)=>execFileSync(file,args,{encoding:'utf8',timeout:5000,maxBuffer:32768,env,stdio:['ignore','pipe','pipe']});
  const environment={LANG:'C',LC_ALL:'C'};
+ verificationStage='package-owner';
  const owner=run('/usr/bin/dpkg-query',['--search',CI_PGDG_KEY],environment).trim();
  assert.match(owner,new RegExp('^postgresql-common(?::[a-z0-9-]+)?: '+CI_PGDG_KEY.replaceAll('.','\\.')+'$'),'Original package ownership required');
+ verificationStage='package-status';
  const status=run('/usr/bin/dpkg-query',['--show','--showformat=${Package}\t${Version}\t${db:Status-Status}','postgresql-common'],environment).trim().split('\t');
  assert.ok(status.length===3&&status[0]==='postgresql-common'&&status[1]&&status[2]==='installed','Installed original package required');
- const before=readFileSync(CI_PGDG_KEY),home=mkdtempSync(join(tmpdir(),'busy-ci-pgdg-'));
- chmodSync(home,0o700);
+ verificationStage='source-file';
+ const before=readFileSync(CI_PGDG_KEY);
+ verificationStage='key-display';
+ const home=mkdtempSync(join(tmpdir(),'busy-ci-pgdg-'));
  try{
+  chmodSync(home,0o700);
   const listing=run('/usr/bin/gpg',['--no-options','--batch','--no-tty','--homedir',home,'--no-auto-key-retrieve','--with-colons','--with-fingerprint','--show-keys',CI_PGDG_KEY],{...environment,GNUPGHOME:home});
+  verificationStage='key-listing';
   const result=verifyCiPgdgKeyListing(listing);
+  verificationStage='stability';
   assert.deepEqual(readFileSync(CI_PGDG_KEY),before,'Packaged public key changed during verification');
   return {ok:true,source:'installed-postgresql-common-public-key',path:CI_PGDG_KEY,packageVersion:status[1],...result,sha256:createHash('sha256').update(before).digest('hex'),downloads:0,keyImports:0,repositoryChanges:0};
  }finally{rmSync(home,{recursive:true,force:true});}
@@ -54,5 +65,5 @@ function verifyInstalledKey(){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{assert.equal(process.argv.length,2,'No arguments, paths, URLs or fallback keys are accepted');console.log(JSON.stringify(verifyInstalledKey()));}
- catch{console.error('CI PGDG packaged-key verification refused; no repository trust was changed.');process.exitCode=1;}
+ catch(error){const code=['ENOENT','EACCES','ERR_ASSERTION','ETIMEDOUT'].includes(error?.code)?error.code:'verification-refused';console.error('CI PGDG packaged-key verification refused; no repository trust was changed. stage='+verificationStage+' code='+code);process.exitCode=1;}
 }
