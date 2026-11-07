@@ -274,6 +274,28 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24.19.0'
+      - name: Signed PostgreSQL 17 tooling matching staging ACLs
+        run: |
+          # PostgreSQL16 cannot represent staging's existing MAINTAIN privilege.
+          # Official PGDG signing fingerprint: postgresql.org/download/linux/ubuntu/.
+          test "$(. /etc/os-release; echo "$VERSION_CODENAME")" = noble
+          # Ubuntu's installed postgresql-common already supplies the SAME
+          # public key. Verify package ownership and its full primary fingerprint;
+          # missing/unreviewed key material stops without a network fallback.
+          node scripts/verify-ci-pgdg-key.mjs
+          echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/busy-pgdg.list >/dev/null
+          # Suppress all service starts in this ephemeral runner installation only.
+          if sudo test -e /usr/sbin/policy-rc.d; then sudo cp -p /usr/sbin/policy-rc.d "$RUNNER_TEMP/busy-policy-rc.d"; fi
+          restore_policy() { if test -e "$RUNNER_TEMP/busy-policy-rc.d"; then sudo cp -p "$RUNNER_TEMP/busy-policy-rc.d" /usr/sbin/policy-rc.d; else sudo rm -f /usr/sbin/policy-rc.d; fi; }
+          trap restore_policy EXIT
+          printf '#!/bin/sh\nexit 101\n' | sudo tee /usr/sbin/policy-rc.d >/dev/null
+          sudo chmod 0755 /usr/sbin/policy-rc.d
+          sudo sed -i 's/^[#[:space:]]*create_main_cluster[[:space:]]*=.*/create_main_cluster = false/' /etc/postgresql-common/createcluster.conf
+          grep -qx 'create_main_cluster = false' /etc/postgresql-common/createcluster.conf
+          sudo apt-get update -qq
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -o Dpkg::Options::=--force-confold postgresql-17 postgresql-client-17
+          /usr/lib/postgresql/17/bin/postgres --version
+          dpkg-query -W postgresql-17 postgresql-client-17
       - name: Reviewed lock installation and security guard
         run: |
           npm ci --ignore-scripts --no-audit
@@ -375,28 +397,6 @@ jobs:
             exit 1
           }
           echo "BUSY_EDGE_RESULT all_27_original_entrypoints_and_9_proposal_modules_exit_0"
-      - name: Signed PostgreSQL 17 tooling matching staging ACLs
-        run: |
-          # PostgreSQL16 cannot represent staging's existing MAINTAIN privilege.
-          # Official PGDG signing fingerprint: postgresql.org/download/linux/ubuntu/.
-          test "$(. /etc/os-release; echo "$VERSION_CODENAME")" = noble
-          # Ubuntu's installed postgresql-common already supplies the SAME
-          # public key. Verify package ownership and its full primary fingerprint;
-          # missing/unreviewed key material stops without a network fallback.
-          node scripts/verify-ci-pgdg-key.mjs
-          echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/busy-pgdg.list >/dev/null
-          # Suppress all service starts in this ephemeral runner installation only.
-          if sudo test -e /usr/sbin/policy-rc.d; then sudo cp -p /usr/sbin/policy-rc.d "$RUNNER_TEMP/busy-policy-rc.d"; fi
-          restore_policy() { if test -e "$RUNNER_TEMP/busy-policy-rc.d"; then sudo cp -p "$RUNNER_TEMP/busy-policy-rc.d" /usr/sbin/policy-rc.d; else sudo rm -f /usr/sbin/policy-rc.d; fi; }
-          trap restore_policy EXIT
-          printf '#!/bin/sh\nexit 101\n' | sudo tee /usr/sbin/policy-rc.d >/dev/null
-          sudo chmod 0755 /usr/sbin/policy-rc.d
-          sudo sed -i 's/^[#[:space:]]*create_main_cluster[[:space:]]*=.*/create_main_cluster = false/' /etc/postgresql-common/createcluster.conf
-          grep -qx 'create_main_cluster = false' /etc/postgresql-common/createcluster.conf
-          sudo apt-get update -qq
-          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -o Dpkg::Options::=--force-confold postgresql-17 postgresql-client-17
-          /usr/lib/postgresql/17/bin/postgres --version
-          dpkg-query -W postgresql-17 postgresql-client-17
       - name: Disposable local PostgreSQL, no TCP or hosted connection
         run: |
           PG_BIN="/usr/lib/postgresql/17/bin"

@@ -11,6 +11,7 @@ import {execFileSync} from 'node:child_process';
 export const CI_PGDG_KEY='/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc';
 export const CI_PGDG_FINGERPRINT='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8';
 let verificationStage='arguments';
+let publicSourceStat=null;
 
 // Engineering listing fixtures test this parser; only the fixed-path CLI below
 // obtains real cryptographic fingerprints from the installed public key bytes.
@@ -39,6 +40,7 @@ function verifyInstalledKey(){
  verificationStage='source-type';
  assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&realpathSync(CI_PGDG_KEY)===CI_PGDG_KEY,'Regular non-symlink packaged key required');
  verificationStage='source-owner-mode-size';
+ publicSourceStat={uid:Number.isSafeInteger(stat.uid)&&stat.uid>=0&&stat.uid<=4294967295?stat.uid:null,permissionMode:(stat.mode&0o7777).toString(8).padStart(4,'0'),bytes:Number.isSafeInteger(stat.size)&&stat.size>=0?stat.size:null};
  assert.ok(stat.uid===0&&(stat.mode&0o022)===0&&stat.size>0&&stat.size<=32768,'Root-owned bounded public key required');
  const run=(file,args,env)=>execFileSync(file,args,{encoding:'utf8',timeout:5000,maxBuffer:32768,env,stdio:['ignore','pipe','pipe']});
  const environment={LANG:'C',LC_ALL:'C'};
@@ -65,5 +67,5 @@ function verifyInstalledKey(){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{assert.equal(process.argv.length,2,'No arguments, paths, URLs or fallback keys are accepted');console.log(JSON.stringify(verifyInstalledKey()));}
- catch(error){const code=['ENOENT','EACCES','ERR_ASSERTION','ETIMEDOUT'].includes(error?.code)?error.code:'verification-refused';console.error('CI PGDG packaged-key verification refused; no repository trust was changed. stage='+verificationStage+' code='+code);process.exitCode=1;}
+ catch(error){const code=['ENOENT','EACCES','ERR_ASSERTION','ETIMEDOUT'].includes(error?.code)?error.code:'verification-refused';console.error('CI PGDG packaged-key verification refused; no repository trust was changed. stage='+verificationStage+' code='+code+(verificationStage==='source-owner-mode-size'&&publicSourceStat?' publicSourceStat='+JSON.stringify(publicSourceStat):''));process.exitCode=1;}
 }
