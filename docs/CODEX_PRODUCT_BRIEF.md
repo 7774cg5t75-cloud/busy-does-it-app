@@ -1,4 +1,8 @@
-## Current authority — genuine V22.85, 6 November 2026
+## Current authority availability — owner-declared V22.86, 7 November 2026
+
+The owner declares V22.86 current and explicitly authorises this mission using the available corrected V22.85 original and their supplied Section98 policy while the genuine newer Word remains in their private Library. No complete V22.86 read or verification is claimed. See `CODEX_MASTER_ACCESS.md` for provenance and the outstanding private transfer. Preserve quality-first, measured model selection and the original renderer, owner approval and central spending authorities; this adds no hosted or paid execution permission.
+
+## Previously verified authority — genuine V22.85, 6 November 2026
 
 The corrected owner-supplied V22.85 has now been opened, integrity-checked and compared in full with V22.84; see current master-access provenance. Inherited requirements remain intact, with reviewed Section97. Preserve fair ownership and practical portability, truthful validated entitlements, the original connected architecture and exceptional whole-site quality for free and paid users. Private commercial details remain outside Git. No hosted, provider, publication, spending or Gold Standard approval follows from master adoption.
 

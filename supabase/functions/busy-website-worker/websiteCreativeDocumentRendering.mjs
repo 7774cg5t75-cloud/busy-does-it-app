@@ -2,6 +2,7 @@ import {websiteCreativeDocumentSection,websiteCreativeDocumentPageModel,websiteC
 import {websiteOwnerTextPresentation,websiteOwnerSectionSpacing} from './websiteTextTypography.mjs';
 import {websiteAssetAvailable} from './websitePhotoPresentation.mjs';
 import {readableAccent,textContrast} from './websiteTextColours.mjs';
+import {WEBSITE_LINK_ARROW_SVG} from './websiteLinkArrow.mjs';
 
 // Reviewed local renderer vocabulary. These are platform font stacks, not
 // downloaded assets or a claim that a proprietary font is installed everywhere.
@@ -129,7 +130,7 @@ export function renderWebsiteCreativeDocument(draft,section,{pageId='home',resol
    if(typeof node.copy?.text!=='string')return '';
    const href=originalLink(draft,page,node.target,pageHref);if(!href)return '';
    const typography=style(ownerText(draft,node.copy,'body',2,section,node.copyId));
-   return '<a'+attrs+' class="creative-doc-link'+(node.presentation==='button'?' creative-doc-link-button':'')+'" href="'+escape(href)+'"'+(typography?' style="'+escape(typography)+'"':'')+sourceAttrs(node.copyId)+'>'+escape(node.copy.text)+'<span aria-hidden="true">↗</span></a>';
+   return '<a'+attrs+' class="creative-doc-link'+(node.presentation==='button'?' creative-doc-link-button':'')+'" href="'+escape(href)+'"'+(typography?' style="'+escape(typography)+'"':'')+sourceAttrs(node.copyId)+'>'+escape(node.copy.text)+'<span aria-hidden="true">'+WEBSITE_LINK_ARROW_SVG+'</span></a>';
   }
   if(node.type==='list'){
    if(!Array.isArray(node.items)||!node.items.length||node.items.some(copy=>typeof copy?.text!=='string'))return '';

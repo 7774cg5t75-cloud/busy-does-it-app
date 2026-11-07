@@ -3436,6 +3436,20 @@
         "scripts/check-ai-lab-b3-source-contract.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-creative-deployment-packet",
+      "args": [
+        "scripts/check-ai-lab-creative-deployment-packet.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-disabled-creative-document-smoke",
+      "args": [
+        "scripts/check-disabled-creative-document-smoke.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

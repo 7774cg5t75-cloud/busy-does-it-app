@@ -1,6 +1,7 @@
 // Reviewed presentation over the original page/section model. This helper
 // neither invents facts nor stores a second copy of the owner's business.
 import {wholeSiteDerivedSourcesCurrent,wholeSiteContentCurrent} from './websiteWholeSite.mjs';
+import {WEBSITE_LINK_ARROW_SVG} from './websiteLinkArrow.mjs';
 const text=value=>typeof value==='string'?value.trim():'';
 const list=value=>Array.isArray(value)?value:[];
 const regex=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -46,7 +47,7 @@ function nextStep(draft,page,pageHref,escape){
  const navLabel=target=>text(list(draft.navigation).find(n=>n.id===target?.id)?.label)||text(target?.title);
  const label=primary===contact?approvedAction:navLabel(primary);
  const secondary=primary===contact?services:contact,secondaryHref=route(secondary);
- return '<section class="purpose-next" aria-label="Continue with '+escape(text(draft.businessName)||'this business')+'"><div class="wrap purpose-next-grid"><div><p class="purpose-next-context">'+escape(page.sourceServiceId?page.title:text(draft.businessName))+'</p><a class="purpose-primary" href="'+escape(primaryHref)+'">'+escape(label)+'<span aria-hidden="true">↗</span></a></div>'+(secondaryHref&&secondary!==primary?'<a class="purpose-secondary" href="'+escape(secondaryHref)+'">'+escape(secondary===contact?approvedAction:navLabel(secondary))+'<span aria-hidden="true">↗</span></a>':'')+'</div></section>';
+ return '<section class="purpose-next" aria-label="Continue with '+escape(text(draft.businessName)||'this business')+'"><div class="wrap purpose-next-grid"><div><p class="purpose-next-context">'+escape(page.sourceServiceId?page.title:text(draft.businessName))+'</p><a class="purpose-primary" href="'+escape(primaryHref)+'">'+escape(label)+'<span aria-hidden="true">'+WEBSITE_LINK_ARROW_SVG+'</span></a></div>'+(secondaryHref&&secondary!==primary?'<a class="purpose-secondary" href="'+escape(secondaryHref)+'">'+escape(secondary===contact?approvedAction:navLabel(secondary))+'<span aria-hidden="true">'+WEBSITE_LINK_ARROW_SVG+'</span></a>':'')+'</div></section>';
 }
 function businessContext(draft,page,sections,pageHref,escape){
  const matches=list(draft.sections).filter(s=>s.id==='about'&&s.enabled!==false&&text(s.body)),aboutPage=list(draft.pages).find(p=>p.id==='about'&&p.enabled!==false);
@@ -56,7 +57,7 @@ function businessContext(draft,page,sections,pageHref,escape){
  // Never repeat source already supplied in this service's own paragraphs.
  if(!method||method.length<40||method.length>700||sections.some(s=>text(s.body).includes(method)))return '';
  const href=originalHref(draft,page,aboutPage,pageHref);
- return '<aside class="purpose-business-context" aria-label="From the approved business story"><p class="purpose-overline">From our business story</p><blockquote>'+escape(method).replace(/\n/g,'<br>')+'</blockquote>'+(href?'<a href="'+escape(href)+'">'+escape(text(draft.brandLabel||draft.businessName))+'<span aria-hidden="true">↗</span></a>':'')+'</aside>';
+ return '<aside class="purpose-business-context" aria-label="From the approved business story"><p class="purpose-overline">From our business story</p><blockquote>'+escape(method).replace(/\n/g,'<br>')+'</blockquote>'+(href?'<a href="'+escape(href)+'">'+escape(text(draft.brandLabel||draft.businessName))+'<span aria-hidden="true">'+WEBSITE_LINK_ARROW_SVG+'</span></a>':'')+'</aside>';
 }
 
 export function websitePurposefulInnerPageHtml(sectionHtml,context){

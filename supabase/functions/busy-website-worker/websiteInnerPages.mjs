@@ -1,4 +1,5 @@
 import {websitePurposefulInnerPageHtml,websitePagePurposeCss} from './websitePagePurpose.mjs';
+import {WEBSITE_LINK_ARROW_SVG} from './websiteLinkArrow.mjs';
 // A finite presentation of the existing page model. No new facts, routes,
 // photographs or stored configuration are inferred by this renderer helper.
 const clean=value=>typeof value==='string'?value.trim():'';
@@ -66,7 +67,7 @@ export function websiteInnerPageHtml(sectionHtml,context){
  const choices=[related?{...related,label:related.title,kind:'Explore'}:null,contact?{...contact,label:contactLabel,kind:'Contact'}:null].filter(Boolean);
  const used=new Set(),links=choices.flatMap(target=>{
   const href=safeHref(pageHref(target.id));if(!href||used.has(target.id))return [];used.add(target.id);
-  return [`<a class="inner-next-link" href="${escapeHtml(href)}"><span class="inner-next-kind">${escapeHtml(target.kind)}</span><strong>${escapeHtml(target.label)}</strong><span aria-hidden="true">↗</span></a>`];
+  return [`<a class="inner-next-link" href="${escapeHtml(href)}"><span class="inner-next-kind">${escapeHtml(target.kind)}</span><strong>${escapeHtml(target.label)}</strong><span aria-hidden="true">${WEBSITE_LINK_ARROW_SVG}</span></a>`];
  });
  const conclusion=links.length?`<section class="inner-page-next"><div class="wrap"><h2>Continue exploring</h2><div class="inner-next-links">${links.join('')}</div></div></section>`:'';
  return opening+body+conclusion;

@@ -44,7 +44,7 @@ for(let index=0;index<3;index++)test('source-bound service depth and supported c
  check.equal(count(html,'>'+escape(page.title)+'</h1>'),1);
  for(const paragraph of page.sourceServiceSnapshot.body.split(/\n\s*\n/))check.equal(count(html,escape(paragraph)),1);
  const method=draft.sections.find(s=>s.id==='about').body.split(/\n\s*\n/)[1];check.equal(count(html,escape(method)),1);check.match(html,/From our business story/);
- const cta=draft.sections.find(s=>s.id==='hero').cta;check.ok(html.includes('>'+escape(cta)+'<span aria-hidden="true">↗</span></a>'));check.ok(html.includes('href="../../contact/index.html"'));
+ const cta=draft.sections.find(s=>s.id==='hero').cta;check.ok(html.includes('>'+escape(cta)+'<span aria-hidden="true"><svg class="busy-link-arrow"'));check.ok(html.includes('href="../../contact/index.html"'));check.ok(!html.includes('>↗</span>'));
  check.equal(JSON.stringify(draft),before);
  const {raw,ctx}=context(draft,page.id);check.equal(websitePageHeadingHierarchy(raw,ctx),html,'Actual worker source renderer and private preview preserve identical inner content');
  check.ok(!html.includes('completed projects'));check.ok(!html.includes('Book now'));

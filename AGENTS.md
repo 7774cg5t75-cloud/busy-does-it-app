@@ -1,3 +1,7 @@
+## Current owner-declared authority — V22.86, 7 November 2026
+
+The owner identifies `Busy_Master_V22.86.docx` in their private ChatGPT Library, with owner-reported SHA256 `e5c7af156e64fdc994b89281916944f6176a6b6306bcd13ce751df93d522c78a`. Its original bytes are not available in this workspace and have not been opened or independently verified. Do not reconstruct it or describe V22.85 as the latest approved master. The owner explicitly authorises the current source-faithful preview, security and AI-readiness work using the verified corrected V22.85 original together with their supplied Section98 policy. Preserve quality-first model selection, actual rendered comparison, equal website standards, original server budget control and separate activation/spending authority. Hold only decisions requiring unavailable full-document content. No private master text or complete extract belongs in this public repository.
+
 ## Mission18 — genuine corrected V22.85 verified, 6 November 2026
 
 Owner-supplied original SHA256 `9dc5e697e5a0f5c676db86aedc5aaf1db7be85808fb3320af438ed945d38e22c`; 381,415 bytes, 3,353 ordered Word paragraphs and 20 tables. ZIP CRC and all 19 XML/relationship parts parse. Full ordered comparison with genuine V22.84 preserves every inherited paragraph except the cover version and appends Section97, read completely. The original and full extracts remain privately outside Git. V22.85 is the current authority; the Mission17 availability checkpoint below is historical.

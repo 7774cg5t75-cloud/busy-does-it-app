@@ -6,6 +6,15 @@ on:
       - '.github/workflows/app-goal-composition.yml'
       - '.github/workflows/ai-lab-b3-source.yml'
       - 'scripts/*ai-lab-b3*.mjs'
+      - 'scripts/check-ai-budget-postgrest.mjs'
+      - 'scripts/*hosted-website*.mjs'
+      - 'scripts/*hosted-creative*.mjs'
+      - 'scripts/lib/hosted-website-baseline.mjs'
+      - 'scripts/lib/hosted-creative-pilot.mjs'
+      - 'scripts/*creative-deployment-packet.mjs'
+      - 'scripts/lib/creative-document-deployment-packet.mjs'
+      - 'scripts/check-disabled-creative-document-smoke.mjs'
+      - 'scripts/lib/disabled-creative-document-smoke.mjs'
       - 'scripts/lib/ai-lab-b3-*.mjs'
       - 'docs/sql-proposals/ai-lab-b3-empty-source/**'
       - '.github/workflows/quiet-light-v2-pilot.yml'
@@ -465,6 +474,9 @@ jobs:
           BUSY_LOCAL_PG_BIN_DIR=/usr/lib/postgresql/17/bin node scripts/check-ai-lab-b3-postgrest.mjs > .test-artifacts/app-goal-composition/postgrest-http.log 2>&1 || { tail -n 50 .test-artifacts/app-goal-composition/postgrest-http.log; exit 1; }
           cp .test-artifacts/ai-lab-b3/postgrest.json .test-artifacts/app-goal-composition/postgrest-http.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/postgrest-http.json'));print('BUSY_B3_POSTGREST '+json.dumps(d['summary']));assert d['summary']['passed']>0 and d['summary']['failed']==0"
+          BUSY_LOCAL_PG_BIN_DIR=/usr/lib/postgresql/17/bin node scripts/check-ai-budget-postgrest.mjs > .test-artifacts/app-goal-composition/ai-budget-postgrest-http.log 2>&1 || { tail -n 50 .test-artifacts/app-goal-composition/ai-budget-postgrest-http.log; exit 1; }
+          cp .test-artifacts/ai-budget-http/postgrest.json .test-artifacts/app-goal-composition/ai-budget-postgrest-http.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/ai-budget-postgrest-http.json'));print('BUSY_AI_BUDGET_POSTGREST '+json.dumps(d['summary']));assert d['summary']['passed']>0 and d['summary']['failed']==0 and d['cleanupCompleted'] and d['providerCalls']==0 and d['actualSpendingGBP']==0"
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1
