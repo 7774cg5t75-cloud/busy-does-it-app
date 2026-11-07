@@ -1,0 +1,84 @@
+name: Separately approved one-use AI Lab B3 source
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths: ['.github/ai-lab-b3-execution-request.json']
+permissions:
+  contents: read
+concurrency:
+  group: busy-ai-lab-b3-source
+  cancel-in-progress: false
+jobs:
+  exact-owner-approved-source:
+    if: ${{ github.run_attempt == 1 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: busy-ai-lab-b3-source
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Require a marker-only request commit
+        env:
+          REQUEST_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import os,subprocess
+          sha=os.environ['REQUEST_SHA']
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==sha
+          parents=subprocess.check_output(['git','show','--format=%P','--no-patch',sha],text=True).strip().split()
+          assert len(parents)==1, 'No merge request commit'
+          files=subprocess.check_output(['git','diff-tree','--no-commit-id','--name-only','-r',sha],text=True).splitlines()
+          assert files==['.github/ai-lab-b3-execution-request.json'], 'Request must change only the non-secret marker'
+          PY
+      - name: Verify reviewed code before making Lab credentials available
+        env:
+          PRIVATE_MANIFEST: ${{ secrets.BUSY_AI_LAB_B3_MANIFEST_JSON }}
+          PRIVATE_APPROVAL: ${{ secrets.BUSY_AI_LAB_B3_APPROVAL_JSON }}
+        run: |
+          python3 - <<'PY'
+          import os,json,pathlib,hashlib,datetime
+          # No imports or execution of repository code before this gate.
+          try:
+            m=json.loads(os.environ['PRIVATE_MANIFEST']);a=json.loads(os.environ['PRIVATE_APPROVAL'])
+            digest=hashlib.sha256(json.dumps(m,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
+            assert a['status']=='owner-approved' and a['manifestDigest']==digest
+            assert a['runId']==os.environ['GITHUB_RUN_ID'] and os.environ['GITHUB_RUN_ATTEMPT']=='1'
+            assert a['eventSha']==os.environ['GITHUB_SHA'] and a['actor']==os.environ['GITHUB_ACTOR']
+            assert a['environmentProtectionIndependentlyReviewed'] is True and a['standardRunnerZeroCostConfirmed'] is True
+            expiry=datetime.datetime.fromisoformat(a['expiresAt'].replace('Z','+00:00'))
+            assert datetime.datetime.now(datetime.timezone.utc)<expiry
+            root=pathlib.Path.cwd().resolve()
+            for name,expected in m['code']['files'].items():
+              p=root/name
+              assert p.resolve().is_relative_to(root) and not p.is_symlink()
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==expected
+            marker=json.loads((root/'.github/ai-lab-b3-execution-request.json').read_text())
+            assert marker=={'version':'busy.ai-lab-b3-execution-request.v1','manifestDigest':digest,'executionId':m['binding']['executionId']}
+          except BaseException:
+            raise SystemExit("B3 pre-secret validation refused; no private values logged") from None
+          PY
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: One approved native sign-in and bounded original source preparation
+        env:
+          NODE_OPTIONS: ''
+          BUSY_AI_LAB_B3_MANIFEST_JSON: ${{ secrets.BUSY_AI_LAB_B3_MANIFEST_JSON }}
+          BUSY_AI_LAB_B3_APPROVAL_JSON: ${{ secrets.BUSY_AI_LAB_B3_APPROVAL_JSON }}
+          BUSY_AI_LAB_B3_PUBLISHABLE_KEY: ${{ secrets.BUSY_AI_LAB_B3_PUBLISHABLE_KEY }}
+          BUSY_AI_LAB_B3_SERVER_SECRET_KEY: ${{ secrets.BUSY_AI_LAB_B3_SERVER_SECRET_KEY }}
+          BUSY_AI_LAB_B3_OWNER_PASSWORD: ${{ secrets.BUSY_AI_LAB_B3_OWNER_PASSWORD }}
+        run: node scripts/run-ai-lab-b3.mjs
+      - name: Retain only sanitised intent/outcome, including uncertain results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: b3-safe-receipt-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/busy-ai-lab-b3/intent.json
+            ${{ runner.temp }}/busy-ai-lab-b3/outcome.json
+          retention-days: 7
+          if-no-files-found: ignore

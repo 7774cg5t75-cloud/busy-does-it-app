@@ -3408,6 +3408,27 @@
         "scripts/check-ai-lab-fictional-source.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-b3-runtime",
+      "args": [
+        "scripts/check-ai-lab-b3-runtime.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-b3-source",
+      "args": [
+        "scripts/check-ai-lab-b3-source.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-b3-package",
+      "args": [
+        "scripts/check-ai-lab-b3-package.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
