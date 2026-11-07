@@ -13,7 +13,7 @@ const lockPath='supabase/connected-staging.deno.lock';
 const bootstrapPath='supabase/functions/busy-builder-proposals/creativeDocumentExecutionBootstrap.mjs';
 const mainGatewayPath='supabase/functions/busy-builder-proposals/index.ts';
 const need=(value,message)=>{if(!value)throw Error(message);};
-export const creativeDeploymentDigest=value=>createHash('sha256').update(typeof value==='string'?value:stableJson(value)).digest('hex');
+export const creativeDeploymentDigest=value=>createHash('sha256').update(typeof value==='string'||value instanceof Uint8Array?value:stableJson(value)).digest('hex');
 
 // Read-only inventory. This does not import the candidate, read credentials,
 // contact a project, issue a JWT or provide a deployment/execution capability.

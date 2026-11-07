@@ -21,6 +21,9 @@ function fixture(run){
 }
 const change=(dir,path,edit)=>writeFileSync(join(dir,path),edit(readFileSync(join(dir,path),'utf8')));
 
+test('raw file buffers and UTF8 strings use the same byte digest',()=>{
+ const bytes=readFileSync('scripts/lib/disabled-creative-document-smoke.mjs');assert.equal(creativeDeploymentDigest(bytes),creativeDeploymentDigest(bytes.toString('utf8')));
+});
 test('complete candidate graph binds the original renderer, review, ledger and pinned dependency config',()=>{
  for(const name of [entry,config,'supabase/connected-staging.deno.lock','src/domain/websiteBuilder.js','src/core/websiteCreativeDocumentReview.mjs','supabase/functions/busy-builder-proposals/creativeLedger.mjs'])assert.ok(inventory.files[name]);
  assert.deepEqual(inventory.externalImports,['npm:@supabase/supabase-js@2.118.0']);
