@@ -1,0 +1,274 @@
+{
+  "version": "busy.ai-lab-b3-source-contract-installed.v1",
+  "outcome": "installed-and-independently-verified",
+  "target": {
+    "projectId": "sbvkrvksnruiclcvclbd",
+    "organizationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "plan": "free",
+    "postgresVersion": "17.11"
+  },
+  "source": {
+    "functionalCommit": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+    "functionalTree": "9cea4908e3c83e095f31fa2d35d34174901d2d92",
+    "startingReportCommit": "6bcde55361692432028b2f4b6458d2518952eef1",
+    "startingReportTree": "4f83341724f21cd1dec1aae55e7fe2e24279a98a",
+    "masterVersion": "22.85 corrected",
+    "masterOriginalSha256": "9dc5e697e5a0f5c676db86aedc5aaf1db7be85808fb3320af438ed945d38e22c"
+  },
+  "approval": {
+    "migrationName": "ai_lab_b3_nonretry_source_contract_v1",
+    "fusedSha256": "37992a8a4600709affec86a2168460ca847a54120d4309a008b853e0f04050f4",
+    "executionSha256": "564a516eca321797e191c54efcfb1fd0efeed5e98740f83757c4a4364778bda5",
+    "onlyRemovedBytes": 121,
+    "submissionCount": 1,
+    "automaticRetries": 0,
+    "rollbackExecutions": 0
+  },
+  "nativeReceipt": {
+    "name": "ai_lab_b3_nonretry_source_contract_v1",
+    "version": "20261107113432",
+    "statementCount": 1,
+    "executionSha256": "564a516eca321797e191c54efcfb1fd0efeed5e98740f83757c4a4364778bda5"
+  },
+  "nativeReceiptCount": 3,
+  "originalReceipts": [
+    {
+      "name": "mission18_ai_lab_foundation",
+      "version": "20261106221950",
+      "statementCount": 1,
+      "executionSha256": "231b7eecdab788f3829d93c4f1995ce111a6b2b4a953644bdc6d0f785b6a5987"
+    },
+    {
+      "name": "ai_lab_quiet_light_owner_setup_v1",
+      "version": "20261107000304",
+      "statementCount": 1,
+      "executionSha256": "865e2acdb036691a0e907bcdfbc0737b5bb403005880cd9c218ceafc047e77bc"
+    }
+  ],
+  "verification": {
+    "preflightObservedAt": "2026-11-07T11:33:45.394857+00:00",
+    "postflightObservedAt": "2026-11-07T11:35:16.379959+00:00",
+    "effectivePermissionsObservedAt": "2026-11-07T11:36:35.482023+00:00",
+    "conditions": {
+      "singleNativeReceipt": true,
+      "exactStatementHash": true,
+      "allOriginalCorrections": true,
+      "newSourceFunction": true,
+      "entireCatalogPreservedExceptApprovedBodiesAndNewRoutine": true,
+      "all34DataFingerprintsPreserved": true,
+      "nativeAuthBusinessAndMemberIdentityPreserved": true,
+      "noActivityBlockers": true,
+      "policyDisabledZero": true,
+      "sourceEmpty": true,
+      "originalReceiptCountPreserved": true
+    },
+    "originalCanonicalBodyHashesVerified": 107,
+    "bodyCorrections": [
+      {
+        "signature": "public.busy_connected_builder_read_v1(uuid)",
+        "bodySha256": "538e9d3f088f54f8385ca1c13f34fe75d61eb3c5e54d4ca51ae6f8092285881d"
+      },
+      {
+        "signature": "public.busy_connected_profile_write_v1(uuid,bigint,jsonb,jsonb,boolean)",
+        "bodySha256": "33b6b3320a73a59d3ca8747f2d6cd7e2eecfe51b1ac039a2e17191787bccf7a4"
+      },
+      {
+        "signature": "busy_snapshot_private.website_commit_original(uuid,uuid,bigint,jsonb,jsonb,bigint)",
+        "bodySha256": "6fcc34afbf762a18279d7582a02550071724ae085bb60d7b77fadcdc9c9d7cc8"
+      },
+      {
+        "signature": "public.busy_connected_website_transition_v1(uuid,uuid,bigint,jsonb,jsonb,bigint,text)",
+        "bodySha256": "7c4d0ebade250c5f9cb049898675a9e256fdce695405a42f8266fe026c88530c"
+      },
+      {
+        "signature": "public.busy_connected_website_history_v1(uuid,bigint,text,text)",
+        "bodySha256": "ad737c9f8b4c81e65661be067b57df84144ec9ebbaae7de233f2e47029f5981a"
+      }
+    ],
+    "newSourceFunction": {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, pg_temp",
+        "lock_timeout=2s"
+      ],
+      "anonExec": false,
+      "signature": "busy_connected_builder_source_state_v1(uuid)",
+      "bodySha256": "8740beb8e8c8fa858735ab50a3ab6081c56cc8481a996899ecc2058fd11455b9",
+      "bodyMatches": true,
+      "serviceExec": false,
+      "securityDefiner": true,
+      "authenticatedExec": true
+    },
+    "dataTablesCompared": 34,
+    "dataFingerprintsAllPreserved": true,
+    "publicTableCount": 28,
+    "privateAiTableCount": 6,
+    "foundationFunctionCount": 70,
+    "serviceOnlyAiFunctionCount": 5,
+    "allBusyPublicFunctionCount": 75,
+    "catalogueCounts": {
+      "events": 7,
+      "columns": 432,
+      "indexes": 133,
+      "schemas": 6,
+      "defaults": 10,
+      "triggers": 10,
+      "functions": 109,
+      "relations": 168,
+      "sequences": 1,
+      "constraints": 268
+    },
+    "nativeHook": {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "definitionSha256": "b21d88816c445d14cef5032c3cd4abaebc1db2001fcb3435022ab6b496182ca4"
+    },
+    "identity": {
+      "userCount": 1,
+      "emailIdentityCount": 1,
+      "sessionCount": 1,
+      "businessCount": 1,
+      "ownerMembershipCount": 1,
+      "nativeIdentityAndBusinessMatchPrivateB2": true,
+      "allSafeMetadataPreserved": true
+    },
+    "source": {
+      "profiles": 0,
+      "snapshots": 0,
+      "websites": 0,
+      "deployments": 0
+    },
+    "activityBefore": {
+      "ungrantedLocks": 0,
+      "idleInTransaction": 0,
+      "competingInstaller": 0,
+      "originalReaderActive": 0,
+      "preparedTransactions": 0,
+      "longClientTransactions": 0
+    },
+    "activityAfter": {
+      "ungrantedLocks": 0,
+      "idleInTransaction": 0,
+      "competingInstaller": 0,
+      "originalReaderActive": 0,
+      "preparedTransactions": 0,
+      "longClientTransactions": 0
+    },
+    "effectiveApiViolationCounts": {
+      "tableWriteOrColumn": 0,
+      "privateSchemaAccess": 0,
+      "publicSchemaCreate": 0,
+      "publicFunctionExecute": 0
+    },
+    "policy": {
+      "enabled": false,
+      "monthlyHardLimit": 0
+    },
+    "aiLedgerCounts": {
+      "events": 0,
+      "periods": 0,
+      "tariffs": 0,
+      "accounts": 0,
+      "operations": 0
+    },
+    "independentLocalEvidenceReview": "PASS; second agent independently compared actual SQL argument, native receipts, all catalogues, data fingerprints and safe identity metadata"
+  },
+  "freshPacket": {
+    "status": "prepared-not-authorized",
+    "manifestVersion": "busy.ai-lab-b3-manifest.v2",
+    "manifestDigest": "3409c7d6f6d4850e0a9cb4c586aca3c89623c0b0f2580de358511d0bc0a403c3",
+    "privateVerificationSha256": "b8cbbb402a261612983dfc4e547518ed7f7fb60fa0d30f3740ecd54d764273f8",
+    "sourcePlanDigest": "0d8ef3e45ec96a9d608571dc1118c5095daa80f37a019a0813ccc1a614c97ddb",
+    "codeFileCount": 58,
+    "codeHashesDigest": "12725d5e09117b7c450ab0757fb229caae8b8b71f095e8fc2a05fe7495ab12b9",
+    "nativeMigrationVersion": "20261107113432",
+    "executionAndNonceFresh": true,
+    "approvalStatus": "not-authorized",
+    "actualRunId": null,
+    "eventSha": null,
+    "actor": null,
+    "expiresAt": null,
+    "environmentProtectionIndependentlyReviewed": false,
+    "standardRunnerZeroCostConfirmed": false,
+    "repositoryMarkerChanged": false,
+    "GitHubSecretsChanged": false,
+    "queued": false,
+    "executed": false,
+    "independentReview": "PASS; entire manifest recomputed; 58 hashes, fresh evidence, new nonce/operation and private file permissions independently checked"
+  },
+  "currentLocalChecks": {
+    "sourceContractPackage": {
+      "passed": 9,
+      "failed": 0
+    },
+    "B3ApprovalPackage": {
+      "passed": 20,
+      "failed": 0
+    }
+  },
+  "priorFrozenCI": {
+    "sourceCommit": "9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4",
+    "runId": 42365375672,
+    "application": 528,
+    "foundation": 105,
+    "postgresStages": 332,
+    "genuinePostgrestCases": 20,
+    "DenoTargets": 36,
+    "legacyWorkflows": 6,
+    "failed": 0,
+    "rerunThisInstallationMission": false
+  },
+  "runnerAuthority": {
+    "readVia": "Current official Supabase documentation search through Lab MCP",
+    "sources": [
+      {
+        "title": "Supabase for Platforms",
+        "url": "https://supabase.com/docs/guides/integrations/supabase-for-platforms",
+        "lines": [
+          "Management API endpoint: [`POST /v1/projects/{ref}/database/migrations`](https://api.supabase.com/api/v1#tag/database/post/v1/projects/\\{ref}/database/migrations)",
+          "For this example we will create a todos table using the [`POST /v1/projects/{ref}/database/migrations`](https://api.supabase.com/api/v1#tag/database/post/v1/projects/\\{ref}/database/migrations) endpoint.",
+          "This endpoint will automatically create a migration inside the `supabase_migrations` schema and run the migration. If the schema migration fails, the changes will be rolled back.",
+          "curl https://api.supabase.com/v1/projects/{ref}/database/migrations \\",
+          "You can use the `POST /database/query` endpoint to add data:",
+          "curl https://api.supabase.com/v1/projects/{branch_ref}/database/query \\"
+        ]
+      }
+    ],
+    "directChangelogFetch": "Network policy denied supabase.com HTTPS403; no bypass attempted",
+    "privateBackendInspectionClaim": false,
+    "reviewedRunner": "Supabase apply_migration, whole derivative, runner-owned application/history transaction",
+    "authoredTransactionBoundaries": false
+  },
+  "boundaries": {
+    "nativeSignIns": 0,
+    "AuthModifications": 0,
+    "profileOrWebsiteWrites": 0,
+    "B3Executions": 0,
+    "EdgeDeployments": 0,
+    "credentialReads": 0,
+    "credentialChanges": 0,
+    "providerActivations": 0,
+    "providerCalls": 0,
+    "spendingGbp": 0,
+    "publication": 0,
+    "otherProjectsAccessedOrModified": 0
+  },
+  "limitations": [
+    "Authenticated hosted PostgREST source read and six-write B3 path require separate source-run approval.",
+    "No genuine AI inference or new visual quality improvement is claimed.",
+    "Runtime code and reviewed SQL artifacts are unchanged; current installation status is recorded separately.",
+    "Three design reference candidates and zero approved Gold Standards remain."
+  ],
+  "finalControlPlaneReadback": {
+    "id": "sbvkrvksnruiclcvclbd",
+    "organisation": "wrjfgasxtlznzfzmfrif",
+    "name": "Busy Does It AI Lab",
+    "region": "eu-west-1",
+    "status": "ACTIVE_HEALTHY",
+    "postgresVersion": "17.11.0.018",
+    "nativeMigrationCount": 3,
+    "edgeFunctions": 0
+  }
+}

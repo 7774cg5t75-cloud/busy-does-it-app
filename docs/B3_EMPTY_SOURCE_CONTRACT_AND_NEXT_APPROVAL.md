@@ -1,6 +1,6 @@
 # B3 empty-source contract and the next approval boundary
 
-Status: local implementation and separately reviewable SQL proposal. The correction has **not** been installed in the hosted AI Lab, and no B3 execution is authorised by this document.
+Status update, 7 November 2026: the exact separately approved correction is **installed and independently verified** in the AI Lab as native migration `20261107113432`. See [the installation report and fresh private packet status](B3_SOURCE_CONTRACT_INSTALLATION_2026_11_07.md). No B3 execution is authorised by this document. The reviewed SQL files and code hashes remain unchanged; the original pre-install review below is historical context.
 
 The work continues from development commit `1fa62a2e454793ecac000477fdf453d78c7892ae`, tree `e09fcd041a2f407ae18d650266ffa935847fd07b`, preserving the original unmerged dependency chain, prior implementation and failed execution evidence. Final functional/report identities and test totals belong in the frozen mission report; they must not be inferred from this starting checkpoint.
 
@@ -12,7 +12,7 @@ The original `busy_connected_builder_read_v1` deliberately raised SQLSTATE `4000
 
 The earlier disposable PostgreSQL bridge translated a `psql` exception into a **synthesised** HTTP 500 response. It exercised real original SQL and original source orchestration, but it did not run PostgREST or establish its transaction retry, HTTP response or client-disconnect behaviour. Its passing result was not genuine PostgREST acceptance. Existing failed runs and containment receipts remain preserved privately; no old run is replayed by this fix.
 
-Genuine PostgreSQL 17 plus PostgREST reproduction and corrected-path results are **pending final evidence** in this document. The final report must identify actual versions, binary/configuration provenance, request and backend observations, bounded local cleanup, exact source and real pass/fail totals. Synthetic Auth responses, locally signed fictional JWTs, simulated transport faults and genuine database/API transport must be labelled separately. None establishes a new hosted Supabase sign-in or Studio save.
+Genuine PostgreSQL 17.11/PostgREST 14.18 reproduction passed 2/0 and corrected-path CI passed 20/0 on the frozen source. The [original final report](B3_EMPTY_SOURCE_FIX_2026_11_07.md) identifies binary/configuration provenance, request/backend observations and safe local cleanup. Synthetic Auth responses, locally signed fictional JWTs, simulated transport faults and genuine database/API transport remain labelled separately. None establishes a new hosted Supabase sign-in or Studio save.
 
 ## Implemented runtime v2
 
@@ -93,7 +93,8 @@ An eventual AI comparison remains a later, separately approved milestone using t
 | Genuine PostgreSQL 17/PostgREST pre-fix reproduction | PostgreSQL 17.11 / PostgREST 14.18: 2 passed, 0 failed; original SQL kept retrying after client abort |
 | Genuine PostgreSQL 17/PostgREST corrected-path tests | Frozen PostgreSQL 17.11/PostgREST 14.18 CI: 20 passed, 0 failed |
 | Migration, rollback, ACL/RLS and fault-injection checks | Frozen PostgreSQL 17 CI: 17 passed, 0 failed |
-| Hosted fix migration, new native B3 save or real AI comparison | Not performed under this mission |
+| Hosted fix migration | Subsequently installed once under separate exact approval; native receipt `20261107113432` independently verified |
+| New native B3 save or real AI comparison | Not performed; fresh private v2 packet prepared without execution authority |
 
 The final frozen functional source is `9cdb7d3bdf167b32f1af1c261d11b3e8dabf30d4`, tree `9cea4908e3c83e095f31fa2d35d34174901d2d92`. See [the complete report](B3_EMPTY_SOURCE_FIX_2026_11_07.md) and [independent CI evidence](evidence/b3-empty-source-20261107/ci-summary.json) for 528 application passes, 332 disposable SQL stages, 105 foundation assertions, 36 Deno targets, security/install/compilation and six legacy successes.
 
