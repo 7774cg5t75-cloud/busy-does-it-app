@@ -8,7 +8,8 @@ import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 
-export const CI_PGDG_KEY='/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc';
+export const CI_PGDG_KEY='/etc/apt/keyrings/busy-pgdg.asc';
+export const CI_PGDG_PACKAGED_SOURCE='/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc';
 export const CI_PGDG_FINGERPRINT='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8';
 let verificationStage='arguments';
 let publicSourceStat=null;
@@ -35,23 +36,30 @@ export function verifyCiPgdgKeyListing(listing,nowSeconds=Math.floor(Date.now()/
 }
 
 function verifyInstalledKey(){
+ verificationStage='frozen-ancestry';
+ for(const directory of ['/','/etc','/etc/apt','/etc/apt/keyrings']){const ancestor=lstatSync(directory);assert.ok(ancestor.isDirectory()&&!ancestor.isSymbolicLink()&&ancestor.uid===0&&(ancestor.mode&0o022)===0&&realpathSync(directory)===directory,'Trusted frozen-key ancestry required');}
  verificationStage='source-file';
  const stat=lstatSync(CI_PGDG_KEY);
  verificationStage='source-type';
  assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&realpathSync(CI_PGDG_KEY)===CI_PGDG_KEY,'Regular non-symlink packaged key required');
  verificationStage='source-owner-mode-size';
  publicSourceStat={uid:Number.isSafeInteger(stat.uid)&&stat.uid>=0&&stat.uid<=4294967295?stat.uid:null,permissionMode:(stat.mode&0o7777).toString(8).padStart(4,'0'),bytes:Number.isSafeInteger(stat.size)&&stat.size>=0?stat.size:null};
- assert.ok(stat.uid===0&&(stat.mode&0o022)===0&&stat.size>0&&stat.size<=32768,'Root-owned bounded public key required');
+ assert.ok(stat.uid===0&&(stat.mode&0o7777)===0o644&&stat.size>0&&stat.size<=32768,'Root-owned bounded frozen public key required');
+ verificationStage='packaged-source';
+ const packaged=lstatSync(CI_PGDG_PACKAGED_SOURCE);
+ assert.ok(packaged.isFile()&&!packaged.isSymbolicLink()&&packaged.uid===0&&packaged.size>0&&packaged.size<=32768&&realpathSync(CI_PGDG_PACKAGED_SOURCE)===CI_PGDG_PACKAGED_SOURCE,'Original bounded regular packaged source required');
  const run=(file,args,env)=>execFileSync(file,args,{encoding:'utf8',timeout:5000,maxBuffer:32768,env,stdio:['ignore','pipe','pipe']});
  const environment={LANG:'C',LC_ALL:'C'};
  verificationStage='package-owner';
- const owner=run('/usr/bin/dpkg-query',['--search',CI_PGDG_KEY],environment).trim();
- assert.match(owner,new RegExp('^postgresql-common(?::[a-z0-9-]+)?: '+CI_PGDG_KEY.replaceAll('.','\\.')+'$'),'Original package ownership required');
+ const owner=run('/usr/bin/dpkg-query',['--search',CI_PGDG_PACKAGED_SOURCE],environment).trim();
+ assert.match(owner,new RegExp('^postgresql-common(?::[a-z0-9-]+)?: '+CI_PGDG_PACKAGED_SOURCE.replaceAll('.','\\.')+'$'),'Original package ownership required');
  verificationStage='package-status';
  const status=run('/usr/bin/dpkg-query',['--show','--showformat=${Package}\t${Version}\t${db:Status-Status}','postgresql-common'],environment).trim().split('\t');
  assert.ok(status.length===3&&status[0]==='postgresql-common'&&status[1]&&status[2]==='installed','Installed original package required');
  verificationStage='source-file';
  const before=readFileSync(CI_PGDG_KEY);
+ assert.equal(before.length,stat.size,'Frozen public key size changed');
+ assert.deepEqual(readFileSync(CI_PGDG_PACKAGED_SOURCE),before,'Frozen key must match original packaged bytes');
  verificationStage='key-display';
  const home=mkdtempSync(join(tmpdir(),'busy-ci-pgdg-'));
  try{
@@ -60,8 +68,10 @@ function verifyInstalledKey(){
   verificationStage='key-listing';
   const result=verifyCiPgdgKeyListing(listing);
   verificationStage='stability';
-  assert.deepEqual(readFileSync(CI_PGDG_KEY),before,'Packaged public key changed during verification');
-  return {ok:true,source:'installed-postgresql-common-public-key',path:CI_PGDG_KEY,packageVersion:status[1],...result,sha256:createHash('sha256').update(before).digest('hex'),downloads:0,keyImports:0,repositoryChanges:0};
+  assert.deepEqual(readFileSync(CI_PGDG_KEY),before,'Frozen public key changed during verification');
+  assert.deepEqual(readFileSync(CI_PGDG_PACKAGED_SOURCE),before,'Packaged public key changed during verification');
+  const final=lstatSync(CI_PGDG_KEY);assert.ok(final.isFile()&&!final.isSymbolicLink()&&final.dev===stat.dev&&final.ino===stat.ino&&final.uid===0&&(final.mode&0o7777)===0o644&&final.size===stat.size,'Frozen public-key identity changed during verification');
+  return {ok:true,source:'installed-postgresql-common-public-key',path:CI_PGDG_KEY,packagedSource:CI_PGDG_PACKAGED_SOURCE,packageVersion:status[1],...result,sha256:createHash('sha256').update(before).digest('hex'),downloads:0,keyImports:0,repositoryChanges:0};
  }finally{rmSync(home,{recursive:true,force:true});}
 }
 

@@ -2,14 +2,14 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {verifyCiPgdgKeyListing,CI_PGDG_FINGERPRINT} from './verify-ci-pgdg-key.mjs';
+import {verifyCiPgdgKeyListing,CI_PGDG_FINGERPRINT,CI_PGDG_KEY,CI_PGDG_PACKAGED_SOURCE} from './verify-ci-pgdg-key.mjs';
 const now=1700000000;
 const pub=['pub','-','4096','1',CI_PGDG_FINGERPRINT.slice(-16),'1318537154','','','','','','scSC'].join(':')+':';
 const fpr='fpr:::::::::'+CI_PGDG_FINGERPRINT+':';
 const valid=()=>[pub,fpr,'uid:-::::::::PostgreSQL Debian Repository:'].join('\n')+'\n';
 let passed=0;const test=(name,run)=>{run();passed++;console.log('PASS '+name);};
 const deny=(name,value)=>test(name,()=>assert.throws(()=>verifyCiPgdgKeyListing(value,now)));
-test('one reviewed full public signing fingerprint is recognised',()=>assert.deepEqual(verifyCiPgdgKeyListing(valid(),now),{fingerprint:CI_PGDG_FINGERPRINT,primaryKeys:1}));
+test('one reviewed full public signing fingerprint uses separate fixed packaged and frozen paths',()=>{assert.equal(CI_PGDG_KEY,'/etc/apt/keyrings/busy-pgdg.asc');assert.equal(CI_PGDG_PACKAGED_SOURCE,'/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc');assert.notEqual(CI_PGDG_KEY,CI_PGDG_PACKAGED_SOURCE);assert.deepEqual(verifyCiPgdgKeyListing(valid(),now),{fingerprint:CI_PGDG_FINGERPRINT,primaryKeys:1});});
 deny('missing key material is refused','');
 deny('wrong complete fingerprint is refused',valid().replace(CI_PGDG_FINGERPRINT,'0'.repeat(40)));
 deny('multiple public primary keys are refused',valid()+valid());
