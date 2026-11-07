@@ -27,6 +27,10 @@ export function createGovernedCreativeExecution(deps,protocol){
     reserve:async request=>{admissionAttempted=true;admitted=await deps.reserve(request);return admitted;}
    });
    if(!pilot.ok){if(admissionAttempted)throw Error('admission');return fail('admission-denied');}
+   // Bounds come from the imported protocol's verified admission, never the
+   // request body or model output. Legacy callers keep their historical caps.
+   const bounds=protocol.boundsFor?protocol.boundsFor(pilot):{inputTokens:4000,outputTokens:protocol.maximumOutputTokens,maximumGBP:.10,responseTimeoutMs:protocol.responseTimeoutMs};
+   if(!bounds||!Number.isSafeInteger(bounds.inputTokens)||bounds.inputTokens<1||bounds.inputTokens>8000||!Number.isSafeInteger(bounds.outputTokens)||bounds.outputTokens<1||bounds.outputTokens>12000||!Number.isFinite(bounds.maximumGBP)||bounds.maximumGBP<=0||bounds.maximumGBP>1||!Number.isSafeInteger(bounds.responseTimeoutMs)||bounds.responseTimeoutMs<1||bounds.responseTimeoutMs>120000)throw Error('protocol');
    const {wire,wireDigest,approval}=pilot;
    if(await deps.integrity.sha256(stableJson(wire))!==wireDigest)throw Error('wire');
    if(!await protocol.current(prepared,await deps.readCurrent())||approval.expiresAt<=now())throw Error('stale');
@@ -44,7 +48,7 @@ export function createGovernedCreativeExecution(deps,protocol){
     response=await Promise.race([(async()=>{
      const raw=await deps.transport('https://api.openai.com/v1/responses',{method:'POST',redirect:'error',headers:{Authorization:'Bearer '+secret,'Content-Type':'application/json'},body:stableJson(wire),signal:controller.signal});
      return boundedProviderJson(raw,controller.signal,protocol.maximumResponseBytes);
-    })(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('uncertain'));},protocol.responseTimeoutMs);})]);
+    })(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('uncertain'));},bounds.responseTimeoutMs);})]);
    }finally{clearTimeout(timer);controller.abort();}
    const usage=response?.usage,receipt=response?.id;
    if(typeof receipt!=='string'||!/^resp_[A-Za-z0-9_-]{1,145}$/.test(receipt)||response.model!==policy.model||!Number.isSafeInteger(usage?.input_tokens)||!Number.isSafeInteger(usage?.output_tokens)||usage.input_tokens<1||usage.output_tokens<0||usage.input_tokens>1000000||usage.output_tokens>1000000||protocol.accountingResponse&&protocol.accountingResponse(response)!==true)throw Error('uncertain');
@@ -54,7 +58,7 @@ export function createGovernedCreativeExecution(deps,protocol){
    readback=await deps.readReceipt(admitted);
    if(readback?.status!=='settled'||readback.inputTokens!==usage.input_tokens||readback.outputTokens!==usage.output_tokens||readback.providerReceipt!==receipt||readback.inputDigest!==pilot.digest||readback.requestDigest!==wireDigest||!Number.isFinite(readback.actualGBP)||readback.actualGBP<0)throw Error('uncertain');
    settled=true;
-   if(usage.input_tokens>4000||usage.output_tokens>protocol.maximumOutputTokens||readback.actualGBP>0.10||readback.overrun===true)return {...fail('usage-overrun',calls),receipt:readback};
+   if(usage.input_tokens>bounds.inputTokens||usage.output_tokens>bounds.outputTokens||readback.actualGBP>bounds.maximumGBP||readback.overrun===true)return {...fail('usage-overrun',calls),receipt:readback};
    const latest=await deps.readCurrent();
    if(!await protocol.current(prepared,latest))return {...fail('source-changed-after-provider',calls),receipt:readback};
    const reviewed=await protocol.review({prepared,current:latest,response,readback,pilot,deps,policy});

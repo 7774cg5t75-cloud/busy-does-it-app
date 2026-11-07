@@ -1,5 +1,7 @@
 # Revised creative-pilot testing budget — proposal only
 
+**Historical Astra-first proposal:** the later owner instruction selects Sol first, then Astra. See [the current Sol-first preparation](AI_LAB_SOL_FIRST_ASTRA_COMPARISON_2026_11_07.md) for the implemented local profiles and staged configuration. The earlier state and test evidence below are retained without representing them as current hosted changes.
+
 7 November 2026. This replaces the **proposed** £0.10 experiment ceiling in the earlier D packet. It is neither spending approval nor runtime configuration. No provider/account/counting request, credential access, activation, hosted write, deployment or publication is authorised. The frozen C inventory and all original SQL/receipts remain unchanged.
 
 ## Proposed approval scopes

@@ -5,6 +5,16 @@ on:
     paths:
       - '.github/workflows/app-goal-composition.yml'
       - '.github/workflows/ai-lab-b3-source.yml'
+      - '.github/workflows/ai-lab-creative-smoke.yml'
+      - 'scripts/*ai-lab-creative-smoke*.mjs'
+      - 'scripts/lib/ai-lab-creative-smoke-handoff.mjs'
+      - 'scripts/*ai-lab-budget*.mjs'
+      - 'scripts/lib/ai-lab-budget-*.mjs'
+      - 'docs/sql-proposals/ai-lab-budget-output-compatibility/**'
+      - 'scripts/check-revised-creative-document-execution.mjs'
+      - 'scripts/check-creative-comparison-admission.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeDocumentPilotProfiles.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeComparisonAdmission.mjs'
       - 'scripts/*ai-lab-b3*.mjs'
       - 'scripts/check-ai-budget-postgrest.mjs'
       - 'scripts/*hosted-website*.mjs'
@@ -477,6 +487,9 @@ jobs:
           BUSY_LOCAL_PG_BIN_DIR=/usr/lib/postgresql/17/bin node scripts/check-ai-budget-postgrest.mjs > .test-artifacts/app-goal-composition/ai-budget-postgrest-http.log 2>&1 || { tail -n 50 .test-artifacts/app-goal-composition/ai-budget-postgrest-http.log; exit 1; }
           cp .test-artifacts/ai-budget-http/postgrest.json .test-artifacts/app-goal-composition/ai-budget-postgrest-http.json
           python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/ai-budget-postgrest-http.json'));print('BUSY_AI_BUDGET_POSTGREST '+json.dumps(d['summary']));assert d['summary']['passed']>0 and d['summary']['failed']==0 and d['cleanupCompleted'] and d['providerCalls']==0 and d['actualSpendingGBP']==0"
+          BUSY_LOCAL_PG_BIN_DIR=/usr/lib/postgresql/17/bin node scripts/check-ai-lab-budget-compatibility-postgres.mjs > .test-artifacts/app-goal-composition/budget-compatibility-postgres.log 2>&1 || { tail -n 55 .test-artifacts/app-goal-composition/budget-compatibility-postgres.log; exit 1; }
+          cp .test-artifacts/ai-lab-budget-compatibility/postgres.json .test-artifacts/app-goal-composition/budget-compatibility-postgres.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/budget-compatibility-postgres.json'));print('BUSY_AI_BUDGET_COMPATIBILITY '+json.dumps(d['summary']));assert d['summary']['passed']>0 and d['summary']['failed']==0 and d['cleanupCompleted'] and d['hostedMutations']==0 and d['providerCalls']==0"
       - name: Unsigned original Owner Preview and isolated staging exports
         run: |
           EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1

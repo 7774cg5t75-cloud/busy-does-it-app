@@ -1,0 +1,69 @@
+name: Separately approved disabled AI Lab creative smoke
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths: ['.github/ai-lab-creative-smoke-request.json']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: busy-ai-lab-creative-smoke
+  cancel-in-progress: false
+jobs:
+  exact-disabled-smoke:
+    if: ${{ github.run_attempt == 1 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: busy-ai-lab-b3-source
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify the exact marker-only commit and reviewed source before any Lab binding
+        run: |
+          python3 - <<'PY'
+          import os,json,pathlib,hashlib,subprocess
+          root=pathlib.Path.cwd().resolve()
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          try:
+            marker='.github/ai-lab-creative-smoke-request.json'
+            p=root/marker
+            assert not p.is_symlink() and p.stat().st_size<=16000
+            m=json.loads(p.read_text())
+            assert m['version']=='busy.ai-lab-creative-smoke-handoff.v1'
+            assert git('rev-parse','HEAD')==os.environ['GITHUB_SHA']
+            assert git('show','--format=%P','--no-patch','HEAD').split()==[m['source']['parentCommit']]
+            assert git('diff-tree','--no-commit-id','--name-only','-r','HEAD').splitlines()==[marker]
+            expected={'.github/workflows/ai-lab-creative-smoke.yml','scripts/run-ai-lab-creative-smoke.mjs','scripts/lib/ai-lab-creative-smoke-handoff.mjs','scripts/lib/disabled-creative-document-smoke.mjs','scripts/lib/creative-document-deployment-packet.mjs','src/core/stableJson.mjs'}
+            assert set(m['source']['files'])==expected
+            for name,digest in m['source']['files'].items():
+              p=root/name
+              assert not p.is_symlink() and p.resolve().is_relative_to(root)
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==digest
+          except BaseException:
+            raise SystemExit('Disabled-smoke source validation refused; no private values logged') from None
+          PY
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: Verify native owner approval of this exact run without a Lab key
+        env:
+          NODE_OPTIONS: ''
+        run: node scripts/run-ai-lab-creative-smoke.mjs --verify-only
+      - name: One protected three-request disabled-route smoke
+        env:
+          NODE_OPTIONS: ''
+          BUSY_AI_LAB_SMOKE_PUBLISHABLE_KEY: ${{ secrets.BUSY_AI_LAB_B3_PUBLISHABLE_KEY }}
+        run: node scripts/run-ai-lab-creative-smoke.mjs
+      - name: Retain only bounded sanitised one-use intent and outcome
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: disabled-creative-smoke-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/busy-ai-lab-creative-smoke/intent.json
+            ${{ runner.temp }}/busy-ai-lab-creative-smoke/outcome.json
+          retention-days: 7
+          if-no-files-found: ignore

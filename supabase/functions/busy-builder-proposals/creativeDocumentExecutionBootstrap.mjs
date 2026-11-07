@@ -29,12 +29,16 @@ export function createLabCreativeDocumentExecutionHandler(deps){
    const current=await readCurrent();
    const prepared=await prepareWebsiteCreativeDocument(current,{goal:execution.goal,approvedIntent:execution.approvedIntent,digestBytes:deps.integrity.sha256});
    if(!prepared.ok)return reply(409,'source_changed');
-   const projection=await projectWebsiteCreativeDocumentProviderRequest(prepared,current,{model:execution.model,digestBytes:deps.integrity.sha256});
+   const projection=await projectWebsiteCreativeDocumentProviderRequest(prepared,current,{model:execution.model,digestBytes:deps.integrity.sha256,...(execution.budgetProfile?{budgetProfile:execution.budgetProfile}: {})});
    if(!projection.ok||projection.inputDigest!==execution.sourceInputDigest||projection.envelopeDigest!==execution.inputDigest||projection.schemaDigest!==execution.schemaDigest||projection.requestDigest!==execution.wireDigest)return reply(409,'source_changed');
-   const ledger=createOriginalCreativeDocumentLedger({rpc:deps.rpc,actor:owner.id,business:execution.businessId,binding,operationId:execution.operationId,requestNonce:execution.requestNonce,integrity:deps.integrity,clock:deps.clock});
+   const ledger=createOriginalCreativeDocumentLedger({rpc:deps.rpc,actor:owner.id,business:execution.businessId,binding,operationId:execution.operationId,requestNonce:execution.requestNonce,integrity:deps.integrity,clock:deps.clock,...(execution.budgetProfile?{budgetProfile:execution.budgetProfile,model:execution.model}: {})});
    const adapter=(deps.adapterFactory||createDenoLiveCreativeDocumentAdapter)({
-    ...ledger,integrity:deps.integrity,clock:deps.clock,planner:deps.planner,readCurrent,
-    readServerPolicy:async()=>await unchanged()?{protocol:WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,projectUrl:CREATIVE_DOCUMENT_LAB_URL,liveCreativeEnabled:true,pilotExecutionEnabled:true,provider:execution.provider,model:execution.model,manifestDigest}:null,
+    ...ledger,integrity:deps.integrity,clock:deps.clock,planner:deps.planner,readCurrent,rendererDigest:deps.rendererDigest,
+    readComparisonReceipt:async({operationId,requestNonce})=>{
+     if(!await unchanged()||operationId!==execution.comparison?.sol?.operationId||requestNonce!==execution.comparison?.sol?.requestNonce)throw Error('comparison');
+     return deps.rpc('busy_ai_operation_read_v1',{p_actor:owner.id,p_business:execution.businessId,p_operation:operationId,p_request_nonce:requestNonce});
+    },
+    readServerPolicy:async()=>await unchanged()?{protocol:WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,projectUrl:CREATIVE_DOCUMENT_LAB_URL,liveCreativeEnabled:true,pilotExecutionEnabled:true,provider:execution.provider,model:execution.model,manifestDigest,...(execution.budgetProfile?{budgetProfile:execution.budgetProfile,requestNonce:execution.requestNonce,binding,comparison:execution.comparison}: {})}:null,
     verifyApproval:async inputDigest=>await unchanged()&&inputDigest===execution.inputDigest&&execution.approval.inputDigest===inputDigest&&execution.approval.sourceInputDigest===execution.sourceInputDigest&&execution.approval.schemaDigest===execution.schemaDigest&&execution.approval.operationId===execution.operationId?structuredClone(execution.approval):null,
     readTariff:async(provider,model)=>await unchanged()&&provider===execution.provider&&model===execution.model?structuredClone(execution.tariff):null,
     countRequestTokens:async(wire,model)=>{

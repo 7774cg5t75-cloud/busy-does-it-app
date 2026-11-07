@@ -3457,6 +3457,26 @@
         "scripts/check-private-website-evidence-paths.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-revised-creative-document-execution",
+      "args": ["scripts/check-revised-creative-document-execution.mjs"],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-creative-comparison-admission",
+      "args": ["scripts/check-creative-comparison-admission.mjs"],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-creative-smoke-handoff",
+      "args": ["scripts/check-ai-lab-creative-smoke-handoff.mjs"],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-ai-lab-budget-configuration",
+      "args": ["scripts/check-ai-lab-budget-configuration.mjs"],
+      "phase8Blocked": false
     }
   ]
 }

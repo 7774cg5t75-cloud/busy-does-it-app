@@ -1,6 +1,7 @@
 import {prepareWebsiteDesignIntelligence,isCurrentWebsiteDesignIntelligence,parseWebsiteDesignIntelligenceResponse} from '../../../src/core/websiteDesignIntelligence.mjs';
 import {stableJson} from '../../../src/core/stableJson.mjs';
 import {creativeProviderSchema} from './liveCreativeAdapter.mjs';
+import {creativeDocumentPilotProfile} from './creativeDocumentPilotProfiles.mjs';
 
 // A versioned wire/response projection, not another provider adapter or ledger.
 // This module has no credential, network, activation or budget mutation port.
@@ -97,18 +98,19 @@ export function creativeDocumentProviderSchema(schema){
 
 export async function projectWebsiteCreativeDocumentProviderRequest(prepared,current,options={}){
  try{
-  if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(key=>!['model','digestBytes'].includes(key)))return deny('A model cannot choose provider limits, cost admission or tools.');
-  const {model,digestBytes}=options;
+  if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(key=>!['model','digestBytes','budgetProfile'].includes(key)))return deny('A model cannot choose provider limits, cost admission or tools.');
+  const {model,digestBytes,budgetProfile}=options,profile=creativeDocumentPilotProfile(model,budgetProfile);
+  if(!profile)return deny('A separately reviewed server-owned pilot profile is required.');
   const {prepareWebsiteCreativeDocument,isCurrentWebsiteCreativeDocument}=await import('../../../src/core/websiteCreativeDocumentReview.mjs');
   if(typeof digestBytes!=='function'||!/^[-a-zA-Z0-9_.]{1,100}$/.test(model||'')||!isCurrentWebsiteCreativeDocument(prepared,current))return deny('A current sealed v2 source, owner intent and integrity authority are required.');
   const fresh=await prepareWebsiteCreativeDocument(current,{goal:prepared.input?.goal,approvedIntent:prepared.approvedIntent,digestBytes});
   if(!fresh.ok||!same(fresh.input,prepared.input)||!same(fresh.schema,prepared.schema)||fresh.sourceStamp!==prepared.sourceStamp||fresh.inputDigest!==prepared.inputDigest||!digest(prepared.inputDigest))return deny('The approved creative document context changed.');
-  const schema=creativeDocumentProviderSchema(fresh.schema),limits=WEBSITE_CREATIVE_DOCUMENT_PROPOSED_LIMITS;
-  const envelope={version:WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,input:fresh.input,schema,maxInputTokens:limits.inputTokens,maxOutputTokens:limits.outputTokens,maximumGBP:limits.maximumGBP,requests:1,retries:0,tools:[],automaticSave:false,publication:false,livePolicyChanged:false};
-  const wire={model,store:false,max_output_tokens:limits.outputTokens,service_tier:'default',reasoning:{effort:'low'},tools:[],tool_choice:'none',input:stableJson(envelope.input),text:{format:{type:'json_schema',name:'busy_website_creative_document',strict:true,schema}}};
+  const schema=creativeDocumentProviderSchema(fresh.schema),limits={inputTokens:profile.inputTokens,outputTokens:profile.outputTokens,maximumGBP:profile.maximumGBP,requests:1,retries:0};
+  const envelope={version:WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,input:fresh.input,schema,maxInputTokens:limits.inputTokens,maxOutputTokens:limits.outputTokens,maximumGBP:limits.maximumGBP,requests:1,retries:0,tools:[],automaticSave:false,publication:false,livePolicyChanged:false,...(profile.budgetProfile?{budgetProfile:profile.budgetProfile,reasoning:profile.reasoning}: {})};
+  const wire={model,store:false,max_output_tokens:limits.outputTokens,service_tier:'default',reasoning:{effort:profile.reasoning},tools:[],tool_choice:'none',input:stableJson(envelope.input),text:{format:{type:'json_schema',name:'busy_website_creative_document',strict:true,schema}}};
   const hash=value=>digestBytes(new TextEncoder().encode(stableJson(value))),schemaDigest=await hash(schema),envelopeDigest=await hash(envelope),requestDigest=await hash(wire);
   if(![schemaDigest,envelopeDigest,requestDigest].every(digest)||!isCurrentWebsiteCreativeDocument(prepared,current)||!isCurrentWebsiteCreativeDocument(fresh,current))return deny('The expressive request could not be independently hashed against its unchanged source.');
-  return {ok:true,version:WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,provider:'openai-responses',model,inputDigest:fresh.inputDigest,schemaDigest,envelopeDigest,requestDigest,sourceStamp:fresh.sourceStamp,wire,requestBytes:bytes(stableJson(wire)),limits:{...limits},dispatchAllowed:false,providerCalls:0,maySave:false,mayPublish:false,originalBudgetAdmissionRequired:true,originalStudioReviewRequired:true,tokenCount:null,estimatedGBP:null,livePolicyChanged:false,separateRevisedOwnerApprovalRequired:true};
+  return {ok:true,version:WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,provider:'openai-responses',model,...(profile.budgetProfile?{budgetProfile:profile.budgetProfile}: {}),inputDigest:fresh.inputDigest,schemaDigest,envelopeDigest,requestDigest,sourceStamp:fresh.sourceStamp,wire,requestBytes:bytes(stableJson(wire)),limits:{...limits},dispatchAllowed:false,providerCalls:0,maySave:false,mayPublish:false,originalBudgetAdmissionRequired:true,originalStudioReviewRequired:true,tokenCount:null,estimatedGBP:null,livePolicyChanged:false,separateRevisedOwnerApprovalRequired:true};
  }catch{return deny('The reviewed expressive provider projection could not be prepared.');}
 }
 
@@ -116,7 +118,7 @@ export async function parseWebsiteCreativeDocumentProviderResponse(raw,projectio
  const unsettled={receiptStatus:'unverified; original service-only settlement/readback required',origin:'unverified-provider-response',mayReview:false};
  try{
   if(typeof raw!=='string'||bytes(raw)>98304||!projection?.ok||projection.version!==WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION)return deny('A bounded v2 response for the exact reviewed request is required.',unsettled);
-  const fresh=await projectWebsiteCreativeDocumentProviderRequest(prepared,current,{model:projection.model,digestBytes});
+  const fresh=await projectWebsiteCreativeDocumentProviderRequest(prepared,current,{model:projection.model,digestBytes,...(projection.budgetProfile?{budgetProfile:projection.budgetProfile}: {})});
   if(!fresh.ok||!same(fresh,projection))return deny('The expressive source, owner intent, schema or wire changed.',unsettled);
   const response=JSON.parse(raw),usage=response?.usage;
   if(!/^resp_[A-Za-z0-9_-]{1,145}$/.test(response?.id||'')||response.model!==projection.model||!Number.isSafeInteger(usage?.input_tokens)||!Number.isSafeInteger(usage?.output_tokens)||usage.input_tokens<1||usage.output_tokens<0||usage.input_tokens>1000000||usage.output_tokens>1000000)return deny('Expressive provider identity or usage is invalid.',unsettled);

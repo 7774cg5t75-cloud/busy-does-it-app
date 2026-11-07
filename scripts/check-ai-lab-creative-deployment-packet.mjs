@@ -25,6 +25,9 @@ test('complete candidate graph binds the original renderer, review, ledger and p
  for(const name of [entry,config,'supabase/connected-staging.deno.lock','src/domain/websiteBuilder.js','src/core/websiteCreativeDocumentReview.mjs','supabase/functions/busy-builder-proposals/creativeLedger.mjs'])assert.ok(inventory.files[name]);
  assert.deepEqual(inventory.externalImports,['npm:@supabase/supabase-js@2.118.0']);
  assert.equal(inventory.filesDigest,creativeDeploymentDigest(inventory.files));
+ assert.ok(inventory.rendererFiles['src/domain/websiteBuilder.js']);
+ assert.equal(inventory.rendererFilesDigest,creativeDeploymentDigest(inventory.rendererFiles));
+ assert.equal(inventory.rendererFiles[entry],undefined,'Renderer identity must exclude server activation metadata');
  for(const [name,hash] of Object.entries(inventory.files))assert.equal(hash,creativeDeploymentDigest(readFileSync(name,'utf8')));
 });
 test('target and manifest are review metadata with JWT retained and no execution or credentials',()=>{
