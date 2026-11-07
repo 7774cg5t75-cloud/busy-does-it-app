@@ -285,39 +285,67 @@ jobs:
           # The runner image ships this root-owned public file with mode 0777.
           # Tighten only this fixed file before the unchanged trust verification.
           sudo /usr/bin/python3 - <<'PY'
-          import os, stat, sys
+          import json, os, stat, sys
           key = '/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc'
           descriptor = None
+          stage, public_path, metadata = 'directory-metadata', '/', None
           def require(condition):
               if not condition:
                   raise RuntimeError('refused')
           def identity(value):
               return value.st_dev, value.st_ino, value.st_uid, value.st_size
+          def report(error):
+              diagnostic = {'stage': stage, 'path': public_path, 'errno': error.errno if isinstance(error, OSError) and isinstance(error.errno, int) and 0 < error.errno < 4096 else None}
+              if metadata is not None:
+                  diagnostic.update({'uid': metadata.st_uid if 0 <= metadata.st_uid <= 4294967295 else None, 'permissionMode': format(stat.S_IMODE(metadata.st_mode), '04o'), 'bytes': metadata.st_size if 0 <= metadata.st_size <= 9223372036854775807 else None, 'kind': 'directory' if stat.S_ISDIR(metadata.st_mode) else 'regular' if stat.S_ISREG(metadata.st_mode) else 'symlink' if stat.S_ISLNK(metadata.st_mode) else 'other'})
+              print('CI PGDG fixed packaged public-key mode restriction refused; no repository trust was changed. diagnostic=' + json.dumps(diagnostic, separators=(',', ':')), file=sys.stderr)
           try:
               for directory in ('/', '/usr', '/usr/share', '/usr/share/postgresql-common', '/usr/share/postgresql-common/pgdg'):
+                  stage, public_path, metadata = 'directory-metadata', directory, None
                   metadata = os.lstat(directory)
                   require(stat.S_ISDIR(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode) and metadata.st_uid == 0 and metadata.st_mode & 0o022 == 0)
+              stage, public_path, metadata = 'key-canonical-path', key, None
               require(os.path.realpath(key) == key)
+              stage = 'key-source-metadata'
               before = os.lstat(key)
+              metadata = before
               require(stat.S_ISREG(before.st_mode) and not stat.S_ISLNK(before.st_mode) and before.st_uid == 0 and 0 < before.st_size <= 32768)
+              stage = 'key-open-no-follow'
               descriptor = os.open(key, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+              stage = 'key-opened-metadata'
               opened = os.fstat(descriptor)
+              metadata = opened
               require(stat.S_ISREG(opened.st_mode) and identity(opened) == identity(before))
+              stage = 'key-bounded-read'
               original_bytes = os.read(descriptor, 32769)
               require(len(original_bytes) == before.st_size)
+              stage = 'key-mode-restriction'
               os.fchmod(descriptor, 0o644)
+              stage = 'key-restricted-metadata'
               after = os.fstat(descriptor)
+              metadata = after
+              stage = 'key-byte-stability'
               os.lseek(descriptor, 0, os.SEEK_SET)
               require(stat.S_ISREG(after.st_mode) and identity(after) == identity(before) and stat.S_IMODE(after.st_mode) == 0o644 and os.read(descriptor, 32769) == original_bytes)
+              stage, metadata = 'key-final-metadata', None
               current = os.lstat(key)
+              metadata = current
               require(stat.S_ISREG(current.st_mode) and not stat.S_ISLNK(current.st_mode) and identity(current) == identity(before) and stat.S_IMODE(current.st_mode) == 0o644 and os.path.realpath(key) == key)
+              stage = 'key-close'
+              os.close(descriptor)
+              descriptor = None
               print('CI PGDG fixed packaged public-key mode is 0644; package and fingerprint verification still required.')
-          except (OSError, RuntimeError):
-              print('CI PGDG fixed packaged public-key mode restriction refused; no repository trust was changed.', file=sys.stderr)
+          except (OSError, RuntimeError) as error:
+              report(error)
               raise SystemExit(1)
           finally:
               if descriptor is not None:
-                  os.close(descriptor)
+                  try:
+                      os.close(descriptor)
+                  except OSError as error:
+                      stage = 'key-cleanup-close'
+                      report(error)
+                      raise SystemExit(1)
           PY
           node scripts/verify-ci-pgdg-key.mjs
           echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/busy-pgdg.list >/dev/null
