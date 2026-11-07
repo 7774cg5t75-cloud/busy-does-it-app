@@ -2,7 +2,7 @@
 // No download, fallback, key import, repository change or arbitrary path option.
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {lstatSync,realpathSync,readFileSync,mkdtempSync,chmodSync,rmSync} from 'node:fs';
+import {constants,lstatSync,realpathSync,readFileSync,mkdtempSync,chmodSync,rmSync,openSync,fstatSync,readSync,closeSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -13,6 +13,22 @@ export const CI_PGDG_PACKAGED_SOURCE='/usr/share/postgresql-common/pgdg/apt.post
 export const CI_PGDG_FINGERPRINT='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8';
 let verificationStage='arguments';
 let publicSourceStat=null;
+let publicPackageOwner=null,publicPackageStatus=null;
+const boundedPublicPackageOutput=value=>({output:value.slice(0,1024).replace(/[^\x09\x0a\x0d\x20-\x7e]/g,'?'),truncated:value.length>1024});
+
+function readPackagedSource(){
+ const descriptor=openSync(CI_PGDG_PACKAGED_SOURCE,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+ try{
+  const before=fstatSync(descriptor);
+  assert.ok(before.isFile()&&before.uid===0&&before.size>0&&before.size<=32768&&realpathSync(CI_PGDG_PACKAGED_SOURCE)===CI_PGDG_PACKAGED_SOURCE,'Original bounded regular packaged descriptor required');
+  const bytes=Buffer.alloc(32769),count=readSync(descriptor,bytes,0,bytes.length,0);
+  assert.ok(count===before.size&&count<=32768,'Complete bounded packaged bytes required');
+  const after=fstatSync(descriptor),current=lstatSync(CI_PGDG_PACKAGED_SOURCE);
+  for(const observed of [after,current])assert.ok(observed.isFile()&&!observed.isSymbolicLink()&&observed.uid===0&&observed.dev===before.dev&&observed.ino===before.ino&&observed.size===before.size&&observed.mtimeMs===before.mtimeMs&&observed.ctimeMs===before.ctimeMs,'Packaged source identity changed during bounded read');
+  assert.equal(realpathSync(CI_PGDG_PACKAGED_SOURCE),CI_PGDG_PACKAGED_SOURCE,'Packaged source became noncanonical');
+  return bytes.subarray(0,count);
+ }finally{closeSync(descriptor);}
+}
 
 // Engineering listing fixtures test this parser; only the fixed-path CLI below
 // obtains real cryptographic fingerprints from the installed public key bytes.
@@ -52,14 +68,17 @@ function verifyInstalledKey(){
  const environment={LANG:'C',LC_ALL:'C'};
  verificationStage='package-owner';
  const owner=run('/usr/bin/dpkg-query',['--search',CI_PGDG_PACKAGED_SOURCE],environment).trim();
+ publicPackageOwner=boundedPublicPackageOutput(owner);
  assert.match(owner,new RegExp('^postgresql-common(?::[a-z0-9-]+)?: '+CI_PGDG_PACKAGED_SOURCE.replaceAll('.','\\.')+'$'),'Original package ownership required');
  verificationStage='package-status';
- const status=run('/usr/bin/dpkg-query',['--show','--showformat=${Package}\t${Version}\t${db:Status-Status}','postgresql-common'],environment).trim().split('\t');
+ const statusOutput=run('/usr/bin/dpkg-query',['--show','--showformat=${Package}\t${Version}\t${db:Status-Status}','postgresql-common'],environment).trim();
+ publicPackageStatus=boundedPublicPackageOutput(statusOutput);
+ const status=statusOutput.split('\t');
  assert.ok(status.length===3&&status[0]==='postgresql-common'&&status[1]&&status[2]==='installed','Installed original package required');
  verificationStage='source-file';
  const before=readFileSync(CI_PGDG_KEY);
  assert.equal(before.length,stat.size,'Frozen public key size changed');
- assert.deepEqual(readFileSync(CI_PGDG_PACKAGED_SOURCE),before,'Frozen key must match original packaged bytes');
+ assert.deepEqual(readPackagedSource(),before,'Frozen key must match original packaged bytes');
  verificationStage='key-display';
  const home=mkdtempSync(join(tmpdir(),'busy-ci-pgdg-'));
  try{
@@ -69,7 +88,7 @@ function verifyInstalledKey(){
   const result=verifyCiPgdgKeyListing(listing);
   verificationStage='stability';
   assert.deepEqual(readFileSync(CI_PGDG_KEY),before,'Frozen public key changed during verification');
-  assert.deepEqual(readFileSync(CI_PGDG_PACKAGED_SOURCE),before,'Packaged public key changed during verification');
+  assert.deepEqual(readPackagedSource(),before,'Packaged public key changed during verification');
   const final=lstatSync(CI_PGDG_KEY);assert.ok(final.isFile()&&!final.isSymbolicLink()&&final.dev===stat.dev&&final.ino===stat.ino&&final.uid===0&&(final.mode&0o7777)===0o644&&final.size===stat.size,'Frozen public-key identity changed during verification');
   return {ok:true,source:'installed-postgresql-common-public-key',path:CI_PGDG_KEY,packagedSource:CI_PGDG_PACKAGED_SOURCE,packageVersion:status[1],...result,sha256:createHash('sha256').update(before).digest('hex'),downloads:0,keyImports:0,repositoryChanges:0};
  }finally{rmSync(home,{recursive:true,force:true});}
@@ -77,5 +96,5 @@ function verifyInstalledKey(){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{assert.equal(process.argv.length,2,'No arguments, paths, URLs or fallback keys are accepted');console.log(JSON.stringify(verifyInstalledKey()));}
- catch(error){const code=['ENOENT','EACCES','ERR_ASSERTION','ETIMEDOUT'].includes(error?.code)?error.code:'verification-refused';console.error('CI PGDG packaged-key verification refused; no repository trust was changed. stage='+verificationStage+' code='+code+(verificationStage==='source-owner-mode-size'&&publicSourceStat?' publicSourceStat='+JSON.stringify(publicSourceStat):''));process.exitCode=1;}
+ catch(error){const code=['ENOENT','EACCES','ERR_ASSERTION','ETIMEDOUT'].includes(error?.code)?error.code:'verification-refused';console.error('CI PGDG packaged-key verification refused; no repository trust was changed. stage='+verificationStage+' code='+code+(verificationStage==='source-owner-mode-size'&&publicSourceStat?' publicSourceStat='+JSON.stringify(publicSourceStat):'')+(verificationStage==='package-owner'&&publicPackageOwner?' publicPackageOwner='+JSON.stringify(publicPackageOwner):'')+(verificationStage==='package-status'&&publicPackageStatus?' publicPackageStatus='+JSON.stringify(publicPackageStatus):''));process.exitCode=1;}
 }
