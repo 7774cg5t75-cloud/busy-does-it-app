@@ -3452,6 +3452,27 @@
       "phase8Blocked": false
     },
     {
+      "id": "check-ai-lab-sol-input-count-handoff",
+      "args": [
+        "scripts/check-ai-lab-sol-input-count-handoff.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-sol-active-artifact",
+      "args": [
+        "scripts/check-sol-active-artifact.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-sol-private-call",
+      "args": [
+        "scripts/check-sol-private-call.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
       "id": "check-ai-lab-creative-deployment-packet",
       "args": [
         "scripts/check-ai-lab-creative-deployment-packet.mjs"

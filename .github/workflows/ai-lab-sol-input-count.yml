@@ -1,0 +1,70 @@
+name: Separately approved one-use Sol FREE input count
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths: ['.github/ai-lab-sol-input-count-request.json']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: busy-ai-lab-sol-input-count
+  cancel-in-progress: false
+jobs:
+  exact-free-sol-input-count:
+    if: ${{ github.run_attempt == 1 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: busy-ai-lab-b3-source
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify exact count marker and all reviewed source before private bindings
+        run: |
+          python3 - <<'PY'
+          import os,json,pathlib,hashlib,subprocess
+          root=pathlib.Path.cwd().resolve()
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          try:
+            name='.github/ai-lab-sol-input-count-request.json';p=root/name
+            assert not p.is_symlink() and p.stat().st_size<=65536
+            m=json.loads(p.read_text())
+            assert m['version']=='busy.ai-lab-sol-input-count-handoff.v1'
+            assert git('rev-parse','HEAD')==os.environ['GITHUB_SHA']
+            assert git('show','--format=%P','--no-patch','HEAD').split()==[m['source']['parentCommit']]
+            assert git('diff-tree','--no-commit-id','--name-only','-r','HEAD').splitlines()==[name]
+            required={'.github/workflows/ai-lab-sol-input-count.yml','scripts/run-ai-lab-sol-input-count.mjs','scripts/lib/ai-lab-sol-input-count-handoff.mjs','scripts/lib/creative-document-deployment-packet.mjs','supabase/functions/busy-builder-proposals/creativeInputCountPort.mjs'}
+            assert required<=set(m['source']['files']) and len(m['source']['files'])<=160
+            for name,digest in m['source']['files'].items():
+              p=root/name
+              assert p.resolve()==p and p.resolve().is_relative_to(root) and not p.is_symlink()
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==digest
+          except BaseException:
+            raise SystemExit('Sol-count source validation refused; no private values logged') from None
+          PY
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: Verify native owner review and stored private wire identity without a provider key
+        env:
+          NODE_OPTIONS: ''
+          BUSY_AI_LAB_SOL_COUNT_WIRE_JSON: ${{ secrets.BUSY_AI_LAB_SOL_COUNT_WIRE_JSON }}
+        run: node scripts/run-ai-lab-sol-input-count.mjs --verify-only
+      - name: One separately approved FREE count only
+        env:
+          NODE_OPTIONS: ''
+          BUSY_AI_LAB_SOL_COUNT_WIRE_JSON: ${{ secrets.BUSY_AI_LAB_SOL_COUNT_WIRE_JSON }}
+          BUSY_AI_LAB_OPENAI_CREATIVE_V2_KEY: ${{ secrets.BUSY_AI_LAB_OPENAI_CREATIVE_V2_KEY }}
+        run: node scripts/run-ai-lab-sol-input-count.mjs
+      - name: Retain only sanitised count intent and receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sol-free-count-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/busy-ai-lab-sol-input-count/intent.json
+            ${{ runner.temp }}/busy-ai-lab-sol-input-count/outcome.json
+          retention-days: 7
+          if-no-files-found: ignore
