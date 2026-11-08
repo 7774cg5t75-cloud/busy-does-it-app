@@ -2,6 +2,7 @@ import {stableJson} from '../../../src/core/stableJson.mjs';
 import {prepareWebsiteCreativeDocument} from '../../../src/core/websiteCreativeDocumentReview.mjs';
 import {WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,projectWebsiteCreativeDocumentProviderRequest} from './websiteIntelligenceProviderProjection.mjs';
 import {createOriginalCreativeDocumentLedger} from './creativeLedger.mjs';
+import {reviewSolUsageValuation} from './creativeDocumentCostEvidence.mjs';
 import {createDenoLiveCreativeDocumentAdapter,CREATIVE_DOCUMENT_LAB_URL,CREATIVE_DOCUMENT_PILOT_PAGES} from './creativeDocumentExecution.mjs';
 import {creativeExecutionUuid as uuid,creativeExecutionDigest as digest,creativeExecutionReply as reply,readCreativeExecutionOperation,authenticateCreativeExecution,readOriginalCreativeExecutionContext} from './creativeExecutionBootstrapCommon.mjs';
 
@@ -47,9 +48,13 @@ export function createLabCreativeDocumentExecutionHandler(deps){
      return count.tokens;
     },transport:deps.transport
    });
+   const valuation=reviewSolUsageValuation(execution.tariff,{model:execution.model,wireDigest:projection.requestDigest,budgetProfile:execution.budgetProfile,inputTokenLimit:projection.limits.inputTokens,totalOutputTokenLimit:projection.limits.outputTokens,now:deps.clock?.()??Date.now()});
+   // Preserve the basis checked before dispatch even if the tariff reaches its
+   // freshness boundary while the provider is returning usage.
+   const costEvidence=valuation.ok?{costEvidence:valuation}:{};
    const result=await adapter(prepared);
-   if(!result.ok)return reply(result.status==='unknown-outcome'?409:422,result.status,{providerCalls:result.providerCalls,inspectOriginalReceipt:['unknown-outcome','pre-dispatch-denied','admission-denied'].includes(result.status)});
-   return reply(200,'review_required',{protocol:WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,origin:'real-model',proposal:result.proposal,review:result.review,receipt:result.receipt,sourceInputDigest:projection.inputDigest,requestDigest:result.requestDigest,originalStudioApprovalRequired:true});
+   if(!result.ok)return reply(result.status==='unknown-outcome'?409:422,result.status,{providerCalls:result.providerCalls,inspectOriginalReceipt:['unknown-outcome','pre-dispatch-denied','admission-denied'].includes(result.status),...costEvidence});
+   return reply(200,'review_required',{protocol:WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION,origin:'real-model',proposal:result.proposal,review:result.review,receipt:result.receipt,...costEvidence,sourceInputDigest:projection.inputDigest,requestDigest:result.requestDigest,originalStudioApprovalRequired:true});
   }catch{return reply(owner?409:503,'preparation_unavailable');}
  };
 }

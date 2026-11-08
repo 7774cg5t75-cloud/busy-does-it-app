@@ -30,7 +30,7 @@ export function createGovernedCreativeExecution(deps,protocol){
    // Bounds come from the imported protocol's verified admission, never the
    // request body or model output. Legacy callers keep their historical caps.
    const bounds=protocol.boundsFor?protocol.boundsFor(pilot):{inputTokens:4000,outputTokens:protocol.maximumOutputTokens,maximumGBP:.10,responseTimeoutMs:protocol.responseTimeoutMs};
-   if(!bounds||!Number.isSafeInteger(bounds.inputTokens)||bounds.inputTokens<1||bounds.inputTokens>8000||!Number.isSafeInteger(bounds.outputTokens)||bounds.outputTokens<1||bounds.outputTokens>12000||!Number.isFinite(bounds.maximumGBP)||bounds.maximumGBP<=0||bounds.maximumGBP>1||!Number.isSafeInteger(bounds.responseTimeoutMs)||bounds.responseTimeoutMs<1||bounds.responseTimeoutMs>120000)throw Error('protocol');
+   if(!bounds||!Number.isSafeInteger(bounds.inputTokens)||bounds.inputTokens<1||bounds.inputTokens>8000||!Number.isSafeInteger(bounds.outputTokens)||bounds.outputTokens<1||bounds.outputTokens>12000||!Number.isFinite(bounds.maximumGBP)||bounds.maximumGBP<=0||bounds.maximumGBP>2||!Number.isSafeInteger(bounds.responseTimeoutMs)||bounds.responseTimeoutMs<1||bounds.responseTimeoutMs>120000)throw Error('protocol');
    const {wire,wireDigest,approval}=pilot;
    if(await deps.integrity.sha256(stableJson(wire))!==wireDigest)throw Error('wire');
    if(!await protocol.current(prepared,await deps.readCurrent())||approval.expiresAt<=now())throw Error('stale');

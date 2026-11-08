@@ -1,4 +1,5 @@
 import {stableJson} from '../../../src/core/stableJson.mjs';
+import {reviewSolUsageValuation,SOL_USAGE_VALUATION_REFERENCE_PREFIX} from './creativeDocumentCostEvidence.mjs';
 
 // Comparison APPROVAL metadata only. This is not an authentication boundary,
 // account/tariff author, spending store, reservation or provider dispatcher.
@@ -43,7 +44,7 @@ const deny=reason=>({ok:false,reason,centralAdmissionRequired:true,providerCalls
  * It must retain the runtime's bounded original RPC timeout. No generic model
  * response, public request body or historical B3 approval may supply this plan.
  */
-export async function validateCreativeComparisonAdmission({comparison,current,prepared,projection,solProjection,operationId,requestNonce,binding,expectedRendererDigest,now,estimatedGBP,readReceipt,digestBytes}={}){
+export async function validateCreativeComparisonAdmission({comparison,current,prepared,projection,solProjection,operationId,requestNonce,binding,expectedRendererDigest,now,estimatedGBP,tariff,readReceipt,digestBytes}={}){
  try{
   if(!dataOnly(comparison)||!dataOnly(binding)||!record(comparison,comparisonKeys)||!record(comparison.source,sourceKeys)||!record(comparison.sol,armKeys)||!record(comparison.astra,armKeys)||!record(binding,bindingKeys))return deny('invalid-comparison-shape');
   // Check data properties before cloning, so a supplied getter cannot run.
@@ -58,11 +59,12 @@ export async function validateCreativeComparisonAdmission({comparison,current,pr
   if(originalBinding.surface!=='website'||originalBinding.pageId!=='home'||originalBinding.projectId!==current.website.id||originalBinding.sourceRevision!==current.website.generation||originalBinding.profileRevision!==current.profileRevision||!integer(originalBinding.snapshotRevision,1)||stableJson(plan.source)!==stableJson({websiteId:current.website.id,generation:current.website.generation,profileRevision:current.profileRevision,snapshotRevision:originalBinding.snapshotRevision}))return deny('comparison-source-mismatch');
   if(await digestBytes(prepared.sourceStamp)!==plan.sourceStampDigest||prepared.inputDigest!==plan.sourceInputDigest)return deny('comparison-source-mismatch');
   const validProjection=(p,model,ceiling)=>p?.ok===true&&p.model===model&&p.budgetProfile===CREATIVE_COMPARISON_PROFILE&&p.inputDigest===plan.sourceInputDigest&&p.schemaDigest===plan.schemaDigest&&p.sourceStamp===prepared.sourceStamp&&hash(p.envelopeDigest)&&hash(p.requestDigest)&&p.limits?.inputTokens===8000&&p.limits.outputTokens===12000&&p.limits.maximumGBP===ceiling&&p.limits.requests===1&&p.limits.retries===0;
-  if(!validProjection(solProjection,SOL,.25))return deny('comparison-projection-mismatch');
+  if(!validProjection(solProjection,SOL,1))return deny('comparison-projection-mismatch');
   const arm=projection?.model===SOL?'sol':projection?.model===ASTRA?'astra':null;
-  const maximumMicroGBP=arm==='sol'?250000:1000000;
+  const maximumMicroGBP=arm==='sol'?1000000:2000000;
   if(!arm||!validProjection(projection,arm==='sol'?SOL:ASTRA,maximumMicroGBP/1e6)||plan[arm].operationId!==operationId||plan[arm].requestNonce!==requestNonce)return deny('comparison-operation-mismatch');
   if(!Number.isFinite(estimatedGBP)||estimatedGBP<=0||Math.ceil(estimatedGBP*1e6)>maximumMicroGBP)return deny('comparison-request-ceiling');
+  if(tariff?.evidenceBasis!==undefined){const valuation=reviewSolUsageValuation(tariff,{model:projection.model,wireDigest:projection.requestDigest,budgetProfile:projection.budgetProfile,inputTokenLimit:projection.limits.inputTokens,totalOutputTokenLimit:projection.limits.outputTokens,now});if(!valuation.ok||arm!=='sol'||Math.ceil(estimatedGBP*1e6)!==valuation.maximumMicroGBP)return deny('comparison-cost-evidence');}
   if(arm==='sol')return {ok:true,comparisonId:plan.comparisonId,period,arm,operationId,priorCostMicroGBP:0,maximumCurrentMicroGBP:maximumMicroGBP,maximumComparisonLiabilityMicroGBP:maximumMicroGBP,aggregateCeilingMicroGBP:3000000,centralAdmissionRequired:true,providerCalls:0,sourceWrites:0};
   if(typeof readReceipt!=='function')return deny('comparison-sol-receipt-unavailable');
   // ONE independently read original receipt, never a second dispatch or a
@@ -71,9 +73,10 @@ export async function validateCreativeComparisonAdmission({comparison,current,pr
   const requiredReceipt=['operationId','state','attempts','model','goalHash','binding','maximumMicroGBP','actualMicroGBP','inputTokens','outputTokens','providerReceipt','pricing','createdAt'];
   if(!dataOnly(receipt)||!record(receipt,[...requiredReceipt,'tariffRevision']))return deny('comparison-sol-receipt-invalid');
   const prior=structuredClone(receipt);
+  if(typeof prior.pricing?.evidence_reference==='string'&&prior.pricing.evidence_reference.startsWith(SOL_USAGE_VALUATION_REFERENCE_PREFIX))return deny('comparison-prior-valuation-requires-review');
   const expectedGoal=await digestBytes(stableJson({inputDigest:solProjection.envelopeDigest,requestDigest:solProjection.requestDigest}));
   if(prior.operationId!==plan.sol.operationId||prior.state!=='settled'||prior.attempts!==1||prior.model!==SOL||!integer(prior.tariffRevision,1)||!hash(expectedGoal)||prior.goalHash!==expectedGoal||!record(prior.binding,bindingKeys)||stableJson(prior.binding)!==stableJson(originalBinding))return deny('comparison-sol-receipt-invalid');
-  if(!integer(prior.maximumMicroGBP,1,250000)||!integer(prior.actualMicroGBP,0,prior.maximumMicroGBP)||!integer(prior.inputTokens,1,8000)||!integer(prior.outputTokens,0,12000)||typeof prior.providerReceipt!=='string'||!/^resp_[A-Za-z0-9_-]{1,145}$/.test(prior.providerReceipt)||prior.pricing?.max_input!==8000||prior.pricing.max_output!==12000)return deny('comparison-sol-liability-unresolved');
+  if(!integer(prior.maximumMicroGBP,1,1000000)||!integer(prior.actualMicroGBP,0,prior.maximumMicroGBP)||!integer(prior.inputTokens,1,8000)||!integer(prior.outputTokens,0,12000)||typeof prior.providerReceipt!=='string'||!/^resp_[A-Za-z0-9_-]{1,145}$/.test(prior.providerReceipt)||prior.pricing?.max_input!==8000||prior.pricing.max_output!==12000)return deny('comparison-sol-liability-unresolved');
   const createdAt=Date.parse(prior.createdAt);
   if(!Number.isFinite(createdAt)||createdAt>now||new Date(createdAt).toISOString().slice(0,7)+'-01'!==period)return deny('comparison-sol-receipt-period');
   const maximumComparisonLiabilityMicroGBP=prior.actualMicroGBP+maximumMicroGBP;
