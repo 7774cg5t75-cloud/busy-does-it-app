@@ -1,12 +1,14 @@
 // Synthetic native review/transport only. No real GitHub, Lab key or endpoint.
 import assert from 'node:assert/strict';
-import {readFileSync,mkdtempSync,mkdirSync,rmSync,existsSync,lstatSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {readFileSync,mkdtempSync,mkdirSync,copyFileSync,rmSync,existsSync,lstatSync} from 'node:fs';
+import {resolve,dirname} from 'node:path';
 import {tmpdir} from 'node:os';
 import {SMOKE_HANDOFF_VERSION,SMOKE_HANDOFF_MARKER,SMOKE_HANDOFF_WORKFLOW,SMOKE_HANDOFF_ENVIRONMENT,smokeHandoffInventory,buildSmokeHandoffReview,verifySmokeHandoffSource,smokeApprovalComment,verifyNativeSmokeReview,runProtectedCreativeSmoke,createSmokeGitHubReader} from './lib/ai-lab-creative-smoke-handoff.mjs';
 import {createDurableSmokeIntent} from './run-ai-lab-creative-smoke.mjs';
 import {creativeDocumentDeploymentFiles} from './lib/creative-document-deployment-packet.mjs';
 const root=process.cwd(),now=Date.parse('2026-11-07T17:00:00Z'),eventSha='1'.repeat(40),parent='2'.repeat(40),executionId='10101010-1010-4101-8101-000000000001',runId='12345678901',inventory=smokeHandoffInventory(root),deployment=creativeDocumentDeploymentFiles(root);
+// Consumed smoke markers are retained evidence, not permission for another run.
+const historicalMarkerPath=resolve(root,SMOKE_HANDOFF_MARKER),historicalMarkerBefore=existsSync(historicalMarkerPath)?readFileSync(historicalMarkerPath):null;
 let passed=0;const test=async(name,run)=>{await run();passed++;console.log('PASS '+name);};
 const clone=v=>JSON.parse(JSON.stringify(v));
 function fixture(){
@@ -20,14 +22,33 @@ function fixture(){
  const options={root,marker,environment,gitState,now:()=>now,readGitHubJson:async url=>{metadataReads++;if(url.endsWith('/approvals'))return clone(reviews);if(url.includes('/workflows/'))return clone(duplicates);return clone(run);},claimOneUseIntent:async intent=>{claims++;if(claimed)throw Error('synthetic-duplicate');claimed=true;return {consumed:true,executionId:intent.executionId,deploymentFilesDigest:intent.deploymentFilesDigest};},writeSafeReceipt:async r=>receipts.push(clone(r)),readLabPublishableKey:async()=>{keyReads++;return 'sb_publishable_synthetic_test_only_123456789';},smokeFetchImpl:async(url,request)=>{requests++;assert.equal(url,'https://sbvkrvksnruiclcvclbd.supabase.co/functions/v1/busy-creative-document-pilot');assert.equal(request.method,'POST');assert.equal(request.body,'{}');assert.equal(request.redirect,'error');assert.ok(request.signal instanceof AbortSignal);if(requests<3)return new Response('{}',{status:401});return new Response('Creative document pilot disabled',{status:503,headers:{'cache-control':'no-store','x-content-type-options':'nosniff'}});}};
  return {options,run,reviews,duplicates,receipts,get keyReads(){return keyReads;},get requests(){return requests;},get claims(){return claims;},get metadataReads(){return metadataReads;}};
 }
-await test('workflow remains inert without marker and binds only the existing publishable key',()=>{
- assert.equal(existsSync(resolve(root,SMOKE_HANDOFF_MARKER)),false);
+await test('workflow remains gated with the active Sol inference marker absent',()=>{
+ assert.equal(existsSync(resolve(root,'.github/ai-lab-sol-design-request.json')),false);
  const workflow=readFileSync(resolve(root,SMOKE_HANDOFF_WORKFLOW),'utf8');
  assert.ok(workflow.includes("paths: ['.github/ai-lab-creative-smoke-request.json']")&&!workflow.includes('workflow_dispatch')&&workflow.includes('github.run_attempt == 1')&&workflow.includes('environment: busy-ai-lab-b3-source')&&workflow.includes('ubuntu-24.04')&&workflow.includes('cancel-in-progress: false')&&workflow.includes('persist-credentials: false'));
  assert.deepEqual([...workflow.matchAll(/secrets\.([A-Z0-9_]+)/g)].map(x=>x[1]),['BUSY_AI_LAB_B3_PUBLISHABLE_KEY']);
  assert.ok(!workflow.includes('GITHUB_TOKEN')&&!workflow.includes('write-all')&&!workflow.includes('id-token: write'));
  assert.ok(workflow.indexOf('--verify-only')<workflow.indexOf('BUSY_AI_LAB_SMOKE_PUBLISHABLE_KEY:'));
  for(const action of [...workflow.matchAll(/uses:\s*(\S+)/g)].map(x=>x[1]))assert.match(action,/@[a-f0-9]{40}$/);
+});
+await test('absent-marker preparation is verified in an isolated copy of the original source inventory',()=>{
+ const preparationRoot=mkdtempSync(resolve(tmpdir(),'busy-smoke-preparation-'));
+ try{
+  for(const name of new Set([...Object.keys(inventory.files),...Object.keys(deployment.files),'supabase/config.toml','supabase/functions/busy-builder-proposals/index.ts'])){const target=resolve(preparationRoot,name);mkdirSync(dirname(target),{recursive:true});copyFileSync(resolve(root,name),target);}
+  assert.equal(existsSync(resolve(preparationRoot,SMOKE_HANDOFF_MARKER)),false);
+  const review=buildSmokeHandoffReview(preparationRoot);
+  assert.deepEqual(review.inventory,inventory);assert.equal(review.deploymentFilesDigest,deployment.filesDigest);assert.equal(review.markerMustBeAbsent,true);assert.equal(review.smokeExecution,false);
+ }finally{rmSync(preparationRoot,{recursive:true,force:true});}
+});
+await test('unchanged historical smoke marker and consumed execution cannot authorise another source event',async()=>{
+ for(const mode of ['source-only-event','consumed-execution']){
+  const f=fixture();
+  if(mode==='source-only-event')f.options.gitState.changedFiles=['scripts/check-ai-lab-creative-smoke-handoff.mjs'];
+  else f.options.gitState.priorExecutionIds=[executionId];
+  const result=await runProtectedCreativeSmoke(f.options);
+  assert.equal(result.status,'denied');assert.equal(result.mayReplay,false);
+  assert.equal(f.metadataReads,0);assert.equal(f.claims,0);assert.equal(f.keyReads,0);assert.equal(f.requests,0);
+ }
 });
 await test('review inventory has all original factory imports and cannot grant authority',()=>{const r=buildSmokeHandoffReview(root);assert.equal(r.status,'review-only-not-authorized');assert.equal(Object.keys(r.inventory.files).length,6);assert.equal(r.deploymentFilesDigest,deployment.filesDigest);assert.equal(r.smokeExecution,false);assert.equal(r.noNewSecretRequired,true);assert.equal(r.providerCalls,0);});
 await test('native exact-run owner comment verifies before keys or Lab HTTP',async()=>{const f=fixture(),r=await runProtectedCreativeSmoke({...f.options,verifyOnly:true});assert.equal(r.status,'native-exact-run-review-verified');assert.equal(f.metadataReads,3);assert.equal(f.keyReads,0);assert.equal(f.claims,0);assert.equal(f.requests,0);});
@@ -51,4 +72,6 @@ await test('unknown Lab HTTP result stops once with sanitised outcome',async()=>
 await test('durable file intent is owner-private and survives a second process-style factory',async()=>{const directory=mkdtempSync(resolve(tmpdir(),'busy-smoke-intent-test-'));try{const a=createDurableSmokeIntent(directory),b=createDurableSmokeIntent(directory),intent={executionId,deploymentFilesDigest:'a'.repeat(64)};assert.equal((await a(intent)).consumed,true);await assert.rejects(()=>b(intent));assert.equal(lstatSync(resolve(directory,'intent.json')).mode&0o077,0);assert.equal(JSON.parse(readFileSync(resolve(directory,'intent.json'),'utf8')).executionId,executionId);}finally{rmSync(directory,{recursive:true,force:true});}});
 await test('native metadata reader sends no credential and accepts only fixed read endpoints',async()=>{let calls=0;const read=createSmokeGitHubReader(async(url,request)=>{calls++;assert.equal(request.method,'GET');assert.equal(request.redirect,'error');assert.equal(request.headers.Authorization,undefined);assert.equal(request.headers.authorization,undefined);assert.equal(request.headers.cookie,undefined);assert.equal(request.headers.apikey,undefined);return new Response('{"ok":true}',{status:200});});assert.deepEqual(await read('https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/actions/runs/'+runId+'/approvals'),{ok:true});for(const url of ['https://api.openai.com/v1/responses','https://foreign.invalid','https://api.github.com/repos/foreign/repo/actions/runs/'+runId])await assert.rejects(()=>read(url));assert.equal(calls,1);});
 await test('native metadata denial, oversize, malformed, invalid UTF8 or redirect has no retry',async()=>{for(const mode of ['401','403','oversize','malformed','utf8','redirect']){let calls=0;const read=createSmokeGitHubReader(async()=>{calls++;if(mode==='401'||mode==='403')return new Response('{}',{status:Number(mode)});if(mode==='oversize')return new Response('x'.repeat(65537));if(mode==='malformed')return new Response('{');if(mode==='utf8')return new Response(new Uint8Array([255]));const r=new Response('{}');Object.defineProperty(r,'url',{value:'https://foreign.invalid'});return r;});await assert.rejects(()=>read('https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/actions/runs/'+runId));assert.equal(calls,1);}});
-console.log(JSON.stringify({passed,failed:0,syntheticNativeMetadata:true,syntheticLabTransports:true,realCredentialReads:0,hostedRequests:0,nativeSignIns:0,applicationWrites:0,providerCalls:0,spendingGBP:0,markerCreated:false}));
+const historicalMarkerAfter=existsSync(historicalMarkerPath)?readFileSync(historicalMarkerPath):null;
+assert.ok(historicalMarkerBefore===null?historicalMarkerAfter===null:historicalMarkerAfter!==null&&historicalMarkerBefore.equals(historicalMarkerAfter),'Historical smoke marker bytes changed');
+console.log(JSON.stringify({passed,failed:0,syntheticNativeMetadata:true,syntheticLabTransports:true,realCredentialReads:0,hostedRequests:0,nativeSignIns:0,applicationWrites:0,providerCalls:0,spendingGBP:0,markerCreated:false,historicalMarkerUnchanged:true}));

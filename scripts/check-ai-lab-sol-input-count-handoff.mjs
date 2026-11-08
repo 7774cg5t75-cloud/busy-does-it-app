@@ -1,13 +1,15 @@
 // Synthetic native reviews/transports only. Optional positive wire is the exact
 // authorised private file, never printed or committed. No real API/key access.
 import assert from 'node:assert/strict';
-import {readFileSync,existsSync,mkdtempSync,rmSync,lstatSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {readFileSync,existsSync,mkdtempSync,mkdirSync,copyFileSync,rmSync,lstatSync} from 'node:fs';
+import {resolve,dirname} from 'node:path';
 import {tmpdir} from 'node:os';
 import {SOL_COUNT_HANDOFF_VERSION,SOL_COUNT_MARKER,SOL_COUNT_WORKFLOW,SOL_COUNT_ENVIRONMENT,SOL_COUNT_REQUEST,solCountHandoffInventory,buildSolCountHandoffReview,verifySolCountSource,solCountApprovalComment,verifyNativeSolCountReview,readSolCountProjection,runProtectedSolInputCount,createSolCountGitHubReader} from './lib/ai-lab-sol-input-count-handoff.mjs';
 import {createDurableSolCountIntent,solCountMain} from './run-ai-lab-sol-input-count.mjs';
 
 const root=process.cwd(),now=Date.parse('2026-11-08T12:00:00Z'),runId='12345678901',eventSha='1'.repeat(40),parent='2'.repeat(40),executionId='10101010-1010-4101-8101-000000000001',inventory=solCountHandoffInventory(root),clone=x=>JSON.parse(JSON.stringify(x));
+// Consumed count markers are retained evidence, not permission for another run.
+const historicalMarkerPath=resolve(root,SOL_COUNT_MARKER),historicalMarkerBefore=existsSync(historicalMarkerPath)?readFileSync(historicalMarkerPath):null;
 const args=process.argv.slice(2);assert.ok(args.length<=1&&(!args.length||args[0].startsWith('--input=')));
 let privateRaw=null;if(args.length){const p=resolve(args[0].slice(8));assert.ok(!p.startsWith(root+'/')&&(lstatSync(p).mode&0o077)===0);privateRaw=readFileSync(p,'utf8');}
 let passed=0;const test=async(name,fn)=>{await fn();passed++;console.log('PASS '+name);};
@@ -21,13 +23,32 @@ function fixture(){
  const options={root,marker,environment,gitState,now:()=>now,readGitHubJson:async url=>{state.metadata++;if(url.endsWith('/approvals'))return clone(reviews);if(url.includes('/workflows/'))return clone(duplicates);return clone(run);},readPrivateWire:async()=>{state.wireReads++;return privateRaw??'{}';},readCredential:async()=>{state.keyReads++;return 'sk-synthetic-count-handoff-only-not-real';},claimOneUseIntent:async intent=>{state.claims++;if(state.claimed)throw Error('duplicate');state.claimed=true;return {consumed:true,executionId:intent.executionId};},writeSafeReceipt:async r=>state.receipts.push(clone(r)),countFetchImpl:async(url,request)=>{state.requests++;assert.equal(url,'https://api.openai.com/v1/responses/input_tokens');assert.equal(request.method,'POST');assert.equal(request.redirect,'error');assert.equal(request.body.includes('max_output_tokens'),false);return new Response('{"object":"response.input_tokens","input_tokens":4321}',{status:200,headers:{'content-type':'application/json','x-request-id':'req_synthetic_count'}});}};
  return {options,state,run,reviews,duplicates};
 }
-await test('new count workflow remains inert, gated and binds only its private wire/new Lab key',()=>{
- assert.equal(existsSync(resolve(root,SOL_COUNT_MARKER)),false);const w=readFileSync(resolve(root,SOL_COUNT_WORKFLOW),'utf8');
+await test('count workflow remains gated with the active Sol inference marker absent',()=>{
+ assert.equal(existsSync(resolve(root,'.github/ai-lab-sol-design-request.json')),false);const w=readFileSync(resolve(root,SOL_COUNT_WORKFLOW),'utf8');
  for(const s of ["paths: ['.github/ai-lab-sol-input-count-request.json']",'environment: busy-ai-lab-b3-source','github.run_attempt == 1','ubuntu-24.04','persist-credentials: false','cancel-in-progress: false'])assert.ok(w.includes(s));
  assert.equal(w.includes('workflow_dispatch'),false);assert.equal(w.includes('GITHUB_TOKEN'),false);assert.equal(w.includes('id-token: write'),false);
  assert.deepEqual([...w.matchAll(/secrets\.([A-Z0-9_]+)/g)].map(x=>x[1]),['BUSY_AI_LAB_SOL_COUNT_WIRE_JSON','BUSY_AI_LAB_SOL_COUNT_WIRE_JSON','BUSY_AI_LAB_OPENAI_CREATIVE_V2_KEY']);
  assert.ok(w.indexOf('--verify-only')<w.indexOf('BUSY_AI_LAB_OPENAI_CREATIVE_V2_KEY:'));
  for(const x of [...w.matchAll(/uses:\s*(\S+)/g)].map(x=>x[1]))assert.match(x,/@[a-f0-9]{40}$/);
+});
+await test('absent-marker preparation is verified in an isolated copy of the original source inventory',()=>{
+ const preparationRoot=mkdtempSync(resolve(tmpdir(),'busy-sol-count-preparation-'));
+ try{
+  for(const name of new Set([...Object.keys(inventory.files),'supabase/config.toml','supabase/functions/busy-builder-proposals/index.ts'])){const target=resolve(preparationRoot,name);mkdirSync(dirname(target),{recursive:true});copyFileSync(resolve(root,name),target);}
+  assert.equal(existsSync(resolve(preparationRoot,SOL_COUNT_MARKER)),false);
+  const review=buildSolCountHandoffReview(preparationRoot);
+  assert.deepEqual(review.inventory,inventory);assert.equal(review.queueApproved,false);assert.equal(review.executionApproved,false);
+ }finally{rmSync(preparationRoot,{recursive:true,force:true});}
+});
+await test('unchanged historical count marker and consumed execution cannot authorise another source event',async()=>{
+ for(const mode of ['source-only-event','consumed-execution']){
+  const f=fixture();
+  if(mode==='source-only-event')f.options.gitState.changedFiles=['scripts/check-ai-lab-sol-input-count-handoff.mjs'];
+  else f.options.gitState.priorExecutionIds=[executionId];
+  const result=await runProtectedSolInputCount(f.options);
+  assert.equal(result.status,'denied');assert.equal(result.mayReplay,false);
+  assert.equal(f.state.metadata,0);assert.equal(f.state.wireReads,0);assert.equal(f.state.claims,0);assert.equal(f.state.keyReads,0);assert.equal(f.state.requests,0);
+ }
 });
 await test('review-only complete inventory and exact request cannot create authority',()=>{const p=buildSolCountHandoffReview(root);assert.equal(p.status,'review-only-not-authorized');assert.equal(p.queueApproved,false);assert.equal(p.executionApproved,false);assert.equal(p.maximumRequests,1);assert.equal(p.maximumPaidGBP,0);assert.deepEqual(p.request,SOL_COUNT_REQUEST);assert.ok(Object.keys(p.inventory.files).length>116);});
 await test('exact source/native owner review verify without any private wire/key read',()=>{const f=fixture(),g=verifySolCountSource(f.options);assert.equal(verifyNativeSolCountReview({run:f.run,reviews:f.reviews,duplicates:f.duplicates,gate:g,now}).executionId,executionId);assert.equal(f.state.wireReads,0);assert.equal(f.state.keyReads,0);});
@@ -59,4 +80,6 @@ if(privateRaw!==null){
  await test('revoked review before credential read consumes without HTTP',async()=>{const f=fixture(),read=f.options.readGitHubJson;let n=0;f.options.readGitHubJson=async u=>{if(u.endsWith('/approvals')&&++n>=3)return [];return read(u);};const r=await runProtectedSolInputCount(f.options);assert.equal(f.state.keyReads,0);assert.equal(f.state.requests,0);assert.equal(r.mayReplay,false);});
  await test('unknown transport and lost receipt acknowledgements cannot authorise another POST',async()=>{for(const mode of ['transport','receipt']){const f=fixture();let writes=0;if(mode==='transport')f.options.countFetchImpl=async()=>{f.state.requests++;throw Error('sk-synthetic-secret-never-log');};else f.options.writeSafeReceipt=async()=>{writes++;throw Error('lost-write');};const r=await runProtectedSolInputCount(f.options);assert.ok(['count-outcome-unconfirmed','stopped-inspect-only'].includes(r.status));assert.equal(r.mayReplay,false);assert.equal(JSON.stringify(r).includes('sk-synthetic'),false);if(mode==='receipt'){assert.equal(writes,1);assert.equal(r.receiptUnconfirmed,true);}assert.equal((await runProtectedSolInputCount(f.options)).status,'intent-unconfirmed');assert.equal(f.state.requests,1);}});
 }
-console.log(JSON.stringify({passed,failed:0,actualPrivateWireUsed:privateRaw!==null,syntheticNativeMetadata:true,syntheticCountTransports:true,realCredentialReads:0,providerRequests:0,inferenceCalls:0,hostedWrites:0,spendingGBP:0,activeMarkerCreated:false}));
+const historicalMarkerAfter=existsSync(historicalMarkerPath)?readFileSync(historicalMarkerPath):null;
+assert.ok(historicalMarkerBefore===null?historicalMarkerAfter===null:historicalMarkerAfter!==null&&historicalMarkerBefore.equals(historicalMarkerAfter),'Historical count marker bytes changed');
+console.log(JSON.stringify({passed,failed:0,actualPrivateWireUsed:privateRaw!==null,syntheticNativeMetadata:true,syntheticCountTransports:true,realCredentialReads:0,providerRequests:0,inferenceCalls:0,hostedWrites:0,spendingGBP:0,activeMarkerCreated:false,historicalMarkerUnchanged:true}));

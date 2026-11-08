@@ -3466,6 +3466,13 @@
       "phase8Blocked": false
     },
     {
+      "id": "check-sol-preparation-validity",
+      "args": [
+        "scripts/check-sol-preparation-validity.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
       "id": "check-sol-private-call",
       "args": [
         "scripts/check-sol-private-call.mjs"
