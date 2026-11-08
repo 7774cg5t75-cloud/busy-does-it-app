@@ -1,0 +1,33 @@
+{
+  "version": "busy.sol-private-call-local-verification.v1",
+  "status": "unbound-local-ports-only",
+  "files": {
+    "scripts/lib/sol-private-result.mjs": "557021a753ae89e310efc93d74c0f39de92f00f5cba5256f9870b29d22756980",
+    "scripts/lib/sol-private-call.mjs": "bdb4d930d80768b8ae1331fd87060dbc3bce57794b03261dda91c04e687fd4a0",
+    "scripts/check-sol-private-call.mjs": "ead53a22daaa342d90d05664358442531a9b91da07442cb6c7cf5ea390079aaa"
+  },
+  "tests": {
+    "passed": 32,
+    "failed": 0,
+    "syntheticTransports": true,
+    "ephemeralInMemoryEngineeringKeypairs": 3,
+    "ownerRecipientKeypairsCreated": 0
+  },
+  "syntax": "passed",
+  "diffCheck": "passed",
+  "workflowBound": false,
+  "realCredentialsRead": 0,
+  "realHttpRequests": 0,
+  "actualProviderCalls": 0,
+  "hostedWrites": 0,
+  "paidSpendingGBP": 0,
+  "encryptionProvesOrigin": false,
+  "independentNativeRunAndOriginalReceiptStillRequired": true,
+  "actualKeyGenerationApproved": false,
+  "actualNativeSignInApproved": false,
+  "actualInferenceApproved": false,
+  "functionalCommit": "12711991cd6e2a6afe92c7f98667e0a7e2b9b134",
+  "functionalTree": "c10e9b97ff3f91ea2d22dc366889ee13280782c8",
+  "sourceFrozen": true,
+  "frozenKind": "local preparation only; no external action approved"
+}

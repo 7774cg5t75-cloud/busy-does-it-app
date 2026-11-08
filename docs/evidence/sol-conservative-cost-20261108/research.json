@@ -1,0 +1,101 @@
+{
+  "version": "busy.sol.conservative-cost-research.v1",
+  "status": "review-only-no-spending-authority",
+  "researchedOn": "2026-11-08",
+  "model": "gpt-6.1-sol",
+  "limits": {
+    "inputTokens": 8000,
+    "totalOutputTokensIncludingReasoning": 12000,
+    "inferenceRequests": 1,
+    "tools": 0
+  },
+  "independentlyVerifiedPublicFacts": {
+    "standardUsdPerMillion": {
+      "ordinaryInput": 2,
+      "output": 10,
+      "cachedInput": 0.1,
+      "cacheWrite30m": 2.5,
+      "cacheWrite12h": 5
+    },
+    "cacheWritesAlternativeNotAdditive": true,
+    "regionalProcessingUplift": 1.1,
+    "highestInputUsdPerMillionCovered": 5,
+    "conservativeInputUsdPerMillionWithRegional": 5.5,
+    "conservativeOutputUsdPerMillionWithRegional": 11,
+    "maximumPublishedProviderUsageUsd": 0.176,
+    "providerPerRequestApiFeeDocumented": false,
+    "ecbDate": "2026-11-06",
+    "ecbUsdPerEur": 1.1165,
+    "ecbGbpPerEur": 0.83415,
+    "referenceGbpPerUsd": 0.7471115091804748,
+    "ecbReferenceIsNotTransactionRate": true,
+    "ukStandardVatRate": 0.2,
+    "unknownActualBillingCountryAndTaxTreatment": true
+  },
+  "proposedAccountingBasis": {
+    "kind": "owner-approved-conservative-current-gbp-usage-valuation",
+    "ownerApprovalRequired": true,
+    "ownerApprovalReceived": false,
+    "gbpPerUsd": 1.4,
+    "factorOverEcbReference": 1.8738835940778038,
+    "combinedOverheadAboveReferencePercent": 87.38835940778038,
+    "inputGbpPerMillion": 7.7,
+    "outputGbpPerMillion": 15.4,
+    "inputMicroGbpPer1000": 7700,
+    "outputMicroGbpPer1000": 15400,
+    "maximumTariffValuationMicroGbp": 246400,
+    "maximumTariffValuationGbp": 0.2464,
+    "originalControllerCeilingMicroGbp": 250000,
+    "newBillingDatabaseRequired": false,
+    "historicalFundingCostVerified": false,
+    "fxTaxFeesVerified": false,
+    "allHistoricalFundingFeesIncluded": false,
+    "unconditionalActualAllInCashCapVerified": false
+  },
+  "criticalDistinctions": [
+    "Published USD inference-fee bound is independently supported for this exact capped Standard no-tool request; any different model/tier/token/fee schedule invalidates it.",
+    "GBP1.40 per USD is a proposed owner-adopted conservative accounting/risk-reserve policy, not a measured bank exchange rate or proof of historical all-in funding cost.",
+    "Existing credits and recharge OFF do not prove that all applicable taxes are already funded; monthly accounts may hold credits and promotional credits do not offset taxes.",
+    "Owner acceptance of this valuation basis would change the interpretation of the GBP comparison/accounting figures and must be explicit before generating an activation artifact.",
+    "The current strict actual-all-fees factory cannot truthfully be supplied true verified-fee flags from this evidence.",
+    "No additional manual billing-page check is requested. Free source-bound counting and safe local preparation can proceed under their own separate approval.",
+    "Existing original GBP ledger can retain its integer reservation, settlement and liability contracts with the approved conservative tariff; reports must distinguish token-based provider USD usage and GBP tariff valuation from unknown actual historic tax/FX cash amounts."
+  ],
+  "sources": [
+    {
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "supports": "Current short-context Standard Sol rates, 12h cache-write input rate and10%regional premium."
+    },
+    {
+      "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+      "supports": "Input categories are nonoverlapping alternative rates; cache writes are not an additive fee."
+    },
+    {
+      "url": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+      "supports": "6November2026 EUR/USD1.1165 and EUR/GBP.83415; reference not a transaction quote."
+    },
+    {
+      "url": "https://help.openai.com/en/articles/8264644-setting-up-and-managing-prepaid-api-billing",
+      "supports": "Credits decrease with API usage; some monthly accounts also buy credits; recharge is a funding control; balance is not instantaneous usage cap."
+    },
+    {
+      "url": "https://openai.com/policies/service-credit-terms/",
+      "supports": "Prepaid credits represent advance service payment; promotional credits do not cover applicable transaction taxes; credits are not currency."
+    },
+    {
+      "url": "https://openai.com/policies/services-agreement/",
+      "supports": "Fees exclude applicable taxes; account place of supply governs tax."
+    },
+    {
+      "url": "https://www.gov.uk/vat-rates",
+      "supports": "UK standard VAT20%, without establishing the actual account's tax treatment."
+    }
+  ],
+  "providerApiCalls": 0,
+  "accountApiCalls": 0,
+  "credentialsAccessed": 0,
+  "spendingGbp": 0,
+  "hostedWrites": 0,
+  "financialSql": null,
+  "codeChanged": false
+}
