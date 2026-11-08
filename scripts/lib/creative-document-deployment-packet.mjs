@@ -33,9 +33,8 @@ export function creativeDocumentDeploymentFiles(root){
    need(literal,'Unreviewed computed deployment import');imports.push(literal[2]);
   }
   for(const specifier of imports){
-   if(specifier.startsWith('.'))visit(relative(base,resolve(dirname(resolve(base,name)),specifier)));
-   else if(specifier.startsWith('node:'))external.add(specifier);
-   else {need(/^npm:@supabase\/supabase-js@2\.118\.0$/.test(specifier),'Unreviewed external deployment dependency');external.add(specifier);}
+   if(specifier.startsWith('./')||specifier.startsWith('../')){need(/\.(?:ts|mjs|js)$/.test(specifier),'Unreviewed non-code deployment import');visit(relative(base,resolve(dirname(resolve(base,name)),specifier)));}
+   else {external.add(specifier);need(false,'Unreviewed external deployment dependency');}
   }
  }
  // Capture the complete original renderer dependency graph independently of
@@ -52,9 +51,11 @@ export function creativeDocumentDeploymentFiles(root){
  need(/\[functions\.busy-creative-document-pilot\]\s*verify_jwt = true/.test(projectConfig),'JWT verification must remain enabled');
  need(!read(mainGatewayPath).source.includes('creativeDocumentExecution'),'General gateway must remain disconnected');
  const files=Object.fromEntries([...seen].sort().map(name=>[name,creativeDeploymentDigest(read(name).source)]));
+ const runtimeFiles=Object.fromEntries(Object.entries(files).filter(([name])=>/\.(?:ts|mjs|js)$/.test(name)));
+ const buildInputFiles=Object.fromEntries(Object.entries(files).filter(([name])=>!Object.hasOwn(runtimeFiles,name)));
  const rendererFiles=Object.fromEntries(Object.entries(files).filter(([name])=>rendererNames.has(name)));
  need(entry.includes(`const rendererDigest='${creativeDeploymentDigest(rendererFiles)}';`)&&entry.includes('createLabCreativeDocumentExecutionHandler({readManifest,rendererDigest,'),'Original renderer graph binding is missing or stale');
- return {files,filesDigest:creativeDeploymentDigest(files),rendererFiles,rendererFilesDigest:creativeDeploymentDigest(rendererFiles),externalImports:[...external].sort(),entrySha256:files[CREATIVE_DOCUMENT_DEPLOYMENT_TARGET.entrypoint],runtimeConfigSha256:files[configPath],lockSha256:files[lockPath],configStanza:'[functions.busy-creative-document-pilot]\nverify_jwt = true\n',fullProjectConfigSha256:creativeDeploymentDigest(projectConfig),generalGatewaySha256:creativeDeploymentDigest(read(mainGatewayPath).source)};
+ return {files,filesDigest:creativeDeploymentDigest(files),runtimeFiles,runtimeFilesDigest:creativeDeploymentDigest(runtimeFiles),buildInputFiles,dependencyBasis:'first-party-relative-runtime-imports-only',rendererFiles,rendererFilesDigest:creativeDeploymentDigest(rendererFiles),externalImports:[...external].sort(),entrySha256:files[CREATIVE_DOCUMENT_DEPLOYMENT_TARGET.entrypoint],runtimeConfigSha256:files[configPath],lockSha256:files[lockPath],configStanza:'[functions.busy-creative-document-pilot]\nverify_jwt = true\n',fullProjectConfigSha256:creativeDeploymentDigest(projectConfig),generalGatewaySha256:creativeDeploymentDigest(read(mainGatewayPath).source)};
 }
 
 function git(root,args){

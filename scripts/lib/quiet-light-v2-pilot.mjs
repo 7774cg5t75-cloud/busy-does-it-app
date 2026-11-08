@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {mission16Fixture} from './mission16-site-fixtures.mjs';
+import {mission16Fixture,mission16Businesses} from './mission16-site-fixtures.mjs';
 import {buildWebsiteDraft,applyWebsiteInstruction,applyWebsitePageChange,renderWebsiteHtml,rebuildPrivateWebsiteDraft} from '../../src/domain/websiteBuilder.js';
 import {prepareWholeWebsiteCreativeReview,keepWholeWebsite} from '../../src/core/wholeWebsitePlan.mjs';
 import {prepareWebsiteCreativeDocument,reviewWebsiteCreativeDocumentProposal} from '../../src/core/websiteCreativeDocumentReview.mjs';
@@ -43,6 +43,12 @@ export function quietLightV2PilotContext(){
 
 export function quietLightV2OfflineResponse(context){
  const catalog=must(websiteCreativeCopyCatalog(context.website));
+ // The genuine saved source keeps its protected story in an original custom
+ // text section. Resolve that same approved fixture wording and role rather
+ // than relying on the older generator's section ID; never rewrite the source.
+ const stories=catalog.sources.filter(row=>row.kind==='section'&&row.field==='body'&&row.text===mission16Businesses[2].story&&row.target?.field==='body'&&context.website.sections.some(section=>section.id===row.target.sectionId&&section.type==='text'&&section.body===row.text));
+ if(stories.length!==1)throw Error('A unique original approved Quiet Light story source is required');
+ const storyId=stories[0].id;
  const source=id=>{const row=catalog.sources.find(row=>row.id===id);if(!row)throw Error('Missing original approved source '+id);return row;};
  const copy=(text,id,classification='derived')=>({text,classification,sourceRefs:[{id,revision:source(id).revision}]});
  const exact=id=>copy(source(id).text,id,'verbatim');
@@ -59,15 +65,15 @@ export function quietLightV2OfflineResponse(context){
  const page=(pageId,title,purpose,description,sections)=>({pageId,title:derived(title,'business:name'),purpose,description:derived(description),sections});
  const document={version:'busy.website-creative-document.v2',brand:{headingFont:'system-sans',bodyFont:'georgia',palette:{ink:'#172B33',paper:'#F6F3E8',accent:'#203C48',muted:'#586268'},gradient:{from:'#E9E1CE',to:'#F6F3E8',angle:125}},pages:[
   page('home','Home','home','Brand direction and website content for independent businesses.',[
-   section([heading(exact('section:hero:body'),1,104),grid([text(exact('business:description')),stack([text(derived('Conversation. A considered direction. Purposeful refinement.','section:about:body')),action()])])],'ink'),
-   section([heading(derived('Clarity comes before decoration.','section:about:body'),2,60),text(exact('section:about:body'))],'gradient')
+   section([heading(exact('section:hero:body'),1,104),grid([text(exact('business:description')),stack([text(derived('Conversation. A considered direction. Purposeful refinement.',storyId)),action()])])],'ink'),
+   section([heading(derived('Clarity comes before decoration.',storyId),2,60),text(exact(storyId))],'gradient')
   ]),
   page('services','Services','services','Explore a considered starting point for your business identity and website content.',[
-   section([heading(derived('A considered direction. A clearer story.','section:about:body'),1,80),text(exact('business:description'))]),
+   section([heading(derived('A considered direction. A clearer story.',storyId),1,80),text(exact('business:description'))]),
    section([grid([stack([heading(exact('service:services:service-0:title')),text(exact('service:services:service-0:body'))]),stack([heading(exact('service:services:service-1:title')),text(exact('service:services:service-1:body')),heading(exact('service:services:service-2:title')),text(exact('service:services:service-2:body'))])]),action()],'gradient')
   ]),
   page('contact','Contact','contact','Start a conversation about your brand direction, website content and next decisions.',[
-   section([heading(derived('Bring the questions.','section:about:body'),1,96),grid([text(derived('Bring the material you already have and the questions you are trying to answer.','section:about:body')),stack([text(derived('Your approval remains part of every important decision.','section:about:body')),email()])])],'ink')
+   section([heading(derived('Bring the questions.',storyId),1,96),grid([text(derived('Bring the material you already have and the questions you are trying to answer.',storyId)),stack([text(derived('Your approval remains part of every important decision.',storyId)),email()])])],'ink')
   ])
  ],navigation:{placement:'rail',primaryPageId:'contact',items:[...QUIET_LIGHT_V2_PILOT_PAGE_IDS]},removePageIds:[],imageBriefs:[]};
  const approvedIntent={version:'busy.website-creative-intent.v1',allowCopySuggestions:true,allowBrandChange:true,allowNewPages:false,allowRetireAiPages:false,ownerRewriteSourceIds:[]};

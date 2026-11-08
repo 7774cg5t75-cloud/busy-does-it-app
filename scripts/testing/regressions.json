@@ -3438,6 +3438,20 @@
       "phase8Blocked": false
     },
     {
+      "id": "check-ai-lab-creative-authority-http",
+      "args": [
+        "scripts/check-ai-lab-creative-authority-http.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-creative-input-count-port",
+      "args": [
+        "scripts/check-creative-input-count-port.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
       "id": "check-ai-lab-creative-deployment-packet",
       "args": [
         "scripts/check-ai-lab-creative-deployment-packet.mjs"

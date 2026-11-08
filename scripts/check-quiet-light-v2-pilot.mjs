@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {applyWebsitePageChange,renderWebsiteHtml,applyStructuredWebsiteEdit} from '../src/domain/websiteBuilder.js';
+import {applyWebsitePageChange,renderWebsiteHtml,applyStructuredWebsiteEdit,rebuildPrivateWebsiteDraft} from '../src/domain/websiteBuilder.js';
 import {keepWholeWebsite} from '../src/core/wholeWebsitePlan.mjs';
-import {parseWebsiteCreativeDocumentResponse,reviewWebsiteCreativeDocumentProposal} from '../src/core/websiteCreativeDocumentReview.mjs';
+import {parseWebsiteCreativeDocumentResponse,reviewWebsiteCreativeDocumentProposal,prepareWebsiteCreativeDocument} from '../src/core/websiteCreativeDocumentReview.mjs';
 import {websiteRequestContent} from '../src/core/websiteRequestPlan.mjs';
 import {buildPortableWebsiteSource} from '../src/core/websiteSourceExport.mjs';
 import {buildStandaloneWebsiteArchive} from '../src/core/websiteStandaloneArchive.mjs';
 import {stableJson} from '../src/core/stableJson.mjs';
-import {prepareQuietLightV2Pilot,quietLightV2PilotContext,quietLightV2DeterministicReview,reviewQuietLightV2Offline,keepQuietLightV2Locally,quietLightV2LocalHistoryEvidence,quietLightV2Digest} from './lib/quiet-light-v2-pilot.mjs';
+import {prepareQuietLightV2Pilot,quietLightV2PilotContext,quietLightV2OfflineResponse,quietLightV2DeterministicReview,reviewQuietLightV2Offline,keepQuietLightV2Locally,quietLightV2LocalHistoryEvidence,quietLightV2Digest} from './lib/quiet-light-v2-pilot.mjs';
 
 let cases=0,assertions=0;
 const check=new Proxy(assert,{get(object,key){return typeof object[key]==='function'?function(...args){assertions++;return object[key](...args);}:object[key];}});
@@ -22,6 +22,36 @@ await test('three purposeful original pages retain all approved facts and owner 
 });
 await test('repeated offline source preparation has exact stable wire and source digests',async()=>{
  const repeated=await prepareQuietLightV2Pilot();check.equal(repeated.prepared.inputDigest,pilot.prepared.inputDigest);check.equal(repeated.projection.schemaDigest,pilot.projection.schemaDigest);check.equal(repeated.projection.requestDigest,pilot.projection.requestDigest);check.equal(stableJson(repeated.fixture.response),stableJson(pilot.fixture.response));check.equal(repeated.context.website.id,'website-quiet-light-v2-offline-source');
+});
+const customStoryContext=()=>{
+ const context=quietLightV2PilotContext(),story=context.website.sections.find(section=>section.id==='about');
+ story.id='custom-fictional-approved-story';story.enabled=true;story.ownerEditedFields=['body'];
+ context.website.pages.find(page=>page.id==='home').sectionIds.push(story.id);
+ context.website=rebuildPrivateWebsiteDraft(context.website);
+ return context;
+};
+await test('original protected custom story supports the same three-page offline review and renderer',async()=>{
+ const context=customStoryContext(),before=stableJson(context),story=context.website.sections.find(section=>section.id==='custom-fictional-approved-story'),fixture=quietLightV2OfflineResponse(context);
+ const prepared=await prepareWebsiteCreativeDocument(context,{goal:context.goal,approvedIntent:fixture.approvedIntent,digestBytes:async value=>quietLightV2Digest(value)});check.equal(prepared.ok,true);
+ const result=await reviewWebsiteCreativeDocumentProposal(prepared,stableJson(fixture.response),context,deps,{origin:'deterministic-offline-fixture'});check.equal(result.ok,true);
+ const candidate=result.review.candidate;check.deepEqual(candidate.pages.map(page=>page.id),['home','services','contact']);
+ check.equal(candidate.sections.find(section=>section.id===story.id).body,story.body);check.deepEqual(candidate.sections.find(section=>section.id===story.id).ownerEditedFields,['body']);
+ const copies=[];const walk=nodes=>{for(const node of nodes){if(node.copy)copies.push(node.copy);if(node.children)walk(node.children);}};
+ for(const page of fixture.response.document.pages)for(const section of page.sections)walk(section.nodes);
+ check.ok(copies.some(copy=>copy.text===story.body&&copy.classification==='verbatim'&&copy.sourceRefs.some(ref=>ref.id==='section:'+story.id+':body')));
+ check.ok(!stableJson(fixture.response).includes('section:about:body'));check.equal(stableJson(context),before);
+ for(const page of candidate.pages){const html=renderWebsiteHtml(candidate,page.id,{standalone:true});check.ok(html.startsWith('<!doctype html>'));check.equal((html.match(/<h1\b/g)||[]).length,1);}
+ check.equal(result.origin,'deterministic-offline-fixture');check.equal(result.modelQualityProven,false);check.equal(result.providerCalls,0);
+});
+await test('missing or ambiguous approved story cannot be guessed by the offline fixture',()=>{
+ const missing=customStoryContext();missing.website.sections.find(section=>section.id==='custom-fictional-approved-story').body='A different fictional draft that is not the approved story.';missing.website=rebuildPrivateWebsiteDraft(missing.website);
+ check.throws(()=>quietLightV2OfflineResponse(missing),/unique original approved Quiet Light story/);
+ const ambiguous=customStoryContext(),story=ambiguous.website.sections.find(section=>section.id==='custom-fictional-approved-story');ambiguous.website.sections.push({...clone(story),id:'custom-fictional-duplicate-story'});ambiguous.website=rebuildPrivateWebsiteDraft(ambiguous.website);
+ check.throws(()=>quietLightV2OfflineResponse(ambiguous),/unique original approved Quiet Light story/);
+});
+await test('matching words in a different source role cannot replace the approved story',()=>{
+ const context=customStoryContext(),story=context.website.sections.find(section=>section.id==='custom-fictional-approved-story');story.type='services';context.website=rebuildPrivateWebsiteDraft(context.website);
+ check.throws(()=>quietLightV2OfflineResponse(context),/unique original approved Quiet Light story/);
 });
 await test('exact complete request includes unchanged source, instructions and full strict recursive schema',()=>{
  const p=pilot.projection;check.equal(p.inputDigest,pilot.prepared.inputDigest);check.equal(p.requestDigest,quietLightV2Digest(stableJson(p.wire)));check.equal(p.schemaDigest,quietLightV2Digest(stableJson(p.wire.text.format.schema)));check.equal(p.wire.input,stableJson(pilot.prepared.input));check.ok(p.wire.text.format.schema.$defs);check.equal(p.wire.text.format.strict,true);check.equal(p.wire.store,false);check.deepEqual(p.wire.tools,[]);check.equal(p.wire.tool_choice,'none');check.equal(p.wire.max_output_tokens,4000);

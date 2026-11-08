@@ -24,9 +24,14 @@ const change=(dir,path,edit)=>writeFileSync(join(dir,path),edit(readFileSync(joi
 test('raw file buffers and UTF8 strings use the same byte digest',()=>{
  const bytes=readFileSync('scripts/lib/disabled-creative-document-smoke.mjs');assert.equal(creativeDeploymentDigest(bytes),creativeDeploymentDigest(bytes.toString('utf8')));
 });
-test('complete candidate graph binds the original renderer, review, ledger and pinned dependency config',()=>{
+test('complete candidate graph binds the original renderer, review, ledger and first-party authority transport',()=>{
  for(const name of [entry,config,'supabase/connected-staging.deno.lock','src/domain/websiteBuilder.js','src/core/websiteCreativeDocumentReview.mjs','supabase/functions/busy-builder-proposals/creativeLedger.mjs'])assert.ok(inventory.files[name]);
- assert.deepEqual(inventory.externalImports,['npm:@supabase/supabase-js@2.118.0']);
+ assert.deepEqual(inventory.externalImports,[]);
+ assert.equal(inventory.dependencyBasis,'first-party-relative-runtime-imports-only');
+ assert.ok(inventory.runtimeFiles['supabase/functions/busy-creative-document-pilot/labAuthorityHttp.mjs']);
+ assert.ok(!inventory.files['supabase/functions/_shared/supabaseClient.ts']);
+ assert.equal(inventory.runtimeFilesDigest,creativeDeploymentDigest(inventory.runtimeFiles));
+ assert.deepEqual(Object.keys(inventory.buildInputFiles).sort(),[config,'supabase/connected-staging.deno.lock'].sort());
  assert.equal(inventory.filesDigest,creativeDeploymentDigest(inventory.files));
  assert.ok(inventory.rendererFiles['src/domain/websiteBuilder.js']);
  assert.equal(inventory.rendererFilesDigest,creativeDeploymentDigest(inventory.rendererFiles));
@@ -49,11 +54,23 @@ test('missing renderer identity at the actual server entry is refused',()=>fixtu
 test('unversioned external dependencies cannot enter a reviewed bundle',()=>fixture(dir=>{
  change(dir,entry,s=>s+'\nimport "npm:@supabase/supabase-js@2";\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unreviewed external/);
 }));
+test('even a pinned SDK requires separate dependency review and cannot enter this first-party graph',()=>fixture(dir=>{
+ change(dir,entry,s=>s+'\nimport "npm:@supabase/supabase-js@2.118.0";\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unreviewed external/);
+}));
+test('Node builtins cannot create an implicit runtime dependency',()=>fixture(dir=>{
+ change(dir,entry,s=>s+'\nimport "node:crypto";\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unreviewed external/);
+}));
+test('a dotted bare alias cannot depend on unreturned resolver configuration',()=>fixture(dir=>{
+ change(dir,entry,s=>s+'\nimport ".hidden.mjs";\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unreviewed external/);
+}));
+test('runtime JSON imports require a separately reviewed dependency basis',()=>fixture(dir=>{
+ change(dir,entry,s=>s+'\nimport "./unreviewed.json";\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unreviewed non-code/);
+}));
 test('remote executable imports cannot enter the bundle',()=>fixture(dir=>{
  change(dir,entry,s=>s+'\nimport "https://synthetic.invalid/code.ts";\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unreviewed external/);
 }));
 test('symlinked code is refused without following it',()=>fixture(dir=>{
- const name='supabase/functions/_shared/supabaseClient.ts';unlinkSync(join(dir,name));symlinkSync(join(root,name),join(dir,name));assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unsafe deployment/);
+ const name='supabase/functions/busy-creative-document-pilot/labAuthorityHttp.mjs';unlinkSync(join(dir,name));symlinkSync(join(root,name),join(dir,name));assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unsafe deployment/);
 }));
 test('relative path escapes are refused',()=>fixture(dir=>{
  change(dir,entry,s=>s+'\nimport "../../../../../../outside.mjs";\n');assert.throws(()=>creativeDocumentDeploymentFiles(dir),/Unsafe deployment/);
