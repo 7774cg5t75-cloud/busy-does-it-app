@@ -2,6 +2,34 @@
   "version": 1,
   "checks": [
     {
+      "id": "check-sol-c2-retained-readback",
+      "args": [
+        "scripts/check-sol-c2-retained-readback.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-sol-development-policy",
+      "args": [
+        "scripts/check-sol-development-policy.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-sol-c2-submission-review",
+      "args": [
+        "scripts/check-sol-c2-submission-review.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-sol-c2-management-readback",
+      "args": [
+        "scripts/check-sol-c2-management-readback.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
       "id": "check-connected-gateway-readiness",
       "args": [
         "scripts/check-connected-gateway-readiness.mjs"
@@ -3502,28 +3530,57 @@
     },
     {
       "id": "check-revised-creative-document-execution",
-      "args": ["scripts/check-revised-creative-document-execution.mjs"],
+      "args": [
+        "scripts/check-revised-creative-document-execution.mjs"
+      ],
       "phase8Blocked": false
     },
     {
       "id": "check-creative-comparison-admission",
-      "args": ["scripts/check-creative-comparison-admission.mjs"],
+      "args": [
+        "scripts/check-creative-comparison-admission.mjs"
+      ],
       "phase8Blocked": false
     },
     {
       "id": "check-ai-lab-creative-smoke-handoff",
-      "args": ["scripts/check-ai-lab-creative-smoke-handoff.mjs"],
+      "args": [
+        "scripts/check-ai-lab-creative-smoke-handoff.mjs"
+      ],
       "phase8Blocked": false
     },
     {
       "id": "check-ai-lab-budget-configuration",
-      "args": ["scripts/check-ai-lab-budget-configuration.mjs"],
+      "args": [
+        "scripts/check-ai-lab-budget-configuration.mjs"
+      ],
       "phase8Blocked": false
     },
     {
       "id": "check-ci-pgdg-key",
       "args": [
         "scripts/check-ci-pgdg-key.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-sol-timing-policy-v2",
+      "args": [
+        "scripts/check-sol-timing-policy-v2.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-sol-protected-timing-v2",
+      "args": [
+        "scripts/check-sol-protected-timing-v2.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-sol-result-recovery",
+      "args": [
+        "scripts/check-sol-result-recovery.mjs"
       ],
       "phase8Blocked": false
     }

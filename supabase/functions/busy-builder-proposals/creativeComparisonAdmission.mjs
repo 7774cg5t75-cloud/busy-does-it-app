@@ -8,6 +8,26 @@ import {reviewSolUsageValuation,SOL_USAGE_VALUATION_REFERENCE_PREFIX} from './cr
 // remain mandatory, including their account/feature/platform aggregate caps.
 export const CREATIVE_COMPARISON_APPROVAL_VERSION='busy.creative-comparison-approval.v1';
 export const CREATIVE_COMPARISON_PROFILE='busy.quiet-light-comparison.v1';
+// Versioned LOCAL-review candidate. Its longer conditional artifact lease is
+// available only when an exact owner-approved policy receipt is embedded in
+// the trusted server approval. It never widens an unmarked historical record
+// or the separately approved <=60-minute exact-run/provider grant.
+export const SOL_TIMING_POLICY_VERSION='busy.sol-timing-policy.v2';
+export const SOL_TIMING_POLICY_CANDIDATE=Object.freeze({
+ preparationMaxAgeMs:86400000,financialWindowMs:172800000,
+ conditionalDMaxAgeMs:14400000,exactRunMaxAgeMs:3600000,
+ generalFreshnessMs:900000,criticalFreshnessMs:300000,
+ minimumHandoffHeadroomMs:120000,deploymentMinimumRemainingMs:900000,
+ managedSubmissionTimeoutMs:180000,managementReadbackTimeoutMs:420000,persistenceAllowanceMs:60000,
+ exactRunMinimumRemainingMs:300000,functionDispatchMinimumRemainingMs:155000,
+ nativeMetadataRequestTimeoutMs:10000,nativeReviewRequestsPerStage:3,nativeReviewStages:4,
+ nativeAuthRequestTimeoutMs:10000,functionRequestTimeoutMs:150000,exactRunSafetyAllowanceMs:10000,functionSafetyAllowanceMs:5000,
+ protectedReadbackFreshnessMs:900000,readbackCollectionSkewMs:300000,
+ criticalKinds:Object.freeze(['financial','preservation','project','organization','function','credentialAbsence']),
+ generalKinds:Object.freeze(['source','publicSource','verification','independent']),
+ postConsentKinds:Object.freeze(['project','organization','function','credentialAbsence'])
+});
+export const SOL_TIMING_POLICY_DIGEST='b6b36454fa47bbc6ef8f30e8f0348bf802236f0141a30030488c7d6af80f10b1';
 const SOL='gpt-6.1-sol',ASTRA='gpt-6-astra';
 const hash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const uuid=value=>typeof value==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(value);
@@ -37,6 +57,26 @@ const armKeys=['model','operationId','requestNonce'];
 const bindingKeys=['surface','pageId','projectId','sourceRevision','profileRevision','snapshotRevision'];
 const deny=reason=>({ok:false,reason,centralAdmissionRequired:true,providerCalls:0,sourceWrites:0});
 
+/** Receipt inspection only. The supplied receipt is trusted private approval
+ * evidence, never an owner identity supplied by a public request. Callers must
+ * bind its raw bytes to actual owner consent; this function issues nothing.
+ */
+export function reviewSolTimingPolicyApproval(value,context={}){
+ const no=reason=>({ok:false,reason,policyVersion:SOL_TIMING_POLICY_VERSION,mayExecute:false});
+ try{
+  if(!dataOnly(context)||!record(context,['now'])&&!record(context,['now','bindings']))return no('invalid-timing-policy-context');
+  const now=context.now,bindings=context.bindings??{};
+  const bindingKeys=['targetProject','model','wireDigest','sourceInventoryDigest','runtimeInventoryDigest','rendererDigest','compilerSha256'];
+  if(!dataOnly(value)||!record(value,['version','status','policyVersion','policyDigest','proposalSha256','recordedAt','supportingEvidenceUntil','bindings'])||!record(value.bindings,bindingKeys))return no('invalid-timing-policy-approval');
+  if(value.version!=='busy.sol-timing-policy-acceptance.v2'||value.status!=='owner-approved'||value.policyVersion!==SOL_TIMING_POLICY_VERSION||value.policyDigest!==SOL_TIMING_POLICY_DIGEST||!hash(value.proposalSha256))return no('timing-policy-not-owner-approved');
+  if(!integer(now,1)||!integer(value.recordedAt,1)||value.recordedAt>now||!integer(value.supportingEvidenceUntil,1)||value.supportingEvidenceUntil<=now||value.supportingEvidenceUntil<=value.recordedAt)return no('expired-timing-policy-support');
+  const b=value.bindings;
+  if(b.targetProject!=='sbvkrvksnruiclcvclbd'||b.model!==SOL||!['wireDigest','sourceInventoryDigest','runtimeInventoryDigest','rendererDigest','compilerSha256'].every(k=>hash(b[k])))return no('invalid-timing-policy-bindings');
+  if(!dataOnly(bindings)||!bindings||Object.getPrototypeOf(bindings)!==Object.prototype||Object.keys(bindings).some(k=>!bindingKeys.includes(k)||bindings[k]!==b[k]))return no('changed-timing-policy-bindings');
+  return {ok:true,policyVersion:SOL_TIMING_POLICY_VERSION,policyDigest:SOL_TIMING_POLICY_DIGEST,supportingEvidenceUntil:value.supportingEvidenceUntil,conditionalDMaxAgeMs:SOL_TIMING_POLICY_CANDIDATE.conditionalDMaxAgeMs,mayExecute:false};
+ }catch{return no('invalid-timing-policy-approval');}
+}
+
 /**
  * Validate a CLOSED, already owner-reviewed two-operation plan. The receipt
  * port must read the ORIGINAL service-only busy_ai_operation_read_v1 once,
@@ -44,14 +84,21 @@ const deny=reason=>({ok:false,reason,centralAdmissionRequired:true,providerCalls
  * It must retain the runtime's bounded original RPC timeout. No generic model
  * response, public request body or historical B3 approval may supply this plan.
  */
-export async function validateCreativeComparisonAdmission({comparison,current,prepared,projection,solProjection,operationId,requestNonce,binding,expectedRendererDigest,now,estimatedGBP,tariff,readReceipt,digestBytes}={}){
+export async function validateCreativeComparisonAdmission({comparison,current,prepared,projection,solProjection,operationId,requestNonce,binding,expectedRendererDigest,now,estimatedGBP,tariff,readReceipt,digestBytes,conditionalApproval}={}){
  try{
   if(!dataOnly(comparison)||!dataOnly(binding)||!record(comparison,comparisonKeys)||!record(comparison.source,sourceKeys)||!record(comparison.sol,armKeys)||!record(comparison.astra,armKeys)||!record(binding,bindingKeys))return deny('invalid-comparison-shape');
   // Check data properties before cloning, so a supplied getter cannot run.
   const plan=structuredClone(comparison),originalBinding=structuredClone(binding);
   if(plan.version!==CREATIVE_COMPARISON_APPROVAL_VERSION||plan.maximumGBP!==3||![plan.comparisonId,plan.ownerId,plan.businessId,plan.sol.operationId,plan.sol.requestNonce,plan.astra.operationId,plan.astra.requestNonce].every(uuid)||new Set([plan.comparisonId,plan.sol.operationId,plan.sol.requestNonce,plan.astra.operationId,plan.astra.requestNonce]).size!==5)return deny('invalid-comparison-identity');
   if(plan.sol.model!==SOL||plan.astra.model!==ASTRA||!uuid(operationId)||!uuid(requestNonce))return deny('invalid-comparison-model');
-  if(!integer(now,1)||!integer(plan.expiresAt,1)||plan.expiresAt<=now||plan.expiresAt>now+3600000)return deny('expired-comparison');
+  let maximumConditionalAge=3600000;
+  if(conditionalApproval&&Object.hasOwn(conditionalApproval,'timingPolicy')){
+   if(!dataOnly(conditionalApproval))return deny('invalid-conditional-timing-policy');
+   const accepted=reviewSolTimingPolicyApproval(conditionalApproval.timingPolicy,{now,bindings:{targetProject:'sbvkrvksnruiclcvclbd',model:SOL,wireDigest:projection?.requestDigest,rendererDigest:expectedRendererDigest}});
+   if(!accepted.ok||!integer(conditionalApproval.issuedAt,1)||conditionalApproval.issuedAt>now||conditionalApproval.issuedAt<conditionalApproval.timingPolicy.recordedAt||conditionalApproval.expiresAt!==plan.expiresAt||plan.expiresAt-conditionalApproval.issuedAt<=0||plan.expiresAt-conditionalApproval.issuedAt>accepted.conditionalDMaxAgeMs||plan.expiresAt>accepted.supportingEvidenceUntil)return deny('invalid-conditional-timing-policy');
+   maximumConditionalAge=accepted.conditionalDMaxAgeMs;
+  }
+  if(!integer(now,1)||!integer(plan.expiresAt,1)||plan.expiresAt<=now||plan.expiresAt>now+maximumConditionalAge)return deny('expired-comparison');
   const date=new Date(now),period=date.toISOString().slice(0,7)+'-01',periodEnd=Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1);
   if(plan.period!==period||plan.expiresAt>=periodEnd)return deny('comparison-period-mismatch');
   if(![plan.sourceStampDigest,plan.sourceInputDigest,plan.schemaDigest,plan.rendererDigest,expectedRendererDigest].every(hash)||plan.rendererDigest!==expectedRendererDigest||typeof digestBytes!=='function')return deny('comparison-renderer-mismatch');

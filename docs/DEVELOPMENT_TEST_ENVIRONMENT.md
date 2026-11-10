@@ -41,6 +41,8 @@ python3 scripts/testing/check-environment.py
 node scripts/testing/syntax.mjs src/screens/appVisualSelection.js standalone/template/App.js
 ```
 
+The original85-command Phase8 selection retains its27 historical blocked IDs. The later reviewed `check-workflow-interiors` flag makes28 historical blocked flags in the current registry; new timing/recovery checks are additional selected checks, not retagged Phase8 history. `check-environment.py` pins both historical ID sets explicitly.
+
 Reports record source commit, dirty-tree indicator, selection hash, timing and bounded output. They are saved atomically after each result. Passed, failed, blocked and unexecuted are distinct. Filtered checks remain explicitly unexecuted; interruption/fail-fast never marks later checks green. Missing Babel or OS permission/time limits are blocked; assertion failures and missing original application files fail. Exit 0 means selected checks passed, 1 means failures, 2 means blocked/interrupted or no matching checks. Default output is ignored `.test-artifacts/regressions.json`. Runtime mocks/inert boundaries remain documented in individual tests; none becomes hosted/native acceptance because it passes.
 
 Python orchestrates subprocesses because this task's command sandbox returned EPERM for Node synchronous subprocess calls. This is an environment restriction, not a reason to disable security. Both Node and Python remain necessary.

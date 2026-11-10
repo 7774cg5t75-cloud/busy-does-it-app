@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {randomUUID,createHash} from 'node:crypto';
 import {aiLabRunnerFoundationPackage,runnerExecutionDerivative} from './lib/ai-lab-runner-foundation-package.mjs';
+import {aiLabBudgetCompatibilityPackage} from './lib/ai-lab-budget-compatibility-package.mjs';
 import {startB3LocalPostgrest,quote as q} from './lib/ai-lab-b3-postgrest-local.mjs';
 import {createOriginalCreativeDocumentLedger} from '../supabase/functions/busy-builder-proposals/creativeLedger.mjs';
+import {CREATIVE_DOCUMENT_REVISED_PROFILE} from '../supabase/functions/busy-builder-proposals/creativeDocumentPilotProfiles.mjs';
 import {createConnectedBuilderSession} from '../src/staging/connectedBuilderSession.mjs';
 import {privateWebsiteDraftAction} from '../supabase/functions/busy-website-publish/privateDraftService.mjs';
 import {AI_LAB_B3_SOURCE_PLAN} from './lib/ai-lab-b3-source.mjs';
@@ -14,7 +16,7 @@ import {AI_LAB_B3_SOURCE_PLAN} from './lib/ai-lab-b3-source.mjs';
 // No hosted target, provider transport, API credential or endpoint is accepted.
 const OWNER=randomUUID(),BUSINESS=randomUUID(),FOREIGN_OWNER=randomUUID(),FOREIGN_BUSINESS=randomUUID();
 const MODEL='synthetic-http-creative-document-v2',MAXIMUM=52800,results=[],trace=[];
-let local,basis,binding,session,fatal=null,cleanupCompleted=false;
+let local,basis,binding,session,fatal=null,cleanupCompleted=false,localOutputCompatibility=null,solProfileEvidence=null;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const digest=x=>createHash('sha256').update(x).digest('hex');
 const stage=async(id,fn)=>{const start=performance.now();try{const detail=await fn();results.push({id,passed:true,elapsedMs:Math.round(performance.now()-start),...(detail?{detail}:{})});console.log('PASS '+id);}catch(error){results.push({id,passed:false,elapsedMs:Math.round(performance.now()-start),error:error?.code==='ERR_ASSERTION'?'assertion_failed':'local_http_fixture_failed'});throw error;}};
@@ -49,6 +51,22 @@ try{
   local.sql(readFileSync('scripts/fixtures/ai-lab/empty-native.sql','utf8'));
   local.sql(`CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub')::uuid$$;`);
   local.sql(runnerExecutionDerivative(aiLabRunnerFoundationPackage(process.cwd()).sql));
+  // Configure ONLY this newly owned disposable fixture with the exact reviewed
+  // output CHECK statements. This is not the full managed/native installation:
+  // no fake migration receipts are created and no hosted target is available.
+  const compatibility=aiLabBudgetCompatibilityPackage(process.cwd());
+  assert.equal(compatibility.sha256,'920e52c9bf0e527ef4ba4ed1bb554497c6aaa5af4c57dfc65e9eb3a1e2ca08e8');
+  assert.equal(compatibility.executionDerivativeSha256,'901a4a22978d3cf42446874cc0fcd8896e8f6c14a38957fe97e35700932cace1');
+  const fragment=compatibility.install.match(/ ALTER TABLE busy_ai_private\.tariffs DROP CONSTRAINT tariffs_max_output_check;\n ALTER TABLE busy_ai_private\.tariffs ADD CONSTRAINT tariffs_max_output_check CHECK\(max_output BETWEEN 1 AND 12000\);/);
+  assert.ok(fragment,'Reviewed local output-constraint fragment required');
+  const functionFingerprint=()=>local.sql("SELECT encode(sha256(convert_to(coalesce(string_agg(pg_get_functiondef(p.oid),E'\\n' ORDER BY p.oid),''),'UTF8')),'hex') FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname IN('public','busy_ai_private','busy_snapshot_private','busy_creator_private','busy_growth_private','busy_work_private') AND p.prokind IN('f','p')");
+  const beforeFunctions=functionFingerprint(),beforeInput=local.sql("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='busy_ai_private.tariffs'::regclass AND conname='tariffs_max_input_check'");
+  assert.equal(beforeInput,'CHECK (((max_input >= 1) AND (max_input <= 8000)))');
+  local.sql(fragment[0]);
+  assert.equal(functionFingerprint(),beforeFunctions,'Local compatibility must not change original controller/function bodies');
+  assert.equal(local.sql("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='busy_ai_private.tariffs'::regclass AND conname='tariffs_max_input_check'"),beforeInput);
+  assert.equal(local.sql("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='busy_ai_private.tariffs'::regclass AND conname='tariffs_max_output_check'"),'CHECK (((max_output >= 1) AND (max_output <= 12000)))');
+  localOutputCompatibility={fixtureOnly:true,fullManagedMigrationExecuted:false,nativeMigrationReceiptClaimed:false,reviewedFusedSHA256:compatibility.sha256,reviewedExecutionSHA256:compatibility.executionDerivativeSha256,originalFunctionsUnchanged:true,inputConstraintUnchanged:true,maxOutput:12000};
   local.sql('INSERT INTO auth.users(id)VALUES('+q(OWNER)+'),('+q(FOREIGN_OWNER)+');INSERT INTO public.busy_businesses(id,name,created_by)VALUES('+[BUSINESS,'Quiet Light Studio',OWNER].map(q).join(',')+'),('+[FOREIGN_BUSINESS,'Fictional other owner',FOREIGN_OWNER].map(q).join(',')+');INSERT INTO public.busy_business_memberships(business_id,user_id,role)VALUES('+[BUSINESS,OWNER,'owner'].map(q).join(',')+'),('+[FOREIGN_BUSINESS,FOREIGN_OWNER,'owner'].map(q).join(',')+');');
   assert.equal(local.sql('SELECT enabled OR monthly_hard_limit<>0 FROM busy_ai_private.policy'),'f');
   assert.equal(local.sql("SELECT bool_and(relrowsecurity AND relforcerowsecurity) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='busy_ai_private' AND c.relkind='r'"),'t');
@@ -177,6 +195,53 @@ try{
   await denied('busy_ai_dispatch_v1',argsFor(x.operation,x.nonce));assert.equal((await receipt(x.operation,x.nonce)).attempts,0);await release(x.operation,x.nonce);
   basis=edited.observed;binding={...binding,sourceRevision:basis.websiteDraft.generation,snapshotRevision:basis.revision};
  });
+ await stage('revised-Sol-8000-12000-one-pound-original-controller-reserves-settles-and-retains-unknown-over-real-http',async()=>{
+  const SOL='gpt-6.1-sol',FULL=246400,INPUT=2649,OUTPUT=5000,ACTUAL=Math.ceil((INPUT*7700+OUTPUT*15400)/1000);
+  assert.equal(local.sql("SELECT count(*) FROM busy_ai_private.operations WHERE state IN('reserved','dispatched','unknown')"),'0');
+  const historicalOperations=Number(local.sql('SELECT count(*) FROM busy_ai_private.operations'));
+  local.sql("UPDATE busy_ai_private.policy SET enabled=true,monthly_hard_limit=1000000;UPDATE busy_ai_private.accounts SET monthly_limit=1000000,expensive_limit=0,feature_limits='{\"website-design\":1000000}',concurrent_limit=1,blocked=false,active_until=now()+interval '48 hours' WHERE business_id="+q(BUSINESS));
+  local.sql("INSERT INTO busy_ai_private.tariffs VALUES("+q(SOL)+",2,'website-design',true,now()+interval '48 hours',8000,12000,7700,15400,1000000,0,false,'GBP','SYNTHETIC_LOCAL_ONLY_APPROVED_USAGE_VALUATION_RATES')");
+  local.sql("INSERT INTO busy_ai_private.tariffs VALUES('gpt-6-astra',1,'website-design',true,now()+interval '48 hours',8000,12000,7700,15400,1000000,0,true,'GBP','SYNTHETIC_LOCAL_ONLY_ZERO_ASTRA_ADMISSION_TEST')");
+  const sol=({dropDispatch=false}={})=>{
+   const operation=randomUUID(),nonce=randomUUID();let dropped=false;
+   const ledger=createOriginalCreativeDocumentLedger({actor:OWNER,business:BUSINESS,binding:clone(binding),operationId:operation,requestNonce:nonce,model:SOL,budgetProfile:CREATIVE_DOCUMENT_REVISED_PROFILE,integrity:{sha256:async x=>digest(x)},rpc:async(name,args)=>{
+    const value=await success(name,args);
+    if(name==='busy_ai_dispatch_v1'&&dropDispatch&&!dropped){dropped=true;throw Error('Synthetic local lost Sol dispatch acknowledgement after actual HTTP200');}
+    return value;
+   }});
+   const request={operationId:operation,scope:{ownerId:OWNER,businessId:BUSINESS,projectId:binding.projectId,sourceRevision:binding.sourceRevision,profileRevision:binding.profileRevision,surface:'website',pageId:'home'},digest:'c'.repeat(64),requestDigest:'d'.repeat(64),provider:'openai-responses',model:SOL,budgetProfile:CREATIVE_DOCUMENT_REVISED_PROFILE,tariffRevision:'2',inputTokens:INPUT,maxOutputTokens:12000,estimatedGBP:FULL/1e6,tariffInputGBPPerMillion:7.7,tariffOutputGBPPerMillion:15.4};
+   return {operation,nonce,ledger,request};
+  };
+  for(const patch of [{inputTokens:8001},{maxOutputTokens:12001},{estimatedGBP:1.000001},{budgetProfile:'unapproved-profile'}]){
+   const x=sol(),before=trace.length;await assert.rejects(x.ledger.reserve({...x.request,...patch}));assert.equal(trace.length,before,'Invalid Sol limits must fail before HTTP');
+  }
+  const x=sol(),spentBefore=Number(local.sql('SELECT spent FROM busy_ai_private.accounts WHERE business_id='+q(BUSINESS))),admitted=await x.ledger.reserve(x.request),observed=await x.ledger.readReservation(admitted);
+  assert.equal(observed.admittedGBP,.2464);assert.equal(observed.status,'reserved-undispatched');assert.equal(observed.realUsageSettlementSupported,true);assert.equal(observed.tariffRevision,'2');
+  assert.equal(local.sql('SELECT reserved FROM busy_ai_private.accounts WHERE business_id='+q(BUSINESS)),String(FULL));
+  assert.equal(local.sql('SELECT concurrent_limit FROM busy_ai_private.accounts WHERE business_id='+q(BUSINESS)),'1');
+  const concurrent=sol();await assert.rejects(concurrent.ledger.reserve(concurrent.request));
+  await x.ledger.dispatch(admitted);assert.equal((await x.ledger.readReceipt(admitted)).attempts,1);
+  await x.ledger.finish(admitted,{outcome:'settled',inputTokens:INPUT,outputTokens:OUTPUT,providerReceipt:'fixture_http_sol_synthetic_usage'});
+  const settled=await x.ledger.readReceipt(admitted);assert.equal(settled.status,'settled');assert.equal(settled.actualGBP,ACTUAL/1e6);
+  assert.equal(Number(local.sql('SELECT spent FROM busy_ai_private.accounts WHERE business_id='+q(BUSINESS)))-spentBefore,ACTUAL);
+  assert.equal(local.sql('SELECT reserved FROM busy_ai_private.accounts WHERE business_id='+q(BUSINESS)),'0');
+  await denied('busy_ai_reserve_v1',reserveArgs(randomUUID(),randomUUID(),{p_model:'gpt-6-astra'}));
+  assert.equal(local.sql("SELECT count(*) FROM busy_ai_private.operations WHERE model='gpt-6-astra'"),'0');
+  const lost=sol({dropDispatch:true}),lostAdmission=await lost.ledger.reserve(lost.request);await assert.rejects(lost.ledger.dispatch(lostAdmission));
+  assert.equal((await lost.ledger.readReceipt(lostAdmission)).status,'dispatched');
+  await lost.ledger.finish(lostAdmission,{outcome:'unknown'});const unknown=await lost.ledger.readReceipt(lostAdmission);
+  assert.equal(unknown.status,'unknown');assert.equal(unknown.attempts,1);assert.equal(local.sql('SELECT reserved FROM busy_ai_private.accounts WHERE business_id='+q(BUSINESS)),String(FULL));
+  await assert.rejects(lost.ledger.dispatch(lostAdmission));await assert.rejects(lost.ledger.finish(lostAdmission,{outcome:'released'}));
+  const blockedByUnknown=sol();await assert.rejects(blockedByUnknown.ledger.reserve(blockedByUnknown.request));
+  assert.equal(local.sql('SELECT reserved FROM busy_ai_private.accounts WHERE business_id='+q(BUSINESS)),String(FULL));
+  // Explicit known-usage reconciliation exists ONLY inside this synthetic
+  // fixture. An actual uncertain provider outcome is never auto-released.
+  await lost.ledger.finish(lostAdmission,{outcome:'settled',inputTokens:0,outputTokens:0,providerReceipt:'fixture_http_sol_synthetic_unknown_reconciliation'});
+  assert.equal((await lost.ledger.readReceipt(lostAdmission)).status,'settled');assert.equal(local.sql('SELECT reserved FROM busy_ai_private.accounts WHERE business_id='+q(BUSINESS)),'0');
+  assert.ok(Number(local.sql('SELECT count(*) FROM busy_ai_private.operations'))>historicalOperations,'Original local ledger history retained');
+  solProfileEvidence={model:SOL,tariffRevision:2,inputLimit:8000,totalOutputIncludingReasoningLimit:12000,syntheticInputTokens:INPUT,syntheticOutputTokens:OUTPUT,fullBoundReservationMicroGBP:FULL,actualSyntheticUsageMicroGBP:ACTUAL,SolHardUsageAccountingMicroGBP:1000000,concurrency:1,AstraAllocationMicroGBP:0,originalControllerOverRealHTTP:true,unknownLiabilityRetained:true,unknownPreventsConcurrentAdmission:true,automaticRedispatches:0,providerRequests:0,realProviderUsageOrSpending:false};
+  return solProfileEvidence;
+ });
  await stage('real-usage-overrun-blocks-next-admission-and-preserves-authoritative-cost',async()=>{
   const x=await fresh();await success('busy_ai_dispatch_v1',argsFor(x.operation,x.nonce));
   const r=await success('busy_ai_finish_v1',finishArgs(x.operation,x.nonce,'settled',{p_input:8000,p_output:8000,p_receipt:'fixture_http_overrun'}));assert.equal(r.overrun,true);
@@ -193,7 +258,7 @@ try{
 }catch(error){fatal=error;}
 finally{
  if(local)try{await local.cleanup();cleanupCompleted=true;results.push({id:'owned-local-process-and-cluster-cleanup',passed:true});}catch{results.push({id:'owned-local-process-and-cluster-cleanup',passed:false,error:'cleanup_failed'});fatal??=Error('cleanup_failed');}
- const receipt={version:1,kind:'Real loopback HTTP central v2 AI-budget verification',transport:'Pinned PostgREST 14.18 and original PostgreSQL17 authorities',postgrest:local?.binary||null,hosted:false,hostedMutations:0,nativeAuthAcceptance:false,syntheticNativeJwtAuth:true,syntheticEntitlements:true,syntheticTariffs:true,syntheticUsageReceipts:true,realProviderAvailabilityVerified:false,providerCalls:0,actualSpendingGBP:0,localSyntheticAdmissionMicroGBP:MAXIMUM,policyEnabledOnlyInDisposableFixture:true,cleanupCompleted,results,summary:{passed:results.filter(r=>r.passed).length,failed:results.filter(r=>!r.passed).length}};
+ const receipt={version:1,kind:'Real loopback HTTP central v2 AI-budget verification',transport:'Pinned PostgREST 14.18 and original PostgreSQL17 authorities',postgrest:local?.binary||null,hosted:false,hostedMutations:0,nativeAuthAcceptance:false,syntheticNativeJwtAuth:true,syntheticEntitlements:true,syntheticTariffs:true,syntheticUsageReceipts:true,realProviderAvailabilityVerified:false,providerCalls:0,actualSpendingGBP:0,localSyntheticAdmissionMicroGBP:MAXIMUM,localOutputCompatibility,solProfileEvidence,policyEnabledOnlyInDisposableFixture:true,cleanupCompleted,results,summary:{passed:results.filter(r=>r.passed).length,failed:results.filter(r=>!r.passed).length}};
  const serialized=JSON.stringify(receipt,null,2)+'\n';assert.ok(!/sb_publishable_|sb_secret_|Bearer |eyJ[A-Za-z0-9_-]+\./.test(serialized),'No credentials may enter the receipt');mkdirSync('.test-artifacts/ai-budget-http',{recursive:true});writeFileSync('.test-artifacts/ai-budget-http/postgrest.json',serialized);console.log(JSON.stringify({receipt:'.test-artifacts/ai-budget-http/postgrest.json',summary:receipt.summary,cleanupCompleted}));
 }
 if(fatal){console.error('Local real-HTTP budget regression failed; inspect sanitised stage evidence. No hosted action was attempted.');process.exitCode=1;}

@@ -9,7 +9,7 @@ import {creativeDocumentDeploymentFiles,CREATIVE_DOCUMENT_DEPLOYMENT_TARGET} fro
 import {prepareHostedCreativeComparison} from './hosted-creative-pilot.mjs';
 import {privateHostedCreativePreparationPaths} from '../prepare-hosted-creative-pilot.mjs';
 import {disabledCreativeDocumentExecution} from '../../supabase/functions/busy-builder-proposals/creativeDocumentExecutionBootstrap.mjs';
-import {validateCreativeComparisonAdmission} from '../../supabase/functions/busy-builder-proposals/creativeComparisonAdmission.mjs';
+import {validateCreativeComparisonAdmission,SOL_TIMING_POLICY_VERSION,SOL_TIMING_POLICY_CANDIDATE,SOL_TIMING_POLICY_DIGEST,reviewSolTimingPolicyApproval} from '../../supabase/functions/busy-builder-proposals/creativeComparisonAdmission.mjs';
 import {CREATIVE_DOCUMENT_REVISED_PROFILE} from '../../supabase/functions/busy-builder-proposals/creativeDocumentPilotProfiles.mjs';
 import {WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION} from '../../supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs';
 import {projectCreativeInputCountRequest} from '../../supabase/functions/busy-builder-proposals/creativeInputCountPort.mjs';
@@ -23,6 +23,7 @@ export const SOL_PREPARATION_APPROVAL_VERSION='busy.sol-preparation-approval.v1'
 export const SOL_PREPARATION_SEAL_VERSION='busy.sol-preparation-seal.v1';
 export const SOL_PREPARATION_MAX_AGE=86400000;
 export const SOL_EXECUTION_MAX_AGE=3600000;
+export const SOL_CONDITIONAL_D_CANDIDATE_MAX_AGE=SOL_TIMING_POLICY_CANDIDATE.conditionalDMaxAgeMs;
 const hash=value=>createHash('sha256').update(typeof value==='string'||value instanceof Uint8Array?value:stableJson(value)).digest('hex');
 const sha=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x),uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(x);
 const plain=x=>x&&Object.getPrototypeOf(x)===Object.prototype;
@@ -30,6 +31,7 @@ const need=x=>{if(!x)throw Error('active_artifact_refused');};
 const fresh=(time,now,age)=>Number.isSafeInteger(time)&&time<=now&&now-time<=age;
 const same=(a,b)=>stableJson(a)===stableJson(b);
 const keys=(object,names)=>plain(object)&&Object.keys(object).sort().join(',')===[...names].sort().join(',');
+const phaseKeys=(object,names)=>keys(object,names)||keys(object,[...names,'timingPolicyApproval']);
 const anchor='const readManifest=async()=>disabledCreativeDocumentExecution;';
 function dataOnly(value){
  let count=0;const seen=new Set();
@@ -49,6 +51,28 @@ const planKeys=executionKeys.filter(k=>!['approvalReceipt','approval'].includes(
 const comparisonPlanKeys=['version','comparisonId','ownerId','businessId','sourceStampDigest','sourceInputDigest','schemaDigest','rendererDigest','source','period','maximumGBP','sol','astra'];
 const sealCoreKeys=['version','status','target','planDigest','bindings','preparationApprovalDigest','issuedAt','expiresAt','validUntil','fileHashes','filesDigest','runtimeFiles','runtimeFilesDigest','rendererDigest','manifestDigest'];
 const sealCore=seal=>Object.fromEntries(sealCoreKeys.map(k=>[k,seal[k]]));
+
+// An unmarked historic record retains its original60-minute rules. The new
+// derivative accepts4h only through a source-bound owner policy receipt. This
+// read-only inspection neither approves a record nor renews supporting facts.
+function timingEvidence(root,evidence,plan,now){
+ if(!Object.hasOwn(evidence,'timingPolicyApproval')){
+  need(!plan?.approval||!Object.hasOwn(plan.approval,'timingPolicy'));
+  return {maximumDLeaseMs:SOL_EXECUTION_MAX_AGE,reviewFreshnessMs:300000,policy:null};
+ }
+ const inventory=creativeDocumentDeploymentFiles(root),policy=evidence.timingPolicyApproval;
+ const accepted=reviewSolTimingPolicyApproval(policy,{now,bindings:{targetProject:'sbvkrvksnruiclcvclbd',model:'gpt-6.1-sol',wireDigest:plan.wireDigest,sourceInventoryDigest:inventory.filesDigest,runtimeInventoryDigest:inventory.runtimeFilesDigest,rendererDigest:inventory.rendererFilesDigest,compilerSha256:hash(readFileSync(resolve(root,'scripts/lib/sol-active-artifact.mjs')))}});
+ need(accepted.ok);
+ const countDeadline=evidence.count?.checkedAt+SOL_PREPARATION_MAX_AGE,tariff=plan.tariff;
+ const rateDeadline=Math.min(tariff?.checkedAt,tariff?.officialTariffEvidence?.checkedAt??tariff?.checkedAt)+SOL_PREPARATION_MAX_AGE;
+ const financialDeadline=evidence.financial?.financialValidUntil;
+ need([countDeadline,rateDeadline,financialDeadline].every(Number.isSafeInteger)&&financialDeadline>now&&policy.supportingEvidenceUntil<=Math.min(countDeadline,rateDeadline,financialDeadline));
+ if(evidence.currentState){
+  need(financialDeadline===evidence.currentState.financialValidUntil&&policy.supportingEvidenceUntil<=evidence.ownerPreparationApproval?.expiresAt);
+ }
+ if(plan.approval)need(same(plan.approval.timingPolicy,policy));
+ return {maximumDLeaseMs:accepted.conditionalDMaxAgeMs,reviewFreshnessMs:SOL_TIMING_POLICY_CANDIDATE.generalFreshnessMs,policy};
+}
 
 // Derivation is explicit and non-authorising. No draft is promoted, and no
 // issuedAt/expiry/approved flag is invented from a preparation permit.
@@ -77,7 +101,7 @@ export function solPreparationBindings(root,preparation,evidence){
  */
 export async function prepareSolPreparationArtifact(root,preparation,evidence,{now=Date.now()}={}){
  try{
-  dataOnly(evidence);evidence=structuredClone(evidence);need(Number.isSafeInteger(now)&&now>0&&keys(evidence,['version','plan','review','financial','count','currentState','ownerPreparationApproval'])&&evidence.version===SOL_PREPARATION_EVIDENCE_VERSION);
+  dataOnly(evidence);evidence=structuredClone(evidence);need(Number.isSafeInteger(now)&&now>0&&phaseKeys(evidence,['version','plan','review','financial','count','currentState','ownerPreparationApproval'])&&evidence.version===SOL_PREPARATION_EVIDENCE_VERSION);
   const e=evidence.plan,a=evidence.ownerPreparationApproval,s=evidence.currentState,{review,financial,count}=evidence;
   const {context,prepared}=preparation,p=preparation.proposals?.find(x=>x.model==='gpt-6.1-sol')?.projection??preparation.projection;
   need(keys(e,planKeys)&&context&&prepared?.ok===true&&p?.ok===true&&p.model==='gpt-6.1-sol'&&p.budgetProfile===CREATIVE_DOCUMENT_REVISED_PROFILE);
@@ -85,7 +109,8 @@ export async function prepareSolPreparationArtifact(root,preparation,evidence,{n
   need(context.profile?.businessName==='Quiet Light Studio'&&context.sourcePhotos?.length===0&&same(context.website?.pages?.filter(x=>x.enabled!==false).map(x=>x.id),['home','services','contact']));
   need(e.ownerId===context.ownerId&&e.businessId===context.businessId&&[e.ownerId,e.businessId,e.operationId,e.requestNonce].every(uuid)&&e.operationId!==e.requestNonce&&e.provider==='openai-responses'&&e.model===p.model&&e.budgetProfile===p.budgetProfile&&e.goal===context.goal&&same(e.approvedIntent,preparation.proposedIntent)&&same(e.expectedPageIds,['home','services','contact']));
   need(e.inputDigest===p.envelopeDigest&&e.sourceInputDigest===p.inputDigest&&e.schemaDigest===p.schemaDigest&&e.wireDigest===p.requestDigest&&same(e.binding,{surface:'website',pageId:'home',projectId:context.website.id,sourceRevision:context.website.generation,profileRevision:context.profileRevision,snapshotRevision:preparation.source.snapshotRevision}));
-  need(review?.provenanceBasis==='first-party-runtime-source-equivalence'&&review.ownerAccepted===true&&sha(review.acceptanceEvidenceSha256)&&fresh(review.checkedAt,now,300000));
+  const timing=timingEvidence(root,evidence,e,now);
+  need(review?.provenanceBasis==='first-party-runtime-source-equivalence'&&review.ownerAccepted===true&&sha(review.acceptanceEvidenceSha256)&&fresh(review.checkedAt,now,timing.reviewFreshnessMs));
   const bindings=solPreparationBindings(root,preparation,evidence);
   need(fresh(s.checkedAt,now,300000)&&s.financialValidUntil>now);
   need(keys(a,['version','status','purpose','issuedAt','expiresAt','receipt','evidenceSha256','bindings','maximumRequests','maximumGBP','mayDeploy','mayReadCredentials','mayReserve','mayDispatch','maySave','mayPublish','automaticRetry'])&&a.version===SOL_PREPARATION_APPROVAL_VERSION&&a.status==='owner-approved'&&a.purpose==='read-only-and-private-disabled-sealing'&&Number.isSafeInteger(a.issuedAt)&&Number.isSafeInteger(a.expiresAt)&&a.issuedAt<=now&&a.expiresAt>now&&a.expiresAt>a.issuedAt&&a.expiresAt-a.issuedAt<=SOL_PREPARATION_MAX_AGE&&typeof a.receipt==='string'&&a.receipt.length>=8&&a.receipt.length<=2000&&sha(a.evidenceSha256)&&same(a.bindings,bindings));
@@ -106,7 +131,7 @@ export async function prepareSolPreparationArtifact(root,preparation,evidence,{n
   const inventory=creativeDocumentDeploymentFiles(root);need(inventory.externalImports.length===0&&inventory.filesDigest===bindings.submittedFilesDigest&&inventory.runtimeFilesDigest===bindings.runtimeFilesDigest&&inventory.rendererFilesDigest===bindings.rendererDigest&&inventory.fullProjectConfigSha256===bindings.projectConfigSha256&&inventory.generalGatewaySha256===bindings.generalGatewaySha256);
   const files=Object.fromEntries(Object.keys(inventory.files).map(name=>[name,readFileSync(resolve(root,name),'utf8')]));
   need(Object.entries(files).every(([name,source])=>hash(source)===inventory.files[name]));
-  const date=new Date(now),periodEnd=Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1),rateDeadline=valuation?.ok?Math.min(t.checkedAt,t.officialTariffEvidence.checkedAt)+SOL_PREPARATION_MAX_AGE:t.checkedAt+SOL_PREPARATION_MAX_AGE,validUntil=Math.min(a.expiresAt,s.financialValidUntil,count.checkedAt+SOL_PREPARATION_MAX_AGE,rateDeadline,periodEnd);
+  const date=new Date(now),periodEnd=Date.UTC(date.getUTCFullYear(),date.getUTCMonth()+1,1),rateDeadline=valuation?.ok?Math.min(t.checkedAt,t.officialTariffEvidence.checkedAt)+SOL_PREPARATION_MAX_AGE:t.checkedAt+SOL_PREPARATION_MAX_AGE,validUntil=Math.min(a.expiresAt,s.financialValidUntil,count.checkedAt+SOL_PREPARATION_MAX_AGE,rateDeadline,periodEnd,timing.policy?.supportingEvidenceUntil??Number.MAX_SAFE_INTEGER);
   need(validUntil>now);
   const sealed={version:SOL_PREPARATION_SEAL_VERSION,status:'private-disabled-preparation-review-only',target:CREATIVE_DOCUMENT_DEPLOYMENT_TARGET,planDigest:hash(e),bindings,preparationApprovalDigest:hash(a),issuedAt:a.issuedAt,expiresAt:a.expiresAt,validUntil,fileHashes:inventory.files,filesDigest:inventory.filesDigest,runtimeFiles:inventory.runtimeFiles,runtimeFilesDigest:inventory.runtimeFilesDigest,rendererDigest:inventory.rendererFilesDigest,manifestDigest:hash(disabledCreativeDocumentExecution)};
   need(same(solPreparationBindings(root,preparation,evidence),bindings));
@@ -132,7 +157,10 @@ export async function finalizeSolPreparedArtifact(root,preparation,sealed,freshP
   need(same(solPreparationPlanFromExecution(executionEvidence.execution),freshPreparationEvidence.plan));
   need(same(executionEvidence.review,freshPreparationEvidence.review)&&same(executionEvidence.financial,freshPreparationEvidence.financial)&&same(executionEvidence.count,freshPreparationEvidence.count));
   const a=executionEvidence.ownerInferenceApproval,b=executionEvidence.execution.approval;
-  need(Number.isSafeInteger(a?.issuedAt)&&a.issuedAt>=current.issuedAt&&a.issuedAt<=now&&a.expiresAt>a.issuedAt&&a.expiresAt-a.issuedAt<=SOL_EXECUTION_MAX_AGE&&b?.issuedAt===a.issuedAt&&b.expiresAt===a.expiresAt&&a.expiresAt<=current.validUntil);
+  need(same(executionEvidence.timingPolicyApproval??null,freshPreparationEvidence.timingPolicyApproval??null));
+  const timing=timingEvidence(root,executionEvidence,executionEvidence.execution,now);
+  need(Number.isSafeInteger(a?.issuedAt)&&a.issuedAt>=current.issuedAt&&a.issuedAt<=now&&a.expiresAt>a.issuedAt&&a.expiresAt-a.issuedAt<=timing.maximumDLeaseMs&&b?.issuedAt===a.issuedAt&&b.expiresAt===a.expiresAt&&a.expiresAt<=current.validUntil);
+  if(timing.policy)need(a.issuedAt>=timing.policy.recordedAt&&a.expiresAt<=timing.policy.supportingEvidenceUntil);
   const active=await prepareSolActiveArtifact(root,preparation,executionEvidence,{now});need(active.status==='private-active-artifact-review-only'&&active.originalDisabledInventoryDigest===current.filesDigest&&active.rendererDigest===current.rendererDigest&&keys(active.files,Object.keys(current.fileHashes)));
   const entry=CREATIVE_DOCUMENT_DEPLOYMENT_TARGET.entrypoint,expectedEntry=current.files[entry].replace(anchor,'const approvedExecutionManifest=Object.freeze('+stableJson(active.manifest)+');\nconst readManifest=async()=>structuredClone(approvedExecutionManifest);');
   need(active.files[entry]===expectedEntry&&Object.keys(current.fileHashes).every(name=>name===entry||active.fileHashes[name]===current.fileHashes[name])&&same(solPreparationBindings(root,preparation,freshPreparationEvidence),current.bindings));
@@ -147,22 +175,25 @@ export async function finalizeSolPreparedArtifact(root,preparation,sealed,freshP
 export async function prepareSolActiveArtifact(root,preparation,evidence,{now=Date.now()}={}){
  if(!preparation||!evidence)return blocked();
  try{
-  dataOnly(evidence);need(Number.isSafeInteger(now)&&now>0&&keys(evidence,['version','execution','review','financial','count','ownerInferenceApproval'])&&evidence.version===SOL_ACTIVE_ARTIFACT_EVIDENCE_VERSION);
+  dataOnly(evidence);need(Number.isSafeInteger(now)&&now>0&&phaseKeys(evidence,['version','execution','review','financial','count','ownerInferenceApproval'])&&evidence.version===SOL_ACTIVE_ARTIFACT_EVIDENCE_VERSION);
   const {context,prepared}=preparation,p=preparation.proposals?.find(x=>x.model==='gpt-6.1-sol')?.projection??preparation.projection;
   need(context&&prepared?.ok===true&&p?.ok===true&&p.model==='gpt-6.1-sol'&&p.budgetProfile===CREATIVE_DOCUMENT_REVISED_PROFILE);
   need(same(p.limits,{inputTokens:8000,outputTokens:12000,maximumGBP:1,requests:1,retries:0})&&p.requestDigest===hash(stableJson(p.wire))&&prepared.inputDigest===p.inputDigest&&prepared.sourceStamp===p.sourceStamp);
   need(context.profile?.businessName==='Quiet Light Studio'&&context.sourcePhotos?.length===0&&same(context.website?.pages?.filter(x=>x.enabled!==false).map(x=>x.id),['home','services','contact']));
   const {execution:e,review,financial,count,ownerInferenceApproval}=evidence;
   need(keys(e,['ownerId','businessId','operationId','requestNonce','binding','goal','approvedIntent','expectedPageIds','provider','model','budgetProfile','comparison','inputDigest','sourceInputDigest','schemaDigest','wireDigest','approvalReceipt','approval','tariff','tokenEvidence']));
-  need(review?.provenanceBasis==='first-party-runtime-source-equivalence'&&review.ownerAccepted===true&&sha(review.acceptanceEvidenceSha256)&&fresh(review.checkedAt,now,300000)&&review.externalInputOwnerReviewed===true);
+  const timing=timingEvidence(root,evidence,e,now);
+  need(review?.provenanceBasis==='first-party-runtime-source-equivalence'&&review.ownerAccepted===true&&sha(review.acceptanceEvidenceSha256)&&fresh(review.checkedAt,now,timing.reviewFreshnessMs)&&review.externalInputOwnerReviewed===true);
   need(e?.provider==='openai-responses'&&e.model==='gpt-6.1-sol'&&e.budgetProfile===CREATIVE_DOCUMENT_REVISED_PROFILE&&e.ownerId===context.ownerId&&e.businessId===context.businessId);
   need([e.ownerId,e.businessId,e.operationId,e.requestNonce].every(uuid)&&e.operationId!==e.requestNonce&&e.goal===context.goal&&same(e.approvedIntent,preparation.proposedIntent)&&same(e.expectedPageIds,['home','services','contact']));
   need(e.inputDigest===p.envelopeDigest&&e.sourceInputDigest===p.inputDigest&&e.schemaDigest===p.schemaDigest&&e.wireDigest===p.requestDigest&&same(e.binding,{surface:'website',pageId:'home',projectId:context.website.id,sourceRevision:context.website.generation,profileRevision:context.profileRevision,snapshotRevision:preparation.source.snapshotRevision}));
   const approval=e.approval;
   need(approval?.authenticated===true&&approval.founder===true&&approval.syntheticOnly===true&&approval.protocol===WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION&&approval.budgetProfile===CREATIVE_DOCUMENT_REVISED_PROFILE);
   need(approval.ownerId===e.ownerId&&approval.businessId===e.businessId&&approval.operationId===e.operationId&&approval.requestNonce===e.requestNonce&&approval.provider===e.provider&&approval.model===e.model&&approval.inputDigest===e.inputDigest&&approval.sourceInputDigest===e.sourceInputDigest&&approval.schemaDigest===e.schemaDigest&&approval.wireDigest===e.wireDigest);
-  need(approval.inputTokenLimit===8000&&approval.totalOutputTokenLimit===12000&&approval.spendingCeilingGBP===1&&Number.isSafeInteger(approval.expiresAt)&&approval.expiresAt>now&&approval.expiresAt<=now+3600000&&typeof approval.receipt==='string'&&approval.receipt.length>=8&&approval.receipt.length<=2000&&approval.receipt===e.approvalReceipt&&same(approval.comparison,e.comparison));
+  need(approval.inputTokenLimit===8000&&approval.totalOutputTokenLimit===12000&&approval.spendingCeilingGBP===1&&Number.isSafeInteger(approval.expiresAt)&&approval.expiresAt>now&&approval.expiresAt<=now+timing.maximumDLeaseMs&&typeof approval.receipt==='string'&&approval.receipt.length>=8&&approval.receipt.length<=2000&&approval.receipt===e.approvalReceipt&&same(approval.comparison,e.comparison));
+  if(timing.policy)need(Number.isSafeInteger(approval.issuedAt)&&approval.issuedAt>=timing.policy.recordedAt&&approval.issuedAt<=now&&approval.expiresAt-approval.issuedAt>0&&approval.expiresAt-approval.issuedAt<=timing.maximumDLeaseMs&&approval.expiresAt<=timing.policy.supportingEvidenceUntil);
   need(ownerInferenceApproval?.status==='owner-approved'&&ownerInferenceApproval.receipt===e.approvalReceipt&&ownerInferenceApproval.operationId===e.operationId&&ownerInferenceApproval.requestNonce===e.requestNonce&&ownerInferenceApproval.wireDigest===e.wireDigest&&ownerInferenceApproval.maximumGBP===1&&ownerInferenceApproval.maximumRequests===1&&ownerInferenceApproval.expiresAt===approval.expiresAt&&ownerInferenceApproval.automaticRetry===false&&ownerInferenceApproval.maySave===false&&ownerInferenceApproval.mayPublish===false&&sha(ownerInferenceApproval.evidenceSha256));
+  if(timing.policy)need(ownerInferenceApproval.issuedAt===approval.issuedAt);
   const cp=await projectCreativeInputCountRequest(p,async x=>hash(x)),te=e.tokenEvidence;
   need(count?.independentlyVerified===true&&sha(count.receiptSha256)&&count.wireDigest===p.requestDigest&&count.countBodyDigest===cp.countBodyDigest&&count.model===e.model&&count.schemaDigest===p.schemaDigest&&fresh(count.checkedAt,now,86400000));
   need(te?.method==='responses-input-tokens'&&te.completeRequest===true&&te.independentlyVerified===true&&typeof te.reference==='string'&&te.reference.length>0&&te.wireDigest===p.requestDigest&&te.model===e.model&&fresh(te.checkedAt,now,86400000)&&te.checkedAt===count.checkedAt&&te.tokens===count.tokens&&Number.isSafeInteger(te.tokens)&&te.tokens>=1&&te.tokens<=8000);
@@ -174,7 +205,7 @@ export async function prepareSolActiveArtifact(root,preparation,evidence,{now=Da
   const maximumGBP=(8000*t.inputGBPPerMillion+12000*t.outputGBPPerMillion)/1000000;need(maximumGBP>0&&maximumGBP<=1);
   need(financial?.status==='independently-verified-sol-only'&&sha(financial.receiptSha256)&&fresh(financial.checkedAt,now,300000)&&financial.policyMicroGBP===1000000&&financial.accountMicroGBP===1000000&&financial.astraAllocationMicroGBP===0&&financial.concurrentLimit===1&&financial.operationId===e.operationId&&financial.requestNonce===e.requestNonce&&financial.wireDigest===e.wireDigest&&String(financial.tariffRevision)===String(t.revision));
   const inventory=creativeDocumentDeploymentFiles(root);need(inventory.externalImports.length===0);
-  const comparison=await validateCreativeComparisonAdmission({comparison:e.comparison,current:context,prepared,projection:p,solProjection:p,operationId:e.operationId,requestNonce:e.requestNonce,binding:e.binding,expectedRendererDigest:inventory.rendererFilesDigest,now,estimatedGBP:maximumGBP,tariff:t,digestBytes:async x=>hash(x)});need(comparison.ok===true&&comparison.arm==='sol');
+  const comparison=await validateCreativeComparisonAdmission({comparison:e.comparison,current:context,prepared,projection:p,solProjection:p,operationId:e.operationId,requestNonce:e.requestNonce,binding:e.binding,expectedRendererDigest:inventory.rendererFilesDigest,now,estimatedGBP:maximumGBP,tariff:t,digestBytes:async x=>hash(x),conditionalApproval:e.approval});need(comparison.ok===true&&comparison.arm==='sol');
   const manifest={...disabledCreativeDocumentExecution,enabled:true,executionEnabled:true,execution:JSON.parse(stableJson(e))};
   const original=readFileSync(resolve(root,CREATIVE_DOCUMENT_DEPLOYMENT_TARGET.entrypoint),'utf8');need(original.split(anchor).length===2);
   const replacement='const approvedExecutionManifest=Object.freeze('+stableJson(manifest)+');\nconst readManifest=async()=>structuredClone(approvedExecutionManifest);';

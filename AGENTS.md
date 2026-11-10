@@ -180,6 +180,46 @@ The repository is **public**. Never commit an owner's private master, unpublishe
 
 ## Security, authorisation, and costs
 
+### Permanent development sequence — owner instruction, 9 November 2026
+
+Use **Prepare → Verify → Approve → Execute → Independently Verify**. Complete
+all independently safe source, toolchain, payload-transfer, diagnostic, non-replay,
+management-readback, private result-delivery and workflow preparation before
+requesting a short-lived operational approval. Prepare the actual path that will
+run, exercise its failure cases offline and preserve the original evidence.
+
+Preparation permission, exact artifact acceptance, evidence validity and one-use
+operational permission are different. Read-only preparation/private hard-disabled
+sealing may last up to24h under unchanged semantic bindings and earlier original
+evidence deadlines. Existing Sol financial validity remains48h; it never grants
+inference. Exact artifact acceptance records a review of specific bytes and
+conditions; it is not a renewable execution lease or a substitute for fresh data.
+Actual paid execution retains the existing newly issued, exact-run/actor/source/
+operation authority lasting at most60minutes and never beyond any supporting
+deadline. Longer preparation never extends an issued record.
+
+The later 9 November consolidated timing mission authorises local implementation
+and verification of a versioned four-hour conditional artifact-D candidate, not
+its operational activation. The exact paid-run grant remains at most60minutes.
+The v2 candidate requires an exact owner-approved policy/source proof; missing or
+invalid proof cannot widen historical v1 limits. Review typed evidence ages,
+payload preloading, pre-intent headroom and phase margins together. Preserve every
+original compiler/seal/receipt and consumed intent. Changed runtime/compiler bytes
+require exact derivative approval, never an upgrade of old authority. This mission
+authorises no D, deployment, credential access, queue, provider request, reservation,
+spending or Website mutation.
+
+Source, identity, security, financial, request, recipient or approval-scope changes
+invalidate the relevant acceptance/permission. Never refresh an original count,
+tariff or evidence timestamp by relabelling it. Unknown acknowledgement, claimed
+intent, consumed authority or unresolved financial liability stops the affected
+operation for read-only investigation; no automatic replay, repair or rollback.
+Preserve actual native raw and normalized readbacks and the independently checked
+outcome durably. Read [the lifecycle policy](docs/DEVELOPMENT_AUTHORITY_LIFECYCLE.md)
+for the versioned risk classes, remaining gates and timing-v2 candidate.
+No deployment, publication, credential access or spending follows
+from this process policy.
+
 - Default additional **external spending budget: £0** until the owner expressly approves a particular cost.
 - Normal isolated source editing, offline/local tests, Git commits and draft PRs are allowed for an authorised development task.
 - No automatic merge to protected branches; no production/customer-data access or changes; no deployment, publication, email/social/customer sends, paid builds, paid model/provider calls, account purchases, live migrations or release actions without **separate, explicit owner approval**.

@@ -2596,6 +2596,64 @@ The disabled Lab Edge candidate now has a function-local Deno configuration usin
 
 See [Approval C](docs/AI_LAB_APPROVAL_C_DISABLED_V2_2026_11_07.md) and [model/comparison readiness](docs/AI_CREATIVE_MODEL_COMPARISON_READINESS_2026_11_07.md). Public model documentation is not account eligibility. A paid pilot still requires separately approved credentials/configuration, complete-request token evidence, current all-in GBP pricing, original central entitlement/tariff/admission/readback and an exact one-request approval. No inference, provider activation, hosted deployment or Website write is authorised here. V22.86 provenance is owner-reported; its Word original remains unavailable, and the owner explicitly permits current work using the corrected verified V22.85 plus the supplied policy.
 
+## Consolidated Sol timing-v2 candidate — 9 November 2026
+
+This local derivative prepares a policy change for exact owner review; it activates
+no live operation and supersedes no issued authority. Conditional artifact D may
+use four hours only with an owner-approved policy proof bound to the candidate
+source/compiler/runtime/renderer/request and original support ceiling. Unmarked
+legacy records keep one hour. The actual exact-run paid grant remains at most one
+hour, with a genuine issuedAt and expiry no later than verified D/support limits.
+That grant is enforced by the trusted protected caller. The original server uses
+native-owner authentication, exact conditional manifest and one-use ledger; no
+independent server verification of GitHub delegation is claimed. Four-hour
+owner-bound server eligibility needs explicit owner policy acceptance.
+
+The candidate distinguishes fifteen-minute immutable source/public-object/review
+facts from five-minute mutable financial/security/identity/target/function facts.
+Credential absence is separately critical and retains its qualified evidence basis.
+Large static payload transfer precedes critical observations and durable intent.
+Measured headroom is admitted before intent; final actual-clock/hash/target checks
+immediately precede the single managed call. The fifteen-minute C2 phase budget
+covers dispatch, one submission, bounded readback and retention; later owner
+binding/queue/grant actions have their own admission rather than the former fixed
+38-minute whole-sequence reservation. All original evidence deadlines still clip
+authority. See [the candidate review](docs/SOL_TIMING_V2_REVIEW.md).
+
+Original compiler/seal files, historical failed handoffs, consumed intents, the
+provider wire/schema/count, renderer, recipient and Lab records remain preserved.
+Changed local compiler/runtime timing code is a derivative requiring exact new
+source/preparation authority. Existing private active bytes are source material,
+not renewed execution authority. Synthetic result/crypto/render checks do not
+establish a real Sol design or genuine AI comparison screenshots.
+
+## Permanent preparation and operational-authority separation — historical v1, 9 November 2026
+
+The development sequence is Prepare → Verify → Approve → Execute → Independently
+Verify. Preparation freezes and tests the actual source, transfer, diagnostic,
+one-use and management-readback path before any short-lived D clock. Independent
+native observations, original receipts and semantic bindings remain authoritative;
+an artifact review records acceptance of exact bytes, never fresh observations or
+permission to dispatch. Actual raw/normalized management results and the returned
+independent verification result must be preserved durably; the local audit cannot
+manufacture provenance or outcome certainty.
+
+The local `sol-development-policy.mjs` supplies a non-authorising preparation
+audit and shared conservative time ceilings. Its C2 integration can only tighten
+the original supporting-evidence fence. Original compiler, deployed runtime,
+provider request, central controller, recipient and Website bytes are unchanged.
+Preparation remains at most24h, original Sol financial validity48h, and actual
+one-use execution at most60m, bounded by the earliest original evidence deadline.
+All source/identity/security/financial changes invalidate the relevant authority;
+unknown outcomes and consumed/claimed intents cannot be retried automatically.
+
+The separately supplied four-hour artifact-review planning candidate is inert,
+unapplied and not imported. It does not extend D or authorise deployment/inference.
+Any future longer conditional D requires a complete separately reviewed cross-layer
+proposal; a one-constant clock change is insufficient. See
+[Development authority lifecycle](docs/DEVELOPMENT_AUTHORITY_LIFECYCLE.md). These
+local changes grant no new hosted, provider, credential, queue or spending action.
+
 ## Sol-first creative comparison preparation — 7 November 2026
 
 Finite server-owned profiles now support the same three-page creative-document task at 8,000 complete input and 12,000 total output tokens including reasoning, with explicit medium reasoning. The proposed first Sol ceiling is £0.25, later Astra £1, and cumulative comparison £3; none grants spending authority. Historical default limits remain unchanged. Projection, approval, original ledger, settlement and independent Studio receipt validation bind the profile consistently. A comparison guard binds source, schema, renderer graph, operation/nonce and accounting period; Astra requires an independently settled original Sol receipt. Invalid, inferior and unknown results never trigger replacement calls, save or publication.

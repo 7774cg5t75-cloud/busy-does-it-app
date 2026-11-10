@@ -11,7 +11,7 @@ import {creativeDocumentDeploymentFiles} from './lib/creative-document-deploymen
 import {stableJson} from '../src/core/stableJson.mjs';
 import {projectWebsiteCreativeDocumentProviderRequest,WEBSITE_CREATIVE_DOCUMENT_PROVIDER_VERSION} from '../supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs';
 import {CREATIVE_DOCUMENT_REVISED_PROFILE} from '../supabase/functions/busy-builder-proposals/creativeDocumentPilotProfiles.mjs';
-import {CREATIVE_COMPARISON_APPROVAL_VERSION} from '../supabase/functions/busy-builder-proposals/creativeComparisonAdmission.mjs';
+import {CREATIVE_COMPARISON_APPROVAL_VERSION,SOL_TIMING_POLICY_VERSION,SOL_TIMING_POLICY_DIGEST,SOL_TIMING_POLICY_CANDIDATE} from '../supabase/functions/busy-builder-proposals/creativeComparisonAdmission.mjs';
 import {projectCreativeInputCountRequest} from '../supabase/functions/busy-builder-proposals/creativeInputCountPort.mjs';
 
 // Engineering evidence only: fake approvals, counts, tariffs and identities.
@@ -52,6 +52,45 @@ for(const [name,change]of [
 await test('getters are denied without executing evidence code',async()=>{let reads=0;const e=clone(f.evidence);Object.defineProperty(e.review,'ownerAccepted',{enumerable:true,get(){reads++;return true;}});assert.equal((await prepareSolActiveArtifact(root,f.preparation,e,{now})).files,null);assert.equal(reads,0);});
 await test('private file wrapper refuses invalid source and creates no output',async()=>{const temp=mkdtempSync(resolve(tmpdir(),'busy-sol-active-offline-'));try{const input=resolve(temp,'source.json'),evidence=resolve(temp,'evidence.json'),output=resolve(temp,'new-private-output');writeFileSync(input,'{}',{mode:0o600});writeFileSync(evidence,'{}',{mode:0o600});const r=await prepareSolActiveArtifactFiles({root,inputEnvelope:input,evidenceFile:evidence,newPrivateOutput:output,now});assert.equal(r.files,null);assert.equal(existsSync(output),false);}finally{rmSync(temp,{recursive:true,force:true});}});
 await test('private file wrapper rejects any action or credential override',async()=>{for(const extra of [{execute:true},{deploy:true},{credential:'synthetic-only'},{maximumGBP:3}]){const r=await prepareSolActiveArtifactFiles({root,inputEnvelope:'/not-read',evidenceFile:'/not-read',newPrivateOutput:'/not-created',now,...extra});assert.equal(r.files,null);assert.equal(r.providerCalls,0);assert.equal(r.hostedWrites,0);}});
+function candidateEvidence(){
+ const e=clone(f.evidence),inventory=creativeDocumentDeploymentFiles(root),expiresAt=now+SOL_TIMING_POLICY_CANDIDATE.conditionalDMaxAgeMs;
+ const proof={version:'busy.sol-timing-policy-acceptance.v2',status:'owner-approved',policyVersion:SOL_TIMING_POLICY_VERSION,policyDigest:SOL_TIMING_POLICY_DIGEST,proposalSha256:hash('SYNTHETIC reviewed policy proposal; no actual owner authority'),recordedAt:now-1000,supportingEvidenceUntil:now+86400000,bindings:{targetProject:'sbvkrvksnruiclcvclbd',model:'gpt-6.1-sol',wireDigest:e.execution.wireDigest,sourceInventoryDigest:inventory.filesDigest,runtimeInventoryDigest:inventory.runtimeFilesDigest,rendererDigest:inventory.rendererFilesDigest,compilerSha256:hash(readFileSync(resolve(root,'scripts/lib/sol-active-artifact.mjs')))}};
+ e.timingPolicyApproval=proof;e.financial.financialValidUntil=now+48*3600000;
+ e.execution.approval.timingPolicy=clone(proof);e.execution.approval.issuedAt=e.ownerInferenceApproval.issuedAt=now;
+ e.execution.approval.expiresAt=e.ownerInferenceApproval.expiresAt=expiresAt;
+ e.execution.comparison.expiresAt=e.execution.approval.comparison.expiresAt=expiresAt;
+ return e;
+}
+await test('explicit exact-source owner timing policy admits a four-hour conditional artifact only',async()=>{const e=candidateEvidence(),r=await prepareSolActiveArtifact(root,f.preparation,e,{now});assert.equal(r.status,'private-active-artifact-review-only');assert.equal(r.expiresAt,now+4*3600000);assert.deepEqual(r.manifest.execution.approval.timingPolicy,e.timingPolicyApproval);assert.equal(r.maximumRequests,1);assert.equal(r.ownerAuthenticationStillRequired,true);assert.equal(r.centralReservationStillRequired,true);assert.equal(Object.keys(r.files).length,117);assert.equal(Object.keys(r.runtimeFiles).length,115);assert.equal(r.rendererDigest,f.inventory.rendererFilesDigest);assert.equal(r.deploymentApproved,false);assert.equal(r.providerCalls,0);assert.deepEqual(solPlan(r.manifest.execution),solPlan(e.execution));});
+function solPlan(e){const {approval,approvalReceipt,comparison,...rest}=e;const {expiresAt,...plan}=comparison;return {...rest,comparison:plan};}
+for(const [name,change]of [
+ ['pending policy cannot grant four hours',e=>e.timingPolicyApproval.status='proposal-only'],
+ ['unaccepted policy version',e=>e.timingPolicyApproval.policyVersion='unreviewed'],
+ ['changed policy contract',e=>e.timingPolicyApproval.policyDigest='e'.repeat(64)],
+ ['changed reviewed compiler',e=>e.timingPolicyApproval.bindings.compilerSha256='e'.repeat(64)],
+ ['changed reviewed submitted inputs',e=>e.timingPolicyApproval.bindings.sourceInventoryDigest='e'.repeat(64)],
+ ['changed reviewed runtime graph',e=>e.timingPolicyApproval.bindings.runtimeInventoryDigest='e'.repeat(64)],
+ ['changed reviewed renderer',e=>e.timingPolicyApproval.bindings.rendererDigest='e'.repeat(64)],
+ ['changed reviewed wire',e=>e.timingPolicyApproval.bindings.wireDigest='e'.repeat(64)],
+ ['foreign target',e=>e.timingPolicyApproval.bindings.targetProject='foreign'],
+ ['foreign model',e=>e.timingPolicyApproval.bindings.model='gpt-6-astra'],
+ ['future policy acceptance',e=>e.timingPolicyApproval.recordedAt=now+1],
+ ['missing actual D record issue time',e=>delete e.ownerInferenceApproval.issuedAt],
+ ['different actual D record issue time',e=>e.ownerInferenceApproval.issuedAt=now-1],
+ ['policy accepted after D issue',e=>{e.timingPolicyApproval.recordedAt=now;e.execution.approval.issuedAt=now-1;e.execution.approval.expiresAt=e.ownerInferenceApproval.expiresAt=e.execution.comparison.expiresAt=e.execution.approval.comparison.expiresAt=now+3600000;}],
+ ['different embedded policy',e=>e.execution.approval.timingPolicy.proposalSha256='e'.repeat(64)],
+ ['missing original financial deadline',e=>delete e.financial.financialValidUntil],
+ ['support beyond native financial expiry',e=>e.financial.financialValidUntil=now+2*3600000],
+ ['D beyond earlier supporting deadline',e=>e.timingPolicyApproval.supportingEvidenceUntil=now+2*3600000],
+ ['support beyond original count validity',e=>e.timingPolicyApproval.supportingEvidenceUntil=now+86400001],
+ ['four-hour duration plus one millisecond',e=>e.execution.approval.issuedAt=now-1],
+ ['stale critical financial observation despite accepted policy',e=>e.financial.checkedAt=now-300001],
+ ['static provenance beyond fifteen minutes',e=>e.review.checkedAt=now-900001]
+])await test('candidate compiler refuses '+name,async()=>{const e=candidateEvidence();change(e);if(name!=='different embedded policy')e.execution.approval.timingPolicy=clone(e.timingPolicyApproval);const r=await prepareSolActiveArtifact(root,f.preparation,e,{now});assert.equal(r.status,'blocked-review-only');assert.equal(r.files,null);assert.equal(r.providerCalls,0);});
+await test('accepted timing policy allows fifteen-minute immutable provenance but keeps financial five-minute boundary',async()=>{const e=candidateEvidence();e.review.checkedAt=now-900000;e.financial.checkedAt=now-300000;const r=await prepareSolActiveArtifact(root,f.preparation,e,{now});assert.equal(r.status,'private-active-artifact-review-only');assert.equal(r.providerCalls,0);});
+await test('invalid explicit policy cannot fall back to an otherwise valid short legacy approval',async()=>{const e=candidateEvidence();e.timingPolicyApproval.status='proposal-only';e.execution.approval.expiresAt=e.ownerInferenceApproval.expiresAt=e.execution.comparison.expiresAt=e.execution.approval.comparison.expiresAt=now+120000;assert.equal((await prepareSolActiveArtifact(root,f.preparation,e,{now})).files,null);});
+await test('copying an accepted-looking runtime policy without private compiler evidence is denied',async()=>{const e=candidateEvidence();delete e.timingPolicyApproval;assert.equal((await prepareSolActiveArtifact(root,f.preparation,e,{now})).files,null);});
+await test('candidate policy metadata is data only and never invokes a getter',async()=>{const e=candidateEvidence();let reads=0;Object.defineProperty(e.timingPolicyApproval,'status',{enumerable:true,get(){reads++;return 'owner-approved';}});assert.equal((await prepareSolActiveArtifact(root,f.preparation,e,{now})).files,null);assert.equal(reads,0);});
 const args=process.argv.slice(2);if(args.length){assert.ok(args.length===1&&args[0].startsWith('--input='),'Only one authorised private source input is accepted');const base=await prepareHostedCreativeComparison(JSON.parse(readFileSync(args[0].slice(8))));await test('actual-source wire accepts only synthetic exact valuation evidence without writing an active artifact',async()=>{const v=await fixture(base);v.evidence.execution.tariff=syntheticSolUsageValuationTariff(now);const a=await prepareSolActiveArtifact(root,v.preparation,v.evidence,{now});assert.equal(a.status,'private-active-artifact-review-only');assert.equal(a.costEvidence.maximumMicroGBP,246400);assert.equal(a.costEvidence.cashCostVerified,false);assert.equal(a.costEvidence.allFeesIncluded,false);assert.equal(a.manifest.execution.tariff.rateEvidence.coversFXTaxAndFees,false);assert.equal(a.providerCalls,0);assert.equal(a.hostedWrites,0);v.evidence.execution.tariff.valuationPolicy.ownerApproved=false;assert.equal((await prepareSolActiveArtifact(root,v.preparation,v.evidence,{now})).files,null);});}
 assert.equal(hash(readFileSync(entry)),hash(entryBefore));assert.equal(hash(stableJson(f.preparation)),sourceBefore);
 console.log(JSON.stringify({passed,failed:0,evidence:'synthetic offline compiler only',providerCalls:0,hostedWrites:0,actualActiveArtifactsWritten:0,repositoryEntryUnchanged:true,centralAuthoritiesUnchanged:true}));
