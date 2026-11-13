@@ -1,0 +1,48 @@
+{
+  "runtime": {
+    "deno": "2.5.6",
+    "v8": "14.0.365.5-rusty",
+    "typescript": "5.9.2"
+  },
+  "kind": "Actual local Deno source/review/Keep/render runtime; NOT hosted Edge CPU or live acceptance",
+  "pages": 3,
+  "renderedBytes": 393596,
+  "wallMs": 722.43,
+  "cpuMicroseconds": {
+    "user": 957234,
+    "system": 130783
+  },
+  "memoryBefore": {
+    "rss": 66404352,
+    "heapTotal": 11796480,
+    "heapUsed": 9294088,
+    "external": 3189261
+  },
+  "memoryAfter": {
+    "rss": 108343296,
+    "heapTotal": 36065280,
+    "heapUsed": 24747336,
+    "external": 3582857
+  },
+  "inputDigest": "4c8a551a0467955054b26b9cb9c82e395e9ac34fac8776ccec772c1c7c741f67",
+  "wireDigest": "2288e92a5422b3cee1276a344a542356b273aff7e2c6e36d0fa15b98ef59725b",
+  "providerCalls": 0,
+  "hostedWrites": 0,
+  "accountSaved": false,
+  "sourceSha": "21121ee462b27a77b30089ba69e2adcb28d15182",
+  "sourceTree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+  "permissions": {
+    "read": "repository only",
+    "network": false,
+    "environment": false,
+    "subprocess": false,
+    "prompt": false
+  },
+  "harnessSha256": "0728f59738201d196172b11a74ff11ea48d1fd4ce346233915612749e6f8d24a",
+  "caveats": [
+    "Local Deno execution, not hosted Edge acceptance.",
+    "Measurement begins after static module import; startup is not included.",
+    "Observed memory is not a hosted peak-memory guarantee.",
+    "No full provider request token count, inference or monetary cost was measured."
+  ]
+}

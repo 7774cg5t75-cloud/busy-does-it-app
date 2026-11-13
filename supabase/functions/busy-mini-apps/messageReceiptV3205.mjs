@@ -7,7 +7,7 @@
 const ID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const KEY=/^[A-Za-z0-9:_-]{8,180}$/;
 const STATES=new Set(["pending","submitted_unverified","no_submission_evidence"]);
-const denied=reason=>({ok:false,reason,
+const denied=reason=>({ok:/** @type {const} */ (false),reason,
  messageSavedVerified:false,notificationDeliveredVerified:false,
  appointmentConfirmed:false});
 function validateMessageReceiptContext({
@@ -21,17 +21,17 @@ function validateMessageReceiptContext({
    !KEY.test(key)||typeof body!=="string"||!body.trim()||
    body!==body.trim()||body.length>3000)
   return denied("A signed-in owner or customer must check the exact original reply.");
- return {ok:true,role,actorUserId,businessId,requestId,
+ return {ok:/** @type {const} */ (true),role,actorUserId,businessId,requestId,
   readOnly:true,mayResend:false,mayReadOtherCustomers:false};
 }
 function classifyMessageReceipt({
  actorUserId="",businessId="",requestId="",role="",
- key="",body="",message=null,outbox=null
+ key="",body="",message=/** @type {{id:string,business_id:string,mini_app_id:string,request_id:string,sender_user_id:string,sender_role:string,idempotency_key:string,body:string}|null} */ (null),outbox=/** @type {{id:string,business_id:string,mini_app_id:string,request_id:string,message_id:string,recipient_role:string,state:string,provider_delivery_verified:boolean}|null} */ (null)
 }={}){
  const check=validateMessageReceiptContext({
   actorUserId,businessId,requestId,role,key,body});
  if(!check.ok)return check;
- if(!message)return {ok:true,found:false,messageSavedVerified:false,
+ if(!message)return {ok:/** @type {const} */ (true),found:/** @type {const} */ (false),messageSavedVerified:false,
    deliveryIntentRecorded:false,notificationDeliveredVerified:false,
    providerSubmissionVerified:false,canRetrySameText:true,
    noCustomerDataReturned:true,readOnly:true};
@@ -50,7 +50,7 @@ function classifyMessageReceipt({
   !STATES.has(outbox.state)||
   outbox.provider_delivery_verified!==false))
   return denied("The saved reply delivery-intent record needs investigation.");
- return {ok:true,found:true,
+ return {ok:/** @type {const} */ (true),found:/** @type {const} */ (true),
   messageId:message.id,requestId,
   messageSavedVerified:true,deliveryIntentRecorded:!!outbox,
   deliveryIntentState:outbox?.state||"not_verified",

@@ -1,0 +1,17 @@
+{
+  "source": {
+    "commit": "4ff05ee33af4fb9e94c9e598ed965a8e36c8feab",
+    "tree": "2c33bab0ca68b0d22fafde74bacc8d2afe269eca"
+  },
+  "run": 41894296535,
+  "exitCode": 1,
+  "failures": [
+    "1-after-desktop.png unusably narrow text column [{\"tag\":\"H3\",\"text\":\"A buffet to share\",\"width\":28.875}]",
+    "5-after-desktop.png unusably narrow text column [{\"tag\":\"H3\",\"text\":\"Words with purpose\",\"width\":28.875},{\"tag\":\"H3\",\"text\":\"Bring it together\",\"width\":28.875}]",
+    "5-after-desktop.png clipped text/controls [{\"tag\":\"H3\",\"text\":\"Words with purpose\"},{\"tag\":\"H3\",\"text\":\"Bring it together\"}]",
+    "7-after-desktop.png unusably narrow text column [{\"tag\":\"H3\",\"text\":\"Ground preparation\",\"width\":133.671875}]",
+    "8-after-desktop.png unusably narrow text column [{\"tag\":\"H3\",\"text\":\"Planting support\",\"width\":28.875}]",
+    "8-after-desktop.png clipped text/controls [{\"tag\":\"H3\",\"text\":\"Planting support\"}]"
+  ],
+  "assertionsRelaxed": false
+}

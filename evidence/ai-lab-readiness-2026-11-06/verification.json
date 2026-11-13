@@ -1,0 +1,1462 @@
+{
+  "recordedAt": "2026-11-06T09:57:20.730452+00:00",
+  "functionalCommit": "57148cbba4a61c2ecb50361f1914196b8717022e",
+  "functionalTree": "9305def084ec1d64eb8d68387cc86da27806990d",
+  "targetProject": "sbvkrvksnruiclcvclbd",
+  "acceptedRegion": "eu-west-1",
+  "hostedInstall": false,
+  "hostedMutations": 0,
+  "providerCalls": 0,
+  "paidUsage": 0,
+  "postgres": [
+    {
+      "path": ".test-artifacts/whole-app/postgres.json",
+      "sha256": "ace3638dce35affe5c8fd56db5d01a403493b053d3b86d97fd0d2b39ba2299ea",
+      "summary": {
+        "passed": 126,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "fresh-disposable-auth-shim-not-hosted-auth",
+          "passed": true
+        },
+        {
+          "id": "exact-source-fuse-denies-install",
+          "passed": true
+        },
+        {
+          "id": "missing-genuine-auth-prerequisite-refused-without-partial-schema",
+          "passed": true
+        },
+        {
+          "id": "preexisting-view-and-definer-entry-refused-not-silently-retained",
+          "passed": true
+        },
+        {
+          "id": "late-install-failure-rolls-back-schema-and-privilege-changes",
+          "passed": true
+        },
+        {
+          "id": "complete-atomic-fresh-staging-install-not-fixture",
+          "passed": true
+        },
+        {
+          "id": "one-time-install-never-overwrites-existing-records",
+          "passed": true
+        },
+        {
+          "id": "hostile-default-grants-closed-for-future-tables-sequences-and-routines",
+          "passed": true
+        },
+        {
+          "id": "fictional-two-business-memberships-prepared-only-locally",
+          "passed": true
+        },
+        {
+          "id": "bounded-original-workspace-initialize-and-reopen",
+          "passed": true
+        },
+        {
+          "id": "approved-profile-create-save-hash-and-fresh-reopen",
+          "passed": true
+        },
+        {
+          "id": "profile-stale-source-and-unapproved-fields-denied",
+          "passed": true
+        },
+        {
+          "id": "original-website-create-wording-style-save-reopen",
+          "passed": true
+        },
+        {
+          "id": "reviewed-complete-page-style-exact-sql-save-reopen-undo-redo",
+          "passed": true
+        },
+        {
+          "id": "original-pages-create-revise-and-fresh-reopen",
+          "passed": true
+        },
+        {
+          "id": "original-ten-step-page-save-is-one-atomic-generation-and-history-entry",
+          "passed": true
+        },
+        {
+          "id": "ten-step-revocation-between-gateway-read-and-atomic-save-denies-all",
+          "passed": true
+        },
+        {
+          "id": "whole-transaction-undo-redo-and-fresh-session-history-retention",
+          "passed": true
+        },
+        {
+          "id": "whole-request-group-checkpoints-lost-ack-recovery-and-no-blind-replay",
+          "passed": true
+        },
+        {
+          "id": "history-cross-tenant-source-and-direct-writer-denial",
+          "passed": true
+        },
+        {
+          "id": "unsupported-batch-is-atomic-and-forged-history-candidate-denied",
+          "passed": true
+        },
+        {
+          "id": "real-concurrent-website-writers-create-only-one-history-step",
+          "passed": true
+        },
+        {
+          "id": "undo-acknowledgement-loss-never-replays-and-restores-on-deliberate-review",
+          "passed": true
+        },
+        {
+          "id": "revocation-between-history-read-and-transition-denies-undo",
+          "passed": true
+        },
+        {
+          "id": "bounded-persistent-history-and-redo-branch-invalidation",
+          "passed": true
+        },
+        {
+          "id": "approved-context-revision-does-not-rewrite-existing-website",
+          "passed": true
+        },
+        {
+          "id": "original-config-first-app-authority-client-and-fresh-reopen",
+          "passed": true
+        },
+        {
+          "id": "original-studio-private-edit-undo-independent-read",
+          "passed": true
+        },
+        {
+          "id": "goal-composition-original-writer-saves-reopens-and-undoes-exactly",
+          "passed": true
+        },
+        {
+          "id": "goal-composition-revoked-member-denied-by-original-transaction",
+          "passed": true
+        },
+        {
+          "id": "original-approved-business-records-into-private-layout-reopen-and-undo",
+          "passed": true
+        },
+        {
+          "id": "private-bespoke-project-original-app-save-fresh-reopen-and-undo",
+          "passed": true
+        },
+        {
+          "id": "private-project-history-bounded-and-original-config-retained",
+          "passed": true
+        },
+        {
+          "id": "private-project-server-member-scope-and-malformed-descriptions-denied",
+          "passed": true
+        },
+        {
+          "id": "saved-project-corrections-original-spec-studio-reopen-and-exact-undo",
+          "passed": true
+        },
+        {
+          "id": "typed-screen-composition-original-writer-readback-exact-undo-and-unknown-denial",
+          "passed": true
+        },
+        {
+          "id": "private-calculation-descriptive-intent-only-original-save-readback-undo",
+          "passed": true
+        },
+        {
+          "id": "original-growth-context-record-review-no-provider-claims",
+          "passed": true
+        },
+        {
+          "id": "growth-dropped-ack-blocks-pre-reviewed-second-write-until-exact-observation",
+          "passed": true
+        },
+        {
+          "id": "creator-original-durable-save-with-reviewed-growth-source-and-fresh-read",
+          "passed": true
+        },
+        {
+          "id": "reviewed-current-creator-copy-private-website-save-fresh-reopen-and-undo",
+          "passed": true
+        },
+        {
+          "id": "creator-lost-ack-exact-observation-and-no-blind-replay",
+          "passed": true
+        },
+        {
+          "id": "fictional-original-enquiry-provisioned-locally-not-consumer-acceptance",
+          "passed": true
+        },
+        {
+          "id": "original-enquiry-reviewed-import-explicit-customer-filing",
+          "passed": true
+        },
+        {
+          "id": "canonical-private-quote-save-and-fresh-session-reopen",
+          "passed": true
+        },
+        {
+          "id": "contextual-product-original-request-inbox-and-supported-customer-reopen",
+          "passed": true
+        },
+        {
+          "id": "contextual-event-original-request-inbox-and-supported-customer-reopen",
+          "passed": true
+        },
+        {
+          "id": "contextual-service-original-request-inbox-and-supported-customer-reopen",
+          "passed": true
+        },
+        {
+          "id": "product-event-service-source-canonical-private-quotes-confirmed",
+          "passed": true
+        },
+        {
+          "id": "typed-listing-server-denials-preserve-pending-and-independent-source-history",
+          "passed": true
+        },
+        {
+          "id": "listing-changed-withdrawn-and-corrupted-history-never-becomes-new-work-authority",
+          "passed": true
+        },
+        {
+          "id": "untyped-prefix-direct-writer-refused-before-customer-write",
+          "passed": true
+        },
+        {
+          "id": "listing-concurrent-filing-once-and-unknown-ack-independent-recovery",
+          "passed": true
+        },
+        {
+          "id": "listing-source-change-and-membership-revocation-before-filing-deny-all",
+          "passed": true
+        },
+        {
+          "id": "all-private-authorities-cross-owner-and-anonymous-denials",
+          "passed": true
+        },
+        {
+          "id": "separate-business-initialize-facts-and-content-not-shared",
+          "passed": true
+        },
+        {
+          "id": "separate-retail-product-enquiry-original-inbox-and-tenant-denial",
+          "passed": true
+        },
+        {
+          "id": "membership-revoked-before-persisted-content-write-denied",
+          "passed": true
+        },
+        {
+          "id": "closed-lifecycle-and-internal-service-execution",
+          "passed": true
+        },
+        {
+          "id": "original-immutable-guards-indexes-and-final-effective-grants",
+          "passed": true
+        },
+        {
+          "id": "finite-facts-preserve-unexposed-profile-service-and-contact-extensions",
+          "passed": true
+        },
+        {
+          "id": "private-business-facts-cannot-edit-an-already-public-profile",
+          "passed": true
+        },
+        {
+          "id": "concurrent-exact-profile-cas-only-one-owner-write-commits",
+          "passed": true
+        },
+        {
+          "id": "profile-dropped-acknowledgement-preserves-intent-without-success-or-replay",
+          "passed": true
+        },
+        {
+          "id": "goal-saved-wording-selection-original-copy-save-and-fresh-reopen",
+          "passed": true
+        },
+        {
+          "id": "goal-enquiry-exact-source-to-canonical-private-quote-revision",
+          "passed": true
+        },
+        {
+          "id": "owner-corrections-use-original-facts-cas-and-confirmed-readback",
+          "passed": true
+        },
+        {
+          "id": "actual-builder-read-contract-allows-scoped-recovery-without-fictitious-marker",
+          "passed": true
+        },
+        {
+          "id": "governed-offline-proposal-original-website-save-readback-and-undo",
+          "passed": true
+        },
+        {
+          "id": "owner-correction-revocation-after-review-denies-write",
+          "passed": true
+        },
+        {
+          "id": "private-function-exact-fuse-and-atomic-install",
+          "passed": true
+        },
+        {
+          "id": "private-function-real-save-readback-two-owner-distinct-graphs",
+          "passed": true
+        },
+        {
+          "id": "private-function-immutable-revision-supersession-and-independent-results",
+          "passed": true
+        },
+        {
+          "id": "private-function-acl-tenant-revoked-owner-and-invalid-rule-denial",
+          "passed": true
+        },
+        {
+          "id": "private-function-lost-ack-no-replay-and-disable-lockdown",
+          "passed": true
+        },
+        {
+          "id": "private-form-exact-fuse-and-failed-install-transaction-restores-original-validator",
+          "passed": true
+        },
+        {
+          "id": "third-independent-private-form-app-through-original-business-profile-and-first-app-authorities",
+          "passed": true
+        },
+        {
+          "id": "three-independent-private-forms-real-save-native-adapter-readback-and-original-app-separation",
+          "passed": true
+        },
+        {
+          "id": "form-canonical-unicode-native-web-and-postgresql-hash-agreement-and-bounded-invalid-values",
+          "passed": true
+        },
+        {
+          "id": "form-invalid-conditional-foreign-revoked-stale-unapproved-and-default-off-denial",
+          "passed": true
+        },
+        {
+          "id": "private-screen-fused-atomic-install-failure-and-final-least-privilege",
+          "passed": true
+        },
+        {
+          "id": "three-original-private-form-edits-new-approved-versions-and-exact-screen-placement-readback",
+          "passed": true
+        },
+        {
+          "id": "private-placement-removal-and-reviewed-undo-retain-original-immutable-artifact",
+          "passed": true
+        },
+        {
+          "id": "private-screen-stale-version-foreign-owner-malformed-binding-and-revoked-member-denial",
+          "passed": true
+        },
+        {
+          "id": "private-screen-real-concurrent-cas-once-and-uncertain-save-without-replay",
+          "passed": true
+        },
+        {
+          "id": "private-form-enquiry-fused-atomic-install-rollback-and-effective-permissions",
+          "passed": true
+        },
+        {
+          "id": "original-form-to-enquiry-inbox-customer-work-journey-catering",
+          "passed": true
+        },
+        {
+          "id": "original-form-to-enquiry-inbox-customer-work-journey-gardening",
+          "passed": true
+        },
+        {
+          "id": "original-form-to-enquiry-inbox-customer-work-journey-website-brief",
+          "passed": true
+        },
+        {
+          "id": "original-form-to-enquiry-inbox-customer-work-journey-retail",
+          "passed": true
+        },
+        {
+          "id": "form-enquiry-forgery-inactive-values-revocation-and-original-request-hash-denial",
+          "passed": true
+        },
+        {
+          "id": "form-enquiry-original-association-and-current-listing-freshness-denial",
+          "passed": true
+        },
+        {
+          "id": "historical-form-labels-retained-after-successor-and-disabled-artifact-new-filing-refused",
+          "passed": true
+        },
+        {
+          "id": "form-enquiry-lost-original-filing-acknowledgement-readback-and-no-replay",
+          "passed": true
+        },
+        {
+          "id": "filed-form-history-survives-original-request-status-changes-and-rejects-corrupted-provenance",
+          "passed": true
+        },
+        {
+          "id": "form-enquiry-retaining-rollback-blocks-new-path-retains-historical-readback",
+          "passed": true
+        },
+        {
+          "id": "private-screen-default-off-and-retaining-rollback-preserve-artifact-authority",
+          "passed": true
+        },
+        {
+          "id": "form-retaining-lockdown-preserves-immutable-rows-and-scoped-read",
+          "passed": true
+        },
+        {
+          "id": "private-function-fused-retaining-rollback-closes-writes-retains-scoped-read",
+          "passed": true
+        },
+        {
+          "id": "guided-website-original-authority-save-readback-0",
+          "passed": true
+        },
+        {
+          "id": "guided-website-original-authority-save-readback-1",
+          "passed": true
+        },
+        {
+          "id": "guided-website-original-authority-save-readback-2",
+          "passed": true
+        },
+        {
+          "id": "menu-story-exact-products-original-studio-save-reopen-undo-0",
+          "passed": true
+        },
+        {
+          "id": "menu-story-exact-products-original-studio-save-reopen-undo-1",
+          "passed": true
+        },
+        {
+          "id": "menu-story-exact-products-original-studio-save-reopen-undo-2",
+          "passed": true
+        },
+        {
+          "id": "creative-brief-original-original-studio-save-reopen-undo-0",
+          "passed": true
+        },
+        {
+          "id": "creative-brief-original-original-studio-save-reopen-undo-1",
+          "passed": true
+        },
+        {
+          "id": "creative-brief-original-original-studio-save-reopen-undo-2",
+          "passed": true
+        },
+        {
+          "id": "expressive-photo-roles-original-studio-save-reopen-undo-0",
+          "passed": true
+        },
+        {
+          "id": "expressive-photo-roles-original-studio-save-reopen-undo-1",
+          "passed": true
+        },
+        {
+          "id": "expressive-photo-roles-original-studio-save-reopen-undo-2",
+          "passed": true
+        },
+        {
+          "id": "reviewed-visual-storyboard-original-studio-save-reopen-undo-0",
+          "passed": true
+        },
+        {
+          "id": "reviewed-visual-storyboard-original-studio-save-reopen-undo-1",
+          "passed": true
+        },
+        {
+          "id": "reviewed-visual-storyboard-original-studio-save-reopen-undo-2",
+          "passed": true
+        },
+        {
+          "id": "authentic-story-original-studio-save-readback-undo-0",
+          "passed": true
+        },
+        {
+          "id": "authentic-story-original-studio-save-readback-undo-1",
+          "passed": true
+        },
+        {
+          "id": "authentic-story-original-studio-save-readback-undo-2",
+          "passed": true
+        },
+        {
+          "id": "one-approved-introduction-original-website-app-creator-growth-0",
+          "passed": true
+        },
+        {
+          "id": "one-approved-introduction-original-website-app-creator-growth-1",
+          "passed": true
+        },
+        {
+          "id": "one-approved-introduction-original-website-app-creator-growth-2",
+          "passed": true
+        },
+        {
+          "id": "media-purpose-original-registry-fuse-and-separate-local-install",
+          "passed": true
+        },
+        {
+          "id": "media-purpose-real-save-independent-readback-reopen-and-withdrawal",
+          "passed": true
+        },
+        {
+          "id": "media-purpose-real-unknown-commit-recovery-never-replays",
+          "passed": true
+        },
+        {
+          "id": "media-purpose-original-owner-cas-malformed-and-direct-access-denials",
+          "passed": true
+        },
+        {
+          "id": "media-purpose-retaining-rollback-preserves-original-history",
+          "passed": true
+        },
+        {
+          "id": "retaining-rollback-fused-and-real-write-denial-with-fresh-readers",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": ".test-artifacts/public-form/postgres.json",
+      "sha256": "24ac6c25102a886908366ee914f2d170396301711542d5603f6ffc599dc6fdac",
+      "summary": {
+        "passed": 21,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "isolated-original-package-auth-shim-and-original-guest-dependencies",
+          "passed": true
+        },
+        {
+          "id": "disclosure-default-off-fuses-and-atomic-failure-retain-original-authorities",
+          "passed": true
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-catering",
+          "passed": true
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-gardening",
+          "passed": true
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-retail",
+          "passed": true
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-website",
+          "passed": true
+        },
+        {
+          "id": "original-prune-counterexample-and-retained-form-proof-history-without-crm-erasure",
+          "passed": true
+        },
+        {
+          "id": "foreign-owner-tenant-disclosure-and-private-storage-access-denied",
+          "passed": true
+        },
+        {
+          "id": "malformed-hidden-values-consent-stale-forms-and-source-selection-denied",
+          "passed": true
+        },
+        {
+          "id": "guest-ingress-independent-switches-publication-and-proof-review-quotas",
+          "passed": true
+        },
+        {
+          "id": "dispatch-recovery-independent-of-new-disclosure-and-no-marketing-or-wrong-app-write",
+          "passed": true
+        },
+        {
+          "id": "expired-forged-proof-and-separate-disclosure-permission-denied",
+          "passed": true
+        },
+        {
+          "id": "original-guest-atomic-concurrent-submit-exact-once-and-no-legacy-marker-bypass",
+          "passed": true
+        },
+        {
+          "id": "unknown-submission-acknowledgement-inspected-without-replay-and-bound-approval-recovery",
+          "passed": true
+        },
+        {
+          "id": "original-contact-and-fingerprint-quotas-and-expired-receipt-access",
+          "passed": true
+        },
+        {
+          "id": "atomic-original-challenge-opening-quota-bounds-anonymous-reset-attempts",
+          "passed": true
+        },
+        {
+          "id": "catalog-current-app-source-validation-and-public-privacy",
+          "passed": true
+        },
+        {
+          "id": "receipt-recovery-inspection-quota-and-reset-without-submission",
+          "passed": true
+        },
+        {
+          "id": "successor-form-withdraws-navigation-but-preserves-original-questions-and-work-history",
+          "passed": true
+        },
+        {
+          "id": "separate-publication-display-only-and-lost-owner-approval-acknowledgement",
+          "passed": true
+        },
+        {
+          "id": "revocation-membership-and-retaining-rollback-preserve-history-and-exact-receipts",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": ".test-artifacts/enquiry-preparation/postgres.json",
+      "sha256": "5c14f1badbf02e84cf24c231036adce8c57ddd408bae117952095f6b3eee7853",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "original-form-inbox-customer-fixture-clone-without-quotes",
+          "passed": true
+        },
+        {
+          "id": "separate-fuse-atomic-failure-and-default-closed",
+          "passed": true
+        },
+        {
+          "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-0",
+          "passed": true
+        },
+        {
+          "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-1",
+          "passed": true
+        },
+        {
+          "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-2",
+          "passed": true
+        },
+        {
+          "id": "foreign-owner-source-app-and-public-access-denial",
+          "passed": true
+        },
+        {
+          "id": "concurrent-progress-CAS-and-exact-undo",
+          "passed": true
+        },
+        {
+          "id": "lost-acknowledgement-inspection-never-replays",
+          "passed": true
+        },
+        {
+          "id": "changed-enquiry-explicit-review-keeps-original-history",
+          "passed": true
+        },
+        {
+          "id": "later-quote-reference-without-copying-progress",
+          "passed": true
+        },
+        {
+          "id": "revoked-membership-malformed-plan-and-no-business-actions",
+          "passed": true
+        },
+        {
+          "id": "withdrawn-or-corrupted-original-source-cannot-reopen-private-progress",
+          "passed": true
+        },
+        {
+          "id": "retaining-rollback-preserves-source-and-checked-progress",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": ".test-artifacts/operational-work/postgres.json",
+      "sha256": "36e5207d16316908487c7b12025d57c153b1b1534929f43d3b90a067a555516c",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "atomic-install-separate-review-and-default-denial",
+          "passed": true
+        },
+        {
+          "id": "original-private-operational-save-reopen-progress-and-overview-0",
+          "passed": true
+        },
+        {
+          "id": "original-private-operational-save-reopen-progress-and-overview-1",
+          "passed": true
+        },
+        {
+          "id": "original-private-operational-save-reopen-progress-and-overview-2",
+          "passed": true
+        },
+        {
+          "id": "private-collection-identity-filters-and-no-job-claims",
+          "passed": true
+        },
+        {
+          "id": "wrong-owner-source-app-public-and-raw-access-denied",
+          "passed": true
+        },
+        {
+          "id": "one-use-review-stale-app-callback-and-placement-CAS",
+          "passed": true
+        },
+        {
+          "id": "lost-placement-acknowledgement-inspect-without-replay",
+          "passed": true
+        },
+        {
+          "id": "changed-source-requires-original-plan-and-placement-review",
+          "passed": true
+        },
+        {
+          "id": "later-original-quote-same-source-no-competing-progress",
+          "passed": true
+        },
+        {
+          "id": "original-quote-only-operational-binding-compatible",
+          "passed": true
+        },
+        {
+          "id": "revocation-binding-removal-keeps-work-and-lifetime-denial",
+          "passed": true
+        },
+        {
+          "id": "retaining-placement-rollback-no-public-or-work-mutation",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": ".test-artifacts/work-preparation/postgres.json",
+      "sha256": "895c56e792151c192a7115b15b57278fb2980a1e16b64313a31c2d23a1966ad3",
+      "summary": {
+        "passed": 12,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "review-fuse-atomic-install-and-default-closed",
+          "passed": true
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-0",
+          "passed": true
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-1",
+          "passed": true
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-2",
+          "passed": true
+        },
+        {
+          "id": "cross-business-owner-membership-and-raw-grants-denied",
+          "passed": true
+        },
+        {
+          "id": "malformed-duplicate-unknown-action-and-stage-transition-denials",
+          "passed": true
+        },
+        {
+          "id": "concurrent-CAS-exact-once-and-explicit-undo",
+          "passed": true
+        },
+        {
+          "id": "lost-acknowledgement-readback-without-replay-and-stale-source-denial",
+          "passed": true
+        },
+        {
+          "id": "direct-sql-malformed-plan-and-unknown-business-actions-refused",
+          "passed": true
+        },
+        {
+          "id": "revocation-serializes-with-current-preparation-read",
+          "passed": true
+        },
+        {
+          "id": "quote-revision-changes-require-fresh-preparation-review",
+          "passed": true
+        },
+        {
+          "id": "retaining-rollback-closes-preparation-with-original-records-intact",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": ".test-artifacts/ai-gateway/postgres.json",
+      "sha256": "ae5bc0ca5b97515a69d04e2d7a94b3e367c6c4b35e8cd8c29b7be9de7baa8b9f",
+      "summary": {
+        "passed": 32,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "local-only-postgresql-and-original-connected-foundation",
+          "passed": true
+        },
+        {
+          "id": "budget-install-fused-atomic-and-disabled",
+          "passed": true
+        },
+        {
+          "id": "two-fictional-businesses-original-profile-and-website",
+          "passed": true
+        },
+        {
+          "id": "effective-private-table-and-finite-rpc-permissions",
+          "passed": true
+        },
+        {
+          "id": "missing-entitlement-tariff-and-disabled-switch-denied",
+          "passed": true
+        },
+        {
+          "id": "reserve-release-exact-accounting-fx-buffer-and-idempotency",
+          "passed": true
+        },
+        {
+          "id": "non-settlement-outcomes-reject-contradictory-usage-evidence",
+          "passed": true
+        },
+        {
+          "id": "wrong-tenant-stale-project-profile-and-unsupported-binding-denied",
+          "passed": true
+        },
+        {
+          "id": "concurrent-reservations-cannot-double-spend-one-allowance",
+          "passed": true
+        },
+        {
+          "id": "global-feature-expensive-expired-and-revoked-entitlement-denied",
+          "passed": true
+        },
+        {
+          "id": "capability-binding-cannot-borrow-a-different-feature-allowance",
+          "passed": true
+        },
+        {
+          "id": "missing-policy-and-null-feature-allowance-fail-closed",
+          "passed": true
+        },
+        {
+          "id": "dispatch-once-and-unknown-liability-never-released-or-retried",
+          "passed": true
+        },
+        {
+          "id": "membership-revoked-after-reservation-denies-dispatch",
+          "passed": true
+        },
+        {
+          "id": "cancel-before-dispatch-release-after-dispatch-hold",
+          "passed": true
+        },
+        {
+          "id": "tariff-evidence-immutable-and-current-dispatch-controls-rechecked",
+          "passed": true
+        },
+        {
+          "id": "concurrency-limit-independent-of-balance-and-expired-dispatch-denied",
+          "passed": true
+        },
+        {
+          "id": "reconciliation-after-membership-revocation-keeps-liability-and-denies-new-work",
+          "passed": true
+        },
+        {
+          "id": "duplicate-concurrent-idempotency-and-goal-replay-conflict",
+          "passed": true
+        },
+        {
+          "id": "changed-original-website-after-reserve-denies-dispatch",
+          "passed": true
+        },
+        {
+          "id": "duplicate-provider-receipt-denied-with-liability-retained",
+          "passed": true
+        },
+        {
+          "id": "expensive-service-bucket-cannot-borrow-and-does-not-block-standard-work",
+          "passed": true
+        },
+        {
+          "id": "conflicting-request-cannot-release-an-earlier-reservation",
+          "passed": true
+        },
+        {
+          "id": "lost-reservation-acknowledgements-respect-server-attempt-ownership",
+          "passed": true
+        },
+        {
+          "id": "lost-dispatch-and-settlement-acknowledgements-never-replay",
+          "passed": true
+        },
+        {
+          "id": "gateway-provider-failure-unknown-and-malicious-output-real-ledger",
+          "passed": true
+        },
+        {
+          "id": "real-gateway-offline-proposal-original-review-save-reopen-and-undo",
+          "passed": true
+        },
+        {
+          "id": "original-app-gateway-two-distinct-plans-studio-preview-save-and-undo",
+          "passed": true
+        },
+        {
+          "id": "two-authorised-accounts-share-one-serialised-platform-ceiling",
+          "passed": true
+        },
+        {
+          "id": "receipt-overrun-retained-and-emergency-stop-closed",
+          "passed": true
+        },
+        {
+          "id": "creative-operation-readback-separate-fuse-scope-and-retaining-rollback",
+          "passed": true
+        },
+        {
+          "id": "retaining-rollback-preserves-liabilities-and-settlement-authority",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": ".test-artifacts/preservation-foundation/postgres.json",
+      "sha256": "810a52e1c5468846f4601d9642a8c380f41eb3aa93ea4a945758e445579dca68",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "isolated-unix-only-postgres-and-exact-hosted-catalogue-fixture",
+          "passed": true
+        },
+        {
+          "id": "original-fresh-package-still-refuses-and-review-fuses-deny",
+          "passed": true
+        },
+        {
+          "id": "permission-schema-policy-sequence-and-unexpected-object-drift-denied",
+          "passed": true
+        },
+        {
+          "id": "mid-install-data-and-catalogue-damage-rolls-back-everything",
+          "passed": true
+        },
+        {
+          "id": "nontransactional-sequence-drift-is-denied-and-never-rewound",
+          "passed": true
+        },
+        {
+          "id": "atomic-original-foundation-ai-and-receipt-install-preserves-state",
+          "passed": true
+        },
+        {
+          "id": "original-owner-profile-website-save-readback-and-source-bindings",
+          "passed": true
+        },
+        {
+          "id": "service-only-current-membership-and-stale-source-denial",
+          "passed": true
+        },
+        {
+          "id": "default-off-then-explicit-disposable-offline-allocation-not-real-entitlement",
+          "passed": true
+        },
+        {
+          "id": "actual-concurrent-reserve-one-winner-immutable-nonce-and-one-dispatch",
+          "passed": true
+        },
+        {
+          "id": "unknown-outcome-retains-liability-and-cannot-replay-or-release",
+          "passed": true
+        },
+        {
+          "id": "fused-retaining-rollback-keeps-existing-state-and-cost-readback",
+          "passed": true
+        },
+        {
+          "id": "known-zero-offline-settlement-retains-audit-no-fake-provider-receipt",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "path": ".test-artifacts/ai-lab-foundation/postgres.json",
+      "sha256": "1e625a9598ec7f22c4285c092550e1f89fb5d6f70b4acc838dfe450b5dfcb1a6",
+      "summary": {
+        "passed": 19,
+        "failed": 0
+      },
+      "results": [
+        {
+          "id": "unix-only-pg17-dedicated-fixture-no-hosted-connection",
+          "passed": true
+        },
+        {
+          "id": "unmodified-original-installer-correctly-refuses-native-public-execute",
+          "passed": true
+        },
+        {
+          "id": "both-review-fuses-refuse-before-any-installation",
+          "passed": true
+        },
+        {
+          "id": "unsafe-auto-rls-default-exposure-native-dependency-and-source-drift-denied",
+          "passed": true
+        },
+        {
+          "id": "preexisting-foreign-records-refused-and-retained",
+          "passed": true
+        },
+        {
+          "id": "late-error-rolls-back-entire-foundation-budget-reader-and-default-changes",
+          "passed": true
+        },
+        {
+          "id": "concurrent-install-one-winner-no-partial-or-duplicate-objects",
+          "passed": true
+        },
+        {
+          "id": "installed-default-off-zero-entitlements-tariffs-operations-and-native-state",
+          "passed": true
+        },
+        {
+          "id": "new-tables-auto-rls-and-no-api-role-default-table-or-function-exposure",
+          "passed": true
+        },
+        {
+          "id": "native-hook-nonowner-create-ctas-select-into-without-execute",
+          "passed": true
+        },
+        {
+          "id": "exact-table-sets-private-acls-and-all-five-ai-port-grants",
+          "passed": true
+        },
+        {
+          "id": "canonical-rls-acls-and-service-only-private-ai-ports",
+          "passed": true
+        },
+        {
+          "id": "fictional-original-business-profile-website-save-readback-undo-redo",
+          "passed": true
+        },
+        {
+          "id": "foreign-revoked-stale-source-denial-and-current-readback",
+          "passed": true
+        },
+        {
+          "id": "initial-budget-denial-then-explicit-disposable-offline-allocation-only",
+          "passed": true
+        },
+        {
+          "id": "real-concurrent-ledger-one-reservation-one-dispatch-and-immutable-nonce",
+          "passed": true
+        },
+        {
+          "id": "unknown-outcome-liability-held-never-replayed-or-released",
+          "passed": true
+        },
+        {
+          "id": "retaining-rollback-keeps-data-history-finish-and-independent-receipt",
+          "passed": true
+        },
+        {
+          "id": "known-zero-offline-settlement-and-reinstall-denial-retain-evidence",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "postgresTotal": {
+    "passed": 249,
+    "failed": 0
+  },
+  "application": {
+    "initialRun": {
+      "passed": 498,
+      "failed": 0,
+      "blocked": 1,
+      "unexecuted": 0
+    },
+    "initialRunSha256": "8303f961f1a168c65afb0ce552e83733bb778809a2db5d17db0bbd4874c9ff9c",
+    "startedAt": "2026-11-06T09:19:17.734027+00:00",
+    "finishedAt": "2026-11-06T09:45:51.662361+00:00",
+    "headStableDuringRun": true,
+    "runHead": "0fe5e4e713b4e1e36ca9a70ea50bf5af96e555ec",
+    "runHeadTree": "d2a3a841bf63ab191daa840350583a1506ef421b",
+    "scope": "Original full selection ran on the working source subsequently frozen as the functional tree. HEAD was the preserved local continuity commit during that run; new package/syntax/PG19/Deno/legacy checks were independently rerun on the clean frozen functional commit. Not a claim of a clean single-run CI pass.",
+    "resolvedBlockedCheck": "frozen-source-evidence",
+    "rerunExitCode": 0,
+    "resolvedTotal": {
+      "passed": 499,
+      "failed": 0,
+      "blocked": 0
+    }
+  },
+  "legacy": {
+    "hostedWorkflowDispatch": false,
+    "workflowDefinitions": 6,
+    "uniqueChecks": {
+      "passed": 10,
+      "failed": 0
+    },
+    "workflows": [
+      {
+        "workflow": "check-growth-drafts.yml",
+        "scripts": [
+          "scripts/check-coordinated-growth.mjs",
+          "scripts/check-growth-drafts.mjs",
+          "scripts/check-conversation-understanding.mjs"
+        ]
+      },
+      {
+        "workflow": "check-growth-workspace.yml",
+        "scripts": [
+          "scripts/check-coordinated-growth.mjs",
+          "scripts/check-growth-drafts.mjs",
+          "scripts/check-growth-workspace.mjs",
+          "scripts/check-conversation-understanding.mjs"
+        ]
+      },
+      {
+        "workflow": "check-growth-command-centre.yml",
+        "scripts": [
+          "scripts/check-coordinated-growth.mjs",
+          "scripts/check-growth-drafts.mjs",
+          "scripts/check-growth-workspace.mjs",
+          "scripts/check-growth-command-centre.mjs",
+          "scripts/check-conversation-understanding.mjs"
+        ]
+      },
+      {
+        "workflow": "check-growth-operator.yml",
+        "scripts": [
+          "scripts/check-coordinated-growth.mjs",
+          "scripts/check-growth-drafts.mjs",
+          "scripts/check-growth-workspace.mjs",
+          "scripts/check-growth-command-centre.mjs",
+          "scripts/check-growth-operator.mjs",
+          "scripts/check-conversation-understanding.mjs"
+        ]
+      },
+      {
+        "workflow": "check-founder-operations.yml",
+        "scripts": [
+          "scripts/check-self-running-operations.mjs",
+          "scripts/check-verified-activity.mjs",
+          "scripts/check-growth-operator.mjs",
+          "scripts/check-founder-operations.mjs"
+        ]
+      },
+      {
+        "workflow": "check-platform-autopilot.yml",
+        "scripts": [
+          "scripts/check-platform-autopilot.mjs",
+          "scripts/check-founder-operations.mjs",
+          "scripts/check-self-running-operations.mjs",
+          "scripts/check-verified-activity.mjs"
+        ]
+      }
+    ]
+  },
+  "foundation": {
+    "passed": 105,
+    "failed": 0
+  },
+  "deno": {
+    "entryTargets": 26,
+    "additionalModules": 4,
+    "exitCode": 0
+  },
+  "sourceSyntax": {
+    "passed": 4,
+    "failed": 0
+  },
+  "changedWorkflowYaml": {
+    "passed": 2,
+    "failed": 0
+  },
+  "architecture": {
+    "sourceFiles": 1932,
+    "staticRelativeEdges": 4551,
+    "distinctStaticCycles": 0,
+    "exitCode": 0,
+    "scope": "Existing static relative-import check, not a general historical security audit"
+  },
+  "logs": {
+    "105": {
+      "sha256": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e",
+      "exitCode": 0
+    },
+    "security": {
+      "sha256": "87abb05e4d5dd8ce857858d1ee2411b9d3231cde7ce550fce97fd5985fb9441c",
+      "exitCode": 0
+    },
+    "dependency": {
+      "sha256": "b13dad40449d6f0b486902876dedcbf937bec523ca044806377a82bcf3035da1",
+      "exitCode": 0
+    },
+    "deno": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0
+    },
+    "architecture": {
+      "sha256": "7d648be7f375289db3ba18d155889e9ad0f0d0cfc92d4cd6ff40982e5930fdb1",
+      "exitCode": 0
+    },
+    "frozen-source-rerun": {
+      "sha256": "bc3a304193e8860f370354a0aa35698f3f6cae242fc1f1fb986fe1e2f978eeac",
+      "exitCode": 0
+    }
+  },
+  "unsuccessfulAndSuperseded": [
+    "Earlier permission-handling attempts were interrupted/unconfirmed; not counted as passes.",
+    "Initial new private-sequence ACL test failed because PostgreSQL may evaluate a privilege function before a relkind filter; corrected to a CASE type guard. SQL/security assertions were retained, then19stages passed.",
+    "Default-sandbox frozen-source check was EPERM-blocked; exact same check passed with required sandbox permission. Primary blocked result retained.",
+    "Independent-review extra test execution stalled at permission handling and was aborted; no outcomes claimed from that attempt."
+  ],
+  "visualScope": "No new CSS/layout/hero change or screenshot acceptance in this mission. Prior bounded polite menu wording support is preserved with source/owner protections. No agency-grade or gold-standard approval claimed.",
+  "goldStandards": {
+    "references": 3,
+    "approved": 0
+  },
+  "hostedLegacyCi": [
+    {
+      "id": 42198758558,
+      "conclusion": "success",
+      "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e"
+    },
+    {
+      "id": 42198758449,
+      "conclusion": "success",
+      "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e"
+    },
+    {
+      "id": 42198758451,
+      "conclusion": "success",
+      "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e"
+    },
+    {
+      "id": 42198758644,
+      "conclusion": "success",
+      "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e"
+    },
+    {
+      "id": 42198758458,
+      "conclusion": "success",
+      "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e"
+    },
+    {
+      "id": 42198758594,
+      "conclusion": "success",
+      "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e"
+    }
+  ],
+  "mainCi": {
+    "run": 42198749461,
+    "conclusion": "success",
+    "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+    "application": {
+      "sourceSha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+      "sourceTree": "9305def084ec1d64eb8d68387cc86da27806990d",
+      "finalSourceSha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+      "finalSourceTree": "9305def084ec1d64eb8d68387cc86da27806990d",
+      "sourceStable": true,
+      "workingTreeChanged": false,
+      "summary": {
+        "passed": 499,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      }
+    },
+    "artifact": [
+      {
+        "id": 13493989510,
+        "name": "private-app-goal-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 188904,
+        "digest": "sha256:2595981198120d00f2733e8d1dd48001398ffc591572cfd65d123a837ee844b9"
+      }
+    ]
+  },
+  "browserCi": {
+    "run": 42198749462,
+    "conclusion": "success",
+    "headSha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+    "artifacts": [
+      {
+        "id": 13495235111,
+        "name": "website-excellence-rich-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 9130969,
+        "digest": "sha256:f03bccab5f0e66010035d18d5518d02ea0408577f5b833d522c3bac4e9202300"
+      },
+      {
+        "id": 13495200680,
+        "name": "website-creative-renderer-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 17138024,
+        "digest": "sha256:8be827ec667a2aafcde5407c7106e51c39e43b1c2c5f869ff19df7abefb6a2d9"
+      },
+      {
+        "id": 13495140859,
+        "name": "website-creative-gardening-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 17485789,
+        "digest": "sha256:ad0a3a035caf791b2478004189b7edfde465e10c7865dbf74f7f861eeb97087d"
+      },
+      {
+        "id": 13495135479,
+        "name": "website-storyboard-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11682195,
+        "digest": "sha256:dec8643864992d04fd94f64e44da5702081f85ad4e638a07c49bc91a86d047cc"
+      },
+      {
+        "id": 13495110877,
+        "name": "website-menu-story-gardening-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 17263467,
+        "digest": "sha256:9db2ccce609de2076f1ccb1e34fa324cf7b4d835e47e321e79e679252ed1e86a"
+      },
+      {
+        "id": 13494926213,
+        "name": "website-menu-story-delivery-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 12143515,
+        "digest": "sha256:b60d666eed97a20758caea81eac8d3569cac892ef18a9076feb7d6d82f914756"
+      },
+      {
+        "id": 13494806023,
+        "name": "website-art-direction-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11603619,
+        "digest": "sha256:fc4e0b8ed58f1f2529b6f2df51dcd765127ada90095a69e388cd15851284b18b"
+      },
+      {
+        "id": 13494781416,
+        "name": "website-menu-story-studio-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 3464683,
+        "digest": "sha256:baa7b2d9cb791a15d5929d93c6e9fca91b7c5bba49f3c9a8e5244ee4482102b7"
+      },
+      {
+        "id": 13494756399,
+        "name": "website-creative-studio-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 3779543,
+        "digest": "sha256:5871803da152e2fa835d2f9de464800e2dec92c3242f6b0266862afc90f899ff"
+      },
+      {
+        "id": 13494751423,
+        "name": "website-creative-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 12480422,
+        "digest": "sha256:803aac38cff2aa2ce17c236d368540257aa1db3a30ee8b575c8afaf0bbe23e9c"
+      },
+      {
+        "id": 13494726616,
+        "name": "website-creative-delivery-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11929915,
+        "digest": "sha256:9c7d600489da4d64f38aa4dbba020f56374da03bc89a05757e49886da1812105"
+      },
+      {
+        "id": 13494612010,
+        "name": "website-acceptance-benchmark-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 14593355,
+        "digest": "sha256:12fcabe29acc29400b8eb88600dccd7b755cac12b2d97a49fdad12f0d3170eb3"
+      },
+      {
+        "id": 13494596499,
+        "name": "website-expansion-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 18965449,
+        "digest": "sha256:4fb423c8d6169691cad8d97ff0b00fa478e8127801e112ba37f966a8ceb41343"
+      },
+      {
+        "id": 13494526822,
+        "name": "website-authentic-story-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 27412869,
+        "digest": "sha256:f4e90b72a1158c9362afa9fbfc240dc6e70c92dc41f1144380920978d084b639"
+      },
+      {
+        "id": 13494517300,
+        "name": "website-creative-catering-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 16279287,
+        "digest": "sha256:db320e1b41e438f4fdabf3099649d2b8f4aa4ec6492381f5eaaec58b32cce8e0"
+      },
+      {
+        "id": 13494496831,
+        "name": "website-menu-story-catering-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 16121600,
+        "digest": "sha256:f21df7d352ef4a7193a4bdc3982707ed1006152f156e74caf8b675448b891caa"
+      },
+      {
+        "id": 13494482310,
+        "name": "website-menu-story-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11700570,
+        "digest": "sha256:9a784324b360711490560abf0fa45a39117eb0ef56c42a7f776a63cff7d989b2"
+      },
+      {
+        "id": 13494412076,
+        "name": "website-art-direction-studio-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 3138872,
+        "digest": "sha256:caff2687997c355f150500c1aef5fc75eccca422a2ff9579938cecbef91b79d3"
+      },
+      {
+        "id": 13494212898,
+        "name": "website-excellence-gardens-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 11729059,
+        "digest": "sha256:bac1a023f5b967d83eb5025f0fbf6a60501e2e6f40bb892f53fa5ad547e31562"
+      },
+      {
+        "id": 13494183050,
+        "name": "website-art-direction-catering-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 14911008,
+        "digest": "sha256:eeb7a221c2ff19b4714509887c9b3933259b1201191d7bfd75bccc1a49e63268"
+      },
+      {
+        "id": 13494148005,
+        "name": "website-art-direction-gardening-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 16946323,
+        "digest": "sha256:2d48ecef4d880852dd9c6b6ae6f04dde6565c55d18a8df701dfcca86f4223060"
+      },
+      {
+        "id": 13494133166,
+        "name": "website-storyboard-businesses-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 28131359,
+        "digest": "sha256:28b9cd3cf6a0e94c23196e6a03746732531a851975127dcfe851e9aba4665b74"
+      },
+      {
+        "id": 13494023376,
+        "name": "website-introduction-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 8872648,
+        "digest": "sha256:67df2a689aec4eb0fa6bfe7209f487a6423835d9680fac96f9a687d4027ea338"
+      },
+      {
+        "id": 13493504713,
+        "name": "website-guided-57148cbba4a61c2ecb50361f1914196b8717022e",
+        "size": 6485064,
+        "digest": "sha256:f15eddf8c4410426899702ad548a09d1eb46ed1ef6a06b8a99e014f1410f46db"
+      }
+    ],
+    "scope": "Genuine existing sandboxed-renderer regression, no new visual design acceptance or agency-quality claim."
+  },
+  "functionalRemoteUpdate": {
+    "branch": "codex/builder-mission15-design-advancement",
+    "parent": "7710cf20274f1225ac9828642492a26b3535c7ff",
+    "sha": "57148cbba4a61c2ecb50361f1914196b8717022e",
+    "tree": "9305def084ec1d64eb8d68387cc86da27806990d",
+    "force": false,
+    "merge": false
+  },
+  "localPostgresCleanup": "Disposable Unix-only server stopped after completed suites; hosted server untouched."
+}

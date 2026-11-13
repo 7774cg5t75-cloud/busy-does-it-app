@@ -1,0 +1,86 @@
+{
+  "scenarios": [
+    {
+      "id": 0,
+      "business": "Ember Festival Kitchen",
+      "family": "story-spread",
+      "photoExpected": true,
+      "before": "0-before.html",
+      "after": "0-after.html",
+      "factsSha256": "b266283636d207296539004ff358d5049ac7daa62c22da28edddab159e1f4888",
+      "comparison": "same approved facts/assets/order/family; reviewed whole-page treatment, plus separately reviewed service-layout alternative for the five less-generic requests"
+    },
+    {
+      "id": 1,
+      "business": "Clearleaf Gardens",
+      "family": "service-led",
+      "photoExpected": true,
+      "before": "1-before.html",
+      "after": "1-after.html",
+      "factsSha256": "c55584b08768d90d37f7f039f087bfe747178ff5e8b441dd100cb84c2d935dfd",
+      "comparison": "same approved facts/assets/order/family; reviewed whole-page treatment, plus separately reviewed service-layout alternative for the five less-generic requests"
+    },
+    {
+      "id": 2,
+      "business": "Quiet Light Studio",
+      "family": "typography-first",
+      "photoExpected": false,
+      "before": "2-before.html",
+      "after": "2-after.html",
+      "factsSha256": "d1c095066051bc45ac8d25a0992b91e3caa4970dc79fedbff2e20cd340c583ce",
+      "comparison": "same approved facts/assets/order/family; reviewed whole-page treatment, plus separately reviewed service-layout alternative for the five less-generic requests"
+    },
+    {
+      "id": 3,
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "photoExpected": true,
+      "before": "3-before.html",
+      "after": "3-after.html",
+      "factsSha256": "45dd1b1270b4f266e6e4732d2cccb3ec0d754c3a8d914a7a6823faf4d9bdbb98",
+      "comparison": "same approved facts/assets/order/family; reviewed whole-page treatment, plus separately reviewed service-layout alternative for the five less-generic requests"
+    },
+    {
+      "id": 4,
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "photoExpected": true,
+      "before": "4-before.html",
+      "after": "4-after.html",
+      "factsSha256": "d2f7b9dfc4fcfdfdab35ac347646c49c224308308224ef5627d21e51d68ad016",
+      "comparison": "same approved facts/assets/order/family; reviewed whole-page treatment, plus separately reviewed service-layout alternative for the five less-generic requests"
+    },
+    {
+      "id": 5,
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "photoExpected": false,
+      "before": "5-before.html",
+      "after": "5-after.html",
+      "factsSha256": "596992a860a4eaa873639cde90198c60dc78410a72523254cbb5dca22fe216d5",
+      "comparison": "same approved facts/assets/order/family; reviewed whole-page treatment, plus separately reviewed service-layout alternative for the five less-generic requests"
+    },
+    {
+      "id": 6,
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "photoExpected": true,
+      "before": "6-before.html",
+      "after": "6-after.html",
+      "factsSha256": "53d09b73b97b5432aeec24825cb51e3cf6a7b3caa65f065d4bca98e71481af57",
+      "comparison": "same approved facts/assets/order/family; reviewed whole-page treatment, plus separately reviewed service-layout alternative for the five less-generic requests"
+    },
+    {
+      "id": 7,
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "photoExpected": true,
+      "before": "7-before.html",
+      "after": "7-after.html",
+      "factsSha256": "06c8d4431c64008aa7be57e8ff7a275abb74d5da9d5b503a65236c80115d6cc5",
+      "comparison": "same approved facts/assets/order/family; reviewed whole-page treatment, plus separately reviewed service-layout alternative for the five less-generic requests"
+    }
+  ],
+  "synthetic": true,
+  "publicActivation": false
+}

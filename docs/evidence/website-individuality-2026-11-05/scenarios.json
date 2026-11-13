@@ -1,0 +1,278 @@
+{
+  "scenarios": [
+    {
+      "id": "0",
+      "reviewedPlanBinding": {
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000150",
+        "projectId": "website-1793900420577",
+        "sourceRevision": 1,
+        "profileRevision": 1,
+        "candidateRevision": 2,
+        "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+      },
+      "business": "Ember Festival Kitchen — sparse approved source",
+      "family": "story-spread",
+      "before": "0-before.html",
+      "after": "0-after.html",
+      "sourceRichness": "sparse",
+      "photoExpected": true,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source, source-bound whole-page direction only. No provider result or account-save receipt.",
+      "delivery": {
+        "map": {
+          "approved/catering.jpg#640": "https://assets.example.invalid/menu-0-0-640.webp",
+          "approved/catering.jpg#1280": "https://assets.example.invalid/menu-0-0-1280.webp",
+          "approved/catering.jpg#1920": "https://assets.example.invalid/menu-0-0-1920.webp"
+        },
+        "canonicalDefaultHtmlSha256": "8a700dafa9dc6997c3ec667fda87860f900006d2c6dfc10efabb25a547231738",
+        "deliveredHtmlSha256": "d3a73d96c5d62fd1bdbd3f5bb6315c1970790398dd71002b75fd06d5f77edd25",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "1",
+      "reviewedPlanBinding": {
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000150",
+        "projectId": "website-1793900420651",
+        "sourceRevision": 1,
+        "profileRevision": 1,
+        "candidateRevision": 2,
+        "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+      },
+      "business": "Ember Festival Kitchen — rich approved source",
+      "family": "story-spread",
+      "before": "1-before.html",
+      "after": "1-after.html",
+      "sourceRichness": "rich",
+      "photoExpected": true,
+      "recordPhotoBindings": [
+        {
+          "recordId": "menu_roast_bowl",
+          "recordRevision": 1,
+          "uri": "https://assets.example.invalid/food-detail.jpg"
+        },
+        {
+          "recordId": "menu_sharing_buffet",
+          "recordRevision": 1,
+          "uri": "https://assets.example.invalid/catering.jpg"
+        }
+      ],
+      "comparison": "Same approved source, source-bound whole-page direction only. No provider result or account-save receipt.",
+      "delivery": {
+        "map": {
+          "approved/food-plate.jpg#640": "https://assets.example.invalid/menu-1-0-640.webp",
+          "approved/food-plate.jpg#1280": "https://assets.example.invalid/menu-1-0-1280.webp",
+          "approved/food-detail.jpg#640": "https://assets.example.invalid/menu-1-1-640.webp",
+          "approved/food-detail.jpg#1280": "https://assets.example.invalid/menu-1-1-1280.webp",
+          "approved/catering.jpg#640": "https://assets.example.invalid/menu-1-2-640.webp",
+          "approved/catering.jpg#1280": "https://assets.example.invalid/menu-1-2-1280.webp",
+          "approved/catering.jpg#1920": "https://assets.example.invalid/menu-1-2-1920.webp"
+        },
+        "canonicalDefaultHtmlSha256": "7cd3cbceb4236ad2f9b42fb6a49d4dadce3db9f625e3ea249c3f5f46417b9cfb",
+        "deliveredHtmlSha256": "ee1e941394a8caaf93168cc6409d0a15fcbaaedcb4748c5f2b6f75ea0d2d7cce",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "2",
+      "reviewedPlanBinding": {
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000151",
+        "projectId": "website-1793900420761",
+        "sourceRevision": 1,
+        "profileRevision": 1,
+        "candidateRevision": 2,
+        "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+      },
+      "business": "Clearleaf Gardens — sparse approved source",
+      "family": "service-led",
+      "before": "2-before.html",
+      "after": "2-after.html",
+      "sourceRichness": "sparse",
+      "photoExpected": true,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source, source-bound whole-page direction only. No provider result or account-save receipt.",
+      "delivery": {
+        "map": {
+          "approved/garden.jpg#640": "https://assets.example.invalid/menu-2-0-640.webp",
+          "approved/garden.jpg#1280": "https://assets.example.invalid/menu-2-0-1280.webp"
+        },
+        "canonicalDefaultHtmlSha256": "825534ebdc1bb2ef13aa7dca283f16ab16a9022aa8b1bf0ca39a734787a88887",
+        "deliveredHtmlSha256": "fe2d31e63a8067a99cbb3d89ab928995fd0b9c5466804ff3eb2fffa503efd713",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "3",
+      "reviewedPlanBinding": {
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000151",
+        "projectId": "website-1793900420805",
+        "sourceRevision": 1,
+        "profileRevision": 1,
+        "candidateRevision": 2,
+        "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+      },
+      "business": "Clearleaf Gardens — rich approved source",
+      "family": "service-led",
+      "before": "3-before.html",
+      "after": "3-after.html",
+      "sourceRichness": "rich",
+      "photoExpected": true,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source, source-bound whole-page direction only. No provider result or account-save receipt.",
+      "delivery": {
+        "map": {
+          "approved/garden-path.jpg#640": "https://assets.example.invalid/menu-3-0-640.webp",
+          "approved/garden-path.jpg#1280": "https://assets.example.invalid/menu-3-0-1280.webp",
+          "approved/garden-reference.jpg#640": "https://assets.example.invalid/menu-3-1-640.webp",
+          "approved/garden-reference.jpg#1280": "https://assets.example.invalid/menu-3-1-1280.webp",
+          "approved/garden.jpg#640": "https://assets.example.invalid/menu-3-2-640.webp",
+          "approved/garden.jpg#1280": "https://assets.example.invalid/menu-3-2-1280.webp"
+        },
+        "canonicalDefaultHtmlSha256": "a1a56893eb4302cea80b8ebba7acc004af44e032aa98b19ed535f7c16fa60a87",
+        "deliveredHtmlSha256": "c462ae2e32aeb2bd9acc1812e09bd4aa3c7b9df4b69a4b90065dd9999cd08290",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "4",
+      "reviewedPlanBinding": {
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000152",
+        "projectId": "website-1793900420864",
+        "sourceRevision": 1,
+        "profileRevision": 1,
+        "candidateRevision": 2,
+        "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+      },
+      "business": "Quiet Light Studio — sparse approved source",
+      "family": "typography-first",
+      "before": "4-before.html",
+      "after": "4-after.html",
+      "sourceRichness": "sparse",
+      "photoExpected": false,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source, source-bound whole-page direction only. No provider result or account-save receipt.",
+      "delivery": {
+        "map": {},
+        "canonicalDefaultHtmlSha256": "ecdc5f8a3063c85e196b1357ae0561b01814ff0ab71b0b8eca9b134a4e533fb8",
+        "deliveredHtmlSha256": "ecdc5f8a3063c85e196b1357ae0561b01814ff0ab71b0b8eca9b134a4e533fb8",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "5",
+      "reviewedPlanBinding": {
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000152",
+        "projectId": "website-1793900420903",
+        "sourceRevision": 1,
+        "profileRevision": 1,
+        "candidateRevision": 2,
+        "provenance": "Original reviewed plan basis and intended candidate revision; not an account-save receipt"
+      },
+      "business": "Quiet Light Studio — rich approved source",
+      "family": "typography-first",
+      "before": "5-before.html",
+      "after": "5-after.html",
+      "sourceRichness": "rich",
+      "photoExpected": false,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source, source-bound whole-page direction only. No provider result or account-save receipt.",
+      "delivery": {
+        "map": {},
+        "canonicalDefaultHtmlSha256": "8970c3dca1cd547db049b24909f1907a1df6efb036fcdbe5ff1038f5d5f814dc",
+        "deliveredHtmlSha256": "8970c3dca1cd547db049b24909f1907a1df6efb036fcdbe5ff1038f5d5f814dc",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "6",
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "before": "6-before.html",
+      "after": "6-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": [],
+      "comparison": "Same facts/assets, reviewed whole-page direction. Existing sparse scaffolding is retained honestly."
+    },
+    {
+      "id": "7",
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "before": "7-before.html",
+      "after": "7-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": [],
+      "comparison": "Same facts/assets, reviewed whole-page direction. Existing sparse scaffolding is retained honestly."
+    },
+    {
+      "id": "8",
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "before": "8-before.html",
+      "after": "8-after.html",
+      "photoExpected": false,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": [],
+      "comparison": "Same facts/assets, reviewed whole-page direction. Existing sparse scaffolding is retained honestly."
+    },
+    {
+      "id": "9",
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "before": "9-before.html",
+      "after": "9-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": [],
+      "comparison": "Same facts/assets, reviewed whole-page direction. Existing sparse scaffolding is retained honestly."
+    },
+    {
+      "id": "10",
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "before": "10-before.html",
+      "after": "10-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": [],
+      "comparison": "Same facts/assets, reviewed whole-page direction. Existing sparse scaffolding is retained honestly."
+    },
+    {
+      "id": "11",
+      "business": "Ember Festival Kitchen — renderer-only CSS comparison",
+      "family": "story-spread",
+      "before": "11-before.html",
+      "after": "11-after.html",
+      "comparison": "Identical approved source facts/assets; original standard direction versus reviewed whole-page direction. Configuration change, not a CSS-only comparison.",
+      "photoExpected": true,
+      "recordPhotoBindings": []
+    },
+    {
+      "id": "12",
+      "business": "Clearleaf Gardens — renderer-only CSS comparison",
+      "family": "service-led",
+      "before": "12-before.html",
+      "after": "12-after.html",
+      "comparison": "Identical approved source facts/assets; original standard direction versus reviewed whole-page direction. Configuration change, not a CSS-only comparison.",
+      "photoExpected": true,
+      "recordPhotoBindings": []
+    },
+    {
+      "id": "13",
+      "business": "Quiet Light Studio — renderer-only CSS comparison",
+      "family": "typography-first",
+      "before": "13-before.html",
+      "after": "13-after.html",
+      "comparison": "Identical approved source facts/assets; original standard direction versus reviewed whole-page direction. Configuration change, not a CSS-only comparison.",
+      "photoExpected": false,
+      "recordPhotoBindings": []
+    }
+  ]
+}

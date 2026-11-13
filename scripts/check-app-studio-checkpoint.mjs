@@ -15,7 +15,7 @@ const first=await create();first.prepare(proposal);await tick();first.detach();
 const restored=await create();assert.deepEqual(restored.snapshot().preview.nextConfig,proposal.nextConfig);assert.equal(restored.snapshot().canApprove,true);
 const other={...scope,ownerId:'dddddddd-dddd-4ddd-8ddd-dddddddddddd'};assert.notEqual(key(scope),key(other));assert.equal((await create(other)).snapshot().preview,null);
 const stale={...scope,app:{...scope.app,draft_revision:5}};assert.equal((await create(stale)).snapshot().preview,null);
-fail=true;await restored.approve(async()=>{writes++;});assert.equal(writes,0);assert.equal(restored.snapshot().uncertain,true);assert.match(restored.snapshot().recoveryError,/device locked/);
+fail=true;await restored.approve(async()=>{writes++;});assert.equal(writes,0);assert.equal(restored.snapshot().uncertain,false,'Storage failed before any dispatch, so no save outcome is unknown');assert.match(restored.snapshot().recoveryError,/device locked/);
 fail=false;restored.prepare(proposal);let finish;
 const pending=restored.approve(()=>{writes++;return new Promise(resolve=>{finish=resolve;});});await tick();assert.equal(writes,1);
 const interrupted=await create();assert.equal(interrupted.snapshot().interrupted,true);assert.equal(interrupted.snapshot().canApprove,false);assert.equal(interrupted.snapshot().canUndo,false);assert.equal(writes,1);
@@ -26,8 +26,8 @@ assert.equal((await create({...scope,app:{...saved,draft_revision:6}})).snapshot
 recoveredUndo.discard();await tick();assert.equal((await create({...scope,app:saved})).snapshot().undo,null);
 const savedKey=key(scope);data.set(savedKey,JSON.stringify({v:1,ownerId:other.ownerId,businessId:scope.businessId,appId:scope.app.id,at:1000,state:{}}));const foreign=await create();assert.equal(foreign.snapshot().preview,null);assert.match(foreign.snapshot().recoveryError,/another workspace/);
 // Writes are serialized even if the native storage completes out of order.
-let release;const events=[];const queued=checkpoint({...storage,setItemAsync:async(k,v)=>{events.push(JSON.parse(v).state);if(events.length===1)await new Promise(r=>{release=r;});}},scope,{now:()=>1000});
-const one=queued.save({n:1}),two=queued.save({n:2});await tick();assert.deepEqual(events,[{n:1}]);release();await Promise.all([one,two]);assert.deepEqual(events,[{n:1},{n:2}]);
+let release;const events=[];const queued=checkpoint({...storage,setItemAsync:async(k,v)=>{events.push(JSON.parse(v).state);if(events.length===1)await new Promise(r=>{release=r;});data.set(k,v);}},scope,{now:()=>1000});
+const one=queued.save({n:1}),two=queued.save({n:2});await tick();assert.deepEqual(events,[{n:1}]);release();await Promise.all([one,two]);assert.deepEqual(events,[{n:1},{n:2}]);assert.deepEqual(await queued.load(),{n:2});
 await assert.rejects(checkpoint(storage,scope).save({large:'x'.repeat(60000)}),/too large/);
 parse(readFileSync('src/screens/usePrivateAppStudio.js','utf8'),{sourceType:'module',plugins:['jsx']});
 console.log('PASS: encrypted checkpoint contract, restart proposal/undo, exact revision/actor binding, durable-before-write intent, no replay, unavailable storage, bounded records and serialized native writes. Simulated storage/transport only.');

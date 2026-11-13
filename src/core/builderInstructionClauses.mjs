@@ -1,7 +1,7 @@
 // Bound clause splitting without treating quoted owner copy as commands.
 // No code evaluation, language model, action execution or permission grant.
-function splitBuilderInstructionClauses(text,{website=false,max=8}={}){
- if(typeof text!=='string'||!text.trim()||text.length>400)return null;
+function splitBuilderInstructionClauses(text,{website=false,max=8,maxCharacters=400}={}){
+ if(!Number.isSafeInteger(max)||max<1||max>30||!Number.isSafeInteger(maxCharacters)||maxCharacters<1||maxCharacters>6000||typeof text!=='string'||!text.trim()||text.length>maxCharacters)return null;
  const value=text.trim(),parts=[];let start=0,quote='';
  for(let i=0;i<value.length;i++){
   const ch=value[i],previous=value[i-1]||'',next=value[i+1]||'';
@@ -10,7 +10,7 @@ function splitBuilderInstructionClauses(text,{website=false,max=8}={}){
    continue;
   }
   if(ch==='"'||ch==='“'||ch==='‘'||ch==="'"&&(!previous||/[\s:(]/.test(previous))){quote=ch==='“'?'”':ch==='‘'?'’':ch;continue;}
-  const separator=(website?/^(?:\s*;\s*|\s+and then\s+|,\s*then\s+|\s+and\s+(?=(?:make|set|centre|center|align|give|move|put|focus|crop|show|fill)\b))/i:/^(?:\s*,\s*|\s*;\s*|\s+and(?: then)?\s+)/i).exec(value.slice(i));
+  const separator=(website?/^(?:\s*;\s*|\s+and then\s+|,\s*then\s+|,\s*(?=(?:make|set|give|move|put)\b)|\s+and\s+(?=(?:make|set|centre|center|align|give|move|put|focus|crop|show|fill|keep)\b))/i:/^(?:\s*,\s*|\s*;\s*|\s+and(?: then)?\s+)/i).exec(value.slice(i));
   if(separator){parts.push(value.slice(start,i).trim());i+=separator[0].length-1;start=i+1;}
  }
  if(quote)return null;parts.push(value.slice(start).trim());

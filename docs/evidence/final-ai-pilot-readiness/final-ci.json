@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "kind": "Independent native GitHub CI metadata and actual job-log summary",
+  "observedAt": "2026-11-07 20:38:56 UTC",
+  "run": {
+    "id": 42410599970,
+    "attempt": 1,
+    "actor": "7774cg5t75-cloud",
+    "branch": "codex/builder-mission15-design-advancement",
+    "status": "completed",
+    "conclusion": "success",
+    "createdAt": "2026-11-07T20:20:38Z",
+    "completedAt": "2026-11-07T20:36:53Z",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42410599970"
+  },
+  "source": {
+    "commit": "a4557d164ae03a93eb5aa310749a32e89c14ca40",
+    "tree": "7d92ff206eddbc59c3e45ba55a3ab74cabb3dfbe",
+    "finalCommit": "a4557d164ae03a93eb5aa310749a32e89c14ca40",
+    "finalTree": "7d92ff206eddbc59c3e45ba55a3ab74cabb3dfbe",
+    "sourceStable": true,
+    "workingTreeChanged": false
+  },
+  "job": {
+    "id": 128517684028,
+    "status": "completed",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Reviewed lock installation and security guard",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Original contract and component behaviour",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Original legacy Website worker scopes with real shared dependencies",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Genuine original Edge checks with pinned official verification tools",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Genuine PostgreSQL 17 and PostgREST B3 HTTP regression",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Unsigned original Owner Preview and isolated staging exports",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Complete frozen-source regressions",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "signingKey": {
+    "ok": true,
+    "source": "installed-postgresql-common-public-key",
+    "path": "/etc/apt/keyrings/busy-pgdg.asc",
+    "packagedSource": "/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc",
+    "packageOwner": "postgresql-client-common",
+    "packageVersion": "293.pgdg24.04+1",
+    "fingerprint": "B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8",
+    "primaryKeys": 1,
+    "sha256": "0144068502a1eddd2a0280ede10ef607d1ec592ce819940991203941564e8e76",
+    "downloads": 0,
+    "keyImports": 0,
+    "repositoryChanges": 0
+  },
+  "postgresVersion": "17.11 (Ubuntu 17.11-1.pgdg24.04+2)",
+  "foundation": {
+    "passed": 105,
+    "failed": 0,
+    "evidence": "Actual job log: Production foundation check passed:105 checks."
+  },
+  "edge": {
+    "originalEntrypoints": 27,
+    "explicitProposalModules": 9,
+    "exitCode": 0,
+    "evidence": "Actual BUSY_EDGE_RESULT marker"
+  },
+  "postgres": {
+    "originalCommandSuites": 13,
+    "originalReceiptSets": 14,
+    "receiptSummaries": {
+      "ai-budget": {
+        "failed": 0,
+        "passed": 32
+      },
+      "ai-lab-b3": {
+        "failed": 0,
+        "passed": 10
+      },
+      "ai-lab-b3-source-contract": {
+        "failed": 0,
+        "passed": 17
+      },
+      "ai-lab-fictional-setup": {
+        "failed": 0,
+        "passed": 16
+      },
+      "ai-lab-fictional-source": {
+        "failed": 0,
+        "passed": 11
+      },
+      "ai-lab-foundation": {
+        "failed": 0,
+        "passed": 19
+      },
+      "ai-lab-runner-foundation": {
+        "failed": 0,
+        "passed": 15
+      },
+      "enquiry-preparation": {
+        "failed": 0,
+        "passed": 13
+      },
+      "operational-work": {
+        "failed": 0,
+        "passed": 13
+      },
+      "preservation-foundation": {
+        "failed": 0,
+        "passed": 13
+      },
+      "public-form": {
+        "failed": 0,
+        "passed": 21
+      },
+      "whole-app": {
+        "failed": 0,
+        "passed": 126
+      },
+      "whole-site": {
+        "failed": 0,
+        "passed": 14
+      },
+      "work-preparation": {
+        "failed": 0,
+        "passed": 12
+      }
+    },
+    "compatibility": {
+      "passed": 23,
+      "failed": 0
+    },
+    "totalPassed": 355,
+    "totalFailed": 0
+  },
+  "postgrest": {
+    "b3": {
+      "passed": 20,
+      "failed": 0
+    },
+    "budget": {
+      "passed": 20,
+      "failed": 0
+    },
+    "passed": 40,
+    "failed": 0
+  },
+  "application": {
+    "passed": 536,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "exports": {
+    "ownerPreviewAndIsolatedStaging": "passed",
+    "signedOrHosted": false,
+    "evidence": "Native job step Unsigned original Owner Preview and isolated staging exports completed success"
+  },
+  "artifact": {
+    "id": 13589154892,
+    "name": "private-app-goal-a4557d164ae03a93eb5aa310749a32e89c14ca40",
+    "sizeBytes": 253689,
+    "digest": "sha256:595cc824e99c89dc5bd9a445f7bfd5a23d2329043ce5b3a1812d26632714b29b",
+    "createdAt": "2026-11-07T20:36:49Z",
+    "expiresAt": "2026-11-14T20:36:49Z",
+    "expired": false,
+    "metadataIndependentlyRead": true,
+    "archiveDownloaded": false
+  },
+  "legacyWorkflows": {
+    "provenance": "Root independently obtained read-only GitHub metadata; these six runs were not re-queried by this evidence collector.",
+    "successfulRunIds": [42410604541, 42410604549, 42410604654, 42410604565, 42410604639, 42410604552],
+    "passed": 6,
+    "failed": 0,
+    "syntheticMergeCommit": "653a0dbf9dea21a6196698c9f5d367bfd376bd0c",
+    "syntheticMergeTree": "7d92ff206eddbc59c3e45ba55a3ab74cabb3dfbe",
+    "exactFinalSourceTreeMatch": true,
+    "actualMergePerformed": false,
+    "platformCheckoutProofJobId": 128517697706
+  },
+  "limitations": [
+    "Only the completed source-a4557d1 run is represented here; prior failed/cancelled runs retain their own outcomes.",
+    "Counts are stage/case/selection summaries and can overlap; do not sum them as independent assertions.",
+    "Native artifact metadata and actual job logs were read; the artifact ZIP was not downloaded.",
+    "No raw job log, public key body, credentials, real customer records or private Website source is stored in this file.",
+    "This is sandbox CI evidence, not hosted deployment, provider access or a fresh website screenshot capture."
+  ]
+}

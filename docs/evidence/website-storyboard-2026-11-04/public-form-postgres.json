@@ -1,0 +1,118 @@
+{
+  "database": "busy_public_forms_disposable",
+  "hosted": false,
+  "syntheticAuth": true,
+  "publication": "Explicit simulated original live App/version rows only; no publication operation",
+  "originalGuestWriter": true,
+  "results": [
+    {
+      "id": "isolated-original-package-auth-shim-and-original-guest-dependencies",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "disclosure-default-off-fuses-and-atomic-failure-retain-original-authorities",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-customer-safe-form-and-request-journey-catering",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-customer-safe-form-and-request-journey-gardening",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-customer-safe-form-and-request-journey-retail",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-customer-safe-form-and-request-journey-website",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-prune-counterexample-and-retained-form-proof-history-without-crm-erasure",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "foreign-owner-tenant-disclosure-and-private-storage-access-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "malformed-hidden-values-consent-stale-forms-and-source-selection-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "guest-ingress-independent-switches-publication-and-proof-review-quotas",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "dispatch-recovery-independent-of-new-disclosure-and-no-marketing-or-wrong-app-write",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "expired-forged-proof-and-separate-disclosure-permission-denied",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-guest-atomic-concurrent-submit-exact-once-and-no-legacy-marker-bypass",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "unknown-submission-acknowledgement-inspected-without-replay-and-bound-approval-recovery",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "original-contact-and-fingerprint-quotas-and-expired-receipt-access",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "atomic-original-challenge-opening-quota-bounds-anonymous-reset-attempts",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "catalog-current-app-source-validation-and-public-privacy",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "receipt-recovery-inspection-quota-and-reset-without-submission",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "successor-form-withdraws-navigation-but-preserves-original-questions-and-work-history",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "separate-publication-display-only-and-lost-owner-approval-acknowledgement",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "revocation-membership-and-retaining-rollback-preserve-history-and-exact-receipts",
+      "passed": true,
+      "exitCode": 0
+    }
+  ],
+  "summary": {
+    "passed": 21,
+    "failed": 0
+  }
+}

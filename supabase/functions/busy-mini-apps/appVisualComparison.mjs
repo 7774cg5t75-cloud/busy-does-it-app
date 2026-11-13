@@ -8,14 +8,14 @@ import {OPTIONS} from "./appAppearanceEditing.mjs";
 function prepareAppVisualBatch(config,suggestions){
  if(!config||!Array.isArray(config.modules)||!Array.isArray(suggestions)||
     suggestions.length<1||suggestions.length>3)
-  return {ok:false,reason:"Choose one to three supported design suggestions."};
+  return {ok:/** @type {const} */ (false),reason:"Choose one to three supported design suggestions."};
  const fields=new Set(),operations=[];
  for(const item of suggestions){
   if(!item||typeof item!=="object"||Array.isArray(item)||
      item.kind!=="appearance"||
      !Object.prototype.hasOwnProperty.call(OPTIONS,item.field)||
      !OPTIONS[item.field].includes(item.value)||fields.has(item.field))
-   return {ok:false,reason:"One or more suggestions are unsupported or conflict."};
+   return {ok:/** @type {const} */ (false),reason:"One or more suggestions are unsupported or conflict."};
   fields.add(item.field);
   operations.push({kind:"appearance",field:item.field,value:item.value});
  }
@@ -36,8 +36,8 @@ function validatePairedAppVisualRequest(body){
     !/^[a-zA-Z0-9+/]+={0,2}$/.test(body.compareImageBase64)||
     !Array.isArray(body.candidateOperations)||
     body.candidateOperations.length<1||body.candidateOperations.length>3)
-  return {ok:false,reason:"Two current public-only JPEG captures and 1–3 owner-reviewed design changes are required."};
- return {ok:true,afterImageBase64:body.compareImageBase64,
+  return {ok:/** @type {const} */ (false),reason:"Two current public-only JPEG captures and 1–3 owner-reviewed design changes are required."};
+ return {ok:/** @type {const} */ (true),afterImageBase64:body.compareImageBase64,
   operations:body.candidateOperations.map(op=>({...op})),
   requiresOwnerConsent:true,imagesNotStored:true};
 }

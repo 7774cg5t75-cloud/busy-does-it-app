@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
+const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[];
+const find=(tree,label)=>walk(tree).find(x=>x.props?.label===label);
+const input=tree=>walk(tree).find(x=>x.type==='TextInput');
+// Shared read-only controls: preserve exact words without exposing a change callback.
+const rt=createRuntime(),ui=rt.load('src/components/ui.js');let changed=[];
+let tree=rt.render(ui.Field,{label:'Owner wording',value:'  Exact words\n',editable:false,multiline:true,onChangeText:v=>changed.push(v)});
+assert.equal(input(tree).props.value,'  Exact words\n');assert.equal(input(tree).props.editable,false);assert.equal(input(tree).props.onChangeText,undefined);assert.equal(input(tree).props.accessibilityState.disabled,true);
+tree=rt.render(ui.Field,{label:'Owner wording',value:'  Exact words\n',onChangeText:v=>changed.push(v)});input(tree).props.onChangeText('New words');assert.deepEqual(changed,['New words']);
+let help=rt.render(ui.Details,{label:'Read-only examples',children:'Detailed help'});let toggle=walk(help).find(x=>x.type==='Pressable');assert.equal(toggle.props.accessibilityState.expanded,false);assert.ok(!JSON.stringify(help).includes('Detailed help'));toggle.props.onPress();help=rt.render(ui.Details,{label:'Read-only examples',children:'Detailed help'});assert.ok(JSON.stringify(help).includes('Detailed help'));
+// Original gallery specialist: selection cannot discard dirty descriptions.
+const gr=createRuntime(),{AppGalleryDescriptionEditor:Gallery}=gr.load('src/screens/appGalleryDescriptionEditor.js');let previews=[],dirty=[];
+const config={publicProfile:{assets:{gallery:[{uri:'fixture://one',approved:true,alt:'Original first description',caption:'First caption'},{uri:'fixture://two',approved:true,alt:'Original second description'},{uri:'fixture://unapproved',approved:false}]}}};
+let busy=false;const gallery=()=>gr.render(Gallery,{config,revision:1,busy,onPreview:p=>previews.push(p),onDraftChange:v=>dirty.push(v)});
+tree=gallery();assert.equal(find(tree,'Photo 3 · not approved').props.disabled,true);find(tree,"Load this photo's existing descriptions").props.onPress();tree=gallery();assert.equal(find(tree,'Image description for screen readers').props.value,'Original first description');find(tree,'Image description for screen readers').props.onChangeText('Exact unsaved owner description');tree=gallery();find(tree,'Photo 2').props.onPress();tree=gallery();assert.equal(find(tree,'Image description for screen readers').props.value,'Exact unsaved owner description');assert.ok(find(tree,'Keep editing photo wording'));assert.equal(find(tree,'Gallery photo number (1 is first)').props.value,'1');find(tree,'Keep editing photo wording').props.onPress();
+await gr.load('src/theme/appearance.mjs').updateAppearance({mode:'daylight'},async()=>{});tree=gallery();assert.equal(find(tree,'Image description for screen readers').props.value,'Exact unsaved owner description');busy=true;tree=gallery();assert.equal(find(tree,'Image description for screen readers').props.editable,false);assert.equal(find(tree,'Photo 2').props.disabled,true);assert.ok(previews.every(p=>p===null),'selection and typing cannot save or approve a proposal');assert.ok(dirty.includes(true));
+// Actual Creator parent: connected-account identity and locked publishing history survive regrouping.
+const cr=createRuntime(),{SocialDraftReview:Creator}=cr.load('src/screens/social.js');let calls=[];
+const s={socialDrafts:[{id:'draft',status:'Draft'}],selectedSocialDraftId:'draft',socialDraftText:'Unsaved caption',socialDraftChannels:{facebook:true},socialCreatePhotos:[],socialPublishingStatus:{connections:{meta:{status:'connected',pageName:'Fictional Page'}},credentials:{livePublishingEnabled:false}},toggleSocialDraftChannel:c=>calls.push(c),setSocialDraftText:v=>calls.push(v)};
+tree=cr.render(Creator,{s});let channel=walk(tree).find(n=>n.props?.title==='Facebook');assert.equal(channel.props.body,'Connected Page: Fictional Page');assert.equal(channel.props.disabled,false);channel.props.onValueChange();assert.deepEqual(calls,['facebook']);
+s.socialDrafts=[{id:'draft',status:'Scheduled'}];tree=cr.render(Creator,{s});channel=walk(tree).find(n=>n.props?.title==='Facebook');assert.equal(channel.props.disabled,true);assert.equal(walk(tree).find(n=>n.props?.accessibilityLabel==='Post caption').props.editable,false);assert.ok(JSON.stringify(tree).includes('not delivery receipts'));assert.deepEqual(calls,['facebook']);
+// Original Work parent: filter changes presentation only, never invokes customer actions.
+const wr=createRuntime(),{WorkPipeline:Work}=wr.load('src/screens/work.js');let actions=[];
+const ws={customers:[{id:'fictional',name:'Fictional Owner Contact',createdAt:new Date().toISOString(),service:'Repair'}],replyActions:{},lastSimulatedRecipients:[],pipelineWorkValue:0,startDirectCustomerAction:(...a)=>actions.push(a)};
+tree=wr.render(Work,{s:ws});let stages=walk(tree).filter(n=>n.props?.accessibilityState?.selected!==undefined);assert.equal(stages.length,6);stages.find(n=>n.props.accessibilityState.selected).props.onPress();tree=wr.render(Work,{s:ws});assert.equal(actions.length,0);assert.ok(JSON.stringify(tree).includes('Fictional Owner Contact'));
+console.log('PASS original read-only Field/editable callbacks, optional read-only help, gallery dirty selection across appearance and busy state, original Creator channel/locked history and Work stage identity. Inert IO; no native visual acceptance.');

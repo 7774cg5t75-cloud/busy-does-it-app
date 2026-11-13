@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {reviewAppContentChanges as review} from '../src/core/appContentChangeReview.mjs';
+import {planAppVoiceInstructions} from '../src/core/appCoordinatedStudio.mjs';
+const original={modules:[{key:'business_profile',enabled:true},{key:'services',enabled:true}],navigation:['business_profile','services'],publicProfile:{businessName:'Example',services:[{id:'one',name:'Survey',description:'Before wording',priceLabel:'Quote after review'},{id:'two',name:'Repair',description:'Remove this entry'}],faqs:[{question:'Do you travel?',answer:'Ask us first.'}],privateCustomerNote:'DO_NOT_RETURN'}};
+const p=planAppVoiceInstructions(original,'rename service "Survey" to "Site survey"; update service "Site survey" description to "After wording"; remove service "Repair"');assert.equal(p.ok,true,p.reason);
+const r=review(original,p.nextConfig);assert.equal(r.ok,true);assert.ok(r.rows.some(x=>x.field==='name'&&x.before==='Survey'&&x.after==='Site survey'));assert.ok(r.rows.some(x=>x.kind==='removed'&&x.subject==='Service: Repair'));assert.doesNotMatch(JSON.stringify(r),/DO_NOT_RETURN/);assert.equal(r.includesCustomerRecords,false);
+assert.equal(review(original,original).changeCount,0);assert.equal(review({...original,publicProfile:{...original.publicProfile,services:[{name:'Bad',description:{customer:'private'}}]}},p.nextConfig).ok,false);
+const faq={...original,publicProfile:{...original.publicProfile,faqs:[{question:'Do you travel?',answer:'Discuss the location first.'}]}};assert.ok(review(original,faq).rows.some(x=>x.field==='answer'&&x.after==='Discuss the location first.'));
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs'),runtime=createRuntime(),{AppStudioComparison:Comparison}=runtime.load('src/screens/appStudioComparison.js');
+const walk=n=>Array.isArray(n)?n.flatMap(walk):n&&typeof n==='object'?[n,...walk(n.props?.children)]:[];
+const tree=runtime.render(Comparison,{original,proposed:p.nextConfig,renderSurface:()=>null});assert.match(JSON.stringify(tree),/Before wording/);assert.match(JSON.stringify(tree),/After wording/);assert.match(JSON.stringify(tree),/removed entry/);assert.doesNotMatch(JSON.stringify(tree),/DO_NOT_RETURN/);
+const many={...original,publicProfile:{...original.publicProfile,services:Array.from({length:20},(_,i)=>({id:'service-'+i,name:'Service '+i,description:'Owner text'}))}};
+let bigger=runtime.render(Comparison,{original,proposed:many,renderSurface:()=>null});const more=walk(bigger).find(n=>n.props?.label?.startsWith('Show more content changes'));assert.ok(more);more.props.onPress();bigger=runtime.render(Comparison,{original,proposed:many,renderSurface:()=>null});assert.match(JSON.stringify(bigger),/Service 19/);
+console.log('PASS bounded exact public content diff and actual comparison UI for service rename/removal, FAQ answers, no-op, pagination and private/malformed data exclusion. No native visual claim.');

@@ -1,0 +1,97 @@
+{
+  "version": "busy.ai-lab.protected-smoke-queue-preflight.v1",
+  "recordedAtUtc": "2026-11-07 22:20:18 UTC",
+  "project": {
+    "id": "sbvkrvksnruiclcvclbd",
+    "organisationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "status": "ACTIVE_HEALTHY",
+    "plan": "free",
+    "postgresVersion": "17.11.0.018"
+  },
+  "deployedFunction": {
+    "id": "434c07a2-b755-4a9a-bf4d-78691cf9deb7",
+    "name": "busy-creative-document-pilot",
+    "version": 1,
+    "verifyJwt": true,
+    "nativeReportedEszipSha256": "3f591808c69d14bc04a97a4d193e9c3b4fd4249cc1b78d56860b257affc47808",
+    "updatedAt": 1794085847902
+  },
+  "preservation": {
+    "observedAt": "2026-11-07T22:19:09.282713+00:00",
+    "readOnly": "on",
+    "catalogueUnchanged": true,
+    "allDataUnchanged": true,
+    "nativeIdentityUnchanged": true
+  },
+  "savedSource": {
+    "observedAt": "2026-11-07T22:19:12.85488+00:00",
+    "readOnly": "on",
+    "originalOwnerAndBusinessMatch": true,
+    "allThreeSourceHashesMatch": true,
+    "profileRevision": 1,
+    "snapshotRevision": 5,
+    "websiteGeneration": 4,
+    "pageCount": 3,
+    "undoCount": 3,
+    "redoCount": 0,
+    "publicWebsites": 0,
+    "websiteDeployments": 0,
+    "aiOperations": 0,
+    "aiEvents": 0,
+    "policy": {
+      "enabled": false,
+      "monthlyHardLimit": 0
+    }
+  },
+  "repository": {
+    "name": "7774cg5t75-cloud/busy-does-it-app",
+    "visibility": "public",
+    "adminAccess": true,
+    "writeAccess": true
+  },
+  "runner": {
+    "label": "ubuntu-24.04",
+    "standardGithubHosted": true,
+    "publicRepositoryComputeGBP": 0,
+    "costEvidence": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+    "artifactRetentionDays": 7,
+    "artifactPayload": "bounded sanitised intent/outcome only",
+    "noArtifactUploadBeforeOwnerGate": true,
+    "unlimitedStorageClaimed": false
+  },
+  "environment": {
+    "name": "busy-ai-lab-b3-source",
+    "expectedNativeId": 26548866516,
+    "apiSettingsRead": "blocked by connector URL allowlist; not a GitHub API denial",
+    "currentProtectionVerified": false,
+    "ownerConfirmationPending": false,
+    "requiredReviewer": "7774cg5t75-cloud",
+    "preventSelfReview": false,
+    "adminBypass": false,
+    "priorScreenshots": "retained historical owner-visible evidence, not a new readback",
+    "ownerObservedReceivedAtUtc": "2026-11-07 22:23:54 UTC",
+    "ownerObservedSettings": {
+      "requiredReviewer": "7774cg5t75-cloud",
+      "preventSelfReview": false,
+      "adminBypass": false,
+      "selectedBranchCount": 1,
+      "tagCount": 0
+    },
+    "intendedAllowedBranch": "codex/builder-mission15-design-advancement",
+    "savedBranchNameTruncated": true,
+    "fullSavedBranchValueVerified": false,
+    "fullSavedBranchConfirmationPending": true,
+    "evidenceQualification": "Current settings are owner-observed, not independently API verified. Full saved branch name remains unconfirmed; no repeat of confirmed controls requested."
+  },
+  "queue": {
+    "authorised": false,
+    "started": false
+  },
+  "execution": {
+    "authorised": false,
+    "handlerRequests": 0,
+    "providerCalls": 0,
+    "paidUsageGBP": 0
+  }
+}

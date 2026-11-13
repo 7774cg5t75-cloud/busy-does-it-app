@@ -1,0 +1,15 @@
+{
+  "version": "busy.final-readiness.file-hashes.v1",
+  "functionalCommit": "a4557d164ae03a93eb5aa310749a32e89c14ca40",
+  "functionalTree": "7d92ff206eddbc59c3e45ba55a3ab74cabb3dfbe",
+  "canonicalCPacketSha256": "bd86dffd15057c36420f3b990028b69fe901f60cb2260cf0b73c4acea35b6df1",
+  "files": {
+    "approval-c-review-only.json": "2ff9b2a68b258de7b9614dca4c56c378e0b9bb2f404660e3f5b62842181b0d3e",
+    "final-ci.json": "772842d7bafd5e98ef087f9d7c5249f7c38f06d8ccc86f02e62a807068bef894",
+    "hosted-readonly-state.json": "d1a1cdd04e533ea33c7fecd130bad860a470b35fc864c2d11122feb3e4066813",
+    "preserved-ci-failures.json": "5e8e31ba45f70ca851bbba035249070cfb35e38e3681f90e3e309385f6256ad0",
+    "private-review-preservation.json": "3cf3482e112e5f36932b2e232a909e955803152bd69e8cc4413e1db4b34fd69e",
+    "smoke-review-only.json": "375a0b0a3c40430bfbfdd8ff98d2e3f47652fedcb8c77fe0ed86b1ee82a7c0df"
+  },
+  "authority": "Review evidence only; no deployment, activation, queue, credential, hosted-write or spending permission"
+}

@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "inputDigest": "dbed70434a308c3f5bffd2f28f0971eb731fc6b3e334382f835dd22643d3ff18",
+  "origin": "deterministic-offline-fixture",
+  "realProviderCalls": 0,
+  "automaticWinner": false,
+  "maySave": false,
+  "candidates": [
+    {
+      "label": "11992e33-f103-4f1d-a4b1-1375bfff70c7",
+      "proposalDigest": "684a4f4902754ebe95d613d46718bb9451504af191df8c485168592046a046ca",
+      "originalRendererHtmlSha256": "6170ff41f1e55294a4932c752f8b6765db03e0e7ba7a44a44c91945910021847",
+      "requiresOriginalStudioReview": true,
+      "sourceScope": {
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000152",
+        "projectId": "website-1793900510799",
+        "sourceRevision": 1,
+        "profileRevision": 1,
+        "surface": "website",
+        "pageId": "home"
+      }
+    },
+    {
+      "label": "2b7bc7db-c14f-48cd-b941-bca1f5576757",
+      "proposalDigest": "5a4fd249765354ac78ab53bec51c3c40893a80cbc7d1cd26035f7d964b43990b",
+      "originalRendererHtmlSha256": "bcca4aa5cb33ab12bd6e2ded3ac7e6231d2a2027f4d814973e9ab75da812d325",
+      "requiresOriginalStudioReview": true,
+      "sourceScope": {
+        "ownerId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "businessId": "cdcdcdcd-cdcd-4dcd-8dcd-000000000152",
+        "projectId": "website-1793900510799",
+        "sourceRevision": 1,
+        "profileRevision": 1,
+        "surface": "website",
+        "pageId": "home"
+      }
+    }
+  ]
+}

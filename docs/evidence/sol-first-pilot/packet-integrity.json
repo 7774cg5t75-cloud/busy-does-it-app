@@ -1,0 +1,11 @@
+{
+  "functionalCommit": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+  "functionalTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+  "canonicalPacketSha256": "93e619495744534f626b6052b6e8cc9c9221d3cdf3f4d24de242ab4474a5bb38",
+  "sixHandoffFilesIndependentlyMatchRawBytes": true,
+  "handoffInventoryEqualAcrossBothPackets": true,
+  "rendererGraphFiles": 43,
+  "supersedesMismatched89370Packet": true,
+  "deployment": false,
+  "providerCalls": 0
+}

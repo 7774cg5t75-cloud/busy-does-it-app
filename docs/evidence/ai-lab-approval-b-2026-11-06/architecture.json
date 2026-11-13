@@ -1,0 +1,12 @@
+{
+  "version": "v3.195",
+  "type": "offline-source-architecture-audit",
+  "sourceFiles": 2004,
+  "staticRelativeEdges": 4909,
+  "distinctStaticCycles": 0,
+  "limitations": [
+    "Static relative imports only; dynamic/aliased imports and runtime flows not included.",
+    "Physical code lines include comments and blanks but exclude ignored docs, assets and dependencies.",
+    "No claims about live data, auth, provider permissions, signed builds, device UX or real customer completion."
+  ]
+}

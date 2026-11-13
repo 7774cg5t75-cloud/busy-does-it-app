@@ -1,3 +1,12 @@
+import {ConnectedEnquiryReview} from '../staging/ConnectedEnquiryReview';
+import {OrbSafeRegion} from '../components/FloatingOrbAvoidance';
+import {CanonicalWorkEntry} from '../components/CanonicalWorkEntry';
+import {PrivateQuoteFields} from '../components/PrivateQuoteFields';
+import {QuoteFollowUpChoices} from '../components/QuoteFollowUpChoices';
+import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
+import {QuotePrivateSaveStatus} from '../components/QuotePrivateSaveStatus';
+import {useBookingActionReview} from './useBookingActionReview';
+import {useQuoteActionReview} from './useQuoteActionReview';
 import React, { useEffect, useState } from "react";
 import GetPaidOwnerReview from "../components/GetPaidOwnerReview";
 import {
@@ -806,19 +815,22 @@ function WorkHub({ s }) {
       s={s}
       noBack
       title="Work"
-      subtitle="See your bookings, look after customers and find more work when you need it."
-      brandCue="Your jobs and diary, all in one place."
+      subtitle="Bookings, customers and next steps."
+      brandCue=""
     >
-      <View style={styles.workOverviewRow}>
-        <Pressable accessibilityRole="button" accessibilityLabel={`View ${weekBookings.length} booked jobs this week`} onPress={() => s.go("workCalendar")} style={styles.workOverviewTile}>
+      {s.connectedRuntime?<ConnectedEnquiryReview s={s}/>:null}
+      <CanonicalWorkEntry s={s} />
+      <QuoteFollowUpChoices s={s} />
+      <OrbSafeRegion style={styles.workOverviewRow}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`View ${weekBookings.length} booked jobs this week`} onPress={() => s.go("workCalendar")} style={({pressed})=>[styles.workOverviewTile,pressed&&styles.pressed]}>
           <Text style={styles.workOverviewNumber}>{weekBookings.length}</Text>
           <Text style={styles.workOverviewLabel}>Booked jobs this week</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Review ${weeklyOperationalCount} items needing attention`} onPress={() => s.go("dailyCommandCentre")} style={styles.workOverviewTile}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Review ${weeklyOperationalCount} items needing attention`} onPress={() => s.go("dailyCommandCentre")} style={({pressed})=>[styles.workOverviewTile,pressed&&styles.pressed]}>
           <Text style={styles.workOverviewNumber}>{weeklyOperationalCount}</Text>
           <Text style={styles.workOverviewLabel}>Need attention</Text>
         </Pressable>
-      </View>
+      </OrbSafeRegion>
       {weeklyOperationalCount > 0 && weeklyPlan.length ? (
         <Card
           eyebrow="Needs attention"
@@ -830,18 +842,18 @@ function WorkHub({ s }) {
         </Card>
       ) : null}
       {nextBooking ? (
-        <Pressable accessibilityRole="button" onPress={() => openBooking(nextBooking)} style={styles.workOverviewUpcoming}>
+       <OrbSafeRegion><Pressable accessibilityRole="button" onPress={() => openBooking(nextBooking)} style={({pressed})=>[styles.workOverviewUpcoming,pressed&&styles.pressed]}>
           <Text style={styles.workOverviewEyebrow}>YOUR NEXT BOOKING</Text>
           <Text style={styles.workOverviewUpcomingTitle}>{nextBooking.customer.name}</Text>
           <Text style={styles.workOverviewHint}>
             {nextBooking.customer.service} • {formatUKDate(nextBooking.action.details.bookingDate)} • {nextBooking.action.details.bookingTime || "Time not set"}
           </Text>
           <Text style={styles.workOverviewLink}>View booking ›</Text>
-        </Pressable>
+        </Pressable></OrbSafeRegion>
       ) : null}
 
       <Text style={styles.sectionLabel}>Your calendar</Text>
-      <Card
+      <OrbSafeRegion>      <Card
         eyebrow="Select a day to see your work"
         title={workMonthTitle}
         tone="blue"
@@ -874,7 +886,7 @@ function WorkHub({ s }) {
             {workMonthBookings.length} job{workMonthBookings.length === 1 ? "" : "s"} booked this month
           </Text>
         ) : null}
-      </Card>
+      </Card></OrbSafeRegion>
 
       <View style={styles.workCalendarGrid}>
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => (
@@ -2065,10 +2077,12 @@ function WorkPipeline({ s }) {
       <Pressable
         key={id}
         onPress={() => s.openSavedReplyAction(id)}
-        style={styles.customerTimelineCard}
+        accessibilityRole="button"
+        accessibilityLabel={`${customer.name} · ${kind} · ${status}`}
+        style={styles.workflowCard}
       >
-        <View style={styles.homePriorityTop}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
+        <View style={styles.workflowHeader}>
+          <View style={styles.workflowIdentity}>
             <Text style={styles.customerTimelineLabel}>{kind.toUpperCase()}</Text>
             <Text style={styles.activityName}>{customer.name}</Text>
           </View>
@@ -2115,6 +2129,7 @@ function WorkPipeline({ s }) {
       <View style={styles.timeChoiceWrap}>
         {["All", "Enquiries", "Quotes", "Bookings", "Follow-ups", "Completed"].map((stage) => (
           <Pressable
+            accessibilityRole="button" accessibilityState={{selected:stageFilter===stage}}
             key={stage}
             onPress={() => setStageFilter(stage)}
             style={[styles.timeChoice, stageFilter === stage && styles.timeChoiceSelected]}
@@ -2137,9 +2152,9 @@ function WorkPipeline({ s }) {
         const quiet = age !== null && age >= 7 && !customer.enquiryFollowUpSentAt;
         const followUpPending = !!customer.enquiryFollowUpSentAt && !customer.enquiryFollowUpOutcomeRecordedAt;
         return (
-          <View key={customer.id} style={styles.customerTimelineCard}>
-            <View style={styles.homePriorityTop}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+          <View key={customer.id} style={styles.workflowCard}>
+            <View style={styles.workflowHeader}>
+              <View style={styles.workflowIdentity}>
                 <Text style={styles.customerTimelineLabel}>
                   {followUpPending ? "ENQUIRY FOLLOW-UP SENT" : quiet ? "QUIET ENQUIRY" : "NEW ENQUIRY"}
                 </Text>
@@ -3558,6 +3573,8 @@ function ReplyActions({ s }) {
 }
 
 function ReplyActionDetail({ s }) {
+  const bookingReview=useBookingActionReview(s);
+  const quoteReview=useQuoteActionReview(s);
   const customer = s.selectedReplyCustomer;
   if (!customer) {
     return (
@@ -3629,8 +3646,12 @@ function ReplyActionDetail({ s }) {
   );
 
   const finish = (details) => {
-    s.completeReplyAction(customer.id, details);
-    s.back();
+    const save=()=>{const result=s.completeReplyAction(customer.id,details);if(result===false)return false;s.back();return true;};
+    if(type==='booking'&&saved.details?.sourceMiniAppRequestId&&details.bookingStatus!==saved.details.bookingStatus)return bookingReview.reviewStatus(details.bookingStatus);
+    if(type==='booking')return bookingReview.commit(()=>s.completeReplyAction(customer.id,details),next=>JSON.stringify(next?.details)===JSON.stringify(details),{savedFields:['actionBookingDate','actionBookingTime','actionJobValue']});
+    if(type!=='quote')return save();
+    const reviewed=s.prepareQuoteDetails?s.prepareQuoteDetails(customer.id,details,saved):details;
+    return reviewed?quoteReview.commit(()=>s.completeReplyAction(customer.id,reviewed),reviewed):false;
   };
 
   if (type === "quote") {
@@ -3673,16 +3694,17 @@ function ReplyActionDetail({ s }) {
               : `Suggested from your saved ${customer.service.toLowerCase()} service price. Check it before using it.`}
           </Text>
         </View>
+        <QuoteEnquiryContext s={s} appendQuote={quoteReview.appendEnquiry} prepareQuote={quoteReview.prepareEnquiry} prepareCatalogue={quoteReview.prepareCatalogue} prepareService={quoteReview.canExplainService?item=>quoteReview.prepareEnquiry(item,'quote-information'):null}/>
         <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" todayISO={todayISO} />
-        <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={s.setActionQuoteAmount} keyboardType="number-pad" prefix="£" />
-        <Text style={styles.fieldLabel}>Draft reply</Text>
-        <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
+        <Card eyebrow="Private quote" title={quoteReview.conflict?'The saved quote changed':quoteReview.saving?'Checking the updated record':quoteReview.dirty?'Changes not recorded yet':'Private record review'} body={quoteReview.conflict?'Your words are kept. Reopen the current quote or deliberately discard your changes before using a different source.':'Recording this quote uses the current workspace record. Device/account persistence and customer delivery are not confirmed by this form.'} tone="blue" />
+        <QuotePrivateSaveStatus s={s} record={saved} dirty={quoteReview.dirty} check={quoteReview.checkDeviceCopy} resume={quoteReview.reviewDeviceCopy}/>
+        {PrivateQuoteFields({s,review:quoteReview,customerId:customer.id,status:quoteStatus})}
         {(quoteStatus === "Prepared" || quoteStatus === "Sent" || !saved.done) ? (
           <>
             <DatePickerField
-              label="Quote sent date"
+              label={quoteStatus==="Sent"?"Recorded quote sent date":"Planned quote sent date"}
               value={s.actionQuoteSentDate}
-              onChange={s.setActionQuoteSentDate}
+              onChange={value=>quoteReview.edit('actionQuoteSentDate',value)}
             />
             <Card
               eyebrow="Automatic admin"
@@ -3695,12 +3717,14 @@ function ReplyActionDetail({ s }) {
         <Button
           label={saved.done ? "Save quote changes" : "Save quote as prepared"}
           primary
-          disabled={!String(s.actionQuoteAmount).trim()}
+          disabled={!String(s.actionQuoteAmount).trim()||!quoteReview.validDate||quoteReview.conflict||quoteReview.saving}
           onPress={() =>
             finish({
               ...(saved.details || {}),
               quoteAmount: s.actionQuoteAmount,
               message: s.actionQuoteMessage,
+              plannedSentDate:s.actionQuoteSentDate,
+              ...saved.details?.quoteStatus==='Sent'?{quoteSentAt:quoteReview.sentAt(),followUpDueDate:addDaysFromISO(s.actionQuoteSentDate,7)}:{},
               quoteStatus: saved.details?.quoteStatus || "Prepared",
               summary: `Quote ${String(saved.details?.quoteStatus || "Prepared").toLowerCase()} for £${s.actionQuoteAmount}`,
             })
@@ -3709,14 +3733,15 @@ function ReplyActionDetail({ s }) {
         {!saved.done ? (
           <Button
             label="Save & mark quote as sent"
-            disabled={!String(s.actionQuoteAmount).trim()}
+            disabled={!String(s.actionQuoteAmount).trim()||!quoteReview.validDate||quoteReview.conflict||quoteReview.saving}
             onPress={() =>
               finish({
                 ...(saved.details || {}),
                 quoteAmount: s.actionQuoteAmount,
                 message: s.actionQuoteMessage,
+                plannedSentDate:s.actionQuoteSentDate,
                 quoteStatus: "Sent",
-                quoteSentAt: new Date(`${s.actionQuoteSentDate || dateToISO(new Date())}T12:00:00`).toISOString(),
+                quoteSentAt: quoteReview.sentAt(),
                 followUpDueDate: addDaysFromISO(s.actionQuoteSentDate || dateToISO(new Date()), 7),
                 summary: `Quote marked sent for £${s.actionQuoteAmount}`,
               })
@@ -3729,6 +3754,7 @@ function ReplyActionDetail({ s }) {
         ) : null}
         {saved.done && quoteStatus === "Sent" ? (
           <>
+            {!saved.details?.followUpSentAt && s.prepareQuoteFollowUp ? <Button label="Prepare a private quote follow-up" onPress={() => quoteReview.transition(() => s.prepareQuoteFollowUp(customer.id))} /> : null}
             <Button label="Mark quote accepted" onPress={() => s.setQuoteStatus(customer.id, "Accepted")} />
             <Button label="Mark quote declined" onPress={() => s.setQuoteStatus(customer.id, "Declined")} />
           </>
@@ -3784,6 +3810,33 @@ function ReplyActionDetail({ s }) {
           />
         ) : null}
 
+        {s.bookingStatusOperation?.customerId===customer.id?<Card eyebrow="Booking operation" title={s.bookingStatusOperation.phase==='unknown'?'Outcome uncertain':s.bookingStatusOperation.phase==='pending'?'Checking or applying':s.bookingStatusOperation.phase==='local'?'Local record only':s.bookingStatusOperation.phase==='confirmed-review'?'Confirmed; local review needed':s.bookingStatusOperation.phase==='confirmed'?'Original transaction confirmed':'Review needed'} body={s.bookingStatusOperation.message} footer="A booking status is not a message, external calendar receipt or whole-account save." tone={['unknown','conflict','failed'].includes(s.bookingStatusOperation.phase)?'amber':'blue'}/>:null}
+        {bookingReview.statusReview?<Text accessibilityLiveRegion="polite" style={styles.helper}>{bookingReview.statusReview.message}</Text>:null}
+        {bookingReview.statusReview?.investigation?<View style={styles.workspacePanel}>
+          <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Booking investigation</Text>
+          <Text selectable style={styles.workspaceMeta}>{'Customer: '+bookingReview.statusReview.investigation.customerId+' · Original request: '+(bookingReview.statusReview.investigation.requestId||'No linked account request')}</Text>
+          <Text style={styles.cardBody}>{'Local recorded status: '+bookingReview.statusReview.investigation.localStatus}</Text>
+          {bookingReview.statusReview.investigation.attempt?<><Text selectable style={styles.cardBody}>{'Attempted '+bookingReview.statusReview.investigation.attempt.target+' · operation '+bookingReview.statusReview.investigation.attempt.id+' · workspace revision '+bookingReview.statusReview.investigation.attempt.revision}</Text><Text style={styles.cardBody}>{bookingReview.statusReview.investigation.attempt.ownReceipt?'This session retained a valid original transaction receipt. Current source observation and local/device/account saves remain separate.':'No valid own-operation receipt is established here. Matching source state does not settle this attempt.'}</Text></>:<Text style={styles.cardBody}>No matching operation receipt from this session is available. No earlier receipt has been reconstructed.</Text>}
+          {bookingReview.statusReview.investigation.source?<><Text style={styles.cardBody}>{'Observed original source: '+bookingReview.statusReview.investigation.source.sourceState+' · Work ledger: '+bookingReview.statusReview.investigation.source.workLedgerState}</Text><Text selectable style={styles.workspaceMeta}>{'Recorded source revision time: '+bookingReview.statusReview.investigation.source.updatedAt}</Text></>:null}
+          <Text style={styles.helper}>Review the recorded diary and customer. This inspection cannot replace a local booking, clear uncertainty, reschedule or retry a request. Customer and calendar delivery remain unverified.</Text>
+        </View>:null}
+        {bookingReview.statusReview?.investigation?.source?.association?<View style={styles.workspacePanel}>
+          <Text style={styles.cardTitle}>Verified persisted booking association</Text>
+          <Text selectable style={styles.workspaceMeta}>{'Customer '+bookingReview.statusReview.investigation.source.association.customerId+' · Work action '+bookingReview.statusReview.investigation.source.association.actionId}</Text>
+          {bookingReview.statusReview.investigation.source.association.diary?<>
+            <Text style={styles.cardBody}>{'BUSY Work diary: '+bookingReview.statusReview.investigation.source.association.diary.date+' at '+bookingReview.statusReview.investigation.source.association.diary.time+' ('+bookingReview.statusReview.investigation.source.association.diary.timeZone+')'}</Text>
+            {bookingReview.statusReview.investigation.source.association.diary.date!==saved.details?.bookingDate||bookingReview.statusReview.investigation.source.association.diary.time!==saved.details?.bookingTime?<Text accessibilityLiveRegion="polite" style={styles.helper}>{'Different from this local booking: '+(saved.details?.bookingDate||'Date not recorded')+' at '+(saved.details?.bookingTime||'Time not recorded')+'. Your fields have not been replaced.'}</Text>:null}
+            <Text style={styles.helper}>Compare this source slot with your current fields. Opening the diary does not replace your booking, settle an uncertain save or confirm external calendar delivery.</Text>
+            <Button label="Open verified source diary day" onPress={()=>bookingReview.openSource('diary')}/>
+          </>:<Text style={styles.helper}>This request has no durable Work diary record. A draft is not a confirmed booking.</Text>}
+          <Button label="Open source-linked customer" onPress={()=>bookingReview.openSource('customer')}/>
+        </View>:null}
+        <Button label="Inspect customer and diary association" onPress={bookingReview.inspectContext}/>
+        <Button label="Review this booking in the diary" onPress={bookingReview.openDiary}/>
+        <Button label="Inspect original booking status" onPress={bookingReview.inspectStatus}/>
+        {bookingReview.unsupportedReschedule?<Card title="Linked booking date change is not supported here" body="Your draft date and time are kept. This editor cannot reschedule the original Business App request. Inspect that booking before changing its recorded slot." tone="amber"/>:null}
+        {bookingReview.conflict?<Card title="Booking changed" body="Your typed details are kept. Reopen the current booking before making another change. Nothing here confirms an account save." tone="amber"/>:null}
+        {bookingReview.dirty?<Text accessibilityLiveRegion="polite" style={styles.helper}>You have unfinished booking details or a completion note. Leaving requires a separate decision; saving the date and time does not save a completion note. Unfinished fields are not a verified device draft and may not survive closing Busy.</Text>:null}
         <GetPaidOwnerReview s={s} customer={customer} saved={saved}
           type="booking" bookingStatus={bookingStatus} todayISO={todayISO} />
         <View
@@ -3814,8 +3867,8 @@ function ReplyActionDetail({ s }) {
           {savedBookingNeedsReview && !bookingCorrectionReady ? (
             <Pressable
               onPress={() => {
-                s.setActionBookingDate(suggestedBookingDate);
-                s.setActionBookingTime(suggestedBookingTime);
+                bookingReview.edit('actionBookingDate',suggestedBookingDate);
+                bookingReview.edit('actionBookingTime',suggestedBookingTime);
               }}
               style={styles.slotFixButton}
             >
@@ -3826,10 +3879,13 @@ function ReplyActionDetail({ s }) {
           ) : null}
         </View>
 
+        <View style={styles.workspacePanel}>
+        <Text accessibilityRole="header" style={styles.workspacePanelTitle}>Booking date, time and value</Text>
+        <Text style={styles.workspaceMeta}>{"Customer reference: "+customer.id+" · Recorded status: "+bookingStatus+". Editing fields does not contact the customer."}</Text>
         <DatePickerField
           label="Booking date"
           value={s.actionBookingDate}
-          onChange={s.setActionBookingDate}
+          onChange={value=>bookingReview.edit('actionBookingDate',value)}
           allowFuture
           minimumDate={bookingStatus === "Completed" ? null : dateToISO(new Date())}
         />
@@ -3837,8 +3893,9 @@ function ReplyActionDetail({ s }) {
         <View style={styles.timeChoiceWrap}>
           {timeOptionsForSlot(s.quietSlot).map((time) => (
             <Pressable
+              accessibilityRole="button" accessibilityState={{selected:s.actionBookingTime===time}}
               key={time}
-              onPress={() => s.setActionBookingTime(time)}
+              onPress={() => bookingReview.edit('actionBookingTime',time)}
               style={[
                 styles.timeChoice,
                 s.actionBookingTime === time && styles.timeChoiceSelected,
@@ -3855,16 +3912,18 @@ function ReplyActionDetail({ s }) {
             </Pressable>
           ))}
         </View>
-        <Field label="Or enter a time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 14:30" />
+        <Field editable={!bookingReview.conflict} label="Or enter a time" value={s.actionBookingTime} onChangeText={value=>bookingReview.edit('actionBookingTime',value)} placeholder="e.g. 14:30" />
         <Field
           label={saved.done && bookingStatus === "Confirmed" ? "Actual / expected job value" : "Expected job value"}
           value={s.actionJobValue}
-          onChangeText={s.setActionJobValue}
+          editable={!bookingReview.conflict}
+          onChangeText={value=>bookingReview.edit('actionJobValue',value)}
           keyboardType="number-pad"
           prefix="£"
           placeholder="Optional"
         />
 
+        </View>
         {bookingClashes.length ? (
           <View style={styles.clashBox}>
             <Text style={styles.clashTitle}>Booking clash</Text>
@@ -3872,7 +3931,7 @@ function ReplyActionDetail({ s }) {
               {bookingClashes[0].customer.name} is already booked for {formatUKDate(s.actionBookingDate)} at {s.actionBookingTime}.
             </Text>
             {freeBookingTime ? (
-              <Pressable onPress={() => s.setActionBookingTime(freeBookingTime)} style={styles.slotFixButton}>
+              <Pressable onPress={() => bookingReview.edit('actionBookingTime',freeBookingTime)} style={styles.slotFixButton}>
                 <Text style={styles.slotFixButtonText}>Use {freeBookingTime} instead</Text>
               </Pressable>
             ) : null}
@@ -3882,7 +3941,7 @@ function ReplyActionDetail({ s }) {
         <Button
           label={saved.done ? "Save booking changes" : "Save booking confirmation"}
           primary
-          disabled={!s.actionBookingTime.trim() || bookingClashes.length > 0}
+          disabled={bookingReview.unsupportedReschedule || bookingReview.statusBlocked || bookingReview.conflict || bookingReview.saving || !s.actionBookingTime.trim() || bookingClashes.length > 0}
           onPress={() =>
             finish({
               ...(saved.details || {}),
@@ -3900,36 +3959,41 @@ function ReplyActionDetail({ s }) {
             <Text style={styles.fieldLabel}>Completion note (optional)</Text>
             <TextInput
               multiline
+              accessibilityLabel="Completed job note"
+              editable={!bookingReview.conflict}
+              accessibilityState={{disabled:bookingReview.conflict}}
+              textAlignVertical="top"
               value={s.actionJobNote}
-              onChangeText={s.setActionJobNote}
+              onChangeText={value=>bookingReview.edit('actionJobNote',value)}
               placeholder="Anything useful to remember about the finished job?"
-              placeholderTextColor="#9AA3B2"
+              placeholderTextColor={C.muted}
               style={styles.messageInput}
             />
             <Button
               label="Mark job completed"
+              disabled={bookingReview.statusBlocked||bookingReview.conflict||bookingReview.saving}
               onPress={() => {
-                const jobId = s.markBookingCompleted(customer.id, s.actionJobValue, s.actionJobNote);
-                if (jobId) s.startJobPhotoPrompt(customer.id, jobId);
+                let jobId;
+                jobId = bookingReview.commit(()=>s.markBookingCompleted(customer.id, s.actionJobValue, s.actionJobNote),next=>next?.details?.bookingStatus==='Completed'&&next.details.bookingDate===saved.details?.bookingDate&&next.details.completionNote===String(s.actionJobNote||'').trim(),{leave:false,savedFields:['actionJobValue','actionJobNote'],onAccepted:()=>s.startJobPhotoPrompt(customer.id,jobId)});
               }}
             />
-            <Button label="Cancel booking" onPress={() => s.setBookingStatus(customer.id, "Cancelled")} />
+            <Button disabled={bookingReview.statusBlocked} label="Cancel booking" onPress={() => bookingReview.reviewStatus("Cancelled")} />
           </>
         ) : null}
         {saved.done && bookingStatus === "Cancelled" ? (
-          <Button label="Reopen booking" onPress={() => s.setBookingStatus(customer.id, "Confirmed")} />
+          <Button disabled={bookingReview.statusBlocked} label="Reopen booking" onPress={() => bookingReview.reviewStatus("Confirmed")} />
         ) : null}
         {saved.done && bookingStatus === "Completed" ? (
           <>
             <Button
               label="Manage job photos"
-              onPress={() => s.openJobAssets(customer.id, `job-${customer.id}-${saved.details?.bookingDate}`)}
+              onPress={() => bookingReview.transition(()=>s.openJobAssets(customer.id, `job-${customer.id}-${saved.details?.bookingDate}`))}
             />
-            <Button label="View customer job history" onPress={() => s.openCustomer(customer.id)} />
+            <Button label="View customer job history" onPress={() => bookingReview.transition(()=>s.openCustomer(customer.id))} />
           </>
         ) : null}
 
-        <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
+        <Button label="Open customer" onPress={() => bookingReview.transition(()=>s.openCustomer(customer.id))} />
         <Button label="Cancel" onPress={s.back} />
       </Shell>
     );

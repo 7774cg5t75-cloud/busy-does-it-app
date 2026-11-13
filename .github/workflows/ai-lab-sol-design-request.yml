@@ -1,0 +1,72 @@
+name: Separately approved one-use private Sol design request
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths: ['.github/ai-lab-sol-design-request.json']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: busy-ai-lab-sol-design-request
+  cancel-in-progress: false
+jobs:
+  exact-private-sol-design-request:
+    if: ${{ github.run_attempt == 1 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    environment: busy-ai-lab-b3-source
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify exact marker and complete reviewed source before private bindings
+        run: |
+          python3 - <<'PY'
+          import os,json,pathlib,hashlib,subprocess
+          root=pathlib.Path.cwd().resolve()
+          def git(*args): return subprocess.check_output(['git',*args],text=True).strip()
+          try:
+            name='.github/ai-lab-sol-design-request.json';p=root/name
+            assert not p.is_symlink() and p.stat().st_size<=65536
+            m=json.loads(p.read_text())
+            assert m['version']=='busy.ai-lab-sol-design-handoff.v1'
+            assert git('rev-parse','HEAD')==os.environ['GITHUB_SHA']
+            assert git('show','--format=%P','--no-patch','HEAD').split()==[m['source']['parentCommit']]
+            assert git('diff-tree','--no-commit-id','--name-only','-r','HEAD').splitlines()==[name]
+            required={'.github/workflows/ai-lab-sol-design-request.yml','scripts/run-ai-lab-sol-design-request.mjs','scripts/lib/ai-lab-sol-design-handoff.mjs','scripts/check-ai-lab-sol-design-handoff.mjs','scripts/lib/sol-private-call.mjs','scripts/lib/sol-private-result.mjs'}
+            assert required<=set(m['source']['files']) and len(m['source']['files'])<=170
+            for name,digest in m['source']['files'].items():
+              p=root/name
+              assert p.resolve()==p and p.resolve().is_relative_to(root) and not p.is_symlink()
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==digest
+          except BaseException:
+            raise SystemExit('Sol-design source validation refused; no private values logged') from None
+          PY
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: Verify exact native owner approval and C2 evidence without credentials
+        env:
+          NODE_OPTIONS: ''
+          BUSY_AI_LAB_SOL_DESIGN_GRANT_JSON: ${{ secrets.BUSY_AI_LAB_SOL_DESIGN_GRANT_JSON }}
+        run: node scripts/run-ai-lab-sol-design-request.mjs --verify-only
+      - name: One exact native owner sign-in and one original C2 request
+        env:
+          NODE_OPTIONS: ''
+          BUSY_AI_LAB_SOL_DESIGN_GRANT_JSON: ${{ secrets.BUSY_AI_LAB_SOL_DESIGN_GRANT_JSON }}
+          BUSY_AI_LAB_B3_PUBLISHABLE_KEY: ${{ secrets.BUSY_AI_LAB_B3_PUBLISHABLE_KEY }}
+          BUSY_AI_LAB_B3_OWNER_PASSWORD: ${{ secrets.BUSY_AI_LAB_B3_OWNER_PASSWORD }}
+        run: node scripts/run-ai-lab-sol-design-request.mjs
+      - name: Retain ciphertext and sanitized intent and receipt only
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sol-private-design-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/busy-ai-lab-sol-design/intent.json
+            ${{ runner.temp }}/busy-ai-lab-sol-design/receipt.json
+            ${{ runner.temp }}/busy-ai-lab-sol-design/outcome.encrypted.json
+          retention-days: 7
+          if-no-files-found: ignore

@@ -1,0 +1,47 @@
+{
+  "version": "busy.ai-lab.disabled-smoke-next-step.review.v1",
+  "status": "blocked-before-queue",
+  "target": {
+    "projectId": "sbvkrvksnruiclcvclbd",
+    "organisationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "plan": "free",
+    "functionName": "busy-creative-document-pilot"
+  },
+  "deployedVersion": 1,
+  "nativeEszipSha256": "3f591808c69d14bc04a97a4d193e9c3b4fd4249cc1b78d56860b257affc47808",
+  "sourceCommit": "a4557d164ae03a93eb5aa310749a32e89c14ca40",
+  "approvedInputInventoryDigest": "ad3669fea24ec30dc76702159e11eb4953a956100a59f084266f722c1b1dc471",
+  "returnedRuntimeFilesDigest": "303e8be2e6a84233a4ffb453fbd85378a246cb0096eeead30e9e61754699854d",
+  "protectedWorkflow": ".github/workflows/ai-lab-creative-smoke.yml",
+  "handoffFilesDigest": "d48a25ba7c34631d31294fe3a254c5cb48ba54cff953e20e63133d8adb23ab55",
+  "prerequisites": {
+    "completeBuildInputEvidenceResolved": false,
+    "currentEnvironmentProtectionVerified": false,
+    "ownerQueueApproval": false,
+    "exactRunReview": false,
+    "ownerGateRelease": false
+  },
+  "plannedRequestsOnly": [
+    {
+      "purpose": "missing credentials",
+      "expectedStatus": 401
+    },
+    {
+      "purpose": "literal invalid bearer",
+      "expectedStatus": 401
+    },
+    {
+      "purpose": "existing Lab publishable key only",
+      "expectedStatus": 503,
+      "expectedBody": "Creative document pilot disabled"
+    }
+  ],
+  "markerCreated": false,
+  "runId": null,
+  "requestNonce": null,
+  "queuePermitted": false,
+  "executePermitted": false,
+  "providerCallsPermitted": false,
+  "credentialConfigurationPermitted": false
+}

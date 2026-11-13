@@ -1,9 +1,28 @@
 name: V3.66 voice and project Operator checks
 on:
   push:
-    branches: [v3.66]
+    branches: [v3.66, codex/builder-mission15-design-advancement]
+    paths:
+      - 'supabase/functions/busy-builder-proposals/creativeDocument*.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeExecution*.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeLedger.mjs'
+      - 'supabase/functions/busy-creative-document-pilot/**'
+      - 'src/core/websiteDesignIntelligence.mjs'
+      - 'supabase/functions/busy-website-worker/websiteCreativeSpecification.mjs'
+      - 'src/core/websiteCreativeDocumentReview.mjs'
+      - 'supabase/functions/busy-website-worker/websiteCreativeDocument.mjs'
+      - 'supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs'
+      - 'src/core/websiteStandaloneArchive.mjs'
   pull_request:
     paths:
+      - "src/core/connectedEditorContinuation.mjs"
+      - "src/components/ConnectedBusinessPreparation.js"
+      - "src/core/photoPurposeAccount.mjs"
+      - "src/core/browserBusinessPhotoProcessor.mjs"
+      - "src/core/websiteExcellenceQuality.mjs"
+      - "src/core/premiumWebsiteGoal.mjs"
+      - "scripts/check-business-introduction.mjs"
+      - "scripts/process-business-photo-fixtures.mjs"
       - "src/domain/growthOperatorBridge.mjs"
       - "src/app/AppController.js"
       - "src/screens/talk.js"

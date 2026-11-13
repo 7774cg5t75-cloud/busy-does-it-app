@@ -68,7 +68,7 @@ const modal=read("src/screens/websiteTapEditor.js");
 const controller=read("src/app/AppController.js");
 assert.ok(screen.includes("javaScriptEnabled={tapEditMode||visualCheckOn||candidateCheckOn}"));
 assert.ok(screen.includes("resolveTapToolbarAction(draft"));
-assert.ok(screen.includes("onTextChange={s.applyWebsiteFieldChange}"));
+assert.ok(screen.includes("onTextChange={change=>reportOwnerDraft.commit(()=>s.applyWebsiteFieldChange(change))}"),"Original field handler remains behind the exact editor draft guard");
 assert.ok(screen.includes("onLayoutChange={s.applyWebsiteLayoutAction}"));
 assert.ok(screen.includes("onShouldStartLoadWithRequest"));
 assert.ok(modal.includes("Cancel — leave website unchanged")&&modal.includes("Save to private website draft"));

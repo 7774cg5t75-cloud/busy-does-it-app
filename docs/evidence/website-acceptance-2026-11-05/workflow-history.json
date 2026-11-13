@@ -1,0 +1,289 @@
+{
+  "functionalCommit": "194ac970b06081545294147194b61cc659bfaaa0",
+  "functionalTree": "d94d106997adfa4469f331dac79ad6c8181c4a84",
+  "sources": [
+    {
+      "sha": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102",
+      "runs": [
+        {
+          "id": 42031914733,
+          "name": "V3.64 private growth workspace checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42031914733",
+          "head": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102"
+        },
+        {
+          "id": 42031914521,
+          "name": "V3.63 coordinated editable growth checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42031914521",
+          "head": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102"
+        },
+        {
+          "id": 42031914697,
+          "name": "V3.70 Platform Autopilot checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42031914697",
+          "head": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102"
+        },
+        {
+          "id": 42031915421,
+          "name": "V3.65 Growth Command Centre checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42031915421",
+          "head": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102"
+        },
+        {
+          "id": 42031914494,
+          "name": "V3.69 Founder Operations Security",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42031914494",
+          "head": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102"
+        },
+        {
+          "id": 42031914512,
+          "name": "V3.66 voice and project Operator checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42031914512",
+          "head": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102"
+        },
+        {
+          "id": 42031902755,
+          "name": "Premium Website original-renderer browser evidence",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42031902755",
+          "head": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102"
+        },
+        {
+          "id": 42031902895,
+          "name": "Private App goal composition and original authority verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42031902895",
+          "head": "4db1b9d92ca5c0e6addf01054e7fe42e63c46102"
+        }
+      ]
+    },
+    {
+      "sha": "022b784bf49a1807c74d44bea2256db21d3ca75d",
+      "runs": [
+        {
+          "id": 42055562194,
+          "name": "V3.69 Founder Operations Security",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42055562194",
+          "head": "022b784bf49a1807c74d44bea2256db21d3ca75d"
+        },
+        {
+          "id": 42055562094,
+          "name": "V3.63 coordinated editable growth checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42055562094",
+          "head": "022b784bf49a1807c74d44bea2256db21d3ca75d"
+        },
+        {
+          "id": 42055562422,
+          "name": "V3.70 Platform Autopilot checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42055562422",
+          "head": "022b784bf49a1807c74d44bea2256db21d3ca75d"
+        },
+        {
+          "id": 42055562531,
+          "name": "V3.66 voice and project Operator checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42055562531",
+          "head": "022b784bf49a1807c74d44bea2256db21d3ca75d"
+        },
+        {
+          "id": 42055562179,
+          "name": "V3.64 private growth workspace checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42055562179",
+          "head": "022b784bf49a1807c74d44bea2256db21d3ca75d"
+        },
+        {
+          "id": 42055562482,
+          "name": "V3.65 Growth Command Centre checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42055562482",
+          "head": "022b784bf49a1807c74d44bea2256db21d3ca75d"
+        },
+        {
+          "id": 42055546550,
+          "name": "Private App goal composition and original authority verification",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42055546550",
+          "head": "022b784bf49a1807c74d44bea2256db21d3ca75d"
+        },
+        {
+          "id": 42055546961,
+          "name": "Premium Website original-renderer browser evidence",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42055546961",
+          "head": "022b784bf49a1807c74d44bea2256db21d3ca75d"
+        }
+      ]
+    },
+    {
+      "sha": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d",
+      "runs": [
+        {
+          "id": 42056760781,
+          "name": "V3.66 voice and project Operator checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42056760781",
+          "head": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d"
+        },
+        {
+          "id": 42056761038,
+          "name": "V3.63 coordinated editable growth checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42056761038",
+          "head": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d"
+        },
+        {
+          "id": 42056760924,
+          "name": "V3.64 private growth workspace checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42056760924",
+          "head": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d"
+        },
+        {
+          "id": 42056760829,
+          "name": "V3.70 Platform Autopilot checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42056760829",
+          "head": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d"
+        },
+        {
+          "id": 42056760539,
+          "name": "V3.69 Founder Operations Security",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42056760539",
+          "head": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d"
+        },
+        {
+          "id": 42056760602,
+          "name": "V3.65 Growth Command Centre checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42056760602",
+          "head": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d"
+        },
+        {
+          "id": 42056749836,
+          "name": "Premium Website original-renderer browser evidence",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42056749836",
+          "head": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d"
+        },
+        {
+          "id": 42056749798,
+          "name": "Private App goal composition and original authority verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42056749798",
+          "head": "be0c23e8fffec41cc6a18da1494100dd5a1ea83d"
+        }
+      ]
+    },
+    {
+      "sha": "194ac970b06081545294147194b61cc659bfaaa0",
+      "runs": [
+        {
+          "id": 42059882527,
+          "name": "V3.69 Founder Operations Security",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42059882527",
+          "head": "194ac970b06081545294147194b61cc659bfaaa0"
+        },
+        {
+          "id": 42059882681,
+          "name": "V3.63 coordinated editable growth checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42059882681",
+          "head": "194ac970b06081545294147194b61cc659bfaaa0"
+        },
+        {
+          "id": 42059882456,
+          "name": "V3.65 Growth Command Centre checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42059882456",
+          "head": "194ac970b06081545294147194b61cc659bfaaa0"
+        },
+        {
+          "id": 42059882532,
+          "name": "V3.70 Platform Autopilot checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42059882532",
+          "head": "194ac970b06081545294147194b61cc659bfaaa0"
+        },
+        {
+          "id": 42059882497,
+          "name": "V3.64 private growth workspace checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42059882497",
+          "head": "194ac970b06081545294147194b61cc659bfaaa0"
+        },
+        {
+          "id": 42059882682,
+          "name": "V3.66 voice and project Operator checks",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42059882682",
+          "head": "194ac970b06081545294147194b61cc659bfaaa0"
+        },
+        {
+          "id": 42059869608,
+          "name": "Premium Website original-renderer browser evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42059869608",
+          "head": "194ac970b06081545294147194b61cc659bfaaa0"
+        },
+        {
+          "id": 42059869876,
+          "name": "Private App goal composition and original authority verification",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42059869876",
+          "head": "194ac970b06081545294147194b61cc659bfaaa0"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "No cancelled or failed run is represented as final success.",
+    "4db browser failed an incorrectly scoped image assertion; the photographic assertion was retained and image-free benchmark assertion added.",
+    "022 runs were superseded under original workflow concurrency policy.",
+    "be0 browser captured valid pixels but the candidate manifest correctly refused absent source revision metadata.",
+    "Exact original plan bindings, not a revision-advancing rebuild or guessed account save, resolved the evidence contract."
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "status": "failed_then_superseded",
+  "runId": 42237166451,
+  "jobId": 127957686623,
+  "summary": {
+    "source": {
+      "commit": "d78e7a8ceee80acbb45b8fd491e7b263403ab1b7",
+      "tree": "b672aa7fa32bee110307214df4c598bb5a93d020",
+      "workingTreeChanged": false
+    },
+    "browser": "145.0.7632.6",
+    "reviewPack": {
+      "index": "iphone-review-pack/index.html",
+      "zip": "iphone-review-pack.zip",
+      "zipBytes": 5876510,
+      "zipSha256": "52d62a18d8a10a204ff377f6f518dec2b2b1917c60a7859e444c716553ed7010",
+      "files": 83,
+      "imageCount": 64,
+      "comparisonCount": 16,
+      "source": {
+        "commit": "d78e7a8ceee80acbb45b8fd491e7b263403ab1b7",
+        "tree": "b672aa7fa32bee110307214df4c598bb5a93d020",
+        "workingTreeDirty": false,
+        "before": "1f7feadb3bccbf87084da1813bea8655641ee616"
+      },
+      "browser": "145.0.7632.6",
+      "professionalAcceptance": false
+    },
+    "counterexampleCoverage": {
+      "bodyColumnCounterexample": true,
+      "clippingControls": {
+        "runs": 1,
+        "visibleOverflowPass": 1,
+        "concealedCasesDetected": 4
+      },
+      "nativeMenuControls": {
+        "runs": 1,
+        "states": [
+          {
+            "closed": 0,
+            "keyboardOpen": 1,
+            "closedAgain": 0
+          }
+        ]
+      }
+    },
+    "pages": 35,
+    "fullPageScreenshots": 310,
+    "actualNavigationChecks": 222,
+    "afterFailures": [
+      "moor-meadow-rich/home/after/mobile open service group clipping",
+      "ember-rich/home/after/mobile open service group clipping",
+      "quiet-light-rich/home/after/mobile open service group clipping",
+      "quiet-light-rich/home/after/desktop open service group clipping",
+      "quiet-light-rich/page-brand-direction/after/desktop clipped content [{\"tag\":\"LI\",\"text\":\"Services+ServicesOverviewBrand directionWebsite contentCreative review\"}]",
+      "quiet-light-rich/page-website-content/after/desktop clipped content [{\"tag\":\"LI\",\"text\":\"Services+ServicesOverviewBrand directionWebsite contentCreative review\"}]",
+      "quiet-light-rich/page-creative-review/after/desktop clipped content [{\"tag\":\"LI\",\"text\":\"Services+ServicesOverviewBrand directionWebsite contentCreative review\"}]"
+    ],
+    "baselineFindings": 0,
+    "viewports": [
+      "mobile",
+      "desktop",
+      "tablet",
+      "narrow",
+      "retina"
+    ],
+    "maximumImageBodyBytes": 1251334,
+    "captureWallMs": 154731,
+    "nodeCpuMicroseconds": {
+      "user": 17503451,
+      "system": 1744104
+    },
+    "nodeMaxRssKiB": 451420,
+    "pixelReceiptBytes": 1705098,
+    "pixelReceiptCount": 35,
+    "professionalAcceptance": false,
+    "providerCalls": 0
+  },
+  "artifacts": {
+    "full": {
+      "id": 13511507924,
+      "bytes": 98181668,
+      "sha256": "e8aabf307a897bf5faae927b7b517dd710141e6d0ebb708c8ac04e9d6c7baca5"
+    },
+    "compact": {
+      "id": 13511268060,
+      "bytes": 5073522,
+      "sha256": "b2cb416c90df8eae9c3fa7325d516cc7b7f126345de4243bf47fb0b1b9758dff"
+    }
+  },
+  "actualReview": "Corrected desktop service copy independently inspected in real screenshots; all body-column controls passed. Seven clipping reports remained around native service navigation wrappers.",
+  "nextVerification": "Measure SUMMARY as its own text boundary, add a fifth concealed-summary counterexample and retain exact failure geometry/ancestor diagnostics. Expected clipping checks are not removed; genuine final browser execution remains required.",
+  "goldStandardsApproved": 0,
+  "providerCalls": 0
+}

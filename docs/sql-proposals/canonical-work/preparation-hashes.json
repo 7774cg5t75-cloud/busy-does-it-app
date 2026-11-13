@@ -1,0 +1,7 @@
+{
+  "hostedAuthorised": false,
+  "files": {
+    "preparation.sql": "740517d1730bf64f69ed8cac6a0eda6e0a45626bc209e3ab60d17ee9e0e5b049",
+    "preparation-retaining-rollback.sql": "a395cc26cae9c5c927eadea384ee6e6fa85d77e9ce1f8647254d60f72a475ab7"
+  }
+}

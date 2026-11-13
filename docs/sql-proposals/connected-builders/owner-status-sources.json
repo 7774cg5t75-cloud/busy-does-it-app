@@ -1,0 +1,144 @@
+{
+  "tables": [
+    "busy_mini_apps",
+    "busy_mini_app_module_catalog",
+    "busy_websites",
+    "busy_website_deployments",
+    "busy_public_business_profiles",
+    "busy_mini_app_versions",
+    "busy_mini_app_requests",
+    "busy_mini_app_request_links",
+    "busy_mini_app_entry_events",
+    "busy_mini_app_entry_daily",
+    "busy_mini_app_work_bookings",
+    "busy_mini_app_request_messages",
+    "busy_mini_app_message_delivery_outbox",
+    "busy_push_deliveries",
+    "busy_business_content"
+  ],
+  "statements": [
+    {
+      "file": "20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "5d3631c755d597a02a6a7927392b1ad690e12a396a4fb2ab73c20d81525670b9"
+    },
+    {
+      "file": "20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "52e35b01862d6175cd84938b395365cac7ba2189496f9f627399cee45a557fdb"
+    },
+    {
+      "file": "20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "8acef64b957c87fa0eb2203587b831ca17d09cff31717eff1051fdec0befd934"
+    },
+    {
+      "file": "20261006165702_v3_36_multitenant_website_publishing_foundation.sql",
+      "sha256": "82d53251f17795d73eb96862349c859cdd3a2fc93c6ee2900659dd051e84e655"
+    },
+    {
+      "file": "20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "9e34125badb322dd8371b4b8f736b297416199b6400d84dda02f1356c62e4dfd"
+    },
+    {
+      "file": "20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "79f3f2b742c2e05be3e4e0bfd98b369eaceec8f3aa19510f50d6a5bf1b08dc70"
+    },
+    {
+      "file": "20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "5e4ff2dc97daaeb9804f9731b1ea3f78e4aabd847b6772eda33b2bf8a15c76c3"
+    },
+    {
+      "file": "20261007101513_v3_40_mini_app_customer_journey_bridge.sql",
+      "sha256": "0bdf587bf47183a2cd6a0f6d7c42e5f343a7ed4c43a8a737af5ef78fe1753b15"
+    },
+    {
+      "file": "20261007143000_v3_43_mini_app_direct_entry.sql",
+      "sha256": "92fbe149627e29776baba239979c53d8a0e05d81fc5102de82906e4078d90ff1"
+    },
+    {
+      "file": "20261007143200_v3_43_mini_app_entry_daily_rollup.sql",
+      "sha256": "881375b35530906f0d95e08e184c722bdae5835f9975ec9c31919175e7af18ab"
+    },
+    {
+      "file": "20261012193000_v3_181_durable_work_booking_ledger.sql",
+      "sha256": "6931264735446942a466c3d8e7086c8849dfb0f792fbe952e99c13e8dcb8aea1"
+    },
+    {
+      "file": "20261007125000_v3_41_mini_app_request_messaging.sql",
+      "sha256": "02c962d9df002aeac3ea35d973f28b66fd664d517a5f0fab1417c16cd15b5da1"
+    },
+    {
+      "file": "20261012211000_v3_185_durable_message_delivery_intent.sql",
+      "sha256": "519d343a53135cae3bef600be22e6c17a8dc474c4bc8a8bd54e92c2fca69bb2f"
+    },
+    {
+      "file": "../schema/v3_25_production_bridge.sql",
+      "sha256": "1dc55a14c0320fdbe2ac8b590bd6abbc943730599d0413ccd39401477d31c6b4"
+    },
+    {
+      "file": "../schema/business_content_records.sql",
+      "sha256": "4ba5712f451d323e1623e4c63a276fc0a8deb6acca0ca64b8147455865b446ee"
+    },
+    {
+      "file": "20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "ca1b021c0a0c891986ddb0f9678fd7dcca3eb58645e6acb8ff601bb995c4de03"
+    },
+    {
+      "file": "20261007070450_v3_37_live_website_management_foundation.sql",
+      "sha256": "5fd07d1000bb6875dd9d9adbb1f48977d496b8f77dcc2c1fabb576aa890edac2"
+    },
+    {
+      "file": "20261007073500_v3_38_delivery_signals_usage_foundation.sql",
+      "sha256": "db9f6304254544e0bbe0a5feb50249fa70d74acac99afdc92da908d53899da08"
+    },
+    {
+      "file": "20261007082328_v3_39_mini_app_version_hashing.sql",
+      "sha256": "c801242abd59b2a4dbc423e6d57825f578fb219e79ddd4420cfeb76f04e5aede"
+    },
+    {
+      "file": "20261007082355_v3_39_mini_app_request_idempotency.sql",
+      "sha256": "7a1cd229e2c5916a1286fa823c60062c0963a921ac0f7b3f0fa3481fddd9cff8"
+    },
+    {
+      "file": "20261007101513_v3_40_mini_app_customer_journey_bridge.sql",
+      "sha256": "30cc2cbf479a9dfcb07544b250f2bb23031a34de66348a4003cf09190c7ba455"
+    },
+    {
+      "file": "20261007133000_v3_42_mini_app_notifications.sql",
+      "sha256": "23734e9b9f5425df2b02b6e6be4398f5fae4ebe06d78e880d9ccd171ff543f35"
+    },
+    {
+      "file": "20261007154000_v3_44_public_mini_app_web.sql",
+      "sha256": "fd83f56db571e6a6e11c48cd96a99c0786782cba257db2421e12d7e0d58a15c0"
+    },
+    {
+      "file": "20261007154000_v3_44_public_mini_app_web.sql",
+      "sha256": "3b2a74c43b3025b0dfba85fdb2578c62b46c6d077656ad731c00219a6c565f4f"
+    },
+    {
+      "file": "20261007161000_v3_45_guest_mini_app_requests.sql",
+      "sha256": "40d0b63ada701654c9095a3edc86eeff67883e494c90da5fc55490e1665cc8fb"
+    },
+    {
+      "file": "20261007161200_v3_45_guest_web_capability.sql",
+      "sha256": "54fbc5f62b1d630008b630587269d20cf1c5f4afba43a29682e783dc0cdf5d9c"
+    },
+    {
+      "file": "20261007220000_v3_52_website_scale_hardening.sql",
+      "sha256": "d4ba727496c05f1706358bf510a658968dc0e237e73766e479c7d287acd1e14b"
+    },
+    {
+      "file": "20261009110000_v3_79_public_form_gates.sql",
+      "sha256": "6ac1448191ad1aaab320e4ef7ae058568b63594ab90d7617d2f52e8a270ec7ab"
+    },
+    {
+      "file": "20261007082234_v3_39_busy_apps_marketplace_foundation.sql",
+      "sha256": "f16e52c474b61355eec813e78cbd14c83444843b1b7a08cc4ee881e6ed615069"
+    },
+    {
+      "file": "20261007143200_v3_43_mini_app_entry_daily_rollup.sql",
+      "sha256": "0db5bee83092ce36f684f1f650c0070add55e1e464977129bb221800387b5a62"
+    }
+  ],
+  "adaptations": [
+    "Entry-summary uses fixed pg_catalog,pg_temp search_path; original table references are already qualified."
+  ]
+}

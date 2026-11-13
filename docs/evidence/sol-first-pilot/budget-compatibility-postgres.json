@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "hosted": false,
+  "syntheticDataOnly": true,
+  "providerCalls": 0,
+  "actualSpendingGBP": 0,
+  "hostedMutations": 0,
+  "nativeReceiptFixtureIsNotHostedEvidence": true,
+  "originalControllerReused": true,
+  "configurationEvidenceIsSyntheticOnly": true,
+  "cleanupCompleted": true,
+  "sha256": "920e52c9bf0e527ef4ba4ed1bb554497c6aaa5af4c57dfc65e9eb3a1e2ca08e8",
+  "executionDerivativeSha256": "901a4a22978d3cf42446874cc0fcd8896e8f6c14a38957fe97e35700932cace1",
+  "results": [
+    {
+      "id": "owned-postgresql17-synthetic-only-no-hosted-target",
+      "passed": true
+    },
+    {
+      "id": "fused-install-and-rollback-deny-with-original-state-retained",
+      "passed": true
+    },
+    {
+      "id": "wrong-role-source-fingerprint-rls-and-policy-drift-denied-atomically",
+      "passed": true
+    },
+    {
+      "id": "native-history-failure-rolls-back-complete-output-change",
+      "passed": true
+    },
+    {
+      "id": "deferred-commit-history-failure-rolls-back-output-change",
+      "passed": true
+    },
+    {
+      "id": "original-studio-six-write-source-and-current-membership-rehearsed",
+      "passed": true
+    },
+    {
+      "id": "compatibility-changes-only-original-check-and-records-exact-native-receipt",
+      "passed": true
+    },
+    {
+      "id": "duplicate-install-refused-no-replay-or-history-duplication",
+      "passed": true
+    },
+    {
+      "id": "unknown-install-ack-resolved-read-only-without-replay",
+      "passed": true
+    },
+    {
+      "id": "retaining-output-rollback-history-failure-rolls-back-constraint-change",
+      "passed": true
+    },
+    {
+      "id": "compatibility-and-retaining-rollback-preserve-nonzero-original-unknown-liability",
+      "passed": true
+    },
+    {
+      "id": "missing-real-account-count-and-tariff-evidence-generates-no-configuration",
+      "passed": true
+    },
+    {
+      "id": "synthetic-evidence-prepares-private-fused-original-internal-allocation",
+      "passed": true
+    },
+    {
+      "id": "stale-count-foreign-source-price-bypass-and-duplicate-operation-evidence-denied",
+      "passed": true
+    },
+    {
+      "id": "configuration-history-failure-rolls-back-all-budget-seeding-and-policy",
+      "passed": true
+    },
+    {
+      "id": "smallest-sol-first-then-retaining-astra-extension-uses-original-native-authorities",
+      "passed": true
+    },
+    {
+      "id": "original-controller-internal-configuration-has-single-concurrency-three-pound-aggregate",
+      "passed": true
+    },
+    {
+      "id": "original-reserve-dispatch-finish-and-service-only-reader-support-new-bounds",
+      "passed": true
+    },
+    {
+      "id": "genuine-loopback-http-original-revised-ledger-gpt-6.1-sol",
+      "passed": true
+    },
+    {
+      "id": "genuine-loopback-http-original-revised-ledger-gpt-6-astra",
+      "passed": true
+    },
+    {
+      "id": "retaining-rollback-keeps-reservations-receipts-source-and-finish-authority",
+      "passed": true
+    },
+    {
+      "id": "output-rollback-refuses-higher-output-tariffs-without-deleting-liabilities",
+      "passed": true
+    },
+    {
+      "id": "finish-reader-rls-acls-native-hook-and-original-source-remain-intact",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 23,
+    "failed": 0
+  }
+}

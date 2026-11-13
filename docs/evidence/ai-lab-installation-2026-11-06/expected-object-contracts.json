@@ -1,0 +1,1117 @@
+{
+  "schemaVersion": 1,
+  "method": "READ LOCAL ONLY: parsed each final CREATE/CREATE OR REPLACE public function definition; normalised original argument types; applied the final exact-signature ACL closure at approved install.sql lines3684-3690, then the five original service-only AI grants at lines3918-3939. No hosted catalogue was used to choose expectations.",
+  "approvedFusedSourceSha256": "b825989b37e2fef0f874ccdb03405a6650f8dc6ddfe27f94086952cc1cec225d",
+  "canonicalPublicTables": [
+    {
+      "name": "business_work_agreement_decisions",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "business_work_agreement_evidence",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "business_work_engagements",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "business_work_private_drafts",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "business_work_quote_recipient_bindings",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "business_work_quote_references",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_business_content",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_business_memberships",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    },
+    {
+      "name": "busy_business_snapshots",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    },
+    {
+      "name": "busy_businesses",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    },
+    {
+      "name": "busy_creator_draft_heads",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_creator_draft_versions",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_growth_opportunities",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_growth_opportunity_versions",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_entry_daily",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_entry_events",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_message_delivery_outbox",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_module_catalog",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_request_links",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_request_messages",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_requests",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_versions",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_app_work_bookings",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_mini_apps",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_public_business_profiles",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_push_deliveries",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_website_deployments",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    },
+    {
+      "name": "busy_websites",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": false
+    }
+  ],
+  "privateAiTables": [
+    {
+      "name": "accounts",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    },
+    {
+      "name": "events",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    },
+    {
+      "name": "operations",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    },
+    {
+      "name": "periods",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    },
+    {
+      "name": "policy",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    },
+    {
+      "name": "tariffs",
+      "owner": "postgres",
+      "rls": true,
+      "forceRls": true
+    }
+  ],
+  "publicFunctionContracts": [
+    {
+      "signature": "busy_ai_context_v1(uuid, uuid, jsonb)",
+      "name": "busy_ai_context_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_ai_dispatch_v1(uuid, uuid, uuid, uuid)",
+      "name": "busy_ai_dispatch_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_ai_finish_v1(uuid, uuid, uuid, text, integer, integer, text, uuid)",
+      "name": "busy_ai_finish_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_ai_operation_read_v1(uuid, uuid, uuid, uuid)",
+      "name": "busy_ai_operation_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_ai_reserve_v1(uuid, uuid, uuid, text, text, jsonb, text, uuid)",
+      "name": "busy_ai_reserve_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_connected_app_enquiry_file_v1(uuid, bigint, jsonb)",
+      "name": "busy_connected_app_enquiry_file_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_app_enquiry_file_v2(uuid, bigint, jsonb, text)",
+      "name": "busy_connected_app_enquiry_file_v2",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_app_enquiry_import_v1(uuid, uuid, text, bigint)",
+      "name": "busy_connected_app_enquiry_import_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_app_enquiry_import_v2(uuid, uuid, text, bigint)",
+      "name": "busy_connected_app_enquiry_import_v2",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_app_enquiry_review_v1(uuid, uuid)",
+      "name": "busy_connected_app_enquiry_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_app_enquiry_state_v1(uuid, uuid)",
+      "name": "busy_connected_app_enquiry_state_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_app_spec_commit_v1(uuid, uuid, uuid, bigint, bigint, text, jsonb)",
+      "name": "busy_connected_app_spec_commit_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_connected_builder_read_v1(uuid)",
+      "name": "busy_connected_builder_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_first_app_v1(uuid, uuid, text, text, text, text, bigint, jsonb)",
+      "name": "busy_connected_first_app_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_connected_initialize_v1(uuid)",
+      "name": "busy_connected_initialize_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_journeys_v1(uuid, text, bigint)",
+      "name": "busy_connected_journeys_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_private_app_commit_v1(uuid, uuid, uuid, bigint, bigint, jsonb)",
+      "name": "busy_connected_private_app_commit_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_connected_profile_write_v1(uuid, bigint, jsonb, jsonb, boolean)",
+      "name": "busy_connected_profile_write_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_website_commit_v1(uuid, uuid, bigint, jsonb, jsonb, bigint)",
+      "name": "busy_connected_website_commit_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_connected_website_history_v1(uuid, bigint, text, text)",
+      "name": "busy_connected_website_history_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_connected_website_transition_v1(uuid, uuid, bigint, jsonb, jsonb, bigint, text)",
+      "name": "busy_connected_website_transition_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_connected_workspaces_v1()",
+      "name": "busy_connected_workspaces_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_create_first_mini_app_draft_v3199(uuid, uuid, text, text, text, text, bigint, jsonb)",
+      "name": "busy_create_first_mini_app_draft_v3199",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=\"\""
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_creator_draft_list_v1(uuid, uuid, text, integer)",
+      "name": "busy_creator_draft_list_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_creator_draft_operation_v1(uuid, text)",
+      "name": "busy_creator_draft_operation_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_creator_draft_read_v1(uuid, text, bigint)",
+      "name": "busy_creator_draft_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_creator_draft_write_v1(uuid, text, bigint, jsonb, uuid, bigint, text, text)",
+      "name": "busy_creator_draft_write_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_creator_media_review_v1(uuid, text, boolean)",
+      "name": "busy_creator_media_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_growth_opportunity_list_v1(uuid, uuid, integer)",
+      "name": "busy_growth_opportunity_list_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_growth_opportunity_operation_v1(uuid, text)",
+      "name": "busy_growth_opportunity_operation_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_growth_opportunity_read_v1(uuid, uuid, bigint)",
+      "name": "busy_growth_opportunity_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_growth_opportunity_write_v1(uuid, uuid, bigint, text, text, jsonb, text, text, text)",
+      "name": "busy_growth_opportunity_write_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_guard_mini_app_version_immutable()",
+      "name": "busy_guard_mini_app_version_immutable",
+      "owner": "postgres",
+      "definer": false,
+      "config": [
+        "search_path=public, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_guard_website_deployment_immutable()",
+      "name": "busy_guard_website_deployment_immutable",
+      "owner": "postgres",
+      "definer": false,
+      "config": [
+        "search_path=public, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_mini_app_entry_summary(uuid, uuid, timestamp with time zone)",
+      "name": "busy_mini_app_entry_summary",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": true
+    },
+    {
+      "signature": "busy_owner_first_enquiry_v1(uuid, bigint, jsonb)",
+      "name": "busy_owner_first_enquiry_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_owner_first_reply_review_v1(uuid, bigint, text, text)",
+      "name": "busy_owner_first_reply_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_owner_manual_source_v1(uuid, bigint, text, text)",
+      "name": "busy_owner_manual_source_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_owner_pending_review_v1(uuid, bigint, text)",
+      "name": "busy_owner_pending_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_owner_reply_create_v1(uuid, bigint, text, text, text, text, text)",
+      "name": "busy_owner_reply_create_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_owner_reply_review_v1(uuid, text, text, bigint)",
+      "name": "busy_owner_reply_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_owner_reply_text_v2(uuid, text, text, bigint, text, text, text)",
+      "name": "busy_owner_reply_text_v2",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_shared_business_read_v1(uuid)",
+      "name": "busy_shared_business_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_snapshot_private_mutation_v1(uuid, bigint, integer, text, text, jsonb, text, jsonb)",
+      "name": "busy_snapshot_private_mutation_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_agreement_create_v1(uuid, text, uuid, bigint, text, text, text)",
+      "name": "busy_work_agreement_create_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_agreement_decide_v1(uuid, text, uuid, uuid, bigint, bigint, text, text, text, text)",
+      "name": "busy_work_agreement_decide_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_agreement_decision_review_v1(uuid, text, uuid, uuid, bigint)",
+      "name": "busy_work_agreement_decision_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_agreement_list_v1(uuid, text, uuid, uuid, integer)",
+      "name": "busy_work_agreement_list_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_agreement_read_v1(uuid, text, uuid, uuid)",
+      "name": "busy_work_agreement_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_agreement_review_v1(uuid, text, uuid, bigint)",
+      "name": "busy_work_agreement_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_booking_readiness_v1(uuid, text, uuid, uuid)",
+      "name": "busy_work_booking_readiness_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_compare_v1(uuid, text, uuid)",
+      "name": "busy_work_compare_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_consumer_quote_access_v1(uuid)",
+      "name": "busy_work_consumer_quote_access_v1",
+      "owner": "postgres",
+      "definer": false,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_consumer_quote_response_v1(uuid, text, text)",
+      "name": "busy_work_consumer_quote_response_v1",
+      "owner": "postgres",
+      "definer": false,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_create_quote_v1(uuid, text, text, bigint, text, text, text, text, text, text)",
+      "name": "busy_work_create_quote_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_discover_v1(uuid, uuid, integer)",
+      "name": "busy_work_discover_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_edit_context_v1(uuid, text, uuid, bigint)",
+      "name": "busy_work_edit_context_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_edit_quote_v1(uuid, text, uuid, bigint, text, text, text, text, text)",
+      "name": "busy_work_edit_quote_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_history_v1(uuid, text, uuid)",
+      "name": "busy_work_history_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_list_v1(uuid, text, uuid, integer)",
+      "name": "busy_work_list_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_migrate_legacy_v1(uuid, text, text, bigint, text, text, text)",
+      "name": "busy_work_migrate_legacy_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_private_read_v1(uuid, text, uuid, text)",
+      "name": "busy_work_private_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_private_write_v1(uuid, text, uuid, bigint, bigint, text, text, text, text)",
+      "name": "busy_work_private_write_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_binding_context_v1(uuid, text, uuid, uuid, uuid, bigint)",
+      "name": "busy_work_quote_binding_context_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_binding_read_v1(uuid, text, uuid, uuid)",
+      "name": "busy_work_quote_binding_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_binding_write_v1(uuid, text, uuid, uuid, uuid, bigint, bigint, text, text)",
+      "name": "busy_work_quote_binding_write_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_recipient_candidates_v1(uuid, text, uuid, uuid, uuid, integer)",
+      "name": "busy_work_quote_recipient_candidates_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_recipient_review_v1(uuid, text, uuid, uuid, uuid)",
+      "name": "busy_work_quote_recipient_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_reference_create_v1(uuid, text, uuid, bigint, text, text)",
+      "name": "busy_work_quote_reference_create_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_reference_list_v1(uuid, text, uuid, uuid, integer)",
+      "name": "busy_work_quote_reference_list_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_reference_read_v1(uuid, text, uuid, uuid)",
+      "name": "busy_work_quote_reference_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_quote_reference_review_v1(uuid, text, uuid, bigint)",
+      "name": "busy_work_quote_reference_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": false,
+      "service": false
+    },
+    {
+      "signature": "busy_work_read_v1(uuid, text, uuid)",
+      "name": "busy_work_read_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    },
+    {
+      "signature": "busy_work_source_review_v1(uuid, text, text, bigint)",
+      "name": "busy_work_source_review_v1",
+      "owner": "postgres",
+      "definer": true,
+      "config": [
+        "search_path=pg_catalog, pg_temp"
+      ],
+      "anon": false,
+      "authenticated": true,
+      "service": false
+    }
+  ],
+  "expectedCounts": {
+    "publicTables": 28,
+    "privateAiTables": 6,
+    "publicFunctions": 74,
+    "foundationFunctions": 69,
+    "serviceOnlyAiFunctions": 5,
+    "authenticatedOnlyExecute": 32,
+    "serviceOnlyExecute": 11,
+    "noApiExecute": 31,
+    "definer": 70,
+    "invoker": 4
+  },
+  "defaultPrivilegeContract": "Global and public-schema postgres defaults revoke all table/sequence privileges and function EXECUTE from PUBLIC,anon,authenticated,service_role. Private AI schema and objects deny direct API access; no new default grants added.",
+  "limitations": "Static extraction of this exact approved SQL only; compare independently obtained hosted owners/RLS/FORCE/function signatures/definer/search_path/grants and default ACLs before declaring installation verified. No hosted role assumptions or probes performed by this reviewer."
+}

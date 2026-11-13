@@ -24,10 +24,10 @@ function createAppStudioCheckpoint(storage,context,{now=Date.now}={}){
   }),
   save:state=>enqueue(async()=>{
    if(!key)throw Error('Private encrypted recovery is unavailable for this app.');
-   if(!state){await storage.deleteItemAsync(key);return;}
+   if(!state){await storage.deleteItemAsync(key);if(await storage.getItemAsync(key)!=null)throw Error('Private device recovery removal could not be confirmed. An earlier checkpoint may remain.');return;}
    const raw=JSON.stringify({v:1,ownerId:context.ownerId,businessId:context.businessId,appId:context.app.id,at:now(),state});
    if(raw.length>MAX_CHARS)throw Error('This proposal is too large for private device recovery. Reduce the batch before approving.');
-   await storage.setItemAsync(key,raw);
+   await storage.setItemAsync(key,raw);if(await storage.getItemAsync(key)!==raw)throw Error('Private device recovery could not be read back exactly. Keep your current work; no account save is confirmed.');
   })
  };
 }

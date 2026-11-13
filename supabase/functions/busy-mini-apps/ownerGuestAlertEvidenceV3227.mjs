@@ -3,18 +3,18 @@
  * A provider-accepted push ticket remains NOT device-delivered.
  */
 function ownerGuestAlertEvidenceV3227({
- businessId="",appId="",pending=null,retryWait=null,
- claimed=null,manualReview=null,gatewayAccepted=0
+ businessId="",appId="",pending=/** @type {number|null} */ (null),retryWait=/** @type {number|null} */ (null),
+ claimed=/** @type {number|null} */ (null),manualReview=/** @type {number|null} */ (null),gatewayAccepted=0
 }={}){
  const valid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
  if(!valid.test(businessId)||!valid.test(appId)||
   ![pending,retryWait,claimed,manualReview,gatewayAccepted].every(v=>
    Number.isSafeInteger(v)&&v>=0&&v<=100000000))
-  return {ok:false,readOnly:true,
+  return {ok:/** @type {const} */ (false),readOnly:true,
    reason:"Actual same-business alert-state readbacks are required.",
    providerAccepted:false,deviceDelivered:false};
  const needsProviderReview=pending+retryWait+claimed+manualReview;
- return {ok:true,kind:"owner_guest_alert_states_v3227",businessId,appId,
+ return {ok:/** @type {const} */ (true),kind:"owner_guest_alert_states_v3227",businessId,appId,
   pending,retryWait,claimed,manualReview,needsProviderReview,
   gatewayAcceptedCount:gatewayAccepted,
   gatewayAcceptedIsNotDeviceDelivery:true,

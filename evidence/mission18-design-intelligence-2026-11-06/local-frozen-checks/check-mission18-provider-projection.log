@@ -1,0 +1,37 @@
+(node:333652) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/busy-connected-recovery/src/domain/websiteBuilder.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/busy-connected-recovery/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS complete source/schema/request digests with no dispatch or admitted cost
+PASS synthetic response remains unverified, never real-model or save authority
+PASS no network, secret or new ledger path
+PASS empty fails closed
+PASS malformed fails closed
+PASS oversized fails closed
+PASS wrong-model fails closed
+PASS missing-receipt fails closed
+PASS invalid-receipt fails closed
+PASS incomplete fails closed
+PASS tool-output fails closed
+PASS duplicate-message fails closed
+PASS missing-usage fails closed
+PASS negative-usage fails closed
+PASS input_tokens overrun retains actual accounting for original reconciliation
+PASS output_tokens overrun retains actual accounting for original reconciliation
+PASS reasoning item without tools remains parseable
+PASS stale generation denied before accepting output
+PASS stale owner denied before accepting output
+PASS stale business denied before accepting output
+PASS stale profile-revision denied before accepting output
+PASS stale unsaved-profile denied before accepting output
+PASS stale owner-wording denied before accepting output
+PASS a copied preparation cannot mint the original sealed creative source
+PASS altered wire-output-cap denied
+PASS altered wire-tool denied
+PASS altered envelope-digest denied
+PASS altered source-stamp denied
+PASS altered forged-cost denied
+PASS extra executable proposal fields denied after structured response parsing
+PASS foreign page IDs denied
+PASS invalid integrity result denied
+{"suite":"mission18-provider-projection","passed":32,"failed":0,"providerCalls":0,"liveModelQualityProven":false,"requestBytes":7628,"inputDigest":"48e46aa2ecaa4ce9dce39cded36ec20c467a05604aa04d77174096c74b3cd4ac","requestDigest":"7025777d47ae7d297da2befa5062fcea18cda36948991597f95718e17f3be049"}

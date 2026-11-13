@@ -1,0 +1,21 @@
+{
+  "version": "busy.ai-lab-budget-configuration-review.v1",
+  "status": "blocked-review-proposal",
+  "reason": "Actual account, count and tariff evidence is not available; no configuration SQL was generated.",
+  "requirements": [
+    "Fresh independent AI Lab control-plane and installed compatibility verification",
+    "Genuine native owner/membership and original Website/profile revisions plus hashes",
+    "Owner-reviewed internal laboratory allocation reference; not a paid customer entitlement",
+    "Actual intended provider-account eligibility and grants for the current phase only; Astra evidence is not required for sol-first",
+    "Exact compatible complete-input count and immutable wire/schema/source digests for each model",
+    "Fresh immutable all-in GBP tariff evidence covering cache, processing, FX, tax and fees",
+    "One protected immutable server phase allowlist; a prospective Astra identity does not authorise its use in sol-first",
+    "New exact SQL/configuration/deployment/execution approval; the concept ceiling grants no writes"
+  ],
+  "sql": null,
+  "rollback": null,
+  "hostedExecutionReady": false,
+  "policyChanged": false,
+  "hostedWrites": 0,
+  "providerCalls": 0
+}

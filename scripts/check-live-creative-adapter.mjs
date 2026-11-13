@@ -1,0 +1,57 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {createLiveCreativeAdapter,createDenoLiveCreativeAdapter} from '../supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs';
+import {prepareCreativeComparison} from '../src/core/websiteCreativeComparison.mjs';
+import {WEBSITE_ART_STORY_VERSION} from '../src/core/governedBuilderProposal.mjs';
+process.env.BUSY_CREATIVE_IMPORTED='1';const {creativeFixture}=await import('./check-website-creative-comparison.mjs');delete process.env.BUSY_CREATIVE_IMPORTED;
+process.env.BUSY_STORY_IMPORTED='1';const {storyDeps}=await import('./check-website-authentic-story.mjs');delete process.env.BUSY_STORY_IMPORTED;
+const now=Date.parse('2026-11-05T18:00:00Z'),hash=x=>createHash('sha256').update(x).digest('hex'),integrity={sha256:async s=>hash(s)};
+function fixture(patch={}){
+ const c=creativeFixture(2,true),prepared=prepareCreativeComparison(c,'Keep my words but propose a distinctive complete website'),model='synthetic-model-not-a-real-provider',operationId='10000000-0000-4000-8000-000000000001',secret='synthetic-server-credential-not-real';let state=null,record=null,calls=0,reserves=0;
+ const proposal={version:WEBSITE_ART_STORY_VERSION,scope:prepared.source.scope,kind:'website-design',explanation:'Synthetic HTTP fixture only; no real AI output.',objectives:['professional-presentation'],app:null,art:{direction:'expressive',family:c.website.theme.heroComposition,photos:[],contentPhotos:[],services:'cards',story:null,customerAction:'unchanged',copy:'unchanged',composition:{pageDirection:'studio-index',moves:[],mobileDensity:'preserve'}}};
+ const payload={id:'resp_synthetic_fixture',model,status:'completed',usage:{input_tokens:3000,output_tokens:500},output:[{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify(proposal)}]}]};
+ const deps={clock:()=>now,integrity,planner:storyDeps,readServerPolicy:async()=>({liveCreativeEnabled:true,pilotExecutionEnabled:true,provider:'openai-responses',model}),readCurrent:async()=>c,
+  verifyApproval:async digest=>({authenticated:true,founder:true,operationId,inputDigest:digest,ownerId:c.ownerId,businessId:c.businessId,syntheticOnly:true,provider:'openai-responses',model,spendingCeilingGBP:.10,expiresAt:now+60000,receipt:'synthetic-owner-approval'}),
+  readTariff:async()=>({provider:'openai-responses',model,currency:'GBP',modelAvailable:true,availabilityVerified:true,independentlyVerified:true,allFeesIncluded:true,fixedRequestGBP:0,checkedAt:now,inputGBPPerMillion:1,outputGBPPerMillion:2,revision:'1'}),countRequestTokens:async wire=>{assert.equal(wire.store,false);assert.equal(wire.max_output_tokens,1000);assert.deepEqual(wire.tools,[]);return 3000;},
+  reserve:async req=>{reserves++;if(state)throw Error('duplicate original operation');state='reserved-undispatched';record={...req,inputDigest:req.digest,operationId,authoritativeReadback:true,realUsageSettlementSupported:true,expiresAt:now+30000,status:state,admittedGBP:req.estimatedGBP,fresh:true};return {operationId};},
+  readReservation:async()=>({...record,status:state}),dispatch:async()=>{state='dispatched';record.attempts=1;},finish:async(_op,r)=>{if(r.outcome==='settled'){state='settled';Object.assign(record,r,{status:'settled',actualGBP:(r.inputTokens+2*r.outputTokens)/1e6});}else if(state!=='settled')state=r.outcome;},readReceipt:async()=>({...record,status:state}),readCredential:async()=>secret,
+  transport:async(url,options)=>{calls++;assert.equal(url,'https://api.openai.com/v1/responses');assert.equal(options.redirect,'error');assert.equal(options.headers.Authorization,'Bearer '+secret);assert.equal(JSON.parse(options.body).model,model);return new Response(JSON.stringify(payload),{headers:{'content-type':'application/json'}});},...patch};
+ return {c,prepared,proposal,payload,deps,run:()=>createLiveCreativeAdapter(deps)(prepared),get calls(){return calls;},get reserves(){return reserves;},get state(){return state;}};
+}
+const valid=fixture(),runner=createLiveCreativeAdapter(valid.deps),result=await runner(valid.prepared);assert.equal(result.ok,true,result.status);assert.equal(result.originalStudioApprovalRequired,true);assert.equal(result.maySave,false);assert.equal(valid.calls,1);assert.equal((await runner(valid.prepared)).status,'disabled');assert.equal((await createLiveCreativeAdapter(valid.deps)(valid.prepared)).ok,false);assert.equal(valid.calls,1);assert.ok(!JSON.stringify(result).includes('synthetic-server-credential'));
+for(const patch of [{readServerPolicy:async()=>({})},{verifyApproval:async()=>null},{readTariff:async()=>null},{readTariff:async()=>({currency:'USD'})},{readCredential:async()=>null},{countRequestTokens:async()=>4001},{readReservation:async()=>({})}]){const f=fixture(patch);assert.equal((await f.run()).ok,false);assert.equal(f.calls,0);}
+const wrongOperation=fixture(),verifyOperation=wrongOperation.deps.verifyApproval;wrongOperation.deps.verifyApproval=async(...a)=>({...await verifyOperation(...a),operationId:'10000000-0000-4000-8000-000000000002'});assert.equal((await wrongOperation.run()).ok,false);assert.equal(wrongOperation.calls,0);
+const altered=fixture();altered.prepared.input.approved.headline='Unapproved mutation';assert.equal((await altered.run()).ok,false);assert.equal(altered.calls,0);
+const foreign=fixture();foreign.c.businessId='foreign';assert.equal((await foreign.run()).ok,false);assert.equal(foreign.calls,0);
+const lostReserve=fixture(),reserve=lostReserve.deps.reserve;lostReserve.deps.reserve=async(...args)=>{await reserve(...args);throw Error('Lost reserve acknowledgement');};assert.equal((await lostReserve.run()).ok,false);assert.equal(lostReserve.calls,0);assert.equal(lostReserve.state,'released');
+for(const cutoff of [2,3]){const revoked=fixture(),policy=revoked.deps.readServerPolicy;let reads=0;revoked.deps.readServerPolicy=async()=>++reads>=cutoff?{}:policy();assert.equal((await revoked.run()).ok,false);assert.equal(revoked.calls,0);}
+const withdrawn=fixture(),approve=withdrawn.deps.verifyApproval;let checks=0;withdrawn.deps.verifyApproval=async(...args)=>++checks>1?null:approve(...args);assert.equal((await withdrawn.run()).ok,false);assert.equal(withdrawn.calls,0);
+const dispatch=fixture();dispatch.deps.dispatch=async()=>{throw Error('Lost dispatch acknowledgement');};assert.equal((await dispatch.run()).status,'unknown-outcome');assert.equal(dispatch.calls,0);assert.equal((await createLiveCreativeAdapter(dispatch.deps)(dispatch.prepared)).ok,false);
+for(const kind of ['malformed','oversized','http-error','network','invalid-proposal','tool-output','stale-source']){
+ const f=fixture(),original=f.deps.transport;f.deps.transport=async(...args)=>{await original(...args);if(kind==='network')throw Error('Response lost');if(kind==='malformed')return new Response('{bad',{headers:{'content-type':'application/json'}});if(kind==='oversized')return new Response('x'.repeat(40000),{headers:{'content-type':'application/json'}});if(kind==='http-error')return new Response('{}',{status:429,headers:{'content-type':'application/json'}});const p=structuredClone(f.payload);if(kind==='invalid-proposal')p.output[0].content[0].text=JSON.stringify({...f.proposal,art:{...f.proposal.art,css:'evil'}});if(kind==='tool-output')p.output=[{type:'function_call',name:'publish'}];if(kind==='stale-source')f.c.profileRevision++;return new Response(JSON.stringify(p),{headers:{'content-type':'application/json'}});};
+ const r=await f.run();assert.equal(r.ok,false,kind);assert.equal(f.calls,1);assert.equal((await createLiveCreativeAdapter(f.deps)(f.prepared)).ok,false);assert.equal(f.calls,1);
+}
+const reasoning=fixture();reasoning.payload.output.unshift({type:'reasoning',id:'rs_synthetic',summary:[]});assert.equal((await reasoning.run()).ok,true);assert.equal(reasoning.calls,1);
+// Deno runtime is replaced in memory with synthetic data only. No process env/key file is read.
+const denoDescriptor=Object.getOwnPropertyDescriptor(globalThis,'Deno');let secretReads=0;
+const syntheticDeno=value=>Object.defineProperty(globalThis,'Deno',{configurable:true,value:{env:{get:name=>{secretReads++;assert.equal(name,'BUSY_OPENAI_CREATIVE_PILOT_KEY');if(value instanceof Error)throw value;return value;}}}});
+try{
+ syntheticDeno('synthetic-server-credential-not-real');
+ const bound=fixture({readCredential:async()=>{throw Error('Supplied credential reader must not run');}}),boundRunner=createDenoLiveCreativeAdapter(bound.deps);
+ assert.equal(secretReads,0,'factory must not eagerly read credentials');
+ const boundResult=await boundRunner(bound.prepared);assert.equal(boundResult.ok,true,boundResult.status);assert.equal(bound.calls,1);assert.equal(secretReads,1);assert.ok(!JSON.stringify(boundResult).includes('synthetic-server-credential'));
+ assert.equal((await boundRunner(bound.prepared)).status,'disabled');assert.equal(secretReads,1);
+ for(const patch of [{readServerPolicy:async()=>({})},{verifyApproval:async()=>null},{countRequestTokens:async()=>4001},{readTariff:async()=>null},{readReservation:async()=>({})}]){
+  secretReads=0;const denied=fixture(patch);assert.equal((await createDenoLiveCreativeAdapter(denied.deps)(denied.prepared)).ok,false);assert.equal(secretReads,0);assert.equal(denied.calls,0);
+ }
+ for(const value of [undefined,'','short','synthetic-bad\r\nheader',new Error('synthetic secret failure must stay private')]){
+  syntheticDeno(value);const denied=fixture();const r=await createDenoLiveCreativeAdapter(denied.deps)(denied.prepared);assert.equal(r.status,'pre-dispatch-denied');assert.equal(denied.calls,0);assert.equal(denied.state,'released');assert.ok(!JSON.stringify(r).includes('synthetic'));
+ }
+ Object.defineProperty(globalThis,'Deno',{configurable:true,value:undefined});const absentRuntime=fixture();assert.equal((await createDenoLiveCreativeAdapter(absentRuntime.deps)(absentRuntime.prepared)).ok,false);assert.equal(absentRuntime.calls,0);
+}finally{if(denoDescriptor)Object.defineProperty(globalThis,'Deno',denoDescriptor);else delete globalThis.Deno;}
+assert.ok(!readFileSync('supabase/functions/busy-builder-proposals/index.ts','utf8').includes('createDenoLiveCreativeAdapter'));
+const lost=fixture(),finish=lost.deps.finish;lost.deps.finish=async(...args)=>{await finish(...args);throw Error('Lost finish acknowledgement');};assert.equal((await lost.run()).ok,true);assert.equal(lost.calls,1);
+const receipt=fixture();receipt.deps.readReceipt=async()=>({status:'settled',providerReceipt:'foreign'});assert.equal((await receipt.run()).status,'unknown-outcome');assert.equal(receipt.calls,1);
+const timeout=fixture(),send=timeout.deps.transport;timeout.deps.transport=async(...args)=>{await send(...args);return new Promise(()=>{});};assert.equal((await timeout.run()).status,'unknown-outcome');assert.equal(timeout.calls,1);assert.equal((await createLiveCreativeAdapter(timeout.deps)(timeout.prepared)).ok,false);assert.ok(!readFileSync('supabase/functions/busy-builder-proposals/index.ts','utf8').includes('liveCreativeAdapter'));
+console.log('PASS real adapter code with synthetic HTTP only: default-off policy, exact source/cost/approval admission, fixed endpoint, one dispatch, bounded schema/usage, no tools/retry, unknown outcomes, lost settlement acknowledgement recovery and no automatic save. Real provider calls:0.');

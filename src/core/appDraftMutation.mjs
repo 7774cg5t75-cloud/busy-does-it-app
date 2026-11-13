@@ -15,6 +15,7 @@ async function executeAppDraftMutation({action,payload,scope,isCurrent,send}={})
   action==='move_section'?proposeAppSectionMove(scope.app.draft_config,payload):
   action==='set_appearance'?previewPrivateAppAppearance(scope.app.draft_config,payload):null;
  if(plan&&!plan.ok)throw Error(plan.reason);
+ // The original atomic-first RPC returns revision 2, unlike the legacy unreviewed insert.
  const data=await send(action,{...payload,...base?{appId:base.appId,expectedRevision:base.revision}:{}},{isCurrent});
  if(!isCurrent())throw Error('The workspace changed. Refresh the original private app before another edit.');
  const app=data?.app,statusApp=data?.status?.app;
@@ -22,7 +23,7 @@ async function executeAppDraftMutation({action,payload,scope,isCurrent,send}={})
  const status=privateAppEditSource({businessId:scope.businessId,app:statusApp});
  if(data?.ok!==true||!actual||!status||JSON.stringify(actual)!==JSON.stringify(status)||
   base&&(actual.appId!==base.appId||actual.revision!==base.revision+1)||
-  plan&&actual.configStamp!==privateAppEditSource({businessId:scope.businessId,app,config:plan.nextConfig})?.configStamp||!base&&actual.revision!==(action==='apply_app_plan'?2:1))
+  plan&&actual.configStamp!==privateAppEditSource({businessId:scope.businessId,app,config:plan.nextConfig})?.configStamp||!base&&actual.revision!==((action==='apply_app_plan'||payload?.expectedNoExistingApp===true)?2:1))
   throw Error('The private draft receipt could not be verified. Refresh before trying again; no request was replayed.');
  return data;
 }

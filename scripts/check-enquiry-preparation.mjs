@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {proposeWorkPreparation,correctWorkPreparation,validWorkPreparation} from '../src/core/workPreparation.mjs';
+import {createWorkPreparationSession} from '../src/core/workPreparationSession.mjs';
+const plan=proposeWorkPreparation('Help plan this catering enquiry').plan;
+assert.equal(correctWorkPreparation(plan,'Add a stage for checking our equipment').plan.stages.length,5);
+assert.ok(correctWorkPreparation(plan,'Show me everything still outstanding').summary.remaining.length);
+assert.equal(correctWorkPreparation(plan,'Mark the equipment checklist as complete').plan.stages.find(s=>s.title==='Prepare equipment').items[0].done,true);
+assert.equal(correctWorkPreparation(plan,'Move Plan catering before Review enquiry').plan.stages[0].title,'Plan catering');
+assert.equal(correctWorkPreparation(plan,'Move unknown before missing').ok,false);
+assert.equal(proposeWorkPreparation('Send customer updates and assign staff').ok,false);assert.equal(correctWorkPreparation(plan,'Add a stage for automatically sending emails').ok,false);
+const scope={ownerId:randomUUID(),businessId:randomUUID(),customerId:'synthetic',targetKind:'filed_enquiry',enquiryId:'filed_original'},id=randomUUID();let p=null,revision=0,writes=0,active=true;
+const request=async b=>{assert.equal(b.engagementId,undefined);assert.equal(b.quoteRevision,undefined);const base={ok:true,...scope,privateOnly:true,lifecycle:'owner_private_preparation'};if(b.operation==='read')return {...base,revision,preparationId:revision?id:null,snapshotRevision:1,plan:p,canUndo:false,undoPlan:null};if(b.operation==='preview')return {...base,revision,preparationId:id,snapshotRevision:1,plan:p,displayOnly:true,appId:b.app.id,appRevision:b.app.revision};writes++;p=b.plan;revision++;return {...base,revision,preparationId:id,operationId:b.operationId,ownOperationReceipt:true};};
+const session=createWorkPreparationSession({scope,getCurrent:()=>({ready:active,identity:scope}),request,integrity:{randomUUID}}),first=await session.read(),ticket=session.review(first,plan);assert.equal((await session.commit(ticket,{ownerApproved:true})).ok,true);assert.equal(writes,1);const second=await session.read(),preview=session.review(second,null,'preview',{app:{id:randomUUID(),revision:3}});assert.equal((await session.commit(preview,{ownerApproved:true})).preview,true);assert.equal(writes,1);active=false;assert.equal(session.review(second,plan),null);
+for(const key of ['execute','code','public','send'])assert.equal(validWorkPreparation({...plan,[key]:true}),false);
+console.log('PASS real enquiry discriminant without quote identities/status, bounded owner corrections, exact save/readback, read-only App proposal, stale owner and action denial. Inert transport; SQL/UI integration is separate.');

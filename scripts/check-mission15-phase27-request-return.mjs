@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';
+const source=fs.readFileSync('standalone/template/App.js','utf8'),match=source.match(/onSaveState=\{(value=>\{.*?\})\}\s+initialService=/s);assert.ok(match,'Original parent save callback');
+for(const screen of ['enquiry','booking_request']){
+ const forms={current:new Map()},last={current:null},view={current:'scope'},identity={current:'key'};
+ const callback=Function('viewContext','publicViewContext','requestForms','requestIdentity','requestFormKey','lastRequest','chosen','requestedKind','requestedService','requestedIntent','requestSelection','requestedMessage','requestOrigin','return ('+match[1]+');')(view,'scope',forms,identity,'key',last,{key:screen},'service','Survey','',null,'','business_profile');
+ const saved={input:{message:'Private customer words',email:'visitor@example.test'},result:{mayHaveBeenReceived:true,requestId:'original_pending'}};callback(saved);assert.equal(forms.current.get('key'),saved);assert.equal(last.current.screen,screen);assert.equal(last.current.intent,'','Generic routes do not need item intent');assert.equal(last.current.origin,'business_profile');assert.equal(last.current.input,undefined,'Private fields remain in original form map only');
+ const newer={key:'newer'};last.current=newer;identity.current='newer';callback({...saved,result:{ok:true,requestId:'original_pending'}});assert.equal(last.current,newer,'Late original receipt updates original map, never newer return route');assert.equal(forms.current.get('key').result.requestId,'original_pending');view.current='other';callback({input:{message:'forbidden'}});assert.notEqual(forms.current.get('key').input.message,'forbidden');
+}
+console.log('PASS actual native parent stores general enquiry/booking return routes in original private map lifecycle, retains exact outcomes and denies cross-scope/stale-route replacement. Inert setters, no physical navigation acceptance.');

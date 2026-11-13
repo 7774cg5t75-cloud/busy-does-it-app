@@ -1,3 +1,4 @@
+import {websiteEditingRegression} from "../../supabase/functions/busy-website-worker/websiteEditingQuality.mjs";
 import {protectWebsiteOwnerLocks} from '../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 // Final synchronous boundary for original private website editors/handoffs.
@@ -14,6 +15,8 @@ function checkPrivateWebsiteDraftCommit({current,candidate,live,scopeCurrent=fal
   (d.businessId&&d.businessId!==businessId||d.business_id&&d.business_id!==businessId)))
   return fail('This edit does not belong to the current business.');
  if(candidate.publicStatus!==current.publicStatus)return fail('A private edit cannot change public website status.');
- return protectWebsiteOwnerLocks(current,{applied:true,draft:candidate});
+ const quality=websiteEditingRegression(current,candidate);
+ if(!quality.mayCommit)return fail(quality.explanation);
+ return {...protectWebsiteOwnerLocks(current,{applied:true,draft:candidate}),quality};
 }
 export {checkPrivateWebsiteDraftCommit};

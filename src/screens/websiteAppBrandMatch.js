@@ -1,3 +1,4 @@
+import {reviewedPairIsCurrent} from '../core/ownerBuilderDraftGuardV3195.mjs';
 import React from "react";
 import {View,Text} from "react-native";
 import {Card,Button} from "../components/ui";
@@ -8,8 +9,10 @@ import {nativePalette,LABELS} from "../core/nativePalette.mjs";
 /** Separate, optional review: does not publish or synchronise two builders. */
 function WebsiteAppBrandMatch({website,app,businessId,onApply}){
  const [review,setReview]=React.useState(null);
+ const live=React.useRef(null);live.current={website,app,businessId};
  const plan=planMatchAppBrandToWebsite(website,app,{businessId});
  if(!plan.ok&&!review)return null;
+ if(review&&!reviewedPairIsCurrent(website,app,businessId,review))return <Card title="Review updated builder drafts" body="The brand source or website changed. No old proposal was applied."><Button label="Review current brand choices" onPress={()=>setReview(null)}/></Card>;
  const chosen=review||plan;
  const colours=nativePalette(chosen.paletteName,
   app?.draft_config?.presentation?.brandAccent);
@@ -34,7 +37,7 @@ function WebsiteAppBrandMatch({website,app,businessId,onApply}){
        You can use website Undo afterwards.
       </Text>
       <Button primary label="Apply this colour to my PRIVATE website"
-       onPress={()=>{if(onApply?.(review)===true)setReview(null);}}/>
+       onPress={()=>{if(live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId)return;if(onApply?.(review)===true)setReview(null);}}/>
       <Button label="Cancel colour change" onPress={()=>setReview(null)}/>
      </>
    ):(

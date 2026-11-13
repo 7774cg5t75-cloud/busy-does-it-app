@@ -1,0 +1,3279 @@
+{
+  "date": "2026-10-29",
+  "repository": "7774cg5t75-cloud/busy-does-it-app",
+  "branch": "codex/builder-mission15-design-advancement",
+  "startingRemoteCommit": "0d99f3c991b84fdefc5b20ee6d18dc3d5a7d2f03",
+  "startingLocalEquivalentCommit": "3a2e4821ca2e71692d72691a2cbf61b50c067ed9",
+  "startingTree": "aeb8ac2b3182346238d0a27c50660134ad51bdd7",
+  "functionalLocalCommit": "2e3443f0984dc3b9a9a9998e901b62117dd015ce",
+  "functionalGithubCommit": "52a41e561734588567c4c117dd2ea7065781a2df",
+  "functionalTree": "3cb9a940fdf2bcbd1e1c736fe0318b2f877fd622",
+  "changedFiles": [
+    "M\tdocs/sql-proposals/connected-builders/contracts.sql",
+    "A\tdocs/sql-proposals/connected-builders/staging-inventory.sql",
+    "M\tscripts/check-connected-builders-postgres.mjs",
+    "M\tscripts/check-connected-builders.mjs",
+    "A\tscripts/check-premium-interiors.mjs",
+    "A\tscripts/prepare-connected-staging.mjs",
+    "M\tscripts/testing/regressions.json",
+    "A\tsrc/components/InteriorChrome.js",
+    "M\tsrc/components/PremiumAtmosphere.js",
+    "M\tsrc/components/ui.js",
+    "M\tsrc/screens/social.js",
+    "M\tsrc/staging/connectedApplicationRuntime.mjs",
+    "M\tsrc/staging/connectedBuilderSession.mjs",
+    "A\tsrc/staging/privateWebsiteDesignScope.mjs",
+    "M\tsrc/staging/stagingAuthInspectorV3131.mjs",
+    "A\tsrc/theme/interior.mjs",
+    "M\tsrc/theme/styles.js",
+    "A\tsupabase/connected-staging.deno.json",
+    "A\tsupabase/connected-staging.deno.lock",
+    "M\tsupabase/functions/_shared/connectedStagingActions.mjs",
+    "A\tsupabase/functions/_shared/supabaseClient.ts",
+    "M\tsupabase/functions/busy-mini-apps/index.ts",
+    "A\tsupabase/functions/busy-mini-apps/scopedOwnerStatus.mjs",
+    "M\tsupabase/functions/busy-website-publish/domainRegistrarGateway.mjs",
+    "M\tsupabase/functions/busy-website-publish/index.ts",
+    "M\tsupabase/functions/busy-website-publish/launchPreflight.mjs",
+    "M\tsupabase/functions/busy-website-publish/privateDraftService.mjs"
+  ],
+  "master": {
+    "version": "V22.59",
+    "originalOpened": true,
+    "ownerAttachment": true,
+    "sha256": "a275340a7258f96f830d2c53e46734c4b93c5365f1a172a0950b4c349c71c5cc",
+    "paragraphs": 2454,
+    "tables": 19,
+    "privateOriginalOutsideGit": true,
+    "relevantReviewedSections": [
+      "61.5",
+      "68",
+      "69",
+      "70",
+      "71"
+    ]
+  },
+  "application": {
+    "sourceSha": "2e3443f0984dc3b9a9a9998e901b62117dd015ce",
+    "sourceTree": "3cb9a940fdf2bcbd1e1c736fe0318b2f877fd622",
+    "workingTreeEntries": [],
+    "workingTreeChanged": false,
+    "testToolModulePath": "/workspace/busy-connected-recovery/scripts/offline-tools/node_modules",
+    "selectionSha256": "c04c2af8e1070d993091cd1830243876f2a177e95c9fe03a20bf06473223a38c",
+    "startedAt": "2026-10-29T21:29:52.830433+00:00",
+    "evidence": "Offline original code with inert boundaries; not hosted/native/browser acceptance.",
+    "selectedCount": 439,
+    "finalSourceSha": "2e3443f0984dc3b9a9a9998e901b62117dd015ce",
+    "finalWorkingTreeEntries": [],
+    "summary": {
+      "passed": 439,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "finishedAt": "2026-10-29T21:39:31.696254+00:00",
+    "outerExitCode": 0,
+    "children": [
+      {
+        "id": "check-mission13-conversations",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission13-private-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "check-mission13-customer-surfaces",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.72
+      },
+      {
+        "id": "check-mission13-communication-truth",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.03
+      },
+      {
+        "id": "check-mission12-content-enquiry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.11
+      },
+      {
+        "id": "check-mission12-builder-reuse",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-mission12-intent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission12-live-form-logic",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-mission12-public-handoff",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.12
+      },
+      {
+        "id": "check-mission12-record-review",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission12-standalone-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission11-records",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-mission11-intelligence",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-mission11-public-views",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-app-goal-content",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-app-goal-editing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-app-goal-decisions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-app-builder-dual-track-v3153",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-mission10-information-reuse",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission9-builder-language",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-mission10-public-information",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.39
+      },
+      {
+        "id": "check-mission10-service-details",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-owner-outcome-v3235",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-communications-v3205",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-customer-journey-v3204",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission9-reply-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.43
+      },
+      {
+        "id": "check-mission9-request-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.03
+      },
+      {
+        "id": "check-message-integrity-v3185",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-builder-intelligence-v3240",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-mission14-contextual-replies",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-mission14-content-intelligence",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.81
+      },
+      {
+        "id": "check-mission14-experience-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.39
+      },
+      {
+        "id": "check-standalone-native-v3154",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission15-editing-preview",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission15-app-services",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission15-design-candidates",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-mission15-coherence",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-website-page-instructions-v3149",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-website-context-plan-v3147",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.42
+      },
+      {
+        "id": "check-website-context-v3140",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-website-measured-coach-v3144",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-website-coordinated-alternatives",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission7-website-decisions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-major-builders-v3195",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.4
+      },
+      {
+        "id": "check-mission15-phase2-copy",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.44
+      },
+      {
+        "id": "check-mission15-phase2-responsive",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-mission15-phase2-services",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.8
+      },
+      {
+        "id": "check-mission15-phase2-measured-reading",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-mission15-phase2-request-intent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.4
+      },
+      {
+        "id": "check-mission15-phase2-transfer-review",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.02
+      },
+      {
+        "id": "check-app-studio-session",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-app-studio-checkpoint",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.09
+      },
+      {
+        "id": "build-website-design-gallery-v3100",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-builder-visual-receipt-v3238",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "check-mission15-phase3-composition",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.91
+      },
+      {
+        "id": "check-mission15-phase3-content-review",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.74
+      },
+      {
+        "id": "check-mission15-phase3-gallery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.11
+      },
+      {
+        "id": "check-mission15-phase3-language",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-mission15-phase3-studio-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.36
+      },
+      {
+        "id": "check-mission15-phase4-app-capabilities",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.6
+      },
+      {
+        "id": "check-mission15-phase4-requirements",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.56
+      },
+      {
+        "id": "check-mission15-phase4-website-spacing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-mission15-phase5-approved-records",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.87
+      },
+      {
+        "id": "check-mission15-phase5-catalogue-editing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-mission15-phase5-enquiry-review",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.42
+      },
+      {
+        "id": "check-mission11-composition",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.59
+      },
+      {
+        "id": "prepare-standalone-prototype-v3154",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission15-phase6-booking-review",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.52
+      },
+      {
+        "id": "check-mission15-phase6-hero-composition",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.12
+      },
+      {
+        "id": "check-distinct-website-designs-v3101",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-website-layout-v3134",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-mission8-shared-request-entry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.63
+      },
+      {
+        "id": "check-mission15-phase7-visual-movement",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-mission15-phase7-typography",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.93
+      },
+      {
+        "id": "check-mission15-phase7-app-selection",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.51
+      },
+      {
+        "id": "check-website-section-styling-v3139",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.11
+      },
+      {
+        "id": "check-mission15-phase7-reviewed-request",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.51
+      },
+      {
+        "id": "check-mission15-phase7-card-colours",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.22
+      },
+      {
+        "id": "check-mission15-phase7-page-movement",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-website-pages-v3135",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-website-tap-editor-v3138",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-mission15-phase8-quality",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-mission15-phase8-sizing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-mission15-phase8-service-questions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "check-mission15-phase8-website-suggestions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.11
+      },
+      {
+        "id": "check-mission15-phase9-studio-selection",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.54
+      },
+      {
+        "id": "check-mission15-phase9-service-details",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.43
+      },
+      {
+        "id": "check-mission15-phase9-browser-policy",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "check-mission15-phase10-selected-images",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.51
+      },
+      {
+        "id": "check-mission15-phase10-website-toolbar",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.25
+      },
+      {
+        "id": "check-mission15-phase10-selected-instructions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.81
+      },
+      {
+        "id": "check-mission15-phase10-gallery-parity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.51
+      },
+      {
+        "id": "check-app-context-editor-v3155",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission7-app-intent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-app-voice-layout-v3156",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.76
+      },
+      {
+        "id": "check-mission15-phase11-selected-services",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.55
+      },
+      {
+        "id": "check-mission15-phase11-website-pictures",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.21
+      },
+      {
+        "id": "check-mission15-phase11-brand-controls",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.47
+      },
+      {
+        "id": "check-app-visual-comparison-v3161",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "check-major-builders-v3193",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.25
+      },
+      {
+        "id": "check-mission15-phase11-selected-faq",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.6
+      },
+      {
+        "id": "check-mission15-phase12-component-styles",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.71
+      },
+      {
+        "id": "check-mission15-phase12-explore",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 3.35
+      },
+      {
+        "id": "check-mission15-phase12-explore-handoff",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.21
+      },
+      {
+        "id": "check-mission15-phase13-explore-experience",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.16
+      },
+      {
+        "id": "check-mission15-phase13-faq-styles",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.63
+      },
+      {
+        "id": "check-mission15-phase13-trusted-explore",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.03
+      },
+      {
+        "id": "check-mission15-phase13-website-reading",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.72
+      },
+      {
+        "id": "check-mission15-phase14-image-styles",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.9
+      },
+      {
+        "id": "check-mission15-phase14-explore-context",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.13
+      },
+      {
+        "id": "check-mission15-phase14-picture-presets",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.83
+      },
+      {
+        "id": "check-mission15-phase14-navigation-labels",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.61
+      },
+      {
+        "id": "check-mission15-phase15-service-buttons",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.65
+      },
+      {
+        "id": "check-mission15-phase15-neutral-planning",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-mission15-phase15-brand-typography",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.65
+      },
+      {
+        "id": "check-mission15-phase18-customer-browsing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.36
+      },
+      {
+        "id": "check-mission15-phase19-journeys",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.54
+      },
+      {
+        "id": "check-mission15-phase19-editing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.82
+      },
+      {
+        "id": "check-mission15-phase20-catalogue",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.79
+      },
+      {
+        "id": "check-mission15-phase20-editing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.85
+      },
+      {
+        "id": "check-mission15-phase21-context",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.74
+      },
+      {
+        "id": "check-mission15-phase21-editing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.81
+      },
+      {
+        "id": "check-mission15-phase21-draft-choices",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "check-mission15-phase22-removal",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.98
+      },
+      {
+        "id": "check-mission15-phase22-composition",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.09
+      },
+      {
+        "id": "check-mission15-phase22-editing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.79
+      },
+      {
+        "id": "check-mission15-phase23-field-contract",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.46
+      },
+      {
+        "id": "check-mission15-phase23-focus",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.38
+      },
+      {
+        "id": "check-mission15-phase23-editorial",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.1
+      },
+      {
+        "id": "check-mission15-phase23-photo-controls",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.92
+      },
+      {
+        "id": "check-mission15-phase23-catalogue-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.34
+      },
+      {
+        "id": "check-mission15-phase23-explore",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.09
+      },
+      {
+        "id": "check-mission15-phase24-comparisons",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.21
+      },
+      {
+        "id": "check-mission15-phase24-wording",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.59
+      },
+      {
+        "id": "check-mission15-phase24-service-composition",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.11
+      },
+      {
+        "id": "check-mission15-phase24-catalogue-freshness",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.34
+      },
+      {
+        "id": "check-mission15-phase24-editor-scope",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.64
+      },
+      {
+        "id": "check-mission15-phase24-explore",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.1
+      },
+      {
+        "id": "check-mission15-phase25-pictures",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.28
+      },
+      {
+        "id": "check-mission15-phase25-wording",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.71
+      },
+      {
+        "id": "check-mission15-phase25-attachment-summary",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.89
+      },
+      {
+        "id": "check-mission15-phase25-reading",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.08
+      },
+      {
+        "id": "check-mission15-phase25-coordinated-controls",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.62
+      },
+      {
+        "id": "check-mission15-phase25-explore",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.09
+      },
+      {
+        "id": "check-mission15-phase26-selected-explore",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.12
+      },
+      {
+        "id": "check-mission15-phase26-draft-switch",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.68
+      },
+      {
+        "id": "check-mission15-phase26-request-returns",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.59
+      },
+      {
+        "id": "check-mission15-phase26-faq-composition",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.1
+      },
+      {
+        "id": "check-mission15-phase26-editing-controls",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.74
+      },
+      {
+        "id": "check-mission15-phase26-selected-advice",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.11
+      },
+      {
+        "id": "mission15-phase27-button-drafts",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.54
+      },
+      {
+        "id": "mission15-phase27-design-feedback",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "mission15-phase27-request-return",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.03
+      },
+      {
+        "id": "mission15-phase27-service-index",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.1
+      },
+      {
+        "id": "mission15-phase27-simple-controls",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.23
+      },
+      {
+        "id": "mission15-phase27-service-advice",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.1
+      },
+      {
+        "id": "mission15-phase27-selected-feedback",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.23
+      },
+      {
+        "id": "mission15-phase28-navigation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 3.29
+      },
+      {
+        "id": "mission15-phase28-reconsider",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.25
+      },
+      {
+        "id": "mission15-phase28-returns",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.58
+      },
+      {
+        "id": "mission15-phase28-page-guide",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.11
+      },
+      {
+        "id": "mission15-phase28-customer-controls",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.79
+      },
+      {
+        "id": "mission15-phase28-explore",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.1
+      },
+      {
+        "id": "mission15-phase28-legacy-copy",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.51
+      },
+      {
+        "id": "mission15-phase29-legacy-drafts",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.58
+      },
+      {
+        "id": "mission15-phase29-approval-conflicts",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.03
+      },
+      {
+        "id": "mission15-phase29-page-reconsider",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.0
+      },
+      {
+        "id": "mission15-phase29-article-layout",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.11
+      },
+      {
+        "id": "mission15-phase29-option-readback",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.32
+      },
+      {
+        "id": "mission15-phase29-source-transitions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.54
+      },
+      {
+        "id": "mission15-phase29-explore-reading",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.1
+      },
+      {
+        "id": "mission15-phase29-dispatch-epoch",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "mission15-phase29-website-drafts",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.01
+      },
+      {
+        "id": "mission15-phase30-website-mutation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.97
+      },
+      {
+        "id": "mission15-phase30-history",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "mission15-phase30-save-ack",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.57
+      },
+      {
+        "id": "mission15-phase30-testimonials",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.11
+      },
+      {
+        "id": "mission15-phase30-service-return",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.4
+      },
+      {
+        "id": "mission15-phase30-photo-backup",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "mission15-phase30-explore",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.01
+      },
+      {
+        "id": "mission15-phase31-pages",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.0
+      },
+      {
+        "id": "mission15-phase31-service-resume",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.28
+      },
+      {
+        "id": "mission15-phase31-cloud-drafts",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.25
+      },
+      {
+        "id": "mission15-phase31-independent-editors",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.03
+      },
+      {
+        "id": "mission15-phase31-home",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.33
+      },
+      {
+        "id": "mission15-phase31-service-content",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.18
+      },
+      {
+        "id": "mission15-phase31-growth-content",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.06
+      },
+      {
+        "id": "mission15-phase31-text-drafts",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.26
+      },
+      {
+        "id": "mission15-phase32-service-intent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.31
+      },
+      {
+        "id": "mission15-phase32-growth-handoff",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.13
+      },
+      {
+        "id": "mission15-phase32-content-save",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.07
+      },
+      {
+        "id": "mission15-phase32-approved-profile",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.08
+      },
+      {
+        "id": "mission15-phase32-home-content",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.25
+      },
+      {
+        "id": "mission15-phase32-marketing-goals",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.2
+      },
+      {
+        "id": "mission15-phase32-manual-content",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.08
+      },
+      {
+        "id": "mission15-phase32-caption-races",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.66
+      },
+      {
+        "id": "mission15-phase32-source-choice",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.17
+      },
+      {
+        "id": "mission15-phase32-transcript-parity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.67
+      },
+      {
+        "id": "mission15-phase32-save-freshness",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.5
+      },
+      {
+        "id": "mission15-phase33-introduction",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.17
+      },
+      {
+        "id": "mission15-phase33-approved-records",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.25
+      },
+      {
+        "id": "mission15-phase33-device-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.85
+      },
+      {
+        "id": "mission15-phase33-announcements",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.13
+      },
+      {
+        "id": "mission15-phase33-growth-home",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.23
+      },
+      {
+        "id": "mission15-phase33-creator-starts",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.13
+      },
+      {
+        "id": "mission15-phase33-new-post-safety",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.14
+      },
+      {
+        "id": "mission15-phase33-cloud-freshness",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.62
+      },
+      {
+        "id": "mission15-phase33-growth-records",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.07
+      },
+      {
+        "id": "mission15-phase33-source-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.27
+      },
+      {
+        "id": "mission15-phase33-talk-parity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.67
+      },
+      {
+        "id": "mission15-phase34-natural-content",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.64
+      },
+      {
+        "id": "mission15-phase34-wording",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.11
+      },
+      {
+        "id": "mission15-phase34-publication-freshness",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.29
+      },
+      {
+        "id": "mission15-phase34-management-actions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.65
+      },
+      {
+        "id": "mission15-phase34-job-start",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.66
+      },
+      {
+        "id": "mission15-phase34-account-readback",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.16
+      },
+      {
+        "id": "mission15-phase34-queue-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.3
+      },
+      {
+        "id": "mission15-phase34-inbox-quote",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.31
+      },
+      {
+        "id": "mission15-phase34-record-wording",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.86
+      },
+      {
+        "id": "mission15-phase34-home-quote",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.09
+      },
+      {
+        "id": "mission15-phase34-receipt-identity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.82
+      },
+      {
+        "id": "mission15-phase34-quote-scope",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.3
+      },
+      {
+        "id": "mission15-phase35-growth-treatment",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.05
+      },
+      {
+        "id": "mission15-phase35-catalogue-treatment",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.16
+      },
+      {
+        "id": "mission15-phase35-publish-claims",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.27
+      },
+      {
+        "id": "mission15-phase35-quote-transition",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.21
+      },
+      {
+        "id": "mission15-phase35-quote-outcome",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.35
+      },
+      {
+        "id": "mission15-phase35-catalogue-option",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.12
+      },
+      {
+        "id": "mission15-phase36-source-treatment",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.06
+      },
+      {
+        "id": "mission15-phase36-talk-treatment",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.28
+      },
+      {
+        "id": "mission15-phase36-quote-review",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.42
+      },
+      {
+        "id": "mission15-phase36-record-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.18
+      },
+      {
+        "id": "mission15-phase36-quote-navigation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.45
+      },
+      {
+        "id": "mission15-phase36-quote-device-copy",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.44
+      },
+      {
+        "id": "mission15-phase36-cancel-revision",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.81
+      },
+      {
+        "id": "check-mission15-phase36-home-prepared-quote",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.53
+      },
+      {
+        "id": "check-mission15-phase36-core-routing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.28
+      },
+      {
+        "id": "mission15-phase37-enquiry-quote-return",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.58
+      },
+      {
+        "id": "mission15-phase37-customer-enquiry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.27
+      },
+      {
+        "id": "mission15-phase37-talk-quote",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.72
+      },
+      {
+        "id": "mission15-phase37-content-reprepare",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.17
+      },
+      {
+        "id": "mission15-phase37-home-inbox",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.26
+      },
+      {
+        "id": "mission15-phase37-reopened-content",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.24
+      },
+      {
+        "id": "mission15-phase37-recorded-quote-status",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.83
+      },
+      {
+        "id": "mission15-phase38-quote-reference",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.51
+      },
+      {
+        "id": "mission15-phase38-quote-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.85
+      },
+      {
+        "id": "mission15-phase38-current-enquiry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.36
+      },
+      {
+        "id": "mission15-phase38-content-draft-fields",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.03
+      },
+      {
+        "id": "mission15-phase38-followup-enquiry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.58
+      },
+      {
+        "id": "mission15-phase39-followup-review",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.68
+      },
+      {
+        "id": "mission15-phase39-home-quote-review",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.56
+      },
+      {
+        "id": "mission15-phase39-review-to-followup",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.92
+      },
+      {
+        "id": "mission15-phase39-unsaved-content-home",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 5.89
+      },
+      {
+        "id": "mission15-phase39-talk-current-content",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.76
+      },
+      {
+        "id": "mission15-phase40-quote-selection",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.76
+      },
+      {
+        "id": "mission15-phase40-creator-formats",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.32
+      },
+      {
+        "id": "mission15-phase40-growth-formats",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.18
+      },
+      {
+        "id": "mission15-phase40-talk-formats",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.31
+      },
+      {
+        "id": "mission15-phase40-followup-context",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.55
+      },
+      {
+        "id": "mission15-phase40-growth-source-choice",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.84
+      },
+      {
+        "id": "mission15-phase40-home-quote-selection",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 7.24
+      },
+      {
+        "id": "mission15-phase40-followup-authority",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.77
+      },
+      {
+        "id": "mission15-phase41-item-formats",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.39
+      },
+      {
+        "id": "mission15-phase41-growth-item-formats",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.1
+      },
+      {
+        "id": "mission15-phase41-talk-item-formats",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.3
+      },
+      {
+        "id": "mission15-phase41-enquiry-replies",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.4
+      },
+      {
+        "id": "mission15-phase41-reply-questions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.41
+      },
+      {
+        "id": "mission15-phase41-talk-replies",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.31
+      },
+      {
+        "id": "mission15-phase41-home-replies",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 9.05
+      },
+      {
+        "id": "mission15-phase41-reply-source-removal",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.42
+      },
+      {
+        "id": "mission15-phase42-reply-save",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.48
+      },
+      {
+        "id": "mission15-phase42-owner-formats",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.44
+      },
+      {
+        "id": "mission15-phase42-reply-information",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.48
+      },
+      {
+        "id": "mission15-phase42-saved-reply-home",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.22
+      },
+      {
+        "id": "mission15-phase42-reply-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.34
+      },
+      {
+        "id": "mission15-phase43-growth-announcement",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.21
+      },
+      {
+        "id": "mission15-phase43-reply-canonical",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.5
+      },
+      {
+        "id": "mission15-phase43-reply-account",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.56
+      },
+      {
+        "id": "mission15-phase43-reply-management",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.43
+      },
+      {
+        "id": "mission15-phase43-connected-routing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.48
+      },
+      {
+        "id": "mission15-phase43-date-flexibility",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.58
+      },
+      {
+        "id": "mission15-phase44-announcement-reuse",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "mission15-phase44-removal-account",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "mission15-phase44-own-revision",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.41
+      },
+      {
+        "id": "mission15-phase44-newsletter",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.52
+      },
+      {
+        "id": "mission15-phase44-newsletter-talk",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.5
+      },
+      {
+        "id": "mission15-phase44-removal-parent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.47
+      },
+      {
+        "id": "mission15-phase44-home-newsletter",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.99
+      },
+      {
+        "id": "mission15-phase45-approved-newsletters",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.32
+      },
+      {
+        "id": "mission15-phase45-newsletter-editing",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.04
+      },
+      {
+        "id": "mission15-phase45-reply-receipt",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.4
+      },
+      {
+        "id": "mission15-phase45-newsletter-parent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.73
+      },
+      {
+        "id": "mission15-phase46-newsletter-preview",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.05
+      },
+      {
+        "id": "mission15-phase46-newsletter-account",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.04
+      },
+      {
+        "id": "mission15-phase46-reply-adapter",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.46
+      },
+      {
+        "id": "mission15-phase46-newsletter-exact",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.72
+      },
+      {
+        "id": "mission15-phase47-newsletter-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.99
+      },
+      {
+        "id": "mission15-phase47-content-restoration",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.51
+      },
+      {
+        "id": "mission15-phase47-enquiry-requirements",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.21
+      },
+      {
+        "id": "mission15-phase48-enquiry-quote",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.83
+      },
+      {
+        "id": "mission15-phase48-approved-knowledge",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.33
+      },
+      {
+        "id": "mission15-phase48-newsletter-copy",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.92
+      },
+      {
+        "id": "mission15-phase48-quote-boundary",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.03
+      },
+      {
+        "id": "mission15-phase49-catalogue-quote",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.92
+      },
+      {
+        "id": "mission15-phase49-newsletter-source",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.82
+      },
+      {
+        "id": "mission15-phase49-enquiry-projection",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.29
+      },
+      {
+        "id": "mission15-phase50-older-enquiry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.49
+      },
+      {
+        "id": "mission15-phase50-newsletter-dirty",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.08
+      },
+      {
+        "id": "mission15-phase50-quote-fields",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.9
+      },
+      {
+        "id": "mission15-phase50-runtime-loading",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 5.95
+      },
+      {
+        "id": "mission15-phase51-catalogue-reply",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.41
+      },
+      {
+        "id": "mission15-phase51-newsletter-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.95
+      },
+      {
+        "id": "mission15-phase51-known-requirements",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.24
+      },
+      {
+        "id": "mission15-phase52-reply-provenance",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.43
+      },
+      {
+        "id": "mission15-phase52-newsletter-versions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.8
+      },
+      {
+        "id": "mission15-phase52-owner-tone",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.35
+      },
+      {
+        "id": "mission15-phase52-retention-contract",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "mission15-phase52-newsletter-boundary",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.85
+      },
+      {
+        "id": "mission15-phase53-reply-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.45
+      },
+      {
+        "id": "mission15-phase53-newsletter-comparison",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.87
+      },
+      {
+        "id": "mission15-phase53-snapshot-compatibility",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.45
+      },
+      {
+        "id": "mission15-phase53-approved-area",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.55
+      },
+      {
+        "id": "mission15-phase54-private-write-boundary",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.48
+      },
+      {
+        "id": "mission15-phase54-reply-evidence",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.37
+      },
+      {
+        "id": "mission15-phase54-newsletter-device",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.05
+      },
+      {
+        "id": "mission15-phase54-approved-contact",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.47
+      },
+      {
+        "id": "mission15-phase55-recovery-explanations",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.87
+      },
+      {
+        "id": "mission15-phase56-reply-requirements",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.35
+      },
+      {
+        "id": "mission15-phase56-newsletter-inspection",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.83
+      },
+      {
+        "id": "mission15-phase57-fresh-clarification",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.33
+      },
+      {
+        "id": "mission15-phase58-writer-proposal",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "mission15-phase59-cutover",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.47
+      },
+      {
+        "id": "mission15-phase60-account-reply",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.68
+      },
+      {
+        "id": "mission15-phase61-reconciliation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.74
+      },
+      {
+        "id": "mission15-phase62-bootstrap",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.48
+      },
+      {
+        "id": "mission15-phase62-services",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.34
+      },
+      {
+        "id": "mission15-phase63-recovery",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.58
+      },
+      {
+        "id": "mission15-phase64-recovered-save",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.7
+      },
+      {
+        "id": "mission15-phase64-filing-parent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.55
+      },
+      {
+        "id": "mission15-phase65-first-journey",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.54
+      },
+      {
+        "id": "check-mission15-phase66-interrupted-enquiries",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.09
+      },
+      {
+        "id": "mission15-phase67-appearance",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.57
+      },
+      {
+        "id": "mission15-phase67-parent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.3
+      },
+      {
+        "id": "mission15-phase68-working-surfaces",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.57
+      },
+      {
+        "id": "mission15-phase69-workspaces",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.25
+      },
+      {
+        "id": "native-screenshot-pipeline",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.06
+      },
+      {
+        "id": "mission15-working-surface-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.83
+      },
+      {
+        "id": "mission15-contact-editor-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.68
+      },
+      {
+        "id": "mission15-navigation-workspaces",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.97
+      },
+      {
+        "id": "mission15-conversation-workspaces",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.52
+      },
+      {
+        "id": "mission15-gallery-recovery-ui",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.88
+      },
+      {
+        "id": "mission15-booking-edit-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.48
+      },
+      {
+        "id": "mission15-connected-booking-status",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.77
+      },
+      {
+        "id": "mission15-useful-customer-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.08
+      },
+      {
+        "id": "mission15-source-bound-bookings",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.58
+      },
+      {
+        "id": "mission15-saturday-work-quotes",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.45
+      },
+      {
+        "id": "mission15-saturday-content-builders",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.24
+      },
+      {
+        "id": "mission15-returning-private-followup",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.84
+      },
+      {
+        "id": "mission15-returning-content-builders",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.55
+      },
+      {
+        "id": "mission15-account-work-reader",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.09
+      },
+      {
+        "id": "mission15-followup-device-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.84
+      },
+      {
+        "id": "mission15-content-target-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.89
+      },
+      {
+        "id": "mission15-request-draft-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 4.11
+      },
+      {
+        "id": "mission15-returning-account-context",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.6
+      },
+      {
+        "id": "mission15-followup-checked-reopen",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.96
+      },
+      {
+        "id": "mission15-social-wording-continuation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.25
+      },
+      {
+        "id": "mission15-builder-recovery-readback",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "mission15-enquiry-quote-work-entry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.99
+      },
+      {
+        "id": "mission15-creator-independent-device-read",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.43
+      },
+      {
+        "id": "mission15-service-selection-decisions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.99
+      },
+      {
+        "id": "mission15-recorded-quote-work-draft",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.47
+      },
+      {
+        "id": "mission15-repeat-customer-preparation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.91
+      },
+      {
+        "id": "mission15-corrected-social-variation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.12
+      },
+      {
+        "id": "mission15-public-wording-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.56
+      },
+      {
+        "id": "mission15-work-engagement-model",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "mission15-work-engagement-parent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.53
+      },
+      {
+        "id": "mission15-canonical-work-client",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.05
+      },
+      {
+        "id": "mission15-canonical-work-parent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.32
+      },
+      {
+        "id": "mission15-canonical-work-continuation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.93
+      },
+      {
+        "id": "mission15-account-engagement-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.04
+      },
+      {
+        "id": "mission15-returning-account-editor",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.01
+      },
+      {
+        "id": "mission15-agreement-evidence",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.64
+      },
+      {
+        "id": "check-mission15-agreement-decisions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.64
+      },
+      {
+        "id": "mission15-quote-reference",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.7
+      },
+      {
+        "id": "mission15-quote-recipient",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.7
+      },
+      {
+        "id": "mission15-quote-binding",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.72
+      },
+      {
+        "id": "mission15-recipient-management",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.74
+      },
+      {
+        "id": "check-mission15-quote-grants",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.67
+      },
+      {
+        "id": "check-mission15-quote-access-policy",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.73
+      },
+      {
+        "id": "check-mission15-business-app-quotes",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.68
+      },
+      {
+        "id": "check-mission15-quote-itemisation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.58
+      },
+      {
+        "id": "mission15-growth-opportunities",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.27
+      },
+      {
+        "id": "mission15-returning-growth",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.45
+      },
+      {
+        "id": "mission15-connected-service-enquiry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.96
+      },
+      {
+        "id": "mission15-owner-opportunity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.86
+      },
+      {
+        "id": "mission15-growth-account",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.89
+      },
+      {
+        "id": "mission15-opportunity-creator-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.94
+      },
+      {
+        "id": "mission15-app-enquiry-setup",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.96
+      },
+      {
+        "id": "mission15-growth-activity-evidence",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "mission15-professional-website-generation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "mission15-returning-builder-work",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.09
+      },
+      {
+        "id": "check-mission15-complete-enquiry-journey",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.98
+      },
+      {
+        "id": "check-mission15-website-evidence-quality",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "check-mission15-creator-account-continuity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "check-mission15-creator-media-state",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.53
+      },
+      {
+        "id": "check-mission15-app-enquiry-rehearsal",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.67
+      },
+      {
+        "id": "check-mission15-creator-rich-variants",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.61
+      },
+      {
+        "id": "check-mission15-approved-enquiry-creation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.08
+      },
+      {
+        "id": "mission15-creator-onboarding",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.78
+      },
+      {
+        "id": "mission15-app-service-answers",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.91
+      },
+      {
+        "id": "mission15-creator-reconciliation",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.0
+      },
+      {
+        "id": "mission15-connected-app-enquiry",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.77
+      },
+      {
+        "id": "mission15-website-page-headings",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.1
+      },
+      {
+        "id": "mission15-upload-operation-client",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.79
+      },
+      {
+        "id": "mission15-complete-enquiry-stages",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.11
+      },
+      {
+        "id": "mission15-website-service-contact",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "mission15-owner-app-goals",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.05
+      },
+      {
+        "id": "mission15-premium-homepage-sample",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.97
+      },
+      {
+        "id": "mission15-creator-device-intent",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "mission15-goal-new-private-app",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.93
+      },
+      {
+        "id": "mission15-premium-sample-revisions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.05
+      },
+      {
+        "id": "premium-motion-lifecycle",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.38
+      },
+      {
+        "id": "premium-workspace-interactions",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.99
+      },
+      {
+        "id": "premium-builder-sheets",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.27
+      },
+      {
+        "id": "check-owner-preview",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.56
+      },
+      {
+        "id": "check-approved-design-fidelity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.08
+      },
+      {
+        "id": "check-floating-owner-ui-v3",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 5.91
+      },
+      {
+        "id": "check-home-orbital-fidelity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.38
+      },
+      {
+        "id": "check-home-final-composition",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.85
+      },
+      {
+        "id": "check-orb-position-retention",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.34
+      },
+      {
+        "id": "check-living-home-motion",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.03
+      },
+      {
+        "id": "check-four-edge-results",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.63
+      },
+      {
+        "id": "check-four-edge-retention-motion",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.38
+      },
+      {
+        "id": "check-app-build-identity",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.38
+      },
+      {
+        "id": "connected-builders",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 2.77
+      },
+      {
+        "id": "connected-six-area",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 6.15
+      },
+      {
+        "id": "owner-status-closure",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.07
+      },
+      {
+        "id": "durable-journeys",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 0.04
+      },
+      {
+        "id": "premium-interiors",
+        "status": "passed",
+        "exitCode": 0,
+        "seconds": 1.2
+      }
+    ]
+  },
+  "postgres": {
+    "source": "actual local PostgreSQL17 original functions and CAS; synthetic auth.uid only",
+    "database": "busy_connected_builders_disposable",
+    "results": [
+      {
+        "id": "create-isolated-database",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-membership-and-snapshot-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "proposal-aborts-with-fuse",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "disposable-only-contract-install",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-discovers-only-owned-business",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-create-original-website-save-readback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fresh-client-reopens-persisted-website",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-wording-edit-real-cas-readback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-website-design-save-hash-readback-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-website-brand-design-preserves-other-fields",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "arbitrary-website-design-and-bad-readback-hash-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unrelated-private-records-unchanged",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "stale-revision-and-target-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "lost-ack-observed-not-own-receipt-no-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-owner-and-anonymous-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "direct-privileged-write-and-ownership-transfer-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "revoked-membership-denies-old-session",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-mini-app-contracts",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-atomic-private-app-create-real-postgres",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-duplicate-first-app-does-not-overwrite",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-original-studio-save-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-original-studio-stale-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-original-studio-undo-preserves-website",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "app-raw-cross-tenant-and-anon-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-owner-status-schema-closure",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-original-owner-status-all-read-dependencies",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-first-enquiry-and-reviewed-source-contracts",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fictional-existing-original-enquiry-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "additive-durable-journey-fused-install",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "app-enquiry-visible-only-to-own-business",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-status-explicit-cross-business-filter",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "anonymous-app-enquiry-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "app-enquiry-reviewed-original-inbox-import",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "duplicate-import-is-observation-not-new-source",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "changed-original-request-denies-old-filing",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "revoked-owner-app-enquiry-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-customer-filing-save-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fresh-client-exact-filed-enquiry-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-private-quote-entry-retains-enquiry",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "second-original-enquiry-same-contact-is-not-auto-merged",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-first-only-writer-remains-restricted",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fresh-session-multiple-original-journey-projections",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "journey-owner-b-and-anonymous-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-canonical-work-fused-local-install",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "private-only-work-permission-cutover",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "filed-enquiry-original-canonical-quote-review-create-readback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fresh-session-canonical-quote-reopen-edit-independent-revision",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "canonical-stale-revision-and-raw-write-denials",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "canonical-wrong-owner-business-and-revoked-owner-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "canonical-lost-ack-observation-never-replays",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-app-transaction-fuse-and-install",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "locked-original-first-app-wrapper-create-reopen-and-no-overwrite",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "atomic-original-app-commit-membership-profile-and-cas",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "app-atomic-stale-profile-owner-and-raw-rpc-denial",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-original-studio-verified-actor-path-save-independent-read-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-original-studio-stale-actor-denied-no-partial-save",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "real-two-connection-private-app-cas-winner-only",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "real-revocation-waits-for-app-transaction-then-denies-later-write",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "real-two-connection-canonical-quote-cas-winner-only",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "durable-journey-readonly-rollback-retains-source-and-quote",
+        "passed": true,
+        "exitCode": 0
+      }
+    ],
+    "successfulRpcCalls": 64,
+    "rpcAttempts": 76,
+    "rpcCounterScope": "Finite Node adapters; concurrent and negative raw SQL probes are additional",
+    "summary": {
+      "passed": 60,
+      "failed": 0
+    },
+    "hosted": false
+  },
+  "postgresProcessExitCode": 0,
+  "foundation": {
+    "passed": 105,
+    "exitCode": 0
+  },
+  "architecture": {
+    "version": "v3.195",
+    "type": "offline-source-architecture-audit",
+    "sourceFiles": 1692,
+    "physicalLines": 167094,
+    "staticRelativeEdges": 3519,
+    "distinctStaticCycles": 0
+  },
+  "architectureExitCode": 0,
+  "syntax": {
+    "modules": 22,
+    "jsonAndLockParse": true,
+    "exitCode": 0
+  },
+  "newComponents": {
+    "widths": [
+      320,
+      375,
+      393,
+      430
+    ],
+    "fontScales": [
+      1,
+      1.4,
+      2,
+      2.8
+    ],
+    "palettes": [
+      "midnight",
+      "daylight"
+    ],
+    "combinations": 32,
+    "originalSocialScreenExecuted": true,
+    "jsxBindingChecks": true,
+    "nativeRendering": false,
+    "exitCode": 0
+  },
+  "dependencies": {
+    "expoExitCode": 0,
+    "expoOfflineWarning": true,
+    "rootLockModified": false,
+    "edgeSdk": "official @supabase/supabase-js@2.118.0",
+    "deno": "2.5.6",
+    "sdkIntegrityLock": "supabase/connected-staging.deno.lock"
+  },
+  "deno": {
+    "websiteTypeCheckExitCode": 0,
+    "websiteBundleExitCode": 0,
+    "websiteBundleModules": 79,
+    "miniAppBundleExitCode": 0,
+    "miniAppBundleModules": 105,
+    "externalDependenciesBundled": true,
+    "miniAppTypeCheckExitCode": 1,
+    "miniAppRemainingDiagnostics": 69,
+    "originalCombinedDiagnostics": 83,
+    "miniAppDiagnosticOutput": "Check file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; messageSavedVerified: boolean; notificationDeliveredVerified: boolean; appointmentConfirmed: boolean; } | { ok: boolean; role: string; actorUserId: string; businessId: string; requestId: string; readOnly: boolean; mayResend: boolean; mayReadOtherCustomers: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; role: string; actorUserId: string; businessId: string; requestId: string; readOnly: boolean; mayResend: boolean; mayReadOtherCustomers: boolean; }'.\n if(!context.ok)throw Error(context.reason);\n                                    ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:441:37\n\nTS2322 [ERROR]: Type '{ id: any; business_id: any; mini_app_id: any; request_id: any; sender_user_id: any; sender_role: any; idempotency_key: any; body: any; } | null' is not assignable to type 'null | undefined'.\n  Type '{ id: any; business_id: any; mini_app_id: any; request_id: any; sender_user_id: any; sender_role: any; idempotency_key: any; body: any; }' is not assignable to type 'null | undefined'.\n  requestId,role,key,body:message,message:stored.data,outbox\n                                  ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:471:35\n\nTS2322 [ERROR]: Type '{ id: any; business_id: any; mini_app_id: any; request_id: any; message_id: any; recipient_role: any; state: any; provider_delivery_verified: any; } | null' is not assignable to type 'null | undefined'.\n  Type '{ id: any; business_id: any; mini_app_id: any; request_id: any; message_id: any; recipient_role: any; state: any; provider_delivery_verified: any; }' is not assignable to type 'null | undefined'.\n  requestId,role,key,body:message,message:stored.data,outbox\n                                                      ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:471:55\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; messageSavedVerified: boolean; notificationDeliveredVerified: boolean; appointmentConfirmed: boolean; } | { ok: boolean; role: string; actorUserId: string; businessId: string; requestId: string; readOnly: boolean; mayResend: boolean; mayReadOtherCustomers: boolean; } | { ...; } | { ...; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; role: string; actorUserId: string; businessId: string; requestId: string; readOnly: boolean; mayResend: boolean; mayReadOtherCustomers: boolean; }'.\n if(!receipt.ok)throw Error(receipt.reason);\n                                    ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:473:37\n\nTS2322 [ERROR]: Type '{ id: any; business_id: any; mini_app_id: any; request_type: any; status: any; } | null' is not assignable to type 'null | undefined'.\n  Type '{ id: any; business_id: any; mini_app_id: any; request_type: any; status: any; }' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,requestId,membershipRole:role,row:query.data\n                                                        ~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:491:57\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: string; reachedCorrectBusinessVerified: boolean; notificationDeliveredVerified: boolean; } | { ok: boolean; found: boolean; reachedCorrectBusinessVerified: boolean; ... 11 more ...; customerContactDataIncluded?: undefined; } | { ...; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; found: boolean; reachedCorrectBusinessVerified: boolean; ownerActionVerified: boolean; notificationDeliveredVerified: boolean; cannotInferMissingFromThirtyRowPage: boolean; ... 8 more ...; customerContactDataIncluded?: undefined; }'.\n if(!verdict.ok)throw Error(verdict.reason);\n                                    ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:493:37\n\nTS2322 [ERROR]: Type '{ id: any; business_id: any; mini_app_id: any; request_type: any; status: any; updated_at: any; }' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,requestId,request:request.data,\n                                    ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:519:37\n\nTS2322 [ERROR]: Type 'ParserError<\"Unexpected input: \" | \"Unexpected input: ,customer_record_id,action_record_id,updated_at\"> | null' is not assignable to type 'null | undefined'.\n  Type '{ error: true; } & \"Unexpected input: \"' is not assignable to type 'null | undefined'.\n  link:link.data,work:work.data\n  ~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:520:3\n\nTS2322 [ERROR]: Type '{ request_id: any; business_id: any; state: any; } | null' is not assignable to type 'null | undefined'.\n  Type '{ request_id: any; business_id: any; state: any; }' is not assignable to type 'null | undefined'.\n  link:link.data,work:work.data\n                 ~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:520:18\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; mayClose: boolean; readOnly: boolean; calendarDelivered: boolean; customerNotified: boolean; mayRetryAutomatically: boolean; } | { ok: boolean; kind: string; businessId: string; ... 13 more ...; customerDetailsIncluded: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; kind: string; businessId: string; appId: string; requestId: string; status: any; updatedAt: any; bridgeState: any; workLedgerState: any; mayClose: boolean; alreadyClosed: boolean; ownerApprovalRequired: boolean; ... 4 more ...; customerDetailsIncluded: boolean; }'.\n if(!check.ok)throw Error(check.reason);\n                                ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:523:33\n\nTS2322 [ERROR]: Type 'number' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,received,reviewing,latest\n                          ~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:566:27\n\nTS2322 [ERROR]: Type 'number' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,received,reviewing,latest\n                                   ~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:566:36\n\nTS2322 [ERROR]: Type '{ id: any; business_id: any; mini_app_id: any; request_type: any; status: any; created_at: any; } | null' is not assignable to type 'null | undefined'.\n  Type '{ id: any; business_id: any; mini_app_id: any; request_type: any; status: any; created_at: any; }' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,received,reviewing,latest\n                                             ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:566:46\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; readOnly: boolean; independentlyVerifiedByThisFunction: boolean; ownerMessageSent: boolean; bookingConfirmed: boolean; providerDelivered: boolean; } | { ok: boolean; ... 21 more ...; ownerMessageSent: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; kind: string; businessId: string; appId: string; received: null; reviewing: null; pendingTotal: any; nextAction: string; title: string; explanation: string; latestRequestId: any; latestRequestStatus: any; ... 10 more ...; ownerMessageSent: boolean; }'.\n if(!proof.ok)throw Error(proof.reason);\n                                ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:568:33\n\nTS2322 [ERROR]: Type 'number' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,pending,retryWait,claimed,manualReview,gatewayAccepted\n                          ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:587:27\n\nTS2322 [ERROR]: Type 'number' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,pending,retryWait,claimed,manualReview,gatewayAccepted\n                                  ~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:587:35\n\nTS2322 [ERROR]: Type 'number' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,pending,retryWait,claimed,manualReview,gatewayAccepted\n                                            ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:587:45\n\nTS2322 [ERROR]: Type 'number' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,pending,retryWait,claimed,manualReview,gatewayAccepted\n                                                    ~~~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:587:53\n\nTS2322 [ERROR]: Type '{ ok: boolean; reason: any; readOnly: boolean; independentlyVerifiedByThisFunction: boolean; ownerMessageSent: boolean; bookingConfirmed: boolean; providerDelivered: boolean; } | { ok: boolean; ... 21 more ...; ownerMessageSent: boolean; }' is not assignable to type 'null | undefined'.\n  Type '{ ok: boolean; reason: any; readOnly: boolean; independentlyVerifiedByThisFunction: boolean; ownerMessageSent: boolean; bookingConfirmed: boolean; providerDelivered: boolean; }' is not assignable to type 'null | undefined'.\n const nextStep=chooseOwnerRequestNextStepV3228({queue:proof,alerts:guestAlerts});\n                                                 ~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:590:50\n\nTS2322 [ERROR]: Type '{ ok: boolean; readOnly: boolean; reason: string; providerAccepted: boolean; deviceDelivered: boolean; kind?: undefined; businessId?: undefined; appId?: undefined; pending?: undefined; retryWait?: undefined; ... 11 more ...; privateCustomerDataIncluded?: undefined; } | { ...; }' is not assignable to type 'null | undefined'.\n  Type '{ ok: boolean; readOnly: boolean; reason: string; providerAccepted: boolean; deviceDelivered: boolean; kind?: undefined; businessId?: undefined; appId?: undefined; pending?: undefined; retryWait?: undefined; ... 11 more ...; privateCustomerDataIncluded?: undefined; }' is not assignable to type 'null | undefined'.\n const nextStep=chooseOwnerRequestNextStepV3228({queue:proof,alerts:guestAlerts});\n                                                             ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:590:62\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; readOnly: boolean; maySend: boolean; mayConfirmBooking: boolean; deviceDelivered: boolean; } | { ok: boolean; kind: string; businessId: any; appId: any; action: string; ... 11 more ...; automaticallyReplied: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; kind: string; businessId: any; appId: any; action: string; title: string; explanation: string; latestRequestId: any; evidenceFromAuthenticatedEndpoint: boolean; readOnly: boolean; ... 6 more ...; automaticallyReplied: boolean; }'.\n if(!nextStep.ok)throw Error(nextStep.reason);\n                                      ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:591:39\n\nTS2322 [ERROR]: Type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to type 'null | undefined'.\n  businessId,appId:app.id,requestId,store:supabase,prepareReply:true,\n                                    ~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:607:37\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; keys: any[]; reason?: undefined; } | { ok: boolean; nextConfig: any; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; nextConfig: any; }'.\n  if(!proposal.ok)throw Error(proposal.reason);\n                                       ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:1982:40\n\nTS2339 [ERROR]: Property 'nextConfig' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; keys: any[]; reason?: undefined; } | { ok: boolean; nextConfig: any; }'.\n  Property 'nextConfig' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; }'.\n  const config=proposal.nextConfig;\n                        ~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:1983:25\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; keys: any[]; reason?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; requiresOwnerApproval: boolean; changesCustomerData: boolean; changesBookings: boolean; changesPayments: boolean; publishes: boolean; }'.\n if(!proposal.ok)throw new Error(proposal.reason);\n                                          ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2016:43\n\nTS2339 [ERROR]: Property 'nextConfig' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; keys: any[]; reason?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; }'.\n  Property 'nextConfig' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; }'.\n   draft_config:proposal.nextConfig,draft_revision:expected+1,\n                         ~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2018:26\n\nTS2339 [ERROR]: Property 'nextConfig' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; keys: any[]; reason?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; }'.\n  Property 'nextConfig' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; }'.\n   draft_config:proposal.nextConfig,draft_revision:expected+1,\n                         ~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2022:26\n\nTS2339 [ERROR]: Property 'moduleKey' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; keys: any[]; reason?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; }'.\n  Property 'moduleKey' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; }'.\n   movedModule:proposal.moduleKey,before:proposal.before,after:proposal.after};\n                        ~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2030:25\n\nTS2339 [ERROR]: Property 'before' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; keys: any[]; reason?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; }'.\n  Property 'before' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; }'.\n   movedModule:proposal.moduleKey,before:proposal.before,after:proposal.after};\n                                                  ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2030:51\n\nTS2339 [ERROR]: Property 'after' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; keys: any[]; reason?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; }'.\n  Property 'after' does not exist on type '{ ok: boolean; reason: string; keys?: undefined; }'.\n   movedModule:proposal.moduleKey,before:proposal.before,after:proposal.after};\n                                                                        ~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2030:73\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; locks: never[]; reason: string; } | { ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; } | { ...; } | { ...; } | { ...; } | { ...; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; requiresOwnerApproval: boolean; changesCustomerData: boolean; changesBookings: boolean; changesPayments: boolean; publishes: boolean; }'.\n if(!plan.ok)throw new Error(plan.reason);\n                                  ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2046:35\n\nTS2339 [ERROR]: Property 'nextConfig' does not exist on type '{ ok: boolean; locks: never[]; reason: string; } | { ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; } | { ...; } | { ...; } | { ...; } | { ...; }'.\n  Property 'nextConfig' does not exist on type '{ ok: boolean; locks: never[]; reason: string; }'.\n   draft_config:plan.nextConfig,draft_revision:expected+1,\n                     ~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2048:22\n\nTS2339 [ERROR]: Property 'nextConfig' does not exist on type '{ ok: boolean; locks: never[]; reason: string; } | { ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; } | { ...; } | { ...; } | { ...; } | { ...; }'.\n  Property 'nextConfig' does not exist on type '{ ok: boolean; locks: never[]; reason: string; }'.\n   draft_config:plan.nextConfig,draft_revision:expected+1,\n                     ~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2052:22\n\nTS2339 [ERROR]: Property 'changes' does not exist on type '{ ok: boolean; locks: never[]; reason: string; } | { ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; } | { ...; } | { ...; } | { ...; } | { ...; }'.\n  Property 'changes' does not exist on type '{ ok: boolean; locks: never[]; reason: string; }'.\n return {app:saved.data,appliedChangeCount:plan.changes.length,\n                                                ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2059:49\n\nTS2339 [ERROR]: Property 'changes' does not exist on type '{ ok: boolean; locks: never[]; reason: string; } | { ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; } | { ...; } | { ...; } | { ...; } | { ...; }'.\n  Property 'changes' does not exist on type '{ ok: boolean; locks: never[]; reason: string; }'.\n   changeSummary:plan.changes,undoOperations:plan.undoOperations,\n                      ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2060:23\n\nTS2339 [ERROR]: Property 'undoOperations' does not exist on type '{ ok: boolean; locks: never[]; reason: string; } | { ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; } | { ...; } | { ...; } | { ...; } | { ...; }'.\n  Property 'undoOperations' does not exist on type '{ ok: boolean; locks: never[]; reason: string; }'.\n   changeSummary:plan.changes,undoOperations:plan.undoOperations,\n                                                  ~~~~~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2060:51\n\nTS7053 [ERROR]: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ businessName: string; businessType: string; tagline: string; description: string; about: string; differentiators: string; serviceArea: string; contact: { phone: string; email: string; openingHours: string; social: { ...; } | { ...; }; }; ... 5 more ...; builderIntelligence: { ...; } | null; }'.\n  No index signature with a parameter of type 'string' was found on type '{ businessName: string; businessType: string; tagline: string; description: string; about: string; differentiators: string; serviceArea: string; contact: { phone: string; email: string; openingHours: string; social: { ...; } | { ...; }; }; ... 5 more ...; builderIntelligence: { ...; } | null; }'.\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2431:250\n\nTS7006 [ERROR]: Parameter 'row' implicitly has an 'any' type.\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2431:357\n\nTS7006 [ERROR]: Parameter 'block' implicitly has an 'any' type.\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2432:93\n\nTS2322 [ERROR]: Type '{ slug: string; expectedAppId: any; expectedVersionId: any; allowEnquiry: boolean; }' is not assignable to type 'null | undefined'.\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:2432:364\n\nTS2322 [ERROR]: Type '{ id: any; business_id: any; mini_app_id: any; consumer_user_id: any; idempotency_key: any; request_type: any; status: any; request_origin: any; } | null' is not assignable to type 'null | undefined'.\n  Type '{ id: any; business_id: any; mini_app_id: any; consumer_user_id: any; idempotency_key: any; request_type: any; status: any; request_origin: any; }' is not assignable to type 'null | undefined'.\n  slug,requestType,requestKey,row:request.data});\n                              ~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3317:31\n\nTS2322 [ERROR]: Type '{ name: string; email: string; phone: string; service: string; preferredDate: string; note: string; message?: undefined; } | { name: string; email: string; phone: string; service: string; message: string; preferredDate?: undefined; note?: undefined; }' is not assignable to type 'null | undefined'.\n  Type '{ name: string; email: string; phone: string; service: string; preferredDate: string; note: string; message?: undefined; }' is not assignable to type 'null | undefined'.\n        requestType,moduleKey,payload\n                              ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3395:31\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; mayInsertAnotherRequest: boolean; reused: boolean; neverContactProvider: boolean; } | { ok: boolean; reused: boolean; existingRequestId: any; serverScoped: boolean; matchingSanitizedPayload: boolean; notificationNotRetried: boolean; neverContactProvider: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; reused: boolean; existingRequestId: any; serverScoped: boolean; matchingSanitizedPayload: boolean; notificationNotRetried: boolean; neverContactProvider: boolean; }'.\n      if(!replay.ok)throw Error(replay.reason);\n                                       ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3397:40\n\nTS2322 [ERROR]: Type '{ name: string; email: string; phone: string; service: string; preferredDate: string; note: string; message?: undefined; } | { name: string; email: string; phone: string; service: string; message: string; preferredDate?: undefined; note?: undefined; }' is not assignable to type 'null | undefined'.\n  Type '{ name: string; email: string; phone: string; service: string; preferredDate: string; note: string; message?: undefined; }' is not assignable to type 'null | undefined'.\n          requestType,moduleKey,payload\n                                ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3469:33\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; mayInsertAnotherRequest: boolean; reused: boolean; neverContactProvider: boolean; } | { ok: boolean; reused: boolean; existingRequestId: any; serverScoped: boolean; matchingSanitizedPayload: boolean; notificationNotRetried: boolean; neverContactProvider: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; reused: boolean; existingRequestId: any; serverScoped: boolean; matchingSanitizedPayload: boolean; notificationNotRetried: boolean; neverContactProvider: boolean; }'.\n        if(!replay.ok)throw Error(replay.reason);\n                                         ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3471:42\n\nTS2339 [ERROR]: Property 'appId' does not exist on type '{ nextAction: { ok: boolean; reason: any; maySend: boolean; mayConfirmBooking: boolean; customerNotified: boolean; externalDeliveryVerified: boolean; } | { ok: boolean; kind: string; businessId: string; ... 16 more ...; hasCustomerContact: boolean; }; ... 6 more ...; customerOutcomeConfirmed: boolean; } | { ...; }'.\n  Property 'appId' does not exist on type '{ nextAction: { ok: boolean; reason: any; maySend: boolean; mayConfirmBooking: boolean; customerNotified: boolean; externalDeliveryVerified: boolean; } | { ok: boolean; kind: string; businessId: string; ... 16 more ...; hasCustomerContact: boolean; }; ... 6 more ...; customerOutcomeConfirmed: boolean; }'.\n   businessId,appId:fresh.appId,requestId,\n                          ~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3551:27\n\nTS2322 [ERROR]: Type '{ nextAction: { ok: boolean; reason: any; maySend: boolean; mayConfirmBooking: boolean; customerNotified: boolean; externalDeliveryVerified: boolean; } | { ok: boolean; kind: string; businessId: string; ... 16 more ...; hasCustomerContact: boolean; }; ... 6 more ...; customerOutcomeConfirmed: boolean; } | { ...; }' is not assignable to type 'null | undefined'.\n  Type '{ nextAction: { ok: boolean; reason: any; maySend: boolean; mayConfirmBooking: boolean; customerNotified: boolean; externalDeliveryVerified: boolean; } | { ok: boolean; kind: string; businessId: string; ... 16 more ...; hasCustomerContact: boolean; }; ... 6 more ...; customerOutcomeConfirmed: boolean; }' is not assignable to type 'null | undefined'.\n   expectedSourceStamp:reviewedStamp,fresh:{ok:true,...fresh}\n                                     ~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3552:38\n\nTS2783 [ERROR]: 'ok' is specified more than once, so this usage will be overwritten.\n   expectedSourceStamp:reviewedStamp,fresh:{ok:true,...fresh}\n                                            ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3552:45\n\nTS2785 [ERROR]:     This spread always overwrites this property.\n       expectedSourceStamp:reviewedStamp,fresh:{ok:true,...fresh}\n                                                        ~~~~~~~~\n        at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3552:53\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; maySend: boolean; checkedCurrentServerState: boolean; atomicCompareAndSend: boolean; customerDeliveryVerified: boolean; } | { staleOrUnsupported: boolean; ok: boolean; ... 14 more ...; diaryBookingConfirmed?: undefined; } | { ...; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; kind: string; businessId: string; appId: string; requestId: string; maySend: boolean; ownerApprovalStillRequired: boolean; checkedCurrentServerState: boolean; sourceStampMatches: boolean; ... 5 more ...; diaryBookingConfirmed: boolean; }'.\n  if(!guarded.ok)throw Error(guarded.reason);\n                                     ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3554:38\n\nTS2322 [ERROR]: Type '{ id: any; business_id: any; mini_app_id: any; consumer_user_id: any; request_origin: any; request_type: any; status: any; updated_at: any; }' is not assignable to type 'null | undefined'.\n    businessId,requestId,stored:current.data,\n                         ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3629:26\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; } | { ok: boolean; kind: string; businessId: string; requestId: string; expectedStatus: string; expectedUpdatedAt: string; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; kind: string; businessId: string; requestId: string; expectedStatus: string; expectedUpdatedAt: string; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n  if(!freshness.ok)throw Error(freshness.reason);\n                                         ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3633:42\n\nTS2339 [ERROR]: Property 'expectedStatus' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; } | { ok: boolean; kind: string; businessId: string; requestId: string; expectedStatus: string; expectedUpdatedAt: string; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n  Property 'expectedStatus' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n        expectedStatus:freshness.expectedStatus,\n                                 ~~~~~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3652:34\n\nTS2339 [ERROR]: Property 'expectedUpdatedAt' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; } | { ok: boolean; kind: string; businessId: string; requestId: string; expectedStatus: string; expectedUpdatedAt: string; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n  Property 'expectedUpdatedAt' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n        expectedUpdatedAt:freshness.expectedUpdatedAt\n                                    ~~~~~~~~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3653:37\n\nTS2339 [ERROR]: Property 'expectedStatus' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; } | { ok: boolean; kind: string; businessId: string; requestId: string; expectedStatus: string; expectedUpdatedAt: string; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n  Property 'expectedStatus' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n    .eq(\"status\",freshness.expectedStatus)\n                           ~~~~~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3676:28\n\nTS2339 [ERROR]: Property 'expectedUpdatedAt' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; } | { ok: boolean; kind: string; businessId: string; requestId: string; expectedStatus: string; expectedUpdatedAt: string; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n  Property 'expectedUpdatedAt' does not exist on type '{ ok: boolean; reason: any; mayWrite: boolean; customerNotified: boolean; bookingConfirmed: boolean; }'.\n    .eq(\"updated_at\",freshness.expectedUpdatedAt)\n                               ~~~~~~~~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3677:32\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; reason: any; mayConfirmBooking: boolean; customerNotified: boolean; calendarDelivered: boolean; mayRetryAutomatically: boolean; } | { ok: boolean; kind: string; businessId: string; ... 10 more ...; customerContactIncluded: boolean; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; kind: string; businessId: string; requestId: string; requestClosed: boolean; workLedgerState: any; workLedgerCancellationRecorded: boolean; originalRevisionVerified: boolean; ... 5 more ...; customerContactIncluded: boolean; }'.\n    throw Error(closure?.reason||\"Original Work booking closure needs review.\");\n                         ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3901:26\n\nTS2339 [ERROR]: Property 'reason' does not exist on type '{ ok: boolean; locks: never[]; reason: string; } | { ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; } | { ...; } | { ...; } | { ...; } | { ...; }'.\n  Property 'reason' does not exist on type '{ ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; requiresOwnerApproval: boolean; changesCustomerData: boolean; changesBookings: boolean; changesPayments: boolean; publishes: boolean; }'.\n  throw Error(candidate?.reason||\"Proposed design was not safe to compare.\");\n                         ~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3983:26\n\nTS18047 [ERROR]: 'pair' is possibly 'null'.\n  try{after=Uint8Array.from(atob(pair.afterImageBase64),c=>c.charCodeAt(0));}\n                                 ~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:3999:34\n\nTS18047 [ERROR]: 'pair' is possibly 'null'.\n      {type:\"input_image\",image_url:\"data:image/jpeg;base64,\"+pair.afterImageBase64,detail:\"low\"}\n                                                              ~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4042:63\n\nTS18047 [ERROR]: 'candidate' is possibly 'null'.\n    mode===\"comparison\"?candidate.nextConfig:app.draft_config);\n                        ~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4057:25\n\nTS2339 [ERROR]: Property 'nextConfig' does not exist on type '{ ok: boolean; locks: never[]; reason: string; } | { ok: boolean; reason: string; keys?: undefined; } | { ok: boolean; moduleKey: string; direction: any; before: any[] | undefined; after: any[]; nextConfig: any; ... 4 more ...; publishes: boolean; } | { ...; } | { ...; } | { ...; } | { ...; }'.\n  Property 'nextConfig' does not exist on type '{ ok: boolean; locks: never[]; reason: string; }'.\n    mode===\"comparison\"?candidate.nextConfig:app.draft_config);\n                                  ~~~~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4057:35\n\nTS2783 [ERROR]: 'ok' is specified more than once, so this usage will be overwritten.\n      return json(200,{ok:true,...(await exactMessageReceipt(\n                       ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4158:24\n\nTS2785 [ERROR]:     This spread always overwrites this property.\n          return json(200,{ok:true,...(await exactMessageReceipt(\n                                   ^\n        at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4158:32\n\nTS2783 [ERROR]: 'ok' is specified more than once, so this usage will be overwritten.\n      return json(200,{ok:true,...(await exactMessageReceipt(\n                       ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4405:24\n\nTS2785 [ERROR]:     This spread always overwrites this property.\n          return json(200,{ok:true,...(await exactMessageReceipt(\n                                   ^\n        at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4405:32\n\nTS2783 [ERROR]: 'ok' is specified more than once, so this usage will be overwritten.\n      return json(200,{ok:true,\n                       ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4411:24\n\nTS2785 [ERROR]:     This spread always overwrites this property.\n            ...(await currentOwnerFollowup(resolvedBusinessId,body))});\n            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n        at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4412:9\n\nTS2783 [ERROR]: 'ok' is specified more than once, so this usage will be overwritten.\n      return json(200,{ok:true,...(await exactOwnerInboxReceipt(\n                       ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4423:24\n\nTS2785 [ERROR]:     This spread always overwrites this property.\n          return json(200,{ok:true,...(await exactOwnerInboxReceipt(\n                                   ^\n        at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4423:32\n\nTS2339 [ERROR]: Property 'appId' does not exist on type '{ nextAction: { ok: boolean; reason: any; maySend: boolean; mayConfirmBooking: boolean; customerNotified: boolean; externalDeliveryVerified: boolean; } | { ok: boolean; kind: string; businessId: string; ... 16 more ...; hasCustomerContact: boolean; }; ... 6 more ...; customerOutcomeConfirmed: boolean; } | { ...; }'.\n  Property 'appId' does not exist on type '{ nextAction: { ok: boolean; reason: any; maySend: boolean; mayConfirmBooking: boolean; customerNotified: boolean; externalDeliveryVerified: boolean; } | { ok: boolean; kind: string; businessId: string; ... 16 more ...; hasCustomerContact: boolean; }; ... 6 more ...; customerOutcomeConfirmed: boolean; }'.\n          businessId:resolvedBusinessId,appId:fresh.appId,\n                                                    ~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4447:53\n\nTS2322 [ERROR]: Type '{ reused: boolean; message: any; databaseMessageSaved: boolean; customerDeliveryVerified: boolean; providerDeliveryVerified: boolean; outboxId: any; outboxState: any; deliveryIntentDurable: boolean; }' is not assignable to type 'null | undefined'.\n          requestId:clean(body?.requestId,80),sent:saved,\n                                              ~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4448:47\n\nTS2322 [ERROR]: Type '{ nextAction: { ok: boolean; reason: any; maySend: boolean; mayConfirmBooking: boolean; customerNotified: boolean; externalDeliveryVerified: boolean; } | { ok: boolean; kind: string; businessId: string; ... 16 more ...; hasCustomerContact: boolean; }; ... 6 more ...; customerOutcomeConfirmed: boolean; } | { ...; }' is not assignable to type 'null | undefined'.\n  Type '{ nextAction: { ok: boolean; reason: any; maySend: boolean; mayConfirmBooking: boolean; customerNotified: boolean; externalDeliveryVerified: boolean; } | { ok: boolean; kind: string; businessId: string; ... 16 more ...; hasCustomerContact: boolean; }; ... 6 more ...; customerOutcomeConfirmed: boolean; }' is not assignable to type 'null | undefined'.\n          current:{ok:true,...fresh}\n          ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4449:11\n\nTS2783 [ERROR]: 'ok' is specified more than once, so this usage will be overwritten.\n          current:{ok:true,...fresh}\n                   ~~~~~~~\n    at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4449:20\n\nTS2785 [ERROR]:     This spread always overwrites this property.\n              current:{ok:true,...fresh}\n                               ~~~~~~~~\n        at file:///workspace/busy-connected-recovery/supabase/functions/busy-mini-apps/index.ts:4449:28\n\nFound 69 errors.\n\nerror: Type checking failed.\n",
+    "tlsValidationDisabled": false,
+    "compilerStrictnessWeakened": false
+  },
+  "iosHermesExports": [
+    {
+      "environment": "owner-preview",
+      "exitCode": 0
+    },
+    {
+      "environment": "isolated-staging",
+      "exitCode": 0
+    }
+  ],
+  "retainedApplicationCandidates": {
+    "application-candidate1": {
+      "summary": {
+        "passed": 111,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 328
+      },
+      "outerExitCode": 2
+    },
+    "application-candidate2": {
+      "summary": {
+        "passed": 123,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 316
+      },
+      "outerExitCode": 2
+    },
+    "application-candidate3": {
+      "summary": {
+        "passed": 438,
+        "failed": 1,
+        "blocked": 0,
+        "unexecuted": 0
+      },
+      "outerExitCode": 1
+    }
+  },
+  "retainedOtherFailures": {
+    "undefinedDetailsBindingCounterexampleExit": 1,
+    "legacyExcludedSocialV387": {
+      "exitCode": 1,
+      "reason": "Historical Home Quick-access expectation; original assertions retained, Home files unchanged"
+    },
+    "npmMetadataDefaultCacheFailure": {
+      "exitCode": 1,
+      "resolvedUsingWorkspaceCache": true
+    },
+    "historicalSnack": {
+      "missingImportDiagnostics": 81,
+      "rerun": false,
+      "passing": false
+    }
+  },
+  "sourceBoundStagingProposal": {
+    "targetProject": "pnjdlogwegnqbsfpcofw",
+    "productionTargetAllowed": false,
+    "activationReady": false,
+    "autoExecute": false,
+    "externalSpendingGBP": 0,
+    "sourceCandidates": [
+      {
+        "path": "staging/ISOLATED_ONLY_business_core_v3180.sql",
+        "sha256": "af81c5b8d1a0a68a061c48e221ebcb1e74c0360d512eb33f40639a54ef54f83a"
+      },
+      {
+        "path": "docs/sql-proposals/phase58-snapshot/writer.sql",
+        "sha256": "cf0bf33a24b4acf066e743d9eff8011ef2ba0fda2a0163a9fa36d81254a98548"
+      },
+      {
+        "path": "docs/sql-proposals/phase58-snapshot/fence.sql",
+        "sha256": "e093bc939d8ac4ba104eb8d17f80d0acbae0acdb2d67dddaa76259c87148e118"
+      },
+      {
+        "path": "docs/sql-proposals/phase60-snapshot/privacy-fence.sql",
+        "sha256": "3a2751ad5dd3a8bf25d5a5fa62222c052ff55ab40043a905c8d2e89344e5d816"
+      },
+      {
+        "path": "docs/sql-proposals/connected-builders/owner-status.sql",
+        "sha256": "3aeac2d8f6deabdbd8a6e3f2b1a3e0af12e8ce046e9836bf7bf713a06fca8676"
+      },
+      {
+        "path": "supabase/migrations/20261013081000_v3199_atomic_first_private_app.sql",
+        "sha256": "eb2011c7f90c67f95e13b56f129310f20f175a8776dd22b29066dfb8babc1877"
+      },
+      {
+        "path": "docs/sql-proposals/connected-builders/contracts.sql",
+        "sha256": "54936bdd0c7942de4cca54bcccfeee8d6566bb9f3089f5b0f5a6f12eee8ed2f0"
+      },
+      {
+        "path": "docs/sql-proposals/phase64-snapshot/first-enquiry.sql",
+        "sha256": "7c0e92efb18f52173876622c3b369bf30ff3466620df7ddb33509ec124af09c8"
+      },
+      {
+        "path": "docs/sql-proposals/phase65-snapshot/operations.sql",
+        "sha256": "3131cce732cf63ea454b9493c614158b91a9638f96e27abbce020abc772c0121"
+      },
+      {
+        "path": "docs/sql-proposals/connected-builders/app-enquiry.sql",
+        "sha256": "0f930f2fc63683db5f97aa189a5e0c8f768dd6d3e10a6088e4c008add5baee28"
+      },
+      {
+        "path": "docs/sql-proposals/connected-builders/durable-journey.sql",
+        "sha256": "ef4fc480caff2c7edda4183981eef7a71d115f79612ea14844a1ce3b593673ba"
+      },
+      {
+        "path": "docs/sql-proposals/canonical-work/engagements.sql",
+        "sha256": "dcca31ceba8e0b5aed0da832a53f925f1c147ba7da7feb471abe8169942af057"
+      },
+      {
+        "path": "docs/sql-proposals/connected-builders/private-work-permissions.sql",
+        "sha256": "7d33e4c826a8a3ed2aa6bf8fe312c78c531af181d10ffe0f9ac279a2e1a77119"
+      },
+      {
+        "path": "docs/sql-proposals/connected-builders/app-transaction.sql",
+        "sha256": "6fef03863f55352aa2a8cc3e80d3f18335495f0a51223ac04e569dd2fedd3d4b"
+      }
+    ],
+    "gateways": [
+      {
+        "path": "supabase/functions/busy-website-publish/index.ts",
+        "sha256": "38ef7b894efac7f86187265b50f31a8321dd01553d7b16d99c21f25f51625bba"
+      },
+      {
+        "path": "supabase/functions/busy-mini-apps/index.ts",
+        "sha256": "c90c0ebcff037d8a74d67cf54543955164a874edf02f870986f9bcd6d4429203"
+      }
+    ],
+    "sdk": {
+      "path": "supabase/connected-staging.deno.lock",
+      "sha256": "14b2afec5ae75a165e96926815238069e922351b632dce75b7cf79db4cf1d65e"
+    },
+    "inventory": {
+      "path": "docs/sql-proposals/connected-builders/staging-inventory.sql",
+      "sha256": "2fa10c6a53a995f1c302597f26c5e55bda3831c8e1b3267d85b11784e4121880",
+      "readOnly": true
+    },
+    "blockers": [
+      "Fresh externally verified staging project identity and schema/migration/effective ACL inventory",
+      "Authentic original snapshot CREATE DDL/provisioning compatibility; reconstructed disposable fixture is not hosted authority",
+      "Original constraints, indexes, triggers and privileged-route compatibility review",
+      "Atomic reviewed installation including canonical permissions closure; no temporary lifecycle grant window",
+      "Mini App full Deno type check and hosted Edge runtime compatibility",
+      "Separate exact SQL, fictional Auth membership and function deployment approvals",
+      "Real two-owner JWT/PostgREST mutation, revocation, uncertain outcome and fresh-client acceptance"
+    ],
+    "sequence": [
+      "Approve metadata-only inspection of exact staging; capture original missing authority",
+      "Review CREATE/upgrade candidates against actual inventory, backups and all old-client fences",
+      "Compose and rehearse one atomic finite install, including final ACL closure; retain reads/data on rollback",
+      "Separately approve and create fictional Auth users/business memberships; no metadata-based permission",
+      "Deploy only reviewed gateways with server switch still unset/false, using server-only credentials",
+      "Separately approve finite switch activation and run controlled real-JWT acceptance; no real provider/customer action"
+    ],
+    "rollback": [
+      "docs/sql-proposals/connected-builders/durable-rollback.sql",
+      "docs/sql-proposals/connected-builders/journey-rollback-readonly.sql",
+      "docs/sql-proposals/canonical-work/rollback-readonly.sql"
+    ],
+    "serverSwitchEnabled": false,
+    "authUsersCreated": false,
+    "domain": {
+      "name": "jasperjanes.co.uk",
+      "dnsChangesAllowed": false,
+      "publicationAllowed": false
+    }
+  },
+  "renderedScreenshots": false,
+  "nativeAcceptance": false,
+  "hostedVerification": false,
+  "hostedSQL": false,
+  "authUsersCreated": false,
+  "deployments": false,
+  "easCloudBuilds": false,
+  "externalSpendingGBP": 0,
+  "ownerPreviewBuild": 29,
+  "buildNumberChanged": false,
+  "productionChanged": false,
+  "dnsChanges": false,
+  "sourceServerSwitchActivated": false,
+  "prChain": [
+    21,
+    23,
+    24,
+    25,
+    26
+  ]
+}

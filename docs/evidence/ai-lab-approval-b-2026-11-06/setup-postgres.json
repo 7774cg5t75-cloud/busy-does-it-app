@@ -1,0 +1,86 @@
+{
+  "database": "busy_ai_lab_fictional_setup_disposable",
+  "hosted": false,
+  "syntheticDataOnly": true,
+  "nativeAuthFixtureOnly": true,
+  "actualNativeAuthCreated": false,
+  "fixture": "Original approved foundation + native history shape + minimal synthetic native Auth metadata; not real Auth API or private managed-runner proof.",
+  "providerCalls": 0,
+  "hostedMutations": 0,
+  "foundationFusedSha256": "b825989b37e2fef0f874ccdb03405a6650f8dc6ddfe27f94086952cc1cec225d",
+  "foundationExecutionSha256": "231b7eecdab788f3829d93c4f1995ce111a6b2b4a953644bdc6d0f785b6a5987",
+  "setupTemplateSha256": "28bee5d59bcf56f38c25cc2f805b00679572f6deb575d122eafbc0bf6acd756e",
+  "syntheticOwnerBoundSha256": "5d94c7ca474a8adee096b8dc569ec64ef7ad7b650d623e8653f3e9d88c1c9104",
+  "syntheticExecutionSha256": "5420f7c68f820b2b7ee1dc15c431ffc81ed395cee05ff268686c4b6f22cff0fb",
+  "originalFoundationUnchanged": true,
+  "results": [
+    {
+      "id": "dedicated-unix-only-postgres17-and-unchanged-foundation",
+      "passed": true
+    },
+    {
+      "id": "fused-and-unbound-proposals-deny-without-side-effects",
+      "passed": true
+    },
+    {
+      "id": "incorrect-native-owner-uuid-denied",
+      "passed": true
+    },
+    {
+      "id": "native-owner-email-confirmation-anonymous-role-and-account-state-denied",
+      "passed": true
+    },
+    {
+      "id": "missing-foreign-and-duplicate-native-identities-denied",
+      "passed": true
+    },
+    {
+      "id": "partial-business-state-never-overwritten",
+      "passed": true
+    },
+    {
+      "id": "disabled-policy-and-original-receipt-drift-denied",
+      "passed": true
+    },
+    {
+      "id": "role-column-dml-and-force-rls-drift-denied-and-rolled-back",
+      "passed": true
+    },
+    {
+      "id": "late-error-rolls-back-both-canonical-inserts-retains-native-owner",
+      "passed": true
+    },
+    {
+      "id": "native-history-write-failure-rolls-back-both-records",
+      "passed": true
+    },
+    {
+      "id": "deferred-native-history-failure-rolls-back-at-commit",
+      "passed": true
+    },
+    {
+      "id": "concurrent-identical-setup-has-one-winner-and-one-receipt",
+      "passed": true
+    },
+    {
+      "id": "exact-original-membership-and-unchanged-security-spending",
+      "passed": true
+    },
+    {
+      "id": "unknown-acknowledgement-resolved-by-read-only-original-receipts",
+      "passed": true
+    },
+    {
+      "id": "duplicate-dispatch-denied-with-original-records-and-receipts-retained",
+      "passed": true
+    },
+    {
+      "id": "api-roles-cannot-write-memberships-or-enable-ai",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 16,
+    "failed": 0
+  }
+}

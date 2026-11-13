@@ -1,0 +1,211 @@
+{
+  "functionalCommit": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+  "functionalTree": "c7b7f7dee00151a3972b57706ffc8c4bc8a1ed43",
+  "status": "cancelled-superseded-source",
+  "runs": [
+    {
+      "id": 42400998219,
+      "name": "V3.65 Growth Command Centre checks",
+      "event": "pull_request",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400998219"
+    },
+    {
+      "id": 42400998411,
+      "name": "V3.64 private growth workspace checks",
+      "event": "pull_request",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400998411"
+    },
+    {
+      "id": 42400998202,
+      "name": "V3.69 Founder Operations Security",
+      "event": "pull_request",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400998202"
+    },
+    {
+      "id": 42400998375,
+      "name": "V3.63 coordinated editable growth checks",
+      "event": "pull_request",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400998375"
+    },
+    {
+      "id": 42400998367,
+      "name": "V3.66 voice and project Operator checks",
+      "event": "pull_request",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400998367"
+    },
+    {
+      "id": 42400998245,
+      "name": "V3.70 Platform Autopilot checks",
+      "event": "pull_request",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400998245"
+    },
+    {
+      "id": 42400992999,
+      "name": "V3.65 Growth Command Centre checks",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992999"
+    },
+    {
+      "id": 42400993052,
+      "name": "V3.66 voice and project Operator checks",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400993052"
+    },
+    {
+      "id": 42400992861,
+      "name": "V3.69 Founder Operations Security",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992861"
+    },
+    {
+      "id": 42400992994,
+      "name": "V3.70 Platform Autopilot checks",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992994"
+    },
+    {
+      "id": 42400992976,
+      "name": "V3.64 private growth workspace checks",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992976"
+    },
+    {
+      "id": 42400992924,
+      "name": "Private App goal composition and original authority verification",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992924"
+    },
+    {
+      "id": 42400992879,
+      "name": "V3.63 coordinated editable growth checks",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992879"
+    },
+    {
+      "id": 42400993046,
+      "name": "Quiet Light v2 offline original-renderer pilot comparison",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400993046"
+    },
+    {
+      "id": 42400992873,
+      "name": "Mission 19 expressive original Website and genuine browser evidence",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992873"
+    },
+    {
+      "id": 42400993056,
+      "name": "Mission 16 original whole-site browser evidence",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400993056"
+    },
+    {
+      "id": 42400992807,
+      "name": "Mission 18 original Website intelligence and offline-fixture evidence",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992807"
+    },
+    {
+      "id": 42400992811,
+      "name": "Mission 17 original Website quality and iPhone review evidence",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400992811"
+    },
+    {
+      "id": 42400993084,
+      "name": "Premium Website original-renderer browser evidence",
+      "event": "push",
+      "attempt": 1,
+      "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42400993084"
+    }
+  ],
+  "providerCalls": 0,
+  "hostedMutations": 0,
+  "mainRunResult": {
+    "id": 42400992924,
+    "headSha": "89370e16a90c38fe8cefc4e822df1abf484c4f5a",
+    "conclusion": "cancelled",
+    "updatedAt": "2026-11-07T18:39:48Z",
+    "reason": "Existing replacement concurrency; no manual cancellation",
+    "fullRegressions": "cancelled-no-final-count",
+    "originalPostgresStagesPassed": 332,
+    "compatibilityStagesPassed": 23,
+    "b3HttpPassed": 20,
+    "budgetHttpPassed": 20
+  }
+}

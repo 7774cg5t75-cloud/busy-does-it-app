@@ -1,0 +1,23 @@
+name: Bounded licensed website fixture review
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths: ['scripts/review-story-fixture-photos.py', '.github/workflows/story-photo-review.yml']
+permissions:
+  contents: read
+jobs:
+  public-cc0-review:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - run: python3 scripts/review-story-fixture-photos.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: unreviewed-cc0-story-candidates-${{ github.sha }}
+          path: .test-artifacts/story-photo-review/
+          retention-days: 3
+          if-no-files-found: error

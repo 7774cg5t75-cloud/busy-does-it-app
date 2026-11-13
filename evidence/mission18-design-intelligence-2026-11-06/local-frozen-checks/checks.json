@@ -1,0 +1,59 @@
+{
+  "sourceSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+  "sourceTree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+  "workingTreeChanged": false,
+  "checks": [
+    {
+      "id": "check-ai-lab-runner-foundation",
+      "exitCode": 0,
+      "sha256": "688950de686355d8afa26d6399c7ac7baa58f270e524b9d86b417357f5afe657",
+      "lastLine": "{\"passed\":7,\"failed\":0,\"hosted\":false,\"providerCalls\":0}"
+    },
+    {
+      "id": "check-mission18-design-intelligence",
+      "exitCode": 0,
+      "sha256": "9016ad47086afe8da23da19e582e904564746d15f41591191fc6300ba56f7388",
+      "lastLine": "PASS 17 Mission18 design-intelligence cases; 349 assertions; zero failures. Offline fixtures and synthetic byte-contract tests only; no hosted, real vision, provider, spending or publication claim."
+    },
+    {
+      "id": "check-mission18-creative-rendering",
+      "exitCode": 0,
+      "sha256": "b528192127d6c0d3cca7d85dba7f293405d13445d9b31bbad5342ac7967a9854",
+      "lastLine": "PASS 12 Mission18 creative-rendering cases; 384 assertions; zero failures. Actual original renderer, finite source measures and preserved owner content. No model or hosted result claimed."
+    },
+    {
+      "id": "check-mission18-creative-owner-flow",
+      "exitCode": 0,
+      "sha256": "1aa56f9ca9eba1de0618e756ba54642b97757bcf34d35d0df4fe06f41749a5b4",
+      "lastLine": "{\"suite\":\"mission18-creative-owner-flow\",\"passed\":11,\"failed\":0,\"providerCalls\":0,\"hostedActions\":0,\"evidence\":\"Actual original React component and finite editor; native primitives and write transport are inert. No live model, hosted persistence or visual-quality acceptance.\"}"
+    },
+    {
+      "id": "check-mission18-provider-projection",
+      "exitCode": 0,
+      "sha256": "a627b2264de528baf8c0b27f0c0c373fb018854f11a9c93f0bcc2c253c3ad1e2",
+      "lastLine": "{\"suite\":\"mission18-provider-projection\",\"passed\":32,\"failed\":0,\"providerCalls\":0,\"liveModelQualityProven\":false,\"requestBytes\":7628,\"inputDigest\":\"48e46aa2ecaa4ce9dce39cded36ec20c467a05604aa04d77174096c74b3cd4ac\",\"requestDigest\":\"7025777d47ae7d297da2befa5062fcea18cda36948991597f95718e17f3be049\"}"
+    },
+    {
+      "id": "check-production",
+      "exitCode": 0,
+      "sha256": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e",
+      "lastLine": "Production foundation check passed: 105 checks."
+    },
+    {
+      "id": "check-security-by-design",
+      "exitCode": 0,
+      "sha256": "94a96a0eb84c26aab2b998038ab83929b52a7a8fa9896b653a0b690ffd4d2baf",
+      "lastLine": "PASS original Auth expiry/in-flight revocation, no refresh persistence, finite transport tool denial, five malicious enquiry data fixtures, original website XSS escaping and unsafe media denial. No LLM, JWT or hosted acceptance claimed."
+    },
+    {
+      "id": "check-dependency-security",
+      "exitCode": 0,
+      "sha256": "b13dad40449d6f0b486902876dedcbf937bec523ca044806377a82bcf3035da1",
+      "lastLine": "PASS actual Expo deepmerge entry backport, old counterexample, safe merge semantics, unknown-byte/check-only refusal, deterministic reinstall patch and local-only launcher. Registry findings remain visible."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0
+  }
+}

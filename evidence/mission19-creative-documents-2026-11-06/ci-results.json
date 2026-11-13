@@ -1,0 +1,302 @@
+{
+  "source": {
+    "commit": "f42028950b573ceee874994e5414763423abc5d4",
+    "tree": "5c5cc5af6656306cf979f4cf70892f89e2f16691",
+    "branch": "codex/builder-mission15-design-advancement",
+    "cleanFrozenSnapshot": true
+  },
+  "main": {
+    "run": 42280268235,
+    "job": 128107120131,
+    "conclusion": "success",
+    "artifact": 13536970377,
+    "application": {
+      "sourceSha": "f42028950b573ceee874994e5414763423abc5d4",
+      "sourceTree": "5c5cc5af6656306cf979f4cf70892f89e2f16691",
+      "finalSourceSha": "f42028950b573ceee874994e5414763423abc5d4",
+      "finalSourceTree": "5c5cc5af6656306cf979f4cf70892f89e2f16691",
+      "sourceStable": true,
+      "workingTreeChanged": false,
+      "summary": {
+        "passed": 520,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 0
+      }
+    },
+    "foundationAssertions": {
+      "passed": 105,
+      "failed": 0
+    },
+    "postgres": {
+      "commandSuites": 9,
+      "receiptSummaries": {
+        "ai-budget": {
+          "failed": 0,
+          "passed": 32
+        },
+        "ai-lab-foundation": {
+          "failed": 0,
+          "passed": 19
+        },
+        "ai-lab-runner-foundation": {
+          "failed": 0,
+          "passed": 15
+        },
+        "enquiry-preparation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "operational-work": {
+          "failed": 0,
+          "passed": 13
+        },
+        "preservation-foundation": {
+          "failed": 0,
+          "passed": 13
+        },
+        "public-form": {
+          "failed": 0,
+          "passed": 21
+        },
+        "whole-app": {
+          "failed": 0,
+          "passed": 126
+        },
+        "whole-site": {
+          "failed": 0,
+          "passed": 14
+        },
+        "work-preparation": {
+          "failed": 0,
+          "passed": 12
+        }
+      }
+    },
+    "postgresTotalPassed": 278,
+    "deno": {
+      "entrypoints": 26,
+      "proposalModules": 5,
+      "exitCode": 0,
+      "version": "2.5.6"
+    },
+    "unsignedExpoExports": 2
+  },
+  "focused": {
+    "copy": {
+      "passed": 113,
+      "failed": 0
+    },
+    "document": {
+      "cases": 23,
+      "assertions": 170,
+      "failed": 0
+    },
+    "ownerReview": {
+      "passed": 13,
+      "failed": 0
+    },
+    "providerProjection": {
+      "passed": 61,
+      "failed": 0,
+      "requestBytes": 15422,
+      "schemaBytes": 8996,
+      "minimalResponseBytes": 2272,
+      "tokenCount": null,
+      "estimatedGBP": null
+    },
+    "rendering": {
+      "cases": 20,
+      "assertions": 306,
+      "failed": 0
+    },
+    "export": {
+      "passed": 6,
+      "failed": 0
+    }
+  },
+  "localFinal": {
+    "syntaxChangedSourceFiles": 41,
+    "syntaxFailed": 0,
+    "architecture": {
+      "sourceFiles": 1988,
+      "staticRelativeEdges": 4836,
+      "distinctCycles": 0
+    },
+    "originalPortabilityStages": {
+      "passed": 8,
+      "failed": 0
+    }
+  },
+  "browser": {
+    "run": 42280268183,
+    "job": 128107119521,
+    "conclusion": "success",
+    "source": {
+      "commit": "f42028950b573ceee874994e5414763423abc5d4",
+      "tree": "5c5cc5af6656306cf979f4cf70892f89e2f16691",
+      "workingTreeChanged": false
+    },
+    "browser": "145.0.7632.6",
+    "afterPages": 18,
+    "fullPagePngs": 160,
+    "additionalOpenMenuPngs": 4,
+    "typographyChecks": 72,
+    "typographyFailures": 0,
+    "navigationChecks": 64,
+    "afterFailures": [],
+    "viewports": [
+      "mobile",
+      "desktop",
+      "tablet",
+      "narrow",
+      "retina"
+    ],
+    "counterexamples": {
+      "bodyColumnCounterexample": true,
+      "visibleCopyCounterexample": true,
+      "typographyCounterexample": true,
+      "typographyControl": {
+        "site": "quiet-light",
+        "page": "home",
+        "type": "reviewed-typography-cascade-counterexample",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "wrongSerifDetected": true,
+        "wrongParagraphFontAndSizeDetected": true,
+        "exactOriginalStyleRestored": true
+      },
+      "visibleCopyControl": {
+        "site": "moor-meadow",
+        "page": "services",
+        "type": "visible-copy-removal-counterexample",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "completeReviewedCopySha256": "a4728b8807e5cbc696e926c6813d881c235199015be4b431324df3fd8df589a1",
+        "removalDetected": true,
+        "exactRestorationVerified": true,
+        "measurement": "Rendered innerText with block boundaries; full required source copy unchanged."
+      },
+      "bodyColumnControl": {
+        "site": "quiet-light",
+        "page": "page-brand-direction",
+        "type": "service-body-column-counterexample",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "negativeDetected": true,
+        "negativeWidths": [
+          259.25,
+          259.25
+        ],
+        "restoredWidths": [
+          516.109375,
+          516.109375
+        ]
+      },
+      "clippingControls": {
+        "runs": 1,
+        "visibleOverflowPass": 1,
+        "concealedCasesDetected": 5
+      },
+      "nativeMenuControls": {
+        "runs": 1,
+        "states": [
+          {
+            "closed": 0,
+            "keyboardOpen": 1,
+            "closedAgain": 0
+          }
+        ]
+      }
+    },
+    "maximumSingleImageBodyBytes": 637617,
+    "captureWallMs": 121616,
+    "nodeCpuMicroseconds": {
+      "user": 16202769,
+      "system": 2323400
+    },
+    "nodeMaxRssKiB": 343984,
+    "fullArtifact": 13534878238,
+    "phoneArtifact": 13534338632
+  },
+  "otherFinalSourceBrowserRuns": [
+    {
+      "run": 42280268530,
+      "mission": 16,
+      "conclusion": "success"
+    },
+    {
+      "run": 42280268413,
+      "mission": 17,
+      "conclusion": "success"
+    },
+    {
+      "run": 42280268556,
+      "mission": 18,
+      "conclusion": "success"
+    }
+  ],
+  "legacy": [
+    {
+      "run": 42280268272,
+      "name": "V3.63 coordinated editable growth checks",
+      "source": "f42028950b573ceee874994e5414763423abc5d4",
+      "conclusion": "success"
+    },
+    {
+      "run": 42280268456,
+      "name": "V3.66 voice and project Operator checks",
+      "source": "f42028950b573ceee874994e5414763423abc5d4",
+      "conclusion": "success"
+    },
+    {
+      "run": 42280268415,
+      "name": "V3.64 private growth workspace checks",
+      "source": "f42028950b573ceee874994e5414763423abc5d4",
+      "conclusion": "success"
+    },
+    {
+      "run": 42280268191,
+      "name": "V3.70 Platform Autopilot checks",
+      "source": "f42028950b573ceee874994e5414763423abc5d4",
+      "conclusion": "success"
+    },
+    {
+      "run": 42280268078,
+      "name": "V3.69 Founder Operations Security",
+      "source": "f42028950b573ceee874994e5414763423abc5d4",
+      "conclusion": "success"
+    },
+    {
+      "run": 42280268327,
+      "name": "V3.65 Growth Command Centre checks",
+      "source": "f42028950b573ceee874994e5414763423abc5d4",
+      "conclusion": "success"
+    }
+  ],
+  "widerLegacyVisualBenchmark": {
+    "run": 42278343221,
+    "job": 128100754143,
+    "source": "64628aecdec30a8e59edd3fcf9471543999ba031",
+    "conclusion": "success",
+    "sameRenderingSourcesAsFinal": true,
+    "notFinalCommitRun": true,
+    "note": "Ancillary replay on renderer-identical predecessor. This is not24newv2multi-page sites and not a new full professional review."
+  },
+  "boundaries": {
+    "providerCalls": 0,
+    "tokenCountProviderCalls": 0,
+    "keyReads": 0,
+    "paidPilotUsage": 0,
+    "supabaseMutations": 0,
+    "publication": false,
+    "aiLabInstalled": false,
+    "approvedGoldStandards": 0
+  }
+}

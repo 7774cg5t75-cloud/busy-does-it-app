@@ -1,11 +1,31 @@
+import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from '../../supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs';
+import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';
+import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
+import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
+import {purposeServiceProjection} from '../../supabase/functions/busy-website-worker/websiteServiceOverview.mjs';
+import {pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';
+import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
+import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
+import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
+import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
+import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
+import {renderWebsiteSiteNavigation} from '../../supabase/functions/busy-website-worker/websiteSiteNavigation.mjs';
+import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
+import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
+import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../core/businessContentHtml.mjs';
 import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";
-import { syncWebsitePageModel } from "./websiteManagement";
+import { syncWebsitePageModel } from "./websiteManagement.js";
 import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";
 import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
 import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";
+import {wholeSiteMenuMove} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
+
+import {splitBuilderInstructionClauses} from '../core/builderInstructionClauses.mjs';
+import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../core/websiteEditingLimits.mjs';
 
 function clean(value = "") {
   return String(value || "").trim();
@@ -51,9 +71,27 @@ function themeFromBrief(brief = {}) {
   };
 }
 
+// Exclude unsupported/ambiguous source rows rather than choose a false identity.
+function websiteSourceServices(brief={}){
+ const rows=safeArray(brief.services).map(s=>typeof s==='string'?{name:s}:s).filter(s=>typeof s?.name==='string'&&clean(s.name));
+ const names=new Map(),ids=new Map();
+ for(const row of rows){const name=clean(row.name).toLocaleLowerCase('en'),id=clean(row.id)||slugify(row.name);names.set(name,(names.get(name)||0)+1);ids.set(id,(ids.get(id)||0)+1);}
+ return rows.filter(row=>names.get(clean(row.name).toLocaleLowerCase('en'))===1&&ids.get(clean(row.id)||slugify(row.name))===1);
+}
+
+// Evidence sections must have usable original wording and one unambiguous identity.
+// All conflicting rows are omitted; no arbitrary winner or invented answer/review.
+function websiteEvidenceItems(brief,key){
+ const faq=key==='faqs',rows=safeArray(brief[key]).filter(row=>row&&typeof row==='object'&&!Array.isArray(row)&&(row.id===undefined||typeof row.id==='string')&&typeof (faq?row.question:row.text)==='string'&&clean(faq?row.question:row.text)&&(faq?typeof row.answer==='string'&&clean(row.answer):row.attribution===undefined||typeof row.attribution==='string'));
+ const names=new Map(),ids=new Map();
+ for(const row of rows){const text=clean(faq?row.question:row.text).toLocaleLowerCase('en'),id=clean(row.id)||slugify(faq?row.question:row.attribution||row.text);names.set(text,(names.get(text)||0)+1);ids.set(id,(ids.get(id)||0)+1);}
+ return rows.filter(row=>names.get(clean(faq?row.question:row.text).toLocaleLowerCase('en'))===1&&ids.get(clean(row.id)||slugify(faq?row.question:row.attribution||row.text))===1);
+}
+
 function buildSections(brief = {}) {
   const sections = [];
-  const serviceNames = safeArray(brief.services).map(s=>clean(s?.name)).filter(Boolean);
+  const sourceServices=websiteSourceServices(brief);
+  const serviceNames = sourceServices.map(s=>clean(s?.name)).filter(Boolean);
   const contactAvailable = !!(clean(brief.phone) || clean(brief.email));
   const area = clean(brief.serviceArea);
   const factualServiceSummary = [serviceNames.slice(0, 2).join(" • "), area ? "Serving " + area : ""].filter(Boolean).join(" — ");
@@ -73,26 +111,26 @@ function buildSections(brief = {}) {
       ? "Call us"
       : clean(brief.email)
       ? "Get in touch"
-      : safeArray(brief.services).length
+      : sourceServices.length
       ? "See our services"
       : "",
     ctaHref:
       clean(brief.phone) || clean(brief.email)
         ? "#contact"
-        : safeArray(brief.services).length
+        : sourceServices.length
         ? "#services"
         : "",
     asset: brief.heroAsset || null,
   });
 
-  if (safeArray(brief.services).length) {
+  if (sourceServices.length) {
     sections.push({
       id: "services",
       type: "services",
       enabled: true,
       title: "What we do",
       body: "",
-      items: safeArray(brief.services).map((service) => ({
+      items: sourceServices.map((service) => ({
         id: service.id || slugify(service.name),
         title: clean(service.name),
         body: clean(service.description),
@@ -115,20 +153,20 @@ function buildSections(brief = {}) {
       id: "gallery",
       type: "gallery",
       enabled: true,
-      title: "Our work",
+      title: "Gallery",
       body: "",
       items: safeArray(brief.photos).slice(0, 12),
     });
   }
 
-  if (safeArray(brief.testimonials).length) {
+  if (websiteEvidenceItems(brief,'testimonials').length) {
     sections.push({
       id: "testimonials",
       type: "testimonials",
       enabled: true,
       title: "What customers say",
       body: "",
-      items: safeArray(brief.testimonials).map((item) => ({
+      items: websiteEvidenceItems(brief,'testimonials').map((item) => ({
         id: item.id || slugify(item.attribution || item.text),
         title: clean(item.attribution),
         body: clean(item.text),
@@ -136,14 +174,14 @@ function buildSections(brief = {}) {
     });
   }
 
-  if (safeArray(brief.faqs).length) {
+  if (websiteEvidenceItems(brief,'faqs').length) {
     sections.push({
       id: "faq",
       type: "faq",
       enabled: true,
       title: "Frequently asked questions",
       body: "",
-      items: safeArray(brief.faqs).map((item) => ({
+      items: websiteEvidenceItems(brief,'faqs').map((item) => ({
         id: item.id || slugify(item.question),
         title: clean(item.question),
         body: clean(item.answer),
@@ -157,7 +195,7 @@ function buildSections(brief = {}) {
       type: "contact",
       enabled: true,
       title: contactAvailable ? "Get in touch" : "Where we work",
-      body: area ? "Serving " + area : "",
+      body: area ? (/^remote\b/i.test(area)?area:"Serving " + area) : "",
       phone: clean(brief.phone),
       email: clean(brief.email),
       openingHours: clean(brief.openingHours),
@@ -171,10 +209,11 @@ function buildSections(brief = {}) {
 function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCreationIntelligence = null, businessId = "" } = {}) {
   const brief = brandBrain.websiteBrief || {};
   const now = new Date().toISOString();
+  const keepCreativeDocument=!!businessId&&previousDraft?.businessId===businessId&&(!previousDraft?.business_id||previousDraft.business_id===businessId)&&!!websiteCreativeDocumentSite(previousDraft);
   // Rebuilding factual Brand Brain content must never discard owner-created
   // pages or their authored text. It is a content refresh, not a page deletion.
   const preserved=safeArray(previousDraft?.sections).filter(section=>
-    (["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"))||(['products','events'].includes(section?.type)&&section.contentSource==='business_records_v1'));
+    (["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"))||(keepCreativeDocument&&section?.type==="creative-document"&&section.creativeGenerated===true)||(['products','events'].includes(section?.type)&&section.contentSource==='business_records_v1'));
   // A deliberate owner add/remove is authoritative for that private collection.
   // A later Brand Brain refresh must not silently restore a removed service/FAQ
   // or delete a newly added one. Unedited collections still update from the brief.
@@ -183,12 +222,38 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     ["services","faq","testimonials"].includes(section.type)&&section.id===section.type&&
     Array.isArray(section.items)&&section.items.length<=30);
   const generated=buildSections(brief);
+  // Initial generation uses the SAME finite styles available in the owner editor.
+  // Existing sections and explicit empty overrides are retained on regeneration.
+  const composition=planWebsiteDesign({businessType:brief.businessType,businessName:brief.businessName,sections:generated,theme:previousDraft?.theme||{}}).composition;
+  for(const section of generated){const old=safeArray(previousDraft?.sections).find(s=>s.id===section.id&&s.type===section.type);if(!old&&composition?.sectionDefaults?.[section.id])section.appearance={...composition.sectionDefaults[section.id]};}
+
   const keepOwnerItems=section=>{
     const prior=ownedCollections.find(old=>old.id===section.id&&old.type===section.type);
     return prior?{...section,items:prior.items.map(item=>({...item})),
       ownerEditedItems:true}:section;
   };
-  const rawSections=[...generated.map(keepOwnerItems),
+  // Preserve only deliberately edited destination wording in this exact
+  // original business. It is owner copy, not verified canonical business facts.
+  const sameOwnerSource=businessId?previousDraft?.businessId===businessId&&!([previousDraft?.business_id].some(id=>id&&id!==businessId)):!previousDraft?.businessId&&!previousDraft?.business_id&&previousDraft?.businessName===clean(brief.businessName)&&previousDraft?.businessType===clean(brief.businessType);
+  const keepOwnerCopy=section=>{
+    const matches=sameOwnerSource?safeArray(previousDraft?.sections).filter(s=>s.id===section.id&&s.type===section.type):[];
+    const prior=matches.length===1?matches[0]:null;
+    const fields=[...new Set(safeArray(prior?.ownerEditedFields))].filter(f=>['title','body',...(section.type==='hero'?['cta','ctaHref']:[]),...(section.type==='contact'?['email','phone','openingHours']:[])].includes(f)&&typeof prior[f]==='string'&&prior[f].length<=(f==='title'?140:['cta','ctaHref'].includes(f)?120:2500)&&(f!=='title'||!!prior[f].trim())&&!/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(prior[f]));
+    const validated=fields.filter(f=>f!=='email'||!prior[f]||/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(prior[f])).filter(f=>f!=='phone'||!prior[f]||/^[+()\d .-]{5,40}$/.test(prior[f]));
+    const retained=validated.length?{...section,...Object.fromEntries(validated.map(f=>[f,prior[f]])),ownerEditedFields:validated}:section;
+    if(section.type==='hero'&&validated.some(f=>['cta','ctaHref'].includes(f))){
+      const href=typeof prior.ctaHref==='string'?prior.ctaHref:'';
+      const matches=[...generated,...preserved,...ownedCollections].filter(s=>s.id===href.slice(1)&&s.enabled!==false);
+      const target=matches.length===1?matches[0]:null;
+      const contact=target?.type==='contact'?keepOwnerCopy(target):target;
+      const current=href==='#main'||/^#[a-z][a-z0-9-]*$/i.test(href)&&!!target&&(target.type!=='contact'||!!(clean(contact.email)||clean(contact.phone)));
+      // Preserve the reviewed label/destination together. A removed target is
+      // disabled; a factual refresh must never guess another customer action.
+      return {...retained,ctaHref:current?href:'',ownerEditedFields:[...new Set([...validated,'ctaHref'])]};
+    }
+    return retained;
+  };
+  const rawSections=[...generated.map(keepOwnerItems).map(keepOwnerCopy),
     ...ownedCollections.filter(old=>!generated.some(s=>
       s.id===old.id&&s.type===old.type)).map(s=>({...s,
        items:s.items.map(item=>({...item}))})),
@@ -256,6 +321,20 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const theme=previousDraft?.theme&&typeof previousDraft.theme==="object"
     ? {...themeFromBrief(brief),...previousDraft.theme}
     : themeFromBrief(brief);
+  // A factual refresh is not permission to discard an exact reviewed design.
+  // Reuse the original renderer's full source/specification validation before
+  // retaining these bounded presentation records in this SAME business only.
+  // The renderer validates again against the refreshed original page model;
+  // changed identities fail closed rather than silently choosing another look.
+  const keepCreative=!!sameOwnerSource&&safeArray(previousDraft?.creativeSpecification?.pages)
+    .some(page=>!!creativeWebsiteClasses(previousDraft,page?.pageId));
+  const creativeSourceOrder=safeArray(previousDraft?.creativeSpecificationSourceOrder);
+  const keepCreativeSourceOrder=keepCreative&&creativeSourceOrder.length===previousDraft.creativeSpecification.pages.length&&
+    new Set(creativeSourceOrder.map(page=>page?.pageId)).size===creativeSourceOrder.length&&creativeSourceOrder.every(row=>{
+      const page=safeArray(previousDraft.pages).find(page=>page.id===row?.pageId),ids=safeArray(page?.sectionIds);
+      return row&&Object.keys(row).sort().join(',')==='pageId,sectionOrder'&&previousDraft.creativeSpecification.pages.some(spec=>spec.pageId===row.pageId)&&
+        Array.isArray(row.sectionOrder)&&row.sectionOrder.length===ids.length&&new Set(row.sectionOrder).size===ids.length&&row.sectionOrder.every(id=>ids.includes(id));
+    });
   const draft = {
     id: previousDraft?.id || `website-${Date.now()}`,
     ...((previousDraft?.businessId||businessId)?{businessId:previousDraft?.businessId||businessId}:{}),
@@ -290,6 +369,11 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
         }
       : null,
     theme,
+    ...(sameOwnerSource&&previousDraft?.siteComposition==='connected-pages-v1'?{siteComposition:'connected-pages-v1'}:{}),
+    ...(sameOwnerSource&&Object.hasOwn(previousDraft||{},'sitePresentation')?{sitePresentation:previousDraft.sitePresentation}:{}),
+    ...(keepCreative?{creativeSpecification:JSON.parse(JSON.stringify(previousDraft.creativeSpecification))}:{}),
+    ...(keepCreativeDocument?{creativeDocumentPageModel:JSON.parse(JSON.stringify(previousDraft.creativeDocumentPageModel))}:{}),
+    ...(keepCreativeSourceOrder?{creativeSpecificationSourceOrder:JSON.parse(JSON.stringify(creativeSourceOrder))}:{}),
     customPages:safeArray(previousDraft?.customPages).map(page=>({
       ...page,sectionIds:safeArray(page?.sectionIds).slice()
     })),
@@ -312,6 +396,8 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     },
     sourceSummary: {
       serviceCount: safeArray(brief.services).length,
+      omittedServiceCount:safeArray(brief.services).length-websiteSourceServices(brief).length,
+      omittedEvidenceCount:['faqs','testimonials'].reduce((n,key)=>n+safeArray(brief[key]).length-websiteEvidenceItems(brief,key).length,0),
       photoCount: safeArray(brief.photos).length,
       faqCount: safeArray(brief.faqs).length,
       testimonialCount: safeArray(brief.testimonials).length,
@@ -580,10 +666,9 @@ function applySingleWebsiteInstruction(draft = {}, instruction = "") {
  */
 function applyWebsiteInstructionUnchecked(draft = {}, instruction = "") {
   const raw=clean(instruction);
-  const parts=raw.split(/\s*;\s*|\s+and then\s+|,\s*(?:and )?then\s+/i).map(x=>x.trim());
+  const parts=splitBuilderInstructionClauses(raw,{website:true,max:WEBSITE_ATOMIC_CHANGES,maxCharacters:WEBSITE_ATOMIC_CHARACTERS});
+  if(!parts)return {applied:false,draft,reason:"Describe complete changes separated by ';' or 'and then'. Review larger requests in groups."};
   if(parts.length===1)return applySingleWebsiteInstruction(draft,instruction);
-  if(parts.length>4||parts.some(x=>!x))
-    return {applied:false,draft,reason:"Give BUSY up to four complete changes separated by ';' or 'and then'."};
   let candidate=draft;
   const summaries=[];
   for(let i=0;i<parts.length;i++){
@@ -616,29 +701,19 @@ function applyStructuredWebsiteEdit(draft = {}, patch = {}) {
 }
 
 function applyWebsitePageChange(draft = {}, change = {}) {
-  const result=applyWebsiteVisualEdit(draft,{...change,kind:"page"});
-  return result.applied?{...result,draft:withHtml(result.draft)}:result;
+  let result=applyWebsiteVisualEdit(draft,{...change,kind:"page"});
+  // Reuse the original bounded layout operation inside this one reviewed
+  // generation. Explicit owner ordering is preserved unless menu-first was asked.
+  if(result.applied&&result.draft.sitePresentation==='purposeful-v1'&&(change.action==='compose-service-pages'||change.action==='refine-site-pages'&&['purposeful','menu-first'].includes(change.direction))){
+    const move=wholeSiteMenuMove(result.draft,{explicit:change.direction==='menu-first'});
+    if(move){const moved=applyWebsiteVisualEdit(result.draft,move);if(!moved.applied)return {applied:false,draft,reason:moved.reason};result={...result,draft:moved.draft};}
+  }
+  // Page modelling may add a route or change placement after the pure edit.
+  // Recheck the original lock invariant over that complete derived result.
+  return result.applied?protectWebsiteOwnerLocks(draft,{...result,draft:withHtml(result.draft)}):result;
 }
 
 /** Finite tokens only. Page HTML must not expose user-supplied raw style strings. */
-function sectionAppearanceClasses(section){
-  const fields={headingScale:["compact","large"],textAlign:["center"],
-    sectionSpacing:["compact","generous"],photoCrop:["top","bottom"],
-    photoSide:["right"],gallerySize:["compact","large"],
-    mobileHeadingScale:["compact","large"],desktopHeadingScale:["compact","large"],
-    mobileGallerySize:["compact","large"],desktopGallerySize:["compact","large"]};
-  const names={headingScale:"heading",textAlign:"align",
-    sectionSpacing:"space",photoCrop:"crop",photoSide:"photo",gallerySize:"gallery",
-    mobileHeadingScale:"mobile-heading",desktopHeadingScale:"desktop-heading",
-    mobileGallerySize:"mobile-gallery",desktopGallerySize:"desktop-gallery"};
-  const appearance=section?.appearance;
-  if(!appearance||typeof appearance!=="object"||Array.isArray(appearance))return "";
-  const output=[];
-  for(const field of Object.keys(fields)){
-    if(fields[field].includes(appearance[field]))output.push("owner-"+names[field]+"-"+appearance[field]);
-  }
-  return output.join(" ");
-}
 function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const page=safeArray(draft.pages).find(p=>p?.id===pageId)||
     safeArray(draft.pages).find(p=>p?.id==="home")||null;
@@ -647,7 +722,11 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     section?.enabled !== false && (!page || allowed.has(section.id)));
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections,theme:draft.theme});
   const design = designForWebsite({businessType:draft.businessType,theme:draft.theme,plan});
-  const layoutCss = designCss(design);
+  const documentSite=websiteCreativeDocumentSite(draft);
+  const documentUnavailable=Object.hasOwn(draft,'creativeDocumentPageModel')&&!documentSite;
+  const documentPage=!!documentSite&&sections.length>0&&sections.some(section=>section.type==='creative-document');
+  const creativeClasses=creativeWebsiteClasses(draft,page?.id||'home');
+  const layoutCss = designCss(design)+(creativeClasses?creativeWebsiteCss:'')+(documentSite?websiteCreativeDocumentCss+documentSite.css:'');
   const identity = plan?.visualIdentity || {};
   const classes = [
     "visual-hero-" + (identity.heroLayout || "type-left"),
@@ -671,7 +750,8 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     : "";
   const prefix="../".repeat(clean(page?.outputPath||"index.html").split("/").length-1);
   const approvedImage = asset => {
-    if(standalone){
+    if(!websiteAssetAvailable(asset,draft.businessId||draft.business_id))return "";
+    if(standalone&&options?.privatePagePreview!==true){
       const key=clean(asset?.storagePath)||clean(asset?.uri);
       const filename=options?.assetFiles?.[key]||"";
       return /^assets\/[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp)$/.test(filename)
@@ -687,17 +767,19 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       return "";
     return prefix+target.outputPath;
   };
-  const renderedOrder=page?.id==="home"||!page?plan.sectionOrder:safeArray(page.sectionIds);
-  const orderedSections=renderedOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
+  const renderedOrder=creativeWebsiteOrder(draft,page?.id||'home',page?.id==="home"||!page?plan.sectionOrder:safeArray(page.sectionIds));
+  const activeOrder=documentPage?safeArray(page.sectionIds):renderedOrder;
+  const orderedSections=activeOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
   // Only visible sections may be targets for customer navigation or the hero
   // action. Optional empty contact/gallery blocks are intentionally omitted
   // from the HTML, so linking to them would create a broken customer journey.
   const renderedAnchors=new Set(["main"]);
   for(const section of orderedSections){
-    const visible=['products','events'].includes(section.type)?true:section.type==="hero"?false:
+    const visible=section.type==='creative-document'?!!documentSite:['products','events'].includes(section.type)?true:section.type==="hero"?false:
       ["services","faq","testimonials"].includes(section.type)?
         safeArray(section.items).some(item=>clean(item?.title||item?.body)):
-      section.type==="gallery"?safeArray(section.items).some(asset=>approvedImage(asset)):
+      section.type==="photo-feature"?!!clean(section.body)&&safeArray(draft.customPages).some(p=>p.sourceServiceId&&safeArray(p.sectionIds).includes(section.id))||websiteAssetAvailable(section.asset,draft.businessId||draft.business_id,draft,section)&&!!approvedImage(section.asset):
+      section.type==="gallery"?websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).some(row=>approvedImage(row.asset)):
       section.type==="contact"?!!(clean(section.body)||clean(section.phone)||clean(section.email)):
       !!clean(section.body);
     if(visible)renderedAnchors.add(
@@ -710,14 +792,15 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const itemHeadingClass=item=>item?.appearance?.headingScale==="large"
     ?' class="owner-item-heading-large"':
     item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
-  const sectionHtml = orderedSections.map(section=>{
+  const rawSectionHtml = orderedSections.map(section=>{
+    if(section.type==='creative-document')return renderWebsiteCreativeDocument(draft,section,{pageId:page?.id||'home',resolveImage:approvedImage,responsiveImageAttrs:(asset,url,imageOptions)=>responsivePhotoAttributes(asset,url,options.assetVariants,escapeHtml,imageOptions),pageHref:linkToPage,editAttrs});
     const sectionClasses=sectionAppearanceClasses(section);
     const sectionAttrs=(sectionClasses?` class="${sectionClasses}"`:"")+editAttrs(section,"section");
-    if(['products','events'].includes(section.type))return businessContentSectionHtml(section);
+    if(['products','events'].includes(section.type))return businessContentSectionHtml(section,{businessId:typeof draft.businessId==='string'&&(draft.business_id===undefined||draft.business_id===draft.businessId)?draft.businessId:null,recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml),'menu'),sectionClasses,narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))});
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url
-        ? `<img class="hero-image"${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(draft.businessName||"Business photograph")}">`
+        ? `<img class="hero-image${galleryPhotoClass(section.asset)}" loading="eager" decoding="async" fetchpriority="high"${responsivePhotoAttributes(section.asset,url,options.assetVariants,escapeHtml,{hero:true})}${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
         : '<div class="hero-art" aria-hidden="true"></div>';
       const kicker=clean(draft.businessType||draft.businessName);
       const lead=clean(section.body) ? `<p class="lead"${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>` : "";
@@ -733,20 +816,46 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const actionText=missingTarget?"Explore our services":clean(section.cta);
       const action=actionText&&actualHref
         ? `<a class="cta"${editAttrs(section,"cta")} href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
-      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
+      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}>${draft.theme?.heroComposition?premiumHeroInner(draft.theme.heroComposition,{variation:draft.theme?.heroVariation,images:websiteHeroPhotos(draft).filter(({asset:a})=>approvedImage(a)).slice(0,2).map(({asset:a})=>`<img class="hero-image${galleryPhotoClass(a)}" loading="lazy" decoding="async" src="${escapeHtml(approvedImage(a))}" alt="${escapeHtml(clean(a.alt)||draft.businessName||"Business photograph")}">`),copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title)}</h1>${lead}${action}</div>`,image:art,hasImage:!!url,services:draft.theme?.heroComposition==='product-showcase'&&orderedSections.some(s=>s.type==='products')?`<div class="premium-product-link" role="navigation" aria-label="Product collection"><a href="#products">${escapeHtml(orderedSections.find(s=>s.type==='products').title||'Explore the collection')}</a></div>`:heroServiceOverview(sections.find(s=>s.type==='services'),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}${heroServiceOverview(orderedSections.find(s=>s.type==='services'),escapeHtml)}</div>${art}</div>`}</section>`;
+    }
+    if(craftedPage(draft)&&section.type==='services'&&section.appearance?.serviceLayout!=='index'){
+      const heading=!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      const projection=purposeServiceProjection(draft,section,{pageId:page?.id,editablePreview,pageHref:standalone?linkToPage:undefined});
+      const content=craftedServices(projection?.section||section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,overview:!!projection,reviewedHeadingHrefs:projection?.reviewedHeadingHrefs||[],itemHeadingHref:item=>projection?.detailHrefs[item.id]||'',photoFor:item=>projection?.hiddenPhotoIds.includes(item.id)?'':['narrative','atelier'].includes(draft.theme.heroVariation)?servicePhotoHtml(draft,item,approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml)):'',escapeHtml,editAttrs,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:item=>serviceContactAction(item,renderedAnchors.has('contact')?'#contact':'',escapeHtml)});
+      if(content)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${heading}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${heading}>${content}</div></section>`;
+    }
+    if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
+      const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass,contactHref:renderedAnchors.has('contact')?'#contact':''});
+      const headingTag=!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
+    }
+    if(section.type==='testimonials'&&section.appearance?.testimonialsLayout==='spotlight'){
+      const items=testimonialSpotlightItems(section,{escapeHtml,editAttrs,itemHeadingClass,itemTypographyClasses});
+      const headingTag=!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      if(items)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${items}</div></section>`;
+    }
+    if(section.type==='faq'&&section.appearance?.faqLayout==='questions'){
+      const headingTag=!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}><div class="faq-questions">${faqDisclosureItems(section,{escapeHtml,editAttrs,itemHeadingClass})}</div></div></section>`;
     }
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
-      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3${itemHeadingClass(item)}${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
+      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${!documentPage&&page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${!documentPage&&page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}${serviceContactAction(item,section.type==="services"&&renderedAnchors.has("contact")?"#contact":"",escapeHtml)}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="photo-feature"){
-      const image=approvedImage(section.asset);
-      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"${editAttrs(section,"section")}><div class="wrap photo-feature-grid"><img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
+      const image=websiteAssetAvailable(section.asset,draft.businessId||draft.business_id,draft,section)?approvedImage(section.asset):'';
+      const imageAppearance=section.asset?.appearance||{},imageCrop=galleryPhotoClass(section.asset)+['mobile','desktop'].map(view=>['top','center','bottom'].includes(imageAppearance[view+'PhotoCrop'])?' owner-image-'+view+'-crop-'+imageAppearance[view+'PhotoCrop']:'').join('');
+      const dimensions=Number.isSafeInteger(section.asset?.width)&&section.asset.width>0&&section.asset.width<=20000&&Number.isSafeInteger(section.asset?.height)&&section.asset.height>0&&section.asset.height<=20000?` width="${section.asset.width}" height="${section.asset.height}"`:'';
+      const eager=orderedSections[0]===section;
+      const picture=`<img class="photo-feature-image${imageCrop}" loading="${eager?'eager':'lazy'}" decoding="async"${eager?' fetchpriority="high"':''}${dimensions}${responsivePhotoAttributes(section.asset,image,options.assetVariants,escapeHtml)}${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||'Website photograph')}">`;
+      const copy=`<div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div>`;
+      const generatedServicePage=safeArray(draft.customPages).some(p=>p.sourceServiceId&&safeArray(p.sectionIds).includes(section.id));
+      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"${editAttrs(section,"section")}><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></section>`:generatedServicePage&&clean(section.body)?`<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap">${copy}</div></section>`:"";
     }
     if(section.type==="gallery"){
-      const images=safeArray(section.items).map(approvedImage).filter(Boolean);
-      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
+      const selected=websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}),images=selected.map(row=>approvedImage(row.asset)).filter(Boolean);
+      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery${images.length>=3?" gallery-rich":""}">${selected.map(({asset,index:i})=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${responsivePhotoAttributes(asset,image,options.assetVariants,escapeHtml)}${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(clean(asset.alt)||draft.businessName||"Approved photograph")}">`:"";}).join("")}</div></div></section>` : "";
     }
     if(section.type==="contact"){
       if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";
@@ -770,27 +879,39 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
          "Request a booking through BUSY";
        return `<p><a class="busy-app-request-link" href="${escapeHtml(verified)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></p>`;
      }).filter(Boolean).join("");
+     if(craftedPage(draft))return `<section id="contact"${sectionAttrs}>${craftedContact({family:draft.theme.heroComposition,heading:`<h2${editAttrs(section,'title')}>${escapeHtml(section.title||'Get in touch')}</h2>`,body:section.body?`<p${editAttrs(section,'body')}>${escapeHtml(section.body)}</p>`:'',channels:(phone?`<p><a${editAttrs(section,'phone')} href="tel:${escapeHtml(phone.replace(/\s+/g,''))}">${escapeHtml(phone)}</a></p>`:'')+(email?`<p><a${editAttrs(section,'email')} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:''),extra:handoffs+(section.openingHours?`<p${editAttrs(section,'openingHours')}>${escapeHtml(section.openingHours)}</p>`:'')})}</section>`;
      return `<section id="contact"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${handoffs}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
+    if(craftedPage(draft)&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{photo:presentationPhotoHtml(websiteSectionPhoto(draft,section),approvedImage,escapeHtml,(a,url)=>responsivePhotoAttributes(a,url,options.assetVariants,escapeHtml),'story'),direction:draft.theme.heroVariation,family:draft.theme.heroComposition,escapeHtml,editAttrs,headingTag:!documentPage&&page?.id!=='home'&&orderedSections[0]===section?'h1':'h2'})}</section>`;
+    if(draft.theme?.heroComposition&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body)){
+      const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map(text=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
+      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2${editAttrs(section,'title')}>${escapeHtml(section.title)}</h2><div class="story-copy"${editAttrs(section,'body')}>${paragraphs}</div></div></section>`;
+    }
     return clean(section.body)
-      ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
+      ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${!documentPage&&page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${!documentPage&&page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
       : "";
   }).join("");
+  const sectionHtml=documentUnavailable?websiteCreativeDocumentUnavailableHtml:documentPage?rawSectionHtml:websitePageHeadingHierarchy(rawSectionHtml,{draft,page,sections:orderedSections,escapeHtml,editAttrs,homeHref:standalone?homePath:'',pageHref:id=>standalone?linkToPage(id):''});
   const business=escapeHtml(draft.businessName||"Business website");
   const area=clean(draft.serviceArea);
-  const nav=safeArray(draft.navigation)
-    .filter(item=>item?.id&&item?.label&&(standalone||renderedAnchors.has(String(item.id))))
+  const navigationItems=safeArray(draft.navigation)
+    .filter(item=>item?.id&&item?.label&&(documentSite||standalone||renderedAnchors.has(String(item.id))))
     .map(item=>{
-      if(!standalone)
-        return `<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`;
+      if(!standalone&&!documentSite)
+        return {id:item.id,label:item.label,href:'#'+item.id};
       const pageLink=linkToPage(item.id);
       const fragment=clean(item?.href);
       const href=pageLink||(fragment.startsWith("#")?
         (page?.id==="home"&&renderedAnchors.has(fragment.slice(1))
           ?fragment:homePath+fragment):"");
-      return href?`<a href="${escapeHtml(href)}">${escapeHtml(item.label)}</a>`:"";
-    }).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+      return href?{id:item.id,label:item.label,href}:null;
+    }).filter(Boolean);
+  const nav=navigationItems.map(item=>`<a${documentSite?.model.navigationPresentation.primaryPageId===item.id?' class="site-nav-primary"':''}${standalone&&item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
+  const purposefulNavigation=standalone?renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,pageHref:linkToPage,primaryPageId:documentSite?.model.navigationPresentation.primaryPageId}):null;
+  const navigationHtml=purposefulNavigation||(safeArray(draft.navigation).length>6||!!documentSite&&navigationItems.length>=4
+    ?`<div class="nav-links nav-long-desktop">${nav}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${nav}</div></details>`
+    :`<div class="nav-links">${nav}</div>`);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="${documentSite?documentSite.classes+' ':''}${creativeClasses?creativeClasses+' ':''}${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(draft.theme?.heroComposition||"")?"premium-site-"+draft.theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a><nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a>${navigationHtml}</div></nav><main id="main">${page?.id==='home'||!page?websitePageGuide(draft,orderedSections,sectionHtml,escapeHtml):''}${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 

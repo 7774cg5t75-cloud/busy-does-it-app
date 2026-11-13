@@ -79,3 +79,32 @@ function resolveGrowthOperator(text,centre,{focus=null,scope=""}={}){
   return {handled:true,kind:"summary",serviceName:project.serviceName,channel,action:false,message};
 }
 export {classifyGrowthUtterance,resolveGrowthOperator};
+
+// Navigation-only local intents within the original Operator bridge.
+function localCoreAreaRequest(text){
+ const request=String(text||'').trim();if(!request||request.length>400)return null;
+ if(/\b(publish|send|spend|buy|charge|pay now|schedule)\b/i.test(request))return null;
+ if(/^(?:busy[, ]+)?(?:please )?(?:continue|resume|open)(?: (?:my|the|our|current|private|unfinished|saved))* (?:enquiry reply|customer reply|reply)(?: (?:I was|we were) writing)?[.!?]?$/i.test(request))return {route:'busyInbox',resumeEnquiryReply:true,response:'Review the current private enquiry reply, or choose the exact filed source. Nothing is sent or saved by navigation.'};
+ if(/^(?:busy[, ]+)?(?:please )?(?:show|open|review)(?: me)? (?:my |our |the )?saved (?:customer |enquiry |private )?replies[.!?]?$/i.test(request))return {route:'customerRecords',chooseReply:true,response:'Choose an actual saved private reply by customer. Nothing is sent, saved or removed by opening the list.'};
+ const replyRequest=request.replace(/^(?:busy[, ]+)?(?:please )?/i,'').replace(/[.!?]$/,'');
+ const flexibleDate=/^ask (?:whether|if) (?:their|the) preferred date is flexible$/i.test(replyRequest);
+ const replyPurpose=flexibleDate?'flexibility':/^(?:help me (?:reply to|answer)|prepare (?:a )?reply (?:to|for)) (?:this|the current) (?:customer|enquiry)$/i.test(replyRequest)?'acknowledge':/^(?:ask them (?:what date they need|to confirm (?:the )?dates?)|prepare a reply asking for (?:the )?date)$/i.test(replyRequest)?'date':/^(?:ask them to confirm (?:the )?group size|help me respond to the customer asking about group size)$/i.test(replyRequest)?'group':/^ask (?:them )?about (?:the )?location and access(?: needs)?$/i.test(replyRequest)?'requirements':'';
+ if(replyPurpose)return {route:'busyInbox',enquiryReplyPurpose:replyPurpose,response:'Review a private reply from the exact current filed enquiry. No customer message is sent.'};
+ if(/^(?:busy[, ]+)?(?:please )?(?:(?:show|open|continue|resume)(?: me)? (?:the |my )?(?:enquiry (?:I was|we were) working on|original enquiry)|take me back to (?:the |my )?original enquiry)[.!?]?$/i.test(request))return {route:'busyInbox',resumeEnquiry:true,response:'Review the current enquiry or choose its exact record. Nothing is filed or sent by navigation.'};
+ const followUp=/^(?:busy[, ]+)?(?:please )?(?:(?:help me |prepare (?:a )?(?:polite )?)?follow up on (?:(?:a|that|this|the|my) )?quote|review (?:(?:the|my|this) )?quote follow-up)(?: for (.+?))?[.!?]?$/i.exec(request);
+ if(followUp)return {route:'workHub',reviewQuoteFollowUp:true,quoteCustomerName:followUp[1]||'',response:'Choose the exact recorded quote in Work to review before preparing a private follow-up. No message has been sent; recorded quote status is not delivery evidence.'};
+ if(/^(?:busy[, ]+)?(?:please )?(?:show|review|open)(?: me)?(?: (?:my|the|our))? (?:recorded |existing )?quotes(?: (?:to|that need) follow[ -]up)?[.!?]?$/i.test(request))return {route:'workHub',chooseQuote:true,response:'Choose an existing recorded quote in Work. Review the customer and enquiry before private follow-up preparation; no delivery or urgency is inferred.'};
+ // Incomplete follow-up wording must not fall through to quote creation/navigation.
+ if(/\bfollow[ -]up\b/i.test(request))return null;
+ const quote=/^(?:busy[, ]+)?(?:please )?(?:continue|resume|open|review)(?: (?:my|the|our|this|private|prepared|saved))* quote(?: for (.+?))?[.!?]?$/i.exec(request);
+ if(quote)return {route:'workHub',continueQuote:true,quoteCustomerName:quote[1]||'',response:'Choose the exact existing customer and prepared quote in Work. No quote has been created, sent or approved.'};
+ if(/^(?:how|why|should|what (?:can|should))\b/i.test(request)&&/\b(advertise|promote|marketing|attract customers)\b/i.test(request))return {route:'growthCommandCentre',response:'Review source-backed marketing ideas. Advice has not created a post, launched a campaign or spent money.'};
+ if(/^(?:busy[, ]+)?(?:please )?(?:continue|resume|finish)(?: (?:my|the|our|current|unsaved|unfinished|private))* (?:content|post|content draft)[.!?]?$/i.test(request))return {route:'socialMedia',continueContent:true,response:'Choose an existing private draft in Content Creator. No content has been saved or published by navigation.'};
+ if(/\b(show|review|open)\b/i.test(request)&&/\b(saved|private|content) drafts?\b/i.test(request))return {route:'socialMedia',response:'Open Content Creator to review existing private drafts. Opening the list does not save, publish or replace your current wording.'};
+ if(/\b(help|how|want|get|attract|find)\b/i.test(request)&&/\b(more customers|local enquiries|customers find us|website discoverability)\b/i.test(request))return {route:'growthCommandCentre',response:'Review source-backed, £0-first ideas in Get More Customers. No campaign, publication, partner contact or spend has started.'};
+ if(/\b(show|review|open)\b/i.test(request)&&/\b(enquiries|inbox|customer messages)\b/i.test(request))return {route:'busyInbox',response:'Open the existing Busy Inbox to review current enquiries. Nothing has been replied to or marked complete.'};
+ if(/\b(help|create|prepare|make)\b/i.test(request)&&/\bquote\b/i.test(request))return {route:'workHub',response:'Open Work and choose an existing customer for private quote preparation. Opening Work does not prepare, send or approve a quote.'};
+ if(/\b(help|create|prepare|make)\b/i.test(request)&&/\b(invoice|payment request)\b/i.test(request))return {route:'workHub',response:'Get Paid currently supports private quote assistance in Work. This request has not created an invoice or collected payment; review a saved customer and the supported next steps.'};
+ return null;
+}
+export {localCoreAreaRequest};

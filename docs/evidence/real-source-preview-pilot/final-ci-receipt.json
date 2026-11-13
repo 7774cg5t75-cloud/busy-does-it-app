@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "functionalCommit": "0888dc3c896c1960de292acc9c98279625ad5218",
+  "functionalTree": "359c0353978849b84f3bbced89fe2092ab9ea3d1",
+  "main": {
+    "id": 42389750730,
+    "attempt": 1,
+    "actor": "7774cg5t75-cloud",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42389750730",
+    "jobId": 128454642086,
+    "completedSteps": 16,
+    "stepsAllSuccess": true
+  },
+  "logEvidence": [
+    {
+      "marker": "BUSY_APP_POSTGRES",
+      "data": {
+        "passed": 126,
+        "failed": 0
+      }
+    },
+    {
+      "marker": "BUSY_PUBLIC_FORM_POSTGRES",
+      "data": {
+        "passed": 21,
+        "failed": 0
+      }
+    },
+    {
+      "marker": "BUSY_WHOLE_SITE_POSTGRES",
+      "data": {
+        "passed": 14,
+        "failed": 0
+      }
+    },
+    {
+      "marker": "BUSY_PG_SUITE_SUMMARIES",
+      "data": {
+        "commandSuites": 13,
+        "receiptSummaries": {
+          "ai-budget": {
+            "failed": 0,
+            "passed": 32
+          },
+          "ai-lab-b3": {
+            "failed": 0,
+            "passed": 10
+          },
+          "ai-lab-b3-source-contract": {
+            "failed": 0,
+            "passed": 17
+          },
+          "ai-lab-fictional-setup": {
+            "failed": 0,
+            "passed": 16
+          },
+          "ai-lab-fictional-source": {
+            "failed": 0,
+            "passed": 11
+          },
+          "ai-lab-foundation": {
+            "failed": 0,
+            "passed": 19
+          },
+          "ai-lab-runner-foundation": {
+            "failed": 0,
+            "passed": 15
+          },
+          "enquiry-preparation": {
+            "failed": 0,
+            "passed": 13
+          },
+          "operational-work": {
+            "failed": 0,
+            "passed": 13
+          },
+          "preservation-foundation": {
+            "failed": 0,
+            "passed": 13
+          },
+          "public-form": {
+            "failed": 0,
+            "passed": 21
+          },
+          "whole-app": {
+            "failed": 0,
+            "passed": 126
+          },
+          "whole-site": {
+            "failed": 0,
+            "passed": 14
+          },
+          "work-preparation": {
+            "failed": 0,
+            "passed": 12
+          }
+        }
+      }
+    },
+    {
+      "marker": "BUSY_B3_POSTGREST",
+      "data": {
+        "passed": 20,
+        "failed": 0
+      }
+    },
+    {
+      "marker": "BUSY_AI_BUDGET_POSTGREST",
+      "data": {
+        "passed": 20,
+        "failed": 0
+      }
+    },
+    {
+      "marker": "BUSY_APPLICATION_RESULT",
+      "data": {
+        "sourceSha": "0888dc3c896c1960de292acc9c98279625ad5218",
+        "sourceTree": "359c0353978849b84f3bbced89fe2092ab9ea3d1",
+        "finalSourceSha": "0888dc3c896c1960de292acc9c98279625ad5218",
+        "finalSourceTree": "359c0353978849b84f3bbced89fe2092ab9ea3d1",
+        "sourceStable": true,
+        "workingTreeChanged": false,
+        "summary": {
+          "passed": 531,
+          "failed": 0,
+          "blocked": 0,
+          "unexecuted": 0
+        }
+      }
+    }
+  ],
+  "foundation": {
+    "passed": 105,
+    "failed": 0
+  },
+  "edge": {
+    "originalEntrypoints": 27,
+    "explicitProposalModules": 9,
+    "exitCode": 0
+  },
+  "artifact": {
+    "id": 13581955543,
+    "bytes": 247936,
+    "digest": "sha256:ece9db258b6974ecd6975936599ccf09345e517aab0f2db7c196ca039fbfd0b1",
+    "expiresAt": "2026-11-14T16:27:13Z",
+    "metadataIndependentlyRead": true,
+    "archiveDownloaded": false
+  },
+  "legacy": [
+    {
+      "id": 42389756405,
+      "name": "V3.69 Founder Operations Security",
+      "path": ".github/workflows/check-founder-operations.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "sha": "0888dc3c896c1960de292acc9c98279625ad5218",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42389756405"
+    },
+    {
+      "id": 42389756500,
+      "name": "V3.63 coordinated editable growth checks",
+      "path": ".github/workflows/check-growth-drafts.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "sha": "0888dc3c896c1960de292acc9c98279625ad5218",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42389756500"
+    },
+    {
+      "id": 42389756386,
+      "name": "V3.64 private growth workspace checks",
+      "path": ".github/workflows/check-growth-workspace.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "sha": "0888dc3c896c1960de292acc9c98279625ad5218",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42389756386"
+    },
+    {
+      "id": 42389756392,
+      "name": "V3.66 voice and project Operator checks",
+      "path": ".github/workflows/check-growth-operator.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "sha": "0888dc3c896c1960de292acc9c98279625ad5218",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42389756392"
+    },
+    {
+      "id": 42389756457,
+      "name": "V3.70 Platform Autopilot checks",
+      "path": ".github/workflows/check-platform-autopilot.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "sha": "0888dc3c896c1960de292acc9c98279625ad5218",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42389756457"
+    },
+    {
+      "id": 42389756472,
+      "name": "V3.65 Growth Command Centre checks",
+      "path": ".github/workflows/check-growth-command-centre.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "sha": "0888dc3c896c1960de292acc9c98279625ad5218",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42389756472"
+    }
+  ],
+  "localActualSourceTests": {
+    "baseline": {
+      "passed": 23,
+      "failed": 0
+    },
+    "creativeBridge": {
+      "passed": 17,
+      "failed": 0
+    },
+    "privatePathBoundary": {
+      "passed": 10,
+      "failed": 0
+    },
+    "browserSavedBaseline": {
+      "passed": 543,
+      "failed": 0,
+      "screenshots": 15
+    },
+    "browserUnsavedDeterministic": {
+      "passed": 540,
+      "failed": 0,
+      "screenshots": 15
+    },
+    "functionLocalPinnedDeno": {
+      "exitCode": 0,
+      "hosted": false
+    }
+  },
+  "scope": {
+    "providerCalls": 0,
+    "hostedWrites": 0,
+    "newNativeSignIns": 0,
+    "spendingGBP": 0,
+    "publication": false
+  }
+}

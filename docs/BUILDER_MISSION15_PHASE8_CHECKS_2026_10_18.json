@@ -1,0 +1,635 @@
+{
+  "source": "6bd44e6ea314b13c4e8af8a85be088c12557f282",
+  "results": [
+    {
+      "command": "node scripts/check-mission13-conversations.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS Mission 13 actual scoped follow-up adapter, published FAQ grounding, latest-message intent, original selection context, version reapproval, guest/closed/wait suppression and failed/foreign reads. Inert DB only; no messages sent.\n"
+    },
+    {
+      "command": "node scripts/check-mission13-private-recovery.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "output": "PASS encrypted-storage boundary fixtures, explicit save, reconstructed helper restore, account/version/expiry checks, newer-draft preservation, corrupted-storage denial and actual async hook stale-typing/account guards. No OS encryption/device-restart claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission13-customer-surfaces.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.06,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission13-customer-surfaces.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission13-customer-surfaces.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission13-communication-truth.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS existing Communications Hub distinguishes approval/draft/unsent/sending/failed/unknown from recorded sends, refuses delivery claims, suppresses uncertain duplicate contact and respects contact revocation. Pure projections, no provider calls.\n(node:3229) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/mission13-git/src/domain/communicationsHub.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/mission13-git/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission12-content-enquiry.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.42,
+      "output": "PASS Mission 12 item/option context, stale/cancelled/foreign rejection, authenticated handoff, secure retry continuity, real trusted submit/sanitisation and replay; DB/provider boundaries are inert fixtures.\n(node:3237) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission12-builder-reuse.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS guided contact/FAQ preparation, typed/voice atomic FAQ editing, exact Undo, locks, additive bidirectional reuse, conflict preservation, scope/revision and shared trusted planner parity. Pure functional tests; no publication.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-intent.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS one shared capability-intent interpretation across universal plans, App Builder and customer advice: exclusions, lists, contradictory requests, dependency conflicts and unfamiliar businesses. No provider/model calls.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-live-form-logic.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.11,
+      "output": "PASS actual customer form logic: selected context, navigation/remount, unchanged submission, cleared completion; saved-record approval guard and actual controller FAQ apply. Hooks/transport are inert fixtures, no JSX/device claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-public-handoff.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.2,
+      "output": "PASS real public HTML option/link handlers and actual Edge handoff route: exact app/version pins, selected item/revision/option, unexpected/duplicate query and disabled-action rejection. DOM/DB fixtures; no browser or deployed claim.\n(node:3275) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission12-record-review.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS actual record editor logic -> trusted adapter: exact saved-form approval, unsaved and stale-revision blocking, save/publish sequence and non-destructive refresh. Hooks/DB are fixtures; no native render claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission12-standalone-continuity.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "output": "PASS actual standalone form logic: selected context, typed fields, pending navigation, success receipt continuity, no implicit duplicate and stale listing rejection. Hooks/transport fixtures, no native rendering or live service claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission11-records.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.18,
+      "output": "PASS actual trusted product/event adapter: owner scope, durable row mutations in DB fixture, stable IDs, draft/approval separation, exact CAS/Undo, uncertain writes, cancellation, currency and DST validation. No hosted/Postgres claim.\nPASS option-currency approval, bounded owner list without history disclosure and image permission recheck at public approval.\n"
+    },
+    {
+      "command": "node scripts/check-mission11-intelligence.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS existing universal planner prepares exact product/event requests, structured currency amounts and cancellation, rejects unsupported actions, validates options and distinguishes record presentation from payments/live proof.\n"
+    },
+    {
+      "command": "node scripts/check-mission11-public-views.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS actual public Website loader/DOM mount: current deployment scope, shared approved event revisions, cancellation on refresh, stale-source rejection and clearing unavailable data. DOM/database fixtures; no browser/hosted claim.\nPASS inherited pending-App compatibility correction: only the exact current live version remains available; preview/mismatched versions rejected.\n"
+    },
+    {
+      "command": "node scripts/check-app-goal-content.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS: goal-specific missing questions, real Studio proposal/inverse, exact custom service preservation, lock/tenant/hostile-field rejection and incomplete booking-content gating.\n"
+    },
+    {
+      "command": "node scripts/check-app-goal-editing.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.07,
+      "output": "node:internal/modules/package_json_reader:301\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package '@babel/parser' imported from /workspace/mission13-git/scripts/check-app-goal-editing.mjs\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:768:81)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-app-goal-decisions.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS: task-ranked choices, unrelated gallery suppression, absent/unapproved content blockers, new static advisory rejection and both website tenant aliases. No real-world outcome claims.\n"
+    },
+    {
+      "command": "node scripts/check-app-builder-dual-track-v3153.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.153 APP PATHS PASS: marketplace and private standalone planning, 13 businesses, catalogue restrictions, verified-billing gate, external costs, no confirmed bookings, no app-store submission.\n"
+    },
+    {
+      "command": "node scripts/check-mission10-information-reuse.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.16,
+      "output": "PASS: same-business current-source FAQ/testimonial reuse, missing-only policy, existing custom content preservation, stale confirmation rejection and explicit fact-conflict approval.\n"
+    },
+    {
+      "command": "node scripts/check-mission9-builder-language.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12,
+      "output": "PASS: shared quote-aware builder clauses, real coordinated App copy/contact proposals with exact inverse, safe negation/ambiguity/unsupported action rejection and Website literal-copy preservation. No transcription or AI call.\n"
+    },
+    {
+      "command": "node scripts/check-mission10-public-information.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.11,
+      "output": "PASS: FAQs/testimonials exact sparse Undo, locks, rebuild retention, bounded public allowlist, immutable live-only projection and trusted parity.\nnode:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission10-public-information.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission10-public-information.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission10-service-details.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS: actual Studio richer service/menu labels, exact Undo, unknown/unsafe field rejection, public projection and category search without checkout or availability authority.\n"
+    },
+    {
+      "command": "node scripts/check-owner-outcome-v3235.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "V3.231: 11 genuine JWT/tenant scenarios prepared, NOT run; hosted staging unchanged.\nV3.233: staged booking acceptance prepared with 11 unverified real-world scenarios. No remote writes.\nV3.234: 12 additional owner/customer follow-up acceptance cases prepared; NONE executed remotely.\nV3.235 staging outcome acceptance: 42 genuine scenarios still NOT VERIFIED. Zero hosted actions.\nV3.235: 251 exact tenant readback, saved outcome truth, code health and owner UI assertions passed.\n"
+    },
+    {
+      "command": "node scripts/check-communications-v3205.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.205 124 scoped owner-inbox, atomic reply recovery, provider evidence and no resend assertions PASS.\n"
+    },
+    {
+      "command": "node scripts/check-customer-journey-v3204.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "V3.204 96 receipt isolation, ambiguous submission recovery, Business Brain evidence and no-live-side-effects contracts PASS.\n"
+    },
+    {
+      "command": "node scripts/check-mission9-reply-continuity.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.05,
+      "output": "PASS: actual owner/customer sends stop after account/workspace changes, retain pending identity and suppress stale cleanup; original encrypted message retry preparation serialises and cannot clear a newer key. No message sent.\nnode:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission9-reply-continuity.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission9-reply-continuity.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission9-request-recovery.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS: encrypted opaque request references, restart/key-order continuity, changed/version conflicts, concurrent remounts, strict provenance/corrupt-record preservation and write failures. Fake secure storage only.\n"
+    },
+    {
+      "command": "node scripts/check-message-integrity-v3185.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "V3.185 61 durable retry, outbox evidence and wiring assertions PASS.\n"
+    },
+    {
+      "command": "node scripts/check-builder-intelligence-v3240.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "V3.240: 118 app goal/design, Brand DNA, responsive evidence, private approvals, tenant and revision assertions passed.\n"
+    },
+    {
+      "command": "node scripts/check-mission14-contextual-replies.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual same-tenant read adapter and owner proof: original listing context across replies, exact option/revision price, changed/missing/cancelled denial, live service facts and event schedules. Inert DB; no messages, bookings or provider claims.\n"
+    },
+    {
+      "command": "node scripts/check-mission14-content-intelligence.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.07,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission14-content-intelligence.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission14-content-intelligence.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission14-experience-recovery.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.05,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission14-experience-recovery.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission14-experience-recovery.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-standalone-native-v3154.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.154 NATIVE ELIGIBILITY PASS: server evidence, native schema, no false bookings, no billing or store submission.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-editing-preview.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "Mission15: canonical promoted preview, relative section navigation, grouped private edits, stale/lock/overlap safety PASS\n"
+    },
+    {
+      "command": "node scripts/check-mission15-app-services.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS literal service preparation -> original validated Studio operations -> shared customer browse, relative navigation, exact Undo, locks/parity/unsupported paths. No hosted acceptance.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-design-candidates.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS original builder renders structurally distinct reviewed composition with atomic stale/tenant/lock guards and owner rejection; HTML evidence only.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-coherence.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS selected-element premium/relative transaction, shared-service conflict review and measured text-coverage regression gates; synthetic counters, no screenshot claim.\n"
+    },
+    {
+      "command": "node scripts/check-website-page-instructions-v3149.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.149 PAGE PLAN PASS: exact named multi-section atomic changes, private preview, no cross-tenant or stale edits.\n"
+    },
+    {
+      "command": "node scripts/check-website-context-plan-v3147.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.06,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at file:///workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs:11:43\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-website-context-v3140.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.140 CONTEXT PASS: 43 selection, no-guess grammar, private changes, individual headings, rebuild and safety assertions.\n"
+    },
+    {
+      "command": "node scripts/check-website-measured-coach-v3144.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.144 COACH PASS: measured suggestions, unchanged/worse rejection, preview-only candidate, explicit draft feedback, no global training or publishing.\n"
+    },
+    {
+      "command": "node scripts/check-website-coordinated-alternatives.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS: real coordinated renderer, content/colour/public-state preservation, no partial mutation, bounded finite operations, lock and owner-feedback rejection. No browser screenshot evidence.\n"
+    },
+    {
+      "command": "node scripts/check-mission7-website-decisions.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS: measured partial progress, no hidden-content improvement, valid geometry, owner preference ordering and content-problem-first design hypotheses. Fixture reports, not browser evidence.\n"
+    },
+    {
+      "command": "node scripts/check-major-builders-v3195.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.06,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at file:///workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs:11:43\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-copy.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.07,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at file:///workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs:11:43\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-responsive.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS scoped phone reading through actual builder HTML, immutable content/theme, shared hosted/export classes, locks and no-op guards. CSS/source evidence, not browser measurement.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-services.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase2-services.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase2-services.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-measured-reading.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS synthetic small-text observation -> validated current-section candidate -> real first-party HTML; owner locks/preferences and regression gates. No browser measurements claimed.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-request-intent.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase2-request-intent.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase2-request-intent.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase2-transfer-review.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase2-transfer-review.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase2-transfer-review.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-app-studio-session.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.05,
+      "output": "node:internal/modules/package_json_reader:301\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package '@babel/parser' imported from /workspace/mission13-git/scripts/check-app-studio-session.mjs\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:768:81)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-app-studio-checkpoint.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "node:internal/modules/package_json_reader:301\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package '@babel/parser' imported from /workspace/mission13-git/scripts/check-app-studio-checkpoint.mjs\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:768:81)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-mission15-phase2-gallery",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "01-gardening-minimal: minimal / focused-landing / 1 page(s)\n02-exterior-cleaning: editorial / focused-landing / 1 page(s)\n03-catering-story: artisan / multi-page / 4 page(s)\n04-wellness-boutique: minimal / focused-landing / 1 page(s)\n05-professional-editorial: editorial / multi-page / 4 page(s)\n06-coastal-cleaning: conversion / focused-landing / 1 page(s)\n07-village-cleaning: editorial / focused-landing / 1 page(s)\n08-city-cleaning: conversion / focused-landing / 1 page(s)\n09-traditional-cleaning: minimal / focused-landing / 1 page(s)\nSaved 9 offline demonstration websites in /tmp/busy-mission15-phase2-gallery\n"
+    },
+    {
+      "command": "node scripts/check-builder-visual-receipt-v3238.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.238: 40 source-only browser receipt, provenance, screenshot, rollout and owner approval checks passed.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-composition.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.08,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase3-composition.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase3-composition.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-content-review.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.06,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase3-content-review.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase3-content-review.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-gallery.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS literal coordinated approved-gallery accessibility editing, exact public text review, sparse Undo, media identity, locks, duplicate/unsupported rejection and client/server parity. No media retrieval or visual claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-language.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS coordinated literal service rename/order/removal with IDs/Undo/locks/parity and multiple owner-written website sections through original transaction/rendering. No publishing.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase3-studio-recovery.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "node:internal/modules/package_json_reader:301\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package '@babel/parser' imported from /workspace/mission13-git/scripts/check-mission15-phase3-studio-recovery.mjs\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:768:81)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase4-app-capabilities.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.1,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase4-app-capabilities.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase4-app-capabilities.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase4-requirements.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.06,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase4-requirements.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase4-requirements.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase4-website-spacing.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS original coordinated page transaction/rendered HTML for phone/desktop spacing, scoped finite CSS, original branding, no mutation/partial lock bypass, duplicate/no-op guards. Source/HTML evidence, no browser layout measurement.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase5-approved-records.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.06,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase5-approved-records.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase5-approved-records.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase5-catalogue-editing.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS real website catalogue layout/title transaction preserving destination styling/featured identity, original locks/HTML/preview and coordinated app record order with exact Undo and parity. No browser/hosted claim.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase5-enquiry-review.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.03,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase5-enquiry-review.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase5-enquiry-review.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission11-composition.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.06,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission11-composition.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission11-composition.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/prepare-standalone-prototype-v3154.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "V3.154 OFFLINE EXPO PROTOTYPE READY: /workspace/mission13-git/.tmp/standalone-prototype-v3154\nNo signing, customer data, EAS project, store submission or provider charges.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase6-booking-review.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase6-booking-review.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase6-booking-review.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase6-hero-composition.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "PASS actual canonical hero composition/HTML, coordinated alternatives, mobile fallback source, content/brand/order/lock preservation, gallery-only typography and rejected-image guards. No screenshot or measured aesthetic claim.\n"
+    },
+    {
+      "command": "node scripts/check-distinct-website-designs-v3101.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "V3.101 PASS: 257 distinct per-business styles, repeatable edits, safe user overrides and truthful design review checks\n"
+    },
+    {
+      "command": "node scripts/check-website-layout-v3134.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "output": "V3.134 WEBSITE LAYOUT PASS: 102 private section, HTML, custom homepage, photo provenance, CSS, atomic commands, and release-safety assertions\n"
+    },
+    {
+      "command": "node scripts/check-mission8-shared-request-entry.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "(node:3820) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/mission13-git/standalone/template/nativeGuestRequests.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/mission13-git/standalone/template/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\nnode:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission8-shared-request-entry.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission8-shared-request-entry.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase7-visual-movement.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS: canonical rendered ordering, source/locks/page guards, pointer drop/cancel/blur, keyboard alternative and one-shot save; inert DOM only.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase7-typography.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.07,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at file:///workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs:11:43\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/original-website-instruction-runtime.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase7-app-selection.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/lib/offline-component-runtime.cjs\n- /workspace/mission13-git/scripts/check-mission15-phase7-app-selection.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/mission13-git/scripts/check-mission15-phase7-app-selection.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-website-section-styling-v3139.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.13,
+      "output": "V3.139 PASS: section-specific design, source/hosted style parity, media controls, repeatable revisions, private undo/redo, regeneration and no raw CSS.\n(node:3852) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase7-reviewed-request.mjs",
+      "status": "blocked",
+      "exitCode": 1,
+      "seconds": 0.04,
+      "output": "node:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/mission13-git/scripts/check-mission15-phase7-reviewed-request.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at file:///workspace/mission13-git/scripts/check-mission15-phase7-reviewed-request.mjs:5:52\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/mission13-git/scripts/check-mission15-phase7-reviewed-request.mjs'\n  ]\n}\n\nNode.js v24.19.0\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase7-card-colours.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.29,
+      "output": "PASS exact card typography/colour and reset preservation, local/hosted render parity, locks/finite inputs, selected compound edit and calculated 4.5:1 accent contrast on supported canonical backgrounds. No screenshot/aesthetic claim.\n(node:3868) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase7-page-movement.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS actual owner-page relative movement reuses original page operations, source-bound selected plan, real HTML order, reload, independent home, locks and atomic rejection. Offline only.\n"
+    },
+    {
+      "command": "node scripts/check-website-pages-v3135.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "V3.135 PAGES PASS: 55 owner pages, nested routes, real previews, SEO, atomic preservation, portability and no secrets\n"
+    },
+    {
+      "command": "node scripts/check-website-tap-editor-v3138.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "V3.138 PASS: local tap selection, real HTML markers, strict scope, safe photo controls, native history and no implicit publication.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase8-quality.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.12,
+      "output": "PASS safe/advisory/critical distinctions, nonblocking owner preference, actual private commit scope/locks, shared app plans and trusted website/app pre-publication rejection before inert IO. No geometry/device/hosted claim.\n(node:4523) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase8-sizing.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "output": "PASS actual finite paragraph/viewport and button size operations, original selected transaction, local HTML/CSS, reload, owner locks and preserved real action. Static renderer evidence, not measured browser geometry.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase8-service-questions.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "output": "PASS bounded public-service questions, original preparation/validation/exact review, actual marketplace replacement/stale/account callbacks and standalone permission/scoped-draft callbacks. Inert state and transport boundaries; not native/device or hosted acceptance.\n"
+    },
+    {
+      "command": "node scripts/check-mission15-phase8-website-suggestions.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "output": "PASS original website candidate, finite advisory amendment, preserved quoted wording, original static rendering, locks/stale rejection and actual UI preview-only callback. Inert state boundary; no browser/native or hosted acceptance.\n"
+    }
+  ],
+  "moduleSyntax": {
+    "node": "v24.19.0",
+    "passed": [
+      "scripts/check-mission15-phase2-responsive.mjs",
+      "scripts/check-mission15-phase8-quality.mjs",
+      "scripts/check-mission15-phase8-service-questions.mjs",
+      "scripts/check-mission15-phase8-sizing.mjs",
+      "scripts/check-mission15-phase8-website-suggestions.mjs",
+      "scripts/lib/original-website-section-runtime.mjs",
+      "src/core/appAppearanceEditing.mjs",
+      "src/core/appCoordinatedStudio.mjs",
+      "src/core/builderQualityPolicy.mjs",
+      "src/core/privateWebsiteDraftCommit.mjs",
+      "src/core/websiteContextualEdit.mjs",
+      "src/core/websiteSelectedChangePreview.mjs",
+      "standalone/template/nativeCustomerActions.mjs",
+      "supabase/functions/_shared/builderQualityPolicy.mjs",
+      "supabase/functions/busy-mini-apps/appAppearanceEditing.mjs",
+      "supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs",
+      "supabase/functions/busy-mini-apps/builderQualityPolicy.mjs",
+      "supabase/functions/busy-website-worker/designSystem.mjs",
+      "supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs",
+      "supabase/functions/busy-website-worker/websiteEditingQuality.mjs",
+      "supabase/functions/busy-website-worker/websiteLayoutEditing.mjs",
+      "supabase/functions/busy-website-worker/websiteTextTypography.mjs"
+    ],
+    "jsx": "Blocked by unavailable existing Babel dependency; actual extracted callbacks and original static renderer executed.",
+    "typescript": "Built-in erasure and vm parser; not Deno type checking."
+  },
+  "summary": {
+    "passed": 58,
+    "failed": 0,
+    "blocked": 27
+  },
+  "sourceTree": "dcdef654e08d750e9b43718090253307699f5775"
+}

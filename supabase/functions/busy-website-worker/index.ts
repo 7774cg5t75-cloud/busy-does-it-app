@@ -1,8 +1,26 @@
+import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from './websiteCreativeDocumentRendering.mjs';
+import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from './websiteCreativeRendering.mjs';
+import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from './websiteContentPhotos.mjs';
+import {servicePhotoHtml} from './websiteServicePhotos.mjs';
+import {purposeServiceProjection} from './websiteServiceOverview.mjs';
+import {pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact} from './websiteCraftedPage.mjs';
+import {responsivePhotoAttributes} from './websiteResponsivePhotos.mjs';
+import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from './websitePhotoPresentation.mjs';
+import {premiumHeroInner} from './websitePremiumHero.mjs';
+import {legacyConsequentialAllowed} from '../_shared/legacyConsequentialAuthority.mjs';
+import {boundedJson,BoundedRequestError} from '../_shared/boundedRequest.ts';
+import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
+import {websitePageGuide,websitePageHeadingHierarchy} from './websitePageGuide.mjs';
+import {renderWebsiteSiteNavigation} from './websiteSiteNavigation.mjs';
+import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from './websiteServiceIndex.mjs';
+import {faqDisclosureItems} from './websiteFaqPresentation.mjs';
+import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
+import {itemTypographyClasses} from "./websiteTextTypography.mjs";
+import {sectionAppearanceClasses} from './websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabaseClient.ts";
 import {renderOptInContactForm} from "./formHtml.mjs";
-import {formReadiness} from "./formPolicy.mjs";
+import {formReadiness} from "../busy-website-form/formPolicy.mjs";
 import {designForWebsite, designCss} from "./designSystem.mjs";
 import {planWebsiteDesign} from "./designPlanner.mjs";
 
@@ -63,7 +81,7 @@ function collectAssetRefs(draft: any) {
   const raw: any[] = [];
   safeArray(draft?.sections).forEach((section: any) => {
     if (section?.id === "hero" && section?.asset) raw.push(section.asset);
-    if (section?.type === "photo-feature" && section?.asset) raw.push(section.asset);
+    if (section?.type === "photo-feature" && websiteAssetAvailable(section?.asset,draft?.businessId||draft?.business_id,draft,section)) raw.push(section.asset);
     if (section?.type === "gallery") {
       safeArray(section?.items).forEach((item: any) => raw.push(item));
     }
@@ -100,6 +118,7 @@ function buildAssetMap(manifest: any, field: "previewUrl" | "publicUrl") {
 }
 
 function urlForAsset(asset: any, urls: Record<string, string>, index = 0) {
+  if(!websiteAssetAvailable(asset))return "";
   return (
     urls[assetKey(asset, index)] ||
     urls[clean(asset?.storagePath, 1000)] ||
@@ -137,29 +156,14 @@ function pageSeo(draft: any, page: any) {
 
 /** Match the private website generator's finite presentation tokens.
  * No raw styles from user or AI content may reach rendered HTML. */
-function sectionAppearanceClasses(section: any) {
-  const fields: Record<string,string[]>={headingScale:["compact","large"],
-    textAlign:["center"],sectionSpacing:["compact","generous"],
-    photoCrop:["top","bottom"],photoSide:["right"],gallerySize:["compact","large"],
-    mobileHeadingScale:["compact","large"],desktopHeadingScale:["compact","large"],
-    mobileGallerySize:["compact","large"],desktopGallerySize:["compact","large"]};
-  const names:Record<string,string>={headingScale:"heading",textAlign:"align",
-    sectionSpacing:"space",photoCrop:"crop",photoSide:"photo",gallerySize:"gallery",
-    mobileHeadingScale:"mobile-heading",desktopHeadingScale:"desktop-heading",
-    mobileGallerySize:"mobile-gallery",desktopGallerySize:"desktop-gallery"};
-  const appearance=section?.appearance;
-  if(!appearance||typeof appearance!=="object"||Array.isArray(appearance))return "";
-  const output:string[]=[];
-  for(const field of Object.keys(fields)) {
-    if(fields[field].includes(appearance[field]))output.push("owner-"+names[field]+"-"+appearance[field]);
-  }
-  return output.join(" ");
-}
 function renderSectionHtml(
   draft: any,
   section: any,
   urls: Record<string, string>,
-  isFirstSection: boolean
+  isFirstSection: boolean,
+  contactHref: string = "",
+  omitHero: boolean = true,
+  pageContext: {pageId?: string;pageHref?: (id:string)=>string} = {}
 ) {
   const theme = draft?.theme || {};
   const sectionClasses=sectionAppearanceClasses(section);
@@ -167,10 +171,11 @@ function renderSectionHtml(
   const itemHeadingClass=(item:any)=>item?.appearance?.headingScale==="large"
     ?' class="owner-item-heading-large"':
     item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
+  if(section.type==='creative-document')return renderWebsiteCreativeDocument(draft,section,{pageId:pageContext.pageId||'home',resolveImage:(asset:any)=>urlForAsset(asset,urls),responsiveImageAttrs:(asset:any,url:string,imageOptions:any)=>responsivePhotoAttributes(asset,url,urls,escapeHtml,imageOptions),pageHref:pageContext.pageHref});
   if (section.type === "hero") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     const imageMarkup=image
-      ? `<img class="hero-image" loading="eager" decoding="async" src="${escapeHtml(image)}" alt="${escapeHtml(draft.businessName||"Business photograph")}">`
+      ? `<img class="hero-image${["top","bottom"].includes(section.asset?.appearance?.photoCrop)?" owner-image-crop-"+section.asset.appearance.photoCrop:""}${section.asset?.appearance?.photoFit==="contain"?" owner-image-fit-contain":""}" loading="eager" decoding="async" fetchpriority="high"${responsivePhotoAttributes(section.asset,image,urls,escapeHtml,{hero:true})} src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||draft.businessName||"Business photograph")}">`
       : '<div class="hero-art" aria-hidden="true"></div>';
     const kicker=clean(draft.businessType,140)||clean(draft.businessName,140);
     const headline=clean(section.title,240)||clean(draft.businessName,240)||"Your business";
@@ -179,49 +184,69 @@ function renderSectionHtml(
     const action=clean(section.cta,120)&&clean(section.ctaHref,500)
       ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>`
       : "";
-    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>${imageMarkup}</div></section>`;
+    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}">${theme.heroComposition?premiumHeroInner(theme.heroComposition,{variation:theme.heroVariation,images:websiteHeroPhotos(draft).filter(({asset:a}:any)=>urlForAsset(a,urls)).slice(0,2).map(({asset:a}:any)=>`<img class="hero-image${["top","bottom"].includes(a?.appearance?.photoCrop)?" owner-image-crop-"+a.appearance.photoCrop:""}${a?.appearance?.photoFit==="contain"?" owner-image-fit-contain":""}" loading="lazy" decoding="async" src="${escapeHtml(urlForAsset(a,urls))}" alt="${escapeHtml(clean(a.alt)||draft.businessName||"Business photograph")}">`),copy:`<div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>`,image:imageMarkup,hasImage:!!image,services:theme.heroComposition==='product-showcase'&&safeArray(draft.sections).some((s:any)=>s.type==='products'&&s.enabled!==false)?`<div class="premium-product-link" role="navigation" aria-label="Product collection"><a href="#products">${escapeHtml(safeArray(draft.sections).find((s:any)=>s.type==='products'&&s.enabled!==false).title||'Explore the collection')}</a></div>`:heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)})||`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div>`:`<div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}${heroServiceOverview(safeArray(draft.sections).find((s:any)=>s.type==='services'&&s.enabled!==false),escapeHtml)}</div>${imageMarkup}</div>`}</section>`;
   }
 
   const headingTag = isFirstSection ? "h1" : "h2";
 
+  if(craftedPage(draft)&&section.type==='services'&&section.appearance?.serviceLayout!=='index'){
+    const projection=purposeServiceProjection(draft,section,{pageId:pageContext.pageId,pageHref:pageContext.pageHref});
+    const content=craftedServices(projection?.section||section,draft.theme.heroComposition,{direction:draft.theme.heroVariation,overview:!!projection,reviewedHeadingHrefs:projection?.reviewedHeadingHrefs||[],itemHeadingHref:item=>projection?.detailHrefs[item.id]||'',photoFor:item=>projection?.hiddenPhotoIds.includes(item.id)?'':['narrative','atelier'].includes(draft.theme.heroVariation)?servicePhotoHtml(draft,item,(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml)):'',escapeHtml,itemHeadingClass,itemClasses:itemTypographyClasses,contactAction:(item:any)=>serviceContactAction(item,contactHref,escapeHtml)});
+    if(content)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${content}</div></section>`;
+  }
+  if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
+    const indexed=serviceIndexHtml(section,{escapeHtml,itemHeadingClass,contactHref});
+    if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
+  }
   if (section.type === "services") {
     return `<section id="services"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
     )}</${headingTag}><div class="grid">${safeArray(section.items)
       .map(
         (item: any) =>
-          `<article><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+          `<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
             item.body
-          )}</p></article>`
+          )}</p>${contactHref?serviceContactAction(item,contactHref,escapeHtml):''}</article>`
       )
       .join("")}</div></div></section>`;
   }
 
   if (section.type === "photo-feature") {
-    const image=section.asset?urlForAsset(section.asset,urls):"";
-    if(!image)return "";
-    return `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`;
+    const image=websiteAssetAvailable(section.asset,draft.businessId||draft.business_id,draft,section)?urlForAsset(section.asset,urls):'';
+    const imageAppearance=section.asset?.appearance||{},imageCrop=(["top","bottom"].includes(imageAppearance.photoCrop)?" owner-image-crop-"+imageAppearance.photoCrop:"")+(imageAppearance.photoFit==='contain'?' owner-image-fit-contain':'')+['mobile','desktop'].map(view=>['top','center','bottom'].includes(imageAppearance[view+'PhotoCrop'])?' owner-image-'+view+'-crop-'+imageAppearance[view+'PhotoCrop']:'').join('');
+    const dimensions=Number.isSafeInteger(section.asset?.width)&&section.asset.width>0&&section.asset.width<=20000&&Number.isSafeInteger(section.asset?.height)&&section.asset.height>0&&section.asset.height<=20000?` width="${section.asset.width}" height="${section.asset.height}"`:'';
+    const picture=`<img class="photo-feature-image${imageCrop}" loading="${isFirstSection?'eager':'lazy'}" decoding="async"${isFirstSection?' fetchpriority="high"':''}${dimensions}${responsivePhotoAttributes(section.asset,image,urls,escapeHtml)} src="${escapeHtml(image)}" alt="${escapeHtml(clean(section.asset?.alt)||'Website photograph')}">`;
+    const copy=`<div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div>`;
+    const generatedServicePage=safeArray(draft.customPages).some((p:any)=>p.sourceServiceId&&safeArray(p.sectionIds).includes(section.id));
+    return image?`<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></section>`:generatedServicePage&&clean(section.body)?`<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap">${copy}</div></section>`:"";
   }
   if (section.type === "gallery") {
-    const images = safeArray(section.items)
-      .map((item: any, index: number) => {
+    const imageNodes = websiteGalleryPresentation(section,draft,{omitHero})
+      .map(({asset:item,index}: any) => {
         const url = urlForAsset(item, urls, index);
         const crop=(["top","bottom"].includes(item?.appearance?.photoCrop)
           ?" owner-image-crop-"+item.appearance.photoCrop:"")+
           (item?.appearance?.photoFit==="contain"?" owner-image-fit-contain":"");
         return url
-          ? `<img class="gallery-image${crop}" src="${escapeHtml(
+          ? `<img class="gallery-image${crop}"${responsivePhotoAttributes(item,url,urls,escapeHtml)} src="${escapeHtml(
               url
-            )}" alt="">`
+            )}" alt="${escapeHtml(clean(item.alt)||draft.businessName||"Approved photograph")}">`
           : "";
       })
-      .filter(Boolean)
-      .join("");
+      .filter(Boolean);
+    const images = imageNodes.join("");
     return `<section id="gallery"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
-    )}</${headingTag}><div class="gallery">${images}</div></div></section>`;
+    )}</${headingTag}><div class="gallery${imageNodes.length>=3?" gallery-rich":""}">${images}</div></div></section>`;
   }
 
+  if(section.type==='testimonials'&&section.appearance?.testimonialsLayout==='spotlight'){
+    const items=testimonialSpotlightItems(section,{escapeHtml,itemHeadingClass,itemTypographyClasses});
+    if(items)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${items}</div></section>`;
+  }
+  if(section.type==='faq'&&section.appearance?.faqLayout==='questions'){
+    return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}><div class="faq-questions">${faqDisclosureItems(section,{escapeHtml,itemHeadingClass})}</div></div></section>`;
+  }
   if (section.type === "testimonials" || section.type === "faq") {
     return `<section id="${escapeHtml(
       section.id
@@ -230,13 +255,14 @@ function renderSectionHtml(
     )}</${headingTag}>${safeArray(section.items)
       .map(
         (item: any) =>
-          `<article><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+          `<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
             item.body
-          )}</p></article>`
+          )}</p>${contactHref?serviceContactAction(item,contactHref,escapeHtml):''}</article>`
       )
       .join("")}</div></section>`;
   }
 
+  if(craftedPage(draft)&&section.type==='contact')return `<section id="contact"${sectionAttrs}>${craftedContact({family:draft.theme.heroComposition,heading:`<${headingTag}>${escapeHtml(section.title||'Get in touch')}</${headingTag}>`,body:section.body?`<p>${escapeHtml(section.body)}</p>`:'',channels:(section.phone?`<p><a href="tel:${escapeHtml(String(section.phone).replace(/\s+/g,''))}">${escapeHtml(section.phone)}</a></p>`:'')+(section.email?`<p><a href="mailto:${escapeHtml(section.email)}">${escapeHtml(section.email)}</a></p>`:''),extra:section.openingHours?`<p>${escapeHtml(section.openingHours)}</p>`:''})}</section>`;
   if (section.type === "contact") {
     return `<section id="contact"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
@@ -259,6 +285,11 @@ function renderSectionHtml(
     }</div></section>`;
   }
 
+  if(craftedPage(draft)&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body))return `<section id="${escapeHtml(section.id)}"${sectionAttrs}>${craftedStory(section,{photo:presentationPhotoHtml(websiteSectionPhoto(draft,section),(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml),'story'),direction:draft.theme.heroVariation,family:draft.theme.heroComposition,escapeHtml,headingTag})}</section>`;
+  if(draft.theme?.heroComposition&&(section.id==='about'||(draft.theme?.heroVariation?.startsWith('authored')||['narrative','atelier'].includes(draft.theme?.heroVariation))&&section.type==='text')&&clean(section.body)){
+    const paragraphs=escapeHtml(section.body).split(/\n\s*\n/).map((text:string)=>`<p>${text.replace(/\n/g,'<br>')}</p>`).join('');
+    return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap story-layout"><h2>${escapeHtml(section.title)}</h2><div class="story-copy">${paragraphs}</div></div></section>`;
+  }
   return `<section id="${escapeHtml(
     section.id
   )}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
@@ -301,7 +332,11 @@ function renderWebsiteHtml(
   const theme = draft?.theme || {};
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections:allSections,theme});
   const design = designForWebsite({businessType:draft?.businessType,theme,plan});
-  const layoutCss = designCss(design);
+  const documentSite=websiteCreativeDocumentSite(draft);
+  const documentUnavailable=Object.hasOwn(draft,'creativeDocumentPageModel')&&!documentSite;
+  const documentPage=!!documentSite&&sections.length>0&&sections.some(section=>section.type==='creative-document');
+  const creativeClasses=creativeWebsiteClasses(draft,page?.id||'home');
+  const layoutCss = designCss(design)+(creativeClasses?creativeWebsiteCss:'')+(documentSite?websiteCreativeDocumentCss+documentSite.css:'');
   const identity = plan?.visualIdentity || {};
   const classes = [
     "visual-hero-" + (identity.heroLayout || "type-left"),
@@ -314,41 +349,38 @@ function renderWebsiteHtml(
     "photo-focus-" + (["top","bottom","center"].includes(draft?.theme?.photoFocus)?draft.theme.photoFocus:"center"),
   ].join(" ");
   const seo = pageSeo(draft, page);
-  const navigation = safeArray(draft?.navigation);
-  const navHtml = navigation.length
-    ? `<nav aria-label="Main navigation"><div class="nav-wrap"><a class="brand" href="${escapeHtml(pageUrls.home || relativePageHref(page,"/"))}">${escapeHtml(
-        draft?.brandLabel || draft?.businessName || "Home"
-      )}</a><div class="nav-links">${navigation
-        .map(
-          (item: any) =>
-            `<a href="${escapeHtml(
-              (String(item.href||"").startsWith("#") && page.id==="home" ? item.href : pageUrls[item.id] || relativePageHref(page, item.href?.startsWith("#")?"/":item.href || "/"))
-            )}">${escapeHtml(item.label || item.id)}</a>`
-        )
-        .join("")}</div></div></nav>`
-    : "";
+  const navigation = safeArray(draft?.navigation).filter((item:any)=>item.id!=="gallery"||allSections.some((section:any)=>section.type==="gallery"&&websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).length>0));
+  const navigationItems=navigation.map((item:any)=>({id:item.id,label:item.label||item.id,href:String(item.href||"").startsWith("#")&&page.id==="home"?item.href:pageUrls[item.id]||relativePageHref(page,item.href?.startsWith("#")?"/":item.href||"/")}));
+  const navigationLinks=navigationItems.map((item:any)=>`<a${documentSite?.model.navigationPresentation.primaryPageId===item.id?' class="site-nav-primary"':''}${item.id===page?.id?' aria-current="page"':''} href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a>`).join("");
+  const purposefulNavigation=renderWebsiteSiteNavigation({draft,page,items:navigationItems,escapeHtml,primaryPageId:documentSite?.model.navigationPresentation.primaryPageId,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}});
+  const navigationHtml=purposefulNavigation||(navigation.length>6||!!documentSite&&navigationItems.length>=4
+    ?`<div class="nav-links nav-long-desktop">${navigationLinks}</div><details class="nav-mobile-details"><summary>Menu <span aria-hidden="true">+</span></summary><div class="nav-links">${navigationLinks}</div></details>`
+    :`<div class="nav-links">${navigationLinks}</div>`);
+  const navHtml=navigation.length?`<nav aria-label="Main navigation"><div class="wrap nav-wrap"><a class="brand" href="${escapeHtml(pageUrls.home||relativePageHref(page,"/"))}">${escapeHtml(draft?.brandLabel||draft?.businessName||"Home")}</a>${navigationHtml}</div></nav>`:"";
 
-  const renderedOrder=(page?.id==="home"?plan.sectionOrder:safeArray(page?.sectionIds));
-  const sectionHtml = renderedOrder
+  const renderedOrder=creativeWebsiteOrder(draft,page?.id||'home',page?.id==="home"?plan.sectionOrder:safeArray(page?.sectionIds));
+  const activeOrder=documentPage?safeArray(page.sectionIds):renderedOrder;
+  const rawSectionHtml = activeOrder
     .map((id:string)=>sections.find((section:any)=>section.id===id))
     .filter(Boolean)
     .filter((section: any) => {
       if(section.type==="services"||section.type==="testimonials"||section.type==="faq")
         return safeArray(section.items).some((item:any)=>clean(item?.title||item?.body));
-      if(section.type==="photo-feature")return !!urlForAsset(section.asset,urls);
+      if(section.type==="photo-feature")return !!clean(section.body)&&safeArray(draft.customPages).some((p:any)=>p.sourceServiceId&&safeArray(p.sectionIds).includes(section.id))||websiteAssetAvailable(section.asset,draft.businessId||draft.business_id,draft,section)&&!!urlForAsset(section.asset,urls);
       if(section.type==="gallery")
-        return safeArray(section.items).some((item:any,index:number)=>!!urlForAsset(item,urls,index));
+        return websiteGalleryPresentation(section,draft,{omitHero:page?.id==="home"}).some(({asset,index}:any)=>!!urlForAsset(asset,urls,index));
       if(section.type==="text")return !!clean(section.body);
       if(section.type==="contact")return !!(clean(section.phone)||clean(section.email)||clean(section.body));
       return true;
     })
     .map((section: any, index: number) =>
-      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0)
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{businessId:typeof draft.businessId==='string'&&(draft.business_id===undefined||draft.business_id===draft.businessId)?draft.businessId:null,recordPhoto:record=>presentationPhotoHtml(websiteRecordPhoto(draft,section,record),(a:any)=>urlForAsset(a,urls),escapeHtml,(a:any,url:string)=>responsivePhotoAttributes(a,url,urls,escapeHtml),'menu'),narrative:['narrative','atelier'].includes(draft.theme?.heroVariation),artDirection:craftedPage(draft)&&(draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation)),sectionClasses:sectionAppearanceClasses(section),endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0&&!documentPage,sections.some(s=>s.type==='contact'&&(clean(s.body)||clean(s.phone)||clean(s.email)))?'#contact':'',page?.id==='home',{pageId:page?.id,pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}})
     )
     .join("");
 
   const contact: any =
     allSections.find((section: any) => section.id === "contact") || {};
+  const sectionHtml=documentUnavailable?websiteCreativeDocumentUnavailableHtml:documentPage?rawSectionHtml:websitePageHeadingHierarchy(rawSectionHtml,{draft,page,sections,escapeHtml,homeHref:pageUrls.home||relativePageHref(page,'/'),pageHref:(id:string)=>{const target=safeArray(draft.pages).find((p:any)=>p.id===id&&p.enabled!==false);return target?(pageUrls[id]||relativePageHref(page,target.path)):'';}});
   const sameAs = Object.values(contact?.social || {})
     .map((value) => clean(value, 1000))
     .filter((value) => /^https?:\/\//i.test(value));
@@ -369,7 +401,7 @@ function renderWebsiteHtml(
   const safeBusiness=escapeHtml(draft?.businessName||"Business website");
   const area=clean(draft?.serviceArea,260);
   const footer=`<footer class="site-footer"><div class="wrap"><strong>${safeBusiness}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="${documentSite?documentSite.classes+' ':''}${creativeClasses?creativeClasses+' ':''}${page&&page.id!=='home'?'website-inner-page ':''}${pageDirectionClass(draft)?pageDirectionClass(draft)+' ':''}${craftedPage(draft)?'premium-crafted '+((draft.theme.heroVariation.startsWith('authored')||['narrative','atelier'].includes(draft.theme.heroVariation))?'premium-authored '+(['narrative','atelier'].includes(draft.theme.heroVariation)?'premium-narrative '+(draft.theme.heroVariation==='atelier'?'premium-atelier ':''):''):''):''}mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes} ${/^[-a-z]+$/.test(theme.heroComposition||"")?"premium-site-"+theme.heroComposition:""}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${page?.id==='home'||!page?websitePageGuide(draft,sections,sectionHtml,escapeHtml):''}${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
 
 }
 
@@ -516,6 +548,8 @@ async function syncProfileForDeployment(
 }
 
 async function prepareDeployment(job: any, deployment: any, website: any) {
+  const quality=reviewWebsiteEditingQuality(deployment.source_draft);
+  if(!quality.mayCommit)throw new Error("Design quality: "+quality.explanation);
   await ensureBuckets();
   await supabase
     .from("busy_website_deployments")
@@ -679,6 +713,8 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
 }
 
 async function publishDeployment(job: any, deployment: any, website: any) {
+  const quality=reviewWebsiteEditingQuality(deployment.source_draft);
+  if(!quality.mayCommit)throw new Error("Design quality: "+quality.explanation);
   if (!deployment.preview_storage_path || !deployment.prepared_at) {
     throw new Error("The website version must be prepared before publishing.");
   }
@@ -828,6 +864,8 @@ async function publishDeployment(job: any, deployment: any, website: any) {
 }
 
 async function rollbackDeployment(job: any, target: any, website: any) {
+  const quality=reviewWebsiteEditingQuality(target.source_draft);
+  if(!quality.mayCommit)throw new Error("Design quality: "+quality.explanation);
   if (!target.published_at || !target.public_storage_path) {
     throw new Error("That website version has never been published.");
   }
@@ -906,6 +944,7 @@ async function rollbackDeployment(job: any, target: any, website: any) {
 
 function permanentPublishingFailure(message: string) {
   const lower = message.toLowerCase();
+  if(lower.startsWith("design quality:"))return true;
   return (
     lower.includes("prepared website asset is missing") ||
     lower.includes("must be prepared before publishing") ||
@@ -1215,7 +1254,7 @@ async function processMessage(
 
 async function validWorkerRequest(request: Request) {
   const authorization = request.headers.get("Authorization") || "";
-  if (authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
+  if (SERVICE_ROLE_KEY && authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
 
   const supplied = request.headers.get("x-busy-worker-token") || "";
   if (!supplied) return false;
@@ -1236,7 +1275,8 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await boundedJson(request,16384) as Record<string,unknown>;
+    if(!legacyConsequentialAllowed('website_worker','dispatch'))return json(503,{ok:false,error:'Publication worker authority is not activated.'});
     const limit = Math.min(12, Math.max(1, Number(body?.limit) || 5));
 
     const stale = await supabase.rpc(
@@ -1280,6 +1320,7 @@ Deno.serve(async (request: Request) => {
       results,
     });
   } catch (error) {
+    if(error instanceof BoundedRequestError)return json(error.status,{error:error.message});
     return json(500, {
       error:
         error instanceof Error

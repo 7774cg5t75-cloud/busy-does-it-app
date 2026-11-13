@@ -1,0 +1,182 @@
+{
+  "mission": "Living orb, retained floating position and compact native Home",
+  "source": {
+    "startingLocal": "1b13a24dd739e85167692ee9684f3b5f7ffdafd5",
+    "startingGitHub": "972985e2c46bcbd1b75b8ff47af3057e6bc09f6c",
+    "startingTree": "c84698008b8f62085e8bf747061874b812968a82",
+    "functionalLocal": "6ea7af209f79c37494cc766cd7f0d648f8ef80df",
+    "functionalGitHub": "0b658f9d4fa1317e4ccdddfb2f23354e54c6308a",
+    "functionalTree": "7163fc5fc1669a7f10e9d8b06eb79e0b5e96c565",
+    "startClean": true,
+    "endClean": true
+  },
+  "master": {
+    "version": "V22.53",
+    "actuallyReopened": true,
+    "sha256": "fa9456077fd843f1f04ea450d9e2ec425077695b6b106b91bf7cee150b727f62"
+  },
+  "application": {
+    "summary": {
+      "passed": 431,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "outerExit": 0,
+    "childExits": [
+      0
+    ],
+    "selectionSha256": "1e9dac274fd3be4c126bff3ab7d1bffb4b8fba2c2115a99c4626a283e437b272"
+  },
+  "quality": {
+    "foundation": {
+      "passed": 105,
+      "exit": 0
+    },
+    "syntax": {
+      "files": 13,
+      "exit": 0
+    },
+    "architecture": {
+      "staticCycles": 0,
+      "exit": 0
+    },
+    "healthExit": 0
+  },
+  "counterexamples": {
+    "remount": {
+      "exit": 1,
+      "actualY": 540,
+      "expectedY": 240
+    },
+    "temporaryObstruction": {
+      "originalSource": "1b13a24dd739e85167692ee9684f3b5f7ffdafd5",
+      "exit": 1,
+      "actualY": 540,
+      "expectedY": 240
+    }
+  },
+  "devicePreference": {
+    "key": "busy-device-appearance-v1",
+    "version": 1,
+    "optionalField": "orbY",
+    "range": [
+      0,
+      1
+    ],
+    "legacyDefault": 1,
+    "sensitiveDataStored": false,
+    "nativePersistenceAcceptance": false
+  },
+  "expo": {
+    "dependencyExit": 0,
+    "configExit": 0,
+    "iosHermesExportExit": 0,
+    "modules": 1465,
+    "signedBuildForThisSource": false
+  },
+  "preview": {
+    "version": "3.105.0",
+    "build": "27",
+    "bundle": "com.busydoesit.app.ownerpreview",
+    "profile": "owner-preview",
+    "ota": false,
+    "cloudBuildStarted": false,
+    "productionBuildUnchanged": "25"
+  },
+  "snack": {
+    "exit": 1,
+    "distinctDiagnostics": 27,
+    "unchanged": true
+  },
+  "artifacts": [
+    {
+      "path": ".test-artifacts/living-orb-retention/application.json",
+      "sha256": "fef462b55670d40aaaf3f6317b00e6d6ca88c1b6d70ba0a22132e001abdc41a6"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/application-outer.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/quality-exits.json",
+      "sha256": "97e26d429ab0723aa5fd7481da97eb5886194b3d190687e8b5ccf05106f2b128"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/foundation.log",
+      "sha256": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/architecture.log",
+      "sha256": "5308e856619b59b4d8bdb25ecdefcd7bbf898c870a911c52d295c98383db3964"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/syntax.log",
+      "sha256": "660c020d13901c046e172238985984ba02187d2488c92b878504e9917c6606d4"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/health.log",
+      "sha256": "b3e56c222a705fd99687c3d0e74866412bd8506c6861eb33c083ba32cf6562b0"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/ios-export.log",
+      "sha256": "eda99a49ed65d4e0a13d2b22054881b4fd0ca3b6847ea2ac6a989d5eb97d5cd1"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/ios-export-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/dependencies.log",
+      "sha256": "28adcc05dfc4b32af564b8765a9b02b663448cfb9640eefa9b9a48494f703f91"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/dependencies-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/config.log",
+      "sha256": "563305bcd347c352de963b286d46798a0e5204d7353136d81246b593597ac0b3"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/config-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/snack.log",
+      "sha256": "18fd2e069125d1bec56369b323ba4b7ee2da3bdb56bc05aec167d2f5376d6228"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/snack-exit.json",
+      "sha256": "3fcf365c70bf262b9592ec1998f4c4609c36c75d846b67c5e86d7c9f03f07176"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/snack-comparison.json",
+      "sha256": "05bd9f9b4ae269aa68be0a82ff88d32ce716b81e31928eb34d6f33cb00489442"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/before-retention.log",
+      "sha256": "79f4a8c3360c84c4ef30053d9463ac8be2abcbc392fed612a91aab8dffba58d2"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/before-obstruction.log",
+      "sha256": "9177ab9bb7eb34d94f17ed5ce71298bad8a4fca6a636b6b038ff3f48379d33c6"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/before-exits.json",
+      "sha256": "223a5871990c4ae9b4388b8260570f8195bb9b1c0310a11cffb4186e01b22914"
+    },
+    {
+      "path": ".test-artifacts/living-orb-retention/original-obstruction.mjs",
+      "sha256": "e1d647d7c03d58fb1fc834184866eef45c3ba8e88e6332f8286f1641cac7dad8"
+    }
+  ],
+  "limits": [
+    "No new image attachments in latest mission; previous supplied reference/images reused",
+    "No physical-device light/drag/storage acceptance",
+    "No native smoothness or battery measurement",
+    "No hosted SQL/Auth/Storage/provider actions",
+    "No signed distribution/OTA/EAS build",
+    "Connected workflows staging not provisioned"
+  ]
+}

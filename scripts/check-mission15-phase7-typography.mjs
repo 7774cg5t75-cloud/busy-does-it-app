@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+import {originalWebsiteSectionRuntime} from './lib/original-website-section-runtime.mjs';
+import {verifyOriginalWebsiteInstructionRuntime} from './lib/original-website-instruction-runtime.mjs';
+import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from '../src/core/websiteContextPlan.mjs';
+import {textTypographyFields,textTypographySupports} from '../supabase/functions/busy-website-worker/websiteTextTypography.mjs';
+const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml}=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyWebsiteLayoutChange','applyStructuredWebsiteEdit','renderWebsiteHtml']);
+const first=buildWebsiteDraft({businessId:'fictional',brandBrain:{websiteReady:true,websiteBrief:{businessName:'Fictional Studio',description:'A fictional paragraph.',about:'Another fictional paragraph.',services:[{name:'Survey',description:'Enquire.'}]}}});
+const original=JSON.stringify(first),render=originalWebsiteSectionRuntime();
+for(const [field,values] of Object.entries(textTypographyFields))for(const value of values.filter(v=>v!=='brand')){
+ const r=applyWebsiteLayoutChange(first,{action:'section-style',sectionId:'hero',field,value});assert.ok(r.applied,field+value);
+ const section=r.draft.sections.find(s=>s.id==='hero'),token='owner-text-'+field+'-'+value;
+ assert.ok(renderWebsiteHtml(r.draft,'home').includes(token));assert.ok(render(r.draft,section,{},true).includes(token));
+ assert.ok(r.draft.html.includes('section.'+token),'Canonical shared CSS exists');
+ const reload=JSON.parse(JSON.stringify(r.draft));assert.equal(renderWebsiteHtml(reload,'home'),renderWebsiteHtml(r.draft,'home'));
+ const reset=applyWebsiteLayoutChange(r.draft,{action:'section-style',sectionId:'hero',field,value:'brand'});assert.ok(reset.applied);assert.equal(reset.draft.sections.find(s=>s.id==='hero').appearance,undefined);
+}
+for(const [field,value] of [['titleFont','url(https://evil.test)'],['bodyWeight','1;display:none'],['titleColour','#fff'],['bodyLeading','0']])assert.equal(applyWebsiteLayoutChange(first,{action:'section-style',sectionId:'hero',field,value}).applied,false);
+assert.equal(applyWebsiteLayoutChange({...first,theme:{...first.theme,lockedSections:['hero']}},{action:'section-style',sectionId:'hero',field:'titleFont',value:'serif'}).applied,false);
+assert.equal(applyWebsiteLayoutChange(first,{action:'section-style',sectionId:'services',field:'bodyFont',value:'serif'}).applied,false,'Card paragraphs cannot masquerade as a primary paragraph');
+const styled=applyWebsiteLayoutChange(first,{action:'section-style',sectionId:'hero',field:'titleFont',value:'serif'}).draft;
+const spaced=applyWebsiteLayoutChange(styled,{action:'section-style',sectionId:'hero',field:'sectionSpacing',value:'generous'}).draft;
+assert.equal(spaced.sections.find(s=>s.id==='hero').appearance.titleFont,'serif','Other appearance edits preserve typography');assert.deepEqual(spaced.theme,first.theme,'Brand DNA is not overwritten');
+const selection={draftId:first.id,generation:first.generation,pageId:'home',sectionId:'hero',field:'title'};
+const plan=planSelectedWebsiteChanges(first,'home',selection,'set this heading font to serif; set this heading weight to bold');assert.ok(plan.ok);
+assert.ok(prepareSelectedWebsiteTransaction(first,plan,{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange}).applied);
+assert.equal(planSelectedWebsiteChanges(first,'home',{...selection,generation:-1},'set this heading font to serif').ok,false);
+assert.equal(planSelectedWebsiteChanges(first,'home',{...selection,field:'body'},'set this heading font to serif').ok,false);
+assert.equal(JSON.stringify(first),original);
+verifyOriginalWebsiteInstructionRuntime();
+// Actual contextual toolbar choices, inert hooks and no native/network effects.
+const require=createRequire(import.meta.url),{createRuntime}=require('./lib/offline-component-runtime.cjs');
+const rt=createRuntime(),{WebsiteTypographyControls}=rt.load('src/screens/websiteTypographyControls.js');
+const words=[],props={section:first.sections.find(s=>s.id==='hero'),selection,onChoose:x=>words.push(x)};
+const walk=n=>!n||typeof n!=='object'?[]:[n,...Object.values(n.props||{}).flat(Infinity).filter(x=>x&&typeof x==='object').flatMap(walk)];
+let tree=rt.render(WebsiteTypographyControls,props);assert.equal(walk(tree).some(n=>n.props?.label==='font'),false);walk(tree).find(n=>n.props?.label==='More text options').props.onPress();tree=rt.render(WebsiteTypographyControls,props);walk(tree).find(n=>n.props?.label==='font').props.onPress();tree=rt.render(WebsiteTypographyControls,props);
+walk(tree).find(n=>n.props?.label==='Classic serif').props.onPress();assert.deepEqual(words,['set this heading font to serif']);
+assert.equal(rt.render(WebsiteTypographyControls,{...props,selection:{...selection,itemId:'card'}}),null,'Hero has no supported card target');
+console.log('PASS finite typography choices, local/hosted original rendering, reload, per-field reset, Brand DNA/locks, exact selected transactions/Undo/stale checks and actual contextual choices; inert IO only.');

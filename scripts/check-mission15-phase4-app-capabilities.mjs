@@ -1,0 +1,23 @@
+import {createRequire} from 'node:module';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {planAppVoiceInstructions as plan,proposeCoordinatedAppChanges as apply} from '../src/core/appCoordinatedStudio.mjs';
+import {supportedAppCatalogModule as support} from '../src/core/appCatalogSupport.mjs';
+import {planFunctionalBusinessApp as recommend} from '../src/core/appExperiencePlanner.mjs';
+import {planUniversalBuilderRequest as universal} from '../src/core/universalBuilderPlanV3210.mjs';
+const config={modules:[{key:'business_profile',enabled:true},{key:'enquiry',enabled:true}],navigation:['business_profile','enquiry'],publicProfile:{},contentLayout:[{kind:'product',title:'Products',layout:'cards',featuredId:'owner-product'},{kind:'event',title:'Events',layout:'cards'}]};
+const p=plan(config,'rename products section to "Our collection"; show products as rows; rename events section to "Workshops"');assert.equal(p.ok,true,p.reason);assert.equal(p.operations.length,1);assert.equal(p.nextConfig.contentLayout[0].title,'Our collection');assert.equal(p.nextConfig.contentLayout[0].featuredId,'owner-product');assert.equal(p.nextConfig.contentLayout[0].layout,'rows');assert.deepEqual(apply(p.nextConfig,p.undoOperations).nextConfig,config);
+const hidden=plan(config,'hide events section');assert.equal(hidden.ok,true);assert.equal(hidden.nextConfig.contentLayout.length,1);assert.deepEqual(apply(hidden.nextConfig,hidden.undoOperations).nextConfig,config);
+for(const words of ['rename products section to "One"; rename products section to "Two"','hide events section; rename events section to "New"','rename products section to "Range"; checkout','show products as tiles'])assert.equal(plan(config,words).ok,false,words);
+assert.equal(plan({...config,presentation:{ownerLockedElements:['products']}},'show products as rows').ok,false);assert.equal(plan({...config,contentLayout:[]},'rename products section to "New"').ok,false);
+const catalog=['business_profile','services','enquiry','booking_request'].map(module_key=>({module_key,status:'available',capabilities:{customer_action:true,request_type:module_key,confirmation_required_by_business:true}}));
+for(const corrupt of [catalog.map(row=>row.module_key==='enquiry'?{...row,capabilities:{customer_action:false}}:row),[...catalog,catalog[2]],catalog.map(row=>row.module_key==='enquiry'?{...row,capabilities:{customer_action:true,request_type:'payment'}}:row)]){assert.equal(support(corrupt,'enquiry'),null);assert.equal(recommend({businessGoals:'Enquiries',catalog:corrupt}).suggestedModules.some(row=>row.key==='enquiry'&&row.suggested),false);}
+const businessId='00000000-0000-4000-8000-000000000001',app={id:'app-a',business_id:businessId,draft_revision:1,draft_config:config};const incomplete=catalog.map(row=>row.module_key==='booking_request'?{...row,capabilities:{customer_action:true}}:row);assert.equal(support(incomplete,'booking_request'),null);assert.equal(universal({businessId,app,catalog:incomplete,request:'Booking requests'}).capabilities.find(x=>x.id==='booking_request').app.status,'runtime_module_not_verified_available');
+const advice=recommend({businessGoals:'Products, events and service booking requests',catalog});assert.ok(advice.missingOwnerFacts.includes('approved_product_records'));assert.ok(advice.missingOwnerFacts.includes('approved_event_records'));assert.ok(advice.missingOwnerFacts.includes('owner_service_details'));assert.equal(advice.canEnablePayments,false);
+assert.equal(fs.readFileSync('src/core/appCoordinatedStudio.mjs','utf8'),fs.readFileSync('supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs','utf8'));
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs'),runtime=createRuntime(),{MiniAppSurface}=runtime.load('src/screens/miniApps.js');
+const walk=n=>Array.isArray(n)?n.flatMap(walk):n&&typeof n==='object'?[n,...walk(n.props?.children)]:[];
+const tree=runtime.render(MiniAppSurface,{config:p.nextConfig,interactive:false});
+assert.ok(walk(tree).some(node=>node.props?.title==='Our collection'&&node.props?.layout==='rows'));
+assert.ok(walk(tree).some(node=>node.props?.title==='Workshops'));
+console.log('PASS original content-layout private edits with exact Undo/featured identity/locks, shared catalogue recommendation guards, duplicate and missing-capability rejection, owner-content prerequisites and client/server parity. No live capability claim.');

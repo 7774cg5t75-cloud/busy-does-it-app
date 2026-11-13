@@ -1,0 +1,565 @@
+name: Private App goal composition and original authority verification
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths:
+      - '.github/workflows/app-goal-composition.yml'
+      - 'scripts/*ci-pgdg-key.mjs'
+      - '.github/workflows/ai-lab-b3-source.yml'
+      - '.github/workflows/ai-lab-creative-smoke.yml'
+      - 'scripts/*ai-lab-creative-smoke*.mjs'
+      - 'scripts/lib/ai-lab-creative-smoke-handoff.mjs'
+      - 'scripts/*ai-lab-budget*.mjs'
+      - 'scripts/lib/ai-lab-budget-*.mjs'
+      - 'docs/sql-proposals/ai-lab-budget-output-compatibility/**'
+      - 'scripts/check-revised-creative-document-execution.mjs'
+      - 'scripts/check-creative-comparison-admission.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeDocumentPilotProfiles.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeComparisonAdmission.mjs'
+      - 'scripts/*ai-lab-b3*.mjs'
+      - 'scripts/check-ai-budget-postgrest.mjs'
+      - 'scripts/*hosted-website*.mjs'
+      - 'scripts/*hosted-creative*.mjs'
+      - 'scripts/lib/hosted-website-baseline.mjs'
+      - 'scripts/lib/hosted-creative-pilot.mjs'
+      - 'scripts/*creative-deployment-packet.mjs'
+      - 'scripts/lib/creative-document-deployment-packet.mjs'
+      - 'scripts/check-disabled-creative-document-smoke.mjs'
+      - 'scripts/lib/disabled-creative-document-smoke.mjs'
+      - 'scripts/lib/ai-lab-b3-*.mjs'
+      - 'docs/sql-proposals/ai-lab-b3-empty-source/**'
+      - '.github/workflows/quiet-light-v2-pilot.yml'
+      - 'scripts/*quiet-light-v2-pilot.mjs'
+      - 'scripts/lib/quiet-light-v2-pilot.mjs'
+      - 'scripts/check-creative-document-execution.mjs'
+      - 'supabase/functions/busy-creative-document-pilot/**'
+      - 'supabase/functions/busy-builder-proposals/creativeDocument*.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeExecution*.mjs'
+      - '.github/workflows/check-growth-drafts.yml'
+      - '.github/workflows/check-growth-workspace.yml'
+      - '.github/workflows/check-growth-operator.yml'
+      - '.github/workflows/check-founder-operations.yml'
+      - '.github/workflows/website-design-browser.yml'
+      - '.github/workflows/mission16-websites.yml'
+      - '.github/workflows/mission18-websites.yml'
+      - '.github/workflows/mission19-websites.yml'
+      - 'scripts/check-mission19-*.mjs'
+      - 'scripts/build-mission19-sites.mjs'
+      - 'scripts/lib/mission19-*.mjs'
+      - 'scripts/check-mission18-*.mjs'
+      - 'scripts/build-mission18-sites.mjs'
+      - 'scripts/check-ai-lab-runner-foundation*.mjs'
+      - 'scripts/lib/ai-lab-runner-foundation-package.mjs'
+      - 'docs/sql-proposals/ai-lab-runner-foundation/**'
+      - '.github/workflows/mission17-websites.yml'
+      - 'scripts/check-mission17-*.mjs'
+      - 'scripts/build-mission17-sites.mjs'
+      - 'src/core/wholeWebsitePlan.mjs'
+      - 'src/core/wholeWebsitePreview.mjs'
+      - 'src/components/WholeWebsiteReview.js'
+      - 'src/domain/websiteManagement.js'
+      - 'src/core/websiteStandaloneArchive.mjs'
+      - 'scripts/check-mission16-*.mjs'
+      - 'scripts/build-mission16-sites.mjs'
+      - 'scripts/capture-mission16-sites.mjs'
+      - 'scripts/lib/mission16-site-fixtures.mjs'
+      - 'scripts/fixtures/mission16-export/**'
+      - 'src/core/premiumWebsite*.mjs'
+      - 'src/core/businessIntroduction.mjs'
+      - 'src/core/connectedBusinessPreparation.mjs'
+      - 'src/core/connectedEditorContinuation.mjs'
+      - 'src/core/photoPurposeAccount.mjs'
+      - 'scripts/check-business-photo-continuation.mjs'
+      - 'docs/sql-proposals/media-use/**'
+      - 'src/core/websiteCopySuggestions.mjs'
+      - 'src/core/websiteOwnedOriginalReview.mjs'
+      - 'scripts/check-business-introduction.mjs'
+      - 'scripts/check-owned-website-media.mjs'
+      - 'scripts/lib/business-introduction-fixtures.mjs'
+      - 'src/core/guidedWebsiteJourney.mjs'
+      - 'src/core/websitePhotoReview.mjs'
+      - 'src/screens/guidedWebsiteCreation.js'
+      - 'scripts/check-guided-website-creation.mjs'
+      - 'scripts/check-whole-app-postgres.mjs'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/domain/premiumHomepagePreview.js'
+      - 'src/screens/premiumHomepagePreview.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/core/websitePageInstructions.mjs'
+      - 'src/core/busyGoalPlan.mjs'
+      - 'supabase/functions/busy-website-worker/**'
+      - 'scripts/capture-website-design.mjs'
+      - 'scripts/check-website-menu-story.mjs'
+      - 'scripts/check-website-creative-comparison.mjs'
+      - 'src/core/websiteCreative*.mjs'
+      - 'scripts/check-website-individuality.mjs'
+      - 'scripts/check-live-creative-adapter.mjs'
+      - 'scripts/check-creative-execution-bootstrap.mjs'
+      - 'supabase/functions/busy-creative-pilot/**'
+      - 'scripts/check-creative-approval-packet.mjs'
+      - 'supabase/functions/busy-builder-proposals/approvalPacket.mjs'
+      - 'supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeLedger.mjs'
+      - 'supabase/functions/busy-builder-proposals/executionBootstrap.mjs'
+      - 'docs/sql-proposals/ai-creative-receipt/**'
+      - 'scripts/check-ai-budget-postgres.mjs'
+      - 'scripts/prepare-preservation-foundation.mjs'
+      - 'scripts/check-preservation-foundation.mjs'
+      - 'scripts/check-ai-lab-foundation.mjs'
+      - 'scripts/check-ai-lab-fictional-*.mjs'
+      - 'scripts/lib/ai-lab-fictional-setup-package.mjs'
+      - 'scripts/prepare-ai-lab-fictional-setup.mjs'
+      - 'docs/sql-proposals/ai-lab-fictional-setup/**'
+      - 'scripts/check-ai-lab-foundation-postgres.mjs'
+      - 'scripts/prepare-ai-lab-foundation.mjs'
+      - 'scripts/lib/ai-lab-foundation-package.mjs'
+      - 'scripts/fixtures/ai-lab/**'
+      - 'docs/sql-proposals/ai-lab-foundation/**'
+      - 'scripts/check-preservation-foundation-postgres.mjs'
+      - 'scripts/lib/staging-preservation.mjs'
+      - 'scripts/lib/preservation-foundation-package.mjs'
+      - 'scripts/lib/onboarding-preservation-snapshot.sql'
+      - 'scripts/fixtures/preservation/**'
+      - 'docs/sql-proposals/preservation-foundation/**'
+      - 'src/core/websiteDesignAcceptance.mjs'
+      - 'scripts/check-website-design-acceptance.mjs'
+      - 'scripts/check-website-acceptance-benchmark.mjs'
+      - 'scripts/lib/private-design-register.mjs'
+      - 'scripts/prepare-design-reference-evidence.mjs'
+      - 'scripts/fixtures/website-creative/**'
+      - 'scripts/process-menu-story-photos.mjs'
+      - 'supabase/functions/busy-website-worker/websiteContentPhotos.mjs'
+      - 'scripts/check-website-art-direction.mjs'
+      - 'scripts/fixtures/website-art-direction/**'
+      - 'src/core/governedBuilderProposal.mjs'
+      - 'scripts/check-website-storyboard.mjs'
+      - 'scripts/fixtures/website-storyboard/**'
+      - 'src/core/websiteStoryboard.mjs'
+      - 'scripts/check-premium-website-experience.mjs'
+      - 'scripts/check-website-design-expansion.mjs'
+      - 'src/components/OwnerOperationalPreview.js'
+      - 'supabase/functions/busy-mini-apps/enquiryPreparationService.mjs'
+      - 'docs/sql-proposals/canonical-work/enquiry-preparation*'
+      - 'scripts/check-enquiry-preparation*'
+      - 'scripts/check-operational-work*'
+      - 'src/core/operationalScreen.mjs'
+      - 'src/components/DurableOperationalScreen.js'
+      - 'src/components/WorkPreparationOverview.js'
+      - 'src/components/CanonicalWorkEntry.js'
+      - 'supabase/functions/busy-mini-apps/operationalWorkService.mjs'
+      - 'docs/sql-proposals/private-app-functions/operational*'
+      - 'src/core/workPreparation*'
+      - 'src/components/CanonicalWorkPreparation.js'
+      - 'src/components/CanonicalWorkPanel.js'
+      - 'supabase/functions/busy-mini-apps/workPreparationService.mjs'
+      - 'supabase/functions/_shared/connectedStagingActions.mjs'
+      - 'src/staging/connectedApplicationRuntime.mjs'
+      - 'src/staging/stagingAuthInspectorV3131.mjs'
+      - 'docs/sql-proposals/canonical-work/preparation*'
+      - 'scripts/check-work-preparation*'
+      - 'src/core/customerFormDiscovery.mjs'
+      - 'src/core/customerFormRecovery.mjs'
+      - 'src/core/customerFormTransport.mjs'
+      - 'src/native/customerFormRecovery.js'
+      - 'src/screens/customerFormNavigation.js'
+      - 'src/core/businessContentHtml.mjs'
+      - 'supabase/functions/_shared/businessContentHtml.mjs'
+      - 'scripts/check-customer-form-discovery.mjs'
+      - 'scripts/check-public-collection-parity.mjs'
+      - 'src/app/AppController.js'
+      - 'src/core/customerFormJourney.mjs'
+      - 'src/screens/customerAppForm.js'
+      - 'supabase/functions/busy-mini-app-guest/formGuestDispatcher.mjs'
+      - 'scripts/check-customer-form-journey.mjs'
+      - 'scripts/lib/original-form-guest-handler.mjs'
+      - 'src/core/publicFormDisclosure.mjs'
+      - 'src/core/privateDisclosureAccount.mjs'
+      - 'src/screens/customerFormRehearsal.js'
+      - 'src/screens/privateDisclosureReview.js'
+      - 'supabase/functions/busy-mini-apps/formDisclosureService.mjs'
+      - 'scripts/check-public-form*'
+      - 'scripts/lib/public-form-components.mjs'
+      - 'scripts/check-growth-drafts.mjs'
+      - 'scripts/check-growth-operator.mjs'
+      - 'src/core/appEnquirySource.mjs'
+      - 'src/components/AppEnquirySourceContext.js'
+      - 'src/components/CanonicalWorkPanel.js'
+      - 'src/components/QuoteEnquiryContext.js'
+      - 'src/staging/ConnectedEnquiryReview.js'
+      - 'src/staging/connectedEnquiryJourney.mjs'
+      - 'src/screens/miniApps.js'
+      - 'src/screens/appEnquiryRequestPreview.js'
+      - 'scripts/check-contextual-app-enquiries.mjs'
+      - 'src/core/privateAppProject.mjs'
+      - 'src/core/appScreenComposition.mjs'
+      - 'src/staging/connectedApplicationRuntime.mjs'
+      - 'src/staging/stagingAuthInspectorV3131.mjs'
+      - 'src/core/privateFormEnquiry.mjs'
+      - 'src/screens/privateFormEnquiryPreview.js'
+      - 'src/components/FormEnquiryContext.js'
+      - 'src/components/AppEnquirySourceContext.js'
+      - 'standalone/template/nativeCustomerActions.mjs'
+      - 'supabase/functions/busy-mini-app-guest/index.ts'
+      - 'scripts/check-private-form-enquiries.mjs'
+      - 'src/core/privateScreenBindings.mjs'
+      - 'src/screens/privateScreenLibrary.js'
+      - 'src/screens/privateArtifactFields.js'
+      - 'supabase/functions/busy-mini-apps/privateScreenService.mjs'
+      - 'supabase/functions/busy-mini-apps/publicScreenArrangement.mjs'
+      - 'scripts/check-private-screen-editor.mjs'
+      - 'src/core/privateForm*'
+      - 'src/core/privateArtifact*'
+      - 'src/core/artifactIntegrity.mjs'
+      - 'src/screens/privateForm*'
+      - 'scripts/check-private-forms-native.mjs'
+      - 'security/native-artifact-crypto.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/core/privateFunctionAccount.mjs'
+      - 'src/screens/privateFunctionLibrary.js'
+      - 'supabase/functions/busy-mini-apps/privateFunctionService.mjs'
+      - 'docs/sql-proposals/private-app-functions/**'
+      - 'scripts/check-private-function-artifacts.mjs'
+      - 'src/core/privateCalculation.mjs'
+      - 'src/core/privateCalculationPilot.mjs'
+      - 'src/screens/privateCalculationPilot.js'
+      - 'scripts/check-private-calculation-pilot.mjs'
+      - 'src/core/appScreenProposal.mjs'
+      - 'src/core/appCoordinatedStudio.mjs'
+      - 'src/core/appDraftComposition.mjs'
+      - 'src/core/appOwnerLocks.mjs'
+      - 'standalone/template/App.js'
+      - 'standalone/template/nativeBusinessClient.js'
+      - 'supabase/functions/busy-mini-app-guest/publicNativeProjection.mjs'
+      - 'scripts/check-app-screen-composition.mjs'
+      - 'src/core/appProjectContinuation.mjs'
+      - 'src/core/businessContentRecords.mjs'
+      - 'standalone/template/businessContentView.js'
+      - 'scripts/check-app-project-continuation.mjs'
+      - 'supabase/functions/busy-mini-apps/privateProjectService.mjs'
+      - 'supabase/functions/busy-mini-apps/index.ts'
+      - 'scripts/check-private-app-project.mjs'
+      - 'src/core/appGoalComposition.mjs'
+      - 'src/core/appRecordComposition.mjs'
+      - 'scripts/check-app-record-composition.mjs'
+      - 'src/core/governedBuilderProposal.mjs'
+      - 'src/core/universalBuilderPlanV3210.mjs'
+      - 'src/screens/appGoalCompositionEditor.js'
+      - 'scripts/check-app-goal-composition.mjs'
+      - 'scripts/check-whole-app-postgres.mjs'
+      - 'docs/sql-proposals/connected-builders/**'
+      - 'scripts/lib/whole-app-*.mjs'
+      - 'scripts/prepare-listing-lifecycle.mjs'
+      - 'scripts/check-frozen-source-evidence.mjs'
+      - 'scripts/testing/regressions.py'
+      - 'scripts/testing/regressions.json'
+      - 'src/core/canonicalWorkSession.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: private-app-goal-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  original-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: Signed PostgreSQL 17 tooling matching staging ACLs
+        run: |
+          # PostgreSQL16 cannot represent staging's existing MAINTAIN privilege.
+          # Official PGDG signing fingerprint: postgresql.org/download/linux/ubuntu/.
+          test "$(. /etc/os-release; echo "$VERSION_CODENAME")" = noble
+          # Ubuntu's installed postgresql-common already supplies the SAME
+          # public key. Verify package ownership and its full primary fingerprint;
+          # missing/unreviewed key material stops without a network fallback.
+          # The observed /usr/share parent is writable. Freeze the packaged
+          # bytes exclusively under trusted /etc ancestry before verification.
+          sudo /usr/bin/python3 -I - <<'PY'
+          import json, os, stat, sys
+          source = '/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc'
+          target = '/etc/apt/keyrings/busy-pgdg.asc'
+          stage, public_path, metadata = 'directory-metadata', '/', None
+          def require(condition):
+              if not condition:
+                  raise RuntimeError('refused')
+          def identity(value):
+              return value.st_dev, value.st_ino, value.st_uid, value.st_size
+          def report(error):
+              diagnostic = {'stage': stage, 'path': public_path, 'errno': error.errno if isinstance(error, OSError) and isinstance(error.errno, int) and 0 < error.errno < 4096 else None}
+              if metadata is not None:
+                  diagnostic.update({'uid': metadata.st_uid if 0 <= metadata.st_uid <= 4294967295 else None, 'permissionMode': format(stat.S_IMODE(metadata.st_mode), '04o'), 'bytes': metadata.st_size if 0 <= metadata.st_size <= 9223372036854775807 else None, 'kind': 'directory' if stat.S_ISDIR(metadata.st_mode) else 'regular' if stat.S_ISREG(metadata.st_mode) else 'symlink' if stat.S_ISLNK(metadata.st_mode) else 'other'})
+              print('CI PGDG fixed public-key freeze refused; no repository trust was changed. diagnostic=' + json.dumps(diagnostic, separators=(',', ':')), file=sys.stderr)
+          try:
+              os.umask(0o022)
+              for directory in ('/', '/etc', '/etc/apt', '/etc/apt/keyrings'):
+                  stage, public_path, metadata = 'directory-metadata', directory, None
+                  if directory == '/etc/apt/keyrings' and not os.path.lexists(directory):
+                      os.mkdir(directory, 0o755)
+                  metadata = os.lstat(directory)
+                  require(stat.S_ISDIR(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode) and metadata.st_uid == 0 and metadata.st_mode & 0o022 == 0 and os.path.realpath(directory) == directory)
+              stage, public_path, metadata = 'packaged-source-metadata', source, None
+              before = os.lstat(source)
+              metadata = before
+              require(stat.S_ISREG(before.st_mode) and not stat.S_ISLNK(before.st_mode) and before.st_uid == 0 and 0 < before.st_size <= 32768 and os.path.realpath(source) == source)
+              stage = 'packaged-source-open-read'
+              with os.fdopen(os.open(source, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW), 'rb') as original:
+                  require(identity(os.fstat(original.fileno())) == identity(before))
+                  original_bytes = original.read(32769)
+                  require(len(original_bytes) == before.st_size)
+                  stage, public_path, metadata = 'exclusive-target-create', target, None
+                  with os.fdopen(os.open(target, os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, 0o644), 'w+b') as frozen:
+                      require(frozen.write(original_bytes) == len(original_bytes))
+                      frozen.flush()
+                      os.fsync(frozen.fileno())
+                      stage = 'frozen-target-verification'
+                      metadata = os.fstat(frozen.fileno())
+                      current = os.lstat(target)
+                      frozen.seek(0)
+                      require(stat.S_ISREG(metadata.st_mode) and metadata.st_uid == 0 and stat.S_IMODE(metadata.st_mode) == 0o644 and metadata.st_size == len(original_bytes) and identity(current) == identity(metadata) and not stat.S_ISLNK(current.st_mode) and os.path.realpath(target) == target and frozen.read(32769) == original_bytes)
+                  stage, public_path, metadata = 'packaged-source-stability', source, before
+                  original.seek(0)
+                  require(original.read(32769) == original_bytes and identity(os.lstat(source)) == identity(before))
+              print('CI PGDG fixed packaged public-key bytes frozen exclusively under trusted /etc ancestry; fingerprint verification still required.')
+          except (OSError, RuntimeError) as error:
+              report(error)
+              raise SystemExit(1)
+          PY
+          node scripts/verify-ci-pgdg-key.mjs
+          echo 'deb [signed-by=/etc/apt/keyrings/busy-pgdg.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' | sudo tee /etc/apt/sources.list.d/busy-pgdg.list >/dev/null
+          # Suppress all service starts in this ephemeral runner installation only.
+          if sudo test -e /usr/sbin/policy-rc.d; then sudo cp -p /usr/sbin/policy-rc.d "$RUNNER_TEMP/busy-policy-rc.d"; fi
+          restore_policy() { if test -e "$RUNNER_TEMP/busy-policy-rc.d"; then sudo cp -p "$RUNNER_TEMP/busy-policy-rc.d" /usr/sbin/policy-rc.d; else sudo rm -f /usr/sbin/policy-rc.d; fi; }
+          trap restore_policy EXIT
+          printf '#!/bin/sh\nexit 101\n' | sudo tee /usr/sbin/policy-rc.d >/dev/null
+          sudo chmod 0755 /usr/sbin/policy-rc.d
+          sudo sed -i 's/^[#[:space:]]*create_main_cluster[[:space:]]*=.*/create_main_cluster = false/' /etc/postgresql-common/createcluster.conf
+          grep -qx 'create_main_cluster = false' /etc/postgresql-common/createcluster.conf
+          sudo apt-get update -qq
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -o Dpkg::Options::=--force-confold postgresql-17 postgresql-client-17
+          /usr/lib/postgresql/17/bin/postgres --version
+          dpkg-query -W postgresql-17 postgresql-client-17
+      - name: Reviewed lock installation and security guard
+        run: |
+          npm ci --ignore-scripts --no-audit
+          node scripts/apply-tooling-security-patches.mjs
+          node scripts/check-dependency-security.mjs
+          npm ci --prefix scripts/offline-tools --ignore-scripts --no-audit
+      - name: Original contract and component behaviour
+        run: |
+          mkdir -p .test-artifacts/app-goal-composition
+          node scripts/check-mission16-whole-site.mjs
+          node scripts/check-mission16-inner-pages.mjs
+          node scripts/check-mission16-portable-media.mjs
+          node scripts/check-mission16-preview-navigation.mjs
+          node scripts/check-mission16-whole-site-ui.mjs
+          node scripts/check-mission16-owner-cta-refresh.mjs
+          node scripts/check-ai-lab-runner-foundation.mjs
+          node scripts/check-mission18-design-intelligence.mjs
+          node scripts/check-mission18-creative-rendering.mjs
+          node scripts/check-mission18-creative-owner-flow.mjs
+          node scripts/check-mission18-provider-projection.mjs
+          node scripts/check-mission19-creative-copy.mjs
+          node scripts/check-mission19-creative-document.mjs
+          node scripts/check-mission19-creative-review.mjs
+          node scripts/check-mission19-provider-projection.mjs
+          node scripts/check-mission19-creative-document-rendering.mjs
+          node scripts/check-mission19-creative-export.mjs
+          node scripts/check-mission17-whole-site.mjs
+          node scripts/check-mission17-inner-quality.mjs
+          node scripts/check-mission17-navigation.mjs
+          node scripts/check-mission17-service-overview.mjs
+          node scripts/check-enquiry-preparation.mjs
+          node scripts/check-operational-work.mjs
+          node scripts/check-website-menu-story.mjs
+          node scripts/check-website-creative-comparison.mjs
+          node scripts/check-website-design-acceptance.mjs
+          node scripts/check-website-acceptance-benchmark.mjs
+          node scripts/check-website-individuality.mjs
+          node scripts/check-live-creative-adapter.mjs
+          node scripts/check-creative-execution-bootstrap.mjs
+          node scripts/check-creative-approval-packet.mjs
+          node scripts/check-website-art-direction.mjs
+          node scripts/check-premium-website-experience.mjs
+          node scripts/check-website-design-expansion.mjs
+          node scripts/check-guided-website-creation.mjs
+          node scripts/check-business-introduction.mjs
+          node scripts/check-owned-website-media.mjs
+          node scripts/check-work-preparation.mjs
+          node scripts/check-customer-form-discovery.mjs
+          node scripts/check-public-collection-parity.mjs
+          node scripts/check-customer-form-journey.mjs
+          node scripts/check-public-form-disclosure.mjs
+          node scripts/check-growth-drafts.mjs
+          node scripts/check-growth-operator.mjs
+          node scripts/check-private-form-enquiries.mjs
+          node scripts/check-private-screen-editor.mjs
+          node scripts/check-private-forms-native.mjs
+          node node_modules/expo-modules-autolinking/bin/expo-modules-autolinking resolve --platform apple --json > .test-artifacts/app-goal-composition/native-autolinking.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/native-autolinking.json'));assert any(m['packageName']=='expo-crypto' and m['packageVersion']=='57.0.4' for m in d['modules'])"
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/native-autolinking.json'));assert any(m['packageName']=='expo-secure-store' and m['packageVersion']=='57.0.4' for m in d['modules'])"
+          node scripts/check-private-function-artifacts.mjs
+          node scripts/check-private-calculation-pilot.mjs
+          node scripts/check-mission15-phase10-gallery-parity.mjs
+          node scripts/check-mission15-phase31-service-resume.mjs
+          node scripts/check-app-screen-composition.mjs
+          node scripts/check-app-project-continuation.mjs
+          node scripts/check-private-app-project.mjs
+          node scripts/check-frozen-source-evidence.mjs
+          node scripts/check-contextual-app-enquiries.mjs
+          node scripts/check-app-record-composition.mjs
+          node scripts/check-app-goal-composition.mjs
+          node scripts/check-governed-builder-proposals.mjs
+          node scripts/check-production.mjs
+          node scripts/check-security-baseline.mjs
+          node scripts/check-security-by-design.mjs
+          node scripts/testing/syntax.mjs src/core/operationalScreen.mjs src/components/DurableOperationalScreen.js src/components/WorkPreparationOverview.js src/core/appGoalComposition.mjs src/core/governedBuilderProposal.mjs src/core/universalBuilderPlanV3210.mjs src/screens/appGoalCompositionEditor.js src/screens/miniApps.js src/staging/ConnectedBuilderWorkspace.js src/core/wholeWebsitePlan.mjs src/core/wholeWebsitePreview.mjs src/components/WholeWebsiteReview.js src/screens/guidedWebsiteCreation.js
+      - name: Original legacy Website worker scopes with real shared dependencies
+        run: |
+          node scripts/check-mission15-phase23-editorial.mjs
+          node scripts/check-mission15-phase24-service-composition.mjs
+          node scripts/check-mission15-phase26-faq-composition.mjs
+          node scripts/check-mission15-phase27-service-index.mjs
+          node scripts/check-mission15-phase28-page-guide.mjs
+          node scripts/check-mission15-phase29-article-layout.mjs
+          node scripts/check-mission15-phase30-testimonials.mjs
+          node scripts/check-mission15-website-page-headings.mjs
+      - name: Genuine original Edge checks with pinned official verification tools
+        run: |
+          EDGE_TOOLS="$RUNNER_TEMP/busy-screen-edge-tools"
+          EDGE_SOURCE="$RUNNER_TEMP/busy-screen-edge-source"
+          npm install --prefix "$EDGE_TOOLS" --ignore-scripts --no-audit --no-fund --package-lock=false deno@2.5.6 @supabase/supabase-js@2.118.0
+          mkdir -p "$EDGE_SOURCE"
+          cp -R src supabase standalone "$EDGE_SOURCE/"
+          ln -s "$EDGE_TOOLS/node_modules" "$EDGE_SOURCE/node_modules"
+          diff -qr src "$EDGE_SOURCE/src"
+          diff -qr supabase "$EDGE_SOURCE/supabase"
+          diff -qr standalone "$EDGE_SOURCE/standalone"
+          DENO_DIR="$RUNNER_TEMP/busy-screen-deno-cache" "$EDGE_TOOLS/node_modules/.bin/deno" check --node-modules-dir=manual --frozen --config "$EDGE_SOURCE/supabase/connected-staging.deno.json" "$EDGE_SOURCE"/supabase/functions/*/index.ts "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeLedger.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/approvalPacket.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/executionBootstrap.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/websiteIntelligenceProviderProjection.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeDocumentExecution.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeDocumentExecutionBootstrap.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeExecutionEngine.mjs" "$EDGE_SOURCE/supabase/functions/busy-builder-proposals/creativeExecutionBootstrapCommon.mjs" > .test-artifacts/app-goal-composition/deno.log 2>&1 || {
+            cat .test-artifacts/app-goal-composition/deno.log
+            exit 1
+          }
+          echo "BUSY_EDGE_RESULT all_27_original_entrypoints_and_9_proposal_modules_exit_0"
+      - name: Disposable local PostgreSQL, no TCP or hosted connection
+        run: |
+          PG_BIN="/usr/lib/postgresql/17/bin"
+          test -x "$PG_BIN/initdb"
+          PG_DATA="$RUNNER_TEMP/busy-app-goal-pg-data"
+          PG_SOCKET="$RUNNER_TEMP/busy-app-goal-pg-socket"
+          install -d -m 700 "$PG_DATA" "$PG_SOCKET"
+          "$PG_BIN/initdb" -D "$PG_DATA" --username=postgres --auth-local=trust --auth-host=reject
+          "$PG_BIN/pg_ctl" -D "$PG_DATA" -l "$RUNNER_TEMP/busy-app-goal-pg.log" -o "-k $PG_SOCKET -c listen_addresses='' -c unix_socket_permissions=0700" start
+          trap '"$PG_BIN/pg_ctl" -D "$PG_DATA" stop -m fast' EXIT
+          "$PG_BIN/psql" -U postgres -h "$PG_SOCKET" -d postgres -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS;'
+          set +e
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-whole-app-postgres.mjs > .test-artifacts/app-goal-composition/postgres.log 2>&1
+          PG_CHECK_EXIT=$?
+          set -e
+          if [ "$PG_CHECK_EXIT" -ne 0 ]; then tail -n 35 .test-artifacts/app-goal-composition/postgres.log; exit "$PG_CHECK_EXIT"; fi
+          cp .test-artifacts/whole-app/postgres.json .test-artifacts/app-goal-composition/postgres.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/postgres.json'));print('BUSY_APP_POSTGRES '+json.dumps(d['summary']))"
+          set +e
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-public-form-postgres.mjs > .test-artifacts/app-goal-composition/public-form-postgres.log 2>&1
+          FORM_CHECK_EXIT=$?
+          set -e
+          if [ "$FORM_CHECK_EXIT" -ne 0 ]; then tail -n 35 .test-artifacts/app-goal-composition/public-form-postgres.log; exit "$FORM_CHECK_EXIT"; fi
+          cp .test-artifacts/public-form/postgres.json .test-artifacts/app-goal-composition/public-form-postgres.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/public-form-postgres.json'));print('BUSY_PUBLIC_FORM_POSTGRES '+json.dumps(d['summary']))"
+          set +e
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-enquiry-preparation-postgres.mjs > .test-artifacts/app-goal-composition/enquiry-preparation-postgres.log 2>&1
+          ENQUIRY_PREPARATION_EXIT=$?
+          if [ "$ENQUIRY_PREPARATION_EXIT" -ne 0 ]; then tail -n 45 .test-artifacts/app-goal-composition/enquiry-preparation-postgres.log; exit "$ENQUIRY_PREPARATION_EXIT"; fi
+          cp .test-artifacts/enquiry-preparation/postgres.json .test-artifacts/app-goal-composition/enquiry-preparation-postgres.json
+          cp .test-artifacts/operational-work/postgres.json .test-artifacts/app-goal-composition/operational-work-postgres.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-work-preparation-postgres.mjs > .test-artifacts/app-goal-composition/work-preparation-postgres.log 2>&1
+          PREPARATION_CHECK_EXIT=$?
+          set -e
+          if [ "$PREPARATION_CHECK_EXIT" -ne 0 ]; then tail -n 40 .test-artifacts/app-goal-composition/work-preparation-postgres.log; exit "$PREPARATION_CHECK_EXIT"; fi
+          cp .test-artifacts/work-preparation/postgres.json .test-artifacts/app-goal-composition/work-preparation-postgres.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-budget-postgres.mjs > .test-artifacts/app-goal-composition/ai-budget-postgres.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-budget-postgres.log; exit 1; }
+          cp .test-artifacts/ai-gateway/postgres.json .test-artifacts/app-goal-composition/ai-budget-postgres.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-preservation-foundation-postgres.mjs > .test-artifacts/app-goal-composition/preservation-foundation.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/preservation-foundation.log; exit 1; }
+          cp .test-artifacts/preservation-foundation/postgres.json .test-artifacts/app-goal-composition/preservation-foundation.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-foundation-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-foundation.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-foundation.log; exit 1; }
+          cp .test-artifacts/ai-lab-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-foundation.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-runner-foundation-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-runner-foundation.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-runner-foundation.log; exit 1; }
+          cp .test-artifacts/ai-lab-runner-foundation/postgres.json .test-artifacts/app-goal-composition/ai-lab-runner-foundation.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-fictional-setup-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-fictional-setup.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-fictional-setup.log; exit 1; }
+          cp .test-artifacts/ai-lab-fictional-setup/postgres.json .test-artifacts/app-goal-composition/ai-lab-fictional-setup.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-fictional-source.mjs --postgres > .test-artifacts/app-goal-composition/ai-lab-fictional-source.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-fictional-source.log; exit 1; }
+          cp .test-artifacts/ai-lab-fictional-source/postgres.json .test-artifacts/app-goal-composition/ai-lab-fictional-source.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-b3-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-b3.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-b3.log; exit 1; }
+          cp .test-artifacts/ai-lab-b3/postgres.json .test-artifacts/app-goal-composition/ai-lab-b3.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-ai-lab-b3-source-contract-postgres.mjs > .test-artifacts/app-goal-composition/ai-lab-b3-source-contract.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/ai-lab-b3-source-contract.log; exit 1; }
+          cp .test-artifacts/ai-lab-b3-source-contract/postgres.json .test-artifacts/app-goal-composition/ai-lab-b3-source-contract.json
+          BUSY_LOCAL_PG_BIN="$PG_BIN/psql" BUSY_LOCAL_PG_SOCKET="$PG_SOCKET" BUSY_LOCAL_PG_DATA="$PG_DATA" node scripts/check-mission16-whole-site-postgres.mjs > .test-artifacts/app-goal-composition/mission16-whole-site-postgres.log 2>&1 || { tail -n 40 .test-artifacts/app-goal-composition/mission16-whole-site-postgres.log; exit 1; }
+          cp .test-artifacts/mission16-whole-site/postgres.json .test-artifacts/app-goal-composition/mission16-whole-site-postgres.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/mission16-whole-site-postgres.json'));print('BUSY_WHOLE_SITE_POSTGRES '+json.dumps(d['summary']))"
+          python3 - <<'PY'
+          import json,pathlib
+          base=pathlib.Path('.test-artifacts/app-goal-composition')
+          expected={'whole-app':'postgres.json','public-form':'public-form-postgres.json','enquiry-preparation':'enquiry-preparation-postgres.json','operational-work':'operational-work-postgres.json','work-preparation':'work-preparation-postgres.json','ai-budget':'ai-budget-postgres.json','preservation-foundation':'preservation-foundation.json','ai-lab-foundation':'ai-lab-foundation.json','whole-site':'mission16-whole-site-postgres.json','ai-lab-runner-foundation':'ai-lab-runner-foundation.json','ai-lab-fictional-setup':'ai-lab-fictional-setup.json','ai-lab-fictional-source':'ai-lab-fictional-source.json','ai-lab-b3':'ai-lab-b3.json','ai-lab-b3-source-contract':'ai-lab-b3-source-contract.json'}
+          summaries={}
+          for name,filename in expected.items():
+              summary=json.loads((base/filename).read_text())['summary']
+              counts={key:summary[key] for key in ('passed','failed')}
+              assert all(type(value) is int and value>=0 for value in counts.values()),'Invalid SQL receipt count'
+              assert counts['passed']>0 and counts['failed']==0,'SQL receipt did not confirm passing stages'
+              summaries[name]=counts
+          print('BUSY_PG_SUITE_SUMMARIES '+json.dumps({'commandSuites':13,'receiptSummaries':summaries},sort_keys=True))
+          PY
+      - name: Genuine PostgreSQL 17 and PostgREST B3 HTTP regression
+        run: |
+          POSTGREST_ARCHIVE="$RUNNER_TEMP/postgrest-v14.18-linux-static-x86-64.tar.xz"
+          POSTGREST_BIN="$RUNNER_TEMP/postgrest-v14.18"
+          export POSTGREST_ARCHIVE POSTGREST_BIN
+          curl --fail --location --max-time 60 https://github.com/PostgREST/postgrest/releases/download/v14.18/postgrest-v14.18-linux-static-x86-64.tar.xz --output "$POSTGREST_ARCHIVE"
+          python3 - <<'PY_PIN'
+          import hashlib,os,pathlib,tarfile
+          archive=pathlib.Path(os.environ['POSTGREST_ARCHIVE'])
+          assert hashlib.sha256(archive.read_bytes()).hexdigest()=='98de1c0be7787aea5f5e11a25f303ea0077634d6fc1000b687bfa825fd27d299'
+          with tarfile.open(archive) as package:
+              matches=[entry for entry in package.getmembers() if entry.isfile() and entry.name=='postgrest']
+              assert len(matches)==1
+              binary=package.extractfile(matches[0]).read()
+          assert hashlib.sha256(binary).hexdigest()=='e62299f98f67938f754291340b2fc07b69685546e6017b455ef3e776daef45ee'
+          target=pathlib.Path(os.environ['POSTGREST_BIN']);target.write_bytes(binary);target.chmod(0o700)
+          PY_PIN
+          BUSY_LOCAL_PG_BIN_DIR=/usr/lib/postgresql/17/bin node scripts/check-ai-lab-b3-postgrest.mjs > .test-artifacts/app-goal-composition/postgrest-http.log 2>&1 || { tail -n 50 .test-artifacts/app-goal-composition/postgrest-http.log; exit 1; }
+          cp .test-artifacts/ai-lab-b3/postgrest.json .test-artifacts/app-goal-composition/postgrest-http.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/postgrest-http.json'));print('BUSY_B3_POSTGREST '+json.dumps(d['summary']));assert d['summary']['passed']>0 and d['summary']['failed']==0"
+          BUSY_LOCAL_PG_BIN_DIR=/usr/lib/postgresql/17/bin node scripts/check-ai-budget-postgrest.mjs > .test-artifacts/app-goal-composition/ai-budget-postgrest-http.log 2>&1 || { tail -n 50 .test-artifacts/app-goal-composition/ai-budget-postgrest-http.log; exit 1; }
+          cp .test-artifacts/ai-budget-http/postgrest.json .test-artifacts/app-goal-composition/ai-budget-postgrest-http.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/ai-budget-postgrest-http.json'));print('BUSY_AI_BUDGET_POSTGREST '+json.dumps(d['summary']));assert d['summary']['passed']>0 and d['summary']['failed']==0 and d['cleanupCompleted'] and d['providerCalls']==0 and d['actualSpendingGBP']==0"
+          BUSY_LOCAL_PG_BIN_DIR=/usr/lib/postgresql/17/bin node scripts/check-ai-lab-budget-compatibility-postgres.mjs > .test-artifacts/app-goal-composition/budget-compatibility-postgres.log 2>&1 || { tail -n 55 .test-artifacts/app-goal-composition/budget-compatibility-postgres.log; exit 1; }
+          cp .test-artifacts/ai-lab-budget-compatibility/postgres.json .test-artifacts/app-goal-composition/budget-compatibility-postgres.json
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/budget-compatibility-postgres.json'));print('BUSY_AI_BUDGET_COMPATIBILITY '+json.dumps(d['summary']));assert d['summary']['passed']>0 and d['summary']['failed']==0 and d['cleanupCompleted'] and d['hostedMutations']==0 and d['providerCalls']==0"
+      - name: Unsigned original Owner Preview and isolated staging exports
+        run: |
+          EXPO_PUBLIC_BUSY_ENVIRONMENT=owner-preview node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-owner > .test-artifacts/app-goal-composition/owner-export.log 2>&1
+          EXPO_PUBLIC_BUSY_ENVIRONMENT=isolated-staging node scripts/run-expo-safe.mjs export --platform ios --output-dir /tmp/busy-app-goal-staging > .test-artifacts/app-goal-composition/staging-export.log 2>&1
+      - name: Complete frozen-source regressions
+        run: |
+          python3 scripts/testing/regressions.py --output .test-artifacts/app-goal-composition/application.json > .test-artifacts/app-goal-composition/application.log 2>&1
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/application.json'));print('BUSY_APPLICATION_RESULT '+json.dumps({k:d[k] for k in ['sourceSha','sourceTree','finalSourceSha','finalSourceTree','sourceStable','workingTreeChanged','summary']}))"
+          python3 -c "import json;d=json.load(open('.test-artifacts/app-goal-composition/application.json'));assert d['sourceStable'] and d['sourceSha']==d['finalSourceSha'] and d['sourceTree']==d['finalSourceTree']"
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: private-app-goal-${{ github.sha }}
+          path: |
+            .test-artifacts/app-goal-composition/
+            .test-artifacts/whole-app/postgres.json
+            .test-artifacts/premium-websites/
+          retention-days: 7

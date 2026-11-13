@@ -32,7 +32,7 @@ function restoreField(object,field,snapshot){
  return snapshot.parent==='absent'?undefined:snapshot.parent==='null'?null:next;
 }
 function restoreAppProfileField(config,{field,value}={}){
- const fail=()=>({ok:false,reason:'Only a validated exact public text/service field snapshot can be restored.'});
+ const fail=()=>({ok:/** @type {const} */ (false),reason:'Only a validated exact public text/service field snapshot can be restored.'});
  if(!value||typeof value!=='object'||Array.isArray(value)||
   Object.keys(value).some(k=>!['parent','present','value','display'].includes(k)))return fail();
  const {display,...profile}=value;
@@ -46,7 +46,7 @@ function restoreAppProfileField(config,{field,value}={}){
    const d=restoreField(config.display,'tagline',display);
    if(d===undefined)delete nextConfig.display;else nextConfig.display=d;
   }
-  return {ok:true,nextConfig,previous};
+  return {ok:/** @type {const} */ (true),nextConfig,previous};
  }catch{return fail();}
 }
 export {PROFILE_TEXT_LIMITS,captureAppProfileField,restoreAppProfileField};

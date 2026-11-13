@@ -1,0 +1,49 @@
+{
+  "source": {
+    "commit": "f790872f4e3177f47bb617eff24a2940b629979a",
+    "tree": "3365a622f316197ce023dfb8cadabb36074f2e78"
+  },
+  "master": {
+    "version": "V22.82",
+    "sha256": "a0caa0432a065c4aceffbacdc165110718d2cdf8b3885e1c6af8e76265c855be",
+    "privateOriginalAndExtractionOutsideGit": true
+  },
+  "goldStandards": {
+    "references": 3,
+    "approved": 0,
+    "privateOriginalCatalogueSha256": "44062c4bc23224d1ab6baf8142e6bf97cf78439dc2d5fc57023ea7cb57e5e661"
+  },
+  "drafts": [
+    {
+      "pr": 26,
+      "base": "codex/builder-mission14-intelligent-followups",
+      "state": "open-draft"
+    },
+    {
+      "pr": 25,
+      "sha": "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+      "state": "open-draft"
+    },
+    {
+      "pr": 24,
+      "sha": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+      "state": "open-draft"
+    },
+    {
+      "pr": 23,
+      "sha": "f9b11034449a8d401ea71afe27627c5715325c72",
+      "state": "open-draft"
+    },
+    {
+      "pr": 21,
+      "sha": "55db12d247b149aa2052fc17f5d5dc536a77b8a7",
+      "state": "open-draft"
+    }
+  ],
+  "noHostedMutation": true,
+  "noProviderCallsIncludingTokenCounting": true,
+  "noSecretValueAccess": true,
+  "noPaidInference": true,
+  "noPublication": true,
+  "forcePushOrMerge": false
+}

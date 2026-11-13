@@ -1,0 +1,766 @@
+{
+  "sourceCommit": "194ac970b06081545294147194b61cc659bfaaa0",
+  "sourceTree": "d94d106997adfa4469f331dac79ad6c8181c4a84",
+  "records": [
+    {
+      "file": "ember-renderer-mobile.jpg",
+      "sha256": "a1ad91008758b9dd2cb628017f497706e25e071dd21dad0b7aeb6ceea705a44f",
+      "inputs": [
+        {
+          "filename": "11-before-mobile.png",
+          "originalSize": [
+            390,
+            4350
+          ],
+          "sha256": "9f5303849ba6eb422dae46e31b7e0dd7c2cff665741572ff483b3e9765606cc8",
+          "label": "Same model / prior crafted CSS"
+        },
+        {
+          "filename": "11-after-mobile.png",
+          "originalSize": [
+            390,
+            4392
+          ],
+          "sha256": "488b3ad27ba2c377744384f9bef0666e1bf8bd40546022175c31296fdfb7b77d",
+          "label": "Same model / current crafted CSS"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "ember-renderer-desktop.jpg",
+      "sha256": "bb3c5c62f24b771e437aa38d24f273b2b63e4de25b29fdb60f899f573ccf2468",
+      "inputs": [
+        {
+          "filename": "11-before-desktop.png",
+          "originalSize": [
+            1440,
+            4550
+          ],
+          "sha256": "754dfd547865f1eb63498e38a177cae982daa47b294b0732c63ee93373f1c1d9",
+          "label": "Same model / prior crafted CSS"
+        },
+        {
+          "filename": "11-after-desktop.png",
+          "originalSize": [
+            1440,
+            4580
+          ],
+          "sha256": "88993b57a24d98794a931c380ad7affeefc477133cc13fb24cae009a1bfd3a2e",
+          "label": "Same model / current crafted CSS"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "clearleaf-renderer-mobile.jpg",
+      "sha256": "f56ef112b06357abe58a20f9973879a91ec0aae0d648e30ab8ad2d314c5508fe",
+      "inputs": [
+        {
+          "filename": "12-before-mobile.png",
+          "originalSize": [
+            390,
+            3624
+          ],
+          "sha256": "05fb9e5284e2821361dea9da71ebf2c37f72590974e88c633919df557eb91993",
+          "label": "Same model / prior crafted CSS"
+        },
+        {
+          "filename": "12-after-mobile.png",
+          "originalSize": [
+            390,
+            3624
+          ],
+          "sha256": "05fb9e5284e2821361dea9da71ebf2c37f72590974e88c633919df557eb91993",
+          "label": "Same model / current crafted CSS"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "clearleaf-renderer-desktop.jpg",
+      "sha256": "4b3c536d6fc9590448d9e5165b57cf679c8db91db977abbb9a0947e15c345afb",
+      "inputs": [
+        {
+          "filename": "12-before-desktop.png",
+          "originalSize": [
+            1440,
+            3938
+          ],
+          "sha256": "70cde339dbc52feaaf0a8bb33dd19bea7229202632f496af29007664dbc01a0b",
+          "label": "Same model / prior crafted CSS"
+        },
+        {
+          "filename": "12-after-desktop.png",
+          "originalSize": [
+            1440,
+            3938
+          ],
+          "sha256": "70cde339dbc52feaaf0a8bb33dd19bea7229202632f496af29007664dbc01a0b",
+          "label": "Same model / current crafted CSS"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "quiet-light-renderer-mobile.jpg",
+      "sha256": "5f9249ee767fdaab17da8b8f1977a56e9f494be17ffcf8eda6bddcdc04786d31",
+      "inputs": [
+        {
+          "filename": "13-before-mobile.png",
+          "originalSize": [
+            390,
+            3566
+          ],
+          "sha256": "0fbcd041dba275a2438c4eb30b46c857f619ed4af5676bbafa7af6a1db2b61fd",
+          "label": "Same model / prior crafted CSS"
+        },
+        {
+          "filename": "13-after-mobile.png",
+          "originalSize": [
+            390,
+            3573
+          ],
+          "sha256": "15d6f5306709326565b7df853c34f9fb3045cd5c440fe56cf0ad244e04b558ee",
+          "label": "Same model / current crafted CSS"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "quiet-light-renderer-desktop.jpg",
+      "sha256": "dccdc7ebc37e171b6375604d662865bb574497f03ab08606abc18f0103ef6136",
+      "inputs": [
+        {
+          "filename": "13-before-desktop.png",
+          "originalSize": [
+            1440,
+            4428
+          ],
+          "sha256": "48537a62ca477de1c151a058db8d101dfd34221aae5b8fae5de984da43a2411c",
+          "label": "Same model / prior crafted CSS"
+        },
+        {
+          "filename": "13-after-desktop.png",
+          "originalSize": [
+            1440,
+            4195
+          ],
+          "sha256": "d0090dd260753800e5475f9dd9850bd3c2bd718f506607a2f3cc37ed13819dab",
+          "label": "Same model / current crafted CSS"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "ember-sparse-rich.jpg",
+      "sha256": "f0803d9202a47c0bf7a972daa8da88dbc5d22db7fa406d803a5be3544fde103d",
+      "inputs": [
+        {
+          "filename": "0-after-mobile.png",
+          "originalSize": [
+            390,
+            1575
+          ],
+          "sha256": "a89b70031eaf37fec2017e8245d1262314136802ba1f600524244453635d4a21",
+          "label": "Sparse approved source"
+        },
+        {
+          "filename": "1-after-mobile.png",
+          "originalSize": [
+            390,
+            4392
+          ],
+          "sha256": "a2eb6c494fdfe1a39ea63763f62c7867f3cea9df571241f448aa3c57e4934e8b",
+          "label": "Richer approved source"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "clearleaf-sparse-rich.jpg",
+      "sha256": "39bcf277fae2528b45608858895b460609ce82af60b0f70bf7bc774c00f7a842",
+      "inputs": [
+        {
+          "filename": "2-after-mobile.png",
+          "originalSize": [
+            390,
+            1612
+          ],
+          "sha256": "955a5f3f8ecadf7bb0b7d73b8d1a30cb1b19fc830751a57a31a6d7ae2444aedb",
+          "label": "Sparse approved source"
+        },
+        {
+          "filename": "3-after-mobile.png",
+          "originalSize": [
+            390,
+            3624
+          ],
+          "sha256": "be021748395151f79efda07f5beba4a2f5fa07ce5c3de406634662eecc17cb7c",
+          "label": "Richer approved source"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "quiet-light-sparse-rich.jpg",
+      "sha256": "4a2dfc3f0aea3773b2c16213bc0307fb3e41e240d04e720f86ff1b9b69581b3b",
+      "inputs": [
+        {
+          "filename": "4-after-mobile.png",
+          "originalSize": [
+            390,
+            1356
+          ],
+          "sha256": "1e7db763200dfb9b01643cad1920fdfc9a9669383a2bc3d648f1e1c76d209721",
+          "label": "Sparse approved source"
+        },
+        {
+          "filename": "5-after-mobile.png",
+          "originalSize": [
+            390,
+            3573
+          ],
+          "sha256": "15d6f5306709326565b7df853c34f9fb3045cd5c440fe56cf0ad244e04b558ee",
+          "label": "Richer approved source"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "five-gardening-full-pages.jpg",
+      "sha256": "8d7db075adf0ba00c4de33eba7b9a3a973671f837395181f86b275324a51e311",
+      "inputs": [
+        {
+          "filename": "6-after-mobile.png",
+          "originalSize": [
+            390,
+            2539
+          ],
+          "sha256": "d540c2bff8ee86bd841d0d402e59d0026eaefad982618b40b4469c52a3cf8806",
+          "label": "Garden study 1"
+        },
+        {
+          "filename": "7-after-mobile.png",
+          "originalSize": [
+            390,
+            2669
+          ],
+          "sha256": "422c4aaf62ab128866da5a8113e453ef6d34b5c885825c8277b3a9e01d454edb",
+          "label": "Garden study 2"
+        },
+        {
+          "filename": "8-after-mobile.png",
+          "originalSize": [
+            390,
+            1989
+          ],
+          "sha256": "fc92555cb2b54fea0a6720699b4bf2c033389efb6a0f3247633e9a7c5eaf3b5f",
+          "label": "Garden study 3"
+        },
+        {
+          "filename": "9-after-mobile.png",
+          "originalSize": [
+            390,
+            1864
+          ],
+          "sha256": "1b78e7e0cbc80b79bb41b82f63ec2cfb225bf64e35e92c801c8bead297f2b29c",
+          "label": "Garden study 4"
+        },
+        {
+          "filename": "10-after-mobile.png",
+          "originalSize": [
+            390,
+            2562
+          ],
+          "sha256": "ed86f3f2044b1d1eac565c24c8dc3fc3f6dc642a765094c5057a9a33dfb2c0c6",
+          "label": "Garden study 5"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "benchmark-01-06.jpg",
+      "sha256": "9e90dee4ffcf8b6ac504f030958716aac273f4277c67a054f5d427083d3422f6",
+      "inputs": [
+        {
+          "filename": "0-after-mobile.png",
+          "originalSize": [
+            390,
+            2020
+          ],
+          "sha256": "bde06dabbadedd585adf00cc4559c70711aa2d30f2056bb00cbc31aa09fb9252",
+          "label": "Unreviewed case 1"
+        },
+        {
+          "filename": "1-after-mobile.png",
+          "originalSize": [
+            390,
+            1987
+          ],
+          "sha256": "bced6f2a0ad4c628a5d4d30b6470b5658c9f30f2656bf54af601f41f973345a5",
+          "label": "Unreviewed case 2"
+        },
+        {
+          "filename": "2-after-mobile.png",
+          "originalSize": [
+            390,
+            1899
+          ],
+          "sha256": "b6fadf863dc9a200a73a12b7a338dd27ea21c5fb6644731cb458a55939b930fb",
+          "label": "Unreviewed case 3"
+        },
+        {
+          "filename": "3-after-mobile.png",
+          "originalSize": [
+            390,
+            2023
+          ],
+          "sha256": "fca098c9636a00b9a76c6b623d3ad6ec88e4f1c4ebc918c9fd20b39f0e62835c",
+          "label": "Unreviewed case 4"
+        },
+        {
+          "filename": "4-after-mobile.png",
+          "originalSize": [
+            390,
+            1746
+          ],
+          "sha256": "4fa9d9f0df8f799a548afae6e9573d7d2265837778e933fa8f95033f9863cab4",
+          "label": "Unreviewed case 5"
+        },
+        {
+          "filename": "5-after-mobile.png",
+          "originalSize": [
+            390,
+            1717
+          ],
+          "sha256": "ee932f709671cb28fc09c17081dedfd13970f6454cefee0376a901a3721aa55f",
+          "label": "Unreviewed case 6"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "benchmark-07-12.jpg",
+      "sha256": "9a7eb9a333943e755988071c3c1458879a74fc57c1d16b3d212ba9b3c490ad38",
+      "inputs": [
+        {
+          "filename": "6-after-mobile.png",
+          "originalSize": [
+            390,
+            1867
+          ],
+          "sha256": "c7d05d4b89f06d4045047ead18c5fb70d52a7d110d82a777bf17ac262772a613",
+          "label": "Unreviewed case 7"
+        },
+        {
+          "filename": "7-after-mobile.png",
+          "originalSize": [
+            390,
+            1883
+          ],
+          "sha256": "c0669c2815011fc35ec262f07c0fa72b2423173eda2d84658c982893f4b1c1e2",
+          "label": "Unreviewed case 8"
+        },
+        {
+          "filename": "8-after-mobile.png",
+          "originalSize": [
+            390,
+            2053
+          ],
+          "sha256": "ae34fe42ec5c11306a962e0ee3e8a4b60281389e4abbb423fe7ee29881cfc4f2",
+          "label": "Unreviewed case 9"
+        },
+        {
+          "filename": "9-after-mobile.png",
+          "originalSize": [
+            390,
+            2063
+          ],
+          "sha256": "b82f13ada14097ba154868d8fc3387a9d85e0c1bfe8432085da674980886eee9",
+          "label": "Unreviewed case 10"
+        },
+        {
+          "filename": "10-after-mobile.png",
+          "originalSize": [
+            390,
+            1961
+          ],
+          "sha256": "ba6a25f133119e93162b1a5f8368d5df076c7b9516f9895f70c064bf9e7d0797",
+          "label": "Unreviewed case 11"
+        },
+        {
+          "filename": "11-after-mobile.png",
+          "originalSize": [
+            390,
+            2000
+          ],
+          "sha256": "f3711953c11a1feeb936700c0cffced803066c5cd31bf50b537776002f07717a",
+          "label": "Unreviewed case 12"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "benchmark-13-18.jpg",
+      "sha256": "8ee3948f14317a66be13689021fdd10d4722b7b853a1838c34e32ec24882a9d4",
+      "inputs": [
+        {
+          "filename": "12-after-mobile.png",
+          "originalSize": [
+            390,
+            1670
+          ],
+          "sha256": "42c469093ce78b97f1d989a9d887d494742290172e75a00cae9f2dd9fe73795e",
+          "label": "Unreviewed case 13"
+        },
+        {
+          "filename": "13-after-mobile.png",
+          "originalSize": [
+            390,
+            1717
+          ],
+          "sha256": "0c809e8836eaae89342637539f4ef6e41323ba56643e0998bdb42a9af80e3a9e",
+          "label": "Unreviewed case 14"
+        },
+        {
+          "filename": "14-after-mobile.png",
+          "originalSize": [
+            390,
+            1803
+          ],
+          "sha256": "9da62a6689e68faefec72dd4053d1ad886b4cfdf4d0105f53ce12d93ca47cae3",
+          "label": "Unreviewed case 15"
+        },
+        {
+          "filename": "15-after-mobile.png",
+          "originalSize": [
+            390,
+            1733
+          ],
+          "sha256": "070e8ad2e58507dec0a97def34fa4790bd26aa6ad2819f50c7f5a5430f5e622e",
+          "label": "Unreviewed case 16"
+        },
+        {
+          "filename": "16-after-mobile.png",
+          "originalSize": [
+            390,
+            2008
+          ],
+          "sha256": "edc58312906aa1ce104a029f2c40dee117fa03fb96f625445015377064152c96",
+          "label": "Unreviewed case 17"
+        },
+        {
+          "filename": "17-after-mobile.png",
+          "originalSize": [
+            390,
+            2050
+          ],
+          "sha256": "0f301a4528d4ed01ee0c0959b06c8ac90d5eee77fe5c603e0b7de2bdae0a1fba",
+          "label": "Unreviewed case 18"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "benchmark-19-24.jpg",
+      "sha256": "fd1739b727de5859cb8244312794f979bf09d77fcf957b7a4f097653d4f4eee9",
+      "inputs": [
+        {
+          "filename": "18-after-mobile.png",
+          "originalSize": [
+            390,
+            2054
+          ],
+          "sha256": "bb0729867bf8f793e97af82569ae7afd80c65161f3a059d616cc6baf118d22f8",
+          "label": "Unreviewed case 19"
+        },
+        {
+          "filename": "19-after-mobile.png",
+          "originalSize": [
+            390,
+            2017
+          ],
+          "sha256": "8332d3cedd896de8500a48c8ccc96def591cc4f00fb68b506d5615b1eea9a9fa",
+          "label": "Unreviewed case 20"
+        },
+        {
+          "filename": "20-after-mobile.png",
+          "originalSize": [
+            390,
+            1746
+          ],
+          "sha256": "5fe2d6da91aec6bed0f77e3bb6f2491b800718c2a35945761ee6614cb2ac574e",
+          "label": "Unreviewed case 21"
+        },
+        {
+          "filename": "21-after-mobile.png",
+          "originalSize": [
+            390,
+            1670
+          ],
+          "sha256": "4080327fc08e3238bc6053e0d47cb7ff7e513d722aa7cc4715c568544f230371",
+          "label": "Unreviewed case 22"
+        },
+        {
+          "filename": "22-after-mobile.png",
+          "originalSize": [
+            390,
+            1727
+          ],
+          "sha256": "644396a1a6b23401044905d723c4f98ea9f9a1186161b2027a81ea7a51359c5a",
+          "label": "Unreviewed case 23"
+        },
+        {
+          "filename": "23-after-mobile.png",
+          "originalSize": [
+            390,
+            1880
+          ],
+          "sha256": "082b879446797b46561d584d759d15029739df62a00283d1a8b022534a1ae554",
+          "label": "Unreviewed case 24"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": null
+    },
+    {
+      "file": "benchmark-first-impressions.jpg",
+      "sha256": "b4a7fb20c3627bffbeac26279610849ae7ea29eec4b67c5a4c24a420bd544ffe",
+      "inputs": [
+        {
+          "filename": "0-after-mobile.png",
+          "originalSize": [
+            390,
+            2020
+          ],
+          "sha256": "bde06dabbadedd585adf00cc4559c70711aa2d30f2056bb00cbc31aa09fb9252",
+          "label": "Case 1"
+        },
+        {
+          "filename": "1-after-mobile.png",
+          "originalSize": [
+            390,
+            1987
+          ],
+          "sha256": "bced6f2a0ad4c628a5d4d30b6470b5658c9f30f2656bf54af601f41f973345a5",
+          "label": "Case 2"
+        },
+        {
+          "filename": "2-after-mobile.png",
+          "originalSize": [
+            390,
+            1899
+          ],
+          "sha256": "b6fadf863dc9a200a73a12b7a338dd27ea21c5fb6644731cb458a55939b930fb",
+          "label": "Case 3"
+        },
+        {
+          "filename": "3-after-mobile.png",
+          "originalSize": [
+            390,
+            2023
+          ],
+          "sha256": "fca098c9636a00b9a76c6b623d3ad6ec88e4f1c4ebc918c9fd20b39f0e62835c",
+          "label": "Case 4"
+        },
+        {
+          "filename": "4-after-mobile.png",
+          "originalSize": [
+            390,
+            1746
+          ],
+          "sha256": "4fa9d9f0df8f799a548afae6e9573d7d2265837778e933fa8f95033f9863cab4",
+          "label": "Case 5"
+        },
+        {
+          "filename": "5-after-mobile.png",
+          "originalSize": [
+            390,
+            1717
+          ],
+          "sha256": "ee932f709671cb28fc09c17081dedfd13970f6454cefee0376a901a3721aa55f",
+          "label": "Case 6"
+        },
+        {
+          "filename": "6-after-mobile.png",
+          "originalSize": [
+            390,
+            1867
+          ],
+          "sha256": "c7d05d4b89f06d4045047ead18c5fb70d52a7d110d82a777bf17ac262772a613",
+          "label": "Case 7"
+        },
+        {
+          "filename": "7-after-mobile.png",
+          "originalSize": [
+            390,
+            1883
+          ],
+          "sha256": "c0669c2815011fc35ec262f07c0fa72b2423173eda2d84658c982893f4b1c1e2",
+          "label": "Case 8"
+        },
+        {
+          "filename": "8-after-mobile.png",
+          "originalSize": [
+            390,
+            2053
+          ],
+          "sha256": "ae34fe42ec5c11306a962e0ee3e8a4b60281389e4abbb423fe7ee29881cfc4f2",
+          "label": "Case 9"
+        },
+        {
+          "filename": "9-after-mobile.png",
+          "originalSize": [
+            390,
+            2063
+          ],
+          "sha256": "b82f13ada14097ba154868d8fc3387a9d85e0c1bfe8432085da674980886eee9",
+          "label": "Case 10"
+        },
+        {
+          "filename": "10-after-mobile.png",
+          "originalSize": [
+            390,
+            1961
+          ],
+          "sha256": "ba6a25f133119e93162b1a5f8368d5df076c7b9516f9895f70c064bf9e7d0797",
+          "label": "Case 11"
+        },
+        {
+          "filename": "11-after-mobile.png",
+          "originalSize": [
+            390,
+            2000
+          ],
+          "sha256": "f3711953c11a1feeb936700c0cffced803066c5cd31bf50b537776002f07717a",
+          "label": "Case 12"
+        },
+        {
+          "filename": "12-after-mobile.png",
+          "originalSize": [
+            390,
+            1670
+          ],
+          "sha256": "42c469093ce78b97f1d989a9d887d494742290172e75a00cae9f2dd9fe73795e",
+          "label": "Case 13"
+        },
+        {
+          "filename": "13-after-mobile.png",
+          "originalSize": [
+            390,
+            1717
+          ],
+          "sha256": "0c809e8836eaae89342637539f4ef6e41323ba56643e0998bdb42a9af80e3a9e",
+          "label": "Case 14"
+        },
+        {
+          "filename": "14-after-mobile.png",
+          "originalSize": [
+            390,
+            1803
+          ],
+          "sha256": "9da62a6689e68faefec72dd4053d1ad886b4cfdf4d0105f53ce12d93ca47cae3",
+          "label": "Case 15"
+        },
+        {
+          "filename": "15-after-mobile.png",
+          "originalSize": [
+            390,
+            1733
+          ],
+          "sha256": "070e8ad2e58507dec0a97def34fa4790bd26aa6ad2819f50c7f5a5430f5e622e",
+          "label": "Case 16"
+        },
+        {
+          "filename": "16-after-mobile.png",
+          "originalSize": [
+            390,
+            2008
+          ],
+          "sha256": "edc58312906aa1ce104a029f2c40dee117fa03fb96f625445015377064152c96",
+          "label": "Case 17"
+        },
+        {
+          "filename": "17-after-mobile.png",
+          "originalSize": [
+            390,
+            2050
+          ],
+          "sha256": "0f301a4528d4ed01ee0c0959b06c8ac90d5eee77fe5c603e0b7de2bdae0a1fba",
+          "label": "Case 18"
+        },
+        {
+          "filename": "18-after-mobile.png",
+          "originalSize": [
+            390,
+            2054
+          ],
+          "sha256": "bb0729867bf8f793e97af82569ae7afd80c65161f3a059d616cc6baf118d22f8",
+          "label": "Case 19"
+        },
+        {
+          "filename": "19-after-mobile.png",
+          "originalSize": [
+            390,
+            2017
+          ],
+          "sha256": "8332d3cedd896de8500a48c8ccc96def591cc4f00fb68b506d5615b1eea9a9fa",
+          "label": "Case 20"
+        },
+        {
+          "filename": "20-after-mobile.png",
+          "originalSize": [
+            390,
+            1746
+          ],
+          "sha256": "5fe2d6da91aec6bed0f77e3bb6f2491b800718c2a35945761ee6614cb2ac574e",
+          "label": "Case 21"
+        },
+        {
+          "filename": "21-after-mobile.png",
+          "originalSize": [
+            390,
+            1670
+          ],
+          "sha256": "4080327fc08e3238bc6053e0d47cb7ff7e513d722aa7cc4715c568544f230371",
+          "label": "Case 22"
+        },
+        {
+          "filename": "22-after-mobile.png",
+          "originalSize": [
+            390,
+            1727
+          ],
+          "sha256": "644396a1a6b23401044905d723c4f98ea9f9a1186161b2027a81ea7a51359c5a",
+          "label": "Case 23"
+        },
+        {
+          "filename": "23-after-mobile.png",
+          "originalSize": [
+            390,
+            1880
+          ],
+          "sha256": "082b879446797b46561d584d759d15029739df62a00283d1a8b022534a1ae554",
+          "label": "Case 24"
+        }
+      ],
+      "processing": "Original verified browser PNGs; proportional Lanczos resize and labels only. No generated imagery.",
+      "firstScreenCrop": 900
+    }
+  ],
+  "approvedGoldStandards": 0
+}

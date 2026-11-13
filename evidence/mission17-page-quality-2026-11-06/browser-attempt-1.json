@@ -1,0 +1,58 @@
+{
+  "status": "failed_then_superseded",
+  "runId": 42233902904,
+  "jobId": 127946439306,
+  "source": {
+    "commit": "cc01032d1cc590b8afd4fa41ae660756d397fd22",
+    "tree": "03ca53ea15fe6c0091070586fc2f668fee7b3534",
+    "workingTreeChanged": false
+  },
+  "summary": {
+    "source": {
+      "commit": "cc01032d1cc590b8afd4fa41ae660756d397fd22",
+      "tree": "03ca53ea15fe6c0091070586fc2f668fee7b3534",
+      "workingTreeChanged": false
+    },
+    "browser": "145.0.7632.6",
+    "reviewPack": null,
+    "pages": 35,
+    "fullPageScreenshots": 294,
+    "actualNavigationChecks": 222,
+    "afterFailures": [
+      "moor-meadow-rich/home/after/mobile open service group clipping",
+      "moor-meadow-rich/home/after/desktop open service group clipping",
+      "ember-rich/home/after/mobile open service group clipping",
+      "ember-rich/home/after/desktop open service group clipping",
+      "quiet-light-rich/home/after/mobile open service group clipping",
+      "quiet-light-rich/home/after/desktop open service group clipping",
+      "quiet-light-rich/page-brand-direction/after/desktop clipped content [{\"tag\":\"LI\",\"text\":\"Services+ServicesOverviewBrand directionWebsite contentCreative review\"}]",
+      "quiet-light-rich/page-website-content/after/desktop clipped content [{\"tag\":\"LI\",\"text\":\"Services+ServicesOverviewBrand directionWebsite contentCreative review\"}]",
+      "quiet-light-rich/page-creative-review/after/desktop clipped content [{\"tag\":\"LI\",\"text\":\"Services+ServicesOverviewBrand directionWebsite contentCreative review\"}]"
+    ],
+    "baselineFindings": 50,
+    "viewports": [
+      "mobile",
+      "desktop",
+      "tablet",
+      "narrow",
+      "retina"
+    ],
+    "maximumImageBodyBytes": 1251334,
+    "captureWallMs": 128864,
+    "nodeCpuMicroseconds": {
+      "user": 13052730,
+      "system": 1418600
+    },
+    "nodeMaxRssKiB": 422736,
+    "pixelReceiptBytes": 1372736,
+    "pixelReceiptCount": 24,
+    "professionalAcceptance": false,
+    "providerCalls": 0
+  },
+  "attribution": "Original M16 workflow renderer-only comparison reuses the final current model. Its before screenshots are not the original Mission16 planning journey. Mission17's separate pinned generator supplies the true old-planner/old-renderer before.",
+  "professionalReview": {
+    "actualDefect": "Quiet Light generated text-service pages retained an empty editorial heading track, making desktop copy too narrow. Narrow default-only CSS fix and browser body-width counterexample added.",
+    "measurementDefect": "Nine clipping reports refer to LI wrapper scroll extents around visible service navigation; independent real pixel review confirmed all sidebar text visible. Detector now checks own text geometry and actual clipping ancestors, with four negative controls."
+  },
+  "providerCalls": 0
+}

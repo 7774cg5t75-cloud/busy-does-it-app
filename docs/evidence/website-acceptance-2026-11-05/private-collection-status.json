@@ -1,0 +1,14 @@
+{
+  "candidates": 3,
+  "approvedCount": 0,
+  "states": [
+    "candidate",
+    "candidate",
+    "candidate"
+  ],
+  "independentReadback": true,
+  "privateCollectionCommitted": false,
+  "purpose": "Private principles and review; never cloneable templates or public marketing",
+  "ownerAcceptance": "Not supplied",
+  "starterPackage": "Not supplied; separate-package reconciliation pending"
+}

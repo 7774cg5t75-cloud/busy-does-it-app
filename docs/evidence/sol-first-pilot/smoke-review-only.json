@@ -1,0 +1,43 @@
+{
+  "version": "busy.ai-lab-creative-smoke-handoff.v1",
+  "status": "review-only-not-authorized",
+  "marker": ".github/ai-lab-creative-smoke-request.json",
+  "markerMustBeAbsent": true,
+  "inventory": {
+    "files": {
+      ".github/workflows/ai-lab-creative-smoke.yml": "87a6b245f3e1c58a28c97da3041fbdd0cfed7821f4db85276f98b43812803cba",
+      "scripts/lib/ai-lab-creative-smoke-handoff.mjs": "c18976949f51bfe04870ce8071b8d2c8cf785930195caca05e89e0cf3b0f1f2d",
+      "scripts/lib/creative-document-deployment-packet.mjs": "7ec631a0f33331904d2c743a663f154053aacaa5e477ecc8039091a1f3293239",
+      "scripts/lib/disabled-creative-document-smoke.mjs": "f1df312355a90af9573665626e3dc166c6a53ca53f039a3a8713ff83b89ba84f",
+      "scripts/run-ai-lab-creative-smoke.mjs": "8142700c22555c7b80c9d3e6366eea7b20d8ff0a09a08f17da0d5360cefc41e7",
+      "src/core/stableJson.mjs": "9d8c96c648832f4325b889d19bbabcef98986296689a7c56273ae27abe8f11b1"
+    },
+    "filesDigest": "d48a25ba7c34631d31294fe3a254c5cb48ba54cff953e20e63133d8adb23ab55"
+  },
+  "deploymentFilesDigest": "ad3669fea24ec30dc76702159e11eb4953a956100a59f084266f722c1b1dc471",
+  "target": {
+    "projectId": "sbvkrvksnruiclcvclbd",
+    "organisationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "functionName": "busy-creative-document-pilot",
+    "verifyJwt": true
+  },
+  "protection": {
+    "environment": "busy-ai-lab-b3-source",
+    "requiredReviewer": "7774cg5t75-cloud",
+    "nativeEnvironmentId": 26548866516,
+    "attempt": 1,
+    "automaticRetry": false
+  },
+  "approvalComment": "BUSY_AI_LAB_CREATIVE_SMOKE_V1 run=RUN_ID attempt=1 sha=EVENT_SHA expires=YYYY-MM-DDTHH:MM:SSZ",
+  "noNewSecretRequired": true,
+  "onlyExistingLabPublishableBinding": true,
+  "maximumSmokeRequests": 3,
+  "providerCalls": 0,
+  "nativeSignIns": 0,
+  "applicationWrites": 0,
+  "spendingGBP": 0,
+  "deployment": false,
+  "smokeExecution": false,
+  "warning": "Native review-history access, current protections and independently verified deployed bytes still require real acceptance after separate approval. No actual marker, approval comment or job is created."
+}

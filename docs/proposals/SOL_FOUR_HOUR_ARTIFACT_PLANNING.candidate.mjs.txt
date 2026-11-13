@@ -1,0 +1,9 @@
+// UNAPPLIED OWNER-REVIEW CANDIDATE. Not a module imported by the application,
+// compiler, C2 runner or paid caller. Not D and not operational authority.
+// Proposed scope: a maximum4h review-planning estimate for unchanged artifacts.
+// Any use requires separate exact owner review of this candidate and its facts.
+export function proposedArtifactReviewPlanningCeiling({reviewStartedAt,preparationPermitExpiresAt,originalSupportingDeadlines}){
+ if(!Number.isSafeInteger(reviewStartedAt)||reviewStartedAt<=0||!Number.isSafeInteger(preparationPermitExpiresAt)||!Array.isArray(originalSupportingDeadlines)||!originalSupportingDeadlines.length||!originalSupportingDeadlines.every(time=>Number.isSafeInteger(time)&&time>0))throw Error('INVALID_ORIGINAL_PLANNING_FACTS');
+ const reviewDeadline=Math.min(reviewStartedAt+14400000,preparationPermitExpiresAt,...originalSupportingDeadlines);
+ return {status:'unapproved-artifact-review-planning-only',reviewDeadline,mayIssueD:false,mayDeploy:false,mayReadCredentials:false,mayReserve:false,mayDispatch:false,maySpend:false,mayWriteWebsite:false,mayPublish:false};
+}

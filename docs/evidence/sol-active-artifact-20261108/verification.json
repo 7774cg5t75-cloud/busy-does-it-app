@@ -1,0 +1,40 @@
+{
+  "version": "busy.sol-active-artifact-local-verification.v1",
+  "status": "offline-engineering-only",
+  "baseCommit": "c4cac5dd932bb8ccffc6dac29abcaa4641c8d508",
+  "files": {
+    "scripts/lib/sol-active-artifact.mjs": "6129c5a28bcc22420cc86a1b4739e458e39f240870dc42c4e90da3af519c6a62",
+    "scripts/check-sol-active-artifact.mjs": "5474c45861e6bd23d6c30d0423ff4cc60da16d7fce9cda8c3b1a389e02d67f0a"
+  },
+  "tests": {
+    "passed": 39,
+    "failed": 0,
+    "evidence": "public fictional source and synthetic approval/count/tariff/financial records only"
+  },
+  "firstInvocation": {
+    "status": "test-helper-failure-corrected",
+    "reason": "Uint8Array was initially JSON-hashed by the test fixture helper; corrected to byte hashing without changing application guards"
+  },
+  "syntax": "passed",
+  "diffCheck": "passed",
+  "genuineActiveArtifactWritten": false,
+  "repositoryEntryModified": false,
+  "originalAuthoritiesModified": false,
+  "credentialsRead": 0,
+  "providerCalls": 0,
+  "hostedCalls": 0,
+  "hostedWrites": 0,
+  "spendingGBP": 0,
+  "newApprovalGranted": false,
+  "actualEvidenceMissing": [
+    "genuine complete count",
+    "justified verified all-in tariff",
+    "original Sol-only financial readback",
+    "accepted provenance",
+    "fresh exact D approval"
+  ],
+  "functionalCommit": "12711991cd6e2a6afe92c7f98667e0a7e2b9b134",
+  "functionalTree": "c10e9b97ff3f91ea2d22dc366889ee13280782c8",
+  "sourceFrozen": true,
+  "frozenKind": "local preparation only; no external action approved"
+}

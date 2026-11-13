@@ -1,0 +1,229 @@
+{
+  "attempt": 7,
+  "status": "success-final-frozen-functional-source",
+  "workflow": {
+    "name": "Private App goal composition and original authority verification",
+    "file": ".github/workflows/app-goal-composition.yml",
+    "runId": 42245617546,
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617546",
+    "jobId": 127986939561,
+    "jobName": "original-source",
+    "jobConclusion": "success"
+  },
+  "sourceSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+  "sourceTree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+  "application": {
+    "sourceSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "sourceTree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+    "finalSourceSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "finalSourceTree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+    "sourceStable": true,
+    "workingTreeChanged": false,
+    "summary": {
+      "passed": 509,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    }
+  },
+  "foundation": {
+    "assertionsPassed": 105,
+    "assertionsFailed": 0,
+    "actualConsoleEvidence": "Production foundation check passed: 105 checks."
+  },
+  "focusedMission17": {
+    "wholeSiteAuthorityCases": 10,
+    "innerPageCases": 17,
+    "innerPageAssertions": 258,
+    "currentSourceNavigationCases": 9,
+    "serviceOverviewCases": 10,
+    "failed": 0,
+    "scope": "Focused cases inside the already counted application scripts, not additional unique application-check totals."
+  },
+  "disposablePostgres": {
+    "commandSuites": 8,
+    "receiptSummaries": {
+      "ai-budget": {
+        "failed": 0,
+        "passed": 32
+      },
+      "ai-lab-foundation": {
+        "failed": 0,
+        "passed": 19
+      },
+      "enquiry-preparation": {
+        "failed": 0,
+        "passed": 13
+      },
+      "operational-work": {
+        "failed": 0,
+        "passed": 13
+      },
+      "preservation-foundation": {
+        "failed": 0,
+        "passed": 13
+      },
+      "public-form": {
+        "failed": 0,
+        "passed": 21
+      },
+      "whole-app": {
+        "failed": 0,
+        "passed": 126
+      },
+      "whole-site": {
+        "failed": 0,
+        "passed": 12
+      },
+      "work-preparation": {
+        "failed": 0,
+        "passed": 12
+      }
+    }
+  },
+  "genuineDeno": {
+    "originalEntrypoints": 26,
+    "explicitProposalModules": 4,
+    "totalTargets": 30,
+    "exitCode": 0,
+    "version": "2.5.6",
+    "consoleMarker": "BUSY_EDGE_RESULT all_26_original_entrypoints_and_4_proposal_modules_exit_0",
+    "scope": "Original frozen source copied with diff verification, pinned official tools and dependencies. Type checking only; no Edge deployment."
+  },
+  "securityAndCompilation": {
+    "reviewedLockInstall": true,
+    "deepmergeGuardedBackport": true,
+    "originalSecurityBaseline": true,
+    "securityByDesign": true,
+    "sourceSyntax13Files": true,
+    "nativeCryptoAndSecureStoreAutolinking": true,
+    "originalLegacyWebsiteScopeScripts": 8,
+    "unsignedOwnerPreviewIosExport": true,
+    "unsignedIsolatedStagingIosExport": true,
+    "nativeDeviceAcceptance": false,
+    "physicalDeviceTest": false,
+    "signedBuild": false,
+    "hermesBytecodeHeaderIndependentlyInspected": false,
+    "exportScope": "Two genuine unsigned iOS exports; no stronger native or physical-device acceptance claimed."
+  },
+  "architectureEvidence": {
+    "file": "evidence/mission17-page-quality-2026-11-06/architecture-final-source.json",
+    "sameFrozenSource": true,
+    "readOnlyCommand": "node scripts/audit-architecture-v3195.mjs",
+    "exitCode": 0,
+    "sourceFiles": 1957,
+    "physicalLines": 179525,
+    "staticRelativeEdges": 4672,
+    "distinctStaticCycles": 0,
+    "scope": "Current-source static census plus original module/equality integrity checks; dynamic/runtime graphs, aesthetics and hosted state are outside scope."
+  },
+  "artifact": {
+    "id": 13517793659,
+    "name": "private-app-goal-1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "sha256": "57e90e8dffea25741d0e3c6a495a575c22ed469dc48ec4f51ad4467bb5eb7d8e",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617546/artifacts/13517793659"
+  },
+  "countUnits": "509 application script checks;105 foundation assertions; per-receipt PostgreSQL passed/failed stages from eight commands and nine reports (operational-work is nested). Do not add these as unique assertions or aesthetic quality scores.",
+  "supersededEvidence": "Earlier failed/cancelled runs remain separately recorded. The complete successful sixth run belongs to ea6873a and is not reused as final-source evidence.",
+  "boundaries": {
+    "hostedInstallation": false,
+    "hostedDeployment": false,
+    "paidInference": false,
+    "publication": false,
+    "customerCommunication": false,
+    "syntheticDisposableDataOnly": true
+  },
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1
+    },
+    {
+      "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2
+    },
+    {
+      "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3
+    },
+    {
+      "name": "Reviewed lock installation and security guard",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4
+    },
+    {
+      "name": "Original contract and component behaviour",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5
+    },
+    {
+      "name": "Original legacy Website worker scopes with real shared dependencies",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 6
+    },
+    {
+      "name": "Genuine original Edge checks with pinned official verification tools",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7
+    },
+    {
+      "name": "Signed PostgreSQL 17 tooling matching staging ACLs",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 8
+    },
+    {
+      "name": "Disposable local PostgreSQL, no TCP or hosted connection",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9
+    },
+    {
+      "name": "Unsigned original Owner Preview and isolated staging exports",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 10
+    },
+    {
+      "name": "Complete frozen-source regressions",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 11
+    },
+    {
+      "name": "Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 12
+    },
+    {
+      "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 23
+    },
+    {
+      "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 24
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 25
+    }
+  ],
+  "evidenceScope": "Independently read GitHub Actions job status and actual decoded bounded console results. Browser professional visual acceptance and other nine workflow receipts are separately reviewed evidence."
+}

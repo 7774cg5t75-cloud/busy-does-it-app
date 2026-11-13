@@ -1,0 +1,34 @@
+{
+  "scope": "Pre-freeze local development; superseded by passing13-stage exact final rehearsal. No hosted DDL or customer rows.",
+  "attempts": [
+    {
+      "attempt": "Initial local socket access",
+      "outcome": "sandbox EPERM, then no daemon; resolved with restricted local socket permissions and local-only synthetic PostgreSQL daemon. No external database."
+    },
+    {
+      "attempt": "Initial synthetic catalogue comparison",
+      "outcome": "incorrect scalar JSON collector and missing explicit owner default ACL rows; corrected collector and fixture legalDDL to match actual hosted metadata without changing hosted controls."
+    },
+    {
+      "attempt": "Locale-sensitive mixed-case defaultACL array ordering",
+      "outcome": "used explicit COLLATE C for portable sorted metadata. Underlying ACL values unchanged."
+    },
+    {
+      "attempt": "Initial sequence row fingerprint",
+      "outcome": "PostgreSQL sequences have no composite rowtype; corrected to explicit last_value/is_called JSON. Early broad negative cases superseded by exact reason-checked failures."
+    },
+    {
+      "attempt": "Sequence nextval injection placement",
+      "outcome": "separated nontransactional sequence movement into its own regression. Final test retains advanced synthetic sequence, never rewinds and proves install preserves it."
+    },
+    {
+      "attempt": "Execution server transient disconnect",
+      "outcome": "recovered without source loss or hosted action."
+    },
+    {
+      "attempt": "First frozen CI42117650369 at d8eae099d655ba44fd4cc1b9a2b8ce6c857a3940",
+      "outcome": "Failed in exact catalogue fixture because default runner pg_config selected PostgreSQL16.15, which has no MAINTAIN privilege. Existing original217 PostgreSQL stages passed before the new test. Superseded by explicit signed PGDG PostgreSQL17 CI and an exact-major17 test guard; no ACL normalization or assertion removal. Initial browser run42117650583 is superseded by final source run."
+    }
+  ],
+  "negativeAssertionsWeakened": false
+}

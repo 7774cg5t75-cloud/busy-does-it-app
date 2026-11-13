@@ -1,0 +1,14 @@
+{
+  "commit": "d8eae099d655ba44fd4cc1b9a2b8ce6c857a3940",
+  "tree": "bf27701543ae2344e0ed7798694d5240c4dc9eba",
+  "mainRun": 42117650369,
+  "mainJob": 127561459951,
+  "artifact": 13457078015,
+  "conclusion": "failure",
+  "exactError": "ERROR: unrecognized privilege type \"maintain\"",
+  "engineSelected": "PostgreSQL16.15 via default pg_config",
+  "failedStage": "New preservation disposable catalogue fixture; original existing PostgreSQL stages passed",
+  "remediation": "Explicit major17 from official PGDG signed APT with primary signing fingerprint verification, no service starts/main cluster, local socket only; exact major17 test assertion. No ACL simplification.",
+  "supersededBy": "f790872f4e3177f47bb617eff24a2940b629979a",
+  "approvalOrProviderUse": false
+}

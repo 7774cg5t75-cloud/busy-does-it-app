@@ -1,3 +1,4 @@
+import {verifyOriginalWebsiteInstructionRuntime} from "./lib/original-website-instruction-runtime.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {validPrivateBuilderPair,reviewedPairIsCurrent}
@@ -108,7 +109,9 @@ eq(dna.assets.logoUrl,"");
 eq(dna.assets.photos.length,3);
 eq(dna.assets.photos[0].alt,"White wedding roses");
 eq(dna.services.length,2);
-eq(dna.conflicts.length,2);
+eq(dna.conflicts.length,4);
+ok(dna.conflicts.some(x=>x.includes('shared service description(s) differ')));
+ok(dna.conflicts.some(x=>x.includes('Service coverage differs:')));
 eq(dna.privateOnly,true);eq(dna.requiresOwnerReview,true);
 eq(dna.autoPublishes,false);eq(dna.savesBrandMemory,false);
 const serialized=JSON.stringify(dna);
@@ -161,8 +164,8 @@ ok(ui.includes("planBrandDnaContentBrief(dna,{channel,"));
 ok(ui.includes("onPress={()=>setChannel(key)}"));
 // V3.198 can now prepare a PRIVATE text draft; no publication remains guaranteed.
 ok(ui.includes("Nothing has been published."));
-ok(read("src/screens/websiteBuilder.js").includes("<BusinessBrandDnaPreview website={draft}"));
-ok(read("src/screens/miniApps.js").includes("<BusinessBrandDnaPreview website={s.websiteDraft}"));
+ok(/<BusinessBrandDnaPreview\b[^>]*website=\{draft\}/.test(read("src/screens/websiteBuilder.js")),"Shared Brand DNA remains wired with identity-scoped keys");
+ok(/<BusinessBrandDnaPreview\b[^>]*website=\{s.websiteDraft\}/.test(read("src/screens/miniApps.js")),"App-side Brand DNA remains wired with identity-scoped keys");
 // Architectural consolidation must stay wired in the reviewed actions.
 for(const path of [
  "src/core/ownerBuilderBrandBridgeV3193.mjs",
@@ -175,7 +178,8 @@ for(const path of [
 }
 const ctrl=read("src/app/AppController.js");
 ok(ctrl.includes("const commitReviewedBuilderDraft="));
-eq((ctrl.match(/commitReviewedBuilderDraft\(current,/g)||[]).length,6);
+// Exercise the original commit/Undo handlers; adding a reviewed caller must not break a call-count assertion.
+verifyOriginalWebsiteInstructionRuntime();
 ok(ctrl.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"));
 ok(ctrl.includes("confirmMatchAppBrandToWebsite(current,app,{businessId,evidence})"));
 ok(ctrl.includes("confirmMatchAppTypeToWebsite(current,app,{businessId,evidence})"));

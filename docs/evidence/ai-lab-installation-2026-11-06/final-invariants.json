@@ -1,0 +1,83 @@
+{
+  "policy": {
+    "enabled": false,
+    "monthlyHardLimit": 0
+  },
+  "aiEvents": 0,
+  "observedAt": "2026-11-06T22:27:50.141703+00:00",
+  "aiOperations": 0,
+  "authUserCount": 0,
+  "businessCount": 0,
+  "eventTriggers": [
+    {
+      "name": "ensure_rls",
+      "tags": [
+        "CREATE TABLE",
+        "CREATE TABLE AS",
+        "SELECT INTO"
+      ],
+      "event": "ddl_command_end",
+      "owner": "postgres",
+      "enabled": "O",
+      "function": "rls_auto_enable()"
+    },
+    {
+      "name": "issue_graphql_placeholder",
+      "tags": [
+        "DROP EXTENSION"
+      ],
+      "event": "sql_drop",
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "set_graphql_placeholder()"
+    },
+    {
+      "name": "issue_pg_cron_access",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "event": "ddl_command_end",
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "grant_pg_cron_access()"
+    },
+    {
+      "name": "issue_pg_graphql_access",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "event": "ddl_command_end",
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "grant_pg_graphql_access()"
+    },
+    {
+      "name": "issue_pg_net_access",
+      "tags": [
+        "CREATE EXTENSION"
+      ],
+      "event": "ddl_command_end",
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "grant_pg_net_access()"
+    },
+    {
+      "name": "pgrst_ddl_watch",
+      "tags": null,
+      "event": "ddl_command_end",
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "pgrst_ddl_watch()"
+    },
+    {
+      "name": "pgrst_drop_watch",
+      "tags": null,
+      "event": "sql_drop",
+      "owner": "supabase_admin",
+      "enabled": "O",
+      "function": "pgrst_drop_watch()"
+    }
+  ],
+  "membershipCount": 0,
+  "transactionReadOnly": "on"
+}

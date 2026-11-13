@@ -77,7 +77,8 @@ const colour=auditStandaloneContrast();
 assert.equal(colour.measuredPaletteOnly,true);
 assert.equal(colour.accessibilityCertified,false);
 assert.equal(colour.textScalingChecked,false);
-assert.equal(colour.readings.length,6);
+assert.deepEqual(new Set(colour.readings.map(row=>row.id)),new Set(['body_text','secondary_text','service_accent_text','page_header','primary_button_label','navigation_label','inactive_button_label']));
+assert.ok(colour.readings.find(row=>row.id==='service_accent_text').passes);
 assert.equal(colour.readings.some(x=>x.id==="inactive_button_label"&&x.passes===null),true);
 // V3.192+ uses one imported palette engine rather than inline tokens.
 assert.ok(read("standalone/template/App.js").includes('import {nativePalette} from "./nativePalette.mjs"'));

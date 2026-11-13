@@ -12,7 +12,7 @@ const DRAFT={
  enquiry:"Thank you for your enquiry. I'll review the details and get back to you.",
  booking_request:"Thank you for your booking request. I'll check the details before confirming whether an appointment is available."
 };
-const fail=reason=>({ok:false,reason,canOfferDraft:false,canAutoSend:false,
+const fail=reason=>({ok:/** @type {const} */ (false),reason,canOfferDraft:false,canAutoSend:false,
  independentProviderDeliveryVerified:false,customerOutcomeConfirmed:false});
 function decideFreshOwnerFollowup({
  businessId="",appId="",requestId="",row=null,messages=[],
@@ -69,7 +69,7 @@ function decideFreshOwnerFollowup({
   second?.id||"none",second?.created_at||"none"
  ].join("|");
  const suggestion=category==="needsReply"?DRAFT[row.request_type]:null;
- return {ok:true,kind:"fresh_owner_followup_v3207",
+ return {ok:/** @type {const} */ (true),kind:"fresh_owner_followup_v3207",
   businessId,appId,requestId,requestType:row.request_type,
   category,why,sourceStamp,
   latestMessageRole:latest?.sender_role||"none",

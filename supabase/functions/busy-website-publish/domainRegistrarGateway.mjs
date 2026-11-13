@@ -62,6 +62,7 @@ function normalizeRegistrarLookup({domain,businessId,providerId,raw,now=Date.now
  * Injection is SERVER ONLY, never from a request body.
  * The released code deliberately supplies null so no network request occurs.
  */
+/** @param {{domain?:string,businessId?:string,adapter?:{id:string,lookup:Function}|null,now?:number}} [input] */
 async function checkRegistrarDomain({domain,businessId,adapter=null,now=Date.now()}={}){
  const clean=validDomain(domain);
  if(!clean||!validBusiness(businessId))

@@ -1,0 +1,259 @@
+{
+  "mission": "Four-edge BUSY and coordinated travelling light",
+  "source": {
+    "initialLocal": "c70e0c8a4a4851f6dd509d845693e387d7e6938d",
+    "initialGitHub": "a9f227616b25182b410aace7e433ff19796e0b05",
+    "normalisedStartingTree": "0b0902a5df6c8b44a8a70ec1b11aa1de53aea7d2",
+    "preservedLaterChange": "Owner Preview build28 only",
+    "functionalLocal": "9f165d59e97b18176ea479522901620ed94e3ab4",
+    "functionalGitHub": "abd4b05ec1deb40fd32fa8c7de633d3808eaccf4",
+    "functionalTree": "078fb778b4b7ce7df8ea1350d6a89607522c9339",
+    "startClean": true,
+    "endClean": true
+  },
+  "master": {
+    "version": "V22.53",
+    "actuallyReopened": true,
+    "sha256": "fa9456077fd843f1f04ea450d9e2ec425077695b6b106b91bf7cee150b727f62"
+  },
+  "application": {
+    "summary": {
+      "passed": 433,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "outerExit": 0,
+    "childExits": [
+      0
+    ],
+    "selectionSha256": "fe375521bfcc5c9ce9e3783d7b6484e3d3d0e2d05a41330f0efcc70881fa10ed"
+  },
+  "quality": {
+    "foundation": {
+      "passed": 105,
+      "exit": 0
+    },
+    "syntax": {
+      "files": 15,
+      "exit": 0
+    },
+    "architecture": {
+      "staticCycles": 0,
+      "exit": 0
+    }
+  },
+  "interrupted": [
+    {
+      "artifact": "application.json",
+      "source": "18a40b69c6da75720cdfdb4da4f3829281b06723",
+      "summary": {
+        "passed": 199,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 234
+      },
+      "outerExit": 2,
+      "startEntries": [],
+      "endEntries": [
+        "M scripts/check-floating-owner-ui-v3.mjs"
+      ]
+    },
+    {
+      "artifact": "final-application.json",
+      "source": "9e99615b90806cd423df5a73c4824ff12d5937d6",
+      "summary": {
+        "passed": 241,
+        "failed": 0,
+        "blocked": 0,
+        "unexecuted": 192
+      },
+      "outerExit": 2,
+      "startEntries": [],
+      "endEntries": [
+        "M scripts/check-four-edge-retention-motion.mjs"
+      ]
+    }
+  ],
+  "counterexamples": {
+    "actualResultsRegistration": {
+      "exit": 1,
+      "actualY": 124,
+      "expectedY": 320,
+      "nativeLayout": "fictional fixture"
+    },
+    "topEdge": {
+      "exit": 1
+    },
+    "nativeStopOwnership": {
+      "exit": 1,
+      "basis": "RN0.86.3 Animated.timing.stop calls value.stopAnimation"
+    },
+    "horizontalAccessibilityAction": {
+      "exit": 1
+    }
+  },
+  "preference": {
+    "key": "busy-device-appearance-v1",
+    "version": 1,
+    "optionalPlacement": {
+      "version": 1,
+      "edges": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ],
+      "positionRange": [
+        0,
+        1
+      ]
+    },
+    "legacyFieldsRetained": true,
+    "sensitiveDataStored": false,
+    "nativeDurabilityCertified": false
+  },
+  "motion": {
+    "localTravelDegrees": 48,
+    "wholeOrbRotation": false,
+    "sharedHomeLoopOwners": 1,
+    "animatedNodeOverlays": 3,
+    "nativeFrameProperties": [
+      "opacity",
+      "transform"
+    ],
+    "sequenceOrchestration": "original half-cycle JS completion, no per-frame JS renderer",
+    "reducedMotionFailSafe": true,
+    "physicalAcceptance": false
+  },
+  "expo": {
+    "iosHermesExportExit": 0,
+    "modules": 1465,
+    "dependenciesExit": 0,
+    "configExit": 0,
+    "signedBinaryForThisSource": false
+  },
+  "preview": {
+    "version": "3.105.0",
+    "build": "28",
+    "bundle": "com.busydoesit.app.ownerpreview",
+    "profile": "owner-preview",
+    "ota": false,
+    "cloudBuildInitiated": false,
+    "productionBuildUnchanged": "25"
+  },
+  "snack": {
+    "exit": 1,
+    "distinctDiagnostics": 27,
+    "unchanged": true
+  },
+  "artifacts": [
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-application.json",
+      "sha256": "869da26adb42b62686c608b2ca46d7c0a61538f7ad2530e1cfcc94fa0b3bb7c6"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-application-outer.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-foundation.log",
+      "sha256": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-architecture.log",
+      "sha256": "4e98ad93ad84fda04fd60c9e35eef03ce104cfdfed3c77518591285cc417baea"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-syntax.log",
+      "sha256": "989762d0c36c93964aba30003604dd82c64bf474a9217f14c06c267f84f79d29"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-quality-exits.json",
+      "sha256": "78ce7b95eaf3b16e4ea5e410257b671504b53c30dae4ea65d70215320c3e5ab9"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-ios-export.log",
+      "sha256": "7a21aee22f51f856f4cea6fda063fca290c06fa0572cc893b7b440b7faf7c56a"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-ios-export-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-dependencies.log",
+      "sha256": "28adcc05dfc4b32af564b8765a9b02b663448cfb9640eefa9b9a48494f703f91"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-dependencies-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-config.log",
+      "sha256": "0f39cc8bdf466ac1c49586cd8ed16dba0b8e237fefc1a14b670658cc6fc4f32d"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-config-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-snack.log",
+      "sha256": "18fd2e069125d1bec56369b323ba4b7ee2da3bdb56bc05aec167d2f5376d6228"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-snack-exit.json",
+      "sha256": "3fcf365c70bf262b9592ec1998f4c4609c36c75d846b67c5e86d7c9f03f07176"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/verified-snack-comparison.json",
+      "sha256": "05bd9f9b4ae269aa68be0a82ff88d32ce716b81e31928eb34d6f33cb00489442"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/application.json",
+      "sha256": "185b893ffc4d1f64f49b5eae63d3090ac4cd1cb515e32f5878f80f8009154c2a"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/application-outer.json",
+      "sha256": "d62a834b24ef6f269c4192ec7fb0b00db0d2abac10233afdea3fd9bdf0375f2d"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/final-application.json",
+      "sha256": "02bf61eeb2fdaf411d38f73a67f56cb7b9866be6bb3d92e0e964672795665a37"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/final-application-outer.json",
+      "sha256": "d62a834b24ef6f269c4192ec7fb0b00db0d2abac10233afdea3fd9bdf0375f2d"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/before-results.log",
+      "sha256": "37aa45ce1f153cc15240697e948d91201b0a78ceac0b3b3e47c7044dbdaea3df"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/before-top.log",
+      "sha256": "7508311a68c07e52c57daf5545a1d26b3de33b7d5811809e291f7eeba3063336"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/before-native-stop.log",
+      "sha256": "fddfcfcc6636763cb4c628de277d9954cef1c11e292a856cbbfb711a45699a28"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/before-accessibility-edge.log",
+      "sha256": "71b7dce382445ab69c964fe5d3adc030b5d4380ee08dd6effc423e7ce1599af7"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/old-motion-expectation.log",
+      "sha256": "e182f6d9ee7688cc7df622637def0dbcfe9c1bbe482deda84a132d4ab15837fd"
+    },
+    {
+      "path": ".test-artifacts/four-edge-orb/old-build-expectation.log",
+      "sha256": "6e5c9c699a0be869fad10b6890ec0d75fb12dd2c346b727049420a36b75faa1e"
+    }
+  ],
+  "gates": [
+    "No physical interaction/animation certification",
+    "No hosted Auth/Storage/SQL/provider action",
+    "No EAS/OTA/distribution/signing changes",
+    "No database contract change or PostgreSQL credit",
+    "Connected Business Workflows remain separate"
+  ]
+}

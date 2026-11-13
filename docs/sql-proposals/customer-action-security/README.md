@@ -1,0 +1,9 @@
+# Original customer-action permission correction — review only
+
+No hosted execution is authorised. Apply only after independently reconciling the designated staging schema and original V3.184/V3.185 message/outbox contracts. The installation keeps its explicit fuse, checks original function ownership/dependencies, replaces the original inner writer without changing its public signature, and closes raw message/outbox mutation and legacy submission-counter authority. It creates no CRM, message store or dispatch service.
+
+The original durable wrapper still records an original message, event, unread state and outbox intent atomically. Current owner/admin membership is now share-locked before the request lock; concurrent revocation waits, and later writes fail. Exact consumer/request authority, idempotency and conflicting-replay refusal remain. Null sender roles explicitly fail. This is local synthetic message persistence, not real communication or provider delivery.
+
+The original Edge send route is independently source-quarantined until its consequential action/approval boundary is accepted. No runtime switch enables that quarantine. The fused candidate does not grant browser/mobile direct execution; service-only wrapper access still requires a trusted server actor. Old inner-writer bypass and raw table/column writes stay closed. The retaining rollback revokes writers, keeps all messages/events/outbox records, and never restores broad legacy grants.
+
+Rehearsal: `node scripts/check-security-phase5-postgres.mjs`, isolated Unix-socket PostgreSQL17, actual original selected SQL and explicitly reconstructed business/Auth/Storage metadata. No hosted Auth, Storage or provider acceptance. Manifest binds exact proposal bytes. Hosting, rollout, real customer consent, source-revision approval, delivery leases/receipts and independent security acceptance remain separate gates.

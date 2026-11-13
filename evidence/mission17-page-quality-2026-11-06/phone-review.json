@@ -1,0 +1,466 @@
+{
+  "source": {
+    "commit": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "tree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+    "workingTreeChanged": false
+  },
+  "method": "Evidence-only Pillow composition of independently hash-verified genuine renderer JPEGs: aspect-preserving scale to390px, explicit first844px crop and labels. No business-page reflow, AI generation or fabricated content. Original full-resolution PNGs remain in the matching CI artifact.",
+  "comparisons": [
+    {
+      "file": "phone-review-moor-meadow-rich-home.jpg",
+      "sha256": "199787166aaf64769c208fd4e93f2c11b33ade11f4d5b20ec9d1edcfd116de15",
+      "bytes": 169692,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Moor & Meadow",
+      "page": "home",
+      "pageName": "Home",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-moor-meadow-rich-home-before-mobile.jpg",
+          "jpegSha256": "b2633c24f0a05ac7cc06ea006c091f1722280573a537015814d188fbd37ed373",
+          "originalPng": "moor-meadow-rich-home-before-mobile.png",
+          "originalPngSha256": "6d1655ddef7623c7131e02266dd7929f6111f177751f62fd8afc61dbfe145aa5",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0833333333333333,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-moor-meadow-rich-home-after-mobile.jpg",
+          "jpegSha256": "4a225821bad9b66852adeb147b383db7e1b6bca0a907f27db21510c5d29df96c",
+          "originalPng": "moor-meadow-rich-home-after-mobile.png",
+          "originalPngSha256": "c28b725e935d0472f412edf05730b2dca434c281823669c3752d0b266a0c2085",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "file": "phone-review-moor-meadow-rich-page-garden-maintenance.jpg",
+      "sha256": "33789d49be545e8fb378786490168a8af1bf377614380b4b6731bbf29f6b9dcb",
+      "bytes": 186880,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Moor & Meadow",
+      "page": "page-garden-maintenance",
+      "pageName": "Garden maintenance",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-moor-meadow-rich-page-garden-maintenance-before-mobile.jpg",
+          "jpegSha256": "924a5046d87bffa055df2a69976174e3547081b5fac825638e86aec0d05656f9",
+          "originalPng": "moor-meadow-rich-page-garden-maintenance-before-mobile.png",
+          "originalPngSha256": "26f10d6a31c1b2750f79d1aaafad85fd88ec8711e215f463dd301c172ff6300b",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-moor-meadow-rich-page-garden-maintenance-after-mobile.jpg",
+          "jpegSha256": "f9ed32ba711bfdc46a2b1f3c0ed2c82ef8fa654ec320d31852da2cd1b3a2be7a",
+          "originalPng": "moor-meadow-rich-page-garden-maintenance-after-mobile.png",
+          "originalPngSha256": "cf1db1378340ae163a8fb6dc615265359e2c8e01e06708ad9cb6b5d083be69f4",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "file": "phone-review-moor-meadow-rich-about.jpg",
+      "sha256": "13e8f2004b1044ac1cef2e3faa52dc7a15a289a1f3dbdc5acbb324c1a2a9b86c",
+      "bytes": 132396,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Moor & Meadow",
+      "page": "about",
+      "pageName": "About",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-moor-meadow-rich-about-before-mobile.jpg",
+          "jpegSha256": "8c323533f582f9dd3038d5443c186e7170a414f78ab5cfb3dee6dc5d603214ac",
+          "originalPng": "moor-meadow-rich-about-before-mobile.png",
+          "originalPngSha256": "6b56e229c80da9fb217038669eddfe2b0095d6cf2bc93c2ab8e904d0813cc76b",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-moor-meadow-rich-about-after-mobile.jpg",
+          "jpegSha256": "90b215604868198a82e3614e54316583be7e89e03907bd6e875727cf7d49e3d9",
+          "originalPng": "moor-meadow-rich-about-after-mobile.png",
+          "originalPngSha256": "80586b5ce5cd0c987633fa98357bb1b0cec51d06cb03cf90fefff22b23f175a9",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "file": "phone-review-ember-rich-home.jpg",
+      "sha256": "ab991c2e17c436034bdfd4f76f85d1c2ffeac693ec7baefd0a5560dde90d70c7",
+      "bytes": 152064,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Ember Festival Kitchen",
+      "page": "home",
+      "pageName": "Home",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-ember-rich-home-before-mobile.jpg",
+          "jpegSha256": "1164c540512ea0e4096655dac83a3a10f4c13516e453c164945cbe236821a2db",
+          "originalPng": "ember-rich-home-before-mobile.png",
+          "originalPngSha256": "68f968fe24e9fc5cb452981653bcf23ca786fb80f90f443757bcadd6806c09b1",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0833333333333333,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-ember-rich-home-after-mobile.jpg",
+          "jpegSha256": "71081d5f3448bf218fdc3e52508fd27e6623b39c0dd3c49ac7cccfc79144442a",
+          "originalPng": "ember-rich-home-after-mobile.png",
+          "originalPngSha256": "bb8adc7f636a94abab42823ce07b00f606ca7ad43ceb2c1986201de3f475f2f1",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "file": "phone-review-ember-rich-page-festival-plates.jpg",
+      "sha256": "005d7762430a3cc8dd9ff0a8fd3511186300da5a467d970503603e0b0ec8dc3a",
+      "bytes": 164955,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Ember Festival Kitchen",
+      "page": "page-festival-plates",
+      "pageName": "Festival plates",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-ember-rich-page-festival-plates-before-mobile.jpg",
+          "jpegSha256": "9a0d254146b916a731b4ec70438fdc03748ad9f442543ecf97b04475ad544617",
+          "originalPng": "ember-rich-page-festival-plates-before-mobile.png",
+          "originalPngSha256": "482c1a938fa6101284ee6ce768164b42bc4d8a2e800e3bef14d8cb74bc346218",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-ember-rich-page-festival-plates-after-mobile.jpg",
+          "jpegSha256": "3bffa803f93235e233db73d11a35cb403715c8ec2b44fb3e0c2930af493c1383",
+          "originalPng": "ember-rich-page-festival-plates-after-mobile.png",
+          "originalPngSha256": "14e1e9bfa4bd7ba8719b5b713a39d055aae772decbca79722817816ec16c51f9",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "file": "phone-review-ember-rich-about.jpg",
+      "sha256": "95966bcf0ee0e195418eaadaff0fe99e1d9612432fd4da55bd587a71446eec65",
+      "bytes": 129608,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Ember Festival Kitchen",
+      "page": "about",
+      "pageName": "About",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-ember-rich-about-before-mobile.jpg",
+          "jpegSha256": "2fddb44321b6a4dd16c9c67319fef233dff0b0295a21b6ecb55f19a7a8833f87",
+          "originalPng": "ember-rich-about-before-mobile.png",
+          "originalPngSha256": "45eb628c160efb1dc960e5edf6bbdbf3e98eab2f08bb1601501d245cd09d5e8c",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-ember-rich-about-after-mobile.jpg",
+          "jpegSha256": "7b3dc2f36b06b7978469df26522c41bd0bd37f5a56f3f4617ac527ce261968f1",
+          "originalPng": "ember-rich-about-after-mobile.png",
+          "originalPngSha256": "6fa38c5b0d229ad14823be8fedb7b35852026c1a9aa313c0c804a2dca3e992c3",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "file": "phone-review-quiet-light-rich-home.jpg",
+      "sha256": "34a5dbc7ef36332538d57521210c85a62bcf14b31c78cca38d8e5e1a98c9ae24",
+      "bytes": 111924,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Quiet Light Studio",
+      "page": "home",
+      "pageName": "Home",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-quiet-light-rich-home-before-mobile.jpg",
+          "jpegSha256": "96a245587da9dc373f88a231d53d77ae0ebeaaf7204bcb77d4566dd954b460f5",
+          "originalPng": "quiet-light-rich-home-before-mobile.png",
+          "originalPngSha256": "f9d40e9fea44881c5444d6effaa4dd7f5c4a2a0573288d1b4d2cb535ab6774ac",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-quiet-light-rich-home-after-mobile.jpg",
+          "jpegSha256": "28bdb1fb879359926cd94c622b7635a0ceb5d408fba6a31877942a9adfe36de5",
+          "originalPng": "quiet-light-rich-home-after-mobile.png",
+          "originalPngSha256": "2538eedb752f65886596cd6cda7e343e7803349cc0ff9da253101d901af50489",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "file": "phone-review-quiet-light-rich-page-brand-direction.jpg",
+      "sha256": "97067214ed958430a7a38be0b90dd2153ed71c0544e24d2438573b5a826d7c81",
+      "bytes": 132382,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Quiet Light Studio",
+      "page": "page-brand-direction",
+      "pageName": "Brand direction",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-quiet-light-rich-page-brand-direction-before-mobile.jpg",
+          "jpegSha256": "24d0d5bc9772ba76c5778ca75db5661f53e441bffc468ed1e5eecbac0653f6ea",
+          "originalPng": "quiet-light-rich-page-brand-direction-before-mobile.png",
+          "originalPngSha256": "544a4cc82ef9b0f75136e354d50bdb2fd7797bfeeac07c6705920977c4665746",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-quiet-light-rich-page-brand-direction-after-mobile.jpg",
+          "jpegSha256": "a1c70ec901ac653eca4347dcd49b05e968f7be76ff34eca15b674cb3da59e306",
+          "originalPng": "quiet-light-rich-page-brand-direction-after-mobile.png",
+          "originalPngSha256": "eea55556966c7b916a11f85895cd394fa3e177f64edbda87094e6691dd4e4607",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    },
+    {
+      "file": "phone-review-quiet-light-rich-about.jpg",
+      "sha256": "28e2f7da183e2eb0c33c6b4ec49a2cdeef3d53f41df99b0833fb1206194c62fb",
+      "bytes": 119178,
+      "size": [
+        390,
+        1922
+      ],
+      "business": "Quiet Light Studio",
+      "page": "about",
+      "pageName": "About",
+      "sources": [
+        {
+          "stage": "before",
+          "jpeg": "review-quiet-light-rich-about-before-mobile.jpg",
+          "jpegSha256": "3601194549f4cbfa0e451de9ed94e3c2fd4093b272df903d44f791951706652f",
+          "originalPng": "quiet-light-rich-about-before-mobile.png",
+          "originalPngSha256": "30e87fd213dff273eca63dbcf1bd86a6a2b523b0f3d376d00b999cdeb915a684",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "stage": "after",
+          "jpeg": "review-quiet-light-rich-about-after-mobile.jpg",
+          "jpegSha256": "b036f257f85308267dca92b8ce9bceacd47e5cdbf39c744bb9ffb9bc3cb2849b",
+          "originalPng": "quiet-light-rich-about-after-mobile.png",
+          "originalPngSha256": "989d08c4e731860dc6b9050a312f649cb5c7784da556339dc755a2feb4eee63d",
+          "originalViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "scaleFromReviewJpeg": 1.0,
+          "cropAfterScale": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ]
+    }
+  ],
+  "compositor": {
+    "pillowVersion": "12.3.0",
+    "labelFont": "Installed DejaVu Sans",
+    "labelFontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+    "aiImageGeneration": false
+  }
+}

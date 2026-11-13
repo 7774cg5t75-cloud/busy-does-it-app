@@ -1,0 +1,71 @@
+{
+  "database": "busy_preservation_disposable",
+  "hosted": false,
+  "syntheticRowsOnly": true,
+  "realProviderReceiptsCreated": false,
+  "realEntitlementsAsserted": false,
+  "baselineSha256": "49bfb13bfc04b08a45b1a42692752180ba6eee316f365b15aa8501355c6fc8da",
+  "preservedSyntheticRowsHash": "45311ac924ef1ad3747e4ad5c71033df928ce0a9851aabc6b993fa26b7b28643",
+  "finalSyntheticRowsHash": "45311ac924ef1ad3747e4ad5c71033df928ce0a9851aabc6b993fa26b7b28643",
+  "nontransactionalSequenceNeverRewound": true,
+  "installSha256": "cdb1303f705a5768e098297699392317d0db8913b759d2f3f773ff0b29c93b91",
+  "rollbackSha256": "743e57d170b92bd54f89294bd8ceac74e0308bc3ba1e60f41da8ab3f4ddad7cf",
+  "results": [
+    {
+      "id": "isolated-unix-only-postgres-and-exact-hosted-catalogue-fixture",
+      "passed": true
+    },
+    {
+      "id": "original-fresh-package-still-refuses-and-review-fuses-deny",
+      "passed": true
+    },
+    {
+      "id": "permission-schema-policy-sequence-and-unexpected-object-drift-denied",
+      "passed": true
+    },
+    {
+      "id": "mid-install-data-and-catalogue-damage-rolls-back-everything",
+      "passed": true
+    },
+    {
+      "id": "nontransactional-sequence-drift-is-denied-and-never-rewound",
+      "passed": true
+    },
+    {
+      "id": "atomic-original-foundation-ai-and-receipt-install-preserves-state",
+      "passed": true
+    },
+    {
+      "id": "original-owner-profile-website-save-readback-and-source-bindings",
+      "passed": true
+    },
+    {
+      "id": "service-only-current-membership-and-stale-source-denial",
+      "passed": true
+    },
+    {
+      "id": "default-off-then-explicit-disposable-offline-allocation-not-real-entitlement",
+      "passed": true
+    },
+    {
+      "id": "actual-concurrent-reserve-one-winner-immutable-nonce-and-one-dispatch",
+      "passed": true
+    },
+    {
+      "id": "unknown-outcome-retains-liability-and-cannot-replay-or-release",
+      "passed": true
+    },
+    {
+      "id": "fused-retaining-rollback-keeps-existing-state-and-cost-readback",
+      "passed": true
+    },
+    {
+      "id": "known-zero-offline-settlement-retains-audit-no-fake-provider-receipt",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 13,
+    "failed": 0
+  }
+}

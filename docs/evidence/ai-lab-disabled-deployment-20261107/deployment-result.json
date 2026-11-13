@@ -1,0 +1,151 @@
+{
+  "version": "busy.ai-lab.approval-c.deployment-result.v1",
+  "outcome": "deployment-acknowledged-complete-verification-stopped",
+  "target": {
+    "projectId": "sbvkrvksnruiclcvclbd",
+    "organisationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "plan": "free",
+    "functionName": "busy-creative-document-pilot"
+  },
+  "approved": {
+    "functionalCommit": "a4557d164ae03a93eb5aa310749a32e89c14ca40",
+    "functionalTree": "7d92ff206eddbc59c3e45ba55a3ab74cabb3dfbe",
+    "packetDigest": "bd86dffd15057c36420f3b990028b69fe901f60cb2260cf0b73c4acea35b6df1",
+    "completeInputInventoryDigest": "ad3669fea24ec30dc76702159e11eb4953a956100a59f084266f722c1b1dc471",
+    "submittedFiles": 116,
+    "submittedSourceBytes": 1021441,
+    "maxAdditionalPaidCostGBP": 0
+  },
+  "native": {
+    "id": "434c07a2-b755-4a9a-bf4d-78691cf9deb7",
+    "version": 1,
+    "status": "ACTIVE",
+    "verifyJwt": true,
+    "importMap": false,
+    "createdAt": "2026-11-07T21:10:47.902Z",
+    "eszipSha256": "3f591808c69d14bc04a97a4d193e9c3b4fd4249cc1b78d56860b257affc47808",
+    "independentMetadataMatches": true
+  },
+  "readback": {
+    "runtimeSourceFilesIndependentlyHashed": 114,
+    "runtimeFilesAllMatchApprovedGit": true,
+    "complete116FileVerification": false,
+    "missingReadbackFiles": [
+      "supabase/connected-staging.deno.lock",
+      "supabase/functions/busy-creative-document-pilot/deno.json"
+    ],
+    "returnedFilesDigest": "303e8be2e6a84233a4ffb453fbd85378a246cb0096eeead30e9e61754699854d",
+    "catalogueSha256": "ce4939f1e59e929dd7d1d442168e42ae74eaf456255cee56f5376160e57896fa",
+    "cataloguePreserved": true,
+    "nativeVersion": 1,
+    "jwtVerified": true,
+    "eszipSha256": "3f591808c69d14bc04a97a4d193e9c3b4fd4249cc1b78d56860b257affc47808",
+    "readbackRawSha256": "ab93ae03808c0f26e27cba5aa7768a6f51e0236c39b27659090a0b98699d115b"
+  },
+  "disabledSource": {
+    "guardBeforeEnvironment": true,
+    "disabledManifest": true,
+    "exactDisabledBody": true,
+    "rendererIdentityForwarded": true
+  },
+  "preflight": {
+    "observedAt": "2026-11-07T21:10:42.515464+00:00",
+    "catalogueMatchesApprovedPostB3": true,
+    "catalogueSha256": "ce4939f1e59e929dd7d1d442168e42ae74eaf456255cee56f5376160e57896fa",
+    "allDataAndNativeIdentityUnchanged": true
+  },
+  "postflight": {
+    "readOnly": "on",
+    "observedAt": "2026-11-07T21:12:20.491746+00:00",
+    "catalogueUnchanged": true,
+    "allDataUnchanged": true,
+    "nativeIdentityUnchanged": true,
+    "savedSource": {
+      "readOnly": "on",
+      "observedAt": "2026-11-07T21:12:23.976245+00:00",
+      "ownerMatches": true,
+      "businessMatches": true,
+      "allThreeOriginalHashesMatch": true,
+      "profileRevision": 1,
+      "snapshotRevision": 5,
+      "websiteGeneration": 4,
+      "pageCount": 3,
+      "undoCount": 3,
+      "redoCount": 0,
+      "publicWebsites": 0,
+      "websiteDeployments": 0,
+      "aiOperations": 0,
+      "aiEvents": 0,
+      "policy": {
+        "enabled": false,
+        "monthlyHardLimit": 0
+      }
+    },
+    "nativeReceipts": [
+      {
+        "name": "mission18_ai_lab_foundation",
+        "version": "20261106221950",
+        "statementCount": 1,
+        "executionSha256": "231b7eecdab788f3829d93c4f1995ce111a6b2b4a953644bdc6d0f785b6a5987"
+      },
+      {
+        "name": "ai_lab_quiet_light_owner_setup_v1",
+        "version": "20261107000304",
+        "statementCount": 1,
+        "executionSha256": "865e2acdb036691a0e907bcdfbc0737b5bb403005880cd9c218ceafc047e77bc"
+      },
+      {
+        "name": "ai_lab_b3_nonretry_source_contract_v1",
+        "version": "20261107113432",
+        "statementCount": 1,
+        "executionSha256": "564a516eca321797e191c54efcfb1fd0efeed5e98740f83757c4a4364778bda5"
+      }
+    ],
+    "publicTables": 28,
+    "privateAiTables": 6,
+    "aiCounts": {
+      "events": 0,
+      "periods": 0,
+      "tariffs": 0,
+      "accounts": 0,
+      "operations": 0
+    }
+  },
+  "controls": {
+    "managementSubmissions": 1,
+    "automaticRetries": 0,
+    "repairs": 0,
+    "deletions": 0,
+    "redeployments": 0,
+    "rollbacks": 0,
+    "httpSmokeRequests": 0,
+    "protectedJobsQueued": 0,
+    "nativeSignIns": 0,
+    "providerCredentialReads": 0,
+    "providerCalls": 0,
+    "budgetActivations": 0,
+    "hostedSqlMutations": 0,
+    "websiteWrites": 0,
+    "publication": 0,
+    "otherProjectsAccessed": 0
+  },
+  "status": {
+    "approvalConsumed": true,
+    "complete116FileReadbackVerified": false,
+    "smokeReady": false,
+    "smokeAuthorised": false,
+    "providerActivationAuthorised": false,
+    "inferenceAuthorised": false
+  },
+  "limitations": [
+    "The reconstructed management source response contains exactly 114 matching runtime files, no extra or changed files. It omits the submitted nested deno.json and lockfile.",
+    "Omission alone does not establish that configuration or lock processing failed, nor that it succeeded.",
+    "The available MCP source getter exposes reconstructed multipart source, not a raw native ESZIP/build-input receipt. Full build-input provenance remains unverified.",
+    "Platform ACTIVE denotes a deployed function, not AI execution activation. The exact returned source retains false/false/null controls; no HTTP response has been tested."
+  ],
+  "operatorNotes": [
+    "Before any deployment intent or submission, provisional local response-field mapping was replaced with mandatory original actorId/websiteHistoryHash checks.",
+    "An extra false-only legacy Auth flag assertion refused before intent/submission. Original approved and current metadata both contain null; exact baseline equality was independently verified. No approved function, SQL, credential or security requirement was changed."
+  ]
+}

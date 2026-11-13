@@ -1,3 +1,17 @@
+## Current authority availability — owner-declared V22.86, 7 November 2026
+
+The owner declares V22.86 current and explicitly authorises this mission using the available corrected V22.85 original and their supplied Section98 policy while the genuine newer Word remains in their private Library. No complete V22.86 read or verification is claimed. See `CODEX_MASTER_ACCESS.md` for provenance and the outstanding private transfer. Preserve quality-first, measured model selection and the original renderer, owner approval and central spending authorities; this adds no hosted or paid execution permission.
+
+## Previously verified authority — genuine V22.85, 6 November 2026
+
+The corrected owner-supplied V22.85 has now been opened, integrity-checked and compared in full with V22.84; see current master-access provenance. Inherited requirements remain intact, with reviewed Section97. Preserve fair ownership and practical portability, truthful validated entitlements, the original connected architecture and exceptional whole-site quality for free and paid users. Private commercial details remain outside Git. No hosted, provider, publication, spending or Gold Standard approval follows from master adoption.
+
+## Historical Mission17 authority and scope — 6 November 2026
+
+Mission17 identifies V22.85 as current, but its genuine original is not accessible. Do not infer its changes or treat V22.84 as the latest approved version. Apply the explicit Mission17 whole-site/page-quality instructions and verified inherited requirements while reconciliation remains outstanding. No hosted, inference, publication or Gold Standard approval is added.
+
+The genuine private owner-supplied V22.84 supersedes older commercial examples below where they conflict. Consult its Sections93–96 and the current master-access provenance. A complete agreed standard website, fair ordinary corrections, professional whole-site quality, free/paid parity, truthful facts, ownership and measured costs govern future planning; no new entitlement, billing or publication is activated. Detailed private commercial requirements remain outside public Git. The current installation decision remains separately conditional on exact approved SQL and runner guarantees.
+
 # Busy Does It — public product orientation for Codex
 
 This is a **brief, non-confidential working orientation** for contributors and AI agents. It is **not** the full, owner-approved Word Product Master and must not be described as such. Refer to `docs/CODEX_MASTER_ACCESS.md`.
@@ -10,7 +24,17 @@ Busy Does It aims to be an intelligent, connected operating layer for small busi
 
 The product should feel extraordinarily simple. Complexity belongs in reusable engineering and responsible automation, not in customers' menus or explanations. Optimize for reliable end-to-end outcomes and customer control over flashy demos or raw feature count.
 
+## Current owner-approved direction — V22.43
+
+The Phase51 attachment is verified separately in the master-access manifest. Premium Midnight Atmosphere is approved future design exploration only; no broad redesign or new visual assets are implemented.
+
+Freedom, simplicity and capability: reduce repeated owner entry and help complete real supported preparation. Prefer current authorised knowledge, plain-language review and evidence of outcomes. Preserve six Home areas and specialist ownership. Future tax/bookkeeping support is a roadmap; current quotes, jobs and communication receipts do not establish payments, deductible expenses, accounting calculations or HMRC readiness. See the Phase 48 source-backed readiness review.
+
 ## Current build-first priorities
+
+**Phase 31 priority update:** The bounded, source-tested builder implementation checkpoint is recorded in `BUILDER_FIRST_RELEASE_CHECKPOINT_2026_10_19.md`. Lead development now moves to **Content Creator and the six-area Home**, with **Get More Customers** alongside. Work & Customers and Get Paid deepen next through existing contracts. This is a development-priority transition, not production readiness; hosted/device/security acceptance and separate publication/provider approvals remain mandatory. Keep residual builder work tied to concrete first-release gaps rather than indefinite cosmetic variants.
+
+**Phase 32 connected-content evidence:** Current service intent, deliberate growth handoff, source choice and private text drafts reuse the existing Business Brain/Brand DNA and approval systems. Approved profile content can work without both builder drafts. Device-copy readback and current-draft guards are source-tested; real device/hosted/provider acceptance remains separate. See `MISSION15_PHASE32_2026_10_19.md`. Continue with explicit business-introduction and approved product/event content through existing trusted sources.
 
 **App Builder** and **Website Builder** are foundational. Design for many kinds of businesses and products, not a narrow set of hard-coded sectors.
 

@@ -1,0 +1,117 @@
+{
+  "scenarios": [
+    {
+      "id": "0",
+      "business": "Ember Festival Kitchen — sparse truthful source",
+      "family": "story-spread",
+      "photoExpected": true,
+      "before": "0-before.html",
+      "after": "0-after.html",
+      "comparison": "same exact facts, photos, crops, order, palette and typography; reviewed whole-page variation plus explicit coordinated service/story presentation alternative",
+      "sourceRichness": "sparse",
+      "factsSha256": "49138f4b69918278016e841c8735310a7b772bdf97e55717e27798698fd7395e"
+    },
+    {
+      "id": "1",
+      "business": "Ember Festival Kitchen — rich approved source",
+      "family": "story-spread",
+      "photoExpected": true,
+      "before": "1-before.html",
+      "after": "1-after.html",
+      "comparison": "same exact facts, photos, crops, order, palette and typography; reviewed whole-page variation plus explicit coordinated service/story presentation alternative",
+      "sourceRichness": "rich",
+      "factsSha256": "b557e0b82fe99642e8e6d6048a7f51b3773514e410498dc264c483c98572e32c"
+    },
+    {
+      "id": "2",
+      "business": "Clearleaf Gardens — sparse truthful source",
+      "family": "service-led",
+      "photoExpected": true,
+      "before": "2-before.html",
+      "after": "2-after.html",
+      "comparison": "same exact facts, photos, crops, order, palette and typography; reviewed whole-page variation plus explicit coordinated service/story presentation alternative",
+      "sourceRichness": "sparse",
+      "factsSha256": "357a401bd02e9df415c0513b7e5fc164aa0ff46d5dd4ee2a8d41d7fa653f17c2"
+    },
+    {
+      "id": "3",
+      "business": "Clearleaf Gardens — rich approved source",
+      "family": "service-led",
+      "photoExpected": true,
+      "before": "3-before.html",
+      "after": "3-after.html",
+      "comparison": "same exact facts, photos, crops, order, palette and typography; reviewed whole-page variation plus explicit coordinated service/story presentation alternative",
+      "sourceRichness": "rich",
+      "factsSha256": "2557b825b5679f8cf49e7b714515559983a7070eea9c5ed7d51ccc514578d315"
+    },
+    {
+      "id": "4",
+      "business": "Quiet Light Studio — sparse truthful source",
+      "family": "typography-first",
+      "photoExpected": false,
+      "before": "4-before.html",
+      "after": "4-after.html",
+      "comparison": "same exact facts, photos, crops, order, palette and typography; reviewed whole-page variation plus explicit coordinated service/story presentation alternative",
+      "sourceRichness": "sparse",
+      "factsSha256": "6d9ddae2fdade5d87a0083291cfea5ca0eb922a12415cce60eaab14ef75f34c0"
+    },
+    {
+      "id": "5",
+      "business": "Quiet Light Studio — rich approved source",
+      "family": "typography-first",
+      "photoExpected": false,
+      "before": "5-before.html",
+      "after": "5-after.html",
+      "comparison": "same exact facts, photos, crops, order, palette and typography; reviewed whole-page variation plus explicit coordinated service/story presentation alternative",
+      "sourceRichness": "rich",
+      "factsSha256": "d10726a2bd8531cc6a5aef4de6fcd20aba1296d02f5f3bb8152f997d70c5feff"
+    },
+    {
+      "id": "6",
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "before": "6-before.html",
+      "after": "6-after.html",
+      "photoExpected": true,
+      "comparison": "same approved original five-gardener facts/assets/order; presentation-only alternative"
+    },
+    {
+      "id": "7",
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "before": "7-before.html",
+      "after": "7-after.html",
+      "photoExpected": true,
+      "comparison": "same approved original five-gardener facts/assets/order; presentation-only alternative"
+    },
+    {
+      "id": "8",
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "before": "8-before.html",
+      "after": "8-after.html",
+      "photoExpected": false,
+      "comparison": "same approved original five-gardener facts/assets/order; presentation-only alternative"
+    },
+    {
+      "id": "9",
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "before": "9-before.html",
+      "after": "9-after.html",
+      "photoExpected": true,
+      "comparison": "same approved original five-gardener facts/assets/order; presentation-only alternative"
+    },
+    {
+      "id": "10",
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "before": "10-before.html",
+      "after": "10-after.html",
+      "photoExpected": true,
+      "comparison": "same approved original five-gardener facts/assets/order; presentation-only alternative"
+    }
+  ],
+  "synthetic": true,
+  "publicActivation": false
+}

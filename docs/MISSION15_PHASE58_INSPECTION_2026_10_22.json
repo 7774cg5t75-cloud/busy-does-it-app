@@ -1,0 +1,67 @@
+{
+  "phase": 58,
+  "status": "blocked-before-database-inspection",
+  "startingGitHubHead": "87b5a2f9cdea7bb2b79bbcd82617ef9a2ec93403",
+  "startingLocalHead": "1f635c3aaff3b330a55973319cebd98329b61711",
+  "startingTree": "1262dd8191f328a6b0d177649117da2898e12c44",
+  "originalSourceProjectRef": "qgkmuiipicazmcxxmoxv",
+  "authenticatedOriginalProjectIdentityVerified": false,
+  "connectionVisibleProjects": [
+    {
+      "ref": "pnjdlogwegnqbsfpcofw",
+      "name": "Busy Does It Staging"
+    }
+  ],
+  "originalMetadataLookup": {
+    "tool": "supabase_get_project",
+    "status": "permission-denied",
+    "error": "MCP error -32600: You do not have permission to perform this action"
+  },
+  "projectListStatus": "success",
+  "sqlQueries": 0,
+  "customerDataReads": 0,
+  "hostedMutations": 0,
+  "schemaExports": 0,
+  "applicationFunctionExecutions": 0,
+  "trustedWriterImplemented": false,
+  "newerMasterOriginalsAccessible": false,
+  "latestAccessibleMaster": {
+    "version": "22.45",
+    "sha256": "a04483eb47e53d682953dbdabafd5491f847fb2cbad32ddeba5f3b39c0d15bcf",
+    "paragraphs": 2080,
+    "tables": 19,
+    "identicalToCompleteReviewedBody": true
+  },
+  "privateDiscoveryManifestSha256": "b28b7ff0b93fbd4a8e6dfe26d5b2f5fdf1d1c8d5a8e97bde98819aa25ab02de4",
+  "historicalOfflineBaseline": {
+    "phase": 57,
+    "passed": 330,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0,
+    "runnerExitCode": 0
+  },
+  "currentOfflineExecution": {
+    "passed": 0,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 330,
+    "runnerExecuted": false,
+    "runnerExitCode": null
+  },
+  "applicationAndTestSourceChanged": false,
+  "retentionCounterexampleChanged": false,
+  "hostedReadOnlyEnforcementVerified": false,
+  "remainingBlockedObjects": [
+    "snapshot DDL/constraints/indexes/triggers/owner/grants/RLS",
+    "ensure-business implementation/privileges/dependencies",
+    "membership/roles/revocation",
+    "deployed writers/restore/import/delete",
+    "migration/version provenance"
+  ],
+  "applicableChecks": {
+    "reportEvidenceJsonParseExitCode": 0,
+    "gitDiffCheckExitCode": 0
+  },
+  "spentGBP": 0
+}

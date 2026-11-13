@@ -12,7 +12,7 @@ function validRequestReceiptKey(key){
 }
 function prepareCustomerReceipt({
  userId="",appId="",slug="",requestType="",requestKey="",
- row=null
+ row=/** @type {{id:string,business_id:string,mini_app_id:string,consumer_user_id:string|null,idempotency_key:string,request_type:string,status:string,request_origin:string}|null} */ (null)
 }={}){
  const bad={ok:false,found:false,verifiedSaved:false,
   independentNotificationReceipt:false,confirmedDiaryBooking:false};

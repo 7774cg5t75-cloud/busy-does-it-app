@@ -1,0 +1,663 @@
+{
+  "source": {
+    "commit": "5c6e165b60c508a8f5886ae40c075d86ff612cd2",
+    "tree": "d6723c2e54f334583ab63ce5c971ed82699ba644"
+  },
+  "browser": "145.0.7632.6",
+  "browserRun": 41690243868,
+  "sandboxRequired": true,
+  "syntheticBusinessData": true,
+  "actualOriginalRenderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+  "screenshots": [
+    {
+      "filename": "0-before-narrow.png",
+      "sha256": "24c9c27a35dd8f7ba040564bc96ef4c6d08a4cded23e6614f40083b651fd1820",
+      "label": "narrow",
+      "stage": "before",
+      "business": "Ember Festival Kitchen",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "0-after-narrow.png",
+      "sha256": "c308a9a4a715640b1fa2ee05517f645bb1c976b85e23698ed9852d104853ab75",
+      "label": "narrow",
+      "stage": "after",
+      "business": "Ember Festival Kitchen",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "0-before-mobile.png",
+      "sha256": "a9a43c651ddc75529390af509ef57cc3d0d88388e5129b17dff8ff321b26bb7d",
+      "label": "mobile",
+      "stage": "before",
+      "business": "Ember Festival Kitchen",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "0-after-mobile.png",
+      "sha256": "8ff6cbfa05a9069eff3393b3d7d56478b022b520b1a8110db6c083dad3911e95",
+      "label": "mobile",
+      "stage": "after",
+      "business": "Ember Festival Kitchen",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "0-before-desktop.png",
+      "sha256": "94256af76c205c79a1407f26dce3e767e2d5d2d9fe7a812f624278836e6ce0ab",
+      "label": "desktop",
+      "stage": "before",
+      "business": "Ember Festival Kitchen",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "0-after-desktop.png",
+      "sha256": "363cb8920ee43e5f2dad100f8804c357740cf9e7002a9aedaa81225c65133d9a",
+      "label": "desktop",
+      "stage": "after",
+      "business": "Ember Festival Kitchen",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "1-before-narrow.png",
+      "sha256": "68035894165be6bb6c6267ec2d101aa1fc8129047390ecd06a667ebb830b2bbf",
+      "label": "narrow",
+      "stage": "before",
+      "business": "Clearleaf Gardens",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "1-after-narrow.png",
+      "sha256": "fbfb66df25d9e4599c61eaf83095bd0facc42ae62bb791ef938502d58509b3a8",
+      "label": "narrow",
+      "stage": "after",
+      "business": "Clearleaf Gardens",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "1-before-mobile.png",
+      "sha256": "e9ef01935fdc16d57f82c4e88ad5b3a9de2d8f2150765d345350492a0cbd975e",
+      "label": "mobile",
+      "stage": "before",
+      "business": "Clearleaf Gardens",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "1-after-mobile.png",
+      "sha256": "467fd707538a7cfce400a98430632f761ec642ecde23c7366bcbb36d137b4a23",
+      "label": "mobile",
+      "stage": "after",
+      "business": "Clearleaf Gardens",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "1-before-desktop.png",
+      "sha256": "0b8100fe7b1d38492eb2542be068fd6aa8c966c7747e22ca563e4cc82c9a7d9e",
+      "label": "desktop",
+      "stage": "before",
+      "business": "Clearleaf Gardens",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "1-after-desktop.png",
+      "sha256": "40e20978257488bc0ef0e6515b98d4c0c3810d1f0e72f426230c36287a08b9d0",
+      "label": "desktop",
+      "stage": "after",
+      "business": "Clearleaf Gardens",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "2-before-narrow.png",
+      "sha256": "b5a508b4197538573594d4431359b84b2a014193ddf52dac73e2c44399a9172f",
+      "label": "narrow",
+      "stage": "before",
+      "business": "Quiet Light Studio",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "2-after-narrow.png",
+      "sha256": "dc1474c0421df1740ff82e56ecb98bad96ed36594cf3b3afb2c03c6175d1aafb",
+      "label": "narrow",
+      "stage": "after",
+      "business": "Quiet Light Studio",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "2-before-mobile.png",
+      "sha256": "e245f2affb1b1cc2fc93e4a8bfa75e80e212b77b77fa0b3fdf48c239aa358cbb",
+      "label": "mobile",
+      "stage": "before",
+      "business": "Quiet Light Studio",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "2-after-mobile.png",
+      "sha256": "1120bc7b981c2cc56bb721d9542af023d5bcba60d71e9e38e87b6cce9d927676",
+      "label": "mobile",
+      "stage": "after",
+      "business": "Quiet Light Studio",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "2-before-desktop.png",
+      "sha256": "0a832aba5f9fea502309e44cd8363635f4ca7a622057d0afe139bf819d7ac427",
+      "label": "desktop",
+      "stage": "before",
+      "business": "Quiet Light Studio",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "2-after-desktop.png",
+      "sha256": "5b43fd291b1baefd08b6d8e17d2a0663207f6cc9c39069fdedda9f9975c7a61f",
+      "label": "desktop",
+      "stage": "after",
+      "business": "Quiet Light Studio",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "3-before-narrow.png",
+      "sha256": "7eca483399a6b0fed8fb62dde6cab7b2da6f5d89c1b893f558b08f7c941a4d46",
+      "label": "narrow",
+      "stage": "before",
+      "business": "Meadow & Moss",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "3-after-narrow.png",
+      "sha256": "49538bc0aa02bdd6e34d8be04ddc9a04cc90afda37ca98344ddaf875b9682793",
+      "label": "narrow",
+      "stage": "after",
+      "business": "Meadow & Moss",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "3-before-mobile.png",
+      "sha256": "b6e74c9bd4340b8f070dbc9a225ee31381880454a264b95efb5747871a654ff7",
+      "label": "mobile",
+      "stage": "before",
+      "business": "Meadow & Moss",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "3-after-mobile.png",
+      "sha256": "83c63d3d113d2faeb84de4f7852bfa32fa71921912fc24440f4b6743c443e638",
+      "label": "mobile",
+      "stage": "after",
+      "business": "Meadow & Moss",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "3-before-desktop.png",
+      "sha256": "0c34dc0d694ff486302ad6c72bc321a90f04b69ebff767033a06d87e789ad647",
+      "label": "desktop",
+      "stage": "before",
+      "business": "Meadow & Moss",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "3-after-desktop.png",
+      "sha256": "11f7c72bd332568755563ff58df72bfb5f5ea5c10d175a39a709f3c49c9d92c7",
+      "label": "desktop",
+      "stage": "after",
+      "business": "Meadow & Moss",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "4-before-narrow.png",
+      "sha256": "f5a0625790fc2e8e9d4a971dd097f0ba4f8601d2b326cfd9a29deb2ee9217234",
+      "label": "narrow",
+      "stage": "before",
+      "business": "Groundwork Gardens",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "4-after-narrow.png",
+      "sha256": "2da47a1ffefe41ca78f82bb761ca0bde6520a18d47fbaba6521c58fd373e5f2c",
+      "label": "narrow",
+      "stage": "after",
+      "business": "Groundwork Gardens",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "4-before-mobile.png",
+      "sha256": "c80e2b6ad8a947e2e8b4175d50ca110d2a573b6f47ded0a3b9d3fae3f5e95d71",
+      "label": "mobile",
+      "stage": "before",
+      "business": "Groundwork Gardens",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "4-after-mobile.png",
+      "sha256": "ec259003a3a751c90717275dfc9ddf542192914e30597836718ffeba8b79782f",
+      "label": "mobile",
+      "stage": "after",
+      "business": "Groundwork Gardens",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "4-before-desktop.png",
+      "sha256": "33a2a6fd6d1fdc713710aabd7a1b9404dd61306a1cd9573b9be057829d63a73a",
+      "label": "desktop",
+      "stage": "before",
+      "business": "Groundwork Gardens",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "4-after-desktop.png",
+      "sha256": "8358a7fa999bdbc7f69a169f8ef64c4c21c5ef9167ebcfca73290ee0e61e7cbb",
+      "label": "desktop",
+      "stage": "after",
+      "business": "Groundwork Gardens",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "5-before-narrow.png",
+      "sha256": "3f9d9f330921f6b2d88fda69ef0a688ba2a22d3a80655bd4df0dc5bd4bd4d9db",
+      "label": "narrow",
+      "stage": "before",
+      "business": "Quiet Plot",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "5-after-narrow.png",
+      "sha256": "3a7fb98641fb5438337e2b5f5967813c149fd941c94dfd28c5006e6f6bc3a85f",
+      "label": "narrow",
+      "stage": "after",
+      "business": "Quiet Plot",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "5-before-mobile.png",
+      "sha256": "81aa06506482348508b5ba8fb21d73e145a8b810d53f1f1e2f753cea72310c87",
+      "label": "mobile",
+      "stage": "before",
+      "business": "Quiet Plot",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "5-after-mobile.png",
+      "sha256": "a87d3f284a685da274ee51ca58ada80bed4b9b597cb9df75ba16d83da79f980b",
+      "label": "mobile",
+      "stage": "after",
+      "business": "Quiet Plot",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "5-before-desktop.png",
+      "sha256": "523e661f08ff72456bbf44f6b1c45a15d346475c12cb2bef2b752b3915ad0599",
+      "label": "desktop",
+      "stage": "before",
+      "business": "Quiet Plot",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "5-after-desktop.png",
+      "sha256": "d977cb72ecf716156bd402ab435bddc395e7c04e8ec8e30d3be4debbaf5ce874",
+      "label": "desktop",
+      "stage": "after",
+      "business": "Quiet Plot",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "6-before-narrow.png",
+      "sha256": "890fb37b1e8136907db43deb559cc6485b1d7c93ec7265abafe099d10a90cd44",
+      "label": "narrow",
+      "stage": "before",
+      "business": "Wild Corner",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "6-after-narrow.png",
+      "sha256": "a47dc2e1c0b7e0c289549c02e38f3e7deb5207ce3f069cde1b023d329f1d7587",
+      "label": "narrow",
+      "stage": "after",
+      "business": "Wild Corner",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "6-before-mobile.png",
+      "sha256": "d774c234fb30965abda6a64c6de0a85b2ac3844c08d37dae810ed6059861cd88",
+      "label": "mobile",
+      "stage": "before",
+      "business": "Wild Corner",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "6-after-mobile.png",
+      "sha256": "22eb2a34d21dd83d538a90e6770979fe16c9b424340d85b6983b55f23c023c7f",
+      "label": "mobile",
+      "stage": "after",
+      "business": "Wild Corner",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "6-before-desktop.png",
+      "sha256": "61be82348f86d1da6182e7d72917a09da40bc123951cf48c23b860ed86427ece",
+      "label": "desktop",
+      "stage": "before",
+      "business": "Wild Corner",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "6-after-desktop.png",
+      "sha256": "e0475647883b92ab1036e47699e0f78fb045edffe02418694acf82d91758fc92",
+      "label": "desktop",
+      "stage": "after",
+      "business": "Wild Corner",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "7-before-narrow.png",
+      "sha256": "e3c56aaeedfa32de5ffb8fbd4ab20d36d257ec17a7d93e9658bccb6bad36d49b",
+      "label": "narrow",
+      "stage": "before",
+      "business": "Estate Garden Care",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "7-after-narrow.png",
+      "sha256": "5d64d9d3ea3dd732640ed04d68364e9584dda4d6192c2896685cb020cdd65ce1",
+      "label": "narrow",
+      "stage": "after",
+      "business": "Estate Garden Care",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "filename": "7-before-mobile.png",
+      "sha256": "f7a1e2ab82acbd6bd40bd609743e64c9ef2a6903316fa2b7c5b6090fc1196472",
+      "label": "mobile",
+      "stage": "before",
+      "business": "Estate Garden Care",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "7-after-mobile.png",
+      "sha256": "d1669906dd8dffb1f6a68773a7eabf37262bfd2821f22ac9f790d7632a9bce4d",
+      "label": "mobile",
+      "stage": "after",
+      "business": "Estate Garden Care",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "filename": "7-before-desktop.png",
+      "sha256": "389f27e3abe1b3fea5af4f6648a47d9c7ce185092974dff5ead84799db8ddb80",
+      "label": "desktop",
+      "stage": "before",
+      "business": "Estate Garden Care",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "filename": "7-after-desktop.png",
+      "sha256": "562317b309aa2ed4c0046da759562581244c8866d9394a10ce76e14869483461",
+      "label": "desktop",
+      "stage": "after",
+      "business": "Estate Garden Care",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    }
+  ],
+  "durableComparisons": [
+    {
+      "filename": "catering-mobile.jpg",
+      "sha256": "6a1e8a63ac02afb14e9b6af011506267aac59e8a0dfd67fc60759cd7cc800674",
+      "inputPixels": [
+        {
+          "filename": "0-before-mobile.png",
+          "sha256": "a9a43c651ddc75529390af509ef57cc3d0d88388e5129b17dff8ff321b26bb7d"
+        },
+        {
+          "filename": "0-after-mobile.png",
+          "sha256": "8ff6cbfa05a9069eff3393b3d7d56478b022b520b1a8110db6c083dad3911e95"
+        }
+      ],
+      "scaled": false,
+      "jpegReencoded": true
+    },
+    {
+      "filename": "gardening-mobile.jpg",
+      "sha256": "4d08ff31659a888f415107d13cc881c1681e71807fac81655b6739b287c6b147",
+      "inputPixels": [
+        {
+          "filename": "1-before-mobile.png",
+          "sha256": "e9ef01935fdc16d57f82c4e88ad5b3a9de2d8f2150765d345350492a0cbd975e"
+        },
+        {
+          "filename": "1-after-mobile.png",
+          "sha256": "467fd707538a7cfce400a98430632f761ec642ecde23c7366bcbb36d137b4a23"
+        }
+      ],
+      "scaled": false,
+      "jpegReencoded": true
+    },
+    {
+      "filename": "creative-mobile.jpg",
+      "sha256": "b6e40a25f2ba956c55b2d89970ab188c6b0c6dabf993cc0cccde65eb94569023",
+      "inputPixels": [
+        {
+          "filename": "2-before-mobile.png",
+          "sha256": "e245f2affb1b1cc2fc93e4a8bfa75e80e212b77b77fa0b3fdf48c239aa358cbb"
+        },
+        {
+          "filename": "2-after-mobile.png",
+          "sha256": "1120bc7b981c2cc56bb721d9542af023d5bcba60d71e9e38e87b6cce9d927676"
+        }
+      ],
+      "scaled": false,
+      "jpegReencoded": true
+    }
+  ],
+  "desktopComparisonSha256": "5c9c079af4e95761048cc19e131c558147fff3c7df7a1f9380db35e3e520656f",
+  "assets": {
+    "sources": [
+      "scripts/fixtures/website-design/assets.json",
+      "scripts/fixtures/guided-websites/assets.json"
+    ],
+    "images": [
+      {
+        "name": "coffee",
+        "sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+        "credit": "Rachel Michetti, courtesy Pikolo Espresso Bar; CC0"
+      },
+      {
+        "name": "grass",
+        "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89",
+        "credit": "linolafett, Grass-01, cropped/grayscale by scikit-image; CC0"
+      },
+      {
+        "name": "gravel",
+        "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12",
+        "credit": "CC0Textures Gravel04, cropped/grayscale by scikit-image; CC0"
+      },
+      {
+        "name": "brick",
+        "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf",
+        "credit": "CC0Textures Bricks25, transformed by scikit-image; CC0"
+      },
+      {
+        "name": "catering",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Ugandan_food_buffet_serving.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/w/index.php?title=File:Ugandan_food_buffet_serving.jpg&oldid=1210355536",
+        "credit": "Rebeccananonof, Ugandan food buffet serving, CC0",
+        "sha256": "9f20818190c48e4485e1bea41752ae46ebe873204b91f33ff92ccbc6bc304046",
+        "width": 4608,
+        "height": 3456
+      },
+      {
+        "name": "garden",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+        "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition",
+        "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb",
+        "width": 1280,
+        "height": 1920,
+        "previousPinnedSha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+        "reviewedLocalPath": "scripts/fixtures/guided-websites/patio-garden-reviewed.jpg",
+        "review": "Actual 1280x1920 JPEG decoded and visually reviewed on 2026-11-03 after run41680754623 failed exact-byte verification. Preserve copyright/artist metadata and CC0 provenance. Checked-in fixture, not automatic acceptance of changed upstream bytes."
+      },
+      {
+        "name": "studio",
+        "extension": "jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Patio_Garden_with_blooming_plants.jpg/1280px-Patio_Garden_with_blooming_plants.jpg",
+        "licenseEvidence": "https://commons.wikimedia.org/wiki/File:Patio_Garden_with_blooming_plants.jpg",
+        "credit": "Pamela Kelso / Almapayokels, Patio Garden with blooming plants, CC0; 1280px Commons rendition; explicit illustrative botanical choice for fictional wellness preview, not studio premises",
+        "sha256": "da6268dead93b8b78ea91e8762ea1a80b4b2e911de38e6ae5d4397dc71de6cdb",
+        "width": 1280,
+        "height": 1920,
+        "previousPinnedSha256": "a4ac9537bce9dfdef290059fb81318dcf2c01c403d2d5bd0bd6f3940437ceab3",
+        "reviewedLocalPath": "scripts/fixtures/guided-websites/patio-garden-reviewed.jpg",
+        "review": "Actual 1280x1920 JPEG decoded and visually reviewed on 2026-11-03 after run41680754623 failed exact-byte verification. Preserve copyright/artist metadata and CC0 provenance. Checked-in fixture, not automatic acceptance of changed upstream bytes."
+      }
+    ]
+  },
+  "fullResolutionArchiveIds": [
+    13257781695,
+    13257681902
+  ],
+  "professionalAcceptance": false,
+  "publicationAuthorised": false,
+  "comparisonContract": "Same approved words, assets, colours, family, navigation and order; whole-page treatment plus explicit service-layout alternative for five less-generic goals."
+}

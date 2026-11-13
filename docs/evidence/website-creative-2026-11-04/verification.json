@@ -1,0 +1,135 @@
+{
+  "sourceSha": "c5651bbadb3ce5ba346eb98c373d049c8495d431",
+  "sourceTree": "caa56a42dab9d174e438935d6e12ff0194438482",
+  "sourceStable": true,
+  "workingTreeChanged": false,
+  "application": {
+    "passed": 491,
+    "failed": 0,
+    "blocked": 0,
+    "unexecuted": 0
+  },
+  "allIndividualApplicationExitCodes": 0,
+  "applicationExit": 0,
+  "foundation": {
+    "assertions": 105,
+    "exit": 0
+  },
+  "postgres": [
+    {
+      "file": "postgres.json",
+      "summary": {
+        "passed": 126,
+        "failed": 0
+      },
+      "exit": 0
+    },
+    {
+      "file": "public-form-postgres.json",
+      "summary": {
+        "passed": 21,
+        "failed": 0
+      },
+      "exit": 0
+    },
+    {
+      "file": "enquiry-preparation-postgres.json",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "exit": 0
+    },
+    {
+      "file": "operational-work-postgres.json",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "exit": 0
+    },
+    {
+      "file": "work-preparation-postgres.json",
+      "summary": {
+        "passed": 12,
+        "failed": 0
+      },
+      "exit": 0
+    }
+  ],
+  "postgresTotal": 185,
+  "newOriginalStudioStages": [
+    "creative-brief-original-original-studio-save-reopen-undo-0",
+    "creative-brief-original-original-studio-save-reopen-undo-1",
+    "creative-brief-original-original-studio-save-reopen-undo-2"
+  ],
+  "deno": {
+    "entries": 25,
+    "version": "2.5.6",
+    "exit": 0
+  },
+  "unsignedExports": {
+    "owner-export.log": {
+      "exit": 0,
+      "modules": "1569"
+    },
+    "staging-export.log": {
+      "exit": 0,
+      "modules": "1628"
+    }
+  },
+  "mainRun": 41933445135,
+  "browserRun": 41933447686,
+  "browserExit": 0,
+  "newPngsHashVerified": 102,
+  "browserZipDigestsVerified": 6,
+  "mainArtifact": {
+    "id": 13373771271,
+    "sha256": "d12c8da34a7de6872d920d2d0effc6beecfa71fc614e6060179d026f3b191055"
+  },
+  "guards": [
+    {
+      "id": "security-by-design-adversarial",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "security-baseline",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "historical-security-boundaries",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "security-phase3",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-security-phase4",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "check-security-phase5",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "dependency-security",
+      "status": "passed",
+      "exit": 0
+    },
+    {
+      "id": "dependency-compatibility",
+      "status": "passed",
+      "exit": 0
+    }
+  ],
+  "providerCalls": 0,
+  "hostedAcceptance": false,
+  "independentAestheticAcceptance": false
+}

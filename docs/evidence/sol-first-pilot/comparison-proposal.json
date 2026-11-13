@@ -1,0 +1,130 @@
+{
+  "version": "busy.sol-first-comparison-review.v1",
+  "preparationOnly": true,
+  "code": {
+    "commit": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+    "tree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+    "workingTreeDirty": false,
+    "preparationFileSha256": "19eeeecb79980d1eafb5ad2a748bb28fe12b55c3b0a286a0adace31e776ee929",
+    "bridgeFileSha256": "ff2e065bff165bb0d76cbdb3c71a21ee08d996cedf4b3a8bdd73b54109cd5785",
+    "rendererFileSha256": "8ee2c91ebc2dd1f739ea9fbe828030fed5fb3ab8ffa8dbd87e0020bdf5c81a76",
+    "rendererGraphSha256": "4c55a4d33388e54fba7ea7bd0baa829dac23d83bde60b2676584ec27aaadf172",
+    "rendererGraphFiles": 43
+  },
+  "resources": {
+    "wallMs": 233,
+    "nodeCpuMicroseconds": {
+      "user": 226650,
+      "system": 41305
+    },
+    "maxRssKiB": 68188,
+    "providerTokens": null,
+    "providerCostGBP": 0
+  },
+  "privacy": {
+    "rawContactValuesProjected": false,
+    "credentialsProjected": false,
+    "b3ExecutionPermitProjected": false,
+    "nativeOwnerBusinessAndWebsiteScopeProjected": true,
+    "nativeScopeRequiresSeparateExternalInputReview": true
+  },
+  "proposedIntentRequiresOwnerApproval": true,
+  "factsDigest": "972b5fe173ed4d5f3955d23d460302b6efb91207f551e40d767f5d0c5158100f",
+  "schemaDigest": "c5958b3b5448a012123016f8e18e9425e368a14f4a75461fddb0e48e85e04545",
+  "budgetProposal": {
+    "status": "owner-approved-ceilings-only-not-execution",
+    "firstModel": "gpt-6.1-sol",
+    "laterModel": "gpt-6-astra",
+    "firstSolMaximumGBP": 0.25,
+    "astraMaximumGBP": 1,
+    "cumulativeComparisonMaximumGBP": 3,
+    "maximumInferenceRequests": 2,
+    "inferenceRequestsPerModel": 1,
+    "firstSolIncludedInAggregate": true,
+    "astraIncludedInAggregate": true,
+    "paidInvalidOrInferiorResultsConsumeAttempt": true,
+    "retries": 0,
+    "fallbacks": 0,
+    "tools": 0,
+    "accountOrCountingRequestsAuthorized": false
+  },
+  "proposals": [
+    {
+      "model": "gpt-6.1-sol",
+      "budgetProfile": "busy.quiet-light-comparison.v1",
+      "envelopeDigest": "42861c6ff159ca822537df3a379d5632c7cf27bc9603f4fd34d2f15566f226d5",
+      "requestDigest": "34d7a83cb0a6056f256af60f7d639acfd09f895fbf286e86898654b42b0aeb33",
+      "limits": {
+        "inputTokens": 8000,
+        "outputTokens": 12000,
+        "maximumGBP": 0.25,
+        "requests": 1,
+        "retries": 0
+      },
+      "measuredBytes": {
+        "kind": "Measured UTF-8 bytes only; never provider token counts",
+        "input": {
+          "bytes": 5558,
+          "sha256": "972b5fe173ed4d5f3955d23d460302b6efb91207f551e40d767f5d0c5158100f"
+        },
+        "strictSchema": {
+          "bytes": 8996,
+          "sha256": "c5958b3b5448a012123016f8e18e9425e368a14f4a75461fddb0e48e85e04545"
+        },
+        "completeWire": {
+          "bytes": 15290,
+          "sha256": "34d7a83cb0a6056f256af60f7d639acfd09f895fbf286e86898654b42b0aeb33"
+        },
+        "compatibleCompleteRequestTokens": null,
+        "providerOutputTokens": null,
+        "completeInputFit": "not-established",
+        "completeThreePageOutputFit": "not-established"
+      },
+      "originalLedgerGoalHash": "8263d74eb0f4b2e0af0a13eb962c71e6d8ef42700c3d22fefe57e63175a85844"
+    },
+    {
+      "model": "gpt-6-astra",
+      "budgetProfile": "busy.quiet-light-comparison.v1",
+      "envelopeDigest": "d5f2119a6c8632ec7996b6827604a7cc417ce377bfa1b1ca0abb681760cd9e9f",
+      "requestDigest": "2bcf2c1b3e6b64b3a2282aa8c7c2b0106705bf6a68d6015b47502c99ae91c0f1",
+      "limits": {
+        "inputTokens": 8000,
+        "outputTokens": 12000,
+        "maximumGBP": 1,
+        "requests": 1,
+        "retries": 0
+      },
+      "measuredBytes": {
+        "kind": "Measured UTF-8 bytes only; never provider token counts",
+        "input": {
+          "bytes": 5558,
+          "sha256": "972b5fe173ed4d5f3955d23d460302b6efb91207f551e40d767f5d0c5158100f"
+        },
+        "strictSchema": {
+          "bytes": 8996,
+          "sha256": "c5958b3b5448a012123016f8e18e9425e368a14f4a75461fddb0e48e85e04545"
+        },
+        "completeWire": {
+          "bytes": 15290,
+          "sha256": "2bcf2c1b3e6b64b3a2282aa8c7c2b0106705bf6a68d6015b47502c99ae91c0f1"
+        },
+        "compatibleCompleteRequestTokens": null,
+        "providerOutputTokens": null,
+        "completeInputFit": "not-established",
+        "completeThreePageOutputFit": "not-established"
+      },
+      "originalLedgerGoalHash": "56e9f114cc88679fe5ec4201cfcfdfa8420ed241afe0d67fe4686f2c0d5ff594"
+    }
+  ],
+  "liveCandidates": {
+    "sol": null,
+    "astra": null
+  },
+  "providerCalls": 0,
+  "tokenCountRequests": 0,
+  "nativeSignIns": 0,
+  "hostedWrites": 0,
+  "spendingGBP": 0,
+  "publication": false,
+  "publicPrivateRequestOrSourceContent": false
+}

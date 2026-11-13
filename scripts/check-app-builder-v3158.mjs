@@ -103,10 +103,13 @@ assert.ok(read("supabase/migrations/20261012183000_v3_180_atomic_business_app_ha
 assert.equal(preflightRequestBridge({request:{request_type:"booking_request",status:"reviewing"},existing:{bridge_state:"booking_draft",customer_record_id:"customer",action_record_id:"original"},bridgeState:"booking_draft",customerRecordId:"customer",actionRecordId:"different"}).ok,false);
 const ui=read("src/screens/miniApps.js"),controller=read("src/app/AppController.js");
 for(const term of ["Capture visible screen","appVisibleCaptureReceipt",
- "Preview edited service","Preview removal of this service",
  "Request progress","Undo my last approved batch"])
  assert.ok(ui.includes(term),"App UI not wired: "+term);
+const serviceEditor=read("src/screens/appServiceEditor.js");
+assert.ok(ui.includes("AppServiceEditor"),"Original service editor must remain wired into Mini Apps");
+for(const term of ["Preview edited service","Preview removal of this service"])
+ assert.ok(serviceEditor.includes(term),"Original service review not wired: "+term);
 assert.ok(controller.includes("ownerApproved:true,"));
 const pkg=JSON.parse(read("package.json"));
-assert.equal(pkg.dependencies["react-native-view-shot"],"4.0.3");
+assert.equal(pkg.dependencies["react-native-view-shot"],"5.1.0"); // Reviewed Expo57-compatible native capture dependency.
 console.log("V3.158 PASS: individual services, atomic approval/undo, safe request transitions, native visible screen capture contract and no false booking confirmation.");

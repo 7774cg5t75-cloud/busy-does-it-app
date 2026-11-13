@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-11-05",
+  "project": "pnjdlogwegnqbsfpcofw",
+  "scope": "Read-only PostgreSQL catalogues only. No customer/Auth rows, sequence counters, keys or internal data fingerprints read.",
+  "publicTables": [
+    "busy_marketing_waitlist",
+    "busy_staging_rls_canary"
+  ],
+  "originalBusinessFoundation": false,
+  "originalSnapshotFoundation": false,
+  "originalAiBudgetSchema": false,
+  "originalAiOperations": false,
+  "edgeFunctions": [],
+  "privileges": {
+    "current_user": "postgres",
+    "database_create": true,
+    "temporary_objects": true,
+    "public_create": true,
+    "auth_usage": true,
+    "auth_users_references": true,
+    "auth_uid_execute": true,
+    "api_roles": [
+      {
+        "role": "anon",
+        "exists": true
+      },
+      {
+        "role": "authenticated",
+        "exists": true
+      },
+      {
+        "role": "service_role",
+        "exists": true
+      }
+    ],
+    "pgcrypto_schema": "extensions"
+  },
+  "portableCatalogueMatched": true,
+  "baselineSha256": "49bfb13bfc04b08a45b1a42692752180ba6eee316f365b15aa8501355c6fc8da",
+  "hostedMutation": false
+}

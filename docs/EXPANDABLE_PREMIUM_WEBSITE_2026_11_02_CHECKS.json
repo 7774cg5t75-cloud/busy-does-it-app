@@ -1,0 +1,2866 @@
+{
+  "mission": "Expandable premium Website design",
+  "date": "2026-11-02",
+  "source": {
+    "start": {
+      "remote": "48bea996bad95dfb641e7ad5c7d4d66127c357db",
+      "local": "84feb37a36219e7c7d93887ac9feb22e681916e8",
+      "tree": "45d32e6bf586bff349ffc9bb85efbcaeca6cb637"
+    },
+    "frozen": {
+      "remote": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+      "local": "4837b77611df618e530ae12cf5c7c802c7766170",
+      "tree": "664e2a95eb1be06e5782dab19906af3589bab096"
+    },
+    "runs": [
+      {
+        "id": 41522730276,
+        "name": "V3.65 Growth Command Centre checks",
+        "status": "in_progress",
+        "conclusion": null,
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730276"
+      },
+      {
+        "id": 41522730138,
+        "name": "V3.69 Founder Operations Security",
+        "status": "in_progress",
+        "conclusion": null,
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730138"
+      },
+      {
+        "id": 41522730029,
+        "name": "V3.63 coordinated editable growth checks",
+        "status": "completed",
+        "conclusion": "success",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730029"
+      },
+      {
+        "id": 41522730100,
+        "name": "V3.66 voice and project Operator checks",
+        "status": "completed",
+        "conclusion": "success",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730100"
+      },
+      {
+        "id": 41522730090,
+        "name": "V3.70 Platform Autopilot checks",
+        "status": "in_progress",
+        "conclusion": null,
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730090"
+      },
+      {
+        "id": 41522729996,
+        "name": "V3.64 private growth workspace checks",
+        "status": "completed",
+        "conclusion": "success",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522729996"
+      },
+      {
+        "id": 41522720874,
+        "name": "Private App goal composition and original authority verification",
+        "status": "pending",
+        "conclusion": null,
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522720874"
+      },
+      {
+        "id": 41522721135,
+        "name": "Premium Website original-renderer browser evidence",
+        "status": "in_progress",
+        "conclusion": null,
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522721135"
+      }
+    ],
+    "superseded": [
+      {
+        "sha": "7b4ecf79b127c95264943c9437677b113bd8914d",
+        "tree": "162e70bf3421e4d45b238dfe3241b64981104a96",
+        "primary": 41521196473,
+        "browser": 41521196558
+      },
+      {
+        "sha": "273914e89e69fcb73477c3ba1adfd2d1ceaf2a7d",
+        "tree": "b2ae8b4f7fc60c54ce7a6989f7016689d58d7bc8",
+        "primary": 41521444911,
+        "browser": 41521444887
+      },
+      {
+        "sha": "3a3d75a390b3a2fcf68f97719bba1f79a990212d",
+        "tree": "005950921ac163ab120db57c3fb1d68aca05faf2",
+        "primary": 41521835151,
+        "browser": 41521835118
+      },
+      {
+        "sha": "558db053607d18ec5ad2ff444dae28c61f4a7367",
+        "tree": "ae2230de828e34047cb6ab09ed094d6614220cb2",
+        "primary": 41522335149,
+        "browser": 41522335176
+      }
+    ],
+    "master": {
+      "originalSha256": "23793f82b471328bdd216897c212999a430652e19228fcb221a8ee16a7ddc272",
+      "preparedSha256": "6cc626c8c1555e3f5b4be187174f0531d5ff45b49fc0fd57e002d7e4e1a34f47",
+      "path": "/workspace/busy-does-it-private-masters/V22_74_expandable_website_design_prepared.docx"
+    }
+  },
+  "ci": {
+    "runs": [
+      {
+        "id": 41522730138,
+        "name": "V3.69 Founder Operations Security",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "tree": "664e2a95eb1be06e5782dab19906af3589bab096",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730138"
+      },
+      {
+        "id": 41522730276,
+        "name": "V3.65 Growth Command Centre checks",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "tree": "664e2a95eb1be06e5782dab19906af3589bab096",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730276"
+      },
+      {
+        "id": 41522729996,
+        "name": "V3.64 private growth workspace checks",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "tree": "664e2a95eb1be06e5782dab19906af3589bab096",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522729996"
+      },
+      {
+        "id": 41522730090,
+        "name": "V3.70 Platform Autopilot checks",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "tree": "664e2a95eb1be06e5782dab19906af3589bab096",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730090"
+      },
+      {
+        "id": 41522730100,
+        "name": "V3.66 voice and project Operator checks",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "tree": "664e2a95eb1be06e5782dab19906af3589bab096",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730100"
+      },
+      {
+        "id": 41522730029,
+        "name": "V3.63 coordinated editable growth checks",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "tree": "664e2a95eb1be06e5782dab19906af3589bab096",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522730029"
+      },
+      {
+        "id": 41522721135,
+        "name": "Premium Website original-renderer browser evidence",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "tree": "664e2a95eb1be06e5782dab19906af3589bab096",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522721135"
+      },
+      {
+        "id": 41522720874,
+        "name": "Private App goal composition and original authority verification",
+        "sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "tree": "664e2a95eb1be06e5782dab19906af3589bab096",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522720874"
+      }
+    ],
+    "primaryArtifact": {
+      "id": 13178877648,
+      "name": "private-app-goal-767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+      "size_in_bytes": 143252,
+      "url": "https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/actions/artifacts/13178877648",
+      "archive_download_url": "https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/actions/artifacts/13178877648/zip",
+      "expired": false,
+      "created_at": "2026-11-02T21:05:31Z",
+      "expires_at": "2026-11-09T21:05:30Z",
+      "updated_at": "2026-11-02T21:05:31Z",
+      "digest": "sha256:db5d5706c174f107780eafd314c87b0a5dd9b8da13b773bd93864ccad71fe5d6",
+      "workflow_run": {
+        "id": 41522720874,
+        "repository_id": 1389663451,
+        "head_repository_id": 1389663451,
+        "head_branch": "codex/builder-mission15-design-advancement",
+        "head_sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75"
+      }
+    },
+    "browserArtifact": {
+      "id": 13179235455,
+      "name": "premium-website-browser-767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+      "size_in_bytes": 21715532,
+      "url": "https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/actions/artifacts/13179235455",
+      "archive_download_url": "https://api.github.com/repos/7774cg5t75-cloud/busy-does-it-app/actions/artifacts/13179235455/zip",
+      "expired": false,
+      "created_at": "2026-11-02T20:51:18Z",
+      "expires_at": "2026-11-09T20:51:15Z",
+      "updated_at": "2026-11-02T20:51:18Z",
+      "digest": "sha256:cf7bcb7aef5908238dac1eeb72edd9eef8215ef35c282ab91e454ea7d832d6a7",
+      "workflow_run": {
+        "id": 41522721135,
+        "repository_id": 1389663451,
+        "head_repository_id": 1389663451,
+        "head_branch": "codex/builder-mission15-design-advancement",
+        "head_sha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75"
+      }
+    },
+    "pullRequests": [
+      {
+        "number": 26,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+        "base": "codex/builder-mission14-intelligent-followups"
+      },
+      {
+        "number": 25,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "3e64352e7e043812b1ba79a0609b64c251a0f4bd",
+        "base": "codex/builder-mission13-customer-conversations"
+      },
+      {
+        "number": 24,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+        "base": "codex/builder-mission12-connected-journeys"
+      },
+      {
+        "number": 23,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "f9b11034449a8d401ea71afe27627c5715325c72",
+        "base": "codex/disposable-supabase-review"
+      },
+      {
+        "number": 21,
+        "state": "open",
+        "draft": true,
+        "merged": false,
+        "head": "55db12d247b149aa2052fc17f5d5dc536a77b8a7",
+        "base": "codex/builder-mission11-shared-records"
+      }
+    ],
+    "superseded": [
+      {
+        "id": 41521196473,
+        "name": "Private App goal composition and original authority verification",
+        "sha": "7b4ecf79b127c95264943c9437677b113bd8914d",
+        "tree": "162e70bf3421e4d45b238dfe3241b64981104a96",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41521196473",
+        "processExitCode": null,
+        "reason": "Superseded by a later exact source under the original cancel-in-progress policy; no completed full-suite result or cancellation exit code claimed."
+      },
+      {
+        "id": 41521196558,
+        "name": "Premium Website original-renderer browser evidence",
+        "sha": "7b4ecf79b127c95264943c9437677b113bd8914d",
+        "tree": "162e70bf3421e4d45b238dfe3241b64981104a96",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41521196558",
+        "processExitCode": 1,
+        "reason": "Pinned bootstrap npm mismatch; shell exit1; capture unavailable and upload had no files."
+      },
+      {
+        "id": 41521444911,
+        "name": "Private App goal composition and original authority verification",
+        "sha": "273914e89e69fcb73477c3ba1adfd2d1ceaf2a7d",
+        "tree": "b2ae8b4f7fc60c54ce7a6989f7016689d58d7bc8",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41521444911",
+        "processExitCode": 1,
+        "reason": "Genuine Deno TS2322 string[]/never[] type failure; exit1."
+      },
+      {
+        "id": 41521444887,
+        "name": "Premium Website original-renderer browser evidence",
+        "sha": "273914e89e69fcb73477c3ba1adfd2d1ceaf2a7d",
+        "tree": "b2ae8b4f7fc60c54ce7a6989f7016689d58d7bc8",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41521444887",
+        "processExitCode": 1,
+        "reason": "Actual original 12.8px label failed minimum14px browser test; exit1."
+      },
+      {
+        "id": 41521835151,
+        "name": "Private App goal composition and original authority verification",
+        "sha": "3a3d75a390b3a2fcf68f97719bba1f79a990212d",
+        "tree": "005950921ac163ab120db57c3fb1d68aca05faf2",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41521835151",
+        "processExitCode": 1,
+        "reason": "Genuine Deno TS2322 string[]/never[] type failure; exit1."
+      },
+      {
+        "id": 41521835118,
+        "name": "Premium Website original-renderer browser evidence",
+        "sha": "3a3d75a390b3a2fcf68f97719bba1f79a990212d",
+        "tree": "005950921ac163ab120db57c3fb1d68aca05faf2",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41521835118",
+        "processExitCode": 1,
+        "reason": "Four actual cinematic/collection contrast counterexamples; exit1."
+      },
+      {
+        "id": 41522335149,
+        "name": "Private App goal composition and original authority verification",
+        "sha": "558db053607d18ec5ad2ff444dae28c61f4a7367",
+        "tree": "ae2230de828e34047cb6ab09ed094d6614220cb2",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522335149",
+        "processExitCode": null,
+        "reason": "Superseded by a later exact source under the original cancel-in-progress policy; no completed full-suite result or cancellation exit code claimed."
+      },
+      {
+        "id": 41522335176,
+        "name": "Premium Website original-renderer browser evidence",
+        "sha": "558db053607d18ec5ad2ff444dae28c61f4a7367",
+        "tree": "ae2230de828e34047cb6ab09ed094d6614220cb2",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41522335176",
+        "processExitCode": 1,
+        "reason": "Original photo-free mobile artwork viewport-bound failure; exit1."
+      }
+    ]
+  },
+  "localEvidence": {
+    "healthExit": 0,
+    "focusedExpansionExit": 0,
+    "focusedPremiumExit": 0,
+    "legacyWebsiteLayoutAssertions": 102,
+    "legacyWebsiteLayoutExit": 0,
+    "selectedPremiumRegressions": {
+      "passed": 7,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 474,
+      "exitCode": 0
+    },
+    "foundationAssertions": 105,
+    "foundationExit": 0,
+    "syntaxFiles": 12,
+    "syntaxExit": 0,
+    "securitySourceFiles": 980,
+    "securityLockedPackages": 557,
+    "securityExit": 0,
+    "securityByDesignExit": 0,
+    "dependencyBackportExit": 0,
+    "staticRelativeImportCycles": 0,
+    "architectureCensusExit": 0
+  },
+  "browser": {
+    "source": {
+      "commit": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+      "tree": "664e2a95eb1be06e5782dab19906af3589bab096"
+    },
+    "browser": "145.0.7632.6",
+    "sandboxRequired": true,
+    "renderer": "Original src/domain/websiteBuilder.js renderWebsiteHtml",
+    "assetManifest": {
+      "sourceCommit": "e8a42ba85aaf5fd9322ef9ca51bc21063b22fcae",
+      "licenseEvidence": "https://github.com/scikit-image/scikit-image/blob/e8a42ba85aaf5fd9322ef9ca51bc21063b22fcae/skimage/data/_fetchers.py",
+      "license": "CC0 as explicitly documented by scikit-image for these four images",
+      "use": "Synthetic renderer studies only. Not any fictional business's work, premises, products or customers; not production stock selection.",
+      "images": [
+        {
+          "name": "coffee",
+          "sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7",
+          "credit": "Rachel Michetti, courtesy Pikolo Espresso Bar; CC0"
+        },
+        {
+          "name": "grass",
+          "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89",
+          "credit": "linolafett, Grass-01, cropped/grayscale by scikit-image; CC0"
+        },
+        {
+          "name": "gravel",
+          "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12",
+          "credit": "CC0Textures Gravel04, cropped/grayscale by scikit-image; CC0"
+        },
+        {
+          "name": "brick",
+          "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf",
+          "credit": "CC0Textures Bricks25, transformed by scikit-image; CC0"
+        }
+      ]
+    },
+    "results": [
+      {
+        "business": "Meadow & Moss",
+        "family": "asymmetric-split",
+        "stage": "before",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "0-before-mobile.png",
+        "sha256": "71df14ce03793a99346554d94cac1ab9481b9b6e41a4a95ee517fc6f321548bd",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Meadow & Moss"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2927
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Meadow & Moss",
+        "family": "asymmetric-split",
+        "stage": "after",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "0-after-mobile.png",
+        "sha256": "bd496bea1889bb7881b802adfc5a239992b6ffb75ee05bffd164822ce04ed1d4",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Meadow & Moss"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2925
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Meadow & Moss",
+        "family": "asymmetric-split",
+        "stage": "before",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "0-before-desktop.png",
+        "sha256": "e7d162c07b695c1bb609105db4fe75a724f2f59861c8cfe912c3bc4498e6e38f",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 559.46875,
+              "fontSize": 83.2,
+              "text": "Meadow & Moss"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2665
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Meadow & Moss",
+        "family": "asymmetric-split",
+        "stage": "after",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "0-after-desktop.png",
+        "sha256": "7d5d626a8262365745111556763c977809737e2a0cfb2ff2cf9990135a2fb4d1",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 640.6875,
+              "fontSize": 83.52,
+              "text": "Meadow & Moss"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2786
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Groundwork Gardens",
+        "family": "service-led",
+        "stage": "before",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "1-before-mobile.png",
+        "sha256": "3d59b95d40df54745044f6653861461d08b27b54c98b2bf7a19efb44f4811601",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Groundwork Gardens"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2981
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Groundwork Gardens",
+        "family": "service-led",
+        "stage": "after",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "1-after-mobile.png",
+        "sha256": "e48476a192ab620e1b032c88df0d05fb62121c79484180e51104a6f2205959fe",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Groundwork Gardens"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2970
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Groundwork Gardens",
+        "family": "service-led",
+        "stage": "before",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "1-before-desktop.png",
+        "sha256": "980a3fb571b6984e7bd89d6fc24b50c5ffc10baddf4c942c8142147472211784",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 568.671875,
+              "fontSize": 102.4,
+              "text": "Groundwork Gardens"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2729
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Groundwork Gardens",
+        "family": "service-led",
+        "stage": "after",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "1-after-desktop.png",
+        "sha256": "fd790743c6a82171168c6ce1b4d8274d0e2b2f5e47b60a603c992d95fb24ae20",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 640.6875,
+              "fontSize": 83.52,
+              "text": "Groundwork Gardens"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2822
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Quiet Plot",
+        "family": "typography-first",
+        "stage": "before",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "2-before-mobile.png",
+        "sha256": "dd1580aac82621a83c91e437c9c5e63b5b58c097e968107ef3643a8a382e9f77",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 51.2,
+              "text": "Quiet Plot"
+            }
+          ],
+          "imageCount": 0,
+          "height": 1908
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Quiet Plot",
+        "family": "typography-first",
+        "stage": "after",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "2-after-mobile.png",
+        "sha256": "ce60747133f45e199214888eaeb0737182bc3b2bc8599769b6df06a3ce7475c8",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 51.2,
+              "text": "Quiet Plot"
+            }
+          ],
+          "imageCount": 0,
+          "height": 1889
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Quiet Plot",
+        "family": "typography-first",
+        "stage": "before",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "2-before-desktop.png",
+        "sha256": "0096a6c7fdd17f87679e0a7d0e79477e63dcd74baef7a5a48d72212d31e5dd9c",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 840,
+              "fontSize": 113.6,
+              "text": "Quiet Plot"
+            }
+          ],
+          "imageCount": 0,
+          "height": 2208
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Quiet Plot",
+        "family": "typography-first",
+        "stage": "after",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "2-after-desktop.png",
+        "sha256": "2afa86fc843dc8374d736d802042a34442829dbe2a14af5d31ee76acfcf05c46",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 640.6875,
+              "fontSize": 113.6,
+              "text": "Quiet Plot"
+            }
+          ],
+          "imageCount": 0,
+          "height": 2299
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Wild Corner",
+        "family": "editorial-collage",
+        "stage": "before",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "3-before-mobile.png",
+        "sha256": "441afa480e914476c43ce72447d595fe3a219c5118341485fc0db4d29d04445b",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Wild Corner"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2945
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Wild Corner",
+        "family": "editorial-collage",
+        "stage": "after",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "3-after-mobile.png",
+        "sha256": "701b2a29f60da793d0808c97169bf74ea27158265cebd6278c9315794b8f4354",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Wild Corner"
+            }
+          ],
+          "imageCount": 6,
+          "height": 3038
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Wild Corner",
+        "family": "editorial-collage",
+        "stage": "before",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "3-before-desktop.png",
+        "sha256": "bfb771924355ae39a6b9dd94b1eeddf8a29440e099ed3bf895ec47f4542144fa",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 568.671875,
+              "fontSize": 102.4,
+              "text": "Wild Corner"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2670
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Wild Corner",
+        "family": "editorial-collage",
+        "stage": "after",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "3-after-desktop.png",
+        "sha256": "d98cfe90f837b6d35be4d934a71006774d2609787b31c82d8effba97fef8729b",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 536,
+              "fontSize": 92.8,
+              "text": "Wild Corner"
+            }
+          ],
+          "imageCount": 6,
+          "height": 2847
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Estate Garden Care",
+        "family": "cinematic-full-bleed",
+        "stage": "before",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "4-before-mobile.png",
+        "sha256": "0ab1d2c490d8bb6f88c166db07103b6909b95fe2d76783b34d524bed64bc5f2e",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Estate Garden Care"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2932
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Estate Garden Care",
+        "family": "cinematic-full-bleed",
+        "stage": "after",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "4-after-mobile.png",
+        "sha256": "6d66859943c7a17ec4b0285ac675560d094090bca7f8b4198a57f176be225da7",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 268,
+              "fontSize": 43.2,
+              "text": "Estate Garden Care"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2762
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Estate Garden Care",
+        "family": "cinematic-full-bleed",
+        "stage": "before",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "4-before-desktop.png",
+        "sha256": "dc38f9f74392276f3ea40d54de74a9be4eb2fbcf6e574f6fe1533a526e35afbc",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 559.46875,
+              "fontSize": 102.4,
+              "text": "Estate Garden Care"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2729
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Estate Garden Care",
+        "family": "cinematic-full-bleed",
+        "stage": "after",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "4-after-desktop.png",
+        "sha256": "9a24305d2136c821c2bf9727fe4d148add279c98b6deb5ba4eb7f70ea3b5520d",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 544.6875,
+              "fontSize": 83.2,
+              "text": "Estate Garden Care"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2628
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Ember Festival Kitchen",
+        "family": "story-spread",
+        "stage": "before",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "5-before-mobile.png",
+        "sha256": "d966323dd161eda59be4cb1d2bacd83dc48fea530aa58113b6aedc1042ade82a",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Ember Festival Kitchen"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3524
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Ember Festival Kitchen",
+        "family": "story-spread",
+        "stage": "after",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "5-after-mobile.png",
+        "sha256": "6f8e51f27e89da5c6fe8d8ea3e0cec94eb405aad50f29349c4ac1ee833244633",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Ember Festival Kitchen"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3490
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Ember Festival Kitchen",
+        "family": "story-spread",
+        "stage": "before",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "5-before-desktop.png",
+        "sha256": "eb6a990d6fad4ac93634436b28365d03779289682166fce844ee85e4fa899e9c",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 414,
+              "fontSize": 83.2,
+              "text": "Ember Festival Kitchen"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3448
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Ember Festival Kitchen",
+        "family": "story-spread",
+        "stage": "after",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "5-after-desktop.png",
+        "sha256": "8227977ef18fad7c20c2dacc3389cd3958a424d10838f8e1541507ae2bbc3540",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 775,
+              "fontSize": 112,
+              "text": "Ember Festival Kitchen"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3784
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Stone & Seed",
+        "family": "product-showcase",
+        "stage": "before",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "6-before-mobile.png",
+        "sha256": "d8a4b15d65f73dca179c3b01ce8d1018c59a6da0350f0201dadfc8328ce644a0",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Stone & Seed"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3497
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Stone & Seed",
+        "family": "product-showcase",
+        "stage": "after",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "6-after-mobile.png",
+        "sha256": "bfe5ed56716ed202387a6477013e5fff2328e771dbe55251c76c00d29a670028",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Stone & Seed"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3300
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Stone & Seed",
+        "family": "product-showcase",
+        "stage": "before",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "6-before-desktop.png",
+        "sha256": "ed38bd88f5bd842e53d2c7060b33a8f49ca82af785e571e040713363da9000c1",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 414,
+              "fontSize": 102.4,
+              "text": "Stone & Seed"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3487
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Stone & Seed",
+        "family": "product-showcase",
+        "stage": "after",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "6-after-desktop.png",
+        "sha256": "47be56f574543f71644f274942e16752b9af91edb83dbbe58b2e21626b6fd124",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 493.1875,
+              "fontSize": 83.52,
+              "text": "Stone & Seed"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3368
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Stillwater Wellness",
+        "family": "quiet-portrait",
+        "stage": "before",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "7-before-mobile.png",
+        "sha256": "6e3de28394cc87b8c9c10588e946da35a5ad2b901352c107513e9e5255cc410a",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Stillwater Wellness"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3024
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Stillwater Wellness",
+        "family": "quiet-portrait",
+        "stage": "after",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "label": "mobile",
+        "filename": "7-after-mobile.png",
+        "sha256": "25644fd005db0adb0322e7007983d9e6457313aa7c1e3d4906410c3ec5cdabd7",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 390,
+          "viewport": 390,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 356,
+              "fontSize": 43.2,
+              "text": "Stillwater Wellness"
+            }
+          ],
+          "imageCount": 4,
+          "height": 2958
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Stillwater Wellness",
+        "family": "quiet-portrait",
+        "stage": "before",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "7-before-desktop.png",
+        "sha256": "eb4b83ebbe208e190a4dc218b9573e8743b81f0c146755469f7dad6c3c10cfdf",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 466.328125,
+              "fontSize": 83.2,
+              "text": "Stillwater Wellness"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3162
+        },
+        "blockedRequests": 0
+      },
+      {
+        "business": "Stillwater Wellness",
+        "family": "quiet-portrait",
+        "stage": "after",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "label": "desktop",
+        "filename": "7-after-desktop.png",
+        "sha256": "64b65eb33ce1f33a381afc316504c399660b4557a00e2d8b72f879199fa98395",
+        "metrics": {
+          "contrastFailures": [],
+          "contrastUnmeasured": [],
+          "ctaTargets": [
+            {
+              "width": 141.328125,
+              "height": 50
+            }
+          ],
+          "documentWidth": 1440,
+          "viewport": 1440,
+          "overflow": [],
+          "broken": [],
+          "unreadable": [],
+          "targets": [],
+          "headings": [
+            {
+              "width": 542.84375,
+              "fontSize": 83.52,
+              "text": "Stillwater Wellness"
+            }
+          ],
+          "imageCount": 4,
+          "height": 3281
+        },
+        "blockedRequests": 0
+      }
+    ],
+    "failures": [],
+    "hostedAcceptance": false
+  },
+  "comparisons": [
+    {
+      "file": "final-mobile-first-fold-comparison.jpg",
+      "sha256": "0e78dc96292fd354d0735b97cef3bf3df0cae12c05bc8bdf1b0cf8e05f3aa1b3",
+      "derivative": "Labelled side-by-side/cropped montage from verified original screenshot pixels, no generated image content"
+    },
+    {
+      "file": "final-desktop-first-fold-comparison.jpg",
+      "sha256": "699415256d742393acba80857d839b0380c32ed1cf10d9acab681b62c5a385a9",
+      "derivative": "Labelled side-by-side/cropped montage from verified original screenshot pixels, no generated image content"
+    },
+    {
+      "file": "catering-before-after-comparison.jpg",
+      "sha256": "962abedf7ee5a25d4c57ec056bd353b55fe618804bb11d61aa30c15a5fe645c9",
+      "derivative": "Labelled side-by-side/cropped montage from verified original screenshot pixels, no generated image content"
+    }
+  ],
+  "imageMeasurements": [
+    {
+      "file": "brick.png",
+      "bytes": 106634,
+      "width": 512,
+      "height": 512,
+      "mode": "L",
+      "sha256": "7966caf324f6ba843118d98f7a07746d22f6a343430add0233eca5f6eaaa8fcf"
+    },
+    {
+      "file": "coffee.png",
+      "bytes": 466706,
+      "width": 600,
+      "height": 400,
+      "mode": "RGB",
+      "sha256": "cc02f8ca188b167c775a7101b5d767d1e71792cf762c33d6fa15a4599b5a8de7"
+    },
+    {
+      "file": "grass.png",
+      "bytes": 217893,
+      "width": 512,
+      "height": 512,
+      "mode": "L",
+      "sha256": "b6b6022426b38936c43a4ac09635cd78af074e90f42ffa8227ac8b7452d39f89"
+    },
+    {
+      "file": "gravel.png",
+      "bytes": 194247,
+      "width": 512,
+      "height": 512,
+      "mode": "L",
+      "sha256": "c48615b451bf1e606fbd72c0aa9f8cc0f068ab7111ef7d93bb9b0f2586440c12"
+    }
+  ],
+  "independentBrowserZipDigestVerified": true,
+  "all32PngDigestsVerified": true,
+  "registryCeiling": null,
+  "currentFamilyCount": 8,
+  "requestOperationLimitsUnchanged": true,
+  "limitations": {
+    "publicActivation": false,
+    "professionalIndependentAcceptance": false,
+    "productionPhotoCuration": false,
+    "hostedJwtStorage": false,
+    "physicalNativeRuntime": false,
+    "liveModelCalls": false,
+    "spending": false,
+    "registryVulnerabilityAudit": false
+  },
+  "dependencyPolicy": {
+    "lockChanged": false,
+    "newAppDependencies": false,
+    "deepmergeBackportRetained": true,
+    "priorAudit": "31 low affected nodes in one deepmerge advisory family, not a new clean audit"
+  },
+  "application": {
+    "sourceSha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+    "sourceTree": "664e2a95eb1be06e5782dab19906af3589bab096",
+    "finalSourceSha": "767d0c4a478d7112e21b207a0ab67d41f9ceba75",
+    "finalSourceTree": "664e2a95eb1be06e5782dab19906af3589bab096",
+    "sourceStable": true,
+    "workingTreeEntries": [],
+    "finalWorkingTreeEntries": [],
+    "summary": {
+      "passed": 481,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "selectedCount": 481,
+    "selectionSha256": "2016a7249df27e7cc7f285ce2bc0bf20796e0aac4cf7dbc0ec5631e21a2f1e37",
+    "startedAt": "2026-11-02T20:54:10.646357+00:00",
+    "finishedAt": "2026-11-02T21:05:30.764100+00:00",
+    "all481IndividualExitCodesVerified": 0,
+    "individualResults": "Original complete JSON retained in verified primary Actions artifact app-goal-composition/application.json."
+  },
+  "postgres": [
+    {
+      "file": "enquiry-preparation-postgres.json",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "stages": [
+        {
+          "id": "original-form-inbox-customer-fixture-clone-without-quotes",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "separate-fuse-atomic-failure-and-default-closed",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-0",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-1",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-work-enquiry-first-save-reopen-and-owner-app-screen-2",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "foreign-owner-source-app-and-public-access-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "concurrent-progress-CAS-and-exact-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "lost-acknowledgement-inspection-never-replays",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "changed-enquiry-explicit-review-keeps-original-history",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "later-quote-reference-without-copying-progress",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "revoked-membership-malformed-plan-and-no-business-actions",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "withdrawn-or-corrupted-original-source-cannot-reopen-private-progress",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "retaining-rollback-preserves-source-and-checked-progress",
+          "passed": true,
+          "exitCode": 0
+        }
+      ],
+      "exitCode": 0
+    },
+    {
+      "file": "operational-work-postgres.json",
+      "summary": {
+        "passed": 13,
+        "failed": 0
+      },
+      "stages": [
+        {
+          "id": "atomic-install-separate-review-and-default-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-private-operational-save-reopen-progress-and-overview-0",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-private-operational-save-reopen-progress-and-overview-1",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-private-operational-save-reopen-progress-and-overview-2",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-collection-identity-filters-and-no-job-claims",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "wrong-owner-source-app-public-and-raw-access-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "one-use-review-stale-app-callback-and-placement-CAS",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "lost-placement-acknowledgement-inspect-without-replay",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "changed-source-requires-original-plan-and-placement-review",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "later-original-quote-same-source-no-competing-progress",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-quote-only-operational-binding-compatible",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "revocation-binding-removal-keeps-work-and-lifetime-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "retaining-placement-rollback-no-public-or-work-mutation",
+          "passed": true,
+          "exitCode": 0
+        }
+      ],
+      "exitCode": 0
+    },
+    {
+      "file": "postgres.json",
+      "summary": {
+        "passed": 99,
+        "failed": 0
+      },
+      "stages": [
+        {
+          "id": "fresh-disposable-auth-shim-not-hosted-auth",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "exact-source-fuse-denies-install",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "missing-genuine-auth-prerequisite-refused-without-partial-schema",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "preexisting-view-and-definer-entry-refused-not-silently-retained",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "late-install-failure-rolls-back-schema-and-privilege-changes",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "complete-atomic-fresh-staging-install-not-fixture",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "one-time-install-never-overwrites-existing-records",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "hostile-default-grants-closed-for-future-tables-sequences-and-routines",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "fictional-two-business-memberships-prepared-only-locally",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "bounded-original-workspace-initialize-and-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "approved-profile-create-save-hash-and-fresh-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "profile-stale-source-and-unapproved-fields-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-website-create-wording-style-save-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-pages-create-revise-and-fresh-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-ten-step-page-save-is-one-atomic-generation-and-history-entry",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "ten-step-revocation-between-gateway-read-and-atomic-save-denies-all",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "whole-transaction-undo-redo-and-fresh-session-history-retention",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "whole-request-group-checkpoints-lost-ack-recovery-and-no-blind-replay",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "history-cross-tenant-source-and-direct-writer-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "unsupported-batch-is-atomic-and-forged-history-candidate-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "real-concurrent-website-writers-create-only-one-history-step",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "undo-acknowledgement-loss-never-replays-and-restores-on-deliberate-review",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "revocation-between-history-read-and-transition-denies-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "bounded-persistent-history-and-redo-branch-invalidation",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "approved-context-revision-does-not-rewrite-existing-website",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-config-first-app-authority-client-and-fresh-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-studio-private-edit-undo-independent-read",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "goal-composition-original-writer-saves-reopens-and-undoes-exactly",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "goal-composition-revoked-member-denied-by-original-transaction",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-approved-business-records-into-private-layout-reopen-and-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-bespoke-project-original-app-save-fresh-reopen-and-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-project-history-bounded-and-original-config-retained",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-project-server-member-scope-and-malformed-descriptions-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "saved-project-corrections-original-spec-studio-reopen-and-exact-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "typed-screen-composition-original-writer-readback-exact-undo-and-unknown-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-calculation-descriptive-intent-only-original-save-readback-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-growth-context-record-review-no-provider-claims",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "growth-dropped-ack-blocks-pre-reviewed-second-write-until-exact-observation",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "creator-original-durable-save-with-reviewed-growth-source-and-fresh-read",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "reviewed-current-creator-copy-private-website-save-fresh-reopen-and-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "creator-lost-ack-exact-observation-and-no-blind-replay",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "fictional-original-enquiry-provisioned-locally-not-consumer-acceptance",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-enquiry-reviewed-import-explicit-customer-filing",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "canonical-private-quote-save-and-fresh-session-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "contextual-product-original-request-inbox-and-supported-customer-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "contextual-event-original-request-inbox-and-supported-customer-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "contextual-service-original-request-inbox-and-supported-customer-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "product-event-service-source-canonical-private-quotes-confirmed",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "typed-listing-server-denials-preserve-pending-and-independent-source-history",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "listing-changed-withdrawn-and-corrupted-history-never-becomes-new-work-authority",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "untyped-prefix-direct-writer-refused-before-customer-write",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "listing-concurrent-filing-once-and-unknown-ack-independent-recovery",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "listing-source-change-and-membership-revocation-before-filing-deny-all",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "all-private-authorities-cross-owner-and-anonymous-denials",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "separate-business-initialize-facts-and-content-not-shared",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "separate-retail-product-enquiry-original-inbox-and-tenant-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "membership-revoked-before-persisted-content-write-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "closed-lifecycle-and-internal-service-execution",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-immutable-guards-indexes-and-final-effective-grants",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "finite-facts-preserve-unexposed-profile-service-and-contact-extensions",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-business-facts-cannot-edit-an-already-public-profile",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "concurrent-exact-profile-cas-only-one-owner-write-commits",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "profile-dropped-acknowledgement-preserves-intent-without-success-or-replay",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "goal-saved-wording-selection-original-copy-save-and-fresh-reopen",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "goal-enquiry-exact-source-to-canonical-private-quote-revision",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "owner-corrections-use-original-facts-cas-and-confirmed-readback",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "actual-builder-read-contract-allows-scoped-recovery-without-fictitious-marker",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "governed-offline-proposal-original-website-save-readback-and-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "owner-correction-revocation-after-review-denies-write",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-function-exact-fuse-and-atomic-install",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-function-real-save-readback-two-owner-distinct-graphs",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-function-immutable-revision-supersession-and-independent-results",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-function-acl-tenant-revoked-owner-and-invalid-rule-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-function-lost-ack-no-replay-and-disable-lockdown",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-form-exact-fuse-and-failed-install-transaction-restores-original-validator",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "third-independent-private-form-app-through-original-business-profile-and-first-app-authorities",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "three-independent-private-forms-real-save-native-adapter-readback-and-original-app-separation",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "form-canonical-unicode-native-web-and-postgresql-hash-agreement-and-bounded-invalid-values",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "form-invalid-conditional-foreign-revoked-stale-unapproved-and-default-off-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-screen-fused-atomic-install-failure-and-final-least-privilege",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "three-original-private-form-edits-new-approved-versions-and-exact-screen-placement-readback",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-placement-removal-and-reviewed-undo-retain-original-immutable-artifact",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-screen-stale-version-foreign-owner-malformed-binding-and-revoked-member-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-screen-real-concurrent-cas-once-and-uncertain-save-without-replay",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-form-enquiry-fused-atomic-install-rollback-and-effective-permissions",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-form-to-enquiry-inbox-customer-work-journey-catering",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-form-to-enquiry-inbox-customer-work-journey-gardening",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-form-to-enquiry-inbox-customer-work-journey-website-brief",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-form-to-enquiry-inbox-customer-work-journey-retail",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "form-enquiry-forgery-inactive-values-revocation-and-original-request-hash-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "form-enquiry-original-association-and-current-listing-freshness-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "historical-form-labels-retained-after-successor-and-disabled-artifact-new-filing-refused",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "form-enquiry-lost-original-filing-acknowledgement-readback-and-no-replay",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "filed-form-history-survives-original-request-status-changes-and-rejects-corrupted-provenance",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "form-enquiry-retaining-rollback-blocks-new-path-retains-historical-readback",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-screen-default-off-and-retaining-rollback-preserve-artifact-authority",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "form-retaining-lockdown-preserves-immutable-rows-and-scoped-read",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "private-function-fused-retaining-rollback-closes-writes-retains-scoped-read",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "retaining-rollback-fused-and-real-write-denial-with-fresh-readers",
+          "passed": true,
+          "exitCode": 0
+        }
+      ],
+      "exitCode": 0
+    },
+    {
+      "file": "public-form-postgres.json",
+      "summary": {
+        "passed": 21,
+        "failed": 0
+      },
+      "stages": [
+        {
+          "id": "isolated-original-package-auth-shim-and-original-guest-dependencies",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "disclosure-default-off-fuses-and-atomic-failure-retain-original-authorities",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-catering",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-gardening",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-retail",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-customer-safe-form-and-request-journey-website",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-prune-counterexample-and-retained-form-proof-history-without-crm-erasure",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "foreign-owner-tenant-disclosure-and-private-storage-access-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "malformed-hidden-values-consent-stale-forms-and-source-selection-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "guest-ingress-independent-switches-publication-and-proof-review-quotas",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "dispatch-recovery-independent-of-new-disclosure-and-no-marketing-or-wrong-app-write",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "expired-forged-proof-and-separate-disclosure-permission-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-guest-atomic-concurrent-submit-exact-once-and-no-legacy-marker-bypass",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "unknown-submission-acknowledgement-inspected-without-replay-and-bound-approval-recovery",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-contact-and-fingerprint-quotas-and-expired-receipt-access",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "atomic-original-challenge-opening-quota-bounds-anonymous-reset-attempts",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "catalog-current-app-source-validation-and-public-privacy",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "receipt-recovery-inspection-quota-and-reset-without-submission",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "successor-form-withdraws-navigation-but-preserves-original-questions-and-work-history",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "separate-publication-display-only-and-lost-owner-approval-acknowledgement",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "revocation-membership-and-retaining-rollback-preserve-history-and-exact-receipts",
+          "passed": true,
+          "exitCode": 0
+        }
+      ],
+      "exitCode": 0
+    },
+    {
+      "file": "work-preparation-postgres.json",
+      "summary": {
+        "passed": 12,
+        "failed": 0
+      },
+      "stages": [
+        {
+          "id": "review-fuse-atomic-install-and-default-closed",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-0",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-1",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "original-enquiry-prepared-quote-and-component-preparation-2",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "cross-business-owner-membership-and-raw-grants-denied",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "malformed-duplicate-unknown-action-and-stage-transition-denials",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "concurrent-CAS-exact-once-and-explicit-undo",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "lost-acknowledgement-readback-without-replay-and-stale-source-denial",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "direct-sql-malformed-plan-and-unknown-business-actions-refused",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "revocation-serializes-with-current-preparation-read",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "quote-revision-changes-require-fresh-preparation-review",
+          "passed": true,
+          "exitCode": 0
+        },
+        {
+          "id": "retaining-rollback-closes-preparation-with-original-records-intact",
+          "passed": true,
+          "exitCode": 0
+        }
+      ],
+      "exitCode": 0
+    }
+  ],
+  "deno": {
+    "originalEntries": 25,
+    "exitCode": 0
+  },
+  "unsignedExports": [
+    {
+      "variant": "Owner Preview",
+      "modules": 1549,
+      "exitCode": 0
+    },
+    {
+      "variant": "isolated staging",
+      "modules": 1608,
+      "exitCode": 0
+    }
+  ],
+  "nativeAutolinking": [
+    {
+      "name": "expo-crypto",
+      "version": "57.0.4"
+    },
+    {
+      "name": "expo-secure-store",
+      "version": "57.0.4"
+    }
+  ],
+  "independentPrimaryZipDigestVerified": true,
+  "scenarios": {
+    "scenarios": [
+      {
+        "id": 0,
+        "business": "Meadow & Moss",
+        "industry": "Gardening",
+        "initialSuggestion": "asymmetric-split",
+        "family": "asymmetric-split",
+        "variation": "airy",
+        "typography": "refined",
+        "cards": "rows",
+        "emphasis": "gallery",
+        "sectionOrder": [
+          "hero",
+          "gallery",
+          "services",
+          "about",
+          "contact"
+        ],
+        "originalRenderer": "src/domain/websiteBuilder.js:renderWebsiteHtml",
+        "before": "0-before.html",
+        "after": "0-after.html",
+        "htmlSha256": "3edb921016283cfc28033313ddf2347387d7da93727331fbf5d0409d0b36b03c",
+        "photos": [
+          "https://assets.example.invalid/grass.png",
+          "https://assets.example.invalid/gravel.png",
+          "https://assets.example.invalid/brick.png"
+        ]
+      },
+      {
+        "id": 1,
+        "business": "Groundwork Gardens",
+        "industry": "Gardening",
+        "initialSuggestion": "service-led",
+        "family": "service-led",
+        "variation": "compact",
+        "typography": "confident",
+        "cards": "outlines",
+        "emphasis": "services",
+        "sectionOrder": [
+          "hero",
+          "services",
+          "gallery",
+          "about",
+          "contact"
+        ],
+        "originalRenderer": "src/domain/websiteBuilder.js:renderWebsiteHtml",
+        "before": "1-before.html",
+        "after": "1-after.html",
+        "htmlSha256": "64a5824ee032a24aca294ae0d3486da2959ae27f54b62a2ecac041a079fb6490",
+        "photos": [
+          "https://assets.example.invalid/grass.png",
+          "https://assets.example.invalid/gravel.png",
+          "https://assets.example.invalid/brick.png"
+        ]
+      },
+      {
+        "id": 2,
+        "business": "Quiet Plot",
+        "industry": "Gardening",
+        "initialSuggestion": "typography-first",
+        "family": "typography-first",
+        "variation": "airy",
+        "typography": "editorial",
+        "cards": "rows",
+        "emphasis": "about",
+        "sectionOrder": [
+          "hero",
+          "about",
+          "services",
+          "contact"
+        ],
+        "originalRenderer": "src/domain/websiteBuilder.js:renderWebsiteHtml",
+        "before": "2-before.html",
+        "after": "2-after.html",
+        "htmlSha256": "4d9c6cbddb6ccba551a704844a561e3fa72dad65ca59e03e4d114aff58390ec6",
+        "photos": []
+      },
+      {
+        "id": 3,
+        "business": "Wild Corner",
+        "industry": "Gardening",
+        "initialSuggestion": "editorial-collage",
+        "family": "editorial-collage",
+        "variation": "signature",
+        "typography": "friendly",
+        "cards": "cards",
+        "emphasis": "gallery",
+        "sectionOrder": [
+          "hero",
+          "gallery",
+          "services",
+          "about",
+          "contact"
+        ],
+        "originalRenderer": "src/domain/websiteBuilder.js:renderWebsiteHtml",
+        "before": "3-before.html",
+        "after": "3-after.html",
+        "htmlSha256": "64d0aa773f6a31d892eae8fb29ac381c088d89142a8f1020204fe240e9e2ddc0",
+        "photos": [
+          "https://assets.example.invalid/grass.png",
+          "https://assets.example.invalid/gravel.png",
+          "https://assets.example.invalid/brick.png"
+        ]
+      },
+      {
+        "id": 4,
+        "business": "Estate Garden Care",
+        "industry": "Gardening",
+        "initialSuggestion": "cinematic-full-bleed",
+        "family": "cinematic-full-bleed",
+        "variation": "signature",
+        "typography": "compact",
+        "cards": "outlines",
+        "emphasis": "services",
+        "sectionOrder": [
+          "hero",
+          "services",
+          "gallery",
+          "about",
+          "contact"
+        ],
+        "originalRenderer": "src/domain/websiteBuilder.js:renderWebsiteHtml",
+        "before": "4-before.html",
+        "after": "4-after.html",
+        "htmlSha256": "8100b716c784671d7a063d3b143a935015322b3eeb7a6fe9b20816ccafc504c5",
+        "photos": [
+          "https://assets.example.invalid/grass.png",
+          "https://assets.example.invalid/gravel.png",
+          "https://assets.example.invalid/brick.png"
+        ]
+      },
+      {
+        "id": 5,
+        "business": "Ember Festival Kitchen",
+        "industry": "Festival catering",
+        "initialSuggestion": "story-spread",
+        "family": "story-spread",
+        "variation": "signature",
+        "typography": "editorial",
+        "cards": "rows",
+        "emphasis": "products",
+        "sectionOrder": [
+          "hero",
+          "products",
+          "services",
+          "gallery",
+          "about",
+          "contact"
+        ],
+        "originalRenderer": "src/domain/websiteBuilder.js:renderWebsiteHtml",
+        "before": "5-before.html",
+        "after": "5-after.html",
+        "htmlSha256": "858bb35c4d359e78a3d693986d2b5169147abe72d4833b7b6948e3929f847405",
+        "photos": [
+          "https://assets.example.invalid/coffee.png",
+          "https://assets.example.invalid/gravel.png",
+          "https://assets.example.invalid/grass.png"
+        ]
+      },
+      {
+        "id": 6,
+        "business": "Stone & Seed",
+        "industry": "Independent retail",
+        "initialSuggestion": "product-showcase",
+        "family": "product-showcase",
+        "variation": "compact",
+        "typography": "confident",
+        "cards": "cards",
+        "emphasis": "products",
+        "sectionOrder": [
+          "hero",
+          "products",
+          "services",
+          "gallery",
+          "about",
+          "contact"
+        ],
+        "originalRenderer": "src/domain/websiteBuilder.js:renderWebsiteHtml",
+        "before": "6-before.html",
+        "after": "6-after.html",
+        "htmlSha256": "f2de5d496fdae905baf6028809615bb3f185aa319be41008d11127d8ef8f868c",
+        "photos": [
+          "https://assets.example.invalid/gravel.png",
+          "https://assets.example.invalid/grass.png",
+          "https://assets.example.invalid/coffee.png"
+        ]
+      },
+      {
+        "id": 7,
+        "business": "Stillwater Wellness",
+        "industry": "Beauty and wellness",
+        "initialSuggestion": "quiet-portrait",
+        "family": "quiet-portrait",
+        "variation": "airy",
+        "typography": "refined",
+        "cards": "cards",
+        "emphasis": "about",
+        "sectionOrder": [
+          "hero",
+          "about",
+          "services",
+          "gallery",
+          "contact"
+        ],
+        "originalRenderer": "src/domain/websiteBuilder.js:renderWebsiteHtml",
+        "before": "7-before.html",
+        "after": "7-after.html",
+        "htmlSha256": "4ea8ffe70ca29effcd8af86d82b9f6b6b7dddd82a653d33701ff37a37e209e5a",
+        "photos": [
+          "https://assets.example.invalid/gravel.png",
+          "https://assets.example.invalid/grass.png",
+          "https://assets.example.invalid/coffee.png"
+        ]
+      }
+    ],
+    "registryIds": [
+      "story-spread",
+      "service-led",
+      "quiet-portrait",
+      "asymmetric-split",
+      "cinematic-full-bleed",
+      "typography-first",
+      "product-showcase",
+      "editorial-collage"
+    ],
+    "permanentFamilyCeiling": null,
+    "syntheticBusinesses": true,
+    "photographsAreBusinessEvidence": false,
+    "publicActivation": false
+  },
+  "failedAndCorrectedChecks": [
+    {
+      "check": "original private sample expected the old food-story initial layout",
+      "exitCode": 1,
+      "correction": "Photo-free sample deliberately starts Typography First; all original review/Keep/Use/Undo/account denials retained."
+    },
+    {
+      "check": "new fixture business identity/copy comparisons used raw ampersands",
+      "exitCode": 1,
+      "correction": "Compare escaped original HTML, preserving XSS-safe output."
+    },
+    {
+      "check": "new fixture reorder shape/page binding and stored-order movement",
+      "exitCode": 1,
+      "correction": "Use original reviewed-composition operation with exact visible before-order/business/generation; legacy one-step discrepancy remains a maintenance item."
+    },
+    {
+      "check": "new contextual direction preference expectation",
+      "exitCode": 1,
+      "correction": "Food/story cues retain a suitable food story while approved retail collections remain an independently useful alternative."
+    },
+    {
+      "check": "private master ZIP metadata verification",
+      "exitCode": 1,
+      "correction": "Copy ZipInfo metadata before writing; verify original unchanged, cover/footer version update and exact inherited paragraph/table/package retention."
+    },
+    {
+      "check": "Supabase changelog HTTP fetch",
+      "exitCode": 7,
+      "correction": "Configured proxy unavailable; current Edge docs accessed through documentation tool, no clean-audit/network-success claim."
+    }
+  ]
+}

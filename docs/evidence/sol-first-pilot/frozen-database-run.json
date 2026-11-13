@@ -1,0 +1,119 @@
+{
+  "sourceSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+  "sourceTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+  "startedAt": "2026-11-07T18:53:21.178Z",
+  "syntheticOnly": true,
+  "hostedMutations": 0,
+  "providerCalls": 0,
+  "results": [
+    {
+      "script": "scripts/check-whole-app-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 58.437
+    },
+    {
+      "script": "scripts/check-public-form-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 29.933
+    },
+    {
+      "script": "scripts/check-enquiry-preparation-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 37.024
+    },
+    {
+      "script": "scripts/check-work-preparation-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 7.931
+    },
+    {
+      "script": "scripts/check-ai-budget-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 8.149
+    },
+    {
+      "script": "scripts/check-preservation-foundation-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 5.912
+    },
+    {
+      "script": "scripts/check-ai-lab-foundation-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 3.773
+    },
+    {
+      "script": "scripts/check-ai-lab-runner-foundation-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 5.231
+    },
+    {
+      "script": "scripts/check-ai-lab-fictional-setup-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 6.694
+    },
+    {
+      "script": "scripts/check-ai-lab-fictional-source.mjs",
+      "args": [
+        "--postgres"
+      ],
+      "exitCode": 0,
+      "seconds": 1.791
+    },
+    {
+      "script": "scripts/check-ai-lab-b3-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 4.073
+    },
+    {
+      "script": "scripts/check-ai-lab-b3-source-contract-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 7.163
+    },
+    {
+      "script": "scripts/check-mission16-whole-site-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 13.533
+    },
+    {
+      "script": "scripts/check-ai-lab-b3-postgrest.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 10.743
+    },
+    {
+      "script": "scripts/check-ai-budget-postgrest.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 4.722
+    },
+    {
+      "script": "scripts/check-ai-lab-budget-compatibility-postgres.mjs",
+      "args": [],
+      "exitCode": 0,
+      "seconds": 12.979
+    }
+  ],
+  "cleanupCompleted": true,
+  "postgresVersion": "postgres (PostgreSQL) 17.11 (Debian 17.11-0+deb13u1)",
+  "finishedAt": "2026-11-07T18:57:00.595Z",
+  "finalSourceSha": "687624bd1aaf0807cb1e89766a49297fe29c9791",
+  "finalSourceTree": "3accdb48e6cd48bca1044dd33403d57709eda066",
+  "sourceStable": true,
+  "workingTreeChanged": false,
+  "summary": {
+    "passed": 16,
+    "failed": 0
+  }
+}

@@ -1,0 +1,10 @@
+import {blocked} from './policy.js';
+export const setNotificationHandler=()=>{};
+export const addNotificationResponseReceivedListener=()=>({remove(){}});
+export const getLastNotificationResponseAsync=async()=>null;
+export const clearLastNotificationResponseAsync=async()=>{};
+export const getPermissionsAsync=async()=>({status:'denied',granted:false});
+export const requestPermissionsAsync=getPermissionsAsync;
+export const getExpoPushTokenAsync=blocked,scheduleNotificationAsync=blocked,cancelScheduledNotificationAsync=blocked,setNotificationChannelAsync=blocked;
+export const AndroidImportance={DEFAULT:3};
+export const SchedulableTriggerInputTypes={DATE:'date',TIME_INTERVAL:'timeInterval'};

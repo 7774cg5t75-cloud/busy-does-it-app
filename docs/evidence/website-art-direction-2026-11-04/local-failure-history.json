@@ -1,0 +1,53 @@
+{
+  "sourceTree": "d39021fb15ef810ce6a6454563fd003e7681d403",
+  "checks": {
+    "artDirectionAndActualGuidedComponent": 0,
+    "legacyStoryboard": 0,
+    "legacyGuidedCreation": 0,
+    "legacyPremiumExperience": 0,
+    "legacyGovernedProposal": 0,
+    "syntax16AffectedFiles": 0,
+    "securityBaseline": 0,
+    "securityByDesign": 0,
+    "dependencyGuard": 0,
+    "foundation105": 0,
+    "architecture": 0
+  },
+  "architecture": {
+    "sourceFiles": 1896,
+    "staticRelativeEdges": 4438,
+    "distinctStaticCycles": 0
+  },
+  "counterexamples": [
+    {
+      "exit": 1,
+      "attempt": "first art fixture",
+      "reason": "Test accessed a rejected plan before asserting its result."
+    },
+    {
+      "exit": 1,
+      "attempt": "explicit result assertion",
+      "reason": "Fixture mistakenly attempted to pair already-bound photos a second time. Fixed fixture to refine the current narrative."
+    },
+    {
+      "exit": 1,
+      "attempt": "photo reassignment",
+      "reason": "New move operation checked old draft reservations after removing old binding in cloned sections. Fixed to check projected current sections; original duplicate denial retained."
+    },
+    {
+      "exit": 1,
+      "attempt": "first browser 41894296535",
+      "reason": "Inherited desktop description column squeezed headings; six readability/clipping counterexamples preserved. Corrected source placement, no relaxed assertions."
+    },
+    {
+      "exit": 0,
+      "attempt": "second browser technical check",
+      "visualCounterexample": "Actual pixel review caught a service number on a photograph, not covered by prior metrics. Corrected source and added real geometry check."
+    },
+    {
+      "exit": 1,
+      "attempt": "final browser attempt1",
+      "reason": "Chromium Page.captureScreenshot protocol failure in original expansion case before new examples. One bounded same-source rerun passed; no sandbox bypass or assertion relaxation."
+    }
+  ]
+}

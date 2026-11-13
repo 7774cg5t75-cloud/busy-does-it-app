@@ -29,7 +29,7 @@ assert.equal(previewPrivateAppAppearance(source,{field:"headerStyle",value:"refi
 assert.equal(OPTIONS.headerStyle.length,3);
 const api=read("supabase/functions/busy-mini-apps/index.ts");
 for(const token of ['if (action === "set_appearance")',
- 'await setPrivateAppAppearance(resolvedBusinessId,body)',
+ 'await setPrivateAppAppearance(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)',
  'const expected=Number(body?.expectedRevision)',
  'expected!==Number(app.draft_revision)',
  '.eq("draft_revision",expected).select("*").maybeSingle()',

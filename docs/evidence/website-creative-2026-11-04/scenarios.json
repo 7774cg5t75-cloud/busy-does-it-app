@@ -1,0 +1,219 @@
+{
+  "scenarios": [
+    {
+      "id": "0",
+      "business": "Ember Festival Kitchen — sparse approved source",
+      "family": "story-spread",
+      "before": "0-before.html",
+      "after": "0-after.html",
+      "sourceRichness": "sparse",
+      "photoExpected": true,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source; reviewed deterministic full-page changes, never a real model result.",
+      "delivery": {
+        "map": {
+          "approved/catering.jpg#640": "https://assets.example.invalid/menu-0-0-640.webp",
+          "approved/catering.jpg#1280": "https://assets.example.invalid/menu-0-0-1280.webp",
+          "approved/catering.jpg#1920": "https://assets.example.invalid/menu-0-0-1920.webp"
+        },
+        "canonicalDefaultHtmlSha256": "239a292cac645077f7ce34fd4b39b1a0244c6ac1192a8417a8e1bc3e7167433e",
+        "deliveredHtmlSha256": "311df3569a1686af671fa6f6fccc631e7cae453eeac56e41051095ff64d6119a",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "1",
+      "business": "Ember Festival Kitchen — rich approved source",
+      "family": "story-spread",
+      "before": "1-before.html",
+      "after": "1-after.html",
+      "sourceRichness": "rich",
+      "photoExpected": true,
+      "recordPhotoBindings": [
+        {
+          "recordId": "menu_roast_bowl",
+          "recordRevision": 1,
+          "uri": "https://assets.example.invalid/food-detail.jpg"
+        },
+        {
+          "recordId": "menu_sharing_buffet",
+          "recordRevision": 1,
+          "uri": "https://assets.example.invalid/catering.jpg"
+        }
+      ],
+      "comparison": "Same approved source; reviewed deterministic full-page changes, never a real model result.",
+      "delivery": {
+        "map": {
+          "approved/food-plate.jpg#640": "https://assets.example.invalid/menu-1-0-640.webp",
+          "approved/food-plate.jpg#1280": "https://assets.example.invalid/menu-1-0-1280.webp",
+          "approved/food-detail.jpg#640": "https://assets.example.invalid/menu-1-1-640.webp",
+          "approved/food-detail.jpg#1280": "https://assets.example.invalid/menu-1-1-1280.webp",
+          "approved/catering.jpg#640": "https://assets.example.invalid/menu-1-2-640.webp",
+          "approved/catering.jpg#1280": "https://assets.example.invalid/menu-1-2-1280.webp",
+          "approved/catering.jpg#1920": "https://assets.example.invalid/menu-1-2-1920.webp"
+        },
+        "canonicalDefaultHtmlSha256": "c8088bbb244c4b0b049405541f9b4f9d64e1f64345a3a8a7ae7196dfafe09a62",
+        "deliveredHtmlSha256": "c51dbdb019d006ecbe3b53a41cc29c85570b0e2649205b514bdca4686a799eea",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "2",
+      "business": "Clearleaf Gardens — sparse approved source",
+      "family": "service-led",
+      "before": "2-before.html",
+      "after": "2-after.html",
+      "sourceRichness": "sparse",
+      "photoExpected": true,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source; reviewed deterministic full-page changes, never a real model result.",
+      "delivery": {
+        "map": {
+          "approved/garden.jpg#640": "https://assets.example.invalid/menu-2-0-640.webp",
+          "approved/garden.jpg#1280": "https://assets.example.invalid/menu-2-0-1280.webp"
+        },
+        "canonicalDefaultHtmlSha256": "8c456cec2f71c9deae29b6fd1c5fe62412ec0e6fec3ba5c2f2a96dbb28619485",
+        "deliveredHtmlSha256": "7c0e8107c4c1531e12b47f673398d853d140e0aabea83061c0980427d5217ccf",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "3",
+      "business": "Clearleaf Gardens — rich approved source",
+      "family": "service-led",
+      "before": "3-before.html",
+      "after": "3-after.html",
+      "sourceRichness": "rich",
+      "photoExpected": true,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source; reviewed deterministic full-page changes, never a real model result.",
+      "delivery": {
+        "map": {
+          "approved/garden-path.jpg#640": "https://assets.example.invalid/menu-3-0-640.webp",
+          "approved/garden-path.jpg#1280": "https://assets.example.invalid/menu-3-0-1280.webp",
+          "approved/garden-reference.jpg#640": "https://assets.example.invalid/menu-3-1-640.webp",
+          "approved/garden-reference.jpg#1280": "https://assets.example.invalid/menu-3-1-1280.webp",
+          "approved/garden.jpg#640": "https://assets.example.invalid/menu-3-2-640.webp",
+          "approved/garden.jpg#1280": "https://assets.example.invalid/menu-3-2-1280.webp"
+        },
+        "canonicalDefaultHtmlSha256": "72d52de2ed2076ea7de4c1f6b8825bd6c23e278318cae01cd8616f70f2bfac3a",
+        "deliveredHtmlSha256": "f8862b255423e540592dd7e22f033e082960988a145f39f173e03478c371b9a8",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "4",
+      "business": "Quiet Light Studio — sparse approved source",
+      "family": "typography-first",
+      "before": "4-before.html",
+      "after": "4-after.html",
+      "sourceRichness": "sparse",
+      "photoExpected": false,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source; reviewed deterministic full-page changes, never a real model result.",
+      "delivery": {
+        "map": {},
+        "canonicalDefaultHtmlSha256": "8ecf1441c11d8e0b29480d61a1be396c71d0ebc6510d03035638a75c8d78405b",
+        "deliveredHtmlSha256": "8ecf1441c11d8e0b29480d61a1be396c71d0ebc6510d03035638a75c8d78405b",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "5",
+      "business": "Quiet Light Studio — rich approved source",
+      "family": "typography-first",
+      "before": "5-before.html",
+      "after": "5-after.html",
+      "sourceRichness": "rich",
+      "photoExpected": false,
+      "recordPhotoBindings": [],
+      "comparison": "Same approved source; reviewed deterministic full-page changes, never a real model result.",
+      "delivery": {
+        "map": {},
+        "canonicalDefaultHtmlSha256": "ebc47de6e415588c23e2bf4c602279f33bbed8921ba5c692458ce24cb1d14f55",
+        "deliveredHtmlSha256": "ebc47de6e415588c23e2bf4c602279f33bbed8921ba5c692458ce24cb1d14f55",
+        "sourceModelsUnchanged": true
+      }
+    },
+    {
+      "id": "6",
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "before": "6-before.html",
+      "after": "6-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "7",
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "before": "7-before.html",
+      "after": "7-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "8",
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "before": "8-before.html",
+      "after": "8-after.html",
+      "photoExpected": false,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "9",
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "before": "9-before.html",
+      "after": "9-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "10",
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "before": "10-before.html",
+      "after": "10-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original same-industry study",
+      "photoBindings": []
+    },
+    {
+      "id": "11",
+      "business": "Ember Festival Kitchen — renderer-only CSS comparison",
+      "family": "story-spread",
+      "before": "11-before.html",
+      "after": "11-after.html",
+      "comparison": "Identical final model and markup. Only frozen prior crafted CSS versus current crafted CSS. No claim of a separate old engine.",
+      "photoExpected": true,
+      "recordPhotoBindings": []
+    },
+    {
+      "id": "12",
+      "business": "Clearleaf Gardens — renderer-only CSS comparison",
+      "family": "service-led",
+      "before": "12-before.html",
+      "after": "12-after.html",
+      "comparison": "Identical final model and markup. Only frozen prior crafted CSS versus current crafted CSS. No claim of a separate old engine.",
+      "photoExpected": true,
+      "recordPhotoBindings": []
+    },
+    {
+      "id": "13",
+      "business": "Quiet Light Studio — renderer-only CSS comparison",
+      "family": "typography-first",
+      "before": "13-before.html",
+      "after": "13-after.html",
+      "comparison": "Identical final model and markup. Only frozen prior crafted CSS versus current crafted CSS. No claim of a separate old engine.",
+      "photoExpected": false,
+      "recordPhotoBindings": []
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "version": "busy.sol-pilot.progression-review.v1",
+  "status": "prepared-not-authorized",
+  "startingCommit": "c4cac5dd932bb8ccffc6dac29abcaa4641c8d508",
+  "functionalCommit": "12711991cd6e2a6afe92c7f98667e0a7e2b9b134",
+  "functionalTree": "c10e9b97ff3f91ea2d22dc366889ee13280782c8",
+  "remoteHeadObserved": "59487ed94f0604e50914570807e453fd788c0685",
+  "remoteDraftPr": 26,
+  "sourcePushed": false,
+  "ownerAccountEvidence": {
+    "kind": "owner-observed and privately retained",
+    "modelAllowedReported": true,
+    "standardTierReported": true,
+    "sufficientNonzeroRateLimitsReported": true,
+    "creditsAvailableReported": true,
+    "rechargeOffReported": true,
+    "privateBalancePublished": false,
+    "authenticatedAccountAccessVerified": false,
+    "actualTaxFxFeesVerified": false,
+    "manualBillingRecheckRequested": false
+  },
+  "target": {
+    "projectId": "sbvkrvksnruiclcvclbd",
+    "region": "eu-west-1",
+    "lastVerifiedSnapshotRevision": 5,
+    "policyChanged": false,
+    "policyEnabled": false,
+    "monthlyHardLimitGBP": 0
+  },
+  "provenance": {
+    "proposedBasis": "first-party-runtime-source-equivalence",
+    "ownerAccepted": false,
+    "submittedFiles": 116,
+    "runtimeFiles": 114,
+    "externalRuntimeImports": 0,
+    "fullFutureRuntimeReadbackRequired": true,
+    "currentC1Promoted": false,
+    "hostedDeployment": false
+  },
+  "count": {
+    "handoffImplemented": true,
+    "sourceFiles": 121,
+    "sourceInventoryDigest": "b81e0bd458c35e732f36354474d491dfc81aeac36dd07fe15f2a03fbce1c83b6",
+    "workflowSha256": "8513dc9e403a0546292aea04524225d3e35b3933fe70ae871a61e73f369f615e",
+    "wireDigest": "34d7a83cb0a6056f256af60f7d639acfd09f895fbf286e86898654b42b0aeb33",
+    "countBodyDigest": "54a65c93cc1412a9d72e4e5557ed701ee4e04303124c78a4592bd602bf7581f9",
+    "maximumRequests": 1,
+    "maximumPaidGBP": 0,
+    "markerCreated": false,
+    "jobQueued": false,
+    "credentialsConfigured": false,
+    "actualInputTokens": null
+  },
+  "cost": {
+    "publishedUsageFeeMaximumUSD": 0.176,
+    "proposedAccountingGBPPerUSD": 1.4,
+    "proposedValuationMaximumGBP": 0.2464,
+    "valuationOwnerAccepted": false,
+    "actualAllInCashGBPMaximum": null,
+    "actualTaxFxFeesVerified": false,
+    "financialSql": null,
+    "originalStrictFeeGuardsUnchanged": true,
+    "astraAllocationGBP": 0
+  },
+  "activeArtifact": {
+    "compilerImplemented": true,
+    "genuineActiveArtifactCreated": false,
+    "deploymentApproved": false,
+    "countTariffFinancialAndOwnerApprovalStillRequired": true
+  },
+  "privateCall": {
+    "portImplemented": true,
+    "protectedWorkflowBound": false,
+    "ownerRecipientKeysCreated": 0,
+    "rawAuthExportAllowed": false,
+    "encryptedEdgeResponsesOnly": true,
+    "originRequiresNativeArtifactAndLedgerEvidence": true,
+    "nativeSignInsApproved": 0,
+    "providerRequestsApproved": 0
+  },
+  "tests": {
+    "countPublicCases": {
+      "passed": 46,
+      "failed": 0,
+      "includedInPrivateRun": true
+    },
+    "countExactPrivateWireSyntheticCases": {
+      "passed": 56,
+      "failed": 0
+    },
+    "activeArtifact": {
+      "passed": 39,
+      "failed": 0
+    },
+    "privateCallAndCipher": {
+      "passed": 32,
+      "failed": 0
+    },
+    "syntax": {
+      "filesPassed": 8,
+      "failed": 0
+    },
+    "fullApplicationRegressionRerun": false,
+    "hostedDatabaseTestsRun": false,
+    "fullCiRun": false
+  },
+  "baseline": {
+    "preserved": true,
+    "pdfSha256": "f90e3d66a5267443a8f438f7b54cc2a4f42c0067e61891b04bf9e49b38068914",
+    "rendererFiles": 43,
+    "rendererDigest": "4c55a4d33388e54fba7ea7bd0baa829dac23d83bde60b2676584ec27aaadf172",
+    "newModelCandidate": false
+  },
+  "authority": {
+    "credentialCreationApproved": false,
+    "privateWireStorageApproved": false,
+    "countQueueApproved": false,
+    "countExecutionApproved": false,
+    "financialConfigurationApproved": false,
+    "activeDeploymentApproved": false,
+    "paidExecutionApproved": false
+  },
+  "credentialsRead": 0,
+  "providerApiRequests": 0,
+  "hostedLabWrites": 0,
+  "nativeSignIns": 0,
+  "websiteWrites": 0,
+  "spendingGBP": 0,
+  "publication": false,
+  "otherProjectsAccessed": false
+}

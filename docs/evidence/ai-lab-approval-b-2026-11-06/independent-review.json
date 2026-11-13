@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-06T23:08:56.453184+00:00",
+  "reviewer": "Independent delegated local source review; no hosted tools or mutation authority",
+  "startingCommit": "e5134682b7adb094d2dcda94487789966fc99422",
+  "target": "sbvkrvksnruiclcvclbd",
+  "scope": "Pure B2 package/binder/CLI, fused proposal/manifest, static tests, disposable PostgreSQL setup and original source procedures, disabled existing v2 server contracts. No hosted execution or provider readiness is certified.",
+  "sourceHashes": {
+    "scripts/lib/ai-lab-fictional-setup-package.mjs": "55c583fdb9053b77e398a3eac84681464f78a363311b54706303f93045435ece",
+    "scripts/prepare-ai-lab-fictional-setup.mjs": "2bc083ce66da67b83e066bb5a8c003b3bb75f44198cf1957698e363c632246a6",
+    "scripts/check-ai-lab-fictional-setup.mjs": "dc0a262ae78536c444483cfe48764068e937d9896d31556158982c20d03a1737",
+    "docs/sql-proposals/ai-lab-fictional-setup/setup-review.sql": "28bee5d59bcf56f38c25cc2f805b00679572f6deb575d122eafbc0bf6acd756e",
+    "docs/sql-proposals/ai-lab-fictional-setup/manifest.json": "3b36da939f8c920be92077c3cdb9110a119e5242eda070b42b7e90b864b15d5a",
+    "docs/sql-proposals/ai-lab-fictional-setup/README.md": "f8595276fe636f4c74e54aaf22f4c06e137ac19bb4cd120abf3d402c7b245e00",
+    "docs/sql-proposals/ai-lab-fictional-setup/read-only-verify.sql": "e7d6e31f1212a3ed28618f59bca0393b044e2a298c559d75569f9b9c7c1031df",
+    "scripts/check-ai-lab-fictional-setup-postgres.mjs": "140330c181ac2aa5fe2c25496eaf228224f75d94e322eca37432f0d5290c8a29",
+    "scripts/check-ai-lab-fictional-source.mjs": "c8b73ffe71750e52731ad896bde7f92d6d69e8775ee9607469323f29c2d358ed",
+    "docs/AI_LAB_APPROVAL_B_SOURCE_PROCEDURE.md": "50e3cd7b2bf8aa5f7c8cf4a092e09f9f410ddb1b180a22cc0f1029099e4127e2",
+    "docs/evidence/ai-lab-approval-b-2026-11-06/setup-postgres.json": "6d554a030a2b30c29cfd95c2075822ee28a76400b11ef4285dc223a38f967e74",
+    "docs/evidence/ai-lab-approval-b-2026-11-06/source-postgres.json": "8b0ad302646db2767be8d8c49d044b1577df2405374ac9a2715b46585b0c8ae3",
+    "docs/evidence/ai-lab-approval-b-2026-11-06/source-offline.json": "f9d25fb04e50f66c15537bb8c7aba711d53420d832410bc4ddec784836b82749"
+  },
+  "observations": [
+    "Fused unbound template has no actual owner UUID and no execution hash; final B2 artifact requires genuine native Auth readback and separate exact approval.",
+    "Only two DML insert destinations: original busy_businesses and busy_business_memberships; original generated business UUID and actual native owner relationship.",
+    "No Auth creation, new onboarding RPC/table/store, ACL change, policy activation, provider credential or execution transport in package/CLI.",
+    "Known managed runner owns complete transaction and native history; no authored BEGIN/COMMIT. Locks/timeouts/current owner/empty state/history/RLS/ACL/policy checks preserved.",
+    "Native owner query selects only allowlisted non-secret columns; no password/token/payload or whole Auth-row read.",
+    "Exact byte reconstruction guards outer-fuse removal; changed SQL, UUID injections, wrong target/history and unbound documents fail closed.",
+    "Private packet output uses a new mode0700 directory and exclusive mode0600 fused files, never an execution derivative; overwrite is denied.",
+    "Disabled v2 entry returns503 before environment lookup and cannot populate source or activate providers. Genuine source runtime/authentication remains a separate readiness gate.",
+    "Fresh parser review confirms fixed parse/load error text and both entry-function/real-CLI malformed secret-like input omission assertions.",
+    "Original application runtime, provider implementation and approved foundation SQL remain unchanged in current local diff.",
+    "Both new PostgreSQL scripts gate on absolute Unix socket/data paths, PostgreSQL17, empty listen_addresses and exact local data_directory before DROP/CREATE of their respective hardcoded disposable database; no hosted URL is accepted.",
+    "B2 SQL rehearsal uses the exact original approved foundation in its own local DB, a minimal synthetic native Auth approximation and native-history shape. It tests rollback of late/history/deferred failures, concurrent duplication, effective ACL/column-DML/FORCE drift and retained owner state.",
+    "Source procedure uses the original connected session, profile CAS, privateWebsiteDraftAction, original commit/history/transition and actual original SQL functions in PostgreSQL mode. Mock auth.uid/request claims are explicit test-only mechanisms and are forbidden as hosted setup.",
+    "Full supplied story is retained in a protected original Studio text section while Home/Services/Contact remain image-free; unsupported initial profile fields are not inserted through an administrator shortcut.",
+    "Source tests preserve original unsupported whole-site profile-source-CAS denial, stale/foreign/revoked denial, lost acknowledgement non-replay and zero/disabled ledger state.",
+    "B3 hosted source population remains blocked on a genuine native owner session plus original trusted server/runtime; disabled v2 pilot cannot populate source, and no fake JWT/raw snapshot/service-key bypass is claimed."
+  ],
+  "findings": [
+    {
+      "id": "malformed-native-readback-diagnostic",
+      "status": "fixed-before-final-review",
+      "severity": "privacy",
+      "detail": "Initial CLI could include raw malformed input in JSON parser error. Current implementation replaces it with fixed non-content diagnostic; both tests assert fixture secret text is absent. No actual secret was used."
+    }
+  ],
+  "remainingMaterialFindings": [],
+  "tests": {
+    "independentlyExecutedEarlierPackageVersion": {
+      "passed": 15,
+      "failed": 0,
+      "note": "Earlier CLI version. Does not substitute for final16-case verification."
+    },
+    "finalPackageCases": {
+      "passed": 16,
+      "failed": 0,
+      "attribution": "Root independently executed and reported final static/CLI suite; this reviewer inspected both new privacy assertions but does not claim a separate final execution."
+    },
+    "additionalPermissionAttempt": {
+      "status": "cancelled-without-result",
+      "note": "Delegated fresh execution attempt stalled at permission boundary and was cancelled; no passing assertion or hosted activity is inferred."
+    },
+    "postgresCases": {
+      "setup": {
+        "passed": 16,
+        "failed": 0
+      },
+      "source": {
+        "passed": 11,
+        "failed": 0,
+        "assertions": 68
+      },
+      "attribution": "Root executed actual disposable PostgreSQL runs. Reviewer inspected code and saved result receipts without running PostgreSQL or using additional permissions."
+    },
+    "offlineSourceCases": {
+      "passed": 11,
+      "failed": 0,
+      "assertions": 85,
+      "attribution": "Root executed; reviewer inspected saved receipt."
+    },
+    "initialSourceFailure": "Retained separately in source-postgres-initial-failure.json; fixed negative-case expected-denial wording, not an original authority or test weakening."
+  },
+  "decision": "No remaining material package/CLI/security-scope finding. Proposal preparation only; not approval or hosted readiness certification.",
+  "performedByReviewer": {
+    "hostedReads": 0,
+    "hostedWrites": 0,
+    "AuthUsersCreated": 0,
+    "providerRequests": 0,
+    "secretReads": 0,
+    "spendingGBP": 0,
+    "runtimeOrSqlEdits": 0
+  }
+}

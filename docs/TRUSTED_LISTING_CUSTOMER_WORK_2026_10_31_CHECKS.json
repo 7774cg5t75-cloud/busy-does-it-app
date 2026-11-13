@@ -1,0 +1,527 @@
+{
+  "version": 1,
+  "mission": "Mission15 trusted product/event Customer and Work",
+  "date": "2026-10-31",
+  "source": {
+    "startingGithub": "af51ad0bfa2097e86fba2549d76814039fe1cf6d",
+    "startingTree": "d70d84d919cba3bd1a86fe0e75bef191212baf2e",
+    "functionalGithub": "d5e979338bb8ce61e0b4afe6d691135964fab4c3",
+    "functionalTree": "d244d6a7128173df4f33945e1db7139f4085af34",
+    "localEquivalent": "b147eaf6",
+    "reportDelivery": "Subsequent documentation-only commit; see final delivery history.",
+    "branch": "codex/builder-mission15-design-advancement",
+    "draftPr": 26,
+    "base": "codex/builder-mission14-intelligent-followups",
+    "forcePush": false,
+    "merged": false
+  },
+  "master": {
+    "version": "22.70",
+    "genuineOriginalReopened": true,
+    "sha256": "32a8931437dbeef7c9d76030e2f3abdf6296777f30029f1e0744f2605e2d6ab5",
+    "privateBytesCommitted": false
+  },
+  "ci": {
+    "runId": 41215887791,
+    "jobId": 124580199408,
+    "conclusion": "success",
+    "exitCode": 0,
+    "artifactId": 13048587801,
+    "artifactSha256": "a6bd336e8e32d5c9b9abc56187772fe51e83776efc7793b0e25efaae985140b8",
+    "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/41215887791"
+  },
+  "application": {
+    "sourceSha": "d5e979338bb8ce61e0b4afe6d691135964fab4c3",
+    "sourceTree": "d244d6a7128173df4f33945e1db7139f4085af34",
+    "finalSourceSha": "d5e979338bb8ce61e0b4afe6d691135964fab4c3",
+    "finalSourceTree": "d244d6a7128173df4f33945e1db7139f4085af34",
+    "sourceStable": true,
+    "workingTreeChanged": false,
+    "summary": {
+      "passed": 461,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    }
+  },
+  "applicationExitCode": 0,
+  "postgres": {
+    "database": "busy_whole_app_disposable",
+    "results": [
+      {
+        "id": "fresh-disposable-auth-shim-not-hosted-auth",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "exact-source-fuse-denies-install",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "missing-genuine-auth-prerequisite-refused-without-partial-schema",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "preexisting-view-and-definer-entry-refused-not-silently-retained",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "late-install-failure-rolls-back-schema-and-privilege-changes",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "complete-atomic-fresh-staging-install-not-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "one-time-install-never-overwrites-existing-records",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "hostile-default-grants-closed-for-future-tables-sequences-and-routines",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fictional-two-business-memberships-prepared-only-locally",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "bounded-original-workspace-initialize-and-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "approved-profile-create-save-hash-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "profile-stale-source-and-unapproved-fields-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-website-create-wording-style-save-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-pages-create-revise-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-ten-step-page-save-is-one-atomic-generation-and-history-entry",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "ten-step-revocation-between-gateway-read-and-atomic-save-denies-all",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "whole-transaction-undo-redo-and-fresh-session-history-retention",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "whole-request-group-checkpoints-lost-ack-recovery-and-no-blind-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "history-cross-tenant-source-and-direct-writer-denial",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unsupported-batch-is-atomic-and-forged-history-candidate-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "real-concurrent-website-writers-create-only-one-history-step",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "undo-acknowledgement-loss-never-replays-and-restores-on-deliberate-review",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "revocation-between-history-read-and-transition-denies-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "bounded-persistent-history-and-redo-branch-invalidation",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "approved-context-revision-does-not-rewrite-existing-website",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-config-first-app-authority-client-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-studio-private-edit-undo-independent-read",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "goal-composition-original-writer-saves-reopens-and-undoes-exactly",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "goal-composition-revoked-member-denied-by-original-transaction",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-approved-business-records-into-private-layout-reopen-and-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-growth-context-record-review-no-provider-claims",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "growth-dropped-ack-blocks-pre-reviewed-second-write-until-exact-observation",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "creator-original-durable-save-with-reviewed-growth-source-and-fresh-read",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "reviewed-current-creator-copy-private-website-save-fresh-reopen-and-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "creator-lost-ack-exact-observation-and-no-blind-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fictional-original-enquiry-provisioned-locally-not-consumer-acceptance",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-enquiry-reviewed-import-explicit-customer-filing",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "canonical-private-quote-save-and-fresh-session-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "contextual-product-original-request-inbox-and-supported-customer-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "contextual-event-original-request-inbox-and-supported-customer-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "contextual-service-original-request-inbox-and-supported-customer-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "product-event-service-source-canonical-private-quotes-confirmed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "typed-listing-server-denials-preserve-pending-and-independent-source-history",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "listing-changed-withdrawn-and-corrupted-history-never-becomes-new-work-authority",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "untyped-prefix-direct-writer-refused-before-customer-write",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "listing-concurrent-filing-once-and-unknown-ack-independent-recovery",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "listing-source-change-and-membership-revocation-before-filing-deny-all",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "all-private-authorities-cross-owner-and-anonymous-denials",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "separate-business-initialize-facts-and-content-not-shared",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "separate-retail-product-enquiry-original-inbox-and-tenant-denial",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "membership-revoked-before-persisted-content-write-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "closed-lifecycle-and-internal-service-execution",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-immutable-guards-indexes-and-final-effective-grants",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "finite-facts-preserve-unexposed-profile-service-and-contact-extensions",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "private-business-facts-cannot-edit-an-already-public-profile",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "concurrent-exact-profile-cas-only-one-owner-write-commits",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "profile-dropped-acknowledgement-preserves-intent-without-success-or-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "goal-saved-wording-selection-original-copy-save-and-fresh-reopen",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "goal-enquiry-exact-source-to-canonical-private-quote-revision",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-corrections-use-original-facts-cas-and-confirmed-readback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-builder-read-contract-allows-scoped-recovery-without-fictitious-marker",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "governed-offline-proposal-original-website-save-readback-and-undo",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-correction-revocation-after-review-denies-write",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "retaining-rollback-fused-and-real-write-denial-with-fresh-readers",
+        "passed": true,
+        "exitCode": 0
+      }
+    ],
+    "summary": {
+      "passed": 64,
+      "failed": 0
+    },
+    "hosted": false,
+    "syntheticAuthUid": true
+  },
+  "postgresExitCode": 0,
+  "foundation": {
+    "passed": 105,
+    "exitCode": 0
+  },
+  "deno": {
+    "entryPoints": 25,
+    "exitCode": 0,
+    "compiler": "Deno2.5.6 / TypeScript5.9.2",
+    "sdk": "Official @supabase/supabase-js2.118.0 and original dependencies",
+    "mode": "Disposable manual installed-package resolution, original frozen config/lock; no fake declarations or relaxed checks.",
+    "byteIdenticalOriginalSourceFiles": 852,
+    "hosted": false
+  },
+  "exports": {
+    "ownerPreview": {
+      "modules": 1502,
+      "exitCode": 0
+    },
+    "isolatedStaging": {
+      "modules": 1561,
+      "exitCode": 0
+    },
+    "type": "Unsigned local iOS/Hermes",
+    "signedBuild": false,
+    "nativeAcceptance": false
+  },
+  "targeted": {
+    "originalContextualComponents": {
+      "exitCode": 0,
+      "scenarios": [
+        "food product",
+        "food event",
+        "retail product",
+        "trades service"
+      ],
+      "nativeBoundaries": "inert"
+    },
+    "retailVariant": {
+      "originalSqlAndPreparation": true,
+      "recordId": "retail_product_01",
+      "variantId": "retail_option_01",
+      "amountMinor": 2200,
+      "nativeOptionPickerVerified": false
+    },
+    "originalCompleteServiceEnquiryJourney": {
+      "exitCode": 0
+    },
+    "affectedSyntax": {
+      "passed": 8,
+      "exitCode": 0
+    },
+    "architecture": {
+      "exitCode": 0
+    },
+    "securityBaseline": {
+      "exitCode": 0
+    },
+    "securityByDesign": {
+      "exitCode": 0
+    },
+    "dependencyGuard": {
+      "exitCode": 0,
+      "freshRegistryAudit": false
+    },
+    "sourceIntegrityFixture": {
+      "ciExitCode": 0,
+      "changedHeadAndTreeRejected": true
+    }
+  },
+  "failedEvidence": {
+    "firstCi": {
+      "runId": 41209992082,
+      "jobId": 124562776663,
+      "source": "07773f01ee5322ec66e1fb7057dba990d94586b8",
+      "exitCode": 1,
+      "reason": "PL/pgSQL CASE comparison needed explicit parentheses; installation rolled back before success. Corrected without weakening assertions."
+    },
+    "localSourceIntegrityFixture": {
+      "status": "blocked",
+      "reason": "Node spawnSync git EPERM; same original fixture passes in permitted CI. No bypass."
+    },
+    "supersededRuns": [
+      "41210113020 cancelled",
+      "41210348745 cancelled"
+    ],
+    "intermediateSuccessfulSources": [
+      "123cce7a9a1e5f79b538b26559b2ae9ecb1866b5",
+      "dcd552d340e650a0ebc6439b4649297d030c0be2"
+    ],
+    "finalAcceptanceOnly": "d5e979338bb8ce61e0b4afe6d691135964fab4c3"
+  },
+  "stagingProposal": {
+    "project": "pnjdlogwegnqbsfpcofw",
+    "sourceCandidates": 21,
+    "installSha256": "176d0e4153012ab93457b3c9ee010a688044d61b0bb01baaad070909847aa95f",
+    "retainingRollbackSha256": "0155a9858e8c32851212cdf63051f3be9ff979799f70639ff07d2d7af2e94106",
+    "fusesEnabled": true,
+    "activated": false,
+    "schemaCapture": "Fresh staging compatibility, not independently captured production DDL",
+    "newTables": 0,
+    "newPublicRpcs": 0,
+    "newPrivateHelpers": 3,
+    "typedPostLockdownSpecificAssertion": "Not separately added; original retaining lockdown/scoped-read assertions pass and typed history readback passes before lockdown."
+  },
+  "implemented": {
+    "provenanceVersion": 1,
+    "authority": "Original finite writer, not free-text prefix or digest alone",
+    "serverApprovedRecordValidation": true,
+    "exactRequestDerivedEnquiryAndCustomerBinding": true,
+    "historicalFactsSeparateFromCurrentEligibility": true,
+    "originalCustomerAndCanonicalWork": true,
+    "quoteState": "Private Prepared only",
+    "unknownOutcomeRecovery": "Exact request/app/hash/message observation only; no receipt reconstruction, ticket restoration or automatic replay.",
+    "untypedLegacyListings": "Remain blocked; no backfill from labels or contact similarity."
+  },
+  "evidenceLevels": {
+    "sourceImplemented": true,
+    "originalComponentsExecuted": true,
+    "realDisposablePostgres": true,
+    "syntheticAuthUid": true,
+    "publicSubmissionVerified": false,
+    "submissionTimeDisplayVerified": false,
+    "customerIdentityVerified": false,
+    "hostedVerified": false,
+    "nativeAccepted": false,
+    "productionReady": false
+  },
+  "visual": {
+    "screenshots": 0,
+    "safeChromiumExitCode": 1,
+    "reason": "Managed sandbox setsockopt Operation not permitted; no unsandboxed fallback or synthetic illustration."
+  },
+  "operations": {
+    "hostedMutations": 0,
+    "providerCalls": 0,
+    "externalSpending": 0,
+    "customerMessages": 0,
+    "publications": 0,
+    "payments": 0,
+    "bookings": 0,
+    "easBuilds": 0,
+    "signing": false,
+    "ota": false,
+    "merge": false,
+    "homeOrbAndBuild29Preserved": true
+  },
+  "next": "Durable versioned bespoke App project specification and richer goal-driven compositions through original finite App authorities. No unapproved code execution environment."
+}

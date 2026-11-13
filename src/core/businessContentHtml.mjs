@@ -1,7 +1,7 @@
 import {validPublicBusinessContent,contentPrice,contentEventSchedule} from './businessContentRecords.mjs';
 // One governed public-content mount for both Website renderer adapters.
 const escape=x=>String(x||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule){
+function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule,presentation={}){
  const target=document.getElementById(id);if(!target)return;let generation=0;
  const line=(parent,tag,value)=>{const el=document.createElement(tag);el.textContent=String(value||'');parent.appendChild(el);return el;};
  async function refresh(){
@@ -10,9 +10,12 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule)
    target.replaceChildren();line(target,'p','Approved information checked '+feed.checkedAt);
    const rows=feed.records.filter(row=>row.kind===kind&&row.data?.status!=='archived'&&(kind!=='event'||Date.parse(row.data.endsAt)>=Date.now())).sort((a,b)=>a.id===featuredId?-1:b.id===featuredId?1:kind==='event'?Date.parse(a.data.startsAt)-Date.parse(b.data.startsAt):String(a.data.name).localeCompare(String(b.data.name)));
    const input=document.createElement('input');input.type='search';input.placeholder='Search names, descriptions or categories';input.setAttribute('aria-label','Search '+(kind==='product'?'products':'events'));input.style.cssText='padding:1rem;min-height:48px;width:100%;grid-column:1/-1;';target.appendChild(input);
-   const listing=document.createElement('div');listing.style.cssText='display:contents;';target.appendChild(listing);let pageSize=24;
-   function renderRows(){listing.replaceChildren();const query=String(input.value||'').toLocaleLowerCase(),filtered=rows.filter(r=>(r.data.name+' '+r.data.description+' '+r.data.category).toLocaleLowerCase().includes(query));
-   for(const row of filtered.slice(0,pageSize)){const d=row.data,article=document.createElement('article');article.style.cssText='padding:1rem;border:1px solid #bbc4d2;border-radius:12px;margin:1rem 0;';line(article,'h3',d.name);line(article,'p',d.category);line(article,'p',d.description);
+   const listing=document.createElement('div');listing.style.cssText='display:contents;';target.appendChild(listing);let pageSize=24,activeCategory='',selectedId=null;
+   const button=(parent,label,action)=>{const b=line(parent,'button',label);b.type='button';b.style.cssText='min-height:48px;padding:0.75rem';b.onclick=()=>{if(ticket===generation)action();};return b;};
+   function renderRows(){listing.replaceChildren();const query=String(input.value||'').toLocaleLowerCase(),filtered=rows.filter(r=>(r.data.name+' '+r.data.description+' '+r.data.category).toLocaleLowerCase().includes(query)&&(!activeCategory||(r.data.category||'Other')===activeCategory));
+   if(presentation.browseMode==='categories'){const categories=[...new Set(rows.map(r=>r.data.category||'Other'))].sort();if(activeCategory)button(listing,'All categories',()=>{activeCategory='';selectedId=null;renderRows();});else if(!query&&!selectedId){for(const category of categories)button(listing,'View category '+category,()=>{activeCategory=category;pageSize=24;renderRows();});return;}}
+   if(selectedId)button(listing,'Back to collection',()=>{selectedId=null;renderRows();});const visible=selectedId?filtered.filter(r=>r.id===selectedId):filtered.slice(0,pageSize);
+   for(const row of visible){const d=row.data,article=document.createElement('article');article.style.cssText='padding:1rem;border:1px solid #bbc4d2;border-radius:12px;margin:1rem 0;';line(article,'h3',d.name);if(!selectedId)button(article,'View '+d.name,()=>{selectedId=row.id;renderRows();});line(article,'p',d.category);line(article,'p',d.description);
     if(kind==='product'){const price=new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency});line(article,'p',price.format(d.amountMinor/10**price.resolvedOptions().maximumFractionDigits));line(article,'p','Availability: '+d.availability.replaceAll('_',' ')+'. Stock and checkout are not supported.');}
     else{line(article,'p',d.status==='cancelled'?'Cancelled':eventSchedule(d));line(article,'p',d.location||'Online event');line(article,'p','Listing only; attendance is not confirmed.');if(typeof d.onlineUrl==='string'&&/^https:\/\//.test(d.onlineUrl)){const link=line(article,'a','Open public event information');link.href=d.onlineUrl;link.target='_blank';link.rel='noopener noreferrer';}}
     line(article,'p','Approved listing revision '+row.revision+'. Review current details before enquiring.');
@@ -22,7 +25,7 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule)
      for(const variant of d.variants){const price=new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency});line(list,'li',variant.label+' • '+price.format(variant.amountMinor/10**price.resolvedOptions().maximumFractionDigits)+(variant.sku?' • '+variant.sku:''));}
      details.appendChild(list);article.appendChild(details);
     }
-    if(payload.allowEnquiry===true&&payload.slug&&payload.expectedAppId&&payload.expectedVersionId&&d.status!=='cancelled'){
+    if((presentation.interestEntry!=='details'||selectedId===row.id)&&payload.allowEnquiry===true&&payload.slug&&payload.expectedAppId&&payload.expectedVersionId&&d.status!=='cancelled'){
      const url=new URL(endpoint.replace(/busy-mini-app-guest$/,'busy-mini-app-link'));
      for(const [key,value]of Object.entries({slug:payload.slug,source:'web',intent:'enquiry',appId:payload.expectedAppId,versionId:payload.expectedVersionId,content:row.id,content_revision:String(row.revision)}))url.searchParams.set(key,value);
      const link=line(article,'a','Ask about '+d.name);link.href=url.toString();
@@ -33,21 +36,33 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule)
       select.addEventListener('change',()=>{if(select.value)url.searchParams.set('content_option',select.value);else url.searchParams.delete('content_option');link.href=url.toString();});article.appendChild(select);
      }
     }
-    if(d.image?.uri&&/^https:\/\//.test(d.image.uri)){const img=document.createElement('img');img.src=d.image.uri;img.alt=String(d.image.alt||'');img.loading='lazy';img.style.cssText='max-width:100%;max-height:300px;object-fit:cover';article.appendChild(img);}listing.appendChild(article);
-   }if(!filtered.length)line(listing,'p','No approved matching records.');if(filtered.length>pageSize){const more=line(listing,'button','Show more');more.type='button';more.onclick=()=>{pageSize+=24;renderRows();};}
-   }input.addEventListener('input',()=>{pageSize=24;renderRows();});renderRows();
+    if(d.image?.uri&&/^https:\/\//.test(d.image.uri)){const img=document.createElement('img');img.src=d.image.uri;img.alt=String(d.image.alt||'');img.loading='lazy';img.style.cssText=presentation.imageScale?'width:100%;height:'+(presentation.imageScale==='large'?280:180)+'px;object-fit:cover':'max-width:100%;max-height:300px;object-fit:cover';article.appendChild(img);}listing.appendChild(article);
+   }if(!filtered.length)line(listing,'p','No approved matching records.');if(!selectedId&&filtered.length>pageSize){const more=line(listing,'button','Show more');more.type='button';more.onclick=()=>{pageSize+=24;renderRows();};}
+   }input.addEventListener('input',()=>{pageSize=24;selectedId=null;renderRows();});renderRows();
   }catch{if(ticket===generation){target.replaceChildren();line(target,'p','Current details are unavailable. Refresh before relying on dates or availability.');}}
  }
  refresh();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
 }
-function businessContentSectionHtml(section,{endpoint='',websiteId='',deploymentId='',appSource=null}={}){
+function businessContentSectionHtml(section,{businessId=/** @type {string|null|undefined} */ (undefined),endpoint='',websiteId='',deploymentId='',appSource=/** @type {{slug:string,expectedAppId:string,expectedVersionId:string,allowEnquiry:boolean}|null} */ (null),sectionClasses='',artDirection=false,narrative=false,recordPhoto=/** @type {(record:any)=>string} */(record=>'')}={}){
  if(!['products','events'].includes(section?.type)||section.contentSource!=='business_records_v1')return '';
  const id='business-content-'+section.id,kind=section.type==='products'?'product':'event';
- const safeEndpoint=typeof endpoint==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-mini-app-guest$/.test(endpoint);
+ // Website adapters explicitly supply their current owner/business scope.
+ // The original reader validates the snapshot; a shape-valid foreign feed
+ // cannot become Website copy or initiate a connected listing mount.
+ // A legacy section without a snapshot may still use the original deployment-
+ // bound public reader; it does not acquire any private preview rows.
+ const currentScope=businessId===undefined||typeof businessId==='string'&&businessId.trim()===businessId&&!!businessId&&[section.businessId,section.business_id].every(id=>id===undefined||id===businessId)&&(section.previewFeed===undefined||validPublicBusinessContent(section.previewFeed)&&section.previewFeed.businessId===businessId);
+ const safeEndpoint=currentScope&&typeof endpoint==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-mini-app-guest$/.test(endpoint);
  const payload=appSource||{expectedDeploymentId:deploymentId};
- const preview=!safeEndpoint&&validPublicBusinessContent(section.previewFeed)?section.previewFeed:null;
+ const preview=currentScope&&!safeEndpoint&&validPublicBusinessContent(section.previewFeed)?section.previewFeed:null;
+ if(artDirection&&preview&&kind==='product'){
+  const rows=preview.records.filter(r=>r.kind===kind&&r.data.status==='active'),categories=[...new Set(rows.map(r=>r.data.category||''))];
+  const menu=categories.map(category=>`<div class="menu-category-group">${category?`<p class="menu-label">${escape(category)}</p>`:''}<div class="menu-items">${rows.filter(r=>(r.data.category||'')===category).map(r=>`<article class="menu-item${recordPhoto(r)?' menu-item-photographic':''}" data-record-id="${escape(r.id)}" data-record-revision="${r.revision}">${recordPhoto(r)}<h3>${escape(r.data.name)}</h3><p class="menu-price">${escape(contentPrice(r.data.amountMinor,r.data.currency))}</p><p class="menu-description">${escape(r.data.description)}</p></article>`).join('')}</div></div>`).join('');
+  return `<section id="${escape(section.id)}"${sectionClasses?` class="${escape(sectionClasses)}"`:''}><div class="wrap"><h2>${escape(section.title)}</h2><div class="approved-menu">${menu}</div>${narrative?`<p class="listing-note">Private menu preview. Ordering is unavailable.</p><details class="listing-note"><summary>About this menu preview</summary><p>Approved snapshot checked ${escape(preview.checkedAt)}. Prices are shown as supplied. Current details require the connected public feed. No checkout, stock reservation or order is available.</p></details>`:`<p class="listing-note">Approved listing snapshot checked ${escape(preview.checkedAt)}. Current details require the connected public feed. No checkout, stock reservation or order is available.</p>`}</div></section>`;
+ }
  const previewHtml=preview?`<p>Approved record snapshot checked ${escape(preview.checkedAt)}. Current details require the connected public feed.</p>`+preview.records.filter(r=>r.kind===kind).map(r=>`<article><h3>${escape(r.data.name)}</h3><p>${escape(r.data.description)}</p><p>${escape(kind==='product'?contentPrice(r.data.amountMinor,r.data.currency):r.data.status==='cancelled'?'Cancelled':r.data.startsAt+' • '+r.data.timeZone)}</p></article>`).join(''):'';
+ const presentation={browseMode:section.browseMode||'list',interestEntry:section.interestEntry||'inline',imageScale:section.imageScale||''};if(!['list','categories'].includes(presentation.browseMode)||!['inline','details'].includes(presentation.interestEntry)||!['','regular','large'].includes(presentation.imageScale))throw Error('Unsupported collection presentation');
  const args=[id,endpoint,payload,kind,section.featuredId||''].map(x=>JSON.stringify(x).replace(/</g,'\\u003c')).join(',');
- return `<section id="${escape(section.id)}"><div class="wrap"><h2>${escape(section.title)}</h2><div id="${escape(id)}" style="display:grid;grid-template-columns:${section.contentLayout==='rows'?'1fr':'repeat(auto-fit,minmax(min(100%,280px),1fr))'};gap:1rem">${previewHtml||`<p>${safeEndpoint?'Current approved information loads here.':'Shared record section prepared. Current published records require the connected live website.'}</p>`}</div>${safeEndpoint?`<script>(${mountBusinessContent.toString()})(${args},${contentEventSchedule.toString()});</script>`:''}</div></section>`;
+ return `<section id="${escape(section.id)}"${sectionClasses?` class="${escape(sectionClasses)}"`:''}><div class="wrap"><h2>${escape(section.title)}</h2><div id="${escape(id)}" style="display:grid;grid-template-columns:${section.contentLayout==='rows'?'1fr':'repeat(auto-fit,minmax(min(100%,280px),1fr))'};gap:1rem">${previewHtml||`<p>${safeEndpoint?'Current approved information loads here.':'Shared record section prepared. Current published records require the connected live website.'}</p>`}</div>${safeEndpoint?`<script>(${mountBusinessContent.toString()})(${args},${contentEventSchedule.toString()},${JSON.stringify(presentation).replace(/</g,'\\u003c')});</script>`:''}</div></section>`;
 }
 export {businessContentSectionHtml};

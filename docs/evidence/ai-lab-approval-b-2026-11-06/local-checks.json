@@ -1,0 +1,57 @@
+{
+  "startingCommit": "e5134682b7adb094d2dcda94487789966fc99422",
+  "preFreezeDevelopmentEvidence": true,
+  "runtimeAndApprovedFoundationUnchanged": true,
+  "package": {
+    "command": "node scripts/check-ai-lab-fictional-setup.mjs",
+    "passed": 16,
+    "failed": 0,
+    "actualCLI": true
+  },
+  "foundationAssertions": {
+    "command": "node scripts/check-production.mjs",
+    "passed": 105,
+    "failed": 0,
+    "productionAccess": false
+  },
+  "originalPackages": {
+    "runnerPassed": 7,
+    "labPassed": 2,
+    "failed": 0
+  },
+  "securityByDesign": {
+    "exitCode": 0
+  },
+  "dependencyRuntimeGuard": {
+    "exitCode": 0
+  },
+  "postgres": {
+    "setup": {
+      "passed": 16,
+      "failed": 0
+    },
+    "source": {
+      "passed": 11,
+      "assertions": 68,
+      "failed": 0
+    },
+    "originalBudget": {
+      "passed": 32,
+      "failed": 0
+    },
+    "nativeAuthAcceptance": false,
+    "unixOnly": true
+  },
+  "offlineSource": {
+    "passed": 11,
+    "assertions": 85,
+    "failed": 0
+  },
+  "hostedWrites": 0,
+  "providerRequests": 0,
+  "inferenceSpendGBP": 0,
+  "unchangedGoldStandards": {
+    "candidates": 3,
+    "approved": 0
+  }
+}

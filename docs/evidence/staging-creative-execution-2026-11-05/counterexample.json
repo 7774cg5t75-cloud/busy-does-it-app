@@ -1,0 +1,10 @@
+{
+  "test": "Concurrent independent staging handlers with same immutable operation/nonce",
+  "oldLedgerSource": "456abed908508379a6b9578cee826b256d2d1519",
+  "expectedOldExit": 1,
+  "oldFailureConfirmed": true,
+  "fixedExit": 0,
+  "fix": "Only fresh acknowledged reservation owner can finish; duplicate cleanup cannot release another handler reservation; lost reserve acknowledgement retains inspectable liability",
+  "providerTransport": "synthetic only",
+  "liveProviderCalls": 0
+}

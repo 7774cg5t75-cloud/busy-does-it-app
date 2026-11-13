@@ -10,10 +10,10 @@ const FIELDS=Object.freeze({
  enquiry:["name","email","phone","service","message"]
 });
 function checkCustomerRequestReplay({
- existing=null,businessId="",appId="",consumerUserId="",
- requestType="",moduleKey="",payload=null
+ existing=/** @type {{id:string,business_id:string,mini_app_id:string,consumer_user_id:string,request_type:string,module_key:string,payload:Record<string,string|undefined>}|null} */ (null),businessId="",appId="",consumerUserId="",
+ requestType="",moduleKey="",payload=/** @type {Record<string,string|undefined>|null} */ (null)
 }={}){
- const no=reason=>({ok:false,reason,mayInsertAnotherRequest:false,
+ const no=reason=>({ok:/** @type {const} */ (false),reason,mayInsertAnotherRequest:false,
   reused:false,neverContactProvider:true});
  const keys=FIELDS[requestType];
  if(!keys||!existing||typeof existing!=="object"||
@@ -33,7 +33,7 @@ function checkCustomerRequestReplay({
     !Object.prototype.hasOwnProperty.call(payload,k)||
     SAFE_STR(stored[k])!==SAFE_STR(payload[k])))
    return no("These details differ from the previously saved request. Choose a new request rather than reusing its key.");
- return {ok:true,reused:true,existingRequestId:existing.id,
+ return {ok:/** @type {const} */ (true),reused:true,existingRequestId:existing.id,
   serverScoped:true,matchingSanitizedPayload:true,
   notificationNotRetried:true,neverContactProvider:true};
 }

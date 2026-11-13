@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { runInNewContext } from "node:vm";
+import {applyCoordinatedWebsiteCopy} from "../src/domain/websiteBuilder.js";
 import {
   prepareCoordinatedGrowthDrafts,
   isCurrentGrowthDraftPack,
@@ -80,14 +80,8 @@ assert.ok(!screen.includes("handOffGrowthCopy(\"publish\")"));
 assert.ok(website.includes("function applyCoordinatedWebsiteCopy("));
 assert.ok(website.includes("draft: withHtml({...draft, sections})"));
 assert.ok(website.includes('["draft", "pending"]'));
-// Exercise the actual website copy-update implementation without an Expo bundle.
-// The page-model import is replaced with a pure identity adapter for the test.
-const executableWebsite = website
-  .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/, "")
-  .replace(/export \{[\s\S]*?\};\s*$/, "");
-const websiteEnv = {syncWebsitePageModel: draft => draft};
-runInNewContext(executableWebsite + "\n globalThis.applyCopyForTest = applyCoordinatedWebsiteCopy;", websiteEnv);
-const applyCopy = websiteEnv.applyCopyForTest;
+// Execute the original module with its real page model and rendering imports.
+const applyCopy = applyCoordinatedWebsiteCopy;
 const websiteDraft = {
   id: "private-website", businessName: "Acme Cleaning",
   seo: {title:"Acme", description:"Private test"}, theme: {},

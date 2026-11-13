@@ -1,0 +1,137 @@
+{
+  "mission": "Final premium Home composition",
+  "source": {
+    "startingLocal": "c0ae40ff30b6223a3431c418c8afbedcf5e14014",
+    "startingGitHub": "b580aa6a12f5ef35315dfbf919d1d2457182ae84",
+    "startingTree": "682237b68cf31381ef653ef930c6379c41c9994f",
+    "functionalLocal": "07f0972411e6746f6c114515d7818eddf75e2a92",
+    "functionalGitHub": "a876cab95bf913a9393907a955758429d9a07f54",
+    "functionalTree": "21c1f614969944c4ffbed606763cc18e50c30526",
+    "startClean": true,
+    "endClean": true
+  },
+  "master": {
+    "version": "V22.53",
+    "actuallyReopened": true,
+    "sha256": "fa9456077fd843f1f04ea450d9e2ec425077695b6b106b91bf7cee150b727f62"
+  },
+  "application": {
+    "summary": {
+      "passed": 429,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "childExits": [
+      0
+    ],
+    "outerExit": 0,
+    "selectionSha256": "a832c5e0c3b32d4cfdd03ba47e55a8a5fe781b96e1bd01ebe6cde90285b30c8d"
+  },
+  "foundation": {
+    "passed": 105,
+    "exit": 0
+  },
+  "syntax": {
+    "files": 9,
+    "exit": 0
+  },
+  "architecture": {
+    "staticCycles": 0,
+    "exit": 0
+  },
+  "expo": {
+    "dependenciesExit": 0,
+    "introspectionExit": 0,
+    "iosHermesExportExit": 0,
+    "modules": 1465,
+    "signedBuildForThisSource": false
+  },
+  "snack": {
+    "exit": 1,
+    "distinctDiagnostics": 27,
+    "unchanged": true
+  },
+  "ownerPreview": {
+    "version": "3.105.0",
+    "preparedBuild": "27",
+    "bundle": "com.busydoesit.app.ownerpreview",
+    "profile": "owner-preview",
+    "ota": false,
+    "cloudBuildStarted": false,
+    "productionBuildUnchanged": "25"
+  },
+  "artifacts": [
+    {
+      "path": ".test-artifacts/home-final/application.json",
+      "sha256": "94266c3e1e96cbe956804e43fa0b8592864e0645efc1cb5736b6a69688f321dc"
+    },
+    {
+      "path": ".test-artifacts/home-final/application-outer.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/home-final/foundation.log",
+      "sha256": "071a792c0c09162354e0b46dce361f035d9e08fb95e79149083b2a327a5a906e"
+    },
+    {
+      "path": ".test-artifacts/home-final/architecture.log",
+      "sha256": "9d009271321d9701d2116a3abf9902b3c840c32f48498306937f6f8f15266452"
+    },
+    {
+      "path": ".test-artifacts/home-final/syntax.log",
+      "sha256": "cecea95fac7f50cee1ea74d775c96f272baf69269c2a8f17ff478a4171235c9f"
+    },
+    {
+      "path": ".test-artifacts/home-final/quality-exits.json",
+      "sha256": "97e26d429ab0723aa5fd7481da97eb5886194b3d190687e8b5ccf05106f2b128"
+    },
+    {
+      "path": ".test-artifacts/home-final/ios-export.log",
+      "sha256": "033af80991660dc8ccc771951c3fdaba9e8733113afc7bf8d951bc13f49f828a"
+    },
+    {
+      "path": ".test-artifacts/home-final/ios-export-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/home-final/dependencies.log",
+      "sha256": "28adcc05dfc4b32af564b8765a9b02b663448cfb9640eefa9b9a48494f703f91"
+    },
+    {
+      "path": ".test-artifacts/home-final/dependencies-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/home-final/config.log",
+      "sha256": "563305bcd347c352de963b286d46798a0e5204d7353136d81246b593597ac0b3"
+    },
+    {
+      "path": ".test-artifacts/home-final/config-exit.json",
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5"
+    },
+    {
+      "path": ".test-artifacts/home-final/snack.log",
+      "sha256": "18fd2e069125d1bec56369b323ba4b7ee2da3bdb56bc05aec167d2f5376d6228"
+    },
+    {
+      "path": ".test-artifacts/home-final/snack-exit.json",
+      "sha256": "3fcf365c70bf262b9592ec1998f4c4609c36c75d846b67c5e86d7c9f03f07176"
+    },
+    {
+      "path": ".test-artifacts/home-final/snack-comparison.json",
+      "sha256": "7687b5312d3a03567dd2e0ab99bc530b51a81117e37cb4733c5646eb7c9e0335"
+    },
+    {
+      "path": ".test-artifacts/home-final/failed-candidates.json",
+      "sha256": "d0b35aaa72fd38e24e8332feb6729fc435dcfe20207916548e4913673b936ddc"
+    }
+  ],
+  "gates": [
+    "No physical-device visual acceptance",
+    "No EAS build/OTA/distribution/signing changes",
+    "No hosted/provider/financial/customer actions",
+    "No PostgreSQL contract change or fresh database credit"
+  ],
+  "readiness": "Source ready for a separately owner-approved consolidated private build; check Expo build history first; physical visual balance remains unverified"
+}

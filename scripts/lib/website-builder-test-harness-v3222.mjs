@@ -1,3 +1,23 @@
+import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from '../../supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs';
+import {websiteCreativeDocumentPageModel} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
+import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';
+import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';
+import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';
+import {purposeServiceProjection} from '../../supabase/functions/busy-website-worker/websiteServiceOverview.mjs';
+import {renderWebsiteSiteNavigation} from '../../supabase/functions/busy-website-worker/websiteSiteNavigation.mjs';
+import {wholeSiteMenuMove} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';
+import {pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';
+import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';
+import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';
+import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';
+import {splitBuilderInstructionClauses} from '../../src/core/builderInstructionClauses.mjs';
+import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../../src/core/websiteEditingLimits.mjs';
+import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
+import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
+import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
+import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
+import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
+import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../../src/core/businessContentHtml.mjs';
 import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";
 /**
@@ -26,9 +46,28 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml} from '../../supabase/functions/busy-website-worker/websiteCreativeDocumentRendering.mjs';",
+ "import {creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss} from '../../supabase/functions/busy-website-worker/websiteCreativeRendering.mjs';",
+ "import {websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml} from '../../supabase/functions/busy-website-worker/websiteContentPhotos.mjs';",
+ "import {servicePhotoHtml} from '../../supabase/functions/busy-website-worker/websiteServicePhotos.mjs';",
+ "import {purposeServiceProjection} from '../../supabase/functions/busy-website-worker/websiteServiceOverview.mjs';",
+ "import {renderWebsiteSiteNavigation} from '../../supabase/functions/busy-website-worker/websiteSiteNavigation.mjs';",
+ "import {wholeSiteMenuMove} from '../../supabase/functions/busy-website-worker/websiteWholeSite.mjs';",
+ "import {pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact} from '../../supabase/functions/busy-website-worker/websiteCraftedPage.mjs';",
+ "import {responsivePhotoAttributes} from '../../supabase/functions/busy-website-worker/websiteResponsivePhotos.mjs';",
+ "import {websiteHeroPhotos,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable} from '../../supabase/functions/busy-website-worker/websitePhotoPresentation.mjs';",
+ "import {premiumHeroInner} from '../../supabase/functions/busy-website-worker/websitePremiumHero.mjs';",
+ "import {splitBuilderInstructionClauses} from '../core/builderInstructionClauses.mjs';",
+ "import {WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS} from '../core/websiteEditingLimits.mjs';",
+ "import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';",
+ "import {websitePageGuide,websitePageHeadingHierarchy} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';",
+ "import {serviceIndexHtml,serviceContactAction,heroServiceOverview} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';",
+ "import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';",
+ 'import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";',
+ "import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';",
  "import {businessContentSectionHtml} from '../core/businessContentHtml.mjs';",
  'import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";',
- 'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import { syncWebsitePageModel } from "./websiteManagement.js";',
  'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
@@ -43,15 +82,16 @@ const AVAILABLE=new Set([
 function stripKnownModule(file){
  const body=source(file);
  assert.ok(trailer.test(body),"Expected an explicit named export trailer in "+file);
- const code=body.replace(trailer,"");
+ const code=body.replace(trailer,"").replace("import {websiteCreativeDocumentPageModel} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';","");
  assert.equal(/^\s*import\b/m.test(code),false,"New import needs reviewed harness: "+file);
  assert.equal(/^\s*export\b/m.test(code),false,"New export needs reviewed harness: "+file);
  return code;
 }
-const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
- "\nreturn {syncWebsitePageModel};")();
-const deps=Object.freeze({
- syncWebsitePageModel:management.syncWebsitePageModel,
+const management=Function("websiteCreativeDocumentPageModel",stripKnownModule("src/domain/websiteManagement.js")+
+ "\nreturn {syncWebsitePageModel};")(websiteCreativeDocumentPageModel);
+const deps=Object.freeze({renderWebsiteCreativeDocument,websiteCreativeDocumentSite,websiteCreativeDocumentCss,websiteCreativeDocumentUnavailableHtml,creativeWebsiteClasses,creativeWebsiteOrder,creativeWebsiteCss,websiteRecordPhoto,websiteSectionPhoto,presentationPhotoHtml,websiteHeroPhotos,servicePhotoHtml,purposeServiceProjection,renderWebsiteSiteNavigation,wholeSiteMenuMove,pageDirectionClass,craftedPage,craftedServices,craftedStory,craftedContact,responsivePhotoAttributes,websiteGalleryPresentation,distinctWebsitePhotos,websiteAssetAvailable,premiumHeroInner,splitBuilderInstructionClauses,WEBSITE_ATOMIC_CHANGES,WEBSITE_ATOMIC_CHARACTERS,
+ testimonialSpotlightItems,
+ websitePageGuide,websitePageHeadingHierarchy,serviceIndexHtml,serviceContactAction,heroServiceOverview,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,
  planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,
  editWebsiteDraftField,protectWebsiteOwnerLocks,businessContentSectionHtml

@@ -1,0 +1,11 @@
+{
+  "version": "busy.approval-c.result-file-hashes.v1",
+  "files": {
+    "blocked-smoke-next-step.json": "6beb82bc289a9e79d5cdfbcde1c0bf18ca919714fdc0ddea4d1e2ca815753309",
+    "deployment-result.json": "18edaddd31365216ad9587a0db5489b6f20e78805cfd6acb5a57b6407f9e89fd",
+    "returned-source-map.json": "1590ac3cc67a77e10abde46bc09ff12cc80c770e4794abc3862dc5a2da687d38"
+  },
+  "full116ReadbackVerified": false,
+  "smokeReady": false,
+  "deploymentSubmissions": 1
+}

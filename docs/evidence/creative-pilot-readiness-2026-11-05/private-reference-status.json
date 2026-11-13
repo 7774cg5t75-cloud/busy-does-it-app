@@ -1,0 +1,15 @@
+{
+  "candidatePool": 3,
+  "approvedGoldStandards": 0,
+  "originalCatalogueSha256": "44062c4bc23224d1ab6baf8142e6bf97cf78439dc2d5fc57023ea7cb57e5e661",
+  "originalRecordsPreserved": true,
+  "starterSha256": "1ee58018469659cbcbc91ffd9c196d94b3b908da262333082547be32b4070b37",
+  "feedback": {
+    "ember": "needs-improvement",
+    "clearleaf": "candidate",
+    "quiet-light": "candidate"
+  },
+  "authority": "Genuine V22.82 with Section93; starter reconciled privately, historical evidence not silently rebound",
+  "ownerAcceptance": null,
+  "publicShowcaseAuthorised": false
+}

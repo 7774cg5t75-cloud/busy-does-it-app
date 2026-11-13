@@ -1,3 +1,4 @@
+import {reviewedPairIsCurrent} from '../core/ownerBuilderDraftGuardV3195.mjs';
 import {proposeCoordinatedAppChanges} from "../core/appCoordinatedStudio.mjs";
 import {bindPrivateAppProposal} from "../core/privateAppEditSession.mjs";
 import React from "react";
@@ -16,14 +17,16 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
  const [includeContacts,setIncludeContacts]=React.useState(false);
  const [includePublicInformation,setIncludePublicInformation]=React.useState(false);
  const [fillDescriptions,setFillDescriptions]=React.useState(false);
- const live=React.useRef(null),alive=React.useRef(true);live.current={website,app,businessId};
+ const live=React.useRef(null),alive=React.useRef(true);live.current={website,app,businessId,busy};
  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const [includeMissingAnswers,setIncludeMissingAnswers]=React.useState(false);
- const [review,setReview]=React.useState(null);
+ const [review,updateReview]=React.useState(null);
+ const decision=React.useRef(null),setReview=value=>{decision.current=value;updateReview(value);};
  const [notice,setNotice]=React.useState("");
  React.useEffect(()=>{setReview(null);setNotice("");},[
   website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
  if(!website?.id||!app?.id||!businessId)return null;
+ if(review&&!reviewedPairIsCurrent(website,app,businessId,review,{appId:'targetAppId',appRevision:'targetAppRevision',websiteId:'sourceWebsiteId',websiteRevision:'sourceWebsiteGeneration'}))return <Card title="Review updated builder drafts" body="The source or destination changed. No old proposal was applied."><Button label="Review current design choices" onPress={()=>setReview(null)}/></Card>;
  const preview=planWebsiteToAppDesign({
   website,app,businessId,mode,includeServices,fillDescriptions,includeDesign,includeContacts,includePublicInformation,includeMissingAnswers
  });
@@ -82,9 +85,10 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
       <Button primary disabled={!!busy}
        label={"Preview "+review.operations.length+" changes in App Studio"}
        onPress={()=>{
-        if(!alive.current||live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId){setNotice("The builders changed. Review their latest versions.");return;}
+        if(!review||decision.current!==review||live.current.busy||!alive.current||live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId){setNotice("The builders changed. Review their latest versions.");return;}
         const verified=confirmWebsiteToAppDesign({website,app,businessId,evidence:review});
         if(!verified.ok){setNotice(verified.reason);setReview(null);return;}
+        setReview(null);
         const proposal=bindPrivateAppProposal(proposeCoordinatedAppChanges(app.draft_config,verified.operations),{businessId,app});
         if(proposal?.ok&&onPreview?.(proposal)){setNotice("Prepared in App Studio. Compare, then approve or discard. Nothing was saved.");setReview(null);}
         else setNotice("The current app could not prepare those changes. Review it again.");

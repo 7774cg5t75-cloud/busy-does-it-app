@@ -1,3 +1,4 @@
+import {reviewApprovedBuilderRecords} from '../core/approvedBuilderRecords.mjs';
 import React from "react";
 import {Text,View} from "react-native";
 import {Card,Button,Field} from "../components/ui";
@@ -30,7 +31,7 @@ const friendlyStatus={
 const initial=value=>typeof value==="string"?
  value.trim().slice(0,1400):"";
 function UniversalBuilderPlanReview({
- businessId="",businessType="",website=null,app=null,catalog=[],
+ businessId="",businessType="",website=null,app=null,catalog=[],approvedContent=null,
  surface="website",initialGoal="",
  onApplyWebsiteComposition=null,onSaveAppChanges=null,busy=false
 }){
@@ -134,6 +135,7 @@ function UniversalBuilderPlanReview({
  const designDecision=matching?reviewSharedBuilderDesignDecisionV3237({
   plan:report,businessId,website,app,surface
  }):null;
+ const approvedRecords=reviewApprovedBuilderRecords(approvedContent,businessId);
  const requested=matching?
   report.capabilities.filter(x=>x.explicitlyRequested):[];
  const supporting=matching?
@@ -163,6 +165,8 @@ function UniversalBuilderPlanReview({
      {notice?<Text style={styles.cardBody}>{notice}</Text>:null}
      {matching?<View>
        <Text style={styles.cardBody}>{report.summary}</Text>
+       <Text style={styles.sectionLabel}>Approved shared records</Text>
+       <Text style={styles.cardBody}>{approvedRecords.ok?approvedRecords.records.map(row=>row.count+' '+row.kind+' record(s)').join(' • ')+'. Current loaded snapshot only; no stock, tickets or attendance confirmed.':approvedRecords.reason}</Text>
        {guidance?.ok&&guidance.recommended?<View>
          <Text style={styles.sectionLabel}>BUSY's suggested next step</Text>
          <Text style={styles.cardBody}>{guidance.recommended.title}</Text>

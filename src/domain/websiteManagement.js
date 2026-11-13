@@ -1,3 +1,4 @@
+import {websiteCreativeDocumentPageModel} from '../../supabase/functions/busy-website-worker/websiteCreativeDocument.mjs';
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -30,8 +31,11 @@ function enabledSectionIds(draft = {}) {
 
 function pageDescription(draft = {}, sectionIds = []) {
   const map = sectionMap(draft);
-  const preferred = ["hero", ...sectionIds]
+  const preferred = [...sectionIds, "hero"]
     .map((id) => map.get(id))
+    .map(section=>section&&({...section,body:section.type==='services'&&safeArray(section.items).length
+      ?[clean(section.title),clean(draft.businessName),safeArray(section.items).map(i=>clean(i.title)).filter(Boolean).join(', ')].filter(Boolean).join(' — ')
+      :clean(section.body)||safeArray(section.items).map(i=>clean(i.body||i.alt)).filter(Boolean).join(' ')||(clean(section.title)?clean(section.title)+' — '+clean(draft.businessName):'')}))
     .find((section) => clean(section?.body));
   const raw =
     clean(preferred?.body) ||
@@ -42,6 +46,7 @@ function pageDescription(draft = {}, sectionIds = []) {
 }
 
 function buildWebsitePageModel(draft = {}) {
+  const creativeModel=websiteCreativeDocumentPageModel(draft);
   const businessName = clean(draft.businessName) || "Business";
   const businessType = clean(draft.businessType) || "Local business";
   const serviceArea = clean(draft.serviceArea);
@@ -49,7 +54,8 @@ function buildWebsitePageModel(draft = {}) {
   const has = (id) => ids.includes(id);
 
   const plan = draft?.designPlan || null;
-  const singlePage = plan?.architecture === "focused-landing";
+  const connected=draft.siteComposition==='connected-pages-v1';
+  const singlePage = plan?.architecture === "focused-landing"&&!connected;
   const order = safeArray(plan?.sectionOrder).filter(id => ids.includes(id));
   const allIds = [...order, ...ids.filter(id => !order.includes(id))];
   // Page-only owner content remains on its dedicated page, not repeated
@@ -77,6 +83,10 @@ function buildWebsitePageModel(draft = {}) {
   dedicated.forEach(([id, title, path, outputPath]) => {
     if(singlePage&&!['products','events'].includes(id))return;
     if (!has(id)) return;
+    if(connected){const section=sectionMap(draft).get(id);
+      if(['gallery','faq','services'].includes(id)&&!safeArray(section?.items).length)return;
+      if(id==='about'&&!clean(section?.body))return;
+    }
     pages.push({
       id,
       path,
@@ -99,16 +109,20 @@ function buildWebsitePageModel(draft = {}) {
     if(!ownedIds.length)return;
     usedPageIds.add(id);
     pages.push({id,slug,title,enabled:true,path:"/pages/"+slug,
-      outputPath:"pages/"+slug+"/index.html",sectionIds:ownedIds});
+      outputPath:"pages/"+slug+"/index.html",sectionIds:ownedIds,...(entry.sourceServiceId?{sourceServiceId:entry.sourceServiceId,sourceServiceSnapshot:entry.sourceServiceSnapshot}:{})});
   });
 
-  const navigation = singlePage
+  // A reviewed declarative document supplies only a validated projection over
+  // the ORIGINAL sections, custom pages and routes. Legacy derivation is exact.
+  if(creativeModel)pages.splice(0,pages.length,...creativeModel.pages);
+  const seoSource=creativeModel?.seo||draft.seo||{};
+  const navigation = creativeModel?creativeModel.navigation:singlePage
     ? [{id:"home",label:"Home",href:"#main"},
       ...homeIds.filter(id=>["services","about","gallery","contact","products","events"].includes(id))
-        .map(id=>({id,label:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact",products:"Products",events:"Events"})[id],href:"#"+id})),
-      ...pages.filter(page=>page.id.startsWith("page-")).map(page=>({id:page.id,label:page.title,href:page.path}))]
+        .map(id=>({id,label:(["Menu","Services","Our story","Enquire"].includes(safeArray(draft.sections).find(s=>s.id===id)?.navigationLabel)?safeArray(draft.sections).find(s=>s.id===id).navigationLabel:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact",products:"Products",events:"Events"})[id]),href:"#"+id})),
+      ...pages.filter(page=>page.id.startsWith("page-")).map(page=>({id:page.id,label:(["Menu","Services","Our story","Enquire"].includes(safeArray(draft.sections).find(s=>s.id===page.id)?.navigationLabel)?safeArray(draft.sections).find(s=>s.id===page.id).navigationLabel:page.title),href:page.path}))]
     : pages.filter(page=>page.id!=="faq").map(page=>({
-      id:page.id,label:page.title,href:page.path
+      id:page.id,label:(["Menu","Services","Our story","Enquire"].includes(safeArray(draft.sections).find(s=>s.id===page.id)?.navigationLabel)?safeArray(draft.sections).find(s=>s.id===page.id).navigationLabel:page.title),href:page.path
     }));
 
   const pageSeo = {};
@@ -118,7 +132,7 @@ function buildWebsitePageModel(draft = {}) {
         ? businessType
         : page.title;
     const areaSuffix = serviceArea ? ` • ${serviceArea}` : "";
-    const owned=draft.seo?.ownerPages?.[page.id];
+    const owned=seoSource.ownerPages?.[page.id];
     const safeMetadata=(value,max)=>typeof value==='string'&&value.trim()&&value.length<=max&&!/[<>\u0000-\u001f\u007f]/.test(value);
     pageSeo[page.id] = {
       path: page.path,
@@ -150,7 +164,7 @@ function buildWebsitePageModel(draft = {}) {
     pages,
     navigation,
     seo: {
-      ...(draft.seo || {}),
+      ...seoSource,
       title: homeSeo.title,
       description: homeSeo.description,
       pages: pageSeo,

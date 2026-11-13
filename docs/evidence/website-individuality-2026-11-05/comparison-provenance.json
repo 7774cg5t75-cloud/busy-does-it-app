@@ -1,0 +1,367 @@
+{
+  "source": {
+    "commit": "3852ffb4e92efa275bbd0edb4f41902af6be5878",
+    "tree": "5d68b140371ae8bde2dd71a966c143c45d9a0f97"
+  },
+  "comparisons": [
+    {
+      "filename": "ember-before-after-mobile.jpg",
+      "sha256": "9c8d9572546b0dba5338771cc8b752dd93c7e63a7ebcc93a38d74806b3fd4eb5",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "1-before-mobile.png",
+          "sha256": "a2eb6c494fdfe1a39ea63763f62c7867f3cea9df571241f448aa3c57e4934e8b",
+          "label": "Before: same approved facts/assets"
+        },
+        {
+          "file": "1-after-mobile.png",
+          "sha256": "3479414c47cfbe50abc7ce4eb85fd67f166c9b47826120212743deab2a08c179",
+          "label": "After: reviewed whole-page direction"
+        }
+      ]
+    },
+    {
+      "filename": "ember-before-after-desktop.jpg",
+      "sha256": "f7cca748278fca47b33e84fca40befa1e832be8f50b2758110cec3ad00d80a38",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "1-before-desktop.png",
+          "sha256": "946f1b067183e5ab9f6b00d8f9a9a1a464463673caf3f6b480977a4de421cb5c",
+          "label": "Before: same approved facts/assets"
+        },
+        {
+          "file": "1-after-desktop.png",
+          "sha256": "350df44aa3ee2de96cdf97c12f5c0e7a895bffe06b360bb8a0111efc9f929b6c",
+          "label": "After: reviewed whole-page direction"
+        }
+      ]
+    },
+    {
+      "filename": "ember-sparse-rich.jpg",
+      "sha256": "b5c36d3d308358728060a533a0265e85980b9def29a8292af796faa64ffa085a",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "0-after-mobile.png",
+          "sha256": "c7c26b9dac89adbce7d39c3bccec39be83498fe0829f5552316e876610ba439a",
+          "label": "Sparse source: deliberately limited"
+        },
+        {
+          "file": "1-after-mobile.png",
+          "sha256": "3479414c47cfbe50abc7ce4eb85fd67f166c9b47826120212743deab2a08c179",
+          "label": "Rich source: different approved facts/assets"
+        }
+      ]
+    },
+    {
+      "filename": "clearleaf-before-after-mobile.jpg",
+      "sha256": "46282864400e4a60d99be7af580b209fca430678592544c0b3b098b61133caa7",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "3-before-mobile.png",
+          "sha256": "be021748395151f79efda07f5beba4a2f5fa07ce5c3de406634662eecc17cb7c",
+          "label": "Before: same approved facts/assets"
+        },
+        {
+          "file": "3-after-mobile.png",
+          "sha256": "ade8a8022a8cc12649cb26f81b4476d7d55f41192eead3f58efca3e42fdde840",
+          "label": "After: reviewed whole-page direction"
+        }
+      ]
+    },
+    {
+      "filename": "clearleaf-before-after-desktop.jpg",
+      "sha256": "898bc9ca906362230e80c94af5546522336d41fabeb3fbbafb79fe00d9090f30",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "3-before-desktop.png",
+          "sha256": "5d7c112674b2ab04f737bce73da17996a8c1fd85e382f4e6a2df0cf20363f7ed",
+          "label": "Before: same approved facts/assets"
+        },
+        {
+          "file": "3-after-desktop.png",
+          "sha256": "8b72d8fa466caca864487ea1a488698c95c0025f9f783455d805615e7de90486",
+          "label": "After: reviewed whole-page direction"
+        }
+      ]
+    },
+    {
+      "filename": "clearleaf-sparse-rich.jpg",
+      "sha256": "e10be3686f45cc8bc4dbbca09ab8ad7d6d9cab2044b3d82846895c10747bcaa3",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "2-after-mobile.png",
+          "sha256": "70b01bde2f612fae37a3dbefbd444dc0da3c146ed898b655d86b267480b7fdff",
+          "label": "Sparse source: deliberately limited"
+        },
+        {
+          "file": "3-after-mobile.png",
+          "sha256": "ade8a8022a8cc12649cb26f81b4476d7d55f41192eead3f58efca3e42fdde840",
+          "label": "Rich source: different approved facts/assets"
+        }
+      ]
+    },
+    {
+      "filename": "quiet-light-before-after-mobile.jpg",
+      "sha256": "4a131e25c24cbdb6431e1b51a1a1ef48ffe42d95b94efa4e0fffd1d2464e8986",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "5-before-mobile.png",
+          "sha256": "15d6f5306709326565b7df853c34f9fb3045cd5c440fe56cf0ad244e04b558ee",
+          "label": "Before: same approved facts/assets"
+        },
+        {
+          "file": "5-after-mobile.png",
+          "sha256": "925e494e49812c4d9799cce9c546690f5808292bef0e9b60a96d5464a29010ad",
+          "label": "After: reviewed whole-page direction"
+        }
+      ]
+    },
+    {
+      "filename": "quiet-light-before-after-desktop.jpg",
+      "sha256": "43e56180248993f144f96d831074f09e96706077fc9f95648e7e6c1b88f7f048",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "5-before-desktop.png",
+          "sha256": "d0090dd260753800e5475f9dd9850bd3c2bd718f506607a2f3cc37ed13819dab",
+          "label": "Before: same approved facts/assets"
+        },
+        {
+          "file": "5-after-desktop.png",
+          "sha256": "37a5c4fcc1e95eb80d99a81f363e0f4fcaf1eae93cb5b94c079f19a9daf42881",
+          "label": "After: reviewed whole-page direction"
+        }
+      ]
+    },
+    {
+      "filename": "quiet-light-sparse-rich.jpg",
+      "sha256": "8c8c47a48fbfc4894bdfdb510d9045a4c909e18702ead9dbc74ec13b74a2e1fd",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "4-after-mobile.png",
+          "sha256": "1a41e9fc28f5320dff664752083d56aa882160ec6d9aae0640782dd9e8216773",
+          "label": "Sparse source: deliberately limited"
+        },
+        {
+          "file": "5-after-mobile.png",
+          "sha256": "925e494e49812c4d9799cce9c546690f5808292bef0e9b60a96d5464a29010ad",
+          "label": "Rich source: different approved facts/assets"
+        }
+      ]
+    },
+    {
+      "filename": "five-gardening-full-pages.jpg",
+      "sha256": "ff2c10fa50615253190440779d0f755514526e8966f2672d205d520080e97f8d",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "6-after-mobile.png",
+          "sha256": "0fe51488cb6ad7a66a231ae43dd9d8614966ba32bd3e58d01734e5a4b387043c",
+          "label": "Meadow & Moss"
+        },
+        {
+          "file": "7-after-mobile.png",
+          "sha256": "0e7f4ce4d30cb3439db7b6e8567248d39177946acfb3c9083207be605be223e6",
+          "label": "Groundwork Gardens"
+        },
+        {
+          "file": "8-after-mobile.png",
+          "sha256": "b16fde7aa0601ada764f3627ea77757e3a931505642b7810dd23379ca1d0a87e",
+          "label": "Quiet Plot (no photo)"
+        },
+        {
+          "file": "9-after-mobile.png",
+          "sha256": "7cb1d4df9c547e872f65de253259e416a34cf4f845b60f4589bcab1e1399909b",
+          "label": "Wild Corner"
+        },
+        {
+          "file": "10-after-mobile.png",
+          "sha256": "e44318ab22ba6d513668e8206eba264809e467f205224dac2c006f7fdc67991f",
+          "label": "Estate Garden Care"
+        }
+      ]
+    },
+    {
+      "filename": "benchmark-01-06.jpg",
+      "sha256": "06993b871328e9f2ad60fce41ad14b106d983ec9b4ac76c956a010f97a40acca",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "0-after-mobile.png",
+          "sha256": "e9b67d713b6c124119830212d429ecc84bcac6e171f6923edb673b6c09707e9e",
+          "label": "1: Copper Table"
+        },
+        {
+          "file": "1-after-mobile.png",
+          "sha256": "e4f80de3eb554b3e6bdfa17e0f8af710f96a23580473e7e6642a745dcfdf3ac5",
+          "label": "2: Small Batch Kitchen"
+        },
+        {
+          "file": "2-after-mobile.png",
+          "sha256": "6936c15237fd45f2582abb2f6fcc1432cba93ddd92d125d3fb60f770cb43be9d",
+          "label": "3: City Stem"
+        },
+        {
+          "file": "3-after-mobile.png",
+          "sha256": "0f438e4c1f0f38edb6ac0bde5556814e0d18ba140b51795868d7682713249e41",
+          "label": "4: Field & Hedge"
+        },
+        {
+          "file": "4-after-mobile.png",
+          "sha256": "43f27fe7568e207a930dff0918411d45ee03a9b5e1b863e4bdd885dbc43d5c41",
+          "label": "5: Northline Studio"
+        },
+        {
+          "file": "5-after-mobile.png",
+          "sha256": "4cfb5b035f02a96aeba5510bfb11c253ca39c779f6f6fcef73e87ce4e36ef04a",
+          "label": "6: Paper Current"
+        }
+      ]
+    },
+    {
+      "filename": "benchmark-07-12.jpg",
+      "sha256": "ae1acbf52c6b38de570ca30fed7a7ff81571e8c7874b5419ca9b31f470c1a650",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "6-after-mobile.png",
+          "sha256": "08d6b92a225f3748e252e8cb46ba0a6c01910b4232cbeb11ea474a9e62da8399",
+          "label": "7: Still House"
+        },
+        {
+          "file": "7-after-mobile.png",
+          "sha256": "5b664c703c71d439a63db9e9fec5ca93ab0a5571c458facd930578b044103536",
+          "label": "8: Open Balance"
+        },
+        {
+          "file": "8-after-mobile.png",
+          "sha256": "33a0d132e5c17c517a51fdd9d9178f9498177a7d63ce9614f9139706c4dd01c9",
+          "label": "9: Form & Shelf"
+        },
+        {
+          "file": "9-after-mobile.png",
+          "sha256": "b3c3626d27f8f8e8da7260438515a9d3c714b27b4e641789cfb805257c506b07",
+          "label": "10: Little Supply"
+        },
+        {
+          "file": "10-after-mobile.png",
+          "sha256": "fb434243060fc681a2311b93ceef68e6bfbbc268a95491ade25cc67729528af1",
+          "label": "11: Stonework Notes"
+        },
+        {
+          "file": "11-after-mobile.png",
+          "sha256": "9517c53a2cf41bb4778e75f03a03421a0d7866ed1f8abcd4c558d18b32f60742",
+          "label": "12: Clear Exterior"
+        }
+      ]
+    },
+    {
+      "filename": "benchmark-13-18.jpg",
+      "sha256": "18e5ca7a91143dc76e11ef4a7cd19e4b3fdd8b20848812297c1fcb31d6c38cc4",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "12-after-mobile.png",
+          "sha256": "4b48fc45a3fb5a2bc8ddaf1a1783dab87a5a8a82a1ab640ebe2b8d5fc8b3a7b1",
+          "label": "13: Ledger Lane"
+        },
+        {
+          "file": "13-after-mobile.png",
+          "sha256": "1ef3f854a37daaaeb7cb59c4e22afa0a0e24685473e96e052e4bb02022bd2fa7",
+          "label": "14: Plain View"
+        },
+        {
+          "file": "14-after-mobile.png",
+          "sha256": "7a7b57f383b5942a2ab343e5fbb44400eaa0463c485f6173f9826b843514926e",
+          "label": "15: Corner Room"
+        },
+        {
+          "file": "15-after-mobile.png",
+          "sha256": "1e66bf9d3a86343a65ffc71762726ef90aecbec2b6269df8ab798df1cf41b3f7",
+          "label": "16: Book & Birch"
+        },
+        {
+          "file": "16-after-mobile.png",
+          "sha256": "d83858c293a14504b4084287cf92d77f0d871eedac2d920dac41070228ccdb3a",
+          "label": "17: Slow Thread"
+        },
+        {
+          "file": "17-after-mobile.png",
+          "sha256": "ccebaa491ecb9b1f97beb8cfbd47335d3b717bf782d45306fdbb08afd8736445",
+          "label": "18: Clay Interval"
+        }
+      ]
+    },
+    {
+      "filename": "benchmark-19-24.jpg",
+      "sha256": "a82f2b7b15822e1020431029b66231cac31586e11afca61df8002c7fbf36f814",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "18-after-mobile.png",
+          "sha256": "eaec553eba478c00fab53b43a348c87529bffd14fc04c752c7b230f6e5771a6f",
+          "label": "19: Bright Window"
+        },
+        {
+          "file": "19-after-mobile.png",
+          "sha256": "928a2874a3b8bc43789cab4ea43f322703d9254f8421e9f82ca0b16ed3373f72",
+          "label": "20: Soft Measure"
+        },
+        {
+          "file": "20-after-mobile.png",
+          "sha256": "ecc272321678b58d867188361cebf08f2c8bb6eeeeeb2fe0e7f629dda6382cf6",
+          "label": "21: Shared Hours"
+        },
+        {
+          "file": "21-after-mobile.png",
+          "sha256": "0ab0521b18939300b10fa84b9efe30c3b13b72397416a83b6f352de73283ad39",
+          "label": "22: Daylight Counter"
+        },
+        {
+          "file": "22-after-mobile.png",
+          "sha256": "60d555d3da3fa9228701d2f8a02f20bc58313cf4c27c1b34d50fe61f7f2c9827",
+          "label": "23: First Page"
+        },
+        {
+          "file": "23-after-mobile.png",
+          "sha256": "8ab74dffb878872ec2d66965850f9109b787a5ca42769a8e8b332d2f7ead6db4",
+          "label": "24: Workroom"
+        }
+      ]
+    },
+    {
+      "filename": "three-rich-desktop.jpg",
+      "sha256": "b4d68755df8377b7e6bbb48fd529faec2b10eb5702ffd617ac8a7e0e99191a63",
+      "method": "Proportional contact sheet from genuine full-page browser PNGs; no synthetic imagery",
+      "sources": [
+        {
+          "file": "1-after-desktop.png",
+          "sha256": "350df44aa3ee2de96cdf97c12f5c0e7a895bffe06b360bb8a0111efc9f929b6c",
+          "label": "Ember: professional private preview"
+        },
+        {
+          "file": "3-after-desktop.png",
+          "sha256": "8b72d8fa466caca864487ea1a488698c95c0025f9f783455d805615e7de90486",
+          "label": "Clearleaf: professional private preview"
+        },
+        {
+          "file": "5-after-desktop.png",
+          "sha256": "37a5c4fcc1e95eb80d99a81f363e0f4fcaf1eae93cb5b94c079f19a9daf42881",
+          "label": "Quiet Light: professional private preview"
+        }
+      ]
+    }
+  ],
+  "controlled": "Original standard direction versus reviewed configuration through original finite planner, identical section data/facts/assets. Not CSS-only.",
+  "sourceRichness": "Sparse/rich comparisons intentionally change source facts and assets; not attributed solely to renderer.",
+  "benchmark": "Reviewed source-derived generic heading/action suggestions are included; not a CSS-only control.",
+  "goldStandardsApproved": 0
+}

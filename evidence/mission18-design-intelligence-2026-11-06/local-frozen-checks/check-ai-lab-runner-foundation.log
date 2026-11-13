@@ -1,0 +1,8 @@
+PASS new source proposal matches pure generator; approved original hashes remain unchanged
+PASS target scope and fresh new approval; no inherited execution permission
+PASS exact canonical scope and original native hook identity
+PASS runner transaction ownership and new fuses preserve internal fail-closed controls
+PASS derivatives remove only the exact outer fuse; both hashes independently verified
+PASS injected transaction controls/nontransactional commands denied; PLpgSQL bodies allowed
+PASS retaining rollback has no data destruction, history deletion or provider action
+{"passed":7,"failed":0,"hosted":false,"providerCalls":0}

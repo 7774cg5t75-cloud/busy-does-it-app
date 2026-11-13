@@ -1,0 +1,152 @@
+{
+  "version": "busy.first-sol.final-readiness.v1",
+  "status": "prepared-not-live-authorized",
+  "startingCommit": "0ab1bfbefe98135dfaa194d48ce6282596ff4c3f",
+  "functionalCommit": "cd0f54bc1e0b0bf63d060389c2600a9c310f01da",
+  "functionalTree": "d1d63c987f2be91ac5ede12744bec0092129fa6b",
+  "lab": {
+    "projectId": "sbvkrvksnruiclcvclbd",
+    "organisationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "installedCompatibilityMigration": "20261108082851",
+    "lastIndependentSourceRevision": 5,
+    "currentPolicyWasNotModified": true,
+    "policyEnabled": false,
+    "monthlyHardLimitGBP": 0
+  },
+  "candidate": {
+    "submittedFileCount": 116,
+    "runtimeFileCount": 114,
+    "externalRuntimeImports": 0,
+    "submittedDigest": "c597433dbfb56060972e1377fa6bebe95151a9d6f1fae035f910a36baeffaf71",
+    "runtimeDigest": "8c688005772f71eb6a81b35fae34a7bef5da1eeb8d59fa9ac1b1c0489e33f034",
+    "rendererFileCount": 43,
+    "rendererDigest": "4c55a4d33388e54fba7ea7bd0baa829dac23d83bde60b2676584ec27aaadf172",
+    "hardDisabled": true,
+    "hostedDeployment": false,
+    "activeAcceptanceApproved": false
+  },
+  "request": {
+    "model": "gpt-6.1-sol",
+    "pages": [
+      "home",
+      "services",
+      "contact"
+    ],
+    "inputLimit": 8000,
+    "totalOutputLimit": 12000,
+    "reasoning": "medium",
+    "allInCeilingGBP": 0.25,
+    "wireBytes": 15290,
+    "wireDigest": "34d7a83cb0a6056f256af60f7d639acfd09f895fbf286e86898654b42b0aeb33",
+    "schemaDigest": "c5958b3b5448a012123016f8e18e9425e368a14f4a75461fddb0e48e85e04545",
+    "countBodyBytes": 15225,
+    "countBodyDigest": "54a65c93cc1412a9d72e4e5557ed701ee4e04303124c78a4592bd602bf7581f9",
+    "actualCount": null,
+    "allInTariff": null,
+    "accountGrantVerified": false,
+    "outputFit": "Exploratory; cannot guarantee useful visible output within total reasoning/output cap",
+    "externalNativeScopeReviewRequired": true
+  },
+  "counting": {
+    "portImplemented": true,
+    "endpoint": "https://api.openai.com/v1/responses/input_tokens",
+    "officialFreeEvidence": "https://help.openai.com/en/articles/4936856-understanding-and-counting-tokens",
+    "providerApiRequests": 0,
+    "freeCountCostGBP": 0,
+    "protectedRuntimeBound": false,
+    "credentialsConfigured": false,
+    "separateExactInputAndRunApprovalRequired": true,
+    "inferenceFieldsOmitted": [
+      "max_output_tokens",
+      "service_tier",
+      "store"
+    ]
+  },
+  "financial": {
+    "stage": "sol-first",
+    "proposedPlatformAccountWebsiteLimitMicroGBP": 250000,
+    "concurrent": 1,
+    "expensiveAllowance": 0,
+    "astraAllocation": 0,
+    "sql": null,
+    "rollback": null,
+    "blockedBy": [
+      "actual account permission",
+      "actual complete compatible count",
+      "verified all-in GBP tariff"
+    ],
+    "separateExactConfigurationApprovalRequired": true
+  },
+  "tests": {
+    "authorityHttp": {
+      "passed": 18,
+      "failed": 0
+    },
+    "deploymentInventory": {
+      "passed": 23,
+      "failed": 0
+    },
+    "originalExecution": {
+      "passed": 55,
+      "failed": 0
+    },
+    "revisedExecution": {
+      "passed": 33,
+      "failed": 0
+    },
+    "countPort": {
+      "passed": 25,
+      "failed": 0
+    },
+    "quietLightFixture": {
+      "casesPassed": 18,
+      "assertionsPassed": 162,
+      "failed": 0
+    },
+    "budgetConfiguration": {
+      "passed": 50,
+      "failed": 0
+    },
+    "hostedSourcePreparation": {
+      "passed": 33,
+      "failed": 0
+    },
+    "smokeHandoffInIsolatedSourceFixture": {
+      "passed": 46,
+      "failed": 0,
+      "realJobOrHttp": false
+    },
+    "deno": {
+      "targetsPassed": 1,
+      "failed": 0,
+      "denyImport": true
+    },
+    "syntax": {
+      "filesPassed": 9,
+      "failed": 0
+    },
+    "securityByDesign": "passed",
+    "dependencySecurity": "passed",
+    "fullRegressionRerun": false,
+    "hostedDatabaseTestsRerun": false
+  },
+  "baseline": {
+    "unchanged": true,
+    "pdfSha256": "f90e3d66a5267443a8f438f7b54cc2a4f42c0067e61891b04bf9e49b38068914",
+    "newModelDesign": false,
+    "newVisualQualityClaim": false
+  },
+  "proposalsGBP": {
+    "sol": 0.25,
+    "astra": 1,
+    "combined": 3
+  },
+  "credentialsRead": 0,
+  "providerApiCalls": 0,
+  "hostedLabCallsThisMission": 0,
+  "hostedWrites": 0,
+  "spendingGBP": 0,
+  "websiteWrites": 0,
+  "publication": false
+}

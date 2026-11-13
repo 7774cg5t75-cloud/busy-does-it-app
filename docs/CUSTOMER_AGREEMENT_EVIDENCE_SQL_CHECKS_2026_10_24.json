@@ -1,0 +1,4366 @@
+{
+  "original": {
+    "scope": "Local synthetic PostgreSQL17; mock UID, not JWT/PostgREST",
+    "baselineExitCode": 0,
+    "results": [
+      {
+        "id": "reset-disposable",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "original-schema-fixture-and-loss-demonstration",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "candidate-writer-load",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "production-fuse-aborts",
+        "passed": true,
+        "exitCode": 3,
+        "expectedFailure": true
+      },
+      {
+        "id": "reviewed-disposable-fence-load",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "original-prepared-assertions",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "provisioning-role-rls-harness",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "private-exact-observed-function-load",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "original-invoker-bootstrap",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "existing-business-missing-row-not-recreated",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "privacy-gap-member-can-read-owner-text",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "member-write-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "cross-business-write-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "missing-identity-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "stale-revision-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "unsupported-operation-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "missing-target-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "wrong-expected-record-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "authenticated-direct-update-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "authenticated-full-insert-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "service_role-direct-update-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "service_role-full-insert-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "private-helper-not-callable",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "private-text-and-unknown-fields-preserved",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "newsletter-explicit-remove-preserves-rest",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "deletion-no-stale-resurrection",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "unsupported-private-version",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "duplicate-customer",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "privacy-readers-load",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "privacy-production-fuse-aborts",
+        "passed": true,
+        "exitCode": 3,
+        "expectedFailure": true
+      },
+      {
+        "id": "unreviewed-view-dependency-aborts-fence",
+        "passed": true,
+        "exitCode": 3,
+        "expectedFailure": true
+      },
+      {
+        "id": "remove-synthetic-unreviewed-view",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "privacy-disposable-fence-load",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "authenticated-raw-payload-select-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "service_role-raw-payload-select-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "owner-shared-business-allowlist",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "member-shared-business-allowlist",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "member-private-projection-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "legacy-returning-rpc-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "foreign-projection-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "unauthenticated-projection-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "owner-reply-no-unknown-nested-fields",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "first-hashed-text-save-preserves-all-other-fields",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "hash-source-mismatch-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "admin-has-no-implicit-private-access",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "role-revocation-shared-denial",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "private-owner-mismatch-denied",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "internal-owner-context-not-callable",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "admin-cannot-bypass-review-with-direct-mutation",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "admin-legitimate-shared-metadata-remains-readable",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "bootstrap-still-works-after-privacy-fence",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "concurrent-shared-read-waits-for-revocation",
+        "passed": true,
+        "exitCode": 3,
+        "expectedDenial": true,
+        "holderExitCode": 0,
+        "blockedUntilRelease": true
+      },
+      {
+        "id": "privacy-rollback-load",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "privacy-rollback-remains-closed",
+        "passed": true,
+        "exitCode": 0,
+        "expectedFailure": false
+      },
+      {
+        "id": "revision-projection-load",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "synthetic-forward-repair-after-baseline-rollback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-metadata-exact-allowlist",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "member-revision-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-owner-revision-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "missing-identity-revision-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "admin-revision-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "service-role-not-a-private-reader",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "raw-payload-still-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unknown-fields-never-in-metadata",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "committed-reviewed-operation-1",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "separate-connection-revision-and-target-1",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "committed-reviewed-operation-2",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "separate-connection-revision-and-target-2",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "stale-review-cannot-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "all-independent-fields-preserved",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "changed-enquiry-ineligible",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "committed-with-receipt-not-retained",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "observation-is-not-a-receipt",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "concurrent-mutation-metadata-lock",
+        "passed": true,
+        "exitCode": 0,
+        "holderExitCode": 0,
+        "expectedDenial": false,
+        "blockedUntilRelease": true
+      },
+      {
+        "id": "concurrent-revocation-metadata-lock",
+        "passed": true,
+        "exitCode": 3,
+        "holderExitCode": 0,
+        "expectedDenial": true,
+        "blockedUntilRelease": true
+      },
+      {
+        "id": "metadata-rollback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "rollback-metadata-closed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "rollback-raw-payload-closed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "restore-only-synthetic-owner-after-revocation-test",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "workspace-candidate-load",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "services-candidate-load",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-existing-workspace-metadata-only",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-first-time-bootstrap-empty-projection",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "existing-missing-snapshot-not-repaired",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "member-only-relational-identification",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "admin-only-relational-identification",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-workspace-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unauthenticated-workspace-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "service-cannot-use-user-workspace-endpoint",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "incompatible-schema-is-explicit",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unknown-top-level-not-projected",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "synthetic-alert-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "service-finite-owner-alert-projection",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "member-recipient-alert-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-recipient-alert-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "ordinary-owner-not-service-capability",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "service-aggregate-allowlist",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "ordinary-member-aggregate-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "duplicate-customer-alert-suppressed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-action-alert-suppressed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "booking-needs-explicit-confirmed-status",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "raw-get-remains-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "legacy-full-post-upsert-remains-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "legacy-patch-remains-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "service-reader-waits-for-owner-revocation",
+        "passed": true,
+        "exitCode": 3,
+        "holderExitCode": 0,
+        "expectedDenial": true
+      },
+      {
+        "id": "phase62-readonly-rollback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "rollback-service-capability-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "rollback-raw-data-still-fenced",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "restore-synthetic-owner",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "discovery-candidate-load",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-discovery-fixed-recognition-metadata",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "member-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-owner-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unauthenticated-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "admin-private-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "service-private-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "duplicate-customer-not-discovered",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "duplicate-enquiry-not-discovered",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unsupported-private-version-not-discovered",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "other-owner-private-reply-not-discovered",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-customer-not-discovered",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "changed-source-not-discovered",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "malformed-collection-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "same-ids-second-business-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "second-owner-sees-only-own-same-ids",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "same-ids-do-not-cross-business",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "empty-business-no-invented-records",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "bounded-page-stable-identity",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "concurrent-version-change-invalidates-old-review",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "stale-discovery-is-not-opening-authority",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fresh-discovery-observes-new-revision",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "explicit-removal-no-discovery-resurrection",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "no-unreviewed-initial-filing-endpoint",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "raw-read-still-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "discovery-waits-for-revocation",
+        "passed": true,
+        "exitCode": 3,
+        "holderExitCode": 0,
+        "expectedDenial": true
+      },
+      {
+        "id": "discovery-readonly-rollback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "rollback-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "rollback-raw-data-still-private",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "recovered-continuation-owner-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fresh-session-discovery-before-edit",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-recovered-edit-preserves-all-independent-fields",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "separate-connection-metadata-and-target-readback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "stale-first-review-cannot-repeat",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "second-recovered-edit-current-server-evidence",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "new-connection-rediscovers-second-wording",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-owner-same-target-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "changed-source-denies-old-hash-approval",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "explicit-removal-denies-stale-recovery",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "legacy-raw-read-still-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "legacy-full-payload-write-still-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-candidate-load-local-only",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-synthetic-pending-source",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "prepare-synthetic-first-filing-input",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-nonowner-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-admin-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-stale-revision-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-unsupported-stage-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-changed-source-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-missing-contact-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-duplicate-source-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-existing-customer-requires-original-matching",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-foreign-source-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-orphan-work-identity-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-invalid-owner-date-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-cannot-change-contact-preferences",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-owner-reviewed-commit",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-original-owned-fields-and-unknown-preservation",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-QuickCapture-parent-owned-field-parity",
+        "passed": true,
+        "exitCode": 0,
+        "sqlExitCode": 0
+      },
+      {
+        "id": "first-filing-no-blind-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-cannot-create-second-customer",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-private-reply-not-invented",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-fail-closed-rollback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-filing-rollback-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "remove-synthetic-review-input",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "recovery-rollback-retains-fences",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "rollback-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "rollback-raw-content-still-private",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase65-local-candidate-load",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase65-empty-original-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-manual-source-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "member-manual-source-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "anonymous-manual-source-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "admin-registration-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-manual-source-committed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "manual-registration-replay-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "manual-registration-second-source-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-pending-projection-minimal",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "member-pending-read-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-pending-read-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "pending-stale-revision-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "pending-duplicate-identity-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unsupported-pending-version-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "pending-review-original-first-filing",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "filed-source-not-pending",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-reply-projection-and-original-ISO-format",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-reply-member-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "nested-customer-information-not-disclosed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "catalogue-reference-first-creation-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-reply-admin-read-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-reply-revoked-owner-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "same-ids-foreign-business-first-review-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "first-reply-duplicate-customer-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unsupported-customer-version-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "future-customer-extension-fixture",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "future-extension-not-returned",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "owner-first-reply-commit",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "concurrent-first-creation-one-winner",
+        "passed": true,
+        "exitCode": 3,
+        "expectedDenial": true
+      },
+      {
+        "id": "original-JS-reference-record-constructor-and-resolver-parity",
+        "passed": true,
+        "exitCode": 0,
+        "sqlExitCode": 0
+      },
+      {
+        "id": "stale-creation-replay-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "creation-cannot-overwrite-existing-reply",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "new-session-discovers-first-reply",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "original-text-edit-after-creation",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unknown-independent-data-preserved",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "two-independent-targets-use-current-row-revisions",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "stale-creation-after-explicit-removal-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase65-raw-read-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase65-full-write-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase65-fail-closed-rollback",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase65-rollback-denies-new-rpc",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase65-rollback-retains-raw-fence",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase66-load-fused-local-candidate",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "restore-original-narrow-review-capabilities",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "supported-saved-reply-discovery",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "member-interrupted-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-interrupted-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unauthenticated-interrupted-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "admin-discovery-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "coowner-private-saved-reply-not-visible",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "same-ids-foreign-business-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "duplicate-source-excluded",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "duplicate-customer-excluded",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "foreign-source-excluded",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "changed-source-excluded",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "changed-contact-excluded",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "malformed-collection-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "unsupported-schema-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "cursor-malformed-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "empty-synthetic-account-for-interruption",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "empty-eligible-list-not-absence-proof",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "registration-committed-receipt-not-retained",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "new-connection-observes-pending-not-own-receipt",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "pending-coowner-hidden",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "pending-unknown-extensions-not-disclosed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "deleted-source-no-discovery-or-replay",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "coowner-valid-source-hash-is-not-filing-authority",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "filing-committed-receipt-not-retained",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "new-connection-observes-filed-without-reply",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "stale-pending-review-cannot-refile",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "filed-coowner-hidden",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "private-creation-committed-receipt-not-retained",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "new-connection-observes-supported-private-reply",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "fresh-narrow-readback-not-reconstructed-receipt",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "independent-unknown-work-preserved",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "bounded-stable-pagination",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "actual-revocation-committed-during-read",
+        "passed": true,
+        "exitCode": 3,
+        "holderExitCode": 0,
+        "expectedDenial": true
+      },
+      {
+        "id": "restore-synthetic-owner-only",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "raw-private-select-still-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "legacy-full-write-still-denied",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "private-helper-not-exposed",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase66-rollback-keeps-data",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase66-rollback-denies-discovery",
+        "passed": true,
+        "exitCode": 0
+      },
+      {
+        "id": "phase66-rollback-keeps-raw-fence",
+        "passed": true,
+        "exitCode": 0
+      }
+    ],
+    "summary": {
+      "passed": 262,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "hostedQueries": 0
+  },
+  "canonical": {
+    "candidateSha256": "acb57f81b454062018c89afb8fb8c2708c344d8944fa1857ff184acaf8bfc122",
+    "scope": "Actual disposable PostgreSQL17; fictional data and mock auth.uid, NOT hosted JWT/PostgREST",
+    "baselineReport": ".test-artifacts/agreement-evidence-original-pg-final.json",
+    "baselineSummary": {
+      "passed": 262,
+      "failed": 0,
+      "blocked": 0,
+      "unexecuted": 0
+    },
+    "results": [
+      {
+        "id": "fused-candidate-and-disposable-load",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "synthetic-original-customer-work-sources",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "narrow-source-review-no-unknown-disclosure",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "migrate-complete-first-work-original-snapshot-unchanged",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "commit-second-independent-engagement",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "independent-readback-private-extensions-excluded",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "member-one-record-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-one-record-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "other-owner-one-record-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "anonymous-rpc-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "empty-auth-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "coowner-list-empty-not-authority",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "admin-denied-live-role",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "authenticated-raw-business_work_engagements-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "service_role-raw-business_work_engagements-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "authenticated-raw-business_work_private_drafts-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "service_role-raw-business_work_private_drafts-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "authenticated-raw-busy_business_snapshots-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "service_role-raw-busy_business_snapshots-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "private-helper-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "duplicate-create-source-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "duplicate-migration-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "source-less-migration-denied-with-original-retained",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "immutable-engagement-id-even-privileged-update-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "independent-edits-preserve-other-row-unknowns-and-legacy",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "stale-repeated-edit-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "wrong-customer-engagement-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-business-same-id-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "legacy-work-cannot-change-after-migration-even-privileged",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "legacy-destructive-update-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "legacy-destructive-insert-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "legacy-destructive-upsert-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "engagement-private-wording-create-and-exact-read",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "coowner-private-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "member-private-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "private-stale-create-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "changed-engagement-retains-private-words-requires-review",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "keyset-pagination-27-records-no-lifetime-20-limit",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "real-concurrent-revocation-wins",
+        "status": "passed",
+        "calls": [
+          {
+            "holderExitCode": 0,
+            "exitCode": 3
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "two-engagement-writers-independent-locks",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "same-engagement-competing-cas-one-wins",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3,
+            "holderExitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "changed-source-denies-current-record-write",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "lost-ack-read-is-observation-not-own-receipt",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "authenticated-direct-update-business_work_engagements-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "service_role-direct-update-business_work_engagements-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "authenticated-direct-update-business_work_private_drafts-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "service_role-direct-update-business_work_private_drafts-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "service-role-rpc-not-granted",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "legacy-snapshot-delete-retains-canonical-records",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "caller-source-hash-not-authority",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "duplicate-customer-canonical-source-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "duplicate-enquiry-canonical-source-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "private-edit-preserves-unknown-extensions-without-disclosure",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "creation-operation-collision-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "null-snapshot-revision-cannot-bypass-review",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          },
+          {
+            "exitCode": 3
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "malformed-work-json-check-is-not-null-permissive",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "numeric-identity-cannot-impersonate-original-text-id",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "two-real-businesses-identical-customer-source-ids-isolated",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "unattributed-legacy-private-words-not-granted-by-membership",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "history-retains-corrected-removed-ambiguous-malformed-foreign-sources-readonly",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "coowner-historical-private-quote-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "member-historical-private-quote-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-historical-private-quote-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "revoked-owner-cannot-use-retained-history",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "missing-snapshot-retains-owned-history-without-repair",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "historical-observation-does-not-expose-private-draft",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "fresh-owner-wide-account-discovery-paginated-without-local-customer",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "member-account-discovery-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-account-discovery-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "anonymous-account-discovery-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "coowner-account-discovery-excludes-another-creators-records",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "admin-account-discovery-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "revoked-account-discovery-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "finite-original-current-context-comparison-no-contact-or-unknowns",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "corrected-source-comparison-does-not-authorise-rebase",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "removed-customer-comparison-does-not-recreate-customer",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "foreign-owner-source-comparison-suppresses-current-private-text",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "ambiguous-comparison-remains-readonly",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "malformed-comparison-remains-readonly",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "coowner-original-current-comparison-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "wrong-business-original-current-comparison-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "service-account-discovery-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "current-finite-edit-context-derived-from-live-source",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "edit-context-requires-exact-revision",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "stale-edit-context-revision-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "corrected-source-cannot-open-current-editor",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "missing-customer-cannot-open-current-editor",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-source-cannot-open-current-editor",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "member-edit-context-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "coowner-edit-context-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-edit-context-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "admin-edit-context-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "revoked-edit-context-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "anonymous-edit-context-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "work-notes-independent-absence",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "work-notes-create-preserves-followup-and-quote",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "work-notes-repeated-create-cas-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "work-notes-compatible-extensions-retained-not-disclosed",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "work-notes-own-revision-edit",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "work-notes-real-competing-cas-one-wins",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3,
+            "holderExitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "member-work-notes-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "coowner-work-notes-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-work-notes-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "anonymous-work-notes-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "revoked-work-notes-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "changed-source-work-notes-write-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "admin-work-notes-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-business-work-notes-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "work-notes-lost-ack-read-not-own-receipt",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "unknown-private-purpose-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "work-notes-do-not-leak-through-work-projection",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "agreement-fingerprint-binds-whole-work-without-disclosing-extensions",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "owner-report-review-server-derived-internal-terms",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "owner-report-exact-read-preserves-work-private-and-legacy",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "owner-report-duplicate-quote-version-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "owner-report-forged-terms-fingerprint-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "owner-report-stale-quote-version-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "member-owner-report-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "coowner-owner-report-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-owner-report-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "anonymous-owner-report-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "admin-owner-report-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "revoked-owner-report-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "foreign-business-owner-report-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "wrong-engagement-evidence-adoption-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "authenticated-raw-agreement-table-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "service_role-raw-agreement-table-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "owner-report-immutable-terms-update-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "verified-class-is-not-owner-report-upgrade",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "changed-quote-keeps-old-report-without-inheriting-agreement",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "agreement-keyset-summaries-no-owner-text",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "agreement-page-size-bounded",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "changed-source-owner-report-read-fails-closed",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "real-competing-owner-reports-one-immutable-winner",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3,
+            "holderExitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          }
+        ]
+      },
+      {
+        "id": "rollback-retains-records-readonly-fences-and-data",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "rollback-denies-fresh-edit-context-without-reopening-writes",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "rollback-preserves-work-notes-and-denies-write",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      },
+      {
+        "id": "rollback-owner-report-data-readable-creation-and-review-denied",
+        "status": "passed",
+        "calls": [
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 0
+          },
+          {
+            "exitCode": 3
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "passed": 138,
+      "failed": 0,
+      "unexecuted": 0,
+      "blocked": 0
+    },
+    "hostedDatabaseQueries": 0
+  },
+  "bridge": {
+    "scope": "Actual original JS components/adapter to actual disposable PG17 via inert transport bridge. Mock UID, not Supabase JWT/PostgREST/native UI.",
+    "passed": true,
+    "nodeExit": 0,
+    "result": {
+      "done": true,
+      "first": "ed0d6b64-484b-437b-a145-12264514e5e4",
+      "second": "49a90771-c8cc-4922-92ed-d8f58883eb6f",
+      "firstRevision": 3,
+      "sourceChangeDecision": true,
+      "unsavedWordsPreserved": true,
+      "returningAccountEdit": true,
+      "returningPrivateRevision": 4,
+      "workNotesRevision": 2,
+      "agreementProvenance": "owner_attested_unverified",
+      "privateWorkPreparation": true,
+      "ownerReportRecorded": true,
+      "ownerReportUnverified": true,
+      "ownerReportLostAck": "unknown",
+      "returningRootArraysUnchanged": true,
+      "secondBeforeLostAckRevision": 1,
+      "originalLegacyUnchanged": true,
+      "firstOwnReceipt": true,
+      "lostOutcome": "unknown",
+      "native": false,
+      "jwt": false
+    },
+    "calls": [
+      {
+        "route": "rpc/busy_work_source_review_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_enquiry_id": "client-agreementFinal-first",
+          "p_expected_snapshot_revision": 100
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_create_quote_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "work_mvnhepg4_2theiwgx0p",
+          "p_enquiry_id": "client-agreementFinal-first",
+          "p_expected_snapshot_revision": 100,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_customer_hash": "afa1a3f929733f84b2a05e8dc5072e8d0c44f4453f28bccc51842cb3d431c7e1",
+          "p_amount": "0",
+          "p_text": "  First canonical words\nkept  ",
+          "p_date": "2026-11-02"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_source_review_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_enquiry_id": "client-agreementFinal-second",
+          "p_expected_snapshot_revision": 100
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_create_quote_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "work_mvnhephb_vg9a1svo48j",
+          "p_enquiry_id": "client-agreementFinal-second",
+          "p_expected_snapshot_revision": 100,
+          "p_source_hash": "cfc8b54d48af02f30aedc470880031f8efe67366808d6e61ee62f4134b4f3279",
+          "p_customer_hash": "afa1a3f929733f84b2a05e8dc5072e8d0c44f4453f28bccc51842cb3d431c7e1",
+          "p_amount": "230.50",
+          "p_text": "  Second canonical words\nkept  ",
+          "p_date": "2026-11-03"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_list_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_after": null,
+          "p_limit": 20
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_list_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_after": "7c28b3d7-7786-4bbd-a536-17213ac91772",
+          "p_limit": 20
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_edit_quote_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "work_mvnhepjz_n7xzt5rht7",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_expected_revision": 1,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_amount": "17.00",
+          "p_text": "  Independent edit A\nexact  ",
+          "p_date": "2026-11-04"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_list_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_after": null,
+          "p_limit": 20
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_write_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "bridge-private-first",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_engagement_revision": 2,
+          "p_expected_draft_revision": 0,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_kind": "followup",
+          "p_text": "  Private engagement follow-up\nnot sent  "
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_write_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "private_mvnhepob_x9m5pev613",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_engagement_revision": 2,
+          "p_expected_draft_revision": 1,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_kind": "followup",
+          "p_text": "  Reviewed private UI words\nkept  "
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_write_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "private_mvnheppi_8ficxsfjni",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_engagement_revision": 2,
+          "p_expected_draft_revision": 2,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_kind": "followup",
+          "p_text": "  Second independent private edit  "
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_history_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_discover_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_after": null,
+          "p_limit": 20
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_discover_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_after": "7c28b3d7-7786-4bbd-a536-17213ac91772",
+          "p_limit": 20
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_edit_context_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_expected_revision": 2
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_edit_quote_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "work_mvnhepvo_k9mhkhcmscq",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_expected_revision": 2,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_amount": "0",
+          "p_text": "  Returning account quote\nexact  ",
+          "p_date": "2026-11-11"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_edit_context_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_expected_revision": 3
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_write_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "private_mvnhepxu_l4chvamgxk",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_engagement_revision": 3,
+          "p_expected_draft_revision": 3,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_kind": "followup",
+          "p_text": "  Returning private follow-up\nnot sent  "
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_write_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "private_mvnheq20_1uqydkrtkw",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_engagement_revision": 3,
+          "p_expected_draft_revision": 0,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_kind": "work_notes",
+          "p_text": "PRIVATE WORK PREPARATION \u2014 NOT A BOOKING\nEngagement: ed0d6b64-484b-437b-a145-12264514e5e4\nCustomer reference: repeat\nOriginal enquiry: client-agreementFinal-first\nQuote revision reviewed: 3\nPrepared amount: \u00a30\nPlanned quote date (not an appointment): 2026-11-11\n\nRecorded quote wording (unchanged):\n  Returning account quote\nexact  \n\nBefore progressing this engagement:\n\u2022 Review scope, exclusions and current requirements.\n\u2022 Obtain and verify customer agreement for this exact quote.\n\u2022 Review availability, date, time and diary conflicts.\n\u2022 Establish the original request/link/Work booking relationship.\n\nAcceptance, booking association, diary confirmation, delivery and payment have not been established by this preparation. Keep the same engagement ID; do not replace earlier Work."
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_write_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "private_mvnheq6l_v81jhz2pq4",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_engagement_revision": 3,
+          "p_expected_draft_revision": 1,
+          "p_source_hash": "8ef4370af5cc66332f782665aac059701ed0ef76a09aec6986f432160bd693f8",
+          "p_kind": "work_notes",
+          "p_text": "OWNER-RECORDED AGREEMENT ACCOUNT \u2014 NOT INDEPENDENTLY VERIFIED\nProvenance: owner-supplied verbal/offline account; no externally verified confidence.\nEngagement: ed0d6b64-484b-437b-a145-12264514e5e4\nCustomer reference: repeat\nOriginal enquiry: client-agreementFinal-first\nQuote version reviewed: 3\nPrepared amount: \u00a30\nQuote wording reviewed (not proof of agreement to these terms):\n  Returning account quote\nexact  \n\nExact owner account:\nFictional owner account of verbal discussion; no external receipt provided.\n\nNo external response, delivery receipt, signature or acceptance date has been verified by this note. The quote remains Prepared. Booking/request/ledger linkage and diary conflicts require separate authority."
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_review_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_expected_revision": 3
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_create_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "agreement_mvnheq98_uwt48bpg3o",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_expected_revision": 3,
+          "p_terms_hash": "beaba8e2e77a335c7a3d22308359b99fde0ef18b49f2f38273452981f42ace00",
+          "p_owner_account": "  Fictional owner reports offline discussion\nnot independent acceptance  "
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_evidence_id": "2836e3ca-5aec-4fbf-8360-7cc76c350b66"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_evidence_id": "2836e3ca-5aec-4fbf-8360-7cc76c350b66"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_list_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_after": null,
+          "p_limit": 20
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "work_notes"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_private_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_kind": "followup"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_edit_context_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4",
+          "p_expected_revision": 3
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_compare_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "ed0d6b64-484b-437b-a145-12264514e5e4"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_list_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_after": null,
+          "p_limit": 20
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_edit_context_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f",
+          "p_expected_revision": 1
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_edit_quote_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "bridge-lost-ack",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f",
+          "p_expected_revision": 1,
+          "p_source_hash": "cfc8b54d48af02f30aedc470880031f8efe67366808d6e61ee62f4134b4f3279",
+          "p_amount": "230.50",
+          "p_text": "Committed but own acknowledgement lost",
+          "p_date": "2026-11-05"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_review_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f",
+          "p_expected_revision": 2
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_create_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_operation_id": "owner-report-lost-ack",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f",
+          "p_expected_revision": 2,
+          "p_terms_hash": "b94bbc470161c8f9590c257b179ce49996a6ed9cb08248cec7685dceb249b071",
+          "p_owner_account": "Fictional owner report with lost acknowledgement"
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_list_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f",
+          "p_after": null,
+          "p_limit": 20
+        },
+        "exitCode": 0
+      },
+      {
+        "route": "rpc/busy_work_agreement_read_v1",
+        "body": {
+          "p_business_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "p_customer_id": "repeat",
+          "p_engagement_id": "49a90771-c8cc-4922-92ed-d8f58883eb6f",
+          "p_evidence_id": "b92dcc58-8c31-45f5-b60a-4b0003f1153e"
+        },
+        "exitCode": 0
+      }
+    ],
+    "legacyAndWholeSnapshotUnchanged": true,
+    "error": "",
+    "hostedDatabaseQueries": 0
+  }
+}

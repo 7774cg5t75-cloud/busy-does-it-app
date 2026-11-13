@@ -1,0 +1,137 @@
+{
+  "scenarios": [
+    {
+      "id": "0",
+      "business": "Ember Festival Kitchen — sparse truthful source",
+      "family": "story-spread",
+      "before": "0-before.html",
+      "after": "0-after.html",
+      "photoExpected": true,
+      "comparison": "same exact facts/assets/words/crops in each pair; reviewed narrative, explicit photo-service references, supported CTA and section order may change",
+      "sourceRichness": "sparse",
+      "photoBindings": []
+    },
+    {
+      "id": "1",
+      "business": "Ember Festival Kitchen — rich approved source",
+      "family": "story-spread",
+      "before": "1-before.html",
+      "after": "1-after.html",
+      "photoExpected": true,
+      "comparison": "same exact facts/assets/words/crops in each pair; reviewed narrative, explicit photo-service references, supported CTA and section order may change",
+      "sourceRichness": "rich",
+      "photoBindings": [
+        {
+          "serviceId": "service-0",
+          "storagePath": "approved/shared-table.jpg",
+          "title": "Festival plates",
+          "uri": "https://assets.example.invalid/shared-table.jpg"
+        },
+        {
+          "serviceId": "service-2",
+          "storagePath": "approved/coffee.png",
+          "title": "Your catering plan",
+          "uri": "https://assets.example.invalid/coffee.png"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "business": "Clearleaf Gardens — sparse truthful source",
+      "family": "service-led",
+      "before": "2-before.html",
+      "after": "2-after.html",
+      "photoExpected": true,
+      "comparison": "same exact facts/assets/words/crops in each pair; reviewed narrative, explicit photo-service references, supported CTA and section order may change",
+      "sourceRichness": "sparse",
+      "photoBindings": []
+    },
+    {
+      "id": "3",
+      "business": "Clearleaf Gardens — rich approved source",
+      "family": "service-led",
+      "before": "3-before.html",
+      "after": "3-after.html",
+      "photoExpected": true,
+      "comparison": "same exact facts/assets/words/crops in each pair; reviewed narrative, explicit photo-service references, supported CTA and section order may change",
+      "sourceRichness": "rich",
+      "photoBindings": [
+        {
+          "serviceId": "service-1",
+          "storagePath": "approved/garden.jpg",
+          "title": "Planting with the seasons",
+          "uri": "https://assets.example.invalid/garden.jpg"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "business": "Quiet Light Studio — sparse truthful source",
+      "family": "typography-first",
+      "before": "4-before.html",
+      "after": "4-after.html",
+      "photoExpected": false,
+      "comparison": "same exact facts/assets/words/crops in each pair; reviewed narrative, explicit photo-service references, supported CTA and section order may change",
+      "sourceRichness": "sparse",
+      "photoBindings": []
+    },
+    {
+      "id": "5",
+      "business": "Quiet Light Studio — rich approved source",
+      "family": "typography-first",
+      "before": "5-before.html",
+      "after": "5-after.html",
+      "photoExpected": false,
+      "comparison": "same exact facts/assets/words/crops in each pair; reviewed narrative, explicit photo-service references, supported CTA and section order may change",
+      "sourceRichness": "rich",
+      "photoBindings": []
+    },
+    {
+      "id": "6",
+      "business": "Meadow & Moss",
+      "family": "asymmetric-split",
+      "before": "6-before.html",
+      "after": "6-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original sparse same-industry study"
+    },
+    {
+      "id": "7",
+      "business": "Groundwork Gardens",
+      "family": "service-led",
+      "before": "7-before.html",
+      "after": "7-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original sparse same-industry study"
+    },
+    {
+      "id": "8",
+      "business": "Quiet Plot",
+      "family": "typography-first",
+      "before": "8-before.html",
+      "after": "8-after.html",
+      "photoExpected": false,
+      "sourceRichness": "original sparse same-industry study"
+    },
+    {
+      "id": "9",
+      "business": "Wild Corner",
+      "family": "editorial-collage",
+      "before": "9-before.html",
+      "after": "9-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original sparse same-industry study"
+    },
+    {
+      "id": "10",
+      "business": "Estate Garden Care",
+      "family": "cinematic-full-bleed",
+      "before": "10-before.html",
+      "after": "10-after.html",
+      "photoExpected": true,
+      "sourceRichness": "original sparse same-industry study"
+    }
+  ],
+  "synthetic": true,
+  "publicActivation": false
+}

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {createRequire} from "node:module";
 import {enabledAppKeys,proposeAppSectionMove,orderedAppModules}
  from "../src/core/appSectionOrder.mjs";
 import {appRuntimeScreenSchema} from "../src/core/appRuntimeScreenSchema.mjs";
@@ -79,18 +80,36 @@ const builder=appScreen.slice(appScreen.indexOf("function MiniAppBuilder({ s })"
 assert.ok(!marketplace.includes("pendingMove")&&!marketplace.includes("showAppVoice"));
 for(const token of ["<WebsiteSelectedVoice key=", 'editorKind="app"',
  "transcribeSelectedAppAudio?.(uri,scope)",
- "movePrivateAppSection?.({","<MiniAppSurface config={proposal.nextConfig}/>",
+ "movePrivateAppSection?.({",
  "Keep new order in PRIVATE app"])
  assert.ok(builder.includes(token),"App builder "+token);
+// The old literal JSX assertion predates the original comparison extraction.
+// Execute that comparison and original renderer instead of matching spelling.
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
+const runtime=createRuntime(),{AppStudioComparison}=runtime.load('src/screens/appStudioComparison.js'),{MiniAppSurface}=runtime.load('src/screens/miniApps.js');
+const seen=[],comparisonProps={original:config,proposed:down.nextConfig,renderSurface:value=>{seen.push(value);return {type:MiniAppSurface,props:{config:value}};}};
+const walk=node=>Array.isArray(node)?node.flatMap(walk):node&&typeof node==='object'?[node,...walk(node.props?.children)]:[];
+let comparisonTree=runtime.render(AppStudioComparison,comparisonProps);assert.equal(seen.at(-1),down.nextConfig);
+let rendered=walk(comparisonTree).find(node=>node.type===MiniAppSurface);assert.ok(rendered);assert.match(JSON.stringify(runtime.render(MiniAppSurface,rendered.props)),/Owner written services/);
+walk(comparisonTree).find(node=>node.props?.label==='Show original design').props.onPress();comparisonTree=runtime.render(AppStudioComparison,comparisonProps);assert.equal(seen.at(-1),config);
 assert.ok(read("src/screens/websiteSelectedVoice.js").includes('const forApp=editorKind==="app"'));
 const controller=read("src/app/AppController.js");
 for(const token of ['form.append("mode","app-selection-transcript-v1")',
  'miniAppVoiceScopeRef.current','data.changesApplied!==false',
- 'miniAppsRequest("move_section"','Number(data.app.draft_revision)!==Number(expectedRevision)+1'])
+ 'Number(data.app.draft_revision)!==Number(expectedRevision)+1'])
  assert.ok(controller.includes(token),"App controller "+token);
+// Execute the original move adapter through its current shared mutation gate.
+const ast=createRequire(import.meta.url)('@babel/parser').parse(controller,{sourceType:'module',plugins:['jsx']});let moveNode;
+function visit(node){if(!node||typeof node!=='object')return;if(node.type==='VariableDeclarator'&&node.id?.name==='movePrivateAppSection'){assert.equal(moveNode,undefined);moveNode=node.init;}for(const value of Object.values(node))if(Array.isArray(value))value.forEach(visit);else if(value&&typeof value==='object')visit(value);}
+visit(ast);assert.ok(moveNode);let mutationCalls=0,applied=0;const notices=[],view={app:{id:'fixture-app',draft_revision:4}};
+let receipt={ok:true,privateOnly:true,neverPublishes:true,movedModule:'services',app:{id:'fixture-app',draft_revision:5},status:{}};
+const moveAdapter=Function('miniAppsView','setMiniAppsError','setMiniAppsAction','mutateCurrentAppDraft','applyMiniAppsStatus','setMiniAppsNotice','return ('+controller.slice(moveNode.start,moveNode.end)+');')(view,()=>{},()=>{},async(action,payload)=>{assert.equal(action,'move_section');assert.equal(payload.expectedRevision,4);mutationCalls++;return receipt;},()=>applied++,message=>notices.push(message));
+assert.equal(await moveAdapter({moduleKey:'services',direction:'down',appId:'fixture-app',expectedRevision:3}),false);assert.equal(mutationCalls,0);
+assert.equal(await moveAdapter({moduleKey:'services',direction:'down',appId:'fixture-app',expectedRevision:4}),true);assert.equal(applied,1);
+receipt={...receipt,app:{id:'fixture-app',draft_revision:4}};assert.equal(await moveAdapter({moduleKey:'services',direction:'down',appId:'fixture-app',expectedRevision:4}),false);assert.equal(applied,1);
 const server=read("supabase/functions/busy-mini-apps/index.ts");
 for(const token of ['if (action === "move_section")',
- 'await movePrivateAppModule(resolvedBusinessId,body)',
+ 'await movePrivateAppModule(resolvedBusinessId,body,SUPABASE_URL==="https://pnjdlogwegnqbsfpcofw.supabase.co"?user.id:undefined)',
  '.eq("draft_revision",expected).select("*").maybeSingle()',
  'neverPublishes:true','"move_section"'])
  assert.ok(server.includes(token),"Server move permission "+token);

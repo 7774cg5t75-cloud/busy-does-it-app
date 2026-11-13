@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-11-06T22:13:51Z",
+  "reviewerRole": "Independent delegated local artifact review; root owns all hosted checks/execution",
+  "source": {
+    "reportCommit": "088cde2634df0b7fee1e2566b06296524eb38766",
+    "reportTree": "e65483fc015a55a00a8ecfb5230bb0dea8ce72a4",
+    "functionalCommit": "21121ee462b27a77b30089ba69e2adcb28d15182",
+    "functionalTree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+    "branch": "codex/ai-lab-v2-delivery"
+  },
+  "target": {
+    "projectRef": "sbvkrvksnruiclcvclbd",
+    "organizationId": "wrjfgasxtlznzfzmfrif",
+    "region": "eu-west-1",
+    "plan": "free",
+    "postgresMajor": 17,
+    "verification": "Manifest binding only. Fresh hosted identity/state verification is separately performed by root."
+  },
+  "artifacts": {
+    "runnerFusedInstallation": {
+      "path": "docs/sql-proposals/ai-lab-runner-foundation/install.sql",
+      "sha256": "b825989b37e2fef0f874ccdb03405a6650f8dc6ddfe27f94086952cc1cec225d"
+    },
+    "runnerFusedRetainingRollback": {
+      "path": "docs/sql-proposals/ai-lab-runner-foundation/rollback-retain.sql",
+      "sha256": "409b93dd82ccb587f5b6ea813bcc952589fe0255d12e13df030ec531fdc959d4"
+    },
+    "unchangedEarlierInstallation": {
+      "path": "docs/sql-proposals/ai-lab-foundation/install.sql",
+      "sha256": "3ebf79cdcc5614d7be3573e0ecad68ae93ec8e5c3bf751fa2c0c6cbac5a9030b"
+    },
+    "unchangedEarlierRetainingRollback": {
+      "path": "docs/sql-proposals/ai-lab-foundation/rollback-retain.sql",
+      "sha256": "b5a43ecac26215bde42e5d537423d98e605cadca2dc784661b8bcc2414f7a079"
+    }
+  },
+  "expectedExecutionDerivativeSha256": "231b7eecdab788f3829d93c4f1995ce111a6b2b4a953644bdc6d0f785b6a5987",
+  "expectedRetainingRollbackDerivativeSha256": "54dc2f25136b3f0f930ec685582e876d3367822511d865967245379d167ebea5",
+  "scope": {
+    "canonicalPublicTables": 28,
+    "privateAiTables": 6,
+    "originalPublicFunctions": 69,
+    "serviceOnlyAiFunctions": 5,
+    "nativeHookDefinitionSha256": "b21d88816c445d14cef5032c3cd4abaebc1db2001fcb3435022ab6b496182ca4"
+  },
+  "freshLocalChecks": [
+    {
+      "command": "node scripts/check-ai-lab-runner-foundation.mjs",
+      "passed": 7,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-ai-lab-foundation.mjs",
+      "passed": 2,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "sha256sum four pinned installation/retaining-rollback sources",
+      "result": "All four hashes match the unchanged approved proposal"
+    }
+  ],
+  "innerControlsConfirmed": {
+    "lockTimeout": "5s",
+    "statementTimeout": "120s",
+    "oneExactOuterInstallationFuse": true,
+    "runnerOwnsTransaction": true,
+    "noTopLevelAuthoredTransactionControls": true,
+    "freshOnlyGuardsPreserved": true,
+    "nativeHookDefinitionAndEventPreserved": true,
+    "nativeHookDirectExecuteRestrictionOnly": true,
+    "defaultOffPolicyAndZeroBudget": true,
+    "retainingRollbackSeparatelyFusedNoDestructiveCleanup": true,
+    "finishContextReceiptReadbackRetainedOnRetainingRollback": true
+  },
+  "managedRunnerReview": {
+    "selected": "Supabase managed apply_migration via POST /v1/projects/{ref}/database/migrations",
+    "migrationName": "mission18_ai_lab_foundation",
+    "requiresWholeMigrationAndHistoryOneTransaction": true,
+    "noAutomaticRetry": true,
+    "backendImplementationPublic": false,
+    "sourceEvidence": [
+      {
+        "url": "https://supabase.com/kb/troubleshooting/partial-migrations-and-schema-inconsistencies-from-embedded-transactions-13ae82",
+        "reviewed": "2026-11-06",
+        "supports": "Remove authored BEGIN/COMMIT so built-in migration transaction remains authoritative"
+      },
+      {
+        "url": "https://supabase.com/docs/guides/integrations/supabase-for-platforms#make-database-changes",
+        "reviewed": "2026-11-06",
+        "supports": "Managed migrations create native migration history; failure rolls back changes"
+      },
+      {
+        "url": "https://github.com/supabase/mcp/blob/7e5037bd31d765c67f657d536e28c41f32953072/packages/mcp-server-supabase/src/platform/api-platform.ts#L259",
+        "supports": "MCP forwards the whole query/name to the project-specific managed migration endpoint; acknowledgement is not independent readback"
+      },
+      {
+        "url": "https://github.com/supabase/cli/blob/4cc97fa9fdb66a1ab91984e81333c047ae889549/apps/cli/src/command-internal/migration-apply.ts#L494",
+        "supports": "Public CLI corroboration: compatible statements and native history insert share one batch; not evidence of the private managed backend"
+      },
+      {
+        "url": "https://github.com/supabase/cli/blob/4cc97fa9fdb66a1ab91984e81333c047ae889549/apps/cli/src/command-internal/db-connection.sql-pg.layer.ts#L256",
+        "supports": "Public CLI batch sends one extended-query Sync after all statements; local rehearsal tests transaction/history semantics independently"
+      }
+    ],
+    "freshPublicDocumentFetch": "Environment blocked: urllib read-only requests to the official Supabase KB and platform guide returned Operation not permitted. Root must independently retrieve and review current official documentation before execution.",
+    "limits": "Manifest/pinned-source review and local static checks do not prove current private hosted implementation, current hosted readiness or installation success.",
+    "freshOfficialDocumentReview": {
+      "retrievedBy": "Root via authorised read-only web tools; delegated shell fetch separately environment-blocked",
+      "observedDateUtc": "2026-11-06",
+      "managedMigrations": {
+        "url": "https://supabase.com/docs/guides/integrations/supabase-for-platforms#make-database-changes",
+        "rootObservedLines": "603-637",
+        "rootObservedUpdate": "October 8",
+        "rootObservedContract": "POST /v1/projects/{ref}/database/migrations records native supabase_migrations history automatically and rolls back when the schema migration fails."
+      },
+      "embeddedTransactions": {
+        "url": "https://supabase.com/kb/troubleshooting/partial-migrations-and-schema-inconsistencies-from-embedded-transactions-13ae82",
+        "rootObservedLines": "36-43",
+        "rootObservedUpdate": "November 4",
+        "rootObservedContract": "The migration runner has a built-in transaction wrapper. Authored BEGIN/COMMIT can break atomicity and should be removed."
+      },
+      "currentToolProjection": "Root inspected current apply_migration signature: one entire query plus migration name, exact project and Lab connection; no splitting.",
+      "independentArtifactAssessment": "The unchanged runner-compatible SQL contains no authored top-level transaction controls and therefore matches these documented conditions. The native-history bootstrap boundary remains separately inspectable. No contradiction with the documented whole-migration/history contract was identified.",
+      "notProven": "Private backend implementation, actual hosted execution success and full post-install state still require the root-owned execution acknowledgement and independent readbacks."
+    }
+  },
+  "requiredRootPreconditions": [
+    "Fresh exact Lab identity/org/Free/region/health/PG17 readback",
+    "Read-only clean application/Auth/migration/Edge and native hook/event/default-ACL preflight",
+    "Current documented whole migration plus history transaction guarantee and whole-query runner path",
+    "Exact approved derivative hash after in-memory outer-fuse-only removal, never written to repository",
+    "One dispatch of the entire derivative only; no automatic replay",
+    "Independent exact native history receipt/stored statements plus full catalogue/owner/ACL/RLS/FORCE/default-off-zero post-readback"
+  ],
+  "failedOrUncertainOutcome": "Read-only inspect; never retry, repair, roll back or clean up automatically. Retaining rollback requires separate approval.",
+  "authority": "Owner approval A as relayed by root is installation only and conditional on all checks. No B/C/D, Auth fixtures, Edge deployment, provider or rollback authority.",
+  "performedByThisReviewer": {
+    "hostedReads": 0,
+    "hostedWrites": 0,
+    "installationDispatches": 0,
+    "retainingRollbackExecutions": 0,
+    "providerCalls": 0,
+    "fusedSqlFileChanges": 0,
+    "unfusedArtifactFilesWritten": 0,
+    "spending": 0
+  },
+  "decision": "Local artifact review passed; root-retrieved current official runner contract is consistent with the reviewed no-authored-transaction adaptation. Fresh full hosted preconditions, single execution decision and independent post-install verification remain root-owned and are not asserted by this record."
+}

@@ -1,0 +1,113 @@
+{
+  "source": {
+    "commit": "21121ee462b27a77b30089ba69e2adcb28d15182",
+    "tree": "333730364aa97026a7b897c8ccf9e626432d3c2b",
+    "workingTreeChanged": false
+  },
+  "comparisons": [
+    {
+      "filename": "home-iphone-comparison.jpg",
+      "sha256": "31dabf6a4edb09b8b6aa36c67bc8f8725694e506d9c041e9ae6f1e94d6b7c16e",
+      "sources": [
+        {
+          "jpeg": "review-candidate-01-home-mobile.jpg",
+          "jpegSha256": "e5382d8e3d9243bde7f3888c0ff6ea8cffa3375a2a6205f98df64e6104a3307a",
+          "originalPng": "candidate-01-home-mobile.png",
+          "originalPngSha256": "fbf20baa53fb6a142b2ede9daaefbbea40c1661f78f19e5b4f10ade8ea4d269e",
+          "crop": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "jpeg": "review-candidate-02-home-mobile.jpg",
+          "jpegSha256": "f93d7af04fc0d44f1357534dddf53271837c74bec90cff6e5515fa8eb811ebb8",
+          "originalPng": "candidate-02-home-mobile.png",
+          "originalPngSha256": "d10074254a3780c069150a358f8804caba0a5f60172fb8daccc5ec17d16c0c10",
+          "crop": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ],
+      "method": "Vertically stacked unscaled390px first-screen crops of independently verified actual full-page JPEG receipts; evidence labels only. Not temporal before/after and not a real model comparison."
+    },
+    {
+      "filename": "services-iphone-comparison.jpg",
+      "sha256": "2f193d9a6639904da06cbe3727663dab24958d360752df21d6ad333c5762b7c2",
+      "sources": [
+        {
+          "jpeg": "review-candidate-01-services-mobile.jpg",
+          "jpegSha256": "fe5dab3ba15f42dad751ca88bd1be2d16eba5939a18d9ad414b5ab98449e3d59",
+          "originalPng": "candidate-01-services-mobile.png",
+          "originalPngSha256": "d41e16907d234e631515f91f49b4067ccf2d3fee17211ed35790236465b2b679",
+          "crop": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "jpeg": "review-candidate-02-services-mobile.jpg",
+          "jpegSha256": "cc8fe3fb4be1d15cd4baaf4b37cd42b8b3414e9aaa666ac503cc2442b8f61244",
+          "originalPng": "candidate-02-services-mobile.png",
+          "originalPngSha256": "f05389c1b1e6f06ba2c3d8bb5948950e3dc553feb3a7f73986566ede8514ef2e",
+          "crop": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ],
+      "method": "Vertically stacked unscaled390px first-screen crops of independently verified actual full-page JPEG receipts; evidence labels only. Not temporal before/after and not a real model comparison."
+    },
+    {
+      "filename": "contact-iphone-comparison.jpg",
+      "sha256": "1867c49c6ab47e1bbdc6ce27998a44e1f43d41e5e4bbab129cac21c9c574b78c",
+      "sources": [
+        {
+          "jpeg": "review-candidate-01-contact-mobile.jpg",
+          "jpegSha256": "b7d706e2bdbbcc9f6a3f904d0e8ba25a7178277e7730ad4a0801cf137278294a",
+          "originalPng": "candidate-01-contact-mobile.png",
+          "originalPngSha256": "ce41c7c07b9b3567b26f05dcd0d99ec999f0e55ac58532105901c5d19c85f7b1",
+          "crop": [
+            0,
+            0,
+            390,
+            844
+          ]
+        },
+        {
+          "jpeg": "review-candidate-02-contact-mobile.jpg",
+          "jpegSha256": "e045961ce399caa402491b9a322663b76dfdfc87a9c7396c14e37a452a853b30",
+          "originalPng": "candidate-02-contact-mobile.png",
+          "originalPngSha256": "5f14b76b3f5a86db3a216c585a44345c505275638f1eab3db4e1cbfb1c77cbb9",
+          "crop": [
+            0,
+            0,
+            390,
+            844
+          ]
+        }
+      ],
+      "method": "Vertically stacked unscaled390px first-screen crops of independently verified actual full-page JPEG receipts; evidence labels only. Not temporal before/after and not a real model comparison."
+    }
+  ],
+  "genuineModelResult": false,
+  "initialSource": {
+    "commit": "4cf9bbf25fa6c739e60f0d659ee262f5ee182427",
+    "tree": "10d6eedab4412fe1b97626f58adeeb85436d41cc",
+    "workingTreeChanged": false
+  },
+  "finalPixelParity": {
+    "checked": 12,
+    "different": 0,
+    "bothOriginalPngAndJpegHashesMatch": true
+  }
+}

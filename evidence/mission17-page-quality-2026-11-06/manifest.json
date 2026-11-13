@@ -1,0 +1,466 @@
+{
+  "mission": 17,
+  "date": "2026-11-06",
+  "startingDevelopment": {
+    "commit": "a75ad932ea69807e21e9d0d41fe71bc1e3e1f66d",
+    "tree": "c52faffe2f1381b2f8fba863f0e3b2ec89c23a64"
+  },
+  "controlledMission16Baseline": {
+    "commit": "1f7feadb3bccbf87084da1813bea8655641ee616",
+    "tree": "8b70639b28c34e0a1510c1c3c3ede7fab97eab41"
+  },
+  "functional": {
+    "commit": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+    "tree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+    "workingTreeChanged": false
+  },
+  "master": {
+    "latestOwnerDeclared": "V22.85",
+    "genuineV2285Accessible": false,
+    "contentsInvented": false,
+    "latestByteVerified": "V22.84",
+    "sha256": "1b09e3eac692a859479adafe776508bb998d49e94c656b76c0082c8490521da2",
+    "authority": "Explicit Mission17 instructions plus verified inherited requirements; V22.85 reconciliation outstanding. Private originals/extracts remain outside Git."
+  },
+  "approvedSourceFixture": {
+    "path": "scripts/lib/mission16-site-fixtures.mjs",
+    "sha256": "ab8f48985f3312a15de929882db6706cab48c5e81b41e7dceef1ae1808f17cbc",
+    "sameBeforeAfter": true,
+    "manualInputs": "Fictional prose, services, owner style preferences and licensed illustration choices were supplied explicitly; no live model generated these inputs.",
+    "actualImplementation": "Original buildWebsiteDraft -> finite whole-site planner -> original page editor -> original renderer; source-preserving UI and real disposable original Studio authorities tested separately."
+  },
+  "comparison": "Same approved facts/assets/preferences before/after. Old original1f7 planner+renderer versus current original planner+renderer; page model/structure may change. Not a CSS-only visual attribution. Rich/sparse input differences remain separately labelled.",
+  "assetProvenanceSources": [
+    "scripts/fixtures/website-art-direction/assets.json",
+    "scripts/fixtures/guided-websites/assets.json"
+  ],
+  "mediaUse": "Pinned licensed illustrations only. Not photographs of these fictional businesses' premises, products, previous jobs or customer results. No private/customer media.",
+  "sites": [
+    {
+      "id": "moor-meadow-rich",
+      "name": "Moor & Meadow",
+      "pages": 10,
+      "classification": "Professional private preview"
+    },
+    {
+      "id": "ember-rich",
+      "name": "Ember Festival Kitchen",
+      "pages": 9,
+      "classification": "Needs further design improvement"
+    },
+    {
+      "id": "quiet-light-rich",
+      "name": "Quiet Light Studio",
+      "pages": 7,
+      "classification": "Professional private preview"
+    },
+    {
+      "id": "moor-meadow-sparse",
+      "pages": 3,
+      "classification": "Needs further design improvement",
+      "limitation": "A separate Services page repeats one service name without descriptive facts; useful source-aware page necessity remains unfinished."
+    },
+    {
+      "id": "ember-sparse",
+      "pages": 3,
+      "classification": "Needs further design improvement",
+      "limitation": "A separate Services page repeats one service name without descriptive facts; useful source-aware page necessity remains unfinished."
+    },
+    {
+      "id": "quiet-light-sparse",
+      "pages": 3,
+      "classification": "Needs further design improvement",
+      "limitation": "A separate Services page repeats one service name without descriptive facts; useful source-aware page necessity remains unfinished."
+    }
+  ],
+  "browserEvidence": {
+    "source": {
+      "commit": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "tree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+      "workingTreeChanged": false
+    },
+    "browser": "145.0.7632.6",
+    "reviewPack": {
+      "index": "iphone-review-pack/index.html",
+      "zip": "iphone-review-pack.zip",
+      "zipBytes": 5816296,
+      "zipSha256": "d34e52064b910aba5d65708f89b125acd6e6c71543cdddedd5dbd4e0f3bbb73e",
+      "files": 83,
+      "imageCount": 64,
+      "comparisonCount": 16,
+      "source": {
+        "commit": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+        "tree": "4edd58df779de92c383c69aa1c101ea2d55c0bf2",
+        "workingTreeDirty": false,
+        "before": "1f7feadb3bccbf87084da1813bea8655641ee616"
+      },
+      "browser": "145.0.7632.6",
+      "professionalAcceptance": false
+    },
+    "counterexampleCoverage": {
+      "bodyColumnCounterexample": true,
+      "bodyColumnControl": {
+        "site": "moor-meadow-rich",
+        "page": "page-seasonal-planting",
+        "type": "service-body-column-counterexample",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "negativeDetected": true,
+        "negativeWidths": [
+          279.140625,
+          279.140625
+        ],
+        "restoredWidths": [
+          516.109375,
+          516.109375
+        ]
+      },
+      "clippingControls": {
+        "runs": 1,
+        "visibleOverflowPass": 1,
+        "concealedCasesDetected": 5
+      },
+      "nativeMenuControls": {
+        "runs": 1,
+        "states": [
+          {
+            "closed": 0,
+            "keyboardOpen": 1,
+            "closedAgain": 0
+          }
+        ]
+      }
+    },
+    "serviceBodyEvidence": [
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-seasonal-planting",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-landscape-planning",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-borders-and-beds",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "moor-meadow-rich",
+        "page": "page-a-garden-consultation",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "ember-rich",
+        "page": "page-a-buffet-to-share",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "ember-rich",
+        "page": "page-your-catering-plan",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 781.69,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-brand-direction",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-website-content",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      },
+      {
+        "site": "quiet-light-rich",
+        "page": "page-creative-review",
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "availableCopyWidth": 742.25,
+        "columns": [
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          },
+          {
+            "width": 516.11,
+            "minimumWidth": 480,
+            "parentWidth": 516.11,
+            "leftOffset": 0
+          }
+        ],
+        "methodRails": [
+          {
+            "sameRow": true,
+            "gap": 70
+          }
+        ]
+      }
+    ],
+    "pages": 35,
+    "fullPageScreenshots": 310,
+    "actualNavigationChecks": 222,
+    "afterFailures": [],
+    "baselineFindings": 0,
+    "viewports": [
+      "mobile",
+      "desktop",
+      "tablet",
+      "narrow",
+      "retina"
+    ],
+    "maximumImageBodyBytes": 1251334,
+    "captureWallMs": 200107,
+    "nodeCpuMicroseconds": {
+      "user": 25078860,
+      "system": 3113730
+    },
+    "nodeMaxRssKiB": 451352,
+    "pixelReceiptBytes": 1812882,
+    "pixelReceiptCount": 41,
+    "professionalAcceptance": false,
+    "providerCalls": 0
+  },
+  "artifacts": [
+    {
+      "id": 13519215572,
+      "name": "mission17-website-quality-1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "bytes": 97674122,
+      "digest": "sha256:5a432eb2681dde2ee20a642201049da50934fcc47ef3240f86e0b0406221147d",
+      "expiresAt": "2026-11-13T15:47:16Z",
+      "sourceSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617705/artifacts/13519215572"
+    },
+    {
+      "id": 13518730812,
+      "name": "mission17-iphone-review-1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "bytes": 5029145,
+      "digest": "sha256:f89196302b536ca004a9e64502b154f6b4210bed6fb6cae6fba7277a9d7146dd",
+      "expiresAt": "2026-11-13T15:47:21Z",
+      "sourceSha": "1cf94b61010f8061e3333c3aaf7ccfbabce5c6ea",
+      "url": "https://github.com/7774cg5t75-cloud/busy-does-it-app/actions/runs/42245617705/artifacts/13518730812"
+    }
+  ],
+  "goldStandards": {
+    "existingUnapprovedReferenceRecords": 3,
+    "approved": 0,
+    "newAutomaticPromotions": 0
+  },
+  "boundaries": {
+    "hostedMutations": 0,
+    "providerDispatches": 0,
+    "publication": 0,
+    "customerCommunications": 0,
+    "paidInference": 0,
+    "browserFixturesAccountSaveClaimed": false,
+    "studioEvidence": "Real original authority exercised only with disposable synthetic PostgreSQL, not hosted accounts.",
+    "freePaid": "Same original renderer and purposeful presentation; no plan-quality branch or billing activation.",
+    "commercialEconomicsMeasured": false
+  },
+  "installation": {
+    "aiLabUnchanged": true,
+    "approvedSqlSha256": "3ebf79cdcc5614d7be3573e0ecad68ae93ec8e5c3bf751fa2c0c6cbac5a9030b",
+    "sourceCasProposalSha256": "55b616c072fcc0a616a6b90b30d9b4a39fc3320093a2d1c44da6c2506245971e",
+    "hostedInstallAttempted": false,
+    "reviewFusesPreserved": true
+  }
+}

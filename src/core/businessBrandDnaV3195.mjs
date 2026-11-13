@@ -1,3 +1,4 @@
+import {approvedBusinessArea,approvedBusinessEmail} from './approvedBusinessFacts.mjs';
 /**
  * V3.195 Business Brand DNA — local, read-only and versioned FOUNDATION.
  * Extracts an intentionally narrow, explicit allowlist from two CURRENT,
@@ -7,11 +8,12 @@
  * Consumer channels use this same source so AI/marketing generation can be
  * added later behind explicit user approval and per-tenant protections.
  */
+import {approvedBrandTone} from './brandVoice.mjs';
 import {validPrivateBuilderPair} from "./ownerBuilderDraftGuardV3195.mjs";
 import {PALETTES,safeHex,nativePalette} from "./nativePalette.mjs";
 import {appVisualPresentation} from "./appVisualPresentationV3194.mjs";
 
-const CHANNELS=Object.freeze(["website","app","social","advert","poster","video"]);
+const CHANNELS=Object.freeze(["website","app","social","advert","poster","video","newsletter"]);
 const cleanText=(text,max)=>{
  if(typeof text!=="string"||text.length>max||/[<>\u0000-\u001f\u007f]/.test(text))return "";
  return text.trim();
@@ -73,9 +75,21 @@ function buildBusinessBrandDnaSnapshot({website,app,businessId}={}){
   conflicts.push("Website and App colours differ; keep both until owner chooses.");
  if(cleanText(website.businessName,140)&&cleanText(website.businessName,140)!==name)
   conflicts.push("Website and App business names differ; owner review required.");
- const ownerVoice=cleanText(profile.brandVoice?.tone,48);
- const voice=ownerVoice&&["warm","professional","playful","direct","premium","calm"]
-  .includes(ownerVoice.toLowerCase())?ownerVoice.toLowerCase():null;
+ const websiteServices=website.sections.filter(s=>s?.type==='services'&&s.enabled!==false);
+ const normal=v=>typeof v==='string'?v.trim().normalize('NFKC').toLocaleLowerCase('en'):'';
+ if(websiteServices.length===1&&Array.isArray(websiteServices[0].items)&&websiteServices[0].items.length<=30){
+  const web=websiteServices[0].items;
+  const shared=raw.filter(row=>normal(row?.name)&&web.filter(item=>normal(item?.title)===normal(row.name)).length===1);
+  const differing=shared.filter(row=>{
+   const other=web.find(item=>normal(item?.title)===normal(row.name));
+   return normal(row.description)&&normal(other.body)&&normal(row.description)!==normal(other.body);
+  });
+  if(differing.length)conflicts.push(differing.length+' shared service description(s) differ; preserve each destination until reviewed.');
+  const appOnly=raw.filter(row=>normal(row?.name)&&!web.some(item=>normal(item?.title)===normal(row.name))).length;
+  const webOnly=web.filter(row=>normal(row?.title)&&!raw.some(item=>normal(item?.name)===normal(row.title))).length;
+  if(appOnly||webOnly)conflicts.push('Service coverage differs: '+appOnly+' app-only and '+webOnly+' website-only. Missing-only reuse needs owner review.');
+ }
+ const voice=approvedBrandTone(profile.brandVoice?.tone);
  return {ok:true,schema:"private_brand_dna_draft_v1",
   businessId,source:{websiteId:website.id,websiteGeneration:website.generation,
    appId:app.id,appDraftRevision:app.draft_revision},
@@ -98,7 +112,7 @@ function planBrandDnaContentBrief(snapshot,{channel,goal=""}={}){
  return {ok:true,kind:"brand_dna_content_brief_v1",businessId:snapshot.businessId,
   source:{...snapshot.source},channel,goal:goal.trim(),
   businessName:snapshot.identity.name,tagline:snapshot.identity.tagline,
-  about:snapshot.identity.about,services:snapshot.services.map(s=>({...s})),
+  about:snapshot.identity.about,...snapshot.identity.contactEmail?{contactEmail:snapshot.identity.contactEmail}:{},...snapshot.identity.serviceArea?{serviceArea:snapshot.identity.serviceArea}:{},services:snapshot.services.map(s=>({...s})),
   brandColour:snapshot.design.primaryColour,
   typography:snapshot.design.appTypography,
   approvedAssets:snapshot.assets.photos.map(x=>({...x})),
@@ -109,3 +123,31 @@ function planBrandDnaContentBrief(snapshot,{channel,goal=""}={}){
   guidance:"Adapt to the chosen format. Do not invent prices, customer reviews, event details, availability or approval; ask the owner for missing facts."};
 }
 export {CHANNELS,buildBusinessBrandDnaSnapshot,planBrandDnaContentBrief};
+
+// Reuse the original approved shared profile when a business has not built both surfaces.
+// Caller supplies its current authorised projection; this is not authentication or new memory.
+function buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourceMode=""}={}){
+ if(website?.businessId&&website.businessId!==businessId||website?.business_id&&website.business_id!==businessId||app?.business_id&&app.business_id!==businessId)return {ok:false,reason:'Open approved information for this business.'};
+ if(website&&app&&sourceMode!=="approved-profile"){
+  const snapshot=buildBusinessBrandDnaSnapshot({website,app,businessId});
+  if(!snapshot.ok||!approvedProfile?.businessName)return snapshot;
+  const normal=value=>String(value||'').trim().toLocaleLowerCase('en');
+  const approvedServices=Array.isArray(approvedProfile.services)?approvedProfile.services:[];
+  const profileVoice=approvedBrandTone(approvedProfile.toneOfVoice);
+  const differs=Object.hasOwn(approvedProfile,'tagline')&&normal(snapshot.identity.tagline)!==normal(approvedProfile.tagline)||!!profileVoice&&profileVoice!==snapshot.voice.ownerChosenTone||normal(snapshot.identity.name)!==normal(approvedProfile.businessName)||approvedServices.some(service=>!snapshot.services.some(row=>normal(row.name)===normal(service.name)))||snapshot.services.some(service=>{
+   if(!approvedServices.some(row=>normal(row.name)===normal(service.name)))return true;
+   const rows=approvedServices.filter(row=>normal(row.name)===normal(service.name));
+   return rows.length===1&&normal(rows[0].description)&&normal(rows[0].description)!==normal(service.description);
+  });
+  return differs?{ok:false,reason:'Your approved business profile and builder wording differ. Review the source before preparing shared content.'}:snapshot;
+ }
+ if(!businessId||!approvedProfile||typeof approvedProfile.fingerprint!=='string'||approvedProfile.businessId&&approvedProfile.businessId!==businessId)return {ok:false,reason:'Review your approved business profile before preparing content.'};
+ const name=cleanText(approvedProfile.businessName,140);if(!name)return {ok:false,reason:'Add an approved business name before preparing content.'};
+ const services=(Array.isArray(approvedProfile.services)?approvedProfile.services:[]).slice(0,30).map(row=>({id:cleanText(row?.id,128),name:cleanText(row?.name,120),description:cleanText(row?.description,500)})).filter(row=>row.name).slice(0,12);
+ const serviceArea=approvedBusinessArea(approvedProfile,businessId),contactEmail=approvedBusinessEmail(approvedProfile,businessId);
+ const identity={name,...contactEmail?{contactEmail}:{},...serviceArea?{serviceArea}:{},tagline:cleanText(approvedProfile.tagline,220),about:cleanText(approvedProfile.description||approvedProfile.about,900)};
+ const colour=normalColour(approvedProfile.theme?.primary),voice=approvedBrandTone(approvedProfile.toneOfVoice);
+ return {ok:true,schema:'private_brand_dna_draft_v1',businessId,source:{approvedProfileSource:JSON.stringify({identity,services,colour,...voice?{voice}:{}})},identity,
+  services,design:{primaryColour:colour,appTypography:null},voice:{ownerChosenTone:voice},assets:{photos:[]},conflicts:[],privateOnly:true,requiresOwnerReview:true,autoPublishes:false,sourceOfTruth:'current approved shared business profile'};
+}
+export {buildContentBrandSnapshot};

@@ -1,0 +1,24 @@
+{
+  "sourceSha": "40b0d2a22745360969e56b3a83941b118f0b1a31",
+  "sourceTree": "01b380357fe0c0f6cc22c0c472d80f81b216e800",
+  "finalSourceSha": "9fc1433bc26b0bf1d9d8441587d4d1e68fb35bda",
+  "finalSourceTree": "d36edcccb25104f7f3fea75c9003744dc64cf85b",
+  "sourceStable": false,
+  "summary": {
+    "passed": 513,
+    "failed": 0,
+    "blocked": 1,
+    "unexecuted": 0
+  },
+  "startedAt": "2026-11-06T16:42:25.657887+00:00",
+  "finishedAt": "2026-11-06T17:10:13.643803+00:00",
+  "workingTreeChanged": false,
+  "classification": "Superseded local run crossed explicit functional commits and report generation; not frozen final evidence.",
+  "blockedChecks": [
+    {
+      "id": "frozen-source-evidence",
+      "status": "blocked",
+      "reason": ""
+    }
+  ]
+}

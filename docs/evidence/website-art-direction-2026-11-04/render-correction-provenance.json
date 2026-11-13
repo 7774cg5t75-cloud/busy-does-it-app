@@ -1,0 +1,62 @@
+[
+  {
+    "file": "desktop-column-correction.jpg",
+    "sha256": "17032bcca17a7ed0941da9ddf2e371405917917c2404d03984803d2087188118",
+    "inputs": [
+      {
+        "source": {
+          "commit": "4ff05ee33af4fb9e94c9e598ed965a8e36c8feab",
+          "tree": "2c33bab0ca68b0d22fafde74bacc8d2afe269eca"
+        },
+        "png": "8-after-desktop.png",
+        "sha256": "101213c05012802a8fab07424929f1f857d968fa2e11d4ac4ac3524c87aff12a",
+        "cropBox": null
+      },
+      {
+        "source": {
+          "commit": "22d8f7443b604b4dd74bd2f3e9f3a84bd5662d06",
+          "tree": "d39021fb15ef810ce6a6454563fd003e7681d403"
+        },
+        "png": "8-after-desktop.png",
+        "sha256": "93d84f36c0f515a746600c7f4b36075f2380ad8383f60944907d7f12f3940c45",
+        "cropBox": null
+      }
+    ],
+    "operation": "Identical proportional reduction and labelled margins. Where stated, the same crop rectangle was applied to both real PNGs. No synthetic imagery."
+  },
+  {
+    "file": "number-overlap-correction.jpg",
+    "sha256": "d0a980cd42274920592282f05d759af9f0aa443bb559fc047f1ba53ddb17b571",
+    "inputs": [
+      {
+        "source": {
+          "commit": "d72a46b815dab441816ee5e2f6f6695710c117ee",
+          "tree": "395d409d8ef569c95d9578094e0d343ecb5b2f95"
+        },
+        "png": "3-after-desktop.png",
+        "sha256": "d5d4f9dfb7cff380d3451f1e9b1f55c631a6edb069d14d02879f4678bf07bc2e",
+        "cropBox": [
+          0,
+          1300,
+          1440,
+          2500
+        ]
+      },
+      {
+        "source": {
+          "commit": "22d8f7443b604b4dd74bd2f3e9f3a84bd5662d06",
+          "tree": "d39021fb15ef810ce6a6454563fd003e7681d403"
+        },
+        "png": "3-after-desktop.png",
+        "sha256": "8ba3726d9b1f43564916b6d9e7ed761e019b846a6872707e0ea0bd574426b365",
+        "cropBox": [
+          0,
+          1300,
+          1440,
+          2500
+        ]
+      }
+    ],
+    "operation": "Identical proportional reduction and labelled margins. Where stated, the same crop rectangle was applied to both real PNGs. No synthetic imagery."
+  }
+]

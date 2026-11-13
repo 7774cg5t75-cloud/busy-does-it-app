@@ -1,0 +1,424 @@
+name: Premium Website original-renderer browser evidence
+on:
+  push:
+    branches: [codex/builder-mission15-design-advancement]
+    paths:
+      - 'supabase/functions/busy-website-worker/**'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/core/premiumWebsite*.mjs'
+      - 'src/core/businessIntroduction.mjs'
+      - 'src/core/connectedBusinessPreparation.mjs'
+      - 'src/core/browserBusinessPhotoProcessor.mjs'
+      - 'src/core/photoPurposeAccount.mjs'
+      - 'scripts/process-business-photo-fixtures.mjs'
+      - 'src/core/websiteOwnedOriginalReview.mjs'
+      - 'src/core/websiteCopySuggestions.mjs'
+      - 'scripts/check-business-introduction.mjs'
+      - 'scripts/lib/business-introduction-fixtures.mjs'
+      - 'scripts/make-business-comparison.mjs'
+      - 'src/core/guidedWebsiteJourney.mjs'
+      - 'src/core/websitePhotoReview.mjs'
+      - 'src/screens/guidedWebsiteCreation.js'
+      - 'scripts/check-guided-website-creation.mjs'
+      - 'scripts/fetch-guided-website-assets.py'
+      - 'scripts/fixtures/guided-websites/**'
+      - 'scripts/check-website-menu-story.mjs'
+      - 'scripts/check-website-creative-comparison.mjs'
+      - 'src/core/websiteCreative*.mjs'
+      - 'scripts/check-website-individuality.mjs'
+      - 'scripts/check-live-creative-adapter.mjs'
+      - 'scripts/check-creative-execution-bootstrap.mjs'
+      - 'supabase/functions/busy-creative-pilot/**'
+      - 'scripts/check-creative-approval-packet.mjs'
+      - 'supabase/functions/busy-builder-proposals/approvalPacket.mjs'
+      - 'supabase/functions/busy-builder-proposals/liveCreativeAdapter.mjs'
+      - 'supabase/functions/busy-builder-proposals/creativeLedger.mjs'
+      - 'supabase/functions/busy-builder-proposals/executionBootstrap.mjs'
+      - 'docs/sql-proposals/ai-creative-receipt/**'
+      - 'scripts/check-ai-budget-postgres.mjs'
+      - 'scripts/check-preservation-foundation-postgres.mjs'
+      - 'scripts/check-ai-lab-foundation-postgres.mjs'
+      - 'scripts/lib/ai-lab-foundation-package.mjs'
+      - 'docs/sql-proposals/ai-lab-foundation/**'
+      - 'scripts/lib/preservation-foundation-package.mjs'
+      - 'docs/sql-proposals/preservation-foundation/**'
+      - 'src/core/websiteDesignAcceptance.mjs'
+      - 'scripts/check-website-design-acceptance.mjs'
+      - 'scripts/check-website-acceptance-benchmark.mjs'
+      - 'scripts/lib/private-design-register.mjs'
+      - 'scripts/prepare-design-reference-evidence.mjs'
+      - 'scripts/fixtures/website-creative/**'
+      - 'scripts/process-menu-story-photos.mjs'
+      - 'supabase/functions/busy-website-worker/websiteContentPhotos.mjs'
+      - 'scripts/check-website-art-direction.mjs'
+      - 'scripts/fixtures/website-art-direction/**'
+      - 'src/core/governedBuilderProposal.mjs'
+      - 'scripts/check-website-storyboard.mjs'
+      - 'scripts/fixtures/website-storyboard/**'
+      - 'src/core/websiteStoryboard.mjs'
+      - 'scripts/check-website-authentic-story.mjs'
+      - 'scripts/check-website-design-expansion.mjs'
+      - 'scripts/check-mission15-phase*.mjs'
+      - 'scripts/check-mission15-website-page-headings.mjs'
+      - 'scripts/capture-website-design.mjs'
+      - 'scripts/capture-mission16-sites.mjs'
+      - 'scripts/fetch-website-test-assets.py'
+      - 'scripts/fixtures/website-design/**'
+      - '.github/workflows/website-design-browser.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: premium-website-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  fictional-renderer:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    env:
+      CI: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.19.0'
+      - name: Reviewed installation without package lifecycle scripts
+        run: |
+          npm install --global npm@11.9.0 --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/apply-tooling-security-patches.mjs
+          node scripts/check-dependency-security.mjs
+          python3 scripts/testing/bootstrap.py --allow-network
+      - name: Original renderer and pinned CC0 demonstration assets
+        run: |
+          node scripts/check-website-design-expansion.mjs
+          python3 scripts/fetch-website-test-assets.py
+          node scripts/check-guided-website-creation.mjs
+          node scripts/check-business-introduction.mjs
+          node scripts/check-owned-website-media.mjs
+          python3 scripts/fetch-guided-website-assets.py
+      - name: Install browser from existing exact Playwright dependency
+        run: node_modules/.bin/playwright install --with-deps chromium
+      - name: Capture with required Chromium sandbox and no external browser requests
+        run: |
+          node scripts/capture-website-design.mjs
+          BUSY_GUIDED_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/process-business-photo-fixtures.mjs
+          BUSY_INTRO_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-excellence.mjs
+          BUSY_EXCELLENCE_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/make-excellence-comparison.mjs
+          node scripts/check-website-authentic-story.mjs
+          BUSY_STORY_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-storyboard.mjs
+          BUSY_STORYBOARD_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-art-direction.mjs
+          BUSY_ART_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-menu-story.mjs
+          node scripts/process-menu-story-photos.mjs
+          BUSY_MENU_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/check-website-creative-comparison.mjs
+          node scripts/check-website-design-acceptance.mjs
+          node scripts/check-website-acceptance-benchmark.mjs
+          node scripts/check-website-individuality.mjs
+          node scripts/check-live-creative-adapter.mjs
+          node scripts/check-creative-execution-bootstrap.mjs
+          node scripts/check-creative-approval-packet.mjs
+          BUSY_CREATIVE_BROWSER=1 node scripts/process-menu-story-photos.mjs
+          BUSY_CREATIVE_BROWSER=1 node scripts/capture-website-design.mjs
+          BUSY_BENCHMARK_BROWSER=1 node scripts/capture-website-design.mjs
+          node scripts/prepare-design-reference-evidence.mjs
+      - name: Compare real current pixels with the exact previous guided evidence
+        if: contains(github.event.head_commit.message, '[website-introduction-evidence]')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 41624660026 --repo 7774cg5t75-cloud/busy-does-it-app --name prior-guided-pixels-4de05a9c --dir .test-artifacts/prior-guided-pixels
+          node scripts/make-business-comparison.mjs
+      - name: Retain changed public fixture bytes for explicit review only
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-photo-byte-review-${{ github.sha }}
+          path: .test-artifacts/photo-byte-review/
+          retention-days: 3
+          if-no-files-found: ignore
+      - name: Retain expanded original pixels and HTML in a bounded archive
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-expansion-${{ github.sha }}
+          path: |
+            .test-artifacts/website-expansion/*.png
+            .test-artifacts/website-expansion/*.html
+            .test-artifacts/website-expansion/*.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain guided regression original pixels in a bounded archive
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-guided-${{ github.sha }}
+          path: |
+            .test-artifacts/guided-websites/*.png
+            .test-artifacts/guided-websites/*.html
+            .test-artifacts/guided-websites/*.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain rich introduction originals and compact owner comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-introduction-${{ github.sha }}
+          path: |
+            .test-artifacts/business-introduction/*.png
+            .test-artifacts/business-introduction/*.jpg
+            .test-artifacts/business-introduction/*.html
+            .test-artifacts/business-introduction/*.json
+            .test-artifacts/business-introduction/derivatives/*.webp
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain controlled complete-page comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-excellence-rich-${{ github.sha }}
+          path: |
+            .test-artifacts/website-excellence/[012]-*.png
+            .test-artifacts/website-excellence/[012]-*.html
+            .test-artifacts/website-excellence/*.json
+            .test-artifacts/website-excellence/*.jpg
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain five same-industry complete-page comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-excellence-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-excellence/[34567]-*.png
+            .test-artifacts/website-excellence/[34567]-*.html
+            .test-artifacts/website-excellence/*.json
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain authentic full-page controlled and source-richness comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-authentic-story-${{ github.sha }}
+          path: .test-artifacts/website-authentic-story/
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain rich and sparse storyboard original pixels
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-storyboard-businesses-${{ github.sha }}
+          path: |
+            .test-artifacts/website-storyboard/[0-5]-*.png
+            .test-artifacts/website-storyboard/*.html
+            .test-artifacts/website-storyboard/*.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain five same-industry storyboard originals
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-storyboard-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-storyboard/[6-9]-*.png
+            .test-artifacts/website-storyboard/10-*.png
+            .test-artifacts/website-storyboard/*.json
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain expressive catering original pixels
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-art-direction-catering-${{ github.sha }}
+          path: |
+            .test-artifacts/website-art-direction/[0-1]-*.png
+            .test-artifacts/website-art-direction/*.html
+            .test-artifacts/website-art-direction/*.json
+          retention-days: 7
+
+      - name: Retain expressive gardening original pixels
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-art-direction-gardening-${{ github.sha }}
+          path: |
+            .test-artifacts/website-art-direction/[2-3]-*.png
+            .test-artifacts/website-art-direction/*.html
+            .test-artifacts/website-art-direction/*.json
+          retention-days: 7
+
+      - name: Retain expressive studio original pixels
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-art-direction-studio-${{ github.sha }}
+          path: |
+            .test-artifacts/website-art-direction/[4-5]-*.png
+            .test-artifacts/website-art-direction/*.html
+            .test-artifacts/website-art-direction/*.json
+          retention-days: 7
+
+      - name: Retain expressive gardens original pixels
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-art-direction-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-art-direction/[6-9]-*.png
+            .test-artifacts/website-art-direction/10-*.png
+            .test-artifacts/website-art-direction/*.json
+          retention-days: 7
+
+      - name: Retain menu-story catering original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-catering-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/[0-1]-*.png
+            .test-artifacts/website-menu-story/*.json
+            .test-artifacts/website-menu-story/*.html
+          retention-days: 7
+
+      - name: Retain menu-story gardening original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-gardening-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/[2-3]-*.png
+            .test-artifacts/website-menu-story/*.json
+            .test-artifacts/website-menu-story/*.html
+          retention-days: 7
+
+      - name: Retain menu-story studio original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-studio-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/[4-5]-*.png
+            .test-artifacts/website-menu-story/*.json
+            .test-artifacts/website-menu-story/*.html
+          retention-days: 7
+
+      - name: Retain menu-story gardens original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/[6-9]-*.png
+            .test-artifacts/website-menu-story/10-*.png
+            .test-artifacts/website-menu-story/*.json
+          retention-days: 7
+
+      - name: Retain menu-story delivery original evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: website-menu-story-delivery-${{ github.sha }}
+          path: |
+            .test-artifacts/website-menu-story/delivery-*.png
+            .test-artifacts/website-menu-story/*.json
+            .test-artifacts/website-menu-story/*.html
+          retention-days: 7
+
+      - name: Retain creative catering evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-catering-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/[0-1]-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative gardening evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-gardening-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/[2-3]-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative studio evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-studio-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/[4-5]-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative gardens evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-gardens-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/[6-9]-*.png
+            .test-artifacts/website-creative/10-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative delivery evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-delivery-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/delivery-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain creative renderer evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-creative-renderer-${{ github.sha }}
+          path: |
+            .test-artifacts/website-creative/1[1-3]-*.png
+            .test-artifacts/website-creative/*.json
+            .test-artifacts/website-creative/*.html
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Retain 24-case benchmark and private-candidate evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: website-acceptance-benchmark-${{ github.sha }}
+          path: |
+            .test-artifacts/website-benchmark/*.png
+            .test-artifacts/website-benchmark/*.json
+            .test-artifacts/website-benchmark/*.html
+            .test-artifacts/design-acceptance/*.json
+          retention-days: 7
+          if-no-files-found: error

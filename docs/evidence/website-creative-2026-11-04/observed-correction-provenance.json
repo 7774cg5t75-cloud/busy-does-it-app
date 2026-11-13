@@ -1,0 +1,93 @@
+{
+  "observedBrowserRun": 41926414495,
+  "observedTechnicalStatus": "success",
+  "observedVisualDecision": "rejected story misclassification despite passing technical checks",
+  "earlierArchives": [
+    {
+      "id": 13369827022,
+      "name": "website-creative-studio-045cc4c9624332cc2c220b40aa36b2e737cac54e",
+      "bytes": 3653809,
+      "sha256": "d1bc93e1ed51bc2d066424b7bda68fac35240e5bafc2b1bc739c6199c76a2949"
+    },
+    {
+      "id": 13369542960,
+      "name": "website-creative-gardens-045cc4c9624332cc2c220b40aa36b2e737cac54e",
+      "bytes": 12276784,
+      "sha256": "6875408d451f1ba41bacf9fc79de77a1037a81b4ab7aae39bd1c3e160aa2cc7c"
+    },
+    {
+      "id": 13369443144,
+      "name": "website-creative-delivery-045cc4c9624332cc2c220b40aa36b2e737cac54e",
+      "bytes": 11964879,
+      "sha256": "f360ce5cd45a4fdc5c32c693bc9727562d686d416e12fdeb8f2db4eee95a5ea9"
+    },
+    {
+      "id": 13369193603,
+      "name": "website-creative-gardening-045cc4c9624332cc2c220b40aa36b2e737cac54e",
+      "bytes": 18278276,
+      "sha256": "e5a7b6a7c556406b50aca435bd6a99be7a04274b5b4d53684384291743c991c5"
+    },
+    {
+      "id": 13369093561,
+      "name": "website-creative-renderer-045cc4c9624332cc2c220b40aa36b2e737cac54e",
+      "bytes": 18859670,
+      "sha256": "df6fcd1cceea8b2d2bd7e0515544aaf227b894cc757232a361f970ee3b182a1f"
+    },
+    {
+      "id": 13369003803,
+      "name": "website-creative-catering-045cc4c9624332cc2c220b40aa36b2e737cac54e",
+      "bytes": 16296355,
+      "sha256": "77543d051a7b56edfe34cd616b4625efe865c83db5ca837063ba322ea46e0628"
+    }
+  ],
+  "comparisons": [
+    {
+      "file": "garden-story-correction.jpg",
+      "sha256": "2671f9580f2baa9b68d33d2b31d9887aeb956195000ba23142cfed2efe3cbf0b",
+      "factsAndAssetsUnchanged": true,
+      "inputs": [
+        {
+          "source": {
+            "commit": "045cc4c9624332cc2c220b40aa36b2e737cac54e",
+            "tree": "9cf8239cfd093fca832c4ce820061da34253e23f"
+          },
+          "file": "3-after-desktop.png",
+          "sha256": "da1e4e171bcd3f695a3dcdffc041fb88f2656a5fcbef048d5bc6a5453388ea51"
+        },
+        {
+          "source": {
+            "commit": "c5651bbadb3ce5ba346eb98c373d049c8495d431",
+            "tree": "caa56a42dab9d174e438935d6e12ff0194438482"
+          },
+          "file": "3-after-desktop.png",
+          "sha256": "5d7c112674b2ab04f737bce73da17996a8c1fd85e382f4e6a2df0cf20363f7ed"
+        }
+      ],
+      "operation": "Only labels and proportional reductions of verified original pixels; no synthetic imagery."
+    },
+    {
+      "file": "studio-process-correction.jpg",
+      "sha256": "e9b7131fc22bc45f1aea821a3ff2cf267e63d7c145b41ca8d6a143fd2b39a9d6",
+      "factsAndAssetsUnchanged": true,
+      "inputs": [
+        {
+          "source": {
+            "commit": "045cc4c9624332cc2c220b40aa36b2e737cac54e",
+            "tree": "9cf8239cfd093fca832c4ce820061da34253e23f"
+          },
+          "file": "5-after-mobile.png",
+          "sha256": "4e56b3d42c99fa488a25d6dcd31cd2ff2f4db9dbf9f4ce63712d089b7d67ba1e"
+        },
+        {
+          "source": {
+            "commit": "c5651bbadb3ce5ba346eb98c373d049c8495d431",
+            "tree": "caa56a42dab9d174e438935d6e12ff0194438482"
+          },
+          "file": "5-after-mobile.png",
+          "sha256": "0fbcd041dba275a2438c4eb30b46c857f619ed4af5676bbafa7af6a1db2b61fd"
+        }
+      ],
+      "operation": "Only labels and proportional reductions of verified original pixels; no synthetic imagery."
+    }
+  ]
+}

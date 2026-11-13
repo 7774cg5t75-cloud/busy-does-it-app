@@ -1,0 +1,12 @@
+PASS ordinary request creates an original review and exact one-use keep
+PASS typed creative goal uses the same review path and does not save automatically
+PASS a completed multi-page planning journey can review and keep one coordinated redesign
+PASS discard leaves exact current wording and presentation untouched
+PASS stale source revision disables and rejects a captured keep callback
+PASS new owner wording is preserved when an old creative review becomes stale
+PASS foreign tenant cannot revive an old creative review
+PASS parent dirty-state and busy fences prevent creative preparation
+PASS owner appearance locks reject a whole-page redesign
+PASS unknown save outcome fences the review and never replays the provider-free write
+PASS unsupported publication and ungrounded facts remain requests, not writes
+{"suite":"mission18-creative-owner-flow","passed":11,"failed":0,"providerCalls":0,"hostedActions":0,"evidence":"Actual original React component and finite editor; native primitives and write transport are inert. No live model, hosted persistence or visual-quality acceptance."}
